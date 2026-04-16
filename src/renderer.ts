@@ -1,0 +1,443 @@
+// Canvas rendering: ship, terrain, effects.
+// Wireframe style on dark background.
+
+import { config } from './config';
+import { ShipState, SHIP_OUTLINE, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT, localToWorld } from './ship';
+import { TerrainData } from './terrain';
+
+// --- Colors ---
+const COL_BG = '#050510';
+const COL_SHIP = '#00ff88';
+const COL_SHIP_DIM = '#006633';
+const COL_COCKPIT = '#00ccff';
+const COL_THRUST = '#ffaa00';
+const COL_THRUST_CORE = '#ffffff';
+const COL_RCS = '#ff4400';
+const COL_TERRAIN = '#224422';
+const COL_TERRAIN_BRIGHT = '#33aa44';
+const COL_PAD = '#00ff00';
+const COL_PAD_MARKING = '#00cc00';
+const COL_GEAR = '#00dd66';
+const COL_STARS = '#334';
+
+// --- Camera ---
+export interface Camera {
+  x: number;
+  y: number;
+  zoom: number; // px per meter
+}
+
+export function createCamera(): Camera {
+  return { x: config.startX, y: config.startY, zoom: 2 };
+}
+
+export function updateCamera(cam: Camera, ship: ShipState, terrainHeight: number, dt: number): void {
+  const c = config;
+
+  // Target position: ship + velocity lead
+  const targetX = ship.x + ship.vx * c.cameraLeadFactor;
+  const targetY = ship.y + ship.vy * c.cameraLeadFactor;
+
+  // Smooth follow
+  const t = 1 - Math.exp(-c.cameraSmoothing * dt);
+  cam.x += (targetX - cam.x) * t;
+  cam.y += (targetY - cam.y) * t;
+
+  // Dynamic zoom based on altitude above terrain
+  const altitude = ship.y - terrainHeight;
+  const zoomT = Math.max(0, Math.min(1, (altitude - c.zoomLowAlt) / (c.zoomHighAlt - c.zoomLowAlt)));
+  const targetZoom = c.maxZoom + (c.minZoom - c.maxZoom) * zoomT;
+  cam.zoom += (targetZoom - cam.zoom) * t;
+}
+
+// --- World-to-screen transform ---
+function worldToScreen(
+  wx: number, wy: number,
+  cam: Camera, canvasW: number, canvasH: number
+): [number, number] {
+  const sx = (wx - cam.x) * cam.zoom + canvasW / 2;
+  const sy = -(wy - cam.y) * cam.zoom + canvasH / 2; // flip y
+  return [sx, sy];
+}
+
+// --- Main render ---
+export function render(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  cam: Camera,
+  ship: ShipState,
+  terrain: TerrainData,
+  time: number,
+): void {
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Clear
+  ctx.fillStyle = COL_BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars (simple static dots)
+  drawStars(ctx, cam, W, H);
+
+  // Terrain
+  drawTerrain(ctx, cam, terrain, W, H);
+
+  // Landing pad markings
+  drawPad(ctx, cam, terrain, W, H);
+
+  // Ship
+  drawShip(ctx, cam, ship, W, H, time);
+}
+
+// --- Stars ---
+function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, W: number, H: number): void {
+  // Parallax stars based on camera position
+  ctx.fillStyle = COL_STARS;
+  const seed = 42;
+  for (let i = 0; i < 120; i++) {
+    const hash = (i * 2654435761 + seed) >>> 0;
+    const bx = (hash % 3000) - 500;
+    const by = (((hash >> 12) % 2000)) - 200;
+    // Parallax: stars move slower
+    const parallax = 0.05;
+    const sx = (bx - cam.x * parallax) * cam.zoom + W / 2;
+    const sy = -(by - cam.y * parallax) * cam.zoom + H / 2;
+    // Wrap
+    const wx = ((sx % W) + W) % W;
+    const wy = ((sy % H) + H) % H;
+    const brightness = 0.3 + (hash % 100) / 150;
+    ctx.globalAlpha = brightness;
+    ctx.fillRect(wx, wy, 1.5, 1.5);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// --- Terrain ---
+function drawTerrain(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  terrain: TerrainData, W: number, H: number
+): void {
+  // Find visible x range
+  const leftX = cam.x - W / (2 * cam.zoom) - 10;
+  const rightX = cam.x + W / (2 * cam.zoom) + 10;
+
+  // Find start/end indices
+  const startIdx = Math.max(0, Math.floor((leftX - terrain.startX) / terrain.spacing));
+  const endIdx = Math.min(terrain.points.length - 1,
+    Math.ceil((rightX - terrain.startX) / terrain.spacing));
+
+  if (startIdx >= endIdx) return;
+
+  // Draw filled terrain (dark)
+  ctx.beginPath();
+  const [sx0, sy0] = worldToScreen(terrain.points[startIdx][0], terrain.points[startIdx][1], cam, W, H);
+  ctx.moveTo(sx0, sy0);
+
+  for (let i = startIdx + 1; i <= endIdx; i++) {
+    const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
+    ctx.lineTo(sx, sy);
+  }
+
+  // Close at bottom of screen
+  const [sxEnd] = worldToScreen(terrain.points[endIdx][0], 0, cam, W, H);
+  const [sxStart] = worldToScreen(terrain.points[startIdx][0], 0, cam, W, H);
+  ctx.lineTo(sxEnd, H + 10);
+  ctx.lineTo(sxStart, H + 10);
+  ctx.closePath();
+  ctx.fillStyle = '#080e08';
+  ctx.fill();
+
+  // Draw terrain outline
+  ctx.beginPath();
+  ctx.moveTo(sx0, sy0);
+  for (let i = startIdx + 1; i <= endIdx; i++) {
+    const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
+    ctx.lineTo(sx, sy);
+  }
+  ctx.strokeStyle = COL_TERRAIN;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Brighter edge on top of terrain
+  ctx.strokeStyle = COL_TERRAIN_BRIGHT;
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+}
+
+// --- Landing pad ---
+function drawPad(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  terrain: TerrainData, W: number, H: number
+): void {
+  const pad = terrain.pad;
+  const [lx, ly] = worldToScreen(pad.left, pad.y, cam, W, H);
+  const [rx, ry] = worldToScreen(pad.right, pad.y, cam, W, H);
+  const [cx, cy] = worldToScreen(pad.centerX, pad.y, cam, W, H);
+
+  // Pad surface line
+  ctx.beginPath();
+  ctx.moveTo(lx, ly);
+  ctx.lineTo(rx, ry);
+  ctx.strokeStyle = COL_PAD;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // End markers
+  const markerH = 8 * cam.zoom;
+  ctx.beginPath();
+  ctx.moveTo(lx, ly);
+  ctx.lineTo(lx, ly - markerH);
+  ctx.moveTo(rx, ry);
+  ctx.lineTo(rx, ry - markerH);
+  ctx.strokeStyle = COL_PAD;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Center marker (small diamond) — only when pad is on screen
+  if (cx > 0 && cx < W && cy > 0 && cy < H) {
+    ctx.beginPath();
+    const ds = 3;
+    ctx.moveTo(cx, cy - ds);
+    ctx.lineTo(cx + ds, cy);
+    ctx.lineTo(cx, cy + ds);
+    ctx.lineTo(cx - ds, cy);
+    ctx.closePath();
+    ctx.strokeStyle = COL_PAD_MARKING;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Off-screen indicator: arrow at screen edge pointing toward pad
+  const margin = 40;
+  const padOnScreen = cx > margin && cx < W - margin && cy > margin && cy < H - margin;
+  if (!padOnScreen) {
+    // Clamp pad position to screen edge
+    const clampX = Math.max(margin, Math.min(W - margin, cx));
+    const clampY = Math.max(margin, Math.min(H - margin, cy));
+
+    // Arrow pointing from clamped position toward actual pad
+    const dx = cx - clampX;
+    const dy = cy - clampY;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const dirX = len > 0 ? dx / len : 0;
+    const dirY = len > 0 ? dy / len : 0;
+
+    // Draw arrow triangle
+    const arrowSize = 10;
+    const perpX = -dirY;
+    const perpY = dirX;
+    ctx.beginPath();
+    ctx.moveTo(clampX + dirX * arrowSize, clampY + dirY * arrowSize);
+    ctx.lineTo(clampX - dirX * 4 + perpX * arrowSize * 0.6, clampY - dirY * 4 + perpY * arrowSize * 0.6);
+    ctx.lineTo(clampX - dirX * 4 - perpX * arrowSize * 0.6, clampY - dirY * 4 - perpY * arrowSize * 0.6);
+    ctx.closePath();
+    ctx.fillStyle = COL_PAD;
+    ctx.globalAlpha = 0.8;
+    ctx.fill();
+
+    // Distance label
+    const distM = Math.sqrt(
+      (cam.x - pad.centerX) ** 2 + (cam.y - pad.y) ** 2
+    );
+    ctx.font = '11px monospace';
+    ctx.fillStyle = COL_PAD;
+    ctx.textAlign = 'center';
+    ctx.fillText(`PAD ${Math.round(distM)}m`, clampX, clampY - 14);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// --- Ship ---
+function drawShip(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  ship: ShipState, W: number, H: number, time: number
+): void {
+  // Transform and draw ship outline
+  const outline = SHIP_OUTLINE.map(([lx, ly]) => {
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    return worldToScreen(wx, wy, cam, W, H);
+  });
+
+  // Ship body
+  ctx.beginPath();
+  ctx.moveTo(outline[0][0], outline[0][1]);
+  for (let i = 1; i < outline.length; i++) {
+    ctx.lineTo(outline[i][0], outline[i][1]);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = COL_SHIP;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Cockpit window
+  const cockpit = COCKPIT_LINE.map(([lx, ly]) => {
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    return worldToScreen(wx, wy, cam, W, H);
+  });
+  ctx.beginPath();
+  ctx.moveTo(cockpit[0][0], cockpit[0][1]);
+  for (let i = 1; i < cockpit.length; i++) {
+    ctx.lineTo(cockpit[i][0], cockpit[i][1]);
+  }
+  ctx.strokeStyle = COL_COCKPIT;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Landing gear
+  if (ship.gearDeployed) {
+    drawPolyline(ctx, cam, ship, GEAR_LEFT, COL_GEAR, 1.5, W, H);
+    drawPolyline(ctx, cam, ship, GEAR_RIGHT, COL_GEAR, 1.5, W, H);
+  }
+
+  // Main engine thrust
+  if (ship.thrustFiring) {
+    drawThrust(ctx, cam, ship, W, H, time);
+  }
+
+  // RCS puffs
+  if (ship.rcsRotLeft || ship.rcsRotRight || ship.rcsTranslating) {
+    drawRCS(ctx, cam, ship, W, H, time);
+  }
+}
+
+function drawPolyline(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  ship: ShipState, points: [number, number][],
+  color: string, lineWidth: number, W: number, H: number
+): void {
+  const screenPts = points.map(([lx, ly]) => {
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    return worldToScreen(wx, wy, cam, W, H);
+  });
+  ctx.beginPath();
+  ctx.moveTo(screenPts[0][0], screenPts[0][1]);
+  for (let i = 1; i < screenPts.length; i++) {
+    ctx.lineTo(screenPts[i][0], screenPts[i][1]);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+}
+
+function drawThrust(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  ship: ShipState, W: number, H: number, time: number
+): void {
+  // Engine nozzle is at (0, -4.5) in local space
+  // Thrust direction is opposite to gimbal-adjusted "up"
+  // Flame extends from nozzle, flickering
+
+  const flicker = 0.7 + 0.3 * Math.sin(time * 40) * Math.cos(time * 67);
+  const flameLength = (4 + ship.throttle * 12) * flicker;
+  const flameWidth = (1 + ship.throttle * 2) * flicker;
+
+  // Nozzle center in local space
+  const nozzleX = 0;
+  const nozzleY = -4.5;
+
+  // Flame direction: opposite of thrust (along gimbal-adjusted "down")
+  // In local space, the flame goes in direction (sin(gimbalAngle), -cos(gimbalAngle))
+  // because the nozzle swivels by gimbalAngle
+  const flameAngle = ship.gimbalAngle;
+  const flameDirX = Math.sin(flameAngle);
+  const flameDirY = -Math.cos(flameAngle);
+  const flamePerpX = -flameDirY;
+  const flamePerpY = flameDirX;
+
+  // Flame tip
+  const tipX = nozzleX + flameDirX * flameLength;
+  const tipY = nozzleY + flameDirY * flameLength;
+
+  // Flame base corners
+  const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
+  const baseLeftY = nozzleY - flamePerpY * flameWidth * 0.5;
+  const baseRightX = nozzleX + flamePerpX * flameWidth * 0.5;
+  const baseRightY = nozzleY + flamePerpY * flameWidth * 0.5;
+
+  // Transform all to screen
+  const [sTipX, sTipY] = worldToScreen(
+    ...localToWorld(tipX, tipY, ship.x, ship.y, ship.angle), cam, W, H
+  );
+  const [sBlX, sBlY] = worldToScreen(
+    ...localToWorld(baseLeftX, baseLeftY, ship.x, ship.y, ship.angle), cam, W, H
+  );
+  const [sBrX, sBrY] = worldToScreen(
+    ...localToWorld(baseRightX, baseRightY, ship.x, ship.y, ship.angle), cam, W, H
+  );
+
+  // Outer flame
+  ctx.beginPath();
+  ctx.moveTo(sBlX, sBlY);
+  ctx.lineTo(sTipX, sTipY);
+  ctx.lineTo(sBrX, sBrY);
+  ctx.strokeStyle = COL_THRUST;
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.8;
+  ctx.stroke();
+
+  // Inner flame (core)
+  const coreLength = flameLength * 0.5;
+  const coreTipX = nozzleX + flameDirX * coreLength;
+  const coreTipY = nozzleY + flameDirY * coreLength;
+  const [sCoreX, sCoreY] = worldToScreen(
+    ...localToWorld(coreTipX, coreTipY, ship.x, ship.y, ship.angle), cam, W, H
+  );
+  const [sNozX, sNozY] = worldToScreen(
+    ...localToWorld(nozzleX, nozzleY, ship.x, ship.y, ship.angle), cam, W, H
+  );
+  ctx.beginPath();
+  ctx.moveTo(sNozX, sNozY);
+  ctx.lineTo(sCoreX, sCoreY);
+  ctx.strokeStyle = COL_THRUST_CORE;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+}
+
+function drawRCS(
+  ctx: CanvasRenderingContext2D, cam: Camera,
+  ship: ShipState, W: number, H: number, time: number
+): void {
+  const flicker = 0.6 + 0.4 * Math.sin(time * 80);
+  const puffLen = 2 * flicker;
+
+  // RCS thruster positions and fire directions (local space)
+  // For CW rotation (rcsRotRight): fire top-right leftward, bottom-left rightward
+  // For CCW rotation (rcsRotLeft): fire top-left rightward, bottom-right leftward
+  interface Puff { x: number; y: number; dx: number; dy: number; }
+  const puffs: Puff[] = [];
+
+  if (ship.rcsRotRight) {
+    puffs.push({ x: 2, y: 3, dx: 1, dy: 0 });    // top-right fires right (pushes left)
+    puffs.push({ x: -2, y: -3, dx: -1, dy: 0 });  // bottom-left fires left (pushes right)
+  }
+  if (ship.rcsRotLeft) {
+    puffs.push({ x: -2, y: 3, dx: -1, dy: 0 });   // top-left fires left
+    puffs.push({ x: 2, y: -3, dx: 1, dy: 0 });    // bottom-right fires right
+  }
+  if (ship.rcsTranslating) {
+    // Show small puffs in the direction opposing velocity (approximate)
+    puffs.push({ x: 0, y: 3, dx: 0, dy: 1 });
+    puffs.push({ x: 0, y: -3, dx: 0, dy: -1 });
+  }
+
+  ctx.strokeStyle = COL_RCS;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.7;
+
+  for (const p of puffs) {
+    const [sx, sy] = worldToScreen(
+      ...localToWorld(p.x, p.y, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    const [ex, ey] = worldToScreen(
+      ...localToWorld(p.x + p.dx * puffLen, p.y + p.dy * puffLen, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+}
