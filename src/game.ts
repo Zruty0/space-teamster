@@ -11,32 +11,34 @@ import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect } from './hud';
 import { createDevPanel, toggleDevPanel } from './dev-panel';
 import { LEVELS, LevelDef } from './levels';
+import {
+  APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera,
+  createApproachState, createApproachCamera, updateApproach,
+  updateApproachCamera, renderApproach, drawApproachHUD,
+} from './approach';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
 
+type Phase =
+  | { kind: 'levelSelect' }
+  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
+  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed' };
+
+const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length;
+
 export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-
-  private ship: ShipState;
-  private terrain: TerrainData;
-  private camera: Camera;
-
-  private state: GameState = 'levelSelect';
-  private landingScore: LandingScore | null = null;
-  private currentLevel: LevelDef = LEVELS[0];
-
+  private phase: Phase = { kind: 'levelSelect' };
   private accumulator = 0;
   private time = 0;
   private lastFrameTime = 0;
+  private menuSelection = 0;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
     this.ctx = ctx;
-    this.ship = createShip();
-    this.terrain = generateTerrain(this.currentLevel);
-    this.camera = createCamera();
     createDevPanel();
   }
 
@@ -45,10 +47,9 @@ export class Game {
     requestAnimationFrame(this.loop);
   }
 
-  private loadLevel(level: LevelDef): void {
-    this.currentLevel = level;
+  // --- Level loading ---
 
-    // Apply level params to config
+  private loadLanding(level: LevelDef): void {
     config.gravity = level.gravity;
     config.landingMaxVSpeed = level.landingMaxVSpeed;
     config.landingMaxHSpeed = level.landingMaxHSpeed;
@@ -57,22 +58,25 @@ export class Game {
     config.startY = level.startY;
     config.startVX = level.startVX;
     config.startVY = level.startVY;
-
-    // Regenerate terrain
-    this.terrain = generateTerrain(level);
-
-    // Reset ship
-    this.ship = createShip();
-
-    // Reset camera to ship
-    this.camera.x = this.ship.x;
-    this.camera.y = this.ship.y;
-
-    this.state = 'flying';
-    this.landingScore = null;
+    const terrain = generateTerrain(level);
+    const ship = createShip();
+    const camera = createCamera();
+    camera.x = ship.x;
+    camera.y = ship.y;
+    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null };
     this.time = 0;
     this.accumulator = 0;
   }
+
+  private loadApproach(level: ApproachLevel): void {
+    const as = createApproachState(level);
+    const cam = createApproachCamera(level);
+    this.phase = { kind: 'approach', level, as, cam, state: 'approaching' };
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
+  // --- Main loop ---
 
   private loop = (): void => {
     const now = performance.now() / 1000;
@@ -82,126 +86,149 @@ export class Game {
 
     const input = readInput();
 
-    // Handle meta-inputs
-    if (input.toggleDevPanel) {
-      toggleDevPanel();
-    }
+    if (input.toggleDevPanel) toggleDevPanel();
 
-    if (this.state === 'levelSelect') {
-      // Level selection
-      if (input.levelPick >= 1 && input.levelPick <= LEVELS.length) {
-        this.loadLevel(LEVELS[input.levelPick - 1]);
-      }
-    } else {
-      // In-game controls
-      if (input.reset) {
-        this.loadLevel(this.currentLevel);
-      }
-      if (input.levelSelect) {
-        this.state = 'levelSelect';
-      }
+    const p = this.phase;
 
-      // Handle gear toggle at frame level
-      if (input.toggleGear && this.state === 'flying') {
-        this.ship.gearDeployed = !this.ship.gearDeployed;
-      }
-
-      // Clear edge triggers before physics loop
-      input.toggleGear = false;
-      input.reset = false;
-      input.toggleDevPanel = false;
-      input.levelSelect = false;
-      input.levelPick = 0;
-
-      // Physics
-      this.accumulator += frameTime;
-      while (this.accumulator >= PHYSICS_DT) {
-        this.fixedUpdate(input, PHYSICS_DT);
-        this.accumulator -= PHYSICS_DT;
-        this.time += PHYSICS_DT;
-      }
-
-      // Camera
-      const terrainH = getTerrainHeight(this.terrain, this.ship.x);
-      updateCamera(this.camera, this.ship, terrainH, frameTime);
+    if (p.kind === 'levelSelect') {
+      this.handleLevelSelect(input);
+    } else if (p.kind === 'landing') {
+      this.handleLanding(input, frameTime);
+    } else if (p.kind === 'approach') {
+      this.handleApproach(input, frameTime);
     }
 
     this.renderFrame();
     requestAnimationFrame(this.loop);
   };
 
-  private fixedUpdate(input: InputState, dt: number): void {
-    if (this.state !== 'flying') return;
+  // --- Level select ---
 
-    updateShip(this.ship, input, dt, this.time, input.stopAssist, input.killRotation);
-    this.checkCollision();
+  private handleLevelSelect(input: InputState): void {
+    // Arrow/WASD navigation
+    if (input.menuUp) this.menuSelection = (this.menuSelection - 1 + TOTAL_LEVELS) % TOTAL_LEVELS;
+    if (input.menuDown) this.menuSelection = (this.menuSelection + 1) % TOTAL_LEVELS;
 
-    if (this.ship.y < -50 || this.ship.y > 2000 ||
-        this.ship.x < -200 || this.ship.x > 2200) {
-      this.state = 'crashed';
+    // Confirm with Enter/Space
+    if (input.menuConfirm) {
+      this.launchLevel(this.menuSelection);
+      return;
+    }
+
+    // Direct number key pick (still works)
+    if (input.levelPick >= 1 && input.levelPick <= TOTAL_LEVELS) {
+      this.menuSelection = input.levelPick - 1;
+      this.launchLevel(this.menuSelection);
     }
   }
 
-  private checkCollision(): void {
-    const ship = this.ship;
-    const basePoints = COLLISION_POINTS;
-    const gearPoints = ship.gearDeployed ? GEAR_COLLISION_POINTS : [];
-    const allPoints = [...basePoints, ...gearPoints];
+  private launchLevel(index: number): void {
+    if (index < LEVELS.length) {
+      this.loadLanding(LEVELS[index]);
+    } else {
+      const ai = index - LEVELS.length;
+      if (ai >= 0 && ai < APPROACH_LEVELS.length) {
+        this.loadApproach(APPROACH_LEVELS[ai]);
+      }
+    }
+  }
 
-    for (const [lx, ly] of allPoints) {
-      const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
-      const terrainH = getTerrainHeight(this.terrain, wx);
+  // --- Landing phase ---
 
-      if (wy <= terrainH) {
-        this.handleCollision(wx);
+  private handleLanding(input: InputState, frameTime: number): void {
+    const p = this.phase as Extract<Phase, { kind: 'landing' }>;
+
+    if (input.reset) { this.loadLanding(p.level); return; }
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+    if (input.toggleGear && p.state === 'flying') {
+      p.ship.gearDeployed = !p.ship.gearDeployed;
+    }
+
+    input.toggleGear = false;
+    input.reset = false;
+    input.levelSelect = false;
+    input.levelPick = 0;
+
+    this.accumulator += frameTime;
+    while (this.accumulator >= PHYSICS_DT) {
+      if (p.state === 'flying') {
+        updateShip(p.ship, input, PHYSICS_DT, this.time, input.stopAssist, input.killRotation);
+        this.checkLandingCollision(p);
+        if (p.ship.y < -50 || p.ship.y > 2000 || p.ship.x < -200 || p.ship.x > 2200) {
+          p.state = 'crashed';
+        }
+      }
+      this.accumulator -= PHYSICS_DT;
+      this.time += PHYSICS_DT;
+    }
+
+    const th = getTerrainHeight(p.terrain, p.ship.x);
+    updateCamera(p.camera, p.ship, th, frameTime);
+  }
+
+  private checkLandingCollision(p: Extract<Phase, { kind: 'landing' }>): void {
+    const pts = [...COLLISION_POINTS, ...(p.ship.gearDeployed ? GEAR_COLLISION_POINTS : [])];
+    for (const [lx, ly] of pts) {
+      const [wx, wy] = localToWorld(lx, ly, p.ship.x, p.ship.y, p.ship.angle);
+      if (wy <= getTerrainHeight(p.terrain, wx)) {
+        const onPad = isOnPad(p.terrain, wx);
+        if (!onPad) { p.state = 'crashed'; return; }
+        const vs = Math.abs(p.ship.vy), hs = Math.abs(p.ship.vx), ang = Math.abs(p.ship.angle);
+        if (vs <= config.landingMaxVSpeed && hs <= config.landingMaxHSpeed &&
+            ang <= config.landingMaxAngle && p.ship.gearDeployed) {
+          p.state = 'landed';
+          p.score = calculateLandingScore(p.ship, p.terrain);
+          p.ship.vx = 0; p.ship.vy = 0; p.ship.angularVel = 0;
+        } else {
+          p.state = 'crashed';
+        }
         return;
       }
     }
   }
 
-  private handleCollision(contactX: number): void {
-    const ship = this.ship;
-    const onPad = isOnPad(this.terrain, contactX);
+  // --- Approach phase ---
 
-    if (!onPad) {
-      this.state = 'crashed';
-      return;
+  private handleApproach(input: InputState, frameTime: number): void {
+    const p = this.phase as Extract<Phase, { kind: 'approach' }>;
+
+    if (input.reset) { this.loadApproach(p.level); return; }
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+
+    input.reset = false;
+    input.levelSelect = false;
+
+    this.accumulator += frameTime;
+    let edgeConsumed = false;
+    while (this.accumulator >= PHYSICS_DT) {
+      if (p.state === 'approaching') {
+        updateApproach(p.as, input, p.level, PHYSICS_DT);
+        // Clear edge triggers after first physics step
+        if (!edgeConsumed) { edgeConsumed = true; }
+        else { input.toggleHeatShield = false; input.toggleWings = false; }
+
+        if (!p.as.alive) p.state = 'approachFailed';
+        if (p.as.gateReached) p.state = 'approachSuccess';
+      }
+      this.accumulator -= PHYSICS_DT;
+      this.time += PHYSICS_DT;
     }
 
-    const vSpeed = Math.abs(ship.vy);
-    const hSpeed = Math.abs(ship.vx);
-    const angle = Math.abs(ship.angle);
-
-    const speedOk = vSpeed <= config.landingMaxVSpeed && hSpeed <= config.landingMaxHSpeed;
-    const angleOk = angle <= config.landingMaxAngle;
-    const gearOk = ship.gearDeployed;
-
-    if (speedOk && angleOk && gearOk) {
-      this.state = 'landed';
-      this.landingScore = calculateLandingScore(ship, this.terrain);
-      ship.vx = 0;
-      ship.vy = 0;
-      ship.angularVel = 0;
-    } else {
-      this.state = 'crashed';
-    }
+    updateApproachCamera(p.cam, p.as, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
+  // --- Render ---
+
   private renderFrame(): void {
-    if (this.state === 'levelSelect') {
-      drawLevelSelect(this.ctx, this.canvas);
-    } else {
-      render(
-        this.ctx, this.canvas,
-        this.camera, this.ship, this.terrain,
-        this.time,
-      );
-      drawHUD(
-        this.ctx, this.canvas,
-        this.ship, this.terrain,
-        this.state, this.landingScore,
-        this.currentLevel,
-      );
+    const p = this.phase;
+    if (p.kind === 'levelSelect') {
+      drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
+    } else if (p.kind === 'landing') {
+      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, this.time);
+      drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level);
+    } else if (p.kind === 'approach') {
+      renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
+      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state);
     }
   }
 }

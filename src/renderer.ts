@@ -51,7 +51,7 @@ export function updateCamera(cam: Camera, ship: ShipState, terrainHeight: number
 }
 
 // --- World-to-screen transform ---
-function worldToScreen(
+export function worldToScreen(
   wx: number, wy: number,
   cam: Camera, canvasW: number, canvasH: number
 ): [number, number] {

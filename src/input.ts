@@ -11,7 +11,16 @@ export interface InputState {
   reset: boolean;          // edge-triggered
   toggleDevPanel: boolean; // edge-triggered
   levelSelect: boolean;    // edge-triggered (L key)
-  levelPick: number;       // 0 = none, 1-5 = level number (edge-triggered)
+  levelPick: number;       // 0 = none, 1-9 = level number (edge-triggered)
+  // Menu navigation
+  menuUp: boolean;         // edge-triggered
+  menuDown: boolean;       // edge-triggered
+  menuConfirm: boolean;    // edge-triggered (Enter/Space)
+  // Approach controls
+  toggleWings: boolean;    // G edge-triggered (deploy/retract wings)
+  wingAngleUp: boolean;    // E held (increase wing angle)
+  wingAngleDown: boolean;  // Q held (decrease wing angle)
+  toggleHeatShield: boolean; // H edge-triggered
 }
 
 const keys: Set<string> = new Set();
@@ -53,9 +62,20 @@ export function readInput(): InputState {
   const toggleDevPanel = justPressed.has('F2') || justPressed.has('Backquote');
   const levelSelect = justPressed.has('KeyL');
   let levelPick = 0;
-  for (let n = 1; n <= 5; n++) {
+  for (let n = 1; n <= 9; n++) {
     if (justPressed.has(`Digit${n}`)) levelPick = n;
   }
+
+  // Menu navigation
+  const menuUp = justPressed.has('ArrowUp') || justPressed.has('KeyW');
+  const menuDown = justPressed.has('ArrowDown') || justPressed.has('KeyS');
+  const menuConfirm = justPressed.has('Enter') || justPressed.has('Space');
+
+  // Approach controls
+  const toggleWings = justPressed.has('KeyG');
+  const wingAngleUp = keys.has('KeyE');
+  const wingAngleDown = keys.has('KeyQ');
+  const toggleHeatShield = justPressed.has('KeyH');
 
   // --- Gamepad ---
   const gamepads = navigator.getGamepads();
@@ -92,5 +112,12 @@ export function readInput(): InputState {
     toggleDevPanel,
     levelSelect,
     levelPick,
+    menuUp,
+    menuDown,
+    menuConfirm,
+    toggleWings,
+    wingAngleUp,
+    wingAngleDown,
+    toggleHeatShield,
   };
 }
