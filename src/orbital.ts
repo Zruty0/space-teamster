@@ -84,7 +84,7 @@ export interface OrbitalState {
 
   // Ship orientation (used in atmosphere for AoA control)
   angle: number;        // world angle of ship nose (radians)
-  angularVel: number;   // angular velocity
+  targetAoA: number;    // desired AoA in atmosphere (A/D adjusts this)
 }
 
 // ===================== Constants =====================
@@ -136,7 +136,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       scaleHeight: 8000,
       aeroNoseDrag: 0.00002,
       aeroBroadsideDrag: 0.0004,
-      aeroLiftCoeff: 0.00012,
+      aeroLiftCoeff: 0.00025,           // generous lift for skip trajectories
       defaultEntryAoA: 0.45,          // ~26° nose-up at entry
       rcsAngularAccel: 3.0,           // rad/s² for pitch control
       heatCoeff: 1e-5,
@@ -172,7 +172,7 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
     highThrust: false,
     inAtmo: false,
     angle: 0,
-    angularVel: 0,
+    targetAoA: 0,
   };
 }
 
@@ -389,30 +389,34 @@ export function updateOrbital(
 
   // --- Ship orientation ---
   if (s.inAtmo) {
-    // In atmosphere: A/D controls pitch (angular velocity)
-    let angAccel = 0;
-    if (input.pitch !== 0) angAccel = input.pitch * level.rcsAngularAccel;
-    angAccel -= s.angularVel * 3.0; // angular damping
-    s.angularVel += angAccel * dt;
-    s.angle += s.angularVel * dt;
+    // In atmosphere: A/D adjusts target AoA. A = CCW (increase AoA), D = CW (decrease)
+    if (input.pitch !== 0) {
+      s.targetAoA -= input.pitch * level.rcsAngularAccel * dt; // A(pitch<0) -> increase AoA
+      // Clamp to reasonable range
+      if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
+      if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
+    }
+    // Ship angle tracks velocity + targetAoA (holds constant AoA automatically)
+    const velAngle = Math.atan2(s.vy, s.vx);
+    s.angle = velAngle + s.targetAoA;
   } else {
-    // In space: snap to prograde
+    // In space: track prograde
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
     if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
-    s.angularVel = 0;
+    s.targetAoA = 0;
   }
 
-  // Snap-rotate on atmo entry
+  // Snap-rotate on atmo entry: set default AoA
   if (s.inAtmo && !wasInAtmo) {
+    s.targetAoA = level.defaultEntryAoA;
     const velAngle = Math.atan2(s.vy, s.vx);
-    s.angle = velAngle + level.defaultEntryAoA;
-    s.angularVel = 0;
+    s.angle = velAngle + s.targetAoA;
   }
-  // Snap-rotate on atmo exit
+  // Snap-rotate on atmo exit: back to prograde
   if (!s.inAtmo && wasInAtmo) {
+    s.targetAoA = 0;
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
     if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
-    s.angularVel = 0;
   }
 
   for (let step = 0; step < substeps; step++) {
@@ -1095,6 +1099,46 @@ function drawShip(
   // Screen rotation: 0=up, positive=CW. Convert: screen = pi/2 - world
   // Or equivalently: for world angle θ, nose at (cos θ, sin θ), screen rotation = atan2(cos θ, sin θ)
   const screenAngle = Math.atan2(Math.cos(s.angle), Math.sin(s.angle));
+
+  // --- Plasma teardrop (proportional to drag/heating) ---
+  if (s.inAtmo) {
+    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.angle, level);
+    // Normalize: 0.05 heat rate = full plasma
+    const plasmaIntensity = Math.min(1, aero.heatRate / 0.05);
+    if (plasmaIntensity > 0.02) {
+      const velAngle = speed > 1 ? Math.atan2(s.vy, s.vx) : s.angle;
+      const screenVelAngle = Math.atan2(Math.cos(velAngle), Math.sin(velAngle));
+      const flk = 0.85 + 0.15 * Math.sin(time * 30);
+      const frontR = size * (0.3 + plasmaIntensity * 0.6) * flk;
+      const tailLen = size * (1 + plasmaIntensity * 4) * flk;
+      const bw = frontR * 0.7;
+
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(screenVelAngle); // teardrop aligned with velocity
+
+      ctx.beginPath();
+      ctx.moveTo(0, tailLen);
+      ctx.quadraticCurveTo(-bw * 1.3, tailLen * 0.25, -bw, -frontR * 0.2);
+      ctx.arc(0, -frontR * 0.2, frontR, Math.PI, 0, false);
+      ctx.quadraticCurveTo(bw * 1.3, tailLen * 0.25, 0, tailLen);
+
+      const grad = ctx.createLinearGradient(0, -frontR, 0, tailLen);
+      const rr = 255, gg = Math.floor(180 * plasmaIntensity);
+      grad.addColorStop(0, `rgba(${rr}, ${gg}, 40, ${0.55 * plasmaIntensity})`);
+      grad.addColorStop(0.35, `rgba(${rr}, ${Math.floor(gg * 0.5)}, 0, ${0.3 * plasmaIntensity})`);
+      grad.addColorStop(1, 'rgba(180, 40, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, -frontR * 0.2, frontR * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 180, ${0.3 * plasmaIntensity * flk})`;
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
 
   ctx.save();
   ctx.translate(sx, sy);
