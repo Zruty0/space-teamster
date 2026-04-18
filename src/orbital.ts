@@ -480,14 +480,16 @@ let _cachedPred: PredictionResult | null = null;
 let _predDirty = true;
 let _predFrameCount = 0;
 const ATMO_RECALC_INTERVAL = 30; // recalc every N frames when in atmo
+const COAST_RECALC_INTERVAL = 90; // recalc every N frames when coasting (for gradient update)
 
 /** Mark prediction as needing recomputation (call when orbit changes). */
 export function invalidatePrediction(): void { _predDirty = true; }
 
 function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
   _predFrameCount++;
-  // Periodic recalc when in atmosphere (drag changes orbit slowly)
+  // Periodic recalc: faster in atmo (drag), slower when coasting (gradient shift)
   if (s.inAtmo && _predFrameCount % ATMO_RECALC_INTERVAL === 0) _predDirty = true;
+  else if (_predFrameCount % COAST_RECALC_INTERVAL === 0) _predDirty = true;
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
