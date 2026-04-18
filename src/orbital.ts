@@ -91,8 +91,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: r,
       startVX: v,
       startVY: 0,
-      thrustAccel: 15,
-      fuelDeltaV: 200,            // ~200 m/s budget
+      thrustAccel: 1000,         // high thrust for snappy burns (orbital v is ~100km/s)
+      fuelDeltaV: 6000,           // Hohmann deorbit costs ~4200, leaves margin for corrections
       landingSiteAngle: -Math.PI / 4, // 315° = lower-right of planet
     };
   })(),
@@ -554,9 +554,11 @@ function drawOrbitLine(
     return;
   }
 
-  // Elliptical orbit: draw from current true anomaly forward through full orbit
+  // Elliptical orbit: draw from current position forward (in direction of travel)
   const steps = 200;
   const startNu = elem.trueAnomaly;
+  // h > 0 = CCW (true anomaly increases), h < 0 = CW (true anomaly decreases)
+  const dir = elem.h >= 0 ? 1 : -1;
 
   ctx.lineWidth = 1.5;
   
@@ -567,7 +569,7 @@ function drawOrbitLine(
 
   for (let i = 1; i <= steps; i++) {
     const frac = i / steps;
-    const nu = startNu + frac * Math.PI * 2;
+    const nu = startNu + dir * frac * Math.PI * 2;
     const pos = orbitPosition(elem, nu);
     const [sx, sy] = ws(pos.x, pos.y, cam, W, H);
 
@@ -585,9 +587,9 @@ function drawOrbitLine(
     }
 
     if (dashOn) {
-      // Fade: full opacity at start, 10% at end of full orbit
-      const alpha = 0.9 - frac * 0.8; // 0.9 → 0.1
-      ctx.strokeStyle = `rgba(0, 255, 100, ${Math.max(0.08, alpha)})`;
+      // Brightest just ahead of ship, fading to 10% at the far side (behind ship)
+      const alpha = 0.1 + 0.8 * (1 - frac); // 0.9 near ship → 0.1 at end
+      ctx.strokeStyle = `rgba(0, 255, 100, ${alpha})`;
       ctx.beginPath();
       ctx.moveTo(prevSx, prevSy);
       ctx.lineTo(sx, sy);
@@ -604,10 +606,12 @@ function drawHyperbolicOrbit(
   s: OrbitalState, elem: OrbitalElements, level: OrbitalLevel,
   W: number, H: number,
 ): void {
-  // Draw a limited arc around current position
+  // Draw arc in direction of travel
   const maxNu = Math.acos(-1 / elem.e) * 0.95; // just inside asymptote
-  const startNu = Math.max(-maxNu, elem.trueAnomaly - Math.PI * 0.5);
-  const endNu = Math.min(maxNu, elem.trueAnomaly + Math.PI * 1.5);
+  const dir = elem.h >= 0 ? 1 : -1;
+  // Draw from slightly behind ship to well ahead
+  const startNu = Math.max(-maxNu, Math.min(maxNu, elem.trueAnomaly - dir * Math.PI * 0.3));
+  const endNu = Math.max(-maxNu, Math.min(maxNu, elem.trueAnomaly + dir * Math.PI * 1.5));
   const steps = 150;
 
   ctx.lineWidth = 1.5;
@@ -707,17 +711,14 @@ function drawOrbitalMarkers(
 ): void {
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
 
-  // Periapsis
+  // Periapsis — orange marker
   const pePos = orbitPosition(elem, 0); // true anomaly = 0 at periapsis
   const [psx, psy] = ws(pePos.x, pePos.y, cam, W, H);
-  const peAlt = (elem.periapsis - level.planetRadius) / 1000;
 
-  // Color: red if inside atmosphere, yellow if close, green if safe
   const peInAtmo = elem.periapsis < level.planetRadius + level.atmoHeight;
-  const peClose = elem.periapsis < level.planetRadius + level.atmoHeight * 1.3;
-  const peCol = peInAtmo ? '#ff4444' : peClose ? '#ffaa00' : '#00ff88';
+  const peCol = '#ffaa00'; // always orange
 
-  // Diamond marker
+  // Diamond marker (no label — altitudes shown on HUD only)
   const ms = 6;
   ctx.beginPath();
   ctx.moveTo(psx, psy - ms);
@@ -729,17 +730,10 @@ function drawOrbitalMarkers(
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Label
-  ctx.font = '10px monospace';
-  ctx.fillStyle = peCol;
-  ctx.textAlign = 'center';
-  ctx.fillText(`Pe ${peAlt.toFixed(0)}km`, psx, psy - ms - 4);
-
-  // Apoapsis (only for elliptical)
+  // Apoapsis — blue marker (only for elliptical)
   if (elem.e < 1) {
     const apPos = orbitPosition(elem, Math.PI); // true anomaly = π at apoapsis
     const [asx, asy] = ws(apPos.x, apPos.y, cam, W, H);
-    const apAlt = (elem.apoapsis - level.planetRadius) / 1000;
 
     ctx.beginPath();
     ctx.moveTo(asx, asy - ms);
@@ -750,11 +744,6 @@ function drawOrbitalMarkers(
     ctx.strokeStyle = '#00aaff';
     ctx.lineWidth = 1.5;
     ctx.stroke();
-
-    ctx.font = '10px monospace';
-    ctx.fillStyle = '#00aaff';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Ap ${apAlt.toFixed(0)}km`, asx, asy - ms - 4);
   }
 
   // Atmosphere entry point: where orbit crosses atmo boundary
@@ -960,14 +949,14 @@ export function drawOrbitalHUD(
   // Speed
   label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  // Periapsis
+  // Periapsis altitude (orange, matching marker)
   const peInAtmo = peAlt < level.atmoHeight / 1000;
-  const peCol = peInAtmo ? COL_DANGER : COL_HUD;
-  label(ctx, lx, ly, 'Pe', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
+  const peHudCol = peInAtmo ? COL_DANGER : '#ffaa00';
+  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peHudCol); ly += lh;
 
-  // Apoapsis
+  // Apoapsis altitude (blue, matching marker)
   const apStr = apAlt === Infinity ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
-  label(ctx, lx, ly, 'Ap', apStr, apAlt === Infinity ? COL_WARN : COL_HUD); ly += lh;
+  label(ctx, lx, ly, 'ApA', apStr, apAlt === Infinity ? COL_WARN : '#00aaff'); ly += lh;
 
   // Eccentricity
   label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
