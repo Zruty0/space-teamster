@@ -111,7 +111,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: r,
       startVX: v,
       startVY: 0,
-      thrustAccel: 30,               // snappy burns at ~1000 m/s orbital speed
+      thrustAccel: 10,               // deorbit burn (~50 m/s) takes ~5s
       fuelDeltaV: 600,               // escape ~417, generous margin
       surfaceDensity: 1.5,
       scaleHeight: 8000,
