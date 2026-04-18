@@ -209,7 +209,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       station: {
         orbitRadius: stationR,
         startAngle: Math.PI * 0.6,    // ahead of player
-        captureRadius: 20_000,        // 20km capture zone
+        captureRadius: 50_000,        // 50km capture zone
         captureMaxSpeed: 20,          // 20 m/s max relative speed
       },
     };
@@ -758,7 +758,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
-  const maxTime = Math.min(period * 1.8, 20000);
+  const maxTime = Math.min(period * 1.05, 20000); // ~1 orbit max
   const stepSize = Math.max(1, maxTime / 1200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
@@ -1039,13 +1039,21 @@ function drawStation(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Capture circle (minimum 8px so it's always visible)
+  // Capture circle (dashed, minimum 8px)
   const capR = Math.max(st.captureRadius * cam.zoom, 8);
   ctx.beginPath();
   ctx.arc(sx, sy, capR, 0, Math.PI * 2);
   ctx.strokeStyle = '#ccbbff';
   ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 5]);
   ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Speed label next to capture circle
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#ccbbff';
+  ctx.textAlign = 'left';
+  ctx.fillText(`<${st.captureMaxSpeed}m/s`, sx + capR + 4, sy + 3);
 
   // Station icon (small square + solar panels)
   const sz = 5;
