@@ -866,17 +866,42 @@ export function updateOrbitalCamera(
   const smooth = 1 - Math.exp(-1.5 * dt);
   const halfScreen = Math.min(W, H) * 0.45;
 
+  // Check rendezvous proximity
+  let inRendezvousZoom = false;
+  if (level.station && !s.inAtmo) {
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    if (dist < level.station.captureRadius * 2 && relSpd < level.station.captureMaxSpeed * 10) {
+      inRendezvousZoom = true;
+    }
+  }
+
   if (s.inAtmo) {
-    // In atmosphere: zoom in toward ship, show local area
-    // Show ~3x the altitude as the view radius
+    // In atmosphere: zoom in toward ship
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
-    const viewRadius = Math.max(alt * 6, 60000); // 2x wider view
+    const viewRadius = Math.max(alt * 6, 60000);
     const targetZoom = halfScreen / viewRadius;
     cam.zoom += (targetZoom - cam.zoom) * smooth;
-    // Center on ship
     cam.x += (s.x - cam.x) * smooth;
     cam.y += (s.y - cam.y) * smooth;
+  } else if (inRendezvousZoom) {
+    // Rendezvous proximity: zoom in, center on ship, show station nearby
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    // View radius: fit both ship and station with margin
+    const viewRadius = Math.max(dist * 1.5, level.station!.captureRadius * 2.5);
+    const targetZoom = halfScreen / viewRadius;
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+    // Center between ship and station
+    const midX = (s.x + sp.x) / 2;
+    const midY = (s.y + sp.y) / 2;
+    cam.x += (midX - cam.x) * smooth;
+    cam.y += (midY - cam.y) * smooth;
   } else {
     // In space: show full orbit, centered on planet
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
@@ -1463,6 +1488,40 @@ function drawShip(
     ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
     ctx.lineWidth = 1;
     ctx.stroke();
+  }
+
+  // Relative velocity vector to station (when in rendezvous proximity)
+  if (level.station) {
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    if (dist < level.station.captureRadius * 2 && relSpd < level.station.captureMaxSpeed * 10) {
+      // Scale: 1 m/s = 2px, capped
+      const scale = Math.min(40 / Math.max(relSpd, 1), 3);
+      const rvsx = sx + rvx * scale;
+      const rvsy = sy - rvy * scale; // flip Y
+      // Arrow line
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(rvsx, rvsy);
+      ctx.strokeStyle = '#ff6644';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Arrowhead
+      const aLen = Math.sqrt((rvsx - sx) ** 2 + (rvsy - sy) ** 2);
+      if (aLen > 5) {
+        const adx = (rvsx - sx) / aLen, ady = (rvsy - sy) / aLen;
+        const px = -ady, py = adx;
+        ctx.beginPath();
+        ctx.moveTo(rvsx, rvsy);
+        ctx.lineTo(rvsx - adx * 6 + px * 3, rvsy - ady * 6 + py * 3);
+        ctx.moveTo(rvsx, rvsy);
+        ctx.lineTo(rvsx - adx * 6 - px * 3, rvsy - ady * 6 - py * 3);
+        ctx.stroke();
+      }
+    }
   }
 }
 
