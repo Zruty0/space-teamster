@@ -1149,16 +1149,7 @@ function drawStation(
     ctx.fillStyle = col;
     ctx.textAlign = 'center';
 
-    if (ca.relSpeed < 200) {
-      // Show prograde/radial decomposition
-      const pAbs = Math.abs(ca.progradeRel).toFixed(0);
-      const rAbs = Math.abs(ca.radialRel).toFixed(0);
-      const pDir = ca.progradeRel >= 0 ? '>>' : '<<';
-      const rDir = ca.radialRel >= 0 ? '\u2191' : '\u2193';  // up/down arrows
-      ctx.fillText(`${distStr}  ${pAbs}${pDir} ${rAbs}${rDir}`, midX, midY - 6);
-    } else {
-      ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
-    }
+    ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
   }
 }
 
@@ -1541,8 +1532,8 @@ export function drawOrbitalHUD(
     const distCol = dist < level.station.captureRadius ? COL_OK : COL_HUD;
     label(ctx, lx, ly, 'TGT', distStr, distCol); ly += lh;
 
-    if (relSpd < 200) {
-      // Prograde/radial decomposition
+    if (relSpd < 200 && dist < level.station.captureRadius * 3) {
+      // Prograde/radial decomposition (only when actually close)
       const stAngle = Math.atan2(sp.y, sp.x);
       const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
       const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
