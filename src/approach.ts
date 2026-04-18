@@ -54,8 +54,25 @@ export interface ApproachLevel {
   gateMaxSpeed: number;
   gateMinSpeed: number;
 
+  // Wind layers: horizontal wind bands at specific altitudes
+  windLayers: WindLayer[];
+  // Turbulence: altitude range with random perturbations
+  turbulence: TurbulenceZone[];
+
   // Landing level to transition to (0 = none)
   landingLevelId: number;
+}
+
+export interface WindLayer {
+  altitudeCenter: number;  // meters
+  altitudeWidth: number;   // half-width of the band
+  strength: number;        // m/s² (positive = rightward)
+}
+
+export interface TurbulenceZone {
+  altitudeMin: number;
+  altitudeMax: number;
+  strength: number;        // m/s² peak random force
 }
 
 export interface ApproachState {
@@ -78,6 +95,8 @@ export interface ApproachState {
   gateReached: boolean;
   gateSpeed: number;
   retroFiring: boolean;
+  _foldTimer: number;
+  _deployTimer: number;
 }
 
 interface TrajectoryPoint {
@@ -91,6 +110,8 @@ export interface TrajectoryResult {
   points: TrajectoryPoint[];
   impactX: number | null;
   reachedGate: boolean;
+  overheatIdx: number;    // first index where temp >= 1.0 (-1 if none)
+  wingFoldIdx: number;    // first index where temp >= wingsMaxTemp (-1 if none)
 }
 
 // ===================== Levels =====================
@@ -109,20 +130,37 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     maxWingAngle: 1.0, wingAngleRate: 1.0,
     thrustAccel: 15, fuelSeconds: 80,
     gateX: 40000, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
+    windLayers: [
+      { altitudeCenter: 12000, altitudeWidth: 1500, strength: 8 },    // tailwind at 12km
+      { altitudeCenter: 7000, altitudeWidth: 1200, strength: -12 },   // headwind at 7km
+      { altitudeCenter: 3500, altitudeWidth: 800, strength: 5 },      // light tailwind low
+    ],
+    turbulence: [
+      { altitudeMin: 4000, altitudeMax: 9000, strength: 3 },          // mid-altitude turbulence
+    ],
     landingLevelId: 1,
   },
 ];
 
 // ===================== State =====================
 
-export function createApproachState(level: ApproachLevel): ApproachState {
-  return {
+export function createApproachState(
+  level: ApproachLevel,
+  override?: { x: number; y: number; vx: number; vy: number; angle: number },
+): ApproachState {
+  const init = override ?? {
     x: level.startX, y: level.startY,
     vx: level.startVX, vy: level.startVY,
-    angle: level.startAngle, angularVel: 0,
+    angle: level.startAngle,
+  };
+  return {
+    x: init.x, y: init.y,
+    vx: init.vx, vy: init.vy,
+    angle: init.angle, angularVel: 0,
     throttle: 0, fuel: level.fuelSeconds,
     heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false,
+    _foldTimer: 0, _deployTimer: 0,
   };
 }
 
@@ -137,6 +175,68 @@ function clamp(v: number, lo: number, hi: number): number {
 function density(y: number, level: ApproachLevel): number {
   if (y <= 0) return level.surfaceDensity;
   return level.surfaceDensity * Math.exp(-y / level.scaleHeight);
+}
+
+/** Get wind acceleration at altitude (horizontal, m/s²). Time-evolving. */
+function getWind(y: number, level: ApproachLevel, time: number = 0): number {
+  let wind = 0;
+  for (let i = 0; i < level.windLayers.length; i++) {
+    const w = level.windLayers[i];
+    // Slowly evolve width and strength over time
+    // Each layer gets a unique phase offset from its index
+    const phase = i * 2.17;
+    const widthMod = 1 + 0.3 * Math.sin(time * 0.08 + phase);
+    const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 + phase + 1.3)
+                          + 0.1 * Math.sin(time * 0.15 + phase * 0.7);
+    const curWidth = w.altitudeWidth * widthMod;
+    const curStrength = w.strength * strengthMod;
+
+    const dist = Math.abs(y - w.altitudeCenter);
+    if (dist < curWidth) {
+      const t = dist / curWidth;
+      wind += curStrength * (1 - t * t);
+    }
+  }
+  return wind;
+}
+
+/** Get current wind layer params for rendering (time-evolved). */
+function getWindLayerParams(w: WindLayer, idx: number, time: number) {
+  const phase = idx * 2.17;
+  const widthMod = 1 + 0.3 * Math.sin(time * 0.08 + phase);
+  const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 + phase + 1.3)
+                        + 0.1 * Math.sin(time * 0.15 + phase * 0.7);
+  return {
+    altitudeCenter: w.altitudeCenter,
+    altitudeWidth: w.altitudeWidth * widthMod,
+    strength: w.strength * strengthMod,
+  };
+}
+
+/** Get turbulence torque (random rotational force, rad/s²). */
+function getTurbulenceTorque(
+  x: number, y: number, time: number, level: ApproachLevel,
+): number {
+  let torque = 0;
+  for (const z of level.turbulence) {
+    if (y >= z.altitudeMin && y <= z.altitudeMax) {
+      const edgeDist = Math.min(y - z.altitudeMin, z.altitudeMax - y);
+      const edgeFade = clamp(edgeDist / 500, 0, 1);
+      const hash = Math.sin(x * 0.001 + y * 0.0013 + time * 3.7) *
+                   Math.cos(x * 0.0007 + time * 5.3) +
+                   Math.sin(y * 0.0008 + time * 4.9) * 0.5;
+      torque += hash * z.strength * edgeFade;
+    }
+  }
+  return torque;
+}
+
+/** Check if currently in turbulence zone. */
+function inTurbulence(y: number, level: ApproachLevel): boolean {
+  for (const z of level.turbulence) {
+    if (y >= z.altitudeMin && y <= z.altitudeMax) return true;
+  }
+  return false;
 }
 
 /** Compute aero accelerations and heat rate for a given state snapshot. */
@@ -203,7 +303,7 @@ function aeroForces(
 }
 
 export function updateApproach(
-  s: ApproachState, input: InputState, level: ApproachLevel, dt: number,
+  s: ApproachState, input: InputState, level: ApproachLevel, dt: number, time: number,
 ): void {
   if (!s.alive || s.gateReached) return;
 
@@ -212,22 +312,46 @@ export function updateApproach(
     if (s.heatShield) { s.heatShield = false; }
     else { s.heatShield = true; s.wingsDeployed = false; }
   }
-  if (input.toggleWings) {
-    if (s.wingsDeployed) { s.wingsDeployed = false; }
-    else { s.wingsDeployed = true; s.heatShield = false; }
+  // G: toggle wings (deploy at min angle)
+  if (input.toggleWings && !s.wingsDeployed) {
+    s.wingsDeployed = true;
+    s.wingAngle = MIN_WING_ANGLE;
+    s.heatShield = false;
   }
-  // Wing angle (Q/E) — only adjustable when deployed
+  // Wing angle (Q/E)
   if (s.wingsDeployed) {
     if (input.wingAngleUp) {
       s.wingAngle = clamp(s.wingAngle + level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
     }
     if (input.wingAngleDown) {
+      // Fold toward min; when at min and still holding Q, accumulate fold timer
       s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
     }
   }
-  // Force retract wings if too hot
+  // Q held at min angle for 0.5s → retract wings
+  if (s.wingsDeployed && input.wingAngleDown && s.wingAngle <= MIN_WING_ANGLE + 0.001) {
+    s._foldTimer = (s._foldTimer ?? 0) + dt;
+    if (s._foldTimer >= 0.5) { s.wingsDeployed = false; s._foldTimer = 0; }
+  } else {
+    s._foldTimer = 0;
+  }
+  // E held when wings retracted for 0.5s → deploy
+  if (!s.wingsDeployed && !s.heatShield && input.wingAngleUp) {
+    s._deployTimer = (s._deployTimer ?? 0) + dt;
+    if (s._deployTimer >= 0.5) {
+      s.wingsDeployed = true;
+      s.wingAngle = MIN_WING_ANGLE;
+      s._deployTimer = 0;
+    }
+  } else {
+    s._deployTimer = 0;
+  }
+  // Force fold wings if too hot (same speed as Q)
   if (s.temperature > level.wingsMaxTemp && s.wingsDeployed) {
-    s.wingsDeployed = false;
+    s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
+    if (s.wingAngle <= MIN_WING_ANGLE + 0.001) {
+      s.wingsDeployed = false;
+    }
   }
 
   // --- Throttle ---
@@ -250,6 +374,12 @@ export function updateApproach(
   );
   let ax = aeroAx;
   let ay = -level.gravity + aeroAy;
+
+  // Wind layers (horizontal force)
+  ax += getWind(s.y, level, time);
+
+  // Turbulence (rotational — bumps the ship's attitude)
+  angAccel += getTurbulenceTorque(s.x, s.y, time, level);
 
   // Engine thrust (W = forward along ship nose)
   if (s.throttle > 0.01 && canBurn) {
@@ -292,12 +422,13 @@ export function updateApproach(
   s.y += s.vy * dt;
 
   // --- Bounds ---
-  if (s.y <= 0) { s.alive = false; return; }
+  if (s.y <= getApproachTerrainHeight(s.x)) { s.alive = false; return; }
 
   // --- Gate (rectangular: gateX ± gateRadius, 0 to gateY) ---
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const inGateX = s.x >= level.gateX - level.gateRadius && s.x <= level.gateX + level.gateRadius;
-  const inGateY = s.y >= 0 && s.y <= level.gateY;
+  const terrainAtGate = getApproachTerrainHeight(s.x);
+  const inGateY = s.y >= terrainAtGate && s.y <= level.gateY + terrainAtGate;
   if (inGateX && inGateY && speed <= level.gateMaxSpeed && speed >= level.gateMinSpeed) {
     s.gateReached = true;
     s.gateSpeed = speed;
@@ -308,25 +439,43 @@ export function updateApproach(
 
 export function predictTrajectory(
   s: ApproachState, level: ApproachLevel,
-  maxTime = 180, step = 0.4,
+  predTime: number = 0, maxTime = 180, step = 0.4,
 ): TrajectoryResult {
   const points: TrajectoryPoint[] = [];
   let impactX: number | null = null;
   let reachedGate = false;
+  let overheatIdx = -1;
+  let wingFoldIdx = -1;
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   let temp = s.temperature;
   const angle = s.angle;
   const shield = s.heatShield;
   const wing = s.wingsDeployed ? s.wingAngle : 0;
   let dead = false;
+  let prevTooHot = temp >= level.wingsMaxTemp;
 
   for (let t = 0; t < maxTime; t += step) {
     const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, shield, wing, level);
-    const ax = aax;
-    const ay = -level.gravity + aay;
+    let ax = aax + getWind(y, level, predTime);  // wind in prediction (current time snapshot)
+    const ay = -level.gravity + aay;   // no turbulence in prediction (unpredictable)
 
     const hm = shield ? level.shieldHeatMult : 1.0;
     temp += (heatRate * hm - level.dissipation * temp) * step;
+    // Track where wings become unusable (too hot) or usable again (cooled down)
+    const tooHotForWings = temp >= level.wingsMaxTemp;
+    if (wingFoldIdx < 0) {
+      // If we start cool, mark where it gets too hot
+      // If we start hot, mark where it cools enough for wings
+      if (points.length === 0) {
+        // first point — set initial state
+      } else if (!prevTooHot && tooHotForWings) {
+        wingFoldIdx = points.length; // just became too hot
+      } else if (prevTooHot && !tooHotForWings) {
+        wingFoldIdx = points.length; // just became cool enough
+      }
+    }
+    prevTooHot = tooHotForWings;
+    if (temp >= 1.0 && overheatIdx < 0) overheatIdx = points.length;
     if (temp >= 1.0) dead = true;
     temp = clamp(temp, 0, 1.5);
 
@@ -339,12 +488,13 @@ export function predictTrajectory(
 
     if (!dead && !reachedGate) {
       const inGX = x >= level.gateX - level.gateRadius && x <= level.gateX + level.gateRadius;
-      const inGY = y >= 0 && y <= level.gateY;
+      const tAtGate = getApproachTerrainHeight(x);
+      const inGY = y >= tAtGate && y <= level.gateY + tAtGate;
       if (inGX && inGY) { reachedGate = true; }
     }
-    if (y <= 0) { impactX = x; break; }
+    if (y <= getApproachTerrainHeight(x)) { impactX = x; break; }
   }
-  return { points, impactX, reachedGate };
+  return { points, impactX, reachedGate, overheatIdx, wingFoldIdx };
 }
 
 // ===================== Camera =====================
@@ -408,10 +558,11 @@ export function updateApproachCamera(
     cx = Math.min(cx, s.x); // don't pan away from gate
   }
 
-  // Vertical: pan down to show ground at bottom 10%,
-  // but don't push ship above 10% from the top.
-  // Ground at 90% from top: cy = 0.4 * viewH
-  const groundCy = 0.4 * viewH;
+  // Vertical: pan down to show ground at bottom 10%.
+  // Ground height below ship (approximate)
+  const groundH = getApproachTerrainHeight(s.x);
+  // Ground at 90% from top: world y at 90% = cy - 0.4*viewH = groundH
+  const groundCy = groundH + 0.4 * viewH;
   // Ship at 10% from top: cy = ship.y - 0.4 * viewH
   const shipTopCy = s.y - 0.4 * viewH;
   // Start at ship center, only pan down, clamped
@@ -435,6 +586,36 @@ function ws(wx: number, wy: number, cam: ApproachCamera, W: number, H: number): 
   ];
 }
 
+// ===================== Approach Terrain (Perlin noise) =====================
+
+// Simple 1D value noise with smooth interpolation
+function noiseHash(n: number): number {
+  // Deterministic pseudo-random from integer
+  let x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function smoothNoise(x: number): number {
+  const ix = Math.floor(x);
+  const fx = x - ix;
+  // Smoothstep
+  const t = fx * fx * (3 - 2 * fx);
+  return noiseHash(ix) * (1 - t) + noiseHash(ix + 1) * t;
+}
+
+function perlin1D(x: number, freq: number, seed: number): number {
+  return smoothNoise(x * freq + seed) * 2 - 1; // -1 to 1
+}
+
+/** Get approach terrain height at world x. Two octaves of Perlin noise. */
+function getApproachTerrainHeight(x: number): number {
+  // Large rolling hills
+  const h1 = perlin1D(x, 0.00008, 42.0) * 1200;
+  // Medium detail
+  const h2 = perlin1D(x, 0.0003, 97.0) * 400;
+  return Math.max(0, h1 + h2 + 300); // offset so average is ~300m, min 0
+}
+
 function tempColor(t: number): string {
   if (t < 0.25) return '#00ff88';
   if (t < 0.50) return '#aaff00';
@@ -452,23 +633,15 @@ export function renderApproach(
   // --- Background: atmosphere gradient ---
   drawAtmoBackground(ctx, cam, W, H, level);
 
-  // --- Ground line ---
-  const [glx, gly] = ws(cam.x - W / cam.zoom, 0, cam, W, H);
-  const [grx, gry] = ws(cam.x + W / cam.zoom, 0, cam, W, H);
-  if (gly < H + 10) {
-    ctx.beginPath();
-    ctx.moveTo(0, gly);
-    ctx.lineTo(W, gry);
-    ctx.strokeStyle = COL_GROUND;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    // Fill below ground
-    ctx.fillStyle = '#060c06';
-    ctx.fillRect(0, gly, W, H - gly + 10);
-  }
+  // --- Terrain (Perlin noise ground) ---
+  drawApproachTerrain(ctx, cam, W, H);
+
+
+  // --- Wind layers ---
+  drawWindLayers(ctx, cam, level, W, H, time);
 
   // --- Trajectory preview ---
-  drawTrajectory(ctx, cam, s, level, W, H);
+  drawTrajectory(ctx, cam, s, level, W, H, time);
 
   // --- Gate ---
   drawGate(ctx, cam, s, level, W, H);
@@ -505,11 +678,113 @@ function drawAtmoBackground(
   }
 }
 
+function drawApproachTerrain(
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera, W: number, H: number,
+): void {
+  // Check if ground could be visible (conservative: highest terrain ~1500m)
+  const screenBottomWorldY = cam.y - H / (2 * cam.zoom);
+  if (screenBottomWorldY > 2000) return; // too high, no terrain visible
+
+  // One sample every ~4 screen pixels
+  const pixelsPerSample = 4;
+  const numSamples = Math.ceil(W / pixelsPerSample) + 2;
+  const worldPerPixel = 1 / cam.zoom;
+  const worldStep = pixelsPerSample * worldPerPixel;
+  const viewLeft = cam.x - W / (2 * cam.zoom);
+  const startWorldX = viewLeft - worldStep;
+
+  // Build terrain points
+  ctx.beginPath();
+  let firstSx = 0, firstSy = 0;
+  for (let i = 0; i <= numSamples; i++) {
+    const wx = startWorldX + i * worldStep;
+    const wy = getApproachTerrainHeight(wx);
+    const [sx, sy] = ws(wx, wy, cam, W, H);
+    if (i === 0) { ctx.moveTo(sx, sy); firstSx = sx; }
+    else ctx.lineTo(sx, sy);
+  }
+  // Close at bottom of screen
+  const lastSx = firstSx + numSamples * pixelsPerSample;
+  ctx.lineTo(lastSx + 10, H + 10);
+  ctx.lineTo(firstSx - 10, H + 10);
+  ctx.closePath();
+  ctx.fillStyle = '#060c06';
+  ctx.fill();
+
+  // Outline
+  ctx.beginPath();
+  for (let i = 0; i <= numSamples; i++) {
+    const wx = startWorldX + i * worldStep;
+    const wy = getApproachTerrainHeight(wx);
+    const [sx, sy] = ws(wx, wy, cam, W, H);
+    if (i === 0) ctx.moveTo(sx, sy);
+    else ctx.lineTo(sx, sy);
+  }
+  ctx.strokeStyle = COL_GROUND;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function drawWindLayers(
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera,
+  level: ApproachLevel, W: number, H: number, time: number,
+): void {
+  for (let i = 0; i < level.windLayers.length; i++) {
+    const w = getWindLayerParams(level.windLayers[i], i, time);
+    const topAlt = w.altitudeCenter + w.altitudeWidth;
+    const botAlt = w.altitudeCenter - w.altitudeWidth;
+    const [, syTop] = ws(0, topAlt, cam, W, H);
+    const [, syBot] = ws(0, botAlt, cam, W, H);
+
+    // Skip if off screen
+    if (syTop > H + 10 || syBot < -10) continue;
+
+    const bandH = syBot - syTop;
+    if (bandH < 1) continue;
+
+    // Color: blue-ish for headwind (negative), orange-ish for tailwind (positive)
+    const isHead = w.strength < 0;
+    const alpha = clamp(Math.abs(w.strength) / 15, 0.02, 0.07);
+    ctx.fillStyle = isHead
+      ? `rgba(60, 100, 200, ${alpha})`
+      : `rgba(200, 150, 60, ${alpha})`;
+    ctx.fillRect(0, syTop, W, bandH);
+
+    // Arrow indicators showing wind direction
+    const arrowSpacing = 120;
+    const arrowSize = Math.min(12, bandH * 0.3);
+    const syMid = (syTop + syBot) / 2;
+    ctx.strokeStyle = isHead
+      ? `rgba(80, 140, 255, ${alpha * 3})`
+      : `rgba(255, 200, 80, ${alpha * 3})`;
+    ctx.lineWidth = 1.5;
+
+    for (let sx = arrowSpacing / 2; sx < W; sx += arrowSpacing) {
+      const dir = w.strength > 0 ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(sx - dir * arrowSize, syMid - arrowSize * 0.4);
+      ctx.lineTo(sx + dir * arrowSize, syMid);
+      ctx.lineTo(sx - dir * arrowSize, syMid + arrowSize * 0.4);
+      ctx.stroke();
+    }
+
+    // Label at left edge
+    const [, syLabel] = ws(0, w.altitudeCenter, cam, W, H);
+    if (syLabel > 10 && syLabel < H - 10) {
+      ctx.font = '10px monospace';
+      ctx.fillStyle = isHead ? 'rgba(80, 140, 255, 0.6)' : 'rgba(255, 200, 80, 0.6)';
+      ctx.textAlign = 'left';
+      const label = isHead ? `← ${Math.abs(w.strength).toFixed(0)} m/s²` : `→ ${w.strength.toFixed(0)} m/s²`;
+      ctx.fillText(label, 8, syLabel + 3);
+    }
+  }
+}
+
 function drawTrajectory(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
-  s: ApproachState, level: ApproachLevel, W: number, H: number,
+  s: ApproachState, level: ApproachLevel, W: number, H: number, time: number,
 ): void {
-  const result = predictTrajectory(s, level);
+  const result = predictTrajectory(s, level, time);
   const pts = result.points;
   if (pts.length < 2) return;
 
@@ -582,16 +857,66 @@ function drawTrajectory(
     ctx.textAlign = 'center';
     ctx.fillText(tag, labelX, labelY);
   }
+
+  // --- Trajectory markers ---
+
+  // Wing marker: shows where wings transition (too hot or cool enough)
+  // Don't draw if overheat comes first (or at same point)
+  if (result.wingFoldIdx >= 0 && result.wingFoldIdx < pts.length &&
+      (result.overheatIdx < 0 || result.wingFoldIdx < result.overheatIdx)) {
+    const p = pts[result.wingFoldIdx];
+    const [mx, my] = ws(p.x, p.y, cam, W, H);
+    if (mx > -50 && mx < W + 50 && my > -50 && my < H + 50) {
+      // Wings icon: two lines showing fold/unfold
+      const isCooling = p.temp < level.wingsMaxTemp;
+      if (isCooling) {
+        // Wings opening: lines spreading outward
+        ctx.strokeStyle = '#00ccff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(mx - 3, my + 2); ctx.lineTo(mx - 9, my - 3);
+        ctx.moveTo(mx + 3, my + 2); ctx.lineTo(mx + 9, my - 3);
+        ctx.stroke();
+      } else {
+        // Wings folding: lines closing inward
+        ctx.strokeStyle = '#00ccff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(mx - 8, my - 2); ctx.lineTo(mx - 3, my + 4);
+        ctx.moveTo(mx + 8, my - 2); ctx.lineTo(mx + 3, my + 4);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(mx, my + 1, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ccff';
+      ctx.fill();
+    }
+  }
+
+  // Overheat marker (red X)
+  if (result.overheatIdx >= 0 && result.overheatIdx < pts.length) {
+    const p = pts[result.overheatIdx];
+    const [mx, my] = ws(p.x, p.y, cam, W, H);
+    if (mx > -50 && mx < W + 50 && my > -50 && my < H + 50) {
+      ctx.strokeStyle = '#ff2200';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(mx - 7, my - 7); ctx.lineTo(mx + 7, my + 7);
+      ctx.moveTo(mx + 7, my - 7); ctx.lineTo(mx - 7, my + 7);
+      ctx.stroke();
+    }
+  }
 }
 
 function drawGate(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
   s: ApproachState, level: ApproachLevel, W: number, H: number,
 ): void {
-  // Gate is a rectangle: gateX ± gateRadius, from ground (y=0) to gateY
-  const [leftX, topY] = ws(level.gateX - level.gateRadius, level.gateY, cam, W, H);
-  const [rightX, botY] = ws(level.gateX + level.gateRadius, 0, cam, W, H);
-  const [centerX] = ws(level.gateX, level.gateY * 0.5, cam, W, H);
+  // Gate rectangle sits on terrain
+  const terrainAtGate = getApproachTerrainHeight(level.gateX);
+  const [leftX, topY] = ws(level.gateX - level.gateRadius, level.gateY + terrainAtGate, cam, W, H);
+  const [rightX, botY] = ws(level.gateX + level.gateRadius, terrainAtGate, cam, W, H);
+  const [centerX] = ws(level.gateX, (level.gateY + terrainAtGate * 2) * 0.5, cam, W, H);
   const rectW = rightX - leftX;
   const rectH = botY - topY;
 
@@ -641,7 +966,7 @@ function drawGate(
     ctx.font = '11px monospace';
     ctx.fillStyle = COL_GATE;
     ctx.textAlign = 'center';
-    ctx.fillText(`GATE ${(dist / 1000).toFixed(1)}km`, cx, cy - 14);
+    ctx.fillText(`TGT ${(dist / 1000).toFixed(1)}km`, cx, cy - 14);
   }
 }
 
@@ -652,12 +977,19 @@ function drawApproachShip(
   const [sx, sy] = ws(s.x, s.y, cam, W, H);
   const size = 14;
 
-  // --- Plasma teardrop (proportional to heat GENERATED, not temperature) ---
+  // --- Plasma teardrop (proportional to heat GENERATED, scales with zoom) ---
   const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const rho = density(s.y, level);
-  const rawHeatRate = rho * spd * spd * spd * level.heatCoeff;
-  // Normalize: intensity 1.0 at a strong heating rate
-  const plasmaIntensity = clamp(rawHeatRate / 0.08, 0, 1);
+  // Use same drag-based heat formula as physics
+  const sinA = Math.sin(Math.atan2(s.vx, s.vy) - s.angle);
+  const cosA = Math.cos(Math.atan2(s.vx, s.vy) - s.angle);
+  const bodyCd = level.dragNose * cosA * cosA + level.dragBroadside * sinA * sinA;
+  const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
+  const totalCd = bodyCd + effectiveWing * level.dragWingPerRad;
+  const dragAccel = 0.5 * rho * spd * spd * totalCd;
+  const actualHeatRate = dragAccel * spd * level.heatCoeff;
+  // Normalize: 0.1/s heat rate = full plasma intensity
+  const plasmaIntensity = clamp(actualHeatRate / 0.1, 0, 1);
   if (plasmaIntensity > 0.02) {
     const intensity = plasmaIntensity;
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -667,15 +999,15 @@ function drawApproachShip(
     ctx.save();
     ctx.translate(sx, sy);
     ctx.rotate(velAngle);
-    // Rotated frame: -y = forward (into velocity), +y = wake/trail
 
-    const frontR = size * (0.5 + 0.3 * intensity) * flicker;
-    const tailLen = size * (2.5 + intensity * 5) * flicker;
-    const bw = size * (0.5 + 0.25 * intensity); // body width
+    // Ship-scale: proportional to the ship icon size and intensity
+    const frontR = size * (0.4 + intensity * 0.8) * flicker;
+    const tailLen = size * (1.5 + intensity * 5) * flicker;
+    const bw = frontR * 0.7;
 
     // Teardrop path
     ctx.beginPath();
-    ctx.moveTo(0, tailLen); // tail tip
+    ctx.moveTo(0, tailLen);
     ctx.quadraticCurveTo(-bw * 1.3, tailLen * 0.25, -bw, -frontR * 0.2);
     ctx.arc(0, -frontR * 0.2, frontR, Math.PI, 0, false);
     ctx.quadraticCurveTo(bw * 1.3, tailLen * 0.25, 0, tailLen);
@@ -795,6 +1127,7 @@ export function drawApproachHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: ApproachState, level: ApproachLevel,
   state: 'approaching' | 'approachSuccess' | 'approachFailed',
+  time: number,
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -853,7 +1186,7 @@ export function drawApproachHUD(
   label(ctx, lx, ly, 'FUEL', `${fuelPct.toFixed(0)}%`, fuelCol); ly += lh;
 
   // Gate distance
-  label(ctx, lx, ly, 'GATE', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
+  label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
 
   // --- Temperature bar (right side) ---
   const barX = W - 45;
@@ -888,14 +1221,41 @@ export function drawApproachHUD(
   ctx.textAlign = 'center';
   ctx.fillText('TEMP', barX + barW / 2, barY + barH + 14);
 
-  // --- Wings too hot warning ---
+  // --- Warnings (center top) ---
+  let warnY = 30;
+  const now = Date.now();
+
+  // Wings too hot
   if (s.temperature > level.wingsMaxTemp * 0.8 && s.wingsDeployed) {
-    const flash = Math.sin(Date.now() * 0.012) > -0.3;
-    if (flash) {
+    if (Math.sin(now * 0.012) > -0.3) {
       ctx.font = 'bold 18px monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = COL_DANGER;
-      ctx.fillText('⚠ TOO HOT FOR WINGS', W / 2, 30);
+      ctx.fillText('⚠ TOO HOT FOR WINGS', W / 2, warnY);
+      warnY += 24;
+    }
+  }
+
+  // Wind annunciation
+  const windAccel = getWind(s.y, level, time);
+  if (Math.abs(windAccel) > 1) {
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    const windDir = windAccel > 0 ? '→' : '←';
+    const windCol = Math.abs(windAccel) > 8 ? COL_WARN : '#5588cc';
+    ctx.fillStyle = windCol;
+    ctx.fillText(`WIND ${windDir} ${Math.abs(windAccel).toFixed(0)} m/s²`, W / 2, warnY);
+    warnY += 22;
+  }
+
+  // Turbulence annunciation
+  if (inTurbulence(s.y, level)) {
+    if (Math.sin(now * 0.008) > -0.2) {
+      ctx.font = 'bold 16px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = COL_WARN;
+      ctx.fillText('⚠ TURBULENCE', W / 2, warnY);
+      warnY += 22;
     }
   }
 
@@ -910,7 +1270,7 @@ export function drawApproachHUD(
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_OK;
     ctx.font = 'bold 28px monospace';
-    ctx.fillText('GATE REACHED', W / 2, H / 2 - 40);
+    ctx.fillText('TARGET REACHED', W / 2, H / 2 - 40);
     ctx.font = '16px monospace';
     ctx.fillText(`Speed: ${s.gateSpeed.toFixed(0)} m/s`, W / 2, H / 2);
     ctx.fillStyle = COL_HUD_DIM;
