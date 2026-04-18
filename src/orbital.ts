@@ -708,11 +708,16 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   }
 
   // Closest approach to station
+  // If any points are within capture radius, pick the one with lowest relative speed.
+  // Otherwise, pick the point with minimum distance.
   let closestApproach: ClosestApproach | null = null;
   if (level.station) {
-    let minDist = Infinity;
+    let bestDist = Infinity;
+    let bestRelSpeed = Infinity;
+    let hasWithinCapture = false;
     const st = level.station;
     const omega = -Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
+    const stV = Math.sqrt(level.planetGM / st.orbitRadius);
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
       const stAngle = st.startAngle + omega * pt.t;
@@ -720,15 +725,29 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const stY = st.orbitRadius * Math.sin(stAngle);
       const dx = pt.x - stX, dy = pt.y - stY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < minDist) {
-        minDist = dist;
-        // Station velocity at this time
-        const stV = Math.sqrt(level.planetGM / st.orbitRadius);
-        const stVx = stV * Math.sin(stAngle);   // CW
-        const stVy = -stV * Math.cos(stAngle);
-        const relVx = pt.vx - stVx, relVy = pt.vy - stVy;
+      const stVx = stV * Math.sin(stAngle);
+      const stVy = -stV * Math.cos(stAngle);
+      const relVx = pt.vx - stVx, relVy = pt.vy - stVy;
+      const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
+
+      const withinCapture = dist < st.captureRadius;
+      let dominated = false;
+      if (withinCapture) {
+        // Within capture: pick lowest relative speed
+        if (!hasWithinCapture || relSpeed < bestRelSpeed) {
+          bestRelSpeed = relSpeed;
+          hasWithinCapture = true;
+        } else dominated = true;
+      } else if (!hasWithinCapture) {
+        // Outside capture, no capture points yet: pick closest distance
+        if (dist < bestDist) {
+          bestDist = dist;
+        } else dominated = true;
+      } else dominated = true;
+
+      if (!dominated) {
         closestApproach = {
-          dist, relSpeed: Math.sqrt(relVx * relVx + relVy * relVy),
+          dist, relSpeed,
           shipX: pt.x, shipY: pt.y,
           stationX: stX, stationY: stY,
           idx: i,
