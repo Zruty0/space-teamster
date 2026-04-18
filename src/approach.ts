@@ -153,6 +153,7 @@ export function createApproachState(
   override?: { x: number; y: number; vx: number; vy: number; angle: number },
 ): ApproachState {
   _approachPlanetR = level.planetRadius || 0;
+  _curvedMode = (override ? override.y > CURVED_MODE_ALT : level.startY > CURVED_MODE_ALT);
   const init = override ?? {
     x: level.startX, y: level.startY,
     vx: level.startVX, vy: level.startVY,
@@ -518,7 +519,7 @@ export function updateApproachCamera(
   cam: ApproachCamera, s: ApproachState, level: ApproachLevel,
   dt: number, W: number, H: number,
 ): void {
-  const smooth = 1 - Math.exp(-2.0 * dt);
+  const smooth = 1 - Math.exp(-1.5 * dt);
 
   // --- Compute desired zoom ---
   const baseZoom = 0.04;
@@ -639,10 +640,20 @@ function getApproachTerrainHeight(x: number): number {
   return getFlatTerrainHeight(x);
 }
 
-const CURVED_MODE_ALT = 25000; // above this: curved planet mode; below: flat terrain mode
+const CURVED_MODE_ALT = 25000; // transition to flat mode
+const CURVED_MODE_ALT_EXIT = CURVED_MODE_ALT * 1.1; // transition back to curved mode (hysteresis)
+
+let _curvedMode = true; // track current mode for hysteresis
 
 function isCurvedMode(s: ApproachState): boolean {
-  return s.y > CURVED_MODE_ALT;
+  if (_curvedMode) {
+    // In curved mode: switch to flat when below threshold
+    if (s.y <= CURVED_MODE_ALT) _curvedMode = false;
+  } else {
+    // In flat mode: switch to curved when above exit threshold
+    if (s.y > CURVED_MODE_ALT_EXIT) _curvedMode = true;
+  }
+  return _curvedMode;
 }
 
 function tempColor(t: number): string {
@@ -660,15 +671,32 @@ export function renderApproach(
   const W = canvas.width, H = canvas.height;
   const curved = isCurvedMode(s);
 
+  // Blend factor for smooth visual transition (1 = fully curved, 0 = fully flat)
+  // Ramp between CURVED_MODE_ALT and CURVED_MODE_ALT_EXIT
+  const blendRange = CURVED_MODE_ALT_EXIT - CURVED_MODE_ALT;
+  const blend = clamp((s.y - CURVED_MODE_ALT) / blendRange, 0, 1);
+
   if (curved) {
-    // --- Curved mode: planet visible, blue gradient atmo, no wind bands ---
     drawCurvedBackground(ctx, cam, W, H, level);
     drawApproachTerrain(ctx, cam, W, H, true);
     drawTrajectory(ctx, cam, s, level, W, H, time);
     drawLZMarker(ctx, cam, level, W, H);
+    // Fade in gate as we approach flat mode
+    if (blend < 0.5) {
+      ctx.globalAlpha = 1 - blend * 2;
+      drawGate(ctx, cam, s, level, W, H);
+      ctx.globalAlpha = 1;
+    }
   } else {
-    // --- Flat mode: normal atmosphere bands, wind layers, gate box ---
-    drawAtmoBackground(ctx, cam, W, H, level);
+    // Blend backgrounds near transition
+    if (blend > 0) {
+      drawCurvedBackground(ctx, cam, W, H, level);
+      ctx.globalAlpha = 1 - blend;
+      drawAtmoBackground(ctx, cam, W, H, level);
+      ctx.globalAlpha = 1;
+    } else {
+      drawAtmoBackground(ctx, cam, W, H, level);
+    }
     drawApproachTerrain(ctx, cam, W, H, false);
     drawWindLayers(ctx, cam, level, W, H, time);
     drawTrajectory(ctx, cam, s, level, W, H, time);
