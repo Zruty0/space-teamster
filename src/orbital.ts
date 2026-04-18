@@ -136,9 +136,9 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       scaleHeight: 8000,
       aeroNoseDrag: 0.00002,
       aeroBroadsideDrag: 0.0004,
-      aeroLiftCoeff: 0.00025,           // generous lift for skip trajectories
-      defaultEntryAoA: 0.45,          // ~26° nose-up at entry
-      rcsAngularAccel: 3.0,           // rad/s² for pitch control
+      aeroLiftCoeff: 0.00012,           // match approach phase body lift
+      defaultEntryAoA: 0.13,          // ~7.5° nose-up (matches approach phase baseline)
+      rcsAngularAccel: 1.0,           // rad/s² for pitch control (was 3.0, too sensitive)
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
       transitionAltitude: 25_000,    // hand off to approach at 25km
@@ -1100,46 +1100,6 @@ function drawShip(
   // Or equivalently: for world angle θ, nose at (cos θ, sin θ), screen rotation = atan2(cos θ, sin θ)
   const screenAngle = Math.atan2(Math.cos(s.angle), Math.sin(s.angle));
 
-  // --- Plasma teardrop (proportional to drag/heating) ---
-  if (s.inAtmo) {
-    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.angle, level);
-    // Normalize: 0.05 heat rate = full plasma
-    const plasmaIntensity = Math.min(1, aero.heatRate / 0.05);
-    if (plasmaIntensity > 0.02) {
-      const velAngle = speed > 1 ? Math.atan2(s.vy, s.vx) : s.angle;
-      const screenVelAngle = Math.atan2(Math.cos(velAngle), Math.sin(velAngle));
-      const flk = 0.85 + 0.15 * Math.sin(time * 30);
-      const frontR = size * (0.3 + plasmaIntensity * 0.6) * flk;
-      const tailLen = size * (1 + plasmaIntensity * 4) * flk;
-      const bw = frontR * 0.7;
-
-      ctx.save();
-      ctx.translate(sx, sy);
-      ctx.rotate(screenVelAngle); // teardrop aligned with velocity
-
-      ctx.beginPath();
-      ctx.moveTo(0, tailLen);
-      ctx.quadraticCurveTo(-bw * 1.3, tailLen * 0.25, -bw, -frontR * 0.2);
-      ctx.arc(0, -frontR * 0.2, frontR, Math.PI, 0, false);
-      ctx.quadraticCurveTo(bw * 1.3, tailLen * 0.25, 0, tailLen);
-
-      const grad = ctx.createLinearGradient(0, -frontR, 0, tailLen);
-      const rr = 255, gg = Math.floor(180 * plasmaIntensity);
-      grad.addColorStop(0, `rgba(${rr}, ${gg}, 40, ${0.55 * plasmaIntensity})`);
-      grad.addColorStop(0.35, `rgba(${rr}, ${Math.floor(gg * 0.5)}, 0, ${0.3 * plasmaIntensity})`);
-      grad.addColorStop(1, 'rgba(180, 40, 0, 0)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, -frontR * 0.2, frontR * 0.3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 180, ${0.3 * plasmaIntensity * flk})`;
-      ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
   ctx.save();
   ctx.translate(sx, sy);
   ctx.rotate(screenAngle);
@@ -1400,7 +1360,7 @@ export function drawOrbitalHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SPACE: Hi/Lo Thrust  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SHIFT: Hi/Lo Thrust  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();
