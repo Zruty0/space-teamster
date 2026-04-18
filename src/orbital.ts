@@ -221,6 +221,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
 export function createOrbitalState(level: OrbitalLevel): OrbitalState {
   _predDirty = true;
   _cachedPred = null;
+  _wasRendezvousZoom = false;
+  _maneuverCache = null;
   return {
     x: level.startX,
     y: level.startY,
@@ -860,6 +862,7 @@ interface ManeuverSuggestion {
   stationX: number; stationY: number; // where station is at arrival
 }
 
+let _wasRendezvousZoom = false;
 let _maneuverCache: ManeuverSuggestion | null = null;
 let _maneuverLastCompute = 0;    // realTime of last computation
 let _maneuverThrottleIdle = 0;   // realTime when throttle went idle
@@ -1087,6 +1090,12 @@ export function updateOrbitalCamera(
       inRendezvousZoom = true;
     }
   }
+  // Reset warp on rendezvous zoom entry
+  if (inRendezvousZoom && !_wasRendezvousZoom) {
+    s.timeWarpLevel = 0;
+    s.timeWarp = 1;
+  }
+  _wasRendezvousZoom = inRendezvousZoom;
 
   if (s.inAtmo) {
     // In atmosphere: zoom in toward ship
@@ -1553,8 +1562,8 @@ function drawOrbitPrediction(
     ctx.stroke();
   }
 
-  // Impact point marker + distance from LZ
-  if (pred.impact) {
+  // Impact point marker + distance from LZ (only for landing missions, not station)
+  if (pred.impact && !level.station) {
     const [mx, my] = ws(pred.impact.x, pred.impact.y, cam, W, H);
     // X marker
     ctx.strokeStyle = '#ff2200';
