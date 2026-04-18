@@ -83,7 +83,9 @@ const WARP_SPEEDS = [1, 2, 5, 10, 25, 50, 100];
 const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
-const ATMO_WARP_CAP = 5; // max displayed warp when in atmosphere
+const ATMO_WARP_CAP = 1; // max displayed warp when in atmosphere
+const ATMO_TIME_SCALE = 10; // base time scale in atmosphere (vs 100 in space)
+const ATMO_THRUST_MULT = 10; // thrust multiplier in atmosphere (compensate for slower time)
 
 // ===================== Levels =====================
 
@@ -299,13 +301,12 @@ export function updateOrbital(
     s.timeWarp = 1;
   }
 
-  // Cap warp when in atmosphere
+  // In atmosphere: slow down time, cap warp
   const effectiveWarp = s.inAtmo
     ? Math.min(s.timeWarp, ATMO_WARP_CAP)
     : s.timeWarp;
-
-  // Total time multiplier: baseTimeScale × user warp
-  const totalScale = level.baseTimeScale * effectiveWarp;
+  const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : level.baseTimeScale;
+  const totalScale = effectiveBaseScale * effectiveWarp;
   const effectiveDt = dt * totalScale;
 
   // Substeps
@@ -317,7 +318,8 @@ export function updateOrbital(
   // Toggle high thrust with Space
   if (input.toggleHighThrust) s.highThrust = !s.highThrust;
 
-  const effThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
+  const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
+  const effThrust = s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust;
 
   for (let step = 0; step < substeps; step++) {
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -570,14 +572,32 @@ export function updateOrbitalCamera(
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel,
   dt: number, W: number, H: number,
 ): void {
-  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-  const maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
-  const halfScreen = Math.min(W, H) * 0.45;
-  const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
   const smooth = 1 - Math.exp(-1.5 * dt);
-  cam.zoom += (targetZoom - cam.zoom) * smooth;
-  cam.x += (0 - cam.x) * smooth;
-  cam.y += (0 - cam.y) * smooth;
+  const halfScreen = Math.min(W, H) * 0.45;
+
+  if (s.inAtmo) {
+    // In atmosphere: zoom in toward ship, show local area
+    // Show ~3x the altitude as the view radius
+    const r = Math.sqrt(s.x * s.x + s.y * s.y);
+    const alt = r - level.planetRadius;
+    const viewRadius = Math.max(alt * 3, 30000); // at least 30km view
+    const targetZoom = halfScreen / viewRadius;
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+    // Pan toward ship (but keep planet partially visible)
+    const shipFrac = 0.6; // 60% toward ship, 40% toward planet center
+    const targetX = s.x * shipFrac;
+    const targetY = s.y * shipFrac;
+    cam.x += (targetX - cam.x) * smooth;
+    cam.y += (targetY - cam.y) * smooth;
+  } else {
+    // In space: show full orbit, centered on planet
+    const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+    const maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
+    const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+    cam.x += (0 - cam.x) * smooth;
+    cam.y += (0 - cam.y) * smooth;
+  }
 }
 
 // ===================== Rendering =====================
