@@ -55,7 +55,7 @@ export function readInput(): InputState {
   if (keys.has('KeyA') || keys.has('ArrowLeft')) pitch -= 1;
   if (keys.has('KeyD') || keys.has('ArrowRight')) pitch += 1;
 
-  const throttleUp = keys.has('KeyW') || keys.has('ArrowUp') || keys.has('ShiftLeft') || keys.has('ShiftRight');
+  const throttleUp = keys.has('KeyW') || keys.has('ArrowUp');
   const throttleDown = keys.has('KeyS') || keys.has('ArrowDown');
 
   const stopAssist = keys.has('Space');

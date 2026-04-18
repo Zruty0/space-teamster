@@ -138,7 +138,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       aeroBroadsideDrag: 0.0004,
       aeroLiftCoeff: 0.00012,           // match approach phase body lift
       defaultEntryAoA: 0.13,          // ~7.5° nose-up (matches approach phase baseline)
-      rcsAngularAccel: 1.0,           // rad/s² for pitch control (was 3.0, too sensitive)
+      rcsAngularAccel: 0.5,           // rad/s² for pitch control
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
       transitionAltitude: 25_000,    // hand off to approach at 25km
@@ -213,7 +213,10 @@ export function orbitalToApproachParams(
   const approachX = -distAhead;
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
-  const shipAngle = Math.atan2(vTangential, vRadial);
+  // Apply default entry AoA so approach starts at the baseline attitude
+  // Approach AoA convention: aoa = velAngle - shipAngle, so shipAngle = velAngle - aoa
+  const velDirApproach = Math.atan2(vTangential, vRadial);
+  const shipAngle = velDirApproach - level.defaultEntryAoA;
 
   return {
     x: approachX,
@@ -387,37 +390,8 @@ export function updateOrbital(
   const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
   const effThrust = s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust;
 
-  // --- Ship orientation ---
-  if (s.inAtmo) {
-    // In atmosphere: A/D adjusts target AoA. A = CCW (increase AoA), D = CW (decrease)
-    if (input.pitch !== 0) {
-      s.targetAoA -= input.pitch * level.rcsAngularAccel * dt; // A(pitch<0) -> increase AoA
-      // Clamp to reasonable range
-      if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
-      if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
-    }
-    // Ship angle tracks velocity + targetAoA (holds constant AoA automatically)
-    const velAngle = Math.atan2(s.vy, s.vx);
-    s.angle = velAngle + s.targetAoA;
-  } else {
-    // In space: track prograde
-    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-    if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
-    s.targetAoA = 0;
-  }
-
-  // Snap-rotate on atmo entry: set default AoA
-  if (s.inAtmo && !wasInAtmo) {
-    s.targetAoA = level.defaultEntryAoA;
-    const velAngle = Math.atan2(s.vy, s.vx);
-    s.angle = velAngle + s.targetAoA;
-  }
-  // Snap-rotate on atmo exit: back to prograde
-  if (!s.inAtmo && wasInAtmo) {
-    s.targetAoA = 0;
-    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-    if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
-  }
+  // --- Ship orientation (applied after substep loop updates s.inAtmo) ---
+  // Deferred to after substep loop — see below
 
   for (let step = 0; step < substeps; step++) {
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -526,6 +500,35 @@ export function updateOrbital(
     }
 
     if (newR <= level.planetRadius) { s.alive = false; return; }
+  }
+
+  // --- Ship orientation (after substep loop so s.inAtmo is current) ---
+  // Snap-rotate on atmo entry
+  if (s.inAtmo && !wasInAtmo) {
+    s.targetAoA = level.defaultEntryAoA;
+    s.timeWarpLevel = 0;
+    s.timeWarp = 1;
+  }
+  // Snap-rotate on atmo exit
+  if (!s.inAtmo && wasInAtmo) {
+    s.targetAoA = 0;
+  }
+
+  if (s.inAtmo) {
+    // A/D adjusts target AoA. A = CCW (increase AoA), D = CW (decrease)
+    if (input.pitch !== 0) {
+      s.targetAoA -= input.pitch * level.rcsAngularAccel * dt;
+      if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
+      if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
+    }
+    // Ship angle tracks velocity + targetAoA
+    const velAngle = Math.atan2(s.vy, s.vx);
+    s.angle = velAngle + s.targetAoA;
+  } else {
+    // In space: track prograde
+    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+    if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
+    s.targetAoA = 0;
   }
 
   // Trail update (wall-clock time)
