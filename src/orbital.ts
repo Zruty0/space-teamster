@@ -933,19 +933,22 @@ export function renderOrbital(
   drawStars(ctx, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawAtmosphere(ctx, cam, level, W, H);
+  let rendezvousZoomed = false;
   if (level.station) {
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-    const zoomed = dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10;
-    drawStation(ctx, cam, s, level, W, H, zoomed);
+    rendezvousZoomed = dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10;
+    drawStation(ctx, cam, s, level, W, H, rendezvousZoomed);
   }
   if (!level.station) drawLandingSite(ctx, cam, level, W, H);
-  drawOrbitPrediction(ctx, cam, s, level, W, H);
-  drawTrail(ctx, cam, s, W, H);
-  drawOrbitalMarkers(ctx, cam, s, level, W, H);
+  if (!rendezvousZoomed) {
+    drawOrbitPrediction(ctx, cam, s, level, W, H);
+    drawTrail(ctx, cam, s, W, H);
+    drawOrbitalMarkers(ctx, cam, s, level, W, H);
+  }
   drawShip(ctx, cam, s, level, W, H, time);
 }
 
@@ -1507,8 +1510,8 @@ function drawShip(
     if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
       const maxSpeed = level.station.captureMaxSpeed;
       const allCyan = relSpd <= maxSpeed;
-      // Scale: pixels per m/s
-      const scale = Math.min(40 / Math.max(relSpd, 1), 3);
+      // Proportional: 40 m/s = 60px
+      const scale = 60 / 40; // 1.5 px per m/s
       const ndx = rvx / Math.max(relSpd, 0.1);
       const ndy = rvy / Math.max(relSpd, 0.1);
       // Screen direction (flip Y)
