@@ -342,7 +342,8 @@ function orbitPosition(elem: OrbitalElements, nu: number): { x: number; y: numbe
 function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; vx: number; vy: number } | null {
   if (!level.station) return null;
   const st = level.station;
-  const omega = Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
+  // Negative omega = CW rotation (matching player's CW orbit)
+  const omega = -Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
   const angle = st.startAngle + omega * time;
   const x = st.orbitRadius * Math.cos(angle);
   const y = st.orbitRadius * Math.sin(angle);
@@ -709,7 +710,7 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   if (level.station) {
     let minDist = Infinity;
     const st = level.station;
-    const omega = Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
+    const omega = -Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
       const stAngle = st.startAngle + omega * pt.t;
@@ -849,7 +850,9 @@ export function updateOrbitalCamera(
   } else {
     // In space: show full orbit, centered on planet
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    const maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
+    let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
+    // If station exists, ensure its orbit is visible too
+    if (level.station) maxR = Math.max(maxR, level.station.orbitRadius * 1.15);
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (0 - cam.x) * smooth;
