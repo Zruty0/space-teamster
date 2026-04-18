@@ -360,7 +360,11 @@ export function updateOrbital(
 interface PredPoint {
   x: number;
   y: number;
+  vx: number;
+  vy: number;
+  alt: number;
   inAtmo: boolean;
+  belowCritical: boolean;
   heatRate: number;
 }
 
@@ -392,7 +396,12 @@ function predictOrbit(
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
     const { heatRate } = aeroDrag(x, y, vx, vy, level);
-    points.push({ x, y, inAtmo: alt < level.atmoHeight, heatRate });
+    points.push({
+      x, y, vx, vy, alt,
+      inAtmo: alt < level.atmoHeight,
+      belowCritical: alt < level.transitionAltitude,
+      heatRate,
+    });
 
     if (r < level.planetRadius) break;
   }
@@ -614,15 +623,14 @@ function drawOrbitPrediction(
 
     if (dashOn) {
       const frac = i / points.length;
-      const alpha = 0.1 + 0.8 * (1 - frac); // bright ahead, dim behind
+      const alpha = 0.5 + 0.5 * (1 - frac); // 1.0 ahead → 0.5 at full orbit
 
-      // Color: green in vacuum, orange in light atmo, red in heavy atmo
-      let r = 0, g = 255, b = 100;
-      if (pt.inAtmo) {
-        const intensity = Math.min(1, pt.heatRate * 200); // normalize heat rate
-        r = Math.floor(255 * intensity);
-        g = Math.floor(255 * (1 - intensity * 0.7));
-        b = Math.floor(100 * (1 - intensity));
+      // Color: green=vacuum, yellow=in atmo, orange=below critical altitude
+      let r = 0, g = 255, b = 100; // green
+      if (pt.belowCritical) {
+        r = 255; g = 160; b = 0;    // orange
+      } else if (pt.inAtmo) {
+        r = 255; g = 220; b = 0;    // yellow
       }
 
       ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
@@ -842,20 +850,24 @@ export function drawOrbitalHUD(
   label(ctx, lx, ly, 'ALT', `${alt.toFixed(1)} km`, COL_HUD); ly += lh;
   label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  // PeA (orange)
+  // PeA — always matches diamond color (orange)
   const peInAtmo = peAlt < level.atmoHeight / 1000;
-  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peInAtmo ? COL_DANGER : '#ffaa00'); ly += lh;
+  const peBelowCrit = peAlt < level.transitionAltitude / 1000;
+  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, '#ffaa00'); ly += lh;
 
   // ApA (blue)
   const apStr = apAlt === Infinity ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
   label(ctx, lx, ly, 'ApA', apStr, apAlt === Infinity ? COL_WARN : '#00aaff'); ly += lh;
+
+  // Atmosphere altitude
+  label(ctx, lx, ly, 'ATM', `${(level.atmoHeight / 1000).toFixed(0)} km`, COL_HUD_DIM); ly += lh;
 
   label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
 
   // Fuel
   const fuelPct = level.fuelDeltaV > 0 ? (s.fuel / level.fuelDeltaV * 100) : 0;
   const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
-  label(ctx, lx, ly, 'ΔV', `${s.fuel.toFixed(0)} m/s (${fuelPct.toFixed(0)}%)`, fuelCol); ly += lh;
+  label(ctx, lx, ly, '\u0394V', `${s.fuel.toFixed(0)} m/s (${fuelPct.toFixed(0)}%)`, fuelCol); ly += lh;
 
   // Time warp
   const warpCol = s.timeWarp > 1 ? COL_WARN : COL_HUD_DIM;
@@ -868,6 +880,33 @@ export function drawOrbitalHUD(
     label(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
   }
 
+  // Entry parameters — when periapsis is below critical altitude
+  if (peBelowCrit && state === 'orbiting') {
+    // Find entry point from prediction
+    const predElem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+    const period = predElem.a > 0 ? 2 * Math.PI * Math.sqrt(predElem.a ** 3 / level.planetGM) : 10000;
+    const maxTime = Math.min(period * 1.5, 15000);
+    const stepSize = Math.max(1, maxTime / 800);
+    const points = predictOrbit(s, level, maxTime, stepSize);
+    // Find first point below critical altitude
+    for (const pt of points) {
+      if (pt.belowCritical) {
+        const entrySpeed = Math.sqrt(pt.vx * pt.vx + pt.vy * pt.vy);
+        // Entry angle: angle between velocity and local horizontal
+        const rr = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+        const radX = pt.x / rr, radY = pt.y / rr; // radial unit vector (outward)
+        const vr = pt.vx * radX + pt.vy * radY;    // radial velocity (negative = inward)
+        const vh = Math.sqrt(Math.max(0, entrySpeed * entrySpeed - vr * vr)); // horizontal velocity
+        const entryAngle = Math.abs(Math.atan2(-vr, vh)) * 180 / Math.PI;
+        ly += 4;
+        const entryCol = '#ff8844';
+        label(ctx, lx, ly, 'E.V', `${entrySpeed.toFixed(0)} m/s`, entryCol); ly += lh;
+        label(ctx, lx, ly, 'E.\u2220', `${entryAngle.toFixed(1)}\u00b0`, entryCol); ly += lh;
+        break;
+      }
+    }
+  }
+
   // --- Warnings ---
   let warnY = 30;
   if (peInAtmo && state === 'orbiting') {
@@ -875,7 +914,7 @@ export function drawOrbitalHUD(
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_WARN;
     if (Math.sin(Date.now() * 0.008) > -0.3) {
-      ctx.fillText('⚠ PERIAPSIS IN ATMOSPHERE', W / 2, warnY);
+      ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
     }
     warnY += 22;
   }
