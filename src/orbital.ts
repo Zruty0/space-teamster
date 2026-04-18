@@ -1047,16 +1047,35 @@ function drawStation(
   const pos = stationPos(level, s.time)!;
   const [sx, sy] = ws(pos.x, pos.y, cam, W, H);
 
-  // Station orbit (thin dashed circle)
+  // Station orbit — fading dashed circle, bright ahead of station
   const [cx, cy] = ws(0, 0, cam, W, H);
   const orbitR = st.orbitRadius * cam.zoom;
-  ctx.beginPath();
-  ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
-  ctx.setLineDash([4, 8]);
-  ctx.strokeStyle = 'rgba(200, 180, 255, 0.2)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.setLineDash([]);
+  const stAngle = Math.atan2(pos.y, pos.x); // station's current angle
+  const steps = 120;
+  let prevOx = 0, prevOy = 0;
+  let dashAccum = 0, dashOn = true;
+  const dashLen = 8;
+  ctx.lineWidth = 1.5;
+  for (let i = 1; i <= steps; i++) {
+    const frac = i / steps;
+    // CW from station position (negative angle direction)
+    const a = stAngle - frac * Math.PI * 2;
+    const ox = cx + Math.cos(a) * orbitR;
+    const oy = cy - Math.sin(a) * orbitR;
+    if (i === 1) { prevOx = ox; prevOy = oy; continue; }
+    const segLen = Math.sqrt((ox - prevOx) ** 2 + (oy - prevOy) ** 2);
+    dashAccum += segLen;
+    if (dashAccum > dashLen) { dashOn = !dashOn; dashAccum -= dashLen; }
+    if (dashOn) {
+      const alpha = 0.2 + 0.6 * (1 - frac); // 0.8 near station -> 0.2 far
+      ctx.strokeStyle = `rgba(80, 140, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(prevOx, prevOy);
+      ctx.lineTo(ox, oy);
+      ctx.stroke();
+    }
+    prevOx = ox; prevOy = oy;
+  }
 
   // Capture circle (dashed, minimum 8px)
   const capR = Math.max(st.captureRadius * cam.zoom, 8);
