@@ -889,17 +889,16 @@ export function updateOrbitalCamera(
     cam.x += (s.x - cam.x) * smooth;
     cam.y += (s.y - cam.y) * smooth;
   } else if (inRendezvousZoom) {
-    // Rendezvous proximity: zoom in, center on ship, show station nearby
+    // Rendezvous proximity: zoom in, center on ship
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    // View radius: fit both ship and station with margin
     const viewRadius = Math.max(dist * 1.5, 50_000);
     const targetZoom = halfScreen / viewRadius;
-    cam.zoom += (targetZoom - cam.zoom) * smooth;
-    // Center on ship
-    cam.x += (s.x - cam.x) * smooth;
-    cam.y += (s.y - cam.y) * smooth;
+    const fastSmooth = 1 - Math.exp(-3.0 * dt); // faster transition
+    cam.zoom += (targetZoom - cam.zoom) * fastSmooth;
+    cam.x += (s.x - cam.x) * fastSmooth;
+    cam.y += (s.y - cam.y) * fastSmooth;
   } else {
     // In space: show full orbit, centered on planet
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
