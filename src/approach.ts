@@ -59,6 +59,9 @@ export interface ApproachLevel {
   // Turbulence: altitude range with random perturbations
   turbulence: TurbulenceZone[];
 
+  // Planet radius for curvature rendering (0 = flat)
+  planetRadius: number;
+
   // Landing level to transition to (0 = none)
   landingLevelId: number;
 }
@@ -130,6 +133,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     maxWingAngle: 1.0, wingAngleRate: 1.0,
     thrustAccel: 15, fuelSeconds: 80,
     gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
+    planetRadius: 600_000,
     windLayers: [
       { altitudeCenter: 12000, altitudeWidth: 1500, strength: 8 },    // tailwind at 12km
       { altitudeCenter: 7000, altitudeWidth: 1200, strength: -12 },   // headwind at 7km
@@ -439,7 +443,7 @@ export function updateApproach(
 
 export function predictTrajectory(
   s: ApproachState, level: ApproachLevel,
-  predTime: number = 0, maxTime = 180, step = 0.4,
+  predTime: number = 0, maxTime = 300, step = 0.5,
 ): TrajectoryResult {
   const points: TrajectoryPoint[] = [];
   let impactX: number | null = null;
@@ -516,7 +520,7 @@ export function updateApproachCamera(
   // --- Compute desired zoom ---
   const baseZoom = 0.04;
   const maxZoom = baseZoom * 2;    // can zoom in 2x when close
-  const minZoom = baseZoom * 0.2;  // can zoom out 5x when far
+  const minZoom = baseZoom * 0.02; // can zoom out 50x for orbital entry at 65km+
 
   // Fit both ship and gate horizontally in ~80% of screen
   const hDist = Math.abs(level.gateX - s.x) + level.gateRadius;
@@ -633,8 +637,8 @@ export function renderApproach(
   // --- Background: atmosphere gradient ---
   drawAtmoBackground(ctx, cam, W, H, level);
 
-  // --- Terrain (Perlin noise ground) ---
-  drawApproachTerrain(ctx, cam, W, H);
+  // --- Terrain (Perlin noise ground, with curvature at high alt) ---
+  drawApproachTerrain(ctx, cam, W, H, level);
 
 
   // --- Wind layers ---
@@ -680,10 +684,17 @@ function drawAtmoBackground(
 
 function drawApproachTerrain(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera, W: number, H: number,
+  level: ApproachLevel,
 ): void {
-  // Check if ground could be visible (conservative: highest terrain ~1500m)
-  const screenBottomWorldY = cam.y - H / (2 * cam.zoom);
-  if (screenBottomWorldY > 2000) return; // too high, no terrain visible
+  // Curvature drop: ground at horizontal distance dx from camera is lower by dx²/(2R)
+  const R = level.planetRadius > 0 ? level.planetRadius : Infinity;
+
+  // Check if ground could be visible
+  // At extreme zoom-out, curvature means ground center is at y=0 but edges drop away
+  const viewH = H / cam.zoom;
+  const screenBottomWorldY = cam.y - viewH / 2;
+  // At high alt, ground is still visible because it curves across the screen
+  if (screenBottomWorldY > 100000) return; // way too high
 
   // One sample every ~4 screen pixels
   const pixelsPerSample = 4;
@@ -693,12 +704,22 @@ function drawApproachTerrain(
   const viewLeft = cam.x - W / (2 * cam.zoom);
   const startWorldX = viewLeft - worldStep;
 
+  // Terrain height with curvature: ground curves away from a reference point
+  // Reference = camera x. At dx from camera, ground drops by dx²/(2R)
+  function terrainY(wx: number): number {
+    const baseH = getApproachTerrainHeight(wx);
+    if (R === Infinity) return baseH;
+    const dx = wx - cam.x;
+    const curvatureDrop = (dx * dx) / (2 * R);
+    return baseH - curvatureDrop;
+  }
+
   // Build terrain points
   ctx.beginPath();
-  let firstSx = 0, firstSy = 0;
+  let firstSx = 0;
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = getApproachTerrainHeight(wx);
+    const wy = terrainY(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) { ctx.moveTo(sx, sy); firstSx = sx; }
     else ctx.lineTo(sx, sy);
@@ -715,7 +736,7 @@ function drawApproachTerrain(
   ctx.beginPath();
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = getApproachTerrainHeight(wx);
+    const wy = terrainY(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) ctx.moveTo(sx, sy);
     else ctx.lineTo(sx, sy);
