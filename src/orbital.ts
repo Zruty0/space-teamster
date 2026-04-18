@@ -368,6 +368,69 @@ interface PredPoint {
   heatRate: number;
 }
 
+interface PredEvent {
+  x: number; y: number;
+  vx: number; vy: number;
+  alt: number;
+  idx: number;
+}
+
+interface PredictionResult {
+  points: PredPoint[];
+  atmoEntry: PredEvent | null;   // first point entering atmosphere
+  atmoExit: PredEvent | null;    // first point exiting atmosphere after entry
+  approachStart: PredEvent | null; // first point below critical altitude
+  impact: PredEvent | null;      // ground impact point
+}
+
+function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
+  let atmoEntry: PredEvent | null = null;
+  let atmoExit: PredEvent | null = null;
+  let approachStart: PredEvent | null = null;
+  let impact: PredEvent | null = null;
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const pt = points[i];
+
+    // Atmo entry: transition from outside to inside
+    if (!atmoEntry && !prev.inAtmo && pt.inAtmo) {
+      atmoEntry = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: pt.alt, idx: i };
+    }
+
+    // Atmo exit: transition from inside to outside (after entry)
+    if (atmoEntry && !atmoExit && prev.inAtmo && !pt.inAtmo) {
+      atmoExit = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: pt.alt, idx: i };
+    }
+
+    // Approach start: first point below critical altitude
+    if (!approachStart && pt.belowCritical) {
+      approachStart = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: pt.alt, idx: i };
+    }
+
+    // Impact: altitude <= 0
+    if (!impact && pt.alt <= 0) {
+      impact = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: 0, idx: i };
+      break;
+    }
+  }
+
+  return { points, atmoEntry, atmoExit, approachStart, impact };
+}
+
+// Cached prediction (recomputed each frame in render)
+let _cachedPred: PredictionResult | null = null;
+function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
+  if (_cachedPred) return _cachedPred;
+  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+  const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
+  const maxTime = Math.min(period * 1.8, 20000);
+  const stepSize = Math.max(1, maxTime / 1200);
+  const points = predictOrbit(s, level, maxTime, stepSize);
+  _cachedPred = analyzePrediction(points, level);
+  return _cachedPred;
+}
+
 function predictOrbit(
   s: OrbitalState, level: OrbitalLevel, maxPhysTime: number, stepSize: number,
 ): PredPoint[] {
@@ -450,6 +513,8 @@ export function renderOrbital(
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel, time: number,
 ): void {
   const W = canvas.width, H = canvas.height;
+
+  _cachedPred = null; // invalidate prediction cache each frame
 
   ctx.fillStyle = '#030308';
   ctx.fillRect(0, 0, W, H);
@@ -597,15 +662,11 @@ function drawOrbitPrediction(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
-  // Compute orbital period for prediction length
-  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-  const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a * elem.a * elem.a / level.planetGM) : 10000;
-  const maxTime = Math.min(period * 1.8, 20000);
-  const stepSize = Math.max(1, maxTime / 1200);
-
-  const points = predictOrbit(s, level, maxTime, stepSize);
+  const pred = getCachedPrediction(s, level);
+  const points = pred.points;
   if (points.length < 2) return;
 
+  // --- Draw orbit line ---
   ctx.lineWidth = 1.5;
   let prevSx = 0, prevSy = 0;
   let dashAccum = 0, dashOn = true;
@@ -623,7 +684,7 @@ function drawOrbitPrediction(
 
     if (dashOn) {
       const frac = i / points.length;
-      const alpha = 0.5 + 0.5 * (1 - frac); // 1.0 ahead → 0.5 at full orbit
+      const alpha = 0.2 + 0.8 * (1 - frac); // 1.0 ahead → 0.2 at full orbit
 
       // Color: green=vacuum, yellow=in atmo, orange=below critical altitude
       let r = 0, g = 255, b = 100; // green
@@ -642,6 +703,79 @@ function drawOrbitPrediction(
 
     prevSx = sx;
     prevSy = sy;
+  }
+
+  // --- Event markers on orbit ---
+  const markerSize = 5;
+
+  // Atmo entry marker (yellow)
+  if (pred.atmoEntry) {
+    const [mx, my] = ws(pred.atmoEntry.x, pred.atmoEntry.y, cam, W, H);
+    ctx.beginPath();
+    ctx.arc(mx, my, markerSize, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffdd00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#ffdd00';
+    ctx.textAlign = 'center';
+    ctx.fillText('ENTRY', mx, my - markerSize - 3);
+  }
+
+  // Atmo exit marker (yellow)
+  if (pred.atmoExit) {
+    const [mx, my] = ws(pred.atmoExit.x, pred.atmoExit.y, cam, W, H);
+    ctx.beginPath();
+    ctx.arc(mx, my, markerSize, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffdd00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#ffdd00';
+    ctx.textAlign = 'center';
+    ctx.fillText('EXIT', mx, my - markerSize - 3);
+  }
+
+  // Approach start marker (orange)
+  if (pred.approachStart) {
+    const [mx, my] = ws(pred.approachStart.x, pred.approachStart.y, cam, W, H);
+    ctx.beginPath();
+    ctx.arc(mx, my, markerSize + 1, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ff8844';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#ff8844';
+    ctx.textAlign = 'center';
+    ctx.fillText('APPROACH', mx, my - markerSize - 4);
+  }
+
+  // Impact point marker + distance from LZ
+  if (pred.impact) {
+    const [mx, my] = ws(pred.impact.x, pred.impact.y, cam, W, H);
+    // X marker
+    ctx.strokeStyle = '#ff2200';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(mx - 5, my - 5); ctx.lineTo(mx + 5, my + 5);
+    ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
+    ctx.stroke();
+
+    // Distance from LZ (arc distance on surface)
+    const impactAngle = Math.atan2(pred.impact.y, pred.impact.x);
+    let angleDiff = impactAngle - level.landingSiteAngle;
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    const arcDist = Math.abs(angleDiff) * level.planetRadius / 1000; // km
+    const isShort = angleDiff > 0 === (computeElements(s.x, s.y, s.vx, s.vy, level.planetGM).h >= 0);
+
+    const distLabel = arcDist < 1 ? 'ON TARGET' :
+      `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
+    const distCol = arcDist < 5 ? '#00ffcc' : '#ff6644';
+    ctx.font = '10px monospace';
+    ctx.fillStyle = distCol;
+    ctx.textAlign = 'center';
+    ctx.fillText(distLabel, mx, my + markerSize + 12);
   }
 }
 
@@ -880,30 +1014,26 @@ export function drawOrbitalHUD(
     label(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
   }
 
-  // Entry parameters — when periapsis is below critical altitude
-  if (peBelowCrit && state === 'orbiting') {
-    // Find entry point from prediction
-    const predElem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    const period = predElem.a > 0 ? 2 * Math.PI * Math.sqrt(predElem.a ** 3 / level.planetGM) : 10000;
-    const maxTime = Math.min(period * 1.5, 15000);
-    const stepSize = Math.max(1, maxTime / 800);
-    const points = predictOrbit(s, level, maxTime, stepSize);
-    // Find first point below critical altitude
-    for (const pt of points) {
-      if (pt.belowCritical) {
-        const entrySpeed = Math.sqrt(pt.vx * pt.vx + pt.vy * pt.vy);
-        // Entry angle: angle between velocity and local horizontal
-        const rr = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
-        const radX = pt.x / rr, radY = pt.y / rr; // radial unit vector (outward)
-        const vr = pt.vx * radX + pt.vy * radY;    // radial velocity (negative = inward)
-        const vh = Math.sqrt(Math.max(0, entrySpeed * entrySpeed - vr * vr)); // horizontal velocity
-        const entryAngle = Math.abs(Math.atan2(-vr, vh)) * 180 / Math.PI;
-        ly += 4;
-        const entryCol = '#ff8844';
-        label(ctx, lx, ly, 'E.V', `${entrySpeed.toFixed(0)} m/s`, entryCol); ly += lh;
-        label(ctx, lx, ly, 'E.\u2220', `${entryAngle.toFixed(1)}\u00b0`, entryCol); ly += lh;
-        break;
-      }
+  // Entry parameters — show as soon as orbit enters atmosphere
+  if (peInAtmo && state === 'orbiting') {
+    const pred = getCachedPrediction(s, level);
+    // Use approach start point if available, otherwise atmo entry
+    const entryPt = pred.approachStart || pred.atmoEntry;
+    if (entryPt) {
+      const entrySpeed = Math.sqrt(entryPt.vx * entryPt.vx + entryPt.vy * entryPt.vy);
+      const rr = Math.sqrt(entryPt.x * entryPt.x + entryPt.y * entryPt.y);
+      const radX = entryPt.x / rr, radY = entryPt.y / rr;
+      const vr = entryPt.vx * radX + entryPt.vy * radY;
+      const vh = Math.sqrt(Math.max(0, entrySpeed * entrySpeed - vr * vr));
+      const entryAngle = Math.abs(Math.atan2(-vr, vh)) * 180 / Math.PI;
+      ly += 4;
+      const entryCol = '#ff8844';
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillStyle = '#885544';
+      ctx.fillText('ENTRY', lx, ly);
+      ctx.fillStyle = entryCol;
+      ctx.fillText(`${entrySpeed.toFixed(0)} m/s  ${entryAngle.toFixed(1)}\u00b0`, lx + 56, ly);
+      ly += lh;
     }
   }
 
