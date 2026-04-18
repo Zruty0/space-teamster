@@ -583,12 +583,9 @@ export function updateOrbitalCamera(
     const viewRadius = Math.max(alt * 3, 30000); // at least 30km view
     const targetZoom = halfScreen / viewRadius;
     cam.zoom += (targetZoom - cam.zoom) * smooth;
-    // Pan toward ship (but keep planet partially visible)
-    const shipFrac = 0.6; // 60% toward ship, 40% toward planet center
-    const targetX = s.x * shipFrac;
-    const targetY = s.y * shipFrac;
-    cam.x += (targetX - cam.x) * smooth;
-    cam.y += (targetY - cam.y) * smooth;
+    // Center on ship
+    cam.x += (s.x - cam.x) * smooth;
+    cam.y += (s.y - cam.y) * smooth;
   } else {
     // In space: show full orbit, centered on planet
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
