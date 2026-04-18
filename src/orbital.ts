@@ -87,8 +87,12 @@ export interface OrbitalState {
   timeWarp: number;    // user-controlled multiplier (displayed)
   timeWarpLevel: number; // index into WARP_SPEEDS
 
-  // Thrust state
-  thrusting: 'none' | 'prograde' | 'retrograde' | 'left' | 'right';
+  // Thrust state (individual thrusters, can fire simultaneously)
+  thrustPro: boolean;    // prograde thruster firing
+  thrustRetro: boolean;  // retrograde thruster firing
+  thrustLeft: boolean;   // left (radial) thruster firing
+  thrustRight: boolean;  // right (radial) thruster firing
+  thrusting: 'none' | 'prograde' | 'retrograde' | 'left' | 'right'; // legacy, for prediction dirty
   highThrust: boolean;
   inAtmo: boolean;
 
@@ -98,6 +102,7 @@ export interface OrbitalState {
 
   // Rendezvous
   docked: boolean;
+  inRendezvousZoom: boolean;   // in close-proximity rendezvous mode
 }
 
 // ===================== Constants =====================
@@ -238,12 +243,14 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
     realTime: 0,
     timeWarp: 1,
     timeWarpLevel: 0,
+    thrustPro: false, thrustRetro: false, thrustLeft: false, thrustRight: false,
     thrusting: 'none',
     highThrust: false,
     inAtmo: false,
     angle: 0,
     targetAoA: 0,
     docked: false,
+    inRendezvousZoom: false,
   };
 }
 
@@ -466,6 +473,7 @@ export function updateOrbital(
   const subDt = effectiveDt / substeps;
 
   s.thrusting = 'none';
+  s.thrustPro = false; s.thrustRetro = false; s.thrustLeft = false; s.thrustRight = false;
 
   // Toggle high thrust with Space
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
@@ -499,28 +507,45 @@ export function updateOrbital(
 
     s.inAtmo = alt < level.atmoHeight;
 
-    // Thrust: W/S along ship nose in atmo, pro/retro in space
+    // Thrust
     if (s.fuel > 0) {
       const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
       if (speed > 0.01) {
         let thrustX = 0, thrustY = 0;
 
-        if (s.inAtmo) {
-          // In atmo: W/S thrust along ship nose direction
+        if (s.inRendezvousZoom) {
+          // Rendezvous zoom: WASD = screen coordinates
+          // W = +Y world (screen up), S = -Y, A = -X (screen left), D = +X
+          if (input.throttleUp)    { thrustY += effThrust; }
+          if (input.throttleDown)  { thrustY -= effThrust; }
+          if (input.pitch < 0)     { thrustX -= effThrust; } // A = left
+          if (input.pitch > 0)     { thrustX += effThrust; } // D = right
+          // Decompose into ship's 4 thrusters (prograde/retro/left/right)
+          if (thrustX !== 0 || thrustY !== 0) {
+            const pdx = s.vx / speed, pdy = s.vy / speed;
+            const leftX = -pdy, leftY = pdx;
+            const prog = thrustX * pdx + thrustY * pdy;
+            const lat = thrustX * leftX + thrustY * leftY;
+            if (prog > 0.01) s.thrustPro = true;
+            if (prog < -0.01) s.thrustRetro = true;
+            if (lat > 0.01) s.thrustLeft = true;
+            if (lat < -0.01) s.thrustRight = true;
+            s.thrusting = 'prograde'; // mark as thrusting for prediction dirty
+          }
+        } else if (s.inAtmo) {
           const noseX = Math.cos(s.angle);
           const noseY = Math.sin(s.angle);
           if (input.throttleUp) {
             thrustX += noseX * effThrust;
             thrustY += noseY * effThrust;
-            s.thrusting = 'prograde';
+            s.thrusting = 'prograde'; s.thrustPro = true;
           }
           if (input.throttleDown) {
             thrustX -= noseX * effThrust;
             thrustY -= noseY * effThrust;
-            s.thrusting = 'retrograde';
+            s.thrusting = 'retrograde'; s.thrustRetro = true;
           }
         } else {
-          // In space: W/S pro/retro, A/D lateral
           const pdx = s.vx / speed;
           const pdy = s.vy / speed;
           const leftX = -pdy;
@@ -528,22 +553,22 @@ export function updateOrbital(
           if (input.throttleUp) {
             thrustX += pdx * effThrust;
             thrustY += pdy * effThrust;
-            s.thrusting = 'prograde';
+            s.thrusting = 'prograde'; s.thrustPro = true;
           }
           if (input.throttleDown) {
             thrustX -= pdx * effThrust;
             thrustY -= pdy * effThrust;
-            s.thrusting = 'retrograde';
+            s.thrusting = 'retrograde'; s.thrustRetro = true;
           }
           if (input.pitch < 0) {
             thrustX += leftX * effThrust;
             thrustY += leftY * effThrust;
-            s.thrusting = 'left';
+            s.thrusting = 'left'; s.thrustLeft = true;
           }
           if (input.pitch > 0) {
             thrustX -= leftX * effThrust;
             thrustY -= leftY * effThrust;
-            s.thrusting = 'right';
+            s.thrusting = 'right'; s.thrustRight = true;
           }
         }
 
@@ -1097,6 +1122,7 @@ export function updateOrbitalCamera(
     s.timeWarp = 1;
   }
   _wasRendezvousZoom = inRendezvousZoom;
+  s.inRendezvousZoom = inRendezvousZoom;
 
   if (s.inAtmo) {
     // In atmosphere: zoom in toward ship
@@ -1685,7 +1711,7 @@ function drawShip(
   const retroCol = hi ? '#ffaa44' : '#ff6600';
   const rcsCol = hi ? '#ff8844' : '#ff4400';
 
-  if (s.thrusting === 'prograde') {
+  if (s.thrustPro) {
     const fl = flameBase * flicker;
     ctx.beginPath();
     ctx.moveTo(-size * 0.2, size * 0.5);
@@ -1695,7 +1721,7 @@ function drawShip(
     ctx.lineWidth = fw;
     ctx.stroke();
   }
-  if (s.thrusting === 'retrograde') {
+  if (s.thrustRetro) {
     const fl = flameBase * flicker;
     ctx.beginPath();
     ctx.moveTo(-size * 0.15, -size);
@@ -1705,7 +1731,7 @@ function drawShip(
     ctx.lineWidth = fw;
     ctx.stroke();
   }
-  if (s.thrusting === 'left') {
+  if (s.thrustLeft) {
     const fl = flameRcs * flicker;
     ctx.beginPath();
     ctx.moveTo(size * 0.4, -size * 0.2);
@@ -1715,7 +1741,7 @@ function drawShip(
     ctx.lineWidth = fw;
     ctx.stroke();
   }
-  if (s.thrusting === 'right') {
+  if (s.thrustRight) {
     const fl = flameRcs * flicker;
     ctx.beginPath();
     ctx.moveTo(-size * 0.4, -size * 0.2);
@@ -1987,7 +2013,7 @@ export function drawOrbitalHUD(
       ctx.textAlign = 'center';
       ctx.fillStyle = '#00ffcc';
       if (Math.sin(Date.now() * 0.01) > -0.3) {
-        ctx.fillText('MATCH SPEED', W / 2, warnY);
+        ctx.fillText('◇ MATCH SPEED ◇', W / 2, warnY);
       }
       warnY += 22;
     }
