@@ -84,7 +84,7 @@ export function readInput(): InputState {
   // Orbital controls
   const warpUp = justPressed.has('BracketRight');
   const warpDown = justPressed.has('BracketLeft');
-  const toggleHighThrust = justPressed.has('ShiftLeft') || justPressed.has('ShiftRight');
+  const toggleHighThrust = keys.has('ShiftLeft') || keys.has('ShiftRight');
 
   // --- Gamepad ---
   const gamepads = navigator.getGamepads();

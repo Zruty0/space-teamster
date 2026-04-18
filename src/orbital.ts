@@ -466,7 +466,7 @@ export function updateOrbital(
   s.thrusting = 'none';
 
   // Toggle high thrust with Space
-  if (input.toggleHighThrust) s.highThrust = !s.highThrust;
+  s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
 
   const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
   const effThrust = s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust;
@@ -758,7 +758,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
-  const maxTime = Math.min(period * 1.05, 20000); // ~1 orbit max
+  const maxTime = Math.min(period * 0.95, 20000); // just under 1 orbit
   const stepSize = Math.max(1, maxTime / 1200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;

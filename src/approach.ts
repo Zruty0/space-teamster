@@ -310,7 +310,7 @@ export function updateApproach(
   if (!s.alive || s.gateReached) return;
 
   // --- High thrust toggle ---
-  if (input.toggleHighThrust) s.highThrust = !s.highThrust;
+  s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
   const effThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
 
   // --- Deployables (mutually exclusive) ---
