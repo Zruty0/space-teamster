@@ -53,8 +53,9 @@ export interface OrbitalLevel {
   // Landing site (angle on planet surface, radians from +X axis)
   landingSiteAngle: number;
 
-  // Index into APPROACH_LEVELS for phase transition (0-based)
-  approachLevelIdx: number;
+  // Approach phase linkage
+  approachLevelIdx: number;   // index into APPROACH_LEVELS
+  approachGravity: number;    // m/s² — gravity used in approach phase (for prediction below transition)
 }
 
 export interface OrbitalState {
@@ -146,6 +147,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       transitionAltitude: 25_000,    // hand off to approach at 25km
       landingSiteAngle: -Math.PI / 4,
       approachLevelIdx: 0,  // Kepler's Rest approach
+      approachGravity: 8.0,  // must match approach level gravity
     };
   })(),
 ];
@@ -643,14 +645,20 @@ function predictOrbit(
     for (let si = 0; si < subs; si++) {
       const r = Math.sqrt(x * x + y * y);
       if (r < level.planetRadius) {
-        // Add impact point and stop
         points.push({ x, y, vx, vy, alt: r - level.planetRadius, inAtmo: true, belowCritical: true, heatRate: 0 });
         return points;
       }
-      const gAccel = level.planetGM / (r * r);
+      const alt = r - level.planetRadius;
+      const belowTransition = alt < level.transitionAltitude;
+
+      // Gravity: use approach gravity below transition, orbital GM above
+      const gAccel = belowTransition ? level.approachGravity : level.planetGM / (r * r);
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
-      const aero = aeroForces(x, y, vx, vy, predAoA, level);
+
+      // Aero: use lowAtmoAoA below transition, predAoA above
+      const useAoA = belowTransition ? level.lowAtmoAoA : predAoA;
+      const aero = aeroForces(x, y, vx, vy, useAoA, level);
       ax += aero.ax;
       ay += aero.ay;
       vx += ax * subDt;
