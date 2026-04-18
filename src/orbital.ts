@@ -336,8 +336,8 @@ export function updateOrbital(
     s.y += s.vy * subDt;
     s.time += subDt;
 
-    // Invalidate prediction when orbit changes (thrust or drag)
-    if (s.thrusting !== 'none' || s.inAtmo) _predDirty = true;
+    // Invalidate prediction when orbit changes (thrust)
+    if (s.thrusting !== 'none') _predDirty = true;
 
     // Transition: below transition altitude while in atmosphere
     const newR = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -423,14 +423,19 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   return { points, atmoEntry, atmoExit, approachStart, impact };
 }
 
-// Cached prediction — only recomputed when orbit changes (thrust or drag)
+// Cached prediction — only recomputed when orbit changes
 let _cachedPred: PredictionResult | null = null;
 let _predDirty = true;
+let _predFrameCount = 0;
+const ATMO_RECALC_INTERVAL = 30; // recalc every N frames when in atmo
 
 /** Mark prediction as needing recomputation (call when orbit changes). */
 export function invalidatePrediction(): void { _predDirty = true; }
 
 function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
+  _predFrameCount++;
+  // Periodic recalc when in atmosphere (drag changes orbit slowly)
+  if (s.inAtmo && _predFrameCount % ATMO_RECALC_INTERVAL === 0) _predDirty = true;
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
@@ -454,7 +459,11 @@ function predictOrbit(
   for (let t = 0; t < maxPhysTime; t += stepSize) {
     for (let si = 0; si < subs; si++) {
       const r = Math.sqrt(x * x + y * y);
-      if (r < level.planetRadius) return points; // impact
+      if (r < level.planetRadius) {
+        // Add impact point and stop
+        points.push({ x, y, vx, vy, alt: r - level.planetRadius, inAtmo: true, belowCritical: true, heatRate: 0 });
+        return points;
+      }
       const gAccel = level.planetGM / (r * r);
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
@@ -476,8 +485,6 @@ function predictOrbit(
       belowCritical: alt < level.transitionAltitude,
       heatRate,
     });
-
-    if (r < level.planetRadius) break;
   }
   return points;
 }
@@ -814,7 +821,12 @@ function drawOrbitPrediction(
     while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
     while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
     const arcDist = Math.abs(angleDiff) * level.planetRadius / 1000; // km
-    const isShort = angleDiff > 0 === (computeElements(s.x, s.y, s.vx, s.vy, level.planetGM).h >= 0);
+    // "Short" = impact is before LZ in direction of travel
+    // h > 0 = CCW (angle increases), h < 0 = CW (angle decreases)
+    // If CW: ship hasn't reached LZ yet if impact angle > LZ angle (angleDiff > 0) = short
+    // If CCW: ship hasn't reached LZ yet if impact angle < LZ angle (angleDiff < 0) = short
+    const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+    const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
 
     const distLabel = arcDist < 1 ? 'ON TARGET' :
       `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
