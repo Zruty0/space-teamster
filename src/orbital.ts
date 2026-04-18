@@ -878,7 +878,7 @@ function drawOrbitPrediction(
     // If CW: ship hasn't reached LZ yet if impact angle > LZ angle (angleDiff > 0) = short
     // If CCW: ship hasn't reached LZ yet if impact angle < LZ angle (angleDiff < 0) = short
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
+    const isShort = elem.h < 0 ? angleDiff < 0 : angleDiff > 0;
 
     const distLabel = arcDist < 1 ? 'ON TARGET' :
       `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
