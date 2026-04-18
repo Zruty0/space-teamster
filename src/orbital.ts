@@ -27,7 +27,8 @@ export interface OrbitalLevel {
   startVY: number;
 
   // Ship
-  thrustAccel: number;      // m/s²
+  thrustAccel: number;      // m/s² (low/precision thrust)
+  thrustAccelMax: number;   // m/s² (high/full thrust after warmup)
   fuelDeltaV: number;       // total delta-v budget in m/s
 
   // Atmosphere (for aerobraking)
@@ -70,9 +71,11 @@ export interface OrbitalState {
   timeWarp: number;    // user-controlled multiplier (displayed)
   timeWarpLevel: number; // index into WARP_SPEEDS
 
-  // Thrust state (for rendering)
+  // Thrust state
   thrusting: 'none' | 'prograde' | 'retrograde' | 'left' | 'right';
-  inAtmo: boolean;     // currently inside atmosphere
+  thrustHoldTime: number;   // how long thrust button has been held (wall-clock seconds)
+  thrustWarmup: number;     // 0..1 warmup level (persists after release, decays)
+  inAtmo: boolean;
 }
 
 // ===================== Constants =====================
@@ -114,7 +117,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: r,
       startVX: v,
       startVY: 0,
-      thrustAccel: 0.1,              // ×100 base scale = 10 m/s per wall-sec, deorbit ~5s
+      thrustAccel: 0.1,              // low thrust: fine adjustments
+      thrustAccelMax: 2.0,            // high thrust: orbital arrest (~200 m/s per wall-sec)
       fuelDeltaV: 600,               // escape ~417, generous margin
       surfaceDensity: 1.5,
       scaleHeight: 8000,
@@ -149,6 +153,8 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
     timeWarp: 1,
     timeWarpLevel: 0,
     thrusting: 'none',
+    thrustHoldTime: 0,
+    thrustWarmup: 0,
     inAtmo: false,
   };
 }
@@ -310,6 +316,34 @@ export function updateOrbital(
 
   s.thrusting = 'none';
 
+  // --- Thrust warmup (wall-clock, outside substep loop) ---
+  const isThrusting = input.throttleUp || input.throttleDown || input.pitch !== 0;
+  if (isThrusting) {
+    s.thrustHoldTime += dt; // wall-clock seconds
+  } else {
+    s.thrustHoldTime = 0;
+  }
+
+  // Warmup curve: 0..1s = 0 (low thrust), 1..4s = sigmoid to 1 (high thrust)
+  // smoothstep: t mapped from [1s, 4s] to [0, 1]
+  const holdT = s.thrustHoldTime;
+  let targetWarmup = 0;
+  if (holdT > 1) {
+    const t = Math.min(1, (holdT - 1) / 3); // 0 at 1s, 1 at 4s
+    targetWarmup = t * t * (3 - 2 * t); // smoothstep
+  }
+
+  // Warmup ramps up when holding, decays when released (same ~3s timeframe)
+  if (isThrusting) {
+    s.thrustWarmup = targetWarmup;
+  } else {
+    // Decay: same speed as ramp-up (~3s from full to zero)
+    s.thrustWarmup = Math.max(0, s.thrustWarmup - dt / 3);
+  }
+
+  // Effective thrust: lerp between low and high based on warmup
+  const effThrust = level.thrustAccel + s.thrustWarmup * (level.thrustAccelMax - level.thrustAccel);
+
   for (let step = 0; step < substeps; step++) {
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
@@ -344,23 +378,23 @@ export function updateOrbital(
 
         let thrustX = 0, thrustY = 0;
         if (input.throttleUp) {
-          thrustX += pdx * level.thrustAccel;
-          thrustY += pdy * level.thrustAccel;
+          thrustX += pdx * effThrust;
+          thrustY += pdy * effThrust;
           s.thrusting = 'prograde';
         }
         if (input.throttleDown) {
-          thrustX -= pdx * level.thrustAccel;
-          thrustY -= pdy * level.thrustAccel;
+          thrustX -= pdx * effThrust;
+          thrustY -= pdy * effThrust;
           s.thrusting = 'retrograde';
         }
         if (input.pitch < 0) {
-          thrustX += leftX * level.thrustAccel;
-          thrustY += leftY * level.thrustAccel;
+          thrustX += leftX * effThrust;
+          thrustY += leftY * effThrust;
           s.thrusting = 'left';
         }
         if (input.pitch > 0) {
-          thrustX -= leftX * level.thrustAccel;
-          thrustY -= leftY * level.thrustAccel;
+          thrustX -= leftX * effThrust;
+          thrustY -= leftY * effThrust;
           s.thrusting = 'right';
         }
 
@@ -999,46 +1033,74 @@ function drawShip(
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Thrust flames
-  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
+  // Thrust flames — scale with warmup
+  const w = s.thrustWarmup; // 0..1
+  const flicker = 0.7 + 0.3 * Math.sin(time * (40 + w * 20));
+  const flameScale = 1 + w * 3; // 1x at low, 4x at full
+  const flameWidth = 1.5 + w * 2; // line width
+  // Color: orange at low, bright white-yellow at high
+  const mainR = 255, mainG = Math.floor(170 + w * 85), mainB = Math.floor(w * 100);
+  const mainCol = `rgb(${mainR},${mainG},${mainB})`;
+  const retroCol = `rgb(255,${Math.floor(100 + w * 100)},${Math.floor(w * 60)})`;
+  const rcsCol = `rgb(255,${Math.floor(68 + w * 120)},${Math.floor(w * 60)})`;
+
   if (s.thrusting === 'prograde') {
-    const fl = 8 * flicker;
+    const fl = 8 * flicker * flameScale;
+    const spread = size * (0.2 + w * 0.15);
     ctx.beginPath();
-    ctx.moveTo(-size * 0.2, size * 0.5);
+    ctx.moveTo(-spread, size * 0.5);
     ctx.lineTo(0, size * 0.5 + fl);
-    ctx.lineTo(size * 0.2, size * 0.5);
-    ctx.strokeStyle = '#ffaa00';
-    ctx.lineWidth = 2;
+    ctx.lineTo(spread, size * 0.5);
+    ctx.strokeStyle = mainCol;
+    ctx.lineWidth = flameWidth;
     ctx.stroke();
+    // Inner core at high warmup
+    if (w > 0.3) {
+      ctx.beginPath();
+      ctx.moveTo(0, size * 0.5);
+      ctx.lineTo(0, size * 0.5 + fl * 0.5);
+      ctx.strokeStyle = `rgba(255,255,200,${w * 0.6})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
   }
   if (s.thrusting === 'retrograde') {
-    const fl = 8 * flicker;
+    const fl = 8 * flicker * flameScale;
+    const spread = size * (0.15 + w * 0.12);
     ctx.beginPath();
-    ctx.moveTo(-size * 0.15, -size);
+    ctx.moveTo(-spread, -size);
     ctx.lineTo(0, -size - fl);
-    ctx.lineTo(size * 0.15, -size);
-    ctx.strokeStyle = '#ff6600';
-    ctx.lineWidth = 2;
+    ctx.lineTo(spread, -size);
+    ctx.strokeStyle = retroCol;
+    ctx.lineWidth = flameWidth;
     ctx.stroke();
+    if (w > 0.3) {
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(0, -size - fl * 0.5);
+      ctx.strokeStyle = `rgba(255,220,150,${w * 0.5})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
   }
   if (s.thrusting === 'left') {
-    const fl = 6 * flicker;
+    const fl = 6 * flicker * flameScale;
     ctx.beginPath();
     ctx.moveTo(size * 0.4, -size * 0.2);
     ctx.lineTo(size * 0.4 + fl, 0);
     ctx.lineTo(size * 0.4, size * 0.2);
-    ctx.strokeStyle = '#ff4400';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = rcsCol;
+    ctx.lineWidth = flameWidth;
     ctx.stroke();
   }
   if (s.thrusting === 'right') {
-    const fl = 6 * flicker;
+    const fl = 6 * flicker * flameScale;
     ctx.beginPath();
     ctx.moveTo(-size * 0.4, -size * 0.2);
     ctx.lineTo(-size * 0.4 - fl, 0);
     ctx.lineTo(-size * 0.4, size * 0.2);
-    ctx.strokeStyle = '#ff4400';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = rcsCol;
+    ctx.lineWidth = flameWidth;
     ctx.stroke();
   }
 
@@ -1115,6 +1177,14 @@ export function drawOrbitalHUD(
   const fuelPct = level.fuelDeltaV > 0 ? (s.fuel / level.fuelDeltaV * 100) : 0;
   const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
   label(ctx, lx, ly, '\u0394V', `${s.fuel.toFixed(0)} m/s (${fuelPct.toFixed(0)}%)`, fuelCol); ly += lh;
+
+  // Thrust level (show when thrusting or warmup > 0)
+  if (s.thrustWarmup > 0.01 || s.thrusting !== 'none') {
+    const pct = Math.round(s.thrustWarmup * 100);
+    const thrCol = s.thrustWarmup > 0.5 ? COL_WARN : COL_HUD;
+    const bar = '\u2588'.repeat(Math.ceil(s.thrustWarmup * 10)) + '\u2591'.repeat(10 - Math.ceil(s.thrustWarmup * 10));
+    label(ctx, lx, ly, 'THR', `${bar} ${pct}%`, thrCol); ly += lh;
+  }
 
   // Time warp
   const warpCol = s.timeWarp > 1 ? COL_WARN : COL_HUD_DIM;
