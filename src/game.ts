@@ -30,7 +30,7 @@ type Phase =
   | { kind: 'levelSelect' }
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: { x: number; y: number; vx: number; vy: number; angle: number } }
-  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' };
+  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked' };
 
 const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length;
 
@@ -230,6 +230,7 @@ export class Game {
         input.warpDown = false;
 
         if (!p.os.alive) p.state = 'crashed';
+        if (p.os.docked) p.state = 'docked';
         if (p.os.enteredAtmo) {
           this.transitionOrbitalToApproach(p);
           return;

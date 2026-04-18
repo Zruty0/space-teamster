@@ -54,8 +54,16 @@ export interface OrbitalLevel {
   landingSiteAngle: number;
 
   // Approach phase linkage
-  approachLevelIdx: number;   // index into APPROACH_LEVELS
-  approachGravity: number;    // m/s² — gravity used in approach phase (for prediction below transition)
+  approachLevelIdx: number;
+  approachGravity: number;
+
+  // Station (rendezvous target, optional)
+  station?: {
+    orbitRadius: number;       // meters from planet center
+    startAngle: number;        // radians at t=0
+    captureRadius: number;     // meters — get inside this
+    captureMaxSpeed: number;   // m/s max relative speed for success
+  };
 }
 
 export interface OrbitalState {
@@ -85,8 +93,11 @@ export interface OrbitalState {
   inAtmo: boolean;
 
   // Ship orientation (used in atmosphere for AoA control)
-  angle: number;        // world angle of ship nose (radians)
-  targetAoA: number;    // desired AoA in atmosphere (A/D adjusts this)
+  angle: number;
+  targetAoA: number;
+
+  // Rendezvous
+  docked: boolean;
 }
 
 // ===================== Constants =====================
@@ -147,7 +158,60 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       transitionAltitude: 25_000,    // hand off to approach at 25km
       landingSiteAngle: -Math.PI / 4,
       approachLevelIdx: 0,  // Kepler's Rest approach
-      approachGravity: 8.0,  // must match approach level gravity
+      approachGravity: 8.0,
+    };
+  })(),
+  // --- Level 8: Orbital Rendezvous ---
+  (() => {
+    const planetRadius = 600_000;
+    const orbitAlt = 200_000;
+    const baseTimeScale = 100;
+    const wallPeriod = 50;
+    const physicsPeriod = wallPeriod * baseTimeScale;
+    const gm = gmForPeriod(planetRadius, orbitAlt, physicsPeriod);
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    // Station in higher orbit
+    const stationAlt = 400_000;
+    const stationR = planetRadius + stationAlt;
+
+    return {
+      id: 8,
+      name: 'Station Approach',
+      subtitle: 'Orbital rendezvous — match orbits and dock',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 80_000,
+      atmoColor: [60, 120, 200] as [number, number, number],
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: v,
+      startVY: 0,
+      thrustAccel: 0.1,
+      thrustAccelMax: 2.0,
+      fuelDeltaV: 600,
+      surfaceDensity: 1.5,
+      scaleHeight: 8000,
+      aeroNoseDrag: 0.00002,
+      aeroBroadsideDrag: 0.0004,
+      aeroLiftCoeff: 0.00012,
+      highAtmoAoA: 0.44,
+      lowAtmoAoA: 0.13,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 1e-5,
+      heatDissipation: 0.08,
+      transitionAltitude: 25_000,
+      landingSiteAngle: 0,
+      approachLevelIdx: 0,
+      approachGravity: 8.0,
+      station: {
+        orbitRadius: stationR,
+        startAngle: Math.PI * 0.6,    // ahead of player
+        captureRadius: 5_000,         // 5km capture zone
+        captureMaxSpeed: 20,          // 20 m/s max relative speed
+      },
     };
   })(),
 ];
@@ -177,6 +241,7 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
     inAtmo: false,
     angle: 0,
     targetAoA: 0,
+    docked: false,
   };
 }
 
@@ -273,6 +338,20 @@ function orbitPosition(elem: OrbitalElements, nu: number): { x: number; y: numbe
 
 // ===================== Atmosphere =====================
 
+/** Get station position at a given physics time. */
+function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; vx: number; vy: number } | null {
+  if (!level.station) return null;
+  const st = level.station;
+  const omega = Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
+  const angle = st.startAngle + omega * time;
+  const x = st.orbitRadius * Math.cos(angle);
+  const y = st.orbitRadius * Math.sin(angle);
+  const v = Math.sqrt(level.planetGM / st.orbitRadius);
+  const vx = -v * Math.sin(angle);
+  const vy = v * Math.cos(angle);
+  return { x, y, vx, vy };
+}
+
 function atmoDensity(alt: number, level: OrbitalLevel): number {
   if (alt <= 0) return level.surfaceDensity;
   if (alt >= level.atmoHeight) return 0;
@@ -340,7 +419,7 @@ function aeroForces(
 export function updateOrbital(
   s: OrbitalState, input: InputState, level: OrbitalLevel, dt: number,
 ): void {
-  if (!s.alive || s.enteredAtmo) return;
+  if (!s.alive || s.enteredAtmo || s.docked) return;
 
   // Track wall-clock time (for trail)
   s.realTime += dt;
@@ -499,6 +578,21 @@ export function updateOrbital(
     }
 
     if (newR <= level.planetRadius) { s.alive = false; return; }
+
+    // Docking check
+    if (level.station && !s.docked) {
+      const sp = stationPos(level, s.time)!;
+      const dx = s.x - sp.x, dy = s.y - sp.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < level.station.captureRadius) {
+        const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+        const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+        if (relSpd < level.station.captureMaxSpeed) {
+          s.docked = true;
+          return;
+        }
+      }
+    }
   }
 
   // --- Ship orientation (after substep loop so s.inAtmo is current) ---
@@ -548,6 +642,7 @@ interface PredPoint {
   vx: number;
   vy: number;
   alt: number;
+  t: number;        // physics time at this point
   inAtmo: boolean;
   belowCritical: boolean;
   heatRate: number;
@@ -560,12 +655,21 @@ interface PredEvent {
   idx: number;
 }
 
+interface ClosestApproach {
+  dist: number;
+  relSpeed: number;
+  shipX: number; shipY: number;
+  stationX: number; stationY: number;
+  idx: number;
+}
+
 interface PredictionResult {
   points: PredPoint[];
-  atmoEntry: PredEvent | null;   // first point entering atmosphere
-  atmoExit: PredEvent | null;    // first point exiting atmosphere after entry
-  approachStart: PredEvent | null; // first point below critical altitude
-  impact: PredEvent | null;      // ground impact point
+  atmoEntry: PredEvent | null;
+  atmoExit: PredEvent | null;
+  approachStart: PredEvent | null;
+  impact: PredEvent | null;
+  closestApproach: ClosestApproach | null;
 }
 
 function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
@@ -600,7 +704,37 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
     }
   }
 
-  return { points, atmoEntry, atmoExit, approachStart, impact };
+  // Closest approach to station
+  let closestApproach: ClosestApproach | null = null;
+  if (level.station) {
+    let minDist = Infinity;
+    const st = level.station;
+    const omega = Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
+    for (let i = 0; i < points.length; i++) {
+      const pt = points[i];
+      const stAngle = st.startAngle + omega * pt.t;
+      const stX = st.orbitRadius * Math.cos(stAngle);
+      const stY = st.orbitRadius * Math.sin(stAngle);
+      const dx = pt.x - stX, dy = pt.y - stY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        // Station velocity at this time
+        const stV = Math.sqrt(level.planetGM / st.orbitRadius);
+        const stVx = -stV * Math.sin(stAngle);
+        const stVy = stV * Math.cos(stAngle);
+        const relVx = pt.vx - stVx, relVy = pt.vy - stVy;
+        closestApproach = {
+          dist, relSpeed: Math.sqrt(relVx * relVx + relVy * relVy),
+          shipX: pt.x, shipY: pt.y,
+          stationX: stX, stationY: stY,
+          idx: i,
+        };
+      }
+    }
+  }
+
+  return { points, atmoEntry, atmoExit, approachStart, impact, closestApproach };
 }
 
 // Cached prediction — only recomputed when orbit changes
@@ -645,7 +779,7 @@ function predictOrbit(
     for (let si = 0; si < subs; si++) {
       const r = Math.sqrt(x * x + y * y);
       if (r < level.planetRadius) {
-        points.push({ x, y, vx, vy, alt: r - level.planetRadius, inAtmo: true, belowCritical: true, heatRate: 0 });
+        points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
         return points;
       }
       const alt = r - level.planetRadius;
@@ -671,7 +805,7 @@ function predictOrbit(
     const alt = r - level.planetRadius;
     const aero = aeroForces(x, y, vx, vy, predAoA, level);
     points.push({
-      x, y, vx, vy, alt,
+      x, y, vx, vy, alt, t: s.time + t,
       inAtmo: alt < level.atmoHeight,
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
@@ -744,7 +878,8 @@ export function renderOrbital(
   drawStars(ctx, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawAtmosphere(ctx, cam, level, W, H);
-  drawLandingSite(ctx, cam, level, W, H);
+  if (level.station) drawStation(ctx, cam, s, level, W, H);
+  if (!level.station) drawLandingSite(ctx, cam, level, W, H);
   drawOrbitPrediction(ctx, cam, s, level, W, H);
   drawTrail(ctx, cam, s, W, H);
   drawOrbitalMarkers(ctx, cam, s, level, W, H);
@@ -877,6 +1012,85 @@ function drawLandingSite(
   const ly = labelR * Math.sin(angle);
   const [lsx, lsy] = ws(lx, ly, cam, W, H);
   ctx.fillText('LZ', lsx, lsy + 4);
+}
+
+// --- Station (rendezvous target) ---
+function drawStation(
+  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+): void {
+  const st = level.station!;
+  const pos = stationPos(level, s.time)!;
+  const [sx, sy] = ws(pos.x, pos.y, cam, W, H);
+
+  // Station orbit (thin dashed circle)
+  const [cx, cy] = ws(0, 0, cam, W, H);
+  const orbitR = st.orbitRadius * cam.zoom;
+  ctx.beginPath();
+  ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
+  ctx.setLineDash([4, 8]);
+  ctx.strokeStyle = 'rgba(200, 180, 255, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Capture circle
+  const capR = st.captureRadius * cam.zoom;
+  ctx.beginPath();
+  ctx.arc(sx, sy, Math.max(capR, 3), 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(200, 180, 255, 0.4)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Station icon (small square + solar panels)
+  const sz = 5;
+  ctx.strokeStyle = '#ccbbff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(sx - sz / 2, sy - sz / 2, sz, sz);
+  // Solar panels
+  ctx.beginPath();
+  ctx.moveTo(sx - sz * 1.5, sy); ctx.lineTo(sx - sz / 2, sy);
+  ctx.moveTo(sx + sz / 2, sy); ctx.lineTo(sx + sz * 1.5, sy);
+  ctx.stroke();
+
+  // Closest approach marker
+  const pred = getCachedPrediction(s, level);
+  if (pred.closestApproach) {
+    const ca = pred.closestApproach;
+    // Station position at closest approach
+    const [casx, casy] = ws(ca.stationX, ca.stationY, cam, W, H);
+    const [cashx, cashy] = ws(ca.shipX, ca.shipY, cam, W, H);
+
+    // Dashed line between ship and station at closest approach
+    ctx.beginPath();
+    ctx.moveTo(cashx, cashy);
+    ctx.lineTo(casx, casy);
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = ca.dist < st.captureRadius ? '#00ffcc' : '#ffaa00';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Flyby marker at station's predicted position
+    ctx.beginPath();
+    ctx.arc(casx, casy, 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffaa00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Distance + relative speed label
+    const midX = (cashx + casx) / 2;
+    const midY = (cashy + casy) / 2;
+    const distKm = ca.dist / 1000;
+    const distStr = distKm > 1 ? `${distKm.toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
+    const col = ca.dist < st.captureRadius && ca.relSpeed < st.captureMaxSpeed ? '#00ffcc' : '#ffaa00';
+    ctx.font = '10px monospace';
+    ctx.fillStyle = col;
+    ctx.textAlign = 'center';
+    ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+  }
 }
 
 // --- Orbit prediction (numerical, with aerobraking) ---
@@ -1203,7 +1417,7 @@ const COL_OK = '#00ffcc';
 export function drawOrbitalHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: OrbitalState, level: OrbitalLevel,
-  state: 'orbiting' | 'enteredAtmo' | 'crashed',
+  state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked',
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1246,6 +1460,19 @@ export function drawOrbitalHUD(
 
   // Atmosphere altitude
   label(ctx, lx, ly, 'ATM', `${(level.atmoHeight / 1000).toFixed(0)} km`, COL_HUD_DIM); ly += lh;
+
+  // Station info (rendezvous)
+  if (level.station) {
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
+    const distCol = dist < level.station.captureRadius * 3 ? COL_OK : COL_HUD;
+    label(ctx, lx, ly, 'TGT', distStr, distCol); ly += lh;
+    label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD); ly += lh;
+  }
 
   label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
 
@@ -1348,6 +1575,24 @@ export function drawOrbitalHUD(
     ctx.font = '14px monospace';
     ctx.fillText(`Speed: ${speed.toFixed(0)} m/s`, W / 2, H / 2 - 5);
     ctx.fillText(`Altitude: ${alt.toFixed(1)} km`, W / 2, H / 2 + 15);
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '14px monospace';
+    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 55);
+  }
+
+  if (state === 'docked') {
+    ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
+    ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
+    ctx.strokeStyle = COL_OK;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W / 2 - 200, H / 2 - 80, 400, 160);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COL_OK;
+    ctx.font = 'bold 28px monospace';
+    ctx.fillText('RENDEZVOUS', W / 2, H / 2 - 35);
+    ctx.font = '16px monospace';
+    ctx.fillText('Successful', W / 2, H / 2 - 5);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 55);
