@@ -34,11 +34,17 @@ export interface OrbitalLevel {
   // Atmosphere (for aerobraking)
   surfaceDensity: number;
   scaleHeight: number;
-  orbitalDragCoeff: number; // effective Cd*A/m for orbital aerobraking
+
+  // Aero model (AoA-dependent in atmosphere)
+  aeroNoseDrag: number;       // Cd when nose-first
+  aeroBroadsideDrag: number;  // Cd when broadside
+  aeroLiftCoeff: number;      // body lift coefficient
+  defaultEntryAoA: number;    // radians, snap-to on atmo entry
+  rcsAngularAccel: number;    // rad/s² for A/D pitch control in atmo
 
   // Heat
-  heatCoeff: number;        // heat rate = dragAccel * speed * heatCoeff
-  heatDissipation: number;  // radiative cooling rate
+  heatCoeff: number;
+  heatDissipation: number;
 
   // Transition to approach phase
   transitionAltitude: number; // meters above surface — switch to approach when below this
@@ -73,8 +79,12 @@ export interface OrbitalState {
 
   // Thrust state
   thrusting: 'none' | 'prograde' | 'retrograde' | 'left' | 'right';
-  highThrust: boolean;      // toggle: normal vs high thrust mode
+  highThrust: boolean;
   inAtmo: boolean;
+
+  // Ship orientation (used in atmosphere for AoA control)
+  angle: number;        // world angle of ship nose (radians)
+  angularVel: number;   // angular velocity
 }
 
 // ===================== Constants =====================
@@ -83,7 +93,8 @@ const WARP_SPEEDS = [1, 2, 5, 10, 25, 50, 100];
 const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
-const ATMO_WARP_CAP = 1; // max displayed warp when in atmosphere
+const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
+const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
 const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
 
@@ -123,7 +134,11 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       fuelDeltaV: 600,               // escape ~417, generous margin
       surfaceDensity: 1.5,
       scaleHeight: 8000,
-      orbitalDragCoeff: 0.0001,      // between nose-first and broadside
+      aeroNoseDrag: 0.00002,
+      aeroBroadsideDrag: 0.0004,
+      aeroLiftCoeff: 0.00012,
+      defaultEntryAoA: 0.45,          // ~26° nose-up at entry
+      rcsAngularAccel: 3.0,           // rad/s² for pitch control
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
       transitionAltitude: 25_000,    // hand off to approach at 25km
@@ -156,6 +171,8 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
     thrusting: 'none',
     highThrust: false,
     inAtmo: false,
+    angle: 0,
+    angularVel: 0,
   };
 }
 
@@ -255,23 +272,65 @@ function atmoDensity(alt: number, level: OrbitalLevel): number {
   return level.surfaceDensity * Math.exp(-alt / level.scaleHeight);
 }
 
-/** Compute drag acceleration magnitude and heat rate at a given state. */
-function aeroDrag(
-  x: number, y: number, vx: number, vy: number, level: OrbitalLevel,
-): { dragAx: number; dragAy: number; heatRate: number } {
+/** Compute aero forces (drag + lift) and heat rate, AoA-dependent.
+ *  shipAngle: world angle of ship nose. Pass NaN to use defaultEntryAoA. */
+function aeroForces(
+  x: number, y: number, vx: number, vy: number,
+  shipAngle: number, level: OrbitalLevel,
+): { ax: number; ay: number; heatRate: number; aoa: number } {
   const r = Math.sqrt(x * x + y * y);
   const alt = r - level.planetRadius;
   const rho = atmoDensity(alt, level);
-  if (rho < 1e-10) return { dragAx: 0, dragAy: 0, heatRate: 0 };
+  if (rho < 1e-10) return { ax: 0, ay: 0, heatRate: 0, aoa: 0 };
 
   const speed = Math.sqrt(vx * vx + vy * vy);
-  if (speed < 0.1) return { dragAx: 0, dragAy: 0, heatRate: 0 };
+  if (speed < 0.1) return { ax: 0, ay: 0, heatRate: 0, aoa: 0 };
 
-  const dragAccel = 0.5 * rho * speed * speed * level.orbitalDragCoeff;
-  const dragAx = -(vx / speed) * dragAccel;
-  const dragAy = -(vy / speed) * dragAccel;
+  // Velocity angle and AoA
+  const velAngle = Math.atan2(vy, vx);
+  let useAngle = shipAngle;
+  if (isNaN(useAngle)) {
+    // Use default entry AoA relative to prograde
+    // Positive AoA = nose "above" velocity (generates lift away from planet)
+    useAngle = velAngle + level.defaultEntryAoA;
+  }
+  let aoa = useAngle - velAngle;
+  while (aoa > Math.PI) aoa -= 2 * Math.PI;
+  while (aoa < -Math.PI) aoa += 2 * Math.PI;
+
+  const sinA = Math.sin(aoa);
+  const cosA = Math.cos(aoa);
+
+  // Drag: AoA-dependent cross section
+  const Cd = level.aeroNoseDrag * cosA * cosA + level.aeroBroadsideDrag * sinA * sinA;
+  const q = 0.5 * rho * speed * speed;
+  const dragAccel = q * Cd;
+
+  let ax = -(vx / speed) * dragAccel;
+  let ay = -(vy / speed) * dragAccel;
+
+  // Lift: perpendicular to velocity, proportional to sin(AoA)*cos(AoA)
+  const Cl = level.aeroLiftCoeff;
+  if (Cl > 1e-7) {
+    const aoaEff = Math.abs(sinA * cosA);
+    const liftAccel = q * Cl * aoaEff;
+    // Lift direction: component of nose perpendicular to velocity
+    const noseX = Math.cos(useAngle);
+    const noseY = Math.sin(useAngle);
+    const vdx = vx / speed, vdy = vy / speed;
+    const dot = noseX * vdx + noseY * vdy;
+    let px = noseX - dot * vdx;
+    let py = noseY - dot * vdy;
+    const pl = Math.sqrt(px * px + py * py);
+    if (pl > 0.001) {
+      px /= pl; py /= pl;
+      ax += px * liftAccel;
+      ay += py * liftAccel;
+    }
+  }
+
   const heatRate = dragAccel * speed * level.heatCoeff;
-  return { dragAx, dragAy, heatRate };
+  return { ax, ay, heatRate, aoa };
 }
 
 // ===================== Physics Update =====================
@@ -301,9 +360,16 @@ export function updateOrbital(
     s.timeWarp = 1;
   }
 
-  // In atmosphere: slow down time, cap warp
+  // Detect atmo entry/exit for snap-rotate
+  const wasInAtmo = s.inAtmo;
+
+  // In atmosphere: slow down time, cap warp based on altitude
+  const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
+  const alt0 = r0 - level.planetRadius;
+  const inLowAtmo = alt0 < level.transitionAltitude;
+  const atmoWarpCap = inLowAtmo ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP;
   const effectiveWarp = s.inAtmo
-    ? Math.min(s.timeWarp, ATMO_WARP_CAP)
+    ? Math.min(s.timeWarp, atmoWarpCap)
     : s.timeWarp;
   const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : level.baseTimeScale;
   const totalScale = effectiveBaseScale * effectiveWarp;
@@ -321,6 +387,34 @@ export function updateOrbital(
   const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
   const effThrust = s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust;
 
+  // --- Ship orientation ---
+  if (s.inAtmo) {
+    // In atmosphere: A/D controls pitch (angular velocity)
+    let angAccel = 0;
+    if (input.pitch !== 0) angAccel = input.pitch * level.rcsAngularAccel;
+    angAccel -= s.angularVel * 3.0; // angular damping
+    s.angularVel += angAccel * dt;
+    s.angle += s.angularVel * dt;
+  } else {
+    // In space: snap to prograde
+    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+    if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
+    s.angularVel = 0;
+  }
+
+  // Snap-rotate on atmo entry
+  if (s.inAtmo && !wasInAtmo) {
+    const velAngle = Math.atan2(s.vy, s.vx);
+    s.angle = velAngle + level.defaultEntryAoA;
+    s.angularVel = 0;
+  }
+  // Snap-rotate on atmo exit
+  if (!s.inAtmo && wasInAtmo) {
+    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+    if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
+    s.angularVel = 0;
+  }
+
   for (let step = 0; step < substeps; step++) {
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
@@ -332,47 +426,64 @@ export function updateOrbital(
     let ax = -gAccel * (s.x / r);
     let ay = -gAccel * (s.y / r);
 
-    // Atmospheric drag
-    const { dragAx, dragAy, heatRate } = aeroDrag(s.x, s.y, s.vx, s.vy, level);
-    ax += dragAx;
-    ay += dragAy;
+    // Aero forces (AoA-dependent drag + lift)
+    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.inAtmo ? s.angle : NaN, level);
+    ax += aero.ax;
+    ay += aero.ay;
 
     // Heat
-    s.temperature += (heatRate - level.heatDissipation * s.temperature) * subDt;
+    s.temperature += (aero.heatRate - level.heatDissipation * s.temperature) * subDt;
     if (s.temperature < 0) s.temperature = 0;
     if (s.temperature > 1.5) s.temperature = 1.5;
 
     s.inAtmo = alt < level.atmoHeight;
 
-    // Thrust
+    // Thrust: W/S along ship nose in atmo, pro/retro in space
     if (s.fuel > 0) {
       const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
       if (speed > 0.01) {
-        const pdx = s.vx / speed;
-        const pdy = s.vy / speed;
-        const leftX = -pdy;
-        const leftY = pdx;
-
         let thrustX = 0, thrustY = 0;
-        if (input.throttleUp) {
-          thrustX += pdx * effThrust;
-          thrustY += pdy * effThrust;
-          s.thrusting = 'prograde';
-        }
-        if (input.throttleDown) {
-          thrustX -= pdx * effThrust;
-          thrustY -= pdy * effThrust;
-          s.thrusting = 'retrograde';
-        }
-        if (input.pitch < 0) {
-          thrustX += leftX * effThrust;
-          thrustY += leftY * effThrust;
-          s.thrusting = 'left';
-        }
-        if (input.pitch > 0) {
-          thrustX -= leftX * effThrust;
-          thrustY -= leftY * effThrust;
-          s.thrusting = 'right';
+
+        if (s.inAtmo) {
+          // In atmo: W/S thrust along ship nose direction
+          const noseX = Math.cos(s.angle);
+          const noseY = Math.sin(s.angle);
+          if (input.throttleUp) {
+            thrustX += noseX * effThrust;
+            thrustY += noseY * effThrust;
+            s.thrusting = 'prograde';
+          }
+          if (input.throttleDown) {
+            thrustX -= noseX * effThrust;
+            thrustY -= noseY * effThrust;
+            s.thrusting = 'retrograde';
+          }
+        } else {
+          // In space: W/S pro/retro, A/D lateral
+          const pdx = s.vx / speed;
+          const pdy = s.vy / speed;
+          const leftX = -pdy;
+          const leftY = pdx;
+          if (input.throttleUp) {
+            thrustX += pdx * effThrust;
+            thrustY += pdy * effThrust;
+            s.thrusting = 'prograde';
+          }
+          if (input.throttleDown) {
+            thrustX -= pdx * effThrust;
+            thrustY -= pdy * effThrust;
+            s.thrusting = 'retrograde';
+          }
+          if (input.pitch < 0) {
+            thrustX += leftX * effThrust;
+            thrustY += leftY * effThrust;
+            s.thrusting = 'left';
+          }
+          if (input.pitch > 0) {
+            thrustX -= leftX * effThrust;
+            thrustY -= leftY * effThrust;
+            s.thrusting = 'right';
+          }
         }
 
         const thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
@@ -399,8 +510,8 @@ export function updateOrbital(
     s.y += s.vy * subDt;
     s.time += subDt;
 
-    // Invalidate prediction when orbit changes (thrust)
-    if (s.thrusting !== 'none') _predDirty = true;
+    // Invalidate prediction when orbit changes
+    if (s.thrusting !== 'none' || s.inAtmo) _predDirty = true;
 
     // Transition: below transition altitude while in atmosphere
     const newR = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -532,9 +643,9 @@ function predictOrbit(
       const gAccel = level.planetGM / (r * r);
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
-      const { dragAx, dragAy } = aeroDrag(x, y, vx, vy, level);
-      ax += dragAx;
-      ay += dragAy;
+      const aero = aeroForces(x, y, vx, vy, NaN, level); // NaN = use default AoA
+      ax += aero.ax;
+      ay += aero.ay;
       vx += ax * subDt;
       vy += ay * subDt;
       x += vx * subDt;
@@ -543,12 +654,12 @@ function predictOrbit(
 
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
-    const { heatRate } = aeroDrag(x, y, vx, vy, level);
+    const aero = aeroForces(x, y, vx, vy, NaN, level);
     points.push({
       x, y, vx, vy, alt,
       inAtmo: alt < level.atmoHeight,
       belowCritical: alt < level.transitionAltitude,
-      heatRate,
+      heatRate: aero.heatRate,
     });
   }
   return points;
@@ -969,7 +1080,7 @@ function drawOrbitalMarkers(
 ): void {
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
 
-  // Periapsis — orange diamond
+  // Periapsis — green diamond
   const pePos = orbitPosition(elem, 0);
   const [psx, psy] = ws(pePos.x, pePos.y, cam, W, H);
   const ms = 6;
@@ -980,11 +1091,11 @@ function drawOrbitalMarkers(
   ctx.lineTo(psx, psy + ms);
   ctx.lineTo(psx - ms, psy);
   ctx.closePath();
-  ctx.strokeStyle = '#ffaa00';
+  ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Apoapsis — blue diamond
+  // Apoapsis — green diamond
   if (elem.e < 1) {
     const apPos = orbitPosition(elem, Math.PI);
     const [asx, asy] = ws(apPos.x, apPos.y, cam, W, H);
@@ -995,7 +1106,7 @@ function drawOrbitalMarkers(
     ctx.lineTo(asx, asy + ms);
     ctx.lineTo(asx - ms, asy);
     ctx.closePath();
-    ctx.strokeStyle = '#00aaff';
+    ctx.strokeStyle = '#00ff88';
     ctx.lineWidth = 1.5;
     ctx.stroke();
   }
@@ -1009,11 +1120,14 @@ function drawShip(
   const [sx, sy] = ws(s.x, s.y, cam, W, H);
   const size = 10;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-  const shipAngle = speed > 0.1 ? Math.atan2(s.vx, s.vy) : 0;
+  // Ship angle: use s.angle (world angle where 0=right, pi/2=up)
+  // Screen rotation: 0=up, positive=CW. Convert: screen = pi/2 - world
+  // Or equivalently: for world angle θ, nose at (cos θ, sin θ), screen rotation = atan2(cos θ, sin θ)
+  const screenAngle = Math.atan2(Math.cos(s.angle), Math.sin(s.angle));
 
   ctx.save();
   ctx.translate(sx, sy);
-  ctx.rotate(shipAngle);
+  ctx.rotate(screenAngle);
 
   // Triangle
   ctx.beginPath();
@@ -1131,14 +1245,15 @@ export function drawOrbitalHUD(
   label(ctx, lx, ly, 'ALT', `${alt.toFixed(1)} km`, COL_HUD); ly += lh;
   label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  // PeA — always matches diamond color (orange)
+  // PeA: green normally, yellow if in upper atmo, orange if below critical
   const peInAtmo = peAlt < level.atmoHeight / 1000;
   const peBelowCrit = peAlt < level.transitionAltitude / 1000;
-  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, '#ffaa00'); ly += lh;
+  const peCol = peBelowCrit ? '#ff8844' : peInAtmo ? '#ffdd00' : COL_HUD;
+  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
 
-  // ApA (blue)
+  // ApA (green)
   const apStr = apAlt === Infinity ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
-  label(ctx, lx, ly, 'ApA', apStr, apAlt === Infinity ? COL_WARN : '#00aaff'); ly += lh;
+  label(ctx, lx, ly, 'ApA', apStr, apAlt === Infinity ? COL_WARN : COL_HUD); ly += lh;
 
   // Atmosphere altitude
   label(ctx, lx, ly, 'ATM', `${(level.atmoHeight / 1000).toFixed(0)} km`, COL_HUD_DIM); ly += lh;
@@ -1157,13 +1272,23 @@ export function drawOrbitalHUD(
 
   // Time warp
   const warpCol = s.timeWarp > 1 ? COL_WARN : COL_HUD_DIM;
-  const warpDisplay = s.inAtmo && s.timeWarp > ATMO_WARP_CAP ? `${ATMO_WARP_CAP}x (capped)` : `${s.timeWarp}x`;
+  const currentWarpCap = s.inAtmo ? (alt < level.transitionAltitude / 1000 ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP) : 999;
+  const warpDisplay = s.timeWarp > currentWarpCap ? `${currentWarpCap}x (capped)` : `${s.timeWarp}x`;
   label(ctx, lx, ly, 'WARP', warpDisplay, warpCol); ly += lh;
 
   // Temperature (when nonzero)
   if (s.temperature > 0.01) {
     const tempCol = s.temperature > 0.7 ? COL_DANGER : s.temperature > 0.3 ? COL_WARN : COL_HUD;
     label(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
+  }
+
+  // AoA (when in atmosphere)
+  if (s.inAtmo) {
+    const velAngle = Math.atan2(s.vy, s.vx);
+    let aoa = s.angle - velAngle;
+    while (aoa > Math.PI) aoa -= 2 * Math.PI;
+    while (aoa < -Math.PI) aoa += 2 * Math.PI;
+    label(ctx, lx, ly, 'AoA', `${(aoa * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
   }
 
   // Entry parameters — show as soon as orbit enters atmosphere
