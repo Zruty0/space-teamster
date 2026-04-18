@@ -24,6 +24,7 @@ export interface InputState {
   // Orbital controls
   warpUp: boolean;           // ] edge-triggered
   warpDown: boolean;         // [ edge-triggered
+  toggleHighThrust: boolean; // Space edge-triggered (orbital)
 }
 
 const keys: Set<string> = new Set();
@@ -83,6 +84,7 @@ export function readInput(): InputState {
   // Orbital controls
   const warpUp = justPressed.has('BracketRight');
   const warpDown = justPressed.has('BracketLeft');
+  const toggleHighThrust = justPressed.has('Space');
 
   // --- Gamepad ---
   const gamepads = navigator.getGamepads();
@@ -128,5 +130,6 @@ export function readInput(): InputState {
     toggleHeatShield,
     warpUp,
     warpDown,
+    toggleHighThrust,
   };
 }
