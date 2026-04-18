@@ -154,9 +154,9 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
 }
 
 /** Convert orbital state at transition into approach-phase initial conditions.
- *  gateX: the gate's x position in approach coords (defines the LZ position). */
+ *  Approach coords: gate/LZ at x=0, ship starts at negative x, flies right. */
 export function orbitalToApproachParams(
-  os: OrbitalState, level: OrbitalLevel, gateX: number,
+  os: OrbitalState, level: OrbitalLevel,
 ): { x: number; y: number; vx: number; vy: number; angle: number } {
   const r = Math.sqrt(os.x * os.x + os.y * os.y);
   const alt = r - level.planetRadius;
@@ -186,8 +186,8 @@ export function orbitalToApproachParams(
   // CCW (h>0): angles increase in travel direction. angleDiff < 0 = ship ahead of LZ
   const distAhead = (h < 0 ? angleDiff : -angleDiff) * level.planetRadius;
 
-  // In approach coords: gate (LZ) is at gateX. Ship is distAhead meters before it.
-  const approachX = gateX - distAhead;
+  // In approach coords: gate/LZ at x=0. Ship ahead of LZ = negative x.
+  const approachX = -distAhead;
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
   const shipAngle = Math.atan2(vTangential, vRadial);

@@ -122,14 +122,14 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     name: "Kepler's Rest",
     subtitle: 'Atmospheric reentry — learn the ropes',
     gravity: 8.0,
-    startX: -20000, startY: 20000, startVX: 900, startVY: -50, startAngle: 1.5,
+    startX: -60000, startY: 20000, startVX: 900, startVY: -50, startAngle: 1.5,
     surfaceDensity: 1.5, scaleHeight: 8000,
     dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
     dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
     heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
     maxWingAngle: 1.0, wingAngleRate: 1.0,
     thrustAccel: 15, fuelSeconds: 80,
-    gateX: 40000, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
+    gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
     windLayers: [
       { altitudeCenter: 12000, altitudeWidth: 1500, strength: 8 },    // tailwind at 12km
       { altitudeCenter: 7000, altitudeWidth: 1200, strength: -12 },   // headwind at 7km
