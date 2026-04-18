@@ -380,8 +380,10 @@ export function updateApproach(
   let ax = aeroAx;
   let ay = -level.gravity + aeroAy;
 
-  // Wind layers (horizontal force)
-  ax += getWind(s.y, level, time);
+  // Wind layers — only in flat mode (below 25km altitude)
+  if (s.y <= CURVED_MODE_ALT) {
+    ax += getWind(s.y, level, time);
+  }
 
   // Turbulence (rotational — bumps the ship's attitude)
   angAccel += getTurbulenceTorque(s.x, s.y, time, level);
@@ -615,19 +617,32 @@ function perlin1D(x: number, freq: number, seed: number): number {
 // Module-level planet radius for curvature (set by createApproachState)
 let _approachPlanetR = 0;
 
-/** Get approach terrain height at world x.
- *  Includes planetary curvature: ground drops by x²/(2R) relative to x=0 (gate/LZ). */
-function getApproachTerrainHeight(x: number): number {
-  // Large rolling hills
+/** Flat terrain height (Perlin noise only, no curvature). Used in flat mode physics. */
+function getFlatTerrainHeight(x: number): number {
   const h1 = perlin1D(x, 0.00008, 42.0) * 1200;
-  // Medium detail
   const h2 = perlin1D(x, 0.0003, 97.0) * 400;
-  let h = Math.max(0, h1 + h2 + 300); // offset so average is ~300m, min 0
-  // Planetary curvature: ground curves away from reference point (x=0 = gate)
+  return Math.max(0, h1 + h2 + 300);
+}
+
+/** Terrain height with planetary curvature. Used in curved mode rendering. */
+function getCurvedTerrainHeight(x: number): number {
+  let h = getFlatTerrainHeight(x);
   if (_approachPlanetR > 0) {
     h -= (x * x) / (2 * _approachPlanetR);
   }
   return h;
+}
+
+/** Get terrain height — uses curved or flat based on context.
+ *  Physics and flat-mode rendering use flat. Curved-mode rendering uses curved. */
+function getApproachTerrainHeight(x: number): number {
+  return getFlatTerrainHeight(x);
+}
+
+const CURVED_MODE_ALT = 25000; // above this: curved planet mode; below: flat terrain mode
+
+function isCurvedMode(s: ApproachState): boolean {
+  return s.y > CURVED_MODE_ALT;
 }
 
 function tempColor(t: number): string {
@@ -643,25 +658,95 @@ export function renderApproach(
   cam: ApproachCamera, s: ApproachState, level: ApproachLevel, time: number,
 ): void {
   const W = canvas.width, H = canvas.height;
+  const curved = isCurvedMode(s);
 
-  // --- Background: atmosphere gradient ---
-  drawAtmoBackground(ctx, cam, W, H, level);
+  if (curved) {
+    // --- Curved mode: planet visible, blue gradient atmo, no wind bands ---
+    drawCurvedBackground(ctx, cam, W, H, level);
+    drawApproachTerrain(ctx, cam, W, H, true);
+    drawTrajectory(ctx, cam, s, level, W, H, time);
+    drawLZMarker(ctx, cam, level, W, H);
+  } else {
+    // --- Flat mode: normal atmosphere bands, wind layers, gate box ---
+    drawAtmoBackground(ctx, cam, W, H, level);
+    drawApproachTerrain(ctx, cam, W, H, false);
+    drawWindLayers(ctx, cam, level, W, H, time);
+    drawTrajectory(ctx, cam, s, level, W, H, time);
+    drawGate(ctx, cam, s, level, W, H);
+  }
 
-  // --- Terrain (Perlin noise + planetary curvature) ---
-  drawApproachTerrain(ctx, cam, W, H);
-
-
-  // --- Wind layers ---
-  drawWindLayers(ctx, cam, level, W, H, time);
-
-  // --- Trajectory preview ---
-  drawTrajectory(ctx, cam, s, level, W, H, time);
-
-  // --- Gate ---
-  drawGate(ctx, cam, s, level, W, H);
-
-  // --- Ship ---
+  // --- Ship (always) ---
   drawApproachShip(ctx, cam, s, level, W, H, time);
+}
+
+// --- Curved mode background: simple blue gradient fading to black at top ---
+function drawCurvedBackground(
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera,
+  W: number, H: number, level: ApproachLevel,
+): void {
+  const topY = cam.y + H / (2 * cam.zoom);
+  const botY = cam.y - H / (2 * cam.zoom);
+
+  const bands = 30;
+  for (let i = 0; i < bands; i++) {
+    const frac = i / bands;
+    const alt = topY + (botY - topY) * frac;
+    const rho = density(Math.max(0, alt), level);
+
+    // Simple blue gradient: dense = blue, thin = black
+    const atmoFrac = Math.min(1, rho / (level.surfaceDensity * 0.15));
+    const r = Math.floor(3 + atmoFrac * 8);
+    const g = Math.floor(5 + atmoFrac * 25);
+    const b = Math.floor(12 + atmoFrac * 60);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+    const sy = (frac * H);
+    const sh = H / bands + 1;
+    ctx.fillRect(0, sy, W, sh);
+  }
+}
+
+// --- LZ marker for curved mode (cyan dot + label, like orbital) ---
+function drawLZMarker(
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera,
+  level: ApproachLevel, W: number, H: number,
+): void {
+  const gateTerrainH = getCurvedTerrainHeight(level.gateX);
+  const [sx, sy] = ws(level.gateX, gateTerrainH, cam, W, H);
+
+  // Off-screen indicator
+  if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) {
+    const margin = 40;
+    const cx = clamp(sx, margin, W - margin);
+    const cy = clamp(sy, margin, H - margin);
+    const dx = sx - cx, dy = sy - cy;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len > 1) {
+      const nx = dx / len, ny = dy / len;
+      const as = 8;
+      ctx.beginPath();
+      ctx.moveTo(cx + nx * as, cy + ny * as);
+      ctx.lineTo(cx - nx * 3 - ny * as * 0.5, cy - ny * 3 + nx * as * 0.5);
+      ctx.lineTo(cx - nx * 3 + ny * as * 0.5, cy - ny * 3 - nx * as * 0.5);
+      ctx.closePath();
+      ctx.fillStyle = '#00ffcc';
+      ctx.globalAlpha = 0.8;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    return;
+  }
+
+  // Dot on surface
+  ctx.beginPath();
+  ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#00ffcc';
+  ctx.fill();
+
+  ctx.font = '11px monospace';
+  ctx.fillStyle = '#00ffcc';
+  ctx.textAlign = 'center';
+  ctx.fillText('LZ', sx, sy - 8);
 }
 
 function drawAtmoBackground(
@@ -694,14 +779,14 @@ function drawAtmoBackground(
 
 function drawApproachTerrain(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera, W: number, H: number,
+  curved: boolean,
 ): void {
+  const terrainFn = curved ? getCurvedTerrainHeight : getFlatTerrainHeight;
+
   // Check if ground could be visible
-  const viewH = H / cam.zoom;
-  const screenBottomWorldY = cam.y - viewH / 2;
-  // At high alt with curvature, ground near gate (x=0) is at ~300m
-  // but ground far away can be very negative. Check if any ground is on screen.
-  const groundAtShip = getApproachTerrainHeight(cam.x);
-  if (screenBottomWorldY > groundAtShip + 5000) return;
+  const screenBottomWorldY = cam.y - H / (2 * cam.zoom);
+  const groundAtCam = terrainFn(cam.x);
+  if (screenBottomWorldY > groundAtCam + 5000) return;
 
   // One sample every ~4 screen pixels
   const pixelsPerSample = 4;
@@ -711,17 +796,16 @@ function drawApproachTerrain(
   const viewLeft = cam.x - W / (2 * cam.zoom);
   const startWorldX = viewLeft - worldStep;
 
-  // Build terrain points (curvature is already in getApproachTerrainHeight)
+  // Build terrain points
   ctx.beginPath();
   let firstSx = 0;
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = getApproachTerrainHeight(wx);
+    const wy = terrainFn(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) { ctx.moveTo(sx, sy); firstSx = sx; }
     else ctx.lineTo(sx, sy);
   }
-  // Close at bottom of screen
   const lastSx = firstSx + numSamples * pixelsPerSample;
   ctx.lineTo(lastSx + 10, H + 10);
   ctx.lineTo(firstSx - 10, H + 10);
@@ -733,7 +817,7 @@ function drawApproachTerrain(
   ctx.beginPath();
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = getApproachTerrainHeight(wx);
+    const wy = terrainFn(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) ctx.moveTo(sx, sy);
     else ctx.lineTo(sx, sy);
@@ -1149,8 +1233,7 @@ export function drawApproachHUD(
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-  const groundH = getApproachTerrainHeight(s.x);
-  const altKm = ((s.y - groundH) / 1000);
+  const altKm = (s.y / 1000); // y is altitude above flat ground reference
   const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - level.gateY) ** 2);
 
   ctx.save();
