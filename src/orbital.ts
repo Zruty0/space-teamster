@@ -1237,9 +1237,12 @@ export function drawOrbitalHUD(
   const peCol = peBelowCrit ? '#ff8844' : peInAtmo ? '#ffdd00' : COL_HUD;
   label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
 
-  // ApA (green)
+  // ApA: green normally, yellow if in upper atmo, orange if below critical
+  const apInAtmo = apAlt < level.atmoHeight / 1000;
+  const apBelowCrit = apAlt < level.transitionAltitude / 1000;
+  const apCol = apAlt === Infinity ? COL_WARN : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
   const apStr = apAlt === Infinity ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
-  label(ctx, lx, ly, 'ApA', apStr, apAlt === Infinity ? COL_WARN : COL_HUD); ly += lh;
+  label(ctx, lx, ly, 'ApA', apStr, apCol); ly += lh;
 
   // Atmosphere altitude
   label(ctx, lx, ly, 'ATM', `${(level.atmoHeight / 1000).toFixed(0)} km`, COL_HUD_DIM); ly += lh;

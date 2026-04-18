@@ -45,6 +45,7 @@ export interface ApproachLevel {
 
   // Engine
   thrustAccel: number;
+  thrustAccelMax: number;  // high thrust mode
   fuelSeconds: number;
 
   // Gate
@@ -95,6 +96,7 @@ export interface ApproachState {
   gateReached: boolean;
   gateSpeed: number;
   retroFiring: boolean;
+  highThrust: boolean;
   _foldTimer: number;
   _deployTimer: number;
 }
@@ -128,7 +130,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
     heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
     maxWingAngle: 1.0, wingAngleRate: 1.0,
-    thrustAccel: 15, fuelSeconds: 80,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 80,
     gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
     windLayers: [
       { altitudeCenter: 12000, altitudeWidth: 1500, strength: 8 },    // tailwind at 12km
@@ -159,7 +161,7 @@ export function createApproachState(
     angle: init.angle, angularVel: 0,
     throttle: 0, fuel: level.fuelSeconds,
     heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
-    alive: true, gateReached: false, gateSpeed: 0, retroFiring: false,
+    alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
     _foldTimer: 0, _deployTimer: 0,
   };
 }
@@ -307,6 +309,10 @@ export function updateApproach(
 ): void {
   if (!s.alive || s.gateReached) return;
 
+  // --- High thrust toggle ---
+  if (input.toggleHighThrust) s.highThrust = !s.highThrust;
+  const effThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
+
   // --- Deployables (mutually exclusive) ---
   if (input.toggleHeatShield) {
     if (s.heatShield) { s.heatShield = false; }
@@ -383,7 +389,7 @@ export function updateApproach(
 
   // Engine thrust (W = forward along ship nose)
   if (s.throttle > 0.01 && canBurn) {
-    const t = s.throttle * level.thrustAccel;
+    const t = s.throttle * effThrust;
     ax += Math.sin(s.angle) * t;
     ay += Math.cos(s.angle) * t;
     s.fuel -= s.throttle * dt;
@@ -394,7 +400,7 @@ export function updateApproach(
   const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   s.retroFiring = false;
   if (input.throttleDown && canBurn) {
-    const t = level.thrustAccel;
+    const t = effThrust;
     ax -= Math.sin(s.angle) * t;
     ay -= Math.cos(s.angle) * t;
     s.fuel -= dt;
@@ -1185,6 +1191,11 @@ export function drawApproachHUD(
   const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
   label(ctx, lx, ly, 'FUEL', `${fuelPct.toFixed(0)}%`, fuelCol); ly += lh;
 
+  // Thrust mode
+  if (s.highThrust) {
+    label(ctx, lx, ly, 'THR', 'HIGH', COL_WARN); ly += lh;
+  }
+
   // Gate distance
   label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
 
@@ -1300,7 +1311,7 @@ export function drawApproachHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  G: Wings  Q/E: Wing Angle  H: Shield  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  H: Shield  R: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();
