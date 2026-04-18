@@ -209,7 +209,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       station: {
         orbitRadius: stationR,
         startAngle: Math.PI * 0.6,    // ahead of player
-        captureRadius: 50_000,        // 50km capture zone
+        captureRadius: 20_000,        // 20km capture zone
         captureMaxSpeed: 20,          // 20 m/s max relative speed
       },
     };
@@ -874,7 +874,7 @@ export function updateOrbitalCamera(
     const dist = Math.sqrt(dx * dx + dy * dy);
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-    if (dist < level.station.captureRadius * 2 && relSpd < level.station.captureMaxSpeed * 10) {
+    if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
       inRendezvousZoom = true;
     }
   }
@@ -894,7 +894,7 @@ export function updateOrbitalCamera(
     const dx = s.x - sp.x, dy = s.y - sp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     // View radius: fit both ship and station with margin
-    const viewRadius = Math.max(dist * 1.5, level.station!.captureRadius * 2.5);
+    const viewRadius = Math.max(dist * 1.5, 50_000);
     const targetZoom = halfScreen / viewRadius;
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     // Center between ship and station
@@ -1497,7 +1497,7 @@ function drawShip(
     const dist = Math.sqrt(dx * dx + dy * dy);
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-    if (dist < level.station.captureRadius * 2 && relSpd < level.station.captureMaxSpeed * 10) {
+    if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
       // Scale: 1 m/s = 2px, capped
       const scale = Math.min(40 / Math.max(relSpd, 1), 3);
       const rvsx = sx + rvx * scale;
