@@ -347,9 +347,11 @@ function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; 
   const angle = st.startAngle + omega * time;
   const x = st.orbitRadius * Math.cos(angle);
   const y = st.orbitRadius * Math.sin(angle);
+  // Velocity = derivative of position: v = R * omega * (-sin, cos)
+  // omega is negative (CW), so velocity is (v*sin(angle), -v*cos(angle))
   const v = Math.sqrt(level.planetGM / st.orbitRadius);
-  const vx = -v * Math.sin(angle);
-  const vy = v * Math.cos(angle);
+  const vx = v * Math.sin(angle);   // CW tangential
+  const vy = -v * Math.cos(angle);
   return { x, y, vx, vy };
 }
 
@@ -722,8 +724,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
         minDist = dist;
         // Station velocity at this time
         const stV = Math.sqrt(level.planetGM / st.orbitRadius);
-        const stVx = -stV * Math.sin(stAngle);
-        const stVy = stV * Math.cos(stAngle);
+        const stVx = stV * Math.sin(stAngle);   // CW
+        const stVy = -stV * Math.cos(stAngle);
         const relVx = pt.vx - stVx, relVy = pt.vy - stVy;
         closestApproach = {
           dist, relSpeed: Math.sqrt(relVx * relVx + relVy * relVy),
@@ -1037,15 +1039,13 @@ function drawStation(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Capture circle
-  const capR = st.captureRadius * cam.zoom;
+  // Capture circle (minimum 8px so it's always visible)
+  const capR = Math.max(st.captureRadius * cam.zoom, 8);
   ctx.beginPath();
-  ctx.arc(sx, sy, Math.max(capR, 3), 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(200, 180, 255, 0.4)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 4]);
+  ctx.arc(sx, sy, capR, 0, Math.PI * 2);
+  ctx.strokeStyle = '#ccbbff';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
-  ctx.setLineDash([]);
 
   // Station icon (small square + solar panels)
   const sz = 5;
