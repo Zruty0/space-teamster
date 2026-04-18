@@ -1360,7 +1360,7 @@ function drawStation(
 
   // Closest approach marker (only in zoomed mode)
   const pred = getCachedPrediction(s, level);
-  if (zoomed && pred.closestApproach) {
+  if (!zoomed && pred.closestApproach) {
     const ca = pred.closestApproach;
     // Station position at closest approach
     const [casx, casy] = ws(ca.stationX, ca.stationY, cam, W, H);
