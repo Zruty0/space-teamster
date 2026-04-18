@@ -1532,19 +1532,18 @@ export function drawOrbitalHUD(
     const distCol = dist < level.station.captureRadius ? COL_OK : COL_HUD;
     label(ctx, lx, ly, 'TGT', distStr, distCol); ly += lh;
 
+    const relCol = relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD;
     if (relSpd < 200 && dist < level.station.captureRadius * 3) {
-      // Prograde/radial decomposition (only when actually close)
       const stAngle = Math.atan2(sp.y, sp.x);
       const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
       const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
       const pRel = rvx * progX + rvy * progY;
       const rRel = rvx * radX + rvy * radY;
-      const pDir = pRel >= 0 ? '>>' : '<<';
-      const rDir = rRel >= 0 ? '\u2191' : '\u2193';
-      const relCol = relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD;
-      label(ctx, lx, ly, 'REL', `${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir}`, relCol); ly += lh;
+      const pDir = pRel >= 0 ? '\u2192' : '\u2190';  // → ←
+      const rDir = rRel >= 0 ? '\u2191' : '\u2193';  // ↑ ↓
+      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)}m/s (${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir})`, relCol); ly += lh;
     } else {
-      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD); ly += lh;
+      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relCol); ly += lh;
     }
   }
 
