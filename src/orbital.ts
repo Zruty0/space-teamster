@@ -84,8 +84,8 @@ const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
 const ATMO_WARP_CAP = 1; // max displayed warp when in atmosphere
-const ATMO_TIME_SCALE = 10; // base time scale in atmosphere (vs 100 in space)
-const ATMO_THRUST_MULT = 10; // thrust multiplier in atmosphere (compensate for slower time)
+const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
+const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
 
 // ===================== Levels =====================
 
@@ -580,7 +580,7 @@ export function updateOrbitalCamera(
     // Show ~3x the altitude as the view radius
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
-    const viewRadius = Math.max(alt * 3, 30000); // at least 30km view
+    const viewRadius = Math.max(alt * 6, 60000); // 2x wider view
     const targetZoom = halfScreen / viewRadius;
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     // Center on ship
