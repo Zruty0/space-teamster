@@ -902,104 +902,101 @@ function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggesti
   const st = level.station;
   const gm = level.planetGM;
   const rTarget = st.orbitRadius;
-  const stOmega = -Math.sqrt(gm / (rTarget * rTarget * rTarget)); // CW
+  const stOmega = -Math.sqrt(gm / (rTarget * rTarget * rTarget));
   
-  // Sample points from the predicted orbit
+  // Check if there's already a good flyby — don't suggest if so
   const pred = getCachedPrediction(s, level);
+  if (pred.closestApproach) {
+    const ca = pred.closestApproach;
+    if (ca.dist < st.captureRadius * 2 && ca.relSpeed < st.captureMaxSpeed * 10) {
+      return null; // already on a good trajectory
+    }
+  }
+  
   const points = pred.points;
   if (points.length < 10) return null;
   
-  let best: ManeuverSuggestion | null = null;
-  let bestScore = Infinity;
+  // Collect all candidate maneuvers
+  interface Candidate {
+    suggestion: ManeuverSuggestion;
+    quality: number; // lower = better (combined distance + speed)
+  }
+  const candidates: Candidate[] = [];
   
-  // Sample every few points
   const step = Math.max(1, Math.floor(points.length / 60));
   
   for (let pi = 0; pi < points.length; pi += step) {
     const pt = points[pi];
     const r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
     const speed = Math.sqrt(pt.vx * pt.vx + pt.vy * pt.vy);
-    if (r < level.planetRadius + level.atmoHeight) continue; // skip atmo points
+    if (r < level.planetRadius + level.atmoHeight) continue;
     if (speed < 1) continue;
     
-    // Prograde unit vector at this point
     const pdx = pt.vx / speed;
     const pdy = pt.vy / speed;
     
-    // Try range of delta-v values
     for (let dv = -50; dv <= 50; dv += 5) {
       if (dv === 0) continue;
       
-      // Apply impulse
       const nvx = pt.vx + pdx * dv;
       const nvy = pt.vy + pdy * dv;
-      
-      // Compute new orbital elements
       const nv2 = nvx * nvx + nvy * nvy;
       const energy = nv2 / 2 - gm / r;
-      if (energy >= 0) continue; // hyperbolic, skip
+      if (energy >= 0) continue;
       const a = -gm / (2 * energy);
       const h = pt.x * nvy - pt.y * nvx;
       const ex = (nvy * h) / gm - pt.x / r;
       const ey = (-nvx * h) / gm - pt.y / r;
       const e = Math.sqrt(ex * ex + ey * ey);
-      if (e >= 1) continue; // hyperbolic
+      if (e >= 1) continue;
       
       const periapsis = a * (1 - e);
       const apoapsis = a * (1 + e);
-      
-      // Check if orbit reaches station radius
       if (rTarget < periapsis || rTarget > apoapsis) continue;
       
-      // Find true anomaly where r = rTarget
       const p = a * (1 - e * e);
       const cosNu = (p / rTarget - 1) / e;
       if (Math.abs(cosNu) > 1) continue;
-      const nuCross = Math.acos(cosNu); // two crossings: +nuCross and -nuCross
-      
-      // Argument of periapsis
+      const nuCross = Math.acos(cosNu);
       const omega = Math.atan2(ey, ex);
-      
-      // Current true anomaly of burn point
       const burnTheta = Math.atan2(pt.y, pt.x);
       let burnNu = burnTheta - omega;
       while (burnNu > Math.PI) burnNu -= 2 * Math.PI;
       while (burnNu < -Math.PI) burnNu += 2 * Math.PI;
-      
       const isCW = h < 0;
       
-      // Try both crossings
       for (const crossNu of [nuCross, -nuCross]) {
         const tof = timeOfFlight(burnNu, crossNu, a, e, gm, isCW);
-        if (tof < 1 || tof > 20000) continue; // unreasonable
+        if (tof < 1 || tof > 20000) continue;
         
-        // Where is the arrival point?
         const arrivalAngle = crossNu + omega;
         const arrivalX = rTarget * Math.cos(arrivalAngle);
         const arrivalY = rTarget * Math.sin(arrivalAngle);
         
-        // Where is the station at arrival time?
         const arrivalPhysTime = pt.t + tof;
         const stAngle = st.startAngle + stOmega * arrivalPhysTime;
         const stX = rTarget * Math.cos(stAngle);
         const stY = rTarget * Math.sin(stAngle);
         
-        // Distance between arrival and station
         const dx = arrivalX - stX, dy = arrivalY - stY;
         const flybyDist = Math.sqrt(dx * dx + dy * dy);
         
-        // Relative speed at arrival (approximate: use vis-viva for ship speed, circular for station)
         const vShipAtCross = Math.sqrt(gm * (2 / rTarget - 1 / a));
         const vStation = Math.sqrt(gm / rTarget);
-        // Rough relative speed (exact would need velocity directions, but magnitude difference is a decent proxy)
-        const flybyRelSpeed = Math.abs(vShipAtCross - vStation) + flybyDist * 0.001; // penalize distance
+        const flybyRelSpeed = Math.abs(vShipAtCross - vStation);
         
-        // Score: minimize distance, prefer smaller delta-v
-        const score = flybyDist + Math.abs(dv) * 500;
+        // Quality: normalized distance + normalized speed (both 0..1 ideally)
+        const distNorm = flybyDist / st.captureRadius;  // 1.0 = at capture edge
+        const speedNorm = flybyRelSpeed / st.captureMaxSpeed; // 1.0 = at speed limit
+        const quality = distNorm + speedNorm;
         
-        if (score < bestScore) {
-          bestScore = score;
-          best = {
+        // Filter: only keep maneuvers that are "good" (<2x radius, <10x speed)
+        if (flybyDist > st.captureRadius * 2) continue;
+        if (flybyRelSpeed > st.captureMaxSpeed * 10) continue;
+        
+        candidates.push({
+          quality,
+          suggestion: {
             burnX: pt.x, burnY: pt.y,
             burnTime: pt.t,
             deltaV: dv,
@@ -1007,8 +1004,30 @@ function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggesti
             flybyRelSpeed,
             arrivalX, arrivalY,
             stationX: stX, stationY: stY,
-          };
-        }
+          },
+        });
+      }
+    }
+  }
+  
+  if (candidates.length === 0) return null;
+  
+  // Find best quality
+  let bestQuality = Infinity;
+  for (const c of candidates) {
+    if (c.quality < bestQuality) bestQuality = c.quality;
+  }
+  
+  // Among all within 10% of best quality, pick least delta-v
+  const threshold = bestQuality * 1.1;
+  let best: ManeuverSuggestion | null = null;
+  let bestDv = Infinity;
+  for (const c of candidates) {
+    if (c.quality <= threshold) {
+      const absDv = Math.abs(c.suggestion.deltaV);
+      if (absDv < bestDv) {
+        bestDv = absDv;
+        best = c.suggestion;
       }
     }
   }
@@ -1339,9 +1358,9 @@ function drawStation(
   ctx.moveTo(sx + sz / 2, sy); ctx.lineTo(sx + sz * 1.5, sy);
   ctx.stroke();
 
-  // Closest approach marker
+  // Closest approach marker (only in zoomed mode)
   const pred = getCachedPrediction(s, level);
-  if (pred.closestApproach) {
+  if (zoomed && pred.closestApproach) {
     const ca = pred.closestApproach;
     // Station position at closest approach
     const [casx, casy] = ws(ca.stationX, ca.stationY, cam, W, H);
