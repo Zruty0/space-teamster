@@ -661,6 +661,8 @@ interface PredEvent {
 interface ClosestApproach {
   dist: number;
   relSpeed: number;
+  progradeRel: number;   // positive = ship moving ahead of station
+  radialRel: number;     // positive = ship moving outward from planet
   shipX: number; shipY: number;
   stationX: number; stationY: number;
   idx: number;
@@ -746,8 +748,15 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       } else dominated = true;
 
       if (!dominated) {
+        // Decompose relative velocity into prograde and radial
+        // Station prograde (CW): (sin(stAngle), -cos(stAngle))
+        // Station radial out: (cos(stAngle), sin(stAngle))
+        const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
+        const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
+        const progradeRel = relVx * progX + relVy * progY;
+        const radialRel = relVx * radX + relVy * radY;
         closestApproach = {
-          dist, relSpeed,
+          dist, relSpeed, progradeRel, radialRel,
           shipX: pt.x, shipY: pt.y,
           stationX: stX, stationY: stY,
           idx: i,
@@ -1132,13 +1141,24 @@ function drawStation(
     // Distance + relative speed label
     const midX = (cashx + casx) / 2;
     const midY = (cashy + casy) / 2;
-    const distKm = ca.dist / 1000;
-    const distStr = distKm > 1 ? `${distKm.toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
-    const col = ca.dist < st.captureRadius && ca.relSpeed < st.captureMaxSpeed ? '#00ffcc' : '#ffaa00';
+    const withinCapture = ca.dist < st.captureRadius;
+    const distStr = withinCapture ? `<${Math.round(st.captureRadius / 1000)}km` : 
+      (ca.dist > 1000 ? `${(ca.dist / 1000).toFixed(1)}km` : `${ca.dist.toFixed(0)}m`);
+    const col = withinCapture ? '#00ffcc' : '#ffaa00';
     ctx.font = '10px monospace';
     ctx.fillStyle = col;
     ctx.textAlign = 'center';
-    ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+
+    if (ca.relSpeed < 200) {
+      // Show prograde/radial decomposition
+      const pAbs = Math.abs(ca.progradeRel).toFixed(0);
+      const rAbs = Math.abs(ca.radialRel).toFixed(0);
+      const pDir = ca.progradeRel >= 0 ? '>>' : '<<';
+      const rDir = ca.radialRel >= 0 ? '\u2191' : '\u2193';  // up/down arrows
+      ctx.fillText(`${distStr}  ${pAbs}${pDir} ${rAbs}${rDir}`, midX, midY - 6);
+    } else {
+      ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+    }
   }
 }
 
@@ -1518,9 +1538,23 @@ export function drawOrbitalHUD(
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
     const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
-    const distCol = dist < level.station.captureRadius * 3 ? COL_OK : COL_HUD;
+    const distCol = dist < level.station.captureRadius ? COL_OK : COL_HUD;
     label(ctx, lx, ly, 'TGT', distStr, distCol); ly += lh;
-    label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD); ly += lh;
+
+    if (relSpd < 200) {
+      // Prograde/radial decomposition
+      const stAngle = Math.atan2(sp.y, sp.x);
+      const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
+      const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
+      const pRel = rvx * progX + rvy * progY;
+      const rRel = rvx * radX + rvy * radY;
+      const pDir = pRel >= 0 ? '>>' : '<<';
+      const rDir = rRel >= 0 ? '\u2191' : '\u2193';
+      const relCol = relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD;
+      label(ctx, lx, ly, 'REL', `${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir}`, relCol); ly += lh;
+    } else {
+      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD); ly += lh;
+    }
   }
 
   label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
