@@ -121,7 +121,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       orbitalDragCoeff: 0.0001,      // between nose-first and broadside
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
-      transitionAltitude: 65_000,    // hand off to approach at 65km (upper atmosphere)
+      transitionAltitude: 25_000,    // hand off to approach at 25km
       landingSiteAngle: -Math.PI / 4,
       approachLevelIdx: 0,  // Kepler's Rest approach
     };
