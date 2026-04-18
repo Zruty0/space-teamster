@@ -897,11 +897,9 @@ export function updateOrbitalCamera(
     const viewRadius = Math.max(dist * 1.5, 50_000);
     const targetZoom = halfScreen / viewRadius;
     cam.zoom += (targetZoom - cam.zoom) * smooth;
-    // Center between ship and station
-    const midX = (s.x + sp.x) / 2;
-    const midY = (s.y + sp.y) / 2;
-    cam.x += (midX - cam.x) * smooth;
-    cam.y += (midY - cam.y) * smooth;
+    // Center on ship
+    cam.x += (s.x - cam.x) * smooth;
+    cam.y += (s.y - cam.y) * smooth;
   } else {
     // In space: show full orbit, centered on planet
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
@@ -936,7 +934,15 @@ export function renderOrbital(
   drawStars(ctx, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawAtmosphere(ctx, cam, level, W, H);
-  if (level.station) drawStation(ctx, cam, s, level, W, H);
+  if (level.station) {
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    const zoomed = dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10;
+    drawStation(ctx, cam, s, level, W, H, zoomed);
+  }
   if (!level.station) drawLandingSite(ctx, cam, level, W, H);
   drawOrbitPrediction(ctx, cam, s, level, W, H);
   drawTrail(ctx, cam, s, W, H);
@@ -1076,6 +1082,7 @@ function drawLandingSite(
 function drawStation(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+  zoomed: boolean,
 ): void {
   const st = level.station!;
   const pos = stationPos(level, s.time)!;
@@ -1111,21 +1118,22 @@ function drawStation(
     prevOx = ox; prevOy = oy;
   }
 
-  // Capture circle (dashed, minimum 8px)
-  const capR = Math.max(st.captureRadius * cam.zoom, 8);
-  ctx.beginPath();
-  ctx.arc(sx, sy, capR, 0, Math.PI * 2);
-  ctx.strokeStyle = '#ccbbff';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([6, 5]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // Capture circle + speed label (only in zoomed mode)
+  if (zoomed) {
+    const capR = Math.max(st.captureRadius * cam.zoom, 8);
+    ctx.beginPath();
+    ctx.arc(sx, sy, capR, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ccbbff';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-  // Speed label next to capture circle
-  ctx.font = '10px monospace';
-  ctx.fillStyle = '#ccbbff';
-  ctx.textAlign = 'left';
-  ctx.fillText(`<${st.captureMaxSpeed}m/s`, sx + capR + 4, sy + 3);
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#ccbbff';
+    ctx.textAlign = 'left';
+    ctx.fillText(`<${st.captureMaxSpeed}m/s`, sx + capR + 4, sy + 3);
+  }
 
   // Station icon (small square + solar panels)
   const sz = 5;
