@@ -127,6 +127,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
 // ===================== State =====================
 
 export function createOrbitalState(level: OrbitalLevel): OrbitalState {
+  _predDirty = true;
+  _cachedPred = null;
   return {
     x: level.startX,
     y: level.startY,
@@ -334,6 +336,9 @@ export function updateOrbital(
     s.y += s.vy * subDt;
     s.time += subDt;
 
+    // Invalidate prediction when orbit changes (thrust or drag)
+    if (s.thrusting !== 'none' || s.inAtmo) _predDirty = true;
+
     // Transition: below transition altitude while in atmosphere
     const newR = Math.sqrt(s.x * s.x + s.y * s.y);
     const newAlt = newR - level.planetRadius;
@@ -418,16 +423,22 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   return { points, atmoEntry, atmoExit, approachStart, impact };
 }
 
-// Cached prediction (recomputed each frame in render)
+// Cached prediction — only recomputed when orbit changes (thrust or drag)
 let _cachedPred: PredictionResult | null = null;
+let _predDirty = true;
+
+/** Mark prediction as needing recomputation (call when orbit changes). */
+export function invalidatePrediction(): void { _predDirty = true; }
+
 function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
-  if (_cachedPred) return _cachedPred;
+  if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
   const maxTime = Math.min(period * 1.8, 20000);
   const stepSize = Math.max(1, maxTime / 1200);
   const points = predictOrbit(s, level, maxTime, stepSize);
   _cachedPred = analyzePrediction(points, level);
+  _predDirty = false;
   return _cachedPred;
 }
 
@@ -513,8 +524,6 @@ export function renderOrbital(
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel, time: number,
 ): void {
   const W = canvas.width, H = canvas.height;
-
-  _cachedPred = null; // invalidate prediction cache each frame
 
   ctx.fillStyle = '#030308';
   ctx.fillRect(0, 0, W, H);
@@ -705,49 +714,87 @@ function drawOrbitPrediction(
     prevSy = sy;
   }
 
-  // --- Event markers on orbit ---
-  const markerSize = 5;
+  // --- Event markers on orbit (arrow icons, no text) ---
 
-  // Atmo entry marker (yellow)
+  // Helper: draw arrow at a point along velocity direction
+  function drawEventArrow(
+    ex: number, ey: number, evx: number, evy: number,
+    color: string, inward: boolean, size: number,
+  ) {
+    const [mx, my] = ws(ex, ey, cam, W, H);
+    const spd = Math.sqrt(evx * evx + evy * evy);
+    if (spd < 0.01) return;
+
+    // Arrow along velocity direction on screen
+    // Screen velocity: (evx, -evy) due to Y flip
+    const svx = evx / spd, svy = -evy / spd;
+    // Perpendicular (for arrowhead wings)
+    const px = -svy, py = svx;
+
+    // For "inward" (entry/approach): arrow points along velocity
+    // For "outward" (exit): arrow also along velocity but we add an upward tick
+    const tipX = mx + svx * size;
+    const tipY = my + svy * size;
+    const baseX = mx - svx * size;
+    const baseY = my - svy * size;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // Arrow shaft
+    ctx.moveTo(baseX, baseY);
+    ctx.lineTo(tipX, tipY);
+    // Arrowhead
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - svx * size * 0.6 + px * size * 0.4, tipY - svy * size * 0.6 + py * size * 0.4);
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - svx * size * 0.6 - px * size * 0.4, tipY - svy * size * 0.6 - py * size * 0.4);
+    ctx.stroke();
+
+    if (!inward) {
+      // Exit: add a small "kick up" line (perpendicular away from planet)
+      const rr = Math.sqrt(ex * ex + ey * ey);
+      const outX = ex / rr, outY = ey / rr; // radial outward in world
+      const soutX = outX, soutY = -outY;     // screen coords
+      ctx.beginPath();
+      ctx.moveTo(mx, my);
+      ctx.lineTo(mx + soutX * size * 1.2, my + soutY * size * 1.2);
+      ctx.stroke();
+    }
+  }
+
+  // Atmo entry: yellow arrow diving in
   if (pred.atmoEntry) {
-    const [mx, my] = ws(pred.atmoEntry.x, pred.atmoEntry.y, cam, W, H);
-    ctx.beginPath();
-    ctx.arc(mx, my, markerSize, 0, Math.PI * 2);
-    ctx.strokeStyle = '#ffdd00';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.font = '9px monospace';
-    ctx.fillStyle = '#ffdd00';
-    ctx.textAlign = 'center';
-    ctx.fillText('ENTRY', mx, my - markerSize - 3);
+    drawEventArrow(
+      pred.atmoEntry.x, pred.atmoEntry.y,
+      pred.atmoEntry.vx, pred.atmoEntry.vy,
+      '#ffdd00', true, 8,
+    );
   }
 
-  // Atmo exit marker (yellow)
+  // Atmo exit: yellow arrow with upward kick
   if (pred.atmoExit) {
-    const [mx, my] = ws(pred.atmoExit.x, pred.atmoExit.y, cam, W, H);
-    ctx.beginPath();
-    ctx.arc(mx, my, markerSize, 0, Math.PI * 2);
-    ctx.strokeStyle = '#ffdd00';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.font = '9px monospace';
-    ctx.fillStyle = '#ffdd00';
-    ctx.textAlign = 'center';
-    ctx.fillText('EXIT', mx, my - markerSize - 3);
+    drawEventArrow(
+      pred.atmoExit.x, pred.atmoExit.y,
+      pred.atmoExit.vx, pred.atmoExit.vy,
+      '#ffdd00', false, 8,
+    );
   }
 
-  // Approach start marker (orange)
+  // Approach start: orange arrow, slightly larger
   if (pred.approachStart) {
+    drawEventArrow(
+      pred.approachStart.x, pred.approachStart.y,
+      pred.approachStart.vx, pred.approachStart.vy,
+      '#ff8844', true, 10,
+    );
+    // Double ring to distinguish from entry
     const [mx, my] = ws(pred.approachStart.x, pred.approachStart.y, cam, W, H);
     ctx.beginPath();
-    ctx.arc(mx, my, markerSize + 1, 0, Math.PI * 2);
+    ctx.arc(mx, my, 4, 0, Math.PI * 2);
     ctx.strokeStyle = '#ff8844';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
-    ctx.font = '9px monospace';
-    ctx.fillStyle = '#ff8844';
-    ctx.textAlign = 'center';
-    ctx.fillText('APPROACH', mx, my - markerSize - 4);
   }
 
   // Impact point marker + distance from LZ
@@ -775,7 +822,7 @@ function drawOrbitPrediction(
     ctx.font = '10px monospace';
     ctx.fillStyle = distCol;
     ctx.textAlign = 'center';
-    ctx.fillText(distLabel, mx, my + markerSize + 12);
+    ctx.fillText(distLabel, mx, my + 18);
   }
 }
 
