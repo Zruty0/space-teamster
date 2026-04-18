@@ -20,6 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
+  orbitalToApproachParams,
 } from './orbital';
 
 const PHYSICS_DT = 1 / 120;
@@ -228,13 +229,35 @@ export class Game {
         input.warpDown = false;
 
         if (!p.os.alive) p.state = 'crashed';
-        if (p.os.enteredAtmo) p.state = 'enteredAtmo';
+        if (p.os.enteredAtmo) {
+          this.transitionOrbitalToApproach(p);
+          return;
+        }
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
     }
 
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
+  }
+
+  private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {
+    const approachLevel = APPROACH_LEVELS[p.level.approachLevelIdx];
+    if (!approachLevel) {
+      // No approach level configured — just show the end screen
+      p.state = 'enteredAtmo';
+      return;
+    }
+    const params = orbitalToApproachParams(p.os, p.level);
+    const as = createApproachState(approachLevel, params);
+    const cam = createApproachCamera(approachLevel);
+    // Start camera near the ship's entry position
+    cam.x = as.x;
+    cam.y = as.y;
+    this.phase = { kind: 'approach', level: approachLevel, as, cam, state: 'approaching' };
+    setDevPanelMode('approach', () => this.loadApproach(approachLevel));
+    this.time = 0;
+    this.accumulator = 0;
   }
 
   // --- Approach phase ---
