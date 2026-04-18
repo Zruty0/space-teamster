@@ -927,8 +927,9 @@ function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggesti
   const candidates: Candidate[] = [];
   
   const step = Math.max(1, Math.floor(points.length / 60));
+  const startIdx = Math.floor(points.length * 0.05); // skip first 5% of orbit
   
-  for (let pi = 0; pi < points.length; pi += step) {
+  for (let pi = startIdx; pi < points.length; pi += step) {
     const pt = points[pi];
     const r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
     const speed = Math.sqrt(pt.vx * pt.vx + pt.vy * pt.vy);
@@ -1313,10 +1314,10 @@ function drawStation(
   const [cx, cy] = ws(0, 0, cam, W, H);
   const orbitR = st.orbitRadius * cam.zoom;
   const stAngle = Math.atan2(pos.y, pos.x); // station's current angle
-  const steps = 120;
+  const steps = zoomed ? 360 : 120; // more segments when zoomed in
   let prevOx = 0, prevOy = 0;
   let dashAccum = 0, dashOn = true;
-  const dashLen = 8;
+  const dashLen = zoomed ? 5 : 8;   // tighter dashes when zoomed
   ctx.lineWidth = 1.5;
   for (let i = 1; i <= steps; i++) {
     const frac = i / steps;
@@ -1563,9 +1564,9 @@ function drawOrbitPrediction(
   }
 
   // Impact point marker + distance from LZ (only for landing missions, not station)
-  if (pred.impact && !level.station) {
+  if (pred.impact) {
     const [mx, my] = ws(pred.impact.x, pred.impact.y, cam, W, H);
-    // X marker
+    // Red X marker (always)
     ctx.strokeStyle = '#ff2200';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -1573,26 +1574,23 @@ function drawOrbitPrediction(
     ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
     ctx.stroke();
 
-    // Distance from LZ (arc distance on surface)
-    const impactAngle = Math.atan2(pred.impact.y, pred.impact.x);
-    let angleDiff = impactAngle - level.landingSiteAngle;
-    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-    const arcDist = Math.abs(angleDiff) * level.planetRadius / 1000; // km
-    // "Short" = impact is before LZ in direction of travel
-    // h > 0 = CCW (angle increases), h < 0 = CW (angle decreases)
-    // If CW: ship hasn't reached LZ yet if impact angle > LZ angle (angleDiff > 0) = short
-    // If CCW: ship hasn't reached LZ yet if impact angle < LZ angle (angleDiff < 0) = short
-    const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
-
-    const distLabel = arcDist < 1 ? 'ON TARGET' :
-      `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
-    const distCol = arcDist < 5 ? '#00ffcc' : '#ff6644';
-    ctx.font = '10px monospace';
-    ctx.fillStyle = distCol;
-    ctx.textAlign = 'center';
-    ctx.fillText(distLabel, mx, my + 18);
+    // Distance from LZ short/long (only for landing missions)
+    if (!level.station) {
+      const impactAngle = Math.atan2(pred.impact.y, pred.impact.x);
+      let angleDiff = impactAngle - level.landingSiteAngle;
+      while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+      while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+      const arcDist = Math.abs(angleDiff) * level.planetRadius / 1000;
+      const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+      const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
+      const distLabel = arcDist < 1 ? 'ON TARGET' :
+        `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
+      const distCol = arcDist < 5 ? '#00ffcc' : '#ff6644';
+      ctx.font = '10px monospace';
+      ctx.fillStyle = distCol;
+      ctx.textAlign = 'center';
+      ctx.fillText(distLabel, mx, my + 18);
+    }
   }
 }
 
@@ -1975,6 +1973,24 @@ export function drawOrbitalHUD(
     ctx.fillStyle = '#ff8844';
     ctx.fillText('AEROBRAKING', W / 2, warnY);
     warnY += 22;
+  }
+
+  // MATCH SPEED warning when in rendezvous proximity
+  if (level.station && state === 'orbiting') {
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x, dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    if (dist < level.station.captureRadius && relSpd > level.station.captureMaxSpeed) {
+      ctx.font = 'bold 18px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#00ffcc';
+      if (Math.sin(Date.now() * 0.01) > -0.3) {
+        ctx.fillText('MATCH SPEED', W / 2, warnY);
+      }
+      warnY += 22;
+    }
   }
 
   // --- State overlays ---
