@@ -153,9 +153,10 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
   };
 }
 
-/** Convert orbital state at transition into approach-phase initial conditions. */
+/** Convert orbital state at transition into approach-phase initial conditions.
+ *  gateX: the gate's x position in approach coords (defines the LZ position). */
 export function orbitalToApproachParams(
-  os: OrbitalState, level: OrbitalLevel,
+  os: OrbitalState, level: OrbitalLevel, gateX: number,
 ): { x: number; y: number; vx: number; vy: number; angle: number } {
   const r = Math.sqrt(os.x * os.x + os.y * os.y);
   const alt = r - level.planetRadius;
@@ -164,12 +165,11 @@ export function orbitalToApproachParams(
   const radX = os.x / r;
   const radY = os.y / r;
 
-  // Local tangent: perpendicular to radial, in direction of travel
+  // Angular momentum determines orbit direction
   // h = x*vy - y*vx; h < 0 = CW, h > 0 = CCW
   const h = os.x * os.vy - os.y * os.vx;
-  // Tangent = 90° rotation of radial in direction of travel
-  // For CCW (h>0): tangent = (-radY, radX)  [90° CCW from radial]
-  // For CW (h<0): tangent = (radY, -radX)   [90° CW from radial]
+
+  // Local tangent: perpendicular to radial, in direction of travel
   const tanX = h >= 0 ? -radY : radY;
   const tanY = h >= 0 ? radX : -radX;
 
@@ -177,26 +177,26 @@ export function orbitalToApproachParams(
   const vRadial = os.vx * radX + os.vy * radY;      // positive = away from planet
   const vTangential = os.vx * tanX + os.vy * tanY;   // positive = in direction of travel
 
-  // Approach coords: x = horizontal (positive = toward gate), y = altitude
-  // Position: horizontal distance from LZ along surface arc
+  // How far ahead of the LZ is the ship (positive = still needs to travel to reach LZ)
   const posAngle = Math.atan2(os.y, os.x);
   let angleDiff = posAngle - level.landingSiteAngle;
   while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
   while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-  // Arc distance: positive = ship is "before" LZ in travel direction
-  // For CW orbit, ship is before LZ if angleDiff > 0
-  const arcSign = h < 0 ? -1 : 1;
-  const horizDist = angleDiff * arcSign * level.planetRadius;
+  // CW (h<0): angles decrease in travel direction. angleDiff > 0 = ship ahead of LZ
+  // CCW (h>0): angles increase in travel direction. angleDiff < 0 = ship ahead of LZ
+  const distAhead = (h < 0 ? angleDiff : -angleDiff) * level.planetRadius;
+
+  // In approach coords: gate (LZ) is at gateX. Ship is distAhead meters before it.
+  const approachX = gateX - distAhead;
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
-  // Ship faces prograde, so angle = atan2(vTangential, vRadial)
   const shipAngle = Math.atan2(vTangential, vRadial);
 
   return {
-    x: -horizDist,          // negative because approach x increases toward gate
+    x: approachX,
     y: alt,
-    vx: vTangential,        // horizontal = tangential
-    vy: vRadial,            // vertical = radial (positive = up)
+    vx: vTangential,
+    vy: vRadial,
     angle: shipAngle,
   };
 }
@@ -878,7 +878,7 @@ function drawOrbitPrediction(
     // If CW: ship hasn't reached LZ yet if impact angle > LZ angle (angleDiff > 0) = short
     // If CCW: ship hasn't reached LZ yet if impact angle < LZ angle (angleDiff < 0) = short
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    const isShort = elem.h < 0 ? angleDiff < 0 : angleDiff > 0;
+    const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
 
     const distLabel = arcDist < 1 ? 'ON TARGET' :
       `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;

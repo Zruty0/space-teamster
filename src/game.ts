@@ -248,7 +248,7 @@ export class Game {
       p.state = 'enteredAtmo';
       return;
     }
-    const params = orbitalToApproachParams(p.os, p.level);
+    const params = orbitalToApproachParams(p.os, p.level, approachLevel.gateX);
     const as = createApproachState(approachLevel, params);
     const cam = createApproachCamera(approachLevel);
     // Start camera near the ship's entry position
