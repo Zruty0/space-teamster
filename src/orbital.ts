@@ -1505,27 +1505,59 @@ function drawShip(
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
     if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
-      // Scale: 1 m/s = 2px, capped
+      const maxSpeed = level.station.captureMaxSpeed;
+      const allCyan = relSpd <= maxSpeed;
+      // Scale: pixels per m/s
       const scale = Math.min(40 / Math.max(relSpd, 1), 3);
-      const rvsx = sx + rvx * scale;
-      const rvsy = sy - rvy * scale; // flip Y
-      // Arrow line
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(rvsx, rvsy);
-      ctx.strokeStyle = '#ff6644';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      // Arrowhead
-      const aLen = Math.sqrt((rvsx - sx) ** 2 + (rvsy - sy) ** 2);
+      const ndx = rvx / Math.max(relSpd, 0.1);
+      const ndy = rvy / Math.max(relSpd, 0.1);
+      // Screen direction (flip Y)
+      const sdx = ndx, sdy = -ndy;
+      const totalLen = relSpd * scale;
+
+      if (allCyan) {
+        // All cyan
+        const rvsx = sx + sdx * totalLen;
+        const rvsy = sy + sdy * totalLen;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(rvsx, rvsy);
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        // First 20m/s cyan, rest orange
+        const cyanLen = maxSpeed * scale;
+        const cyanX = sx + sdx * cyanLen;
+        const cyanY = sy + sdy * cyanLen;
+        const rvsx = sx + sdx * totalLen;
+        const rvsy = sy + sdy * totalLen;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(cyanX, cyanY);
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cyanX, cyanY);
+        ctx.lineTo(rvsx, rvsy);
+        ctx.strokeStyle = '#ff6644';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Arrowhead (color matches tip)
+      const rvsx = sx + sdx * totalLen;
+      const rvsy = sy + sdy * totalLen;
+      const aLen = totalLen;
       if (aLen > 5) {
-        const adx = (rvsx - sx) / aLen, ady = (rvsy - sy) / aLen;
-        const px = -ady, py = adx;
+        const px = -sdy, py = sdx;
+        ctx.strokeStyle = allCyan ? '#00ffcc' : '#ff6644';
         ctx.beginPath();
         ctx.moveTo(rvsx, rvsy);
-        ctx.lineTo(rvsx - adx * 6 + px * 3, rvsy - ady * 6 + py * 3);
+        ctx.lineTo(rvsx - sdx * 6 + px * 3, rvsy - sdy * 6 + py * 3);
         ctx.moveTo(rvsx, rvsy);
-        ctx.lineTo(rvsx - adx * 6 - px * 3, rvsy - ady * 6 - py * 3);
+        ctx.lineTo(rvsx - sdx * 6 - px * 3, rvsy - sdy * 6 - py * 3);
         ctx.stroke();
       }
     }
