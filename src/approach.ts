@@ -152,6 +152,7 @@ export function createApproachState(
   level: ApproachLevel,
   override?: { x: number; y: number; vx: number; vy: number; angle: number },
 ): ApproachState {
+  _approachPlanetR = level.planetRadius || 0;
   const init = override ?? {
     x: level.startX, y: level.startY,
     vx: level.startVX, vy: level.startVY,
@@ -611,13 +612,22 @@ function perlin1D(x: number, freq: number, seed: number): number {
   return smoothNoise(x * freq + seed) * 2 - 1; // -1 to 1
 }
 
-/** Get approach terrain height at world x. Two octaves of Perlin noise. */
+// Module-level planet radius for curvature (set by createApproachState)
+let _approachPlanetR = 0;
+
+/** Get approach terrain height at world x.
+ *  Includes planetary curvature: ground drops by x²/(2R) relative to x=0 (gate/LZ). */
 function getApproachTerrainHeight(x: number): number {
   // Large rolling hills
   const h1 = perlin1D(x, 0.00008, 42.0) * 1200;
   // Medium detail
   const h2 = perlin1D(x, 0.0003, 97.0) * 400;
-  return Math.max(0, h1 + h2 + 300); // offset so average is ~300m, min 0
+  let h = Math.max(0, h1 + h2 + 300); // offset so average is ~300m, min 0
+  // Planetary curvature: ground curves away from reference point (x=0 = gate)
+  if (_approachPlanetR > 0) {
+    h -= (x * x) / (2 * _approachPlanetR);
+  }
+  return h;
 }
 
 function tempColor(t: number): string {
@@ -637,8 +647,8 @@ export function renderApproach(
   // --- Background: atmosphere gradient ---
   drawAtmoBackground(ctx, cam, W, H, level);
 
-  // --- Terrain (Perlin noise ground, with curvature at high alt) ---
-  drawApproachTerrain(ctx, cam, W, H, level);
+  // --- Terrain (Perlin noise + planetary curvature) ---
+  drawApproachTerrain(ctx, cam, W, H);
 
 
   // --- Wind layers ---
@@ -684,17 +694,14 @@ function drawAtmoBackground(
 
 function drawApproachTerrain(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera, W: number, H: number,
-  level: ApproachLevel,
 ): void {
-  // Curvature drop: ground at horizontal distance dx from camera is lower by dx²/(2R)
-  const R = level.planetRadius > 0 ? level.planetRadius : Infinity;
-
   // Check if ground could be visible
-  // At extreme zoom-out, curvature means ground center is at y=0 but edges drop away
   const viewH = H / cam.zoom;
   const screenBottomWorldY = cam.y - viewH / 2;
-  // At high alt, ground is still visible because it curves across the screen
-  if (screenBottomWorldY > 100000) return; // way too high
+  // At high alt with curvature, ground near gate (x=0) is at ~300m
+  // but ground far away can be very negative. Check if any ground is on screen.
+  const groundAtShip = getApproachTerrainHeight(cam.x);
+  if (screenBottomWorldY > groundAtShip + 5000) return;
 
   // One sample every ~4 screen pixels
   const pixelsPerSample = 4;
@@ -704,22 +711,12 @@ function drawApproachTerrain(
   const viewLeft = cam.x - W / (2 * cam.zoom);
   const startWorldX = viewLeft - worldStep;
 
-  // Terrain height with curvature: ground curves away from a reference point
-  // Reference = camera x. At dx from camera, ground drops by dx²/(2R)
-  function terrainY(wx: number): number {
-    const baseH = getApproachTerrainHeight(wx);
-    if (R === Infinity) return baseH;
-    const dx = wx - cam.x;
-    const curvatureDrop = (dx * dx) / (2 * R);
-    return baseH - curvatureDrop;
-  }
-
-  // Build terrain points
+  // Build terrain points (curvature is already in getApproachTerrainHeight)
   ctx.beginPath();
   let firstSx = 0;
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = terrainY(wx);
+    const wy = getApproachTerrainHeight(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) { ctx.moveTo(sx, sy); firstSx = sx; }
     else ctx.lineTo(sx, sy);
@@ -736,7 +733,7 @@ function drawApproachTerrain(
   ctx.beginPath();
   for (let i = 0; i <= numSamples; i++) {
     const wx = startWorldX + i * worldStep;
-    const wy = terrainY(wx);
+    const wy = getApproachTerrainHeight(wx);
     const [sx, sy] = ws(wx, wy, cam, W, H);
     if (i === 0) ctx.moveTo(sx, sy);
     else ctx.lineTo(sx, sy);
@@ -1152,7 +1149,8 @@ export function drawApproachHUD(
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-  const altKm = (s.y / 1000);
+  const groundH = getApproachTerrainHeight(s.x);
+  const altKm = ((s.y - groundH) / 1000);
   const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - level.gateY) ** 2);
 
   ctx.save();
