@@ -91,7 +91,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: r,
       startVX: v,
       startVY: 0,
-      thrustAccel: 1000,         // high thrust for snappy burns (orbital v is ~100km/s)
+      thrustAccel: 3000,         // high thrust for snappy burns (orbital v is ~100km/s)
       fuelDeltaV: 60000,          // escape costs ~42k, generous budget for maneuvers
       landingSiteAngle: -Math.PI / 4, // 315° = lower-right of planet
     };
