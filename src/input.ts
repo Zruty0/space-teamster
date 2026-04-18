@@ -21,6 +21,9 @@ export interface InputState {
   wingAngleUp: boolean;    // E held (increase wing angle)
   wingAngleDown: boolean;  // Q held (decrease wing angle)
   toggleHeatShield: boolean; // H edge-triggered
+  // Orbital controls
+  warpUp: boolean;           // ] edge-triggered
+  warpDown: boolean;         // [ edge-triggered
 }
 
 const keys: Set<string> = new Set();
@@ -77,6 +80,10 @@ export function readInput(): InputState {
   const wingAngleDown = keys.has('KeyQ');
   const toggleHeatShield = justPressed.has('KeyH');
 
+  // Orbital controls
+  const warpUp = justPressed.has('BracketRight');
+  const warpDown = justPressed.has('BracketLeft');
+
   // --- Gamepad ---
   const gamepads = navigator.getGamepads();
   const gp = gamepads[0] ?? null;
@@ -119,5 +126,7 @@ export function readInput(): InputState {
     wingAngleUp,
     wingAngleDown,
     toggleHeatShield,
+    warpUp,
+    warpDown,
   };
 }

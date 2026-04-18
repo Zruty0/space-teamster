@@ -5,6 +5,7 @@ import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
 import { LEVELS, LevelDef } from './levels';
 import { APPROACH_LEVELS } from './approach';
+import { ORBITAL_LEVELS } from './orbital';
 
 const COL_HUD = '#00ff88';
 const COL_HUD_DIM = '#007744';
@@ -122,12 +123,50 @@ export function drawLevelSelect(
     ctx.fillText(level.subtitle, W / 2 - 120, y + 18);
   }
 
+  // Orbital section
+  const orbitalStartY = approachStartY + 20 + APPROACH_LEVELS.length * lineH + 20;
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('── Orbital ──', W / 2, orbitalStartY);
+
+  for (let i = 0; i < ORBITAL_LEVELS.length; i++) {
+    const level = ORBITAL_LEVELS[i];
+    const y = orbitalStartY + 20 + i * lineH;
+    const num = LEVELS.length + APPROACH_LEVELS.length + 1 + i;
+
+    const selected = selectedIndex === LEVELS.length + APPROACH_LEVELS.length + i;
+
+    if (selected) {
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
+      ctx.fillRect(W / 2 - 160, y - 16, 500, lineH - 4);
+      ctx.fillStyle = COL_HUD;
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('▸', W / 2 - 150, y);
+    }
+
+    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
+    ctx.font = 'bold 20px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(`[${num}]`, W / 2 - 140, y);
+
+    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(level.name, W / 2 - 120, y);
+
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '13px monospace';
+    ctx.fillText(level.subtitle, W / 2 - 120, y + 18);
+  }
+
   // Footer
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  const footerY = approachStartY + 20 + APPROACH_LEVELS.length * lineH + 30;
-  ctx.fillText('↑↓: Select  Enter: Launch  (or press 1-8)', W / 2, footerY);
+  const footerY = orbitalStartY + 20 + ORBITAL_LEVELS.length * lineH + 30;
+  ctx.fillText('↑↓: Select  Enter: Launch  (or press 1-9)', W / 2, footerY);
 }
 
 // --- In-game HUD ---

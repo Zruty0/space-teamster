@@ -9,13 +9,18 @@ import {
 import { TerrainData, generateTerrain, getTerrainHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect } from './hud';
-import { createDevPanel, toggleDevPanel } from './dev-panel';
+import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
 import { LEVELS, LevelDef } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera,
   createApproachState, createApproachCamera, updateApproach,
   updateApproachCamera, renderApproach, drawApproachHUD,
 } from './approach';
+import {
+  ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera,
+  createOrbitalState, createOrbitalCamera, updateOrbital,
+  updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
+} from './orbital';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -23,9 +28,10 @@ const MAX_FRAME_TIME = 0.1;
 type Phase =
   | { kind: 'levelSelect' }
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
-  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed' };
+  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed' }
+  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' };
 
-const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length;
+const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -64,6 +70,7 @@ export class Game {
     camera.x = ship.x;
     camera.y = ship.y;
     this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null };
+    setDevPanelMode('landing');
     this.time = 0;
     this.accumulator = 0;
   }
@@ -72,6 +79,15 @@ export class Game {
     const as = createApproachState(level);
     const cam = createApproachCamera(level);
     this.phase = { kind: 'approach', level, as, cam, state: 'approaching' };
+    setDevPanelMode('approach', () => this.loadApproach(level));
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
+  private loadOrbital(level: OrbitalLevel): void {
+    const os = createOrbitalState(level);
+    const cam = createOrbitalCamera(level);
+    this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting' };
     this.time = 0;
     this.accumulator = 0;
   }
@@ -96,6 +112,8 @@ export class Game {
       this.handleLanding(input, frameTime);
     } else if (p.kind === 'approach') {
       this.handleApproach(input, frameTime);
+    } else if (p.kind === 'orbital') {
+      this.handleOrbital(input, frameTime);
     }
 
     this.renderFrame();
@@ -125,10 +143,13 @@ export class Game {
   private launchLevel(index: number): void {
     if (index < LEVELS.length) {
       this.loadLanding(LEVELS[index]);
-    } else {
+    } else if (index < LEVELS.length + APPROACH_LEVELS.length) {
       const ai = index - LEVELS.length;
-      if (ai >= 0 && ai < APPROACH_LEVELS.length) {
-        this.loadApproach(APPROACH_LEVELS[ai]);
+      this.loadApproach(APPROACH_LEVELS[ai]);
+    } else {
+      const oi = index - LEVELS.length - APPROACH_LEVELS.length;
+      if (oi >= 0 && oi < ORBITAL_LEVELS.length) {
+        this.loadOrbital(ORBITAL_LEVELS[oi]);
       }
     }
   }
@@ -187,6 +208,35 @@ export class Game {
     }
   }
 
+  // --- Orbital phase ---
+
+  private handleOrbital(input: InputState, frameTime: number): void {
+    const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
+
+    if (input.reset) { this.loadOrbital(p.level); return; }
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+
+    input.reset = false;
+    input.levelSelect = false;
+
+    this.accumulator += frameTime;
+    while (this.accumulator >= PHYSICS_DT) {
+      if (p.state === 'orbiting') {
+        updateOrbital(p.os, input, p.level, PHYSICS_DT);
+        // Clear edge triggers after first step
+        input.warpUp = false;
+        input.warpDown = false;
+
+        if (!p.os.alive) p.state = 'crashed';
+        if (p.os.enteredAtmo) p.state = 'enteredAtmo';
+      }
+      this.accumulator -= PHYSICS_DT;
+      this.time += PHYSICS_DT;
+    }
+
+    updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
+  }
+
   // --- Approach phase ---
 
   private handleApproach(input: InputState, frameTime: number): void {
@@ -202,7 +252,7 @@ export class Game {
     let edgeConsumed = false;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'approaching') {
-        updateApproach(p.as, input, p.level, PHYSICS_DT);
+        updateApproach(p.as, input, p.level, PHYSICS_DT, this.time);
         // Clear edge triggers after first physics step
         if (!edgeConsumed) { edgeConsumed = true; }
         else { input.toggleHeatShield = false; input.toggleWings = false; }
@@ -228,7 +278,10 @@ export class Game {
       drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
-      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state);
+      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time);
+    } else if (p.kind === 'orbital') {
+      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time);
+      drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state);
     }
   }
 }
