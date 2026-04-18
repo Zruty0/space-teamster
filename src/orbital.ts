@@ -209,7 +209,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       station: {
         orbitRadius: stationR,
         startAngle: Math.PI * 0.6,    // ahead of player
-        captureRadius: 5_000,         // 5km capture zone
+        captureRadius: 20_000,        // 20km capture zone
         captureMaxSpeed: 20,          // 20 m/s max relative speed
       },
     };
