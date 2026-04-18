@@ -29,7 +29,7 @@ const MAX_FRAME_TIME = 0.1;
 type Phase =
   | { kind: 'levelSelect' }
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
-  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed' }
+  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: { x: number; y: number; vx: number; vy: number; angle: number } }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' };
 
 const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length;
@@ -76,11 +76,12 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private loadApproach(level: ApproachLevel): void {
-    const as = createApproachState(level);
+  private loadApproach(level: ApproachLevel, initOverride?: { x: number; y: number; vx: number; vy: number; angle: number }): void {
+    const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
-    this.phase = { kind: 'approach', level, as, cam, state: 'approaching' };
-    setDevPanelMode('approach', () => this.loadApproach(level));
+    if (initOverride) { cam.x = as.x; cam.y = as.y; }
+    this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride };
+    setDevPanelMode('approach', () => this.loadApproach(level, initOverride));
     this.time = 0;
     this.accumulator = 0;
   }
@@ -249,15 +250,7 @@ export class Game {
       return;
     }
     const params = orbitalToApproachParams(p.os, p.level);
-    const as = createApproachState(approachLevel, params);
-    const cam = createApproachCamera(approachLevel);
-    // Start camera near the ship's entry position
-    cam.x = as.x;
-    cam.y = as.y;
-    this.phase = { kind: 'approach', level: approachLevel, as, cam, state: 'approaching' };
-    setDevPanelMode('approach', () => this.loadApproach(approachLevel));
-    this.time = 0;
-    this.accumulator = 0;
+    this.loadApproach(approachLevel, params);
   }
 
   // --- Approach phase ---
@@ -265,7 +258,7 @@ export class Game {
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
 
-    if (input.reset) { this.loadApproach(p.level); return; }
+    if (input.reset) { this.loadApproach(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
