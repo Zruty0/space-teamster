@@ -635,6 +635,9 @@ export function updateOrbital(
     s.trail[s.trailIdx] = trailEntry;
     s.trailIdx = (s.trailIdx + 1) % TRAIL_MAX;
   }
+
+  // Maneuver suggestion (only when idle)
+  updateManeuverSuggestion(s, level);
 }
 
 // ===================== Orbit Prediction (Numerical) =====================
@@ -845,6 +848,193 @@ function predictOrbit(
   return points;
 }
 
+// ===================== Maneuver Suggestion =====================
+
+interface ManeuverSuggestion {
+  burnX: number; burnY: number;     // where to burn (on current orbit)
+  burnTime: number;                  // physics time of burn
+  deltaV: number;                    // m/s prograde (negative = retrograde)
+  flybyDist: number;                 // predicted closest approach to station
+  flybyRelSpeed: number;             // relative speed at flyby
+  arrivalX: number; arrivalY: number; // where ship meets station orbit
+  stationX: number; stationY: number; // where station is at arrival
+}
+
+let _maneuverCache: ManeuverSuggestion | null = null;
+let _maneuverLastCompute = 0;    // realTime of last computation
+let _maneuverThrottleIdle = 0;   // realTime when throttle went idle
+const MANEUVER_IDLE_DELAY = 3;   // seconds after idle before first compute
+const MANEUVER_RECOMPUTE = 5;    // seconds between recomputes
+
+/** Solve Kepler's equation: M = E - e*sin(E) for E given M and e. */
+function solveKepler(M: number, e: number): number {
+  let E = M; // initial guess
+  for (let i = 0; i < 12; i++) {
+    const dE = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    E -= dE;
+    if (Math.abs(dE) < 1e-10) break;
+  }
+  return E;
+}
+
+/** Compute time to travel from true anomaly nu1 to nu2 on an orbit with elements (a, e, GM).
+ *  Assumes elliptical orbit (e < 1). Returns positive time. */
+function timeOfFlight(nu1: number, nu2: number, a: number, e: number, gm: number, cw: boolean): number {
+  // Convert true anomaly to eccentric anomaly
+  function nuToE(nu: number): number {
+    return Math.atan2(Math.sqrt(1 - e * e) * Math.sin(nu), e + Math.cos(nu));
+  }
+  let E1 = nuToE(nu1);
+  let E2 = nuToE(nu2);
+  // Mean anomalies
+  let M1 = E1 - e * Math.sin(E1);
+  let M2 = E2 - e * Math.sin(E2);
+  // For CW orbits, time goes with decreasing true anomaly
+  let dM = cw ? M1 - M2 : M2 - M1;
+  while (dM < 0) dM += 2 * Math.PI;
+  // Time = dM / n, where n = sqrt(GM/a³)
+  const n = Math.sqrt(gm / (a * a * a));
+  return dM / n;
+}
+
+function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggestion | null {
+  if (!level.station) return null;
+  const st = level.station;
+  const gm = level.planetGM;
+  const rTarget = st.orbitRadius;
+  const stOmega = -Math.sqrt(gm / (rTarget * rTarget * rTarget)); // CW
+  
+  // Sample points from the predicted orbit
+  const pred = getCachedPrediction(s, level);
+  const points = pred.points;
+  if (points.length < 10) return null;
+  
+  let best: ManeuverSuggestion | null = null;
+  let bestScore = Infinity;
+  
+  // Sample every few points
+  const step = Math.max(1, Math.floor(points.length / 60));
+  
+  for (let pi = 0; pi < points.length; pi += step) {
+    const pt = points[pi];
+    const r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+    const speed = Math.sqrt(pt.vx * pt.vx + pt.vy * pt.vy);
+    if (r < level.planetRadius + level.atmoHeight) continue; // skip atmo points
+    if (speed < 1) continue;
+    
+    // Prograde unit vector at this point
+    const pdx = pt.vx / speed;
+    const pdy = pt.vy / speed;
+    
+    // Try range of delta-v values
+    for (let dv = -50; dv <= 50; dv += 5) {
+      if (dv === 0) continue;
+      
+      // Apply impulse
+      const nvx = pt.vx + pdx * dv;
+      const nvy = pt.vy + pdy * dv;
+      
+      // Compute new orbital elements
+      const nv2 = nvx * nvx + nvy * nvy;
+      const energy = nv2 / 2 - gm / r;
+      if (energy >= 0) continue; // hyperbolic, skip
+      const a = -gm / (2 * energy);
+      const h = pt.x * nvy - pt.y * nvx;
+      const ex = (nvy * h) / gm - pt.x / r;
+      const ey = (-nvx * h) / gm - pt.y / r;
+      const e = Math.sqrt(ex * ex + ey * ey);
+      if (e >= 1) continue; // hyperbolic
+      
+      const periapsis = a * (1 - e);
+      const apoapsis = a * (1 + e);
+      
+      // Check if orbit reaches station radius
+      if (rTarget < periapsis || rTarget > apoapsis) continue;
+      
+      // Find true anomaly where r = rTarget
+      const p = a * (1 - e * e);
+      const cosNu = (p / rTarget - 1) / e;
+      if (Math.abs(cosNu) > 1) continue;
+      const nuCross = Math.acos(cosNu); // two crossings: +nuCross and -nuCross
+      
+      // Argument of periapsis
+      const omega = Math.atan2(ey, ex);
+      
+      // Current true anomaly of burn point
+      const burnTheta = Math.atan2(pt.y, pt.x);
+      let burnNu = burnTheta - omega;
+      while (burnNu > Math.PI) burnNu -= 2 * Math.PI;
+      while (burnNu < -Math.PI) burnNu += 2 * Math.PI;
+      
+      const isCW = h < 0;
+      
+      // Try both crossings
+      for (const crossNu of [nuCross, -nuCross]) {
+        const tof = timeOfFlight(burnNu, crossNu, a, e, gm, isCW);
+        if (tof < 1 || tof > 20000) continue; // unreasonable
+        
+        // Where is the arrival point?
+        const arrivalAngle = crossNu + omega;
+        const arrivalX = rTarget * Math.cos(arrivalAngle);
+        const arrivalY = rTarget * Math.sin(arrivalAngle);
+        
+        // Where is the station at arrival time?
+        const arrivalPhysTime = pt.t + tof;
+        const stAngle = st.startAngle + stOmega * arrivalPhysTime;
+        const stX = rTarget * Math.cos(stAngle);
+        const stY = rTarget * Math.sin(stAngle);
+        
+        // Distance between arrival and station
+        const dx = arrivalX - stX, dy = arrivalY - stY;
+        const flybyDist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Relative speed at arrival (approximate: use vis-viva for ship speed, circular for station)
+        const vShipAtCross = Math.sqrt(gm * (2 / rTarget - 1 / a));
+        const vStation = Math.sqrt(gm / rTarget);
+        // Rough relative speed (exact would need velocity directions, but magnitude difference is a decent proxy)
+        const flybyRelSpeed = Math.abs(vShipAtCross - vStation) + flybyDist * 0.001; // penalize distance
+        
+        // Score: minimize distance, prefer smaller delta-v
+        const score = flybyDist + Math.abs(dv) * 500;
+        
+        if (score < bestScore) {
+          bestScore = score;
+          best = {
+            burnX: pt.x, burnY: pt.y,
+            burnTime: pt.t,
+            deltaV: dv,
+            flybyDist,
+            flybyRelSpeed,
+            arrivalX, arrivalY,
+            stationX: stX, stationY: stY,
+          };
+        }
+      }
+    }
+  }
+  
+  return best;
+}
+
+function updateManeuverSuggestion(s: OrbitalState, level: OrbitalLevel): void {
+  if (!level.station || s.docked) { _maneuverCache = null; return; }
+  
+  const isThrusting = s.thrusting !== 'none';
+  if (isThrusting) {
+    _maneuverThrottleIdle = s.realTime;
+    return; // don't compute while thrusting
+  }
+  
+  const idleTime = s.realTime - _maneuverThrottleIdle;
+  if (idleTime < MANEUVER_IDLE_DELAY) return; // wait for idle
+  
+  const timeSinceCompute = s.realTime - _maneuverLastCompute;
+  if (_maneuverCache && timeSinceCompute < MANEUVER_RECOMPUTE) return; // recent enough
+  
+  _maneuverCache = computeManeuver(s, level);
+  _maneuverLastCompute = s.realTime;
+}
+
 // ===================== Camera =====================
 
 export interface OrbitalCamera {
@@ -949,6 +1139,7 @@ export function renderOrbital(
     drawTrail(ctx, cam, s, W, H);
     drawOrbitalMarkers(ctx, cam, s, level, W, H);
   }
+  if (!rendezvousZoomed && _maneuverCache) drawManeuverMarker(ctx, cam, _maneuverCache, W, H);
   drawShip(ctx, cam, s, level, W, H, time);
 }
 
@@ -1186,6 +1377,30 @@ function drawStation(
 
     ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
   }
+}
+
+// --- Maneuver suggestion marker ---
+function drawManeuverMarker(
+  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
+  m: ManeuverSuggestion, W: number, H: number,
+): void {
+  const [mx, my] = ws(m.burnX, m.burnY, cam, W, H);
+
+  // Blue X
+  const sz = 6;
+  ctx.strokeStyle = '#4488ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(mx - sz, my - sz); ctx.lineTo(mx + sz, my + sz);
+  ctx.moveTo(mx + sz, my - sz); ctx.lineTo(mx - sz, my + sz);
+  ctx.stroke();
+
+  // Label
+  const label = m.deltaV > 0 ? 'speed up' : 'slow down';
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#4488ff';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, mx, my - sz - 4);
 }
 
 // --- Orbit prediction (numerical, with aerobraking) ---
