@@ -39,7 +39,8 @@ export interface OrbitalLevel {
   aeroNoseDrag: number;       // Cd when nose-first
   aeroBroadsideDrag: number;  // Cd when broadside
   aeroLiftCoeff: number;      // body lift coefficient
-  defaultEntryAoA: number;    // radians, snap-to on atmo entry
+  highAtmoAoA: number;        // radians, default AoA for upper atmosphere entry
+  lowAtmoAoA: number;         // radians, default AoA for lower atmosphere (approach-like)
   rcsAngularAccel: number;    // rad/s² for A/D pitch control in atmo
 
   // Heat
@@ -137,7 +138,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       aeroNoseDrag: 0.00002,
       aeroBroadsideDrag: 0.0004,
       aeroLiftCoeff: 0.00012,           // match approach phase body lift
-      defaultEntryAoA: 0.13,          // ~7.5° nose-up (matches approach phase baseline)
+      highAtmoAoA: 0.44,             // ~25° for aerobraking in upper atmo
+      lowAtmoAoA: 0.13,              // ~7.5° glide angle for lower atmo / approach
       rcsAngularAccel: 0.5,           // rad/s² for pitch control
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
@@ -216,7 +218,7 @@ export function orbitalToApproachParams(
   // Apply default entry AoA so approach starts at the baseline attitude
   // Approach AoA convention: aoa = velAngle - shipAngle, so shipAngle = velAngle - aoa
   const velDirApproach = Math.atan2(vTangential, vRadial);
-  const shipAngle = velDirApproach - level.defaultEntryAoA;
+  const shipAngle = velDirApproach - level.lowAtmoAoA;
 
   return {
     x: approachX,
@@ -276,10 +278,10 @@ function atmoDensity(alt: number, level: OrbitalLevel): number {
 }
 
 /** Compute aero forces (drag + lift) and heat rate, AoA-dependent.
- *  shipAngle: world angle of ship nose. Pass NaN to use defaultEntryAoA. */
+ *  aoa: angle of attack in radians (positive = nose above velocity). */
 function aeroForces(
   x: number, y: number, vx: number, vy: number,
-  shipAngle: number, level: OrbitalLevel,
+  aoa: number, level: OrbitalLevel,
 ): { ax: number; ay: number; heatRate: number; aoa: number } {
   const r = Math.sqrt(x * x + y * y);
   const alt = r - level.planetRadius;
@@ -289,20 +291,15 @@ function aeroForces(
   const speed = Math.sqrt(vx * vx + vy * vy);
   if (speed < 0.1) return { ax: 0, ay: 0, heatRate: 0, aoa: 0 };
 
-  // Velocity angle and AoA
   const velAngle = Math.atan2(vy, vx);
-  let useAngle = shipAngle;
-  if (isNaN(useAngle)) {
-    // Use default entry AoA relative to prograde
-    // Positive AoA = nose "above" velocity (generates lift away from planet)
-    useAngle = velAngle + level.defaultEntryAoA;
-  }
-  let aoa = useAngle - velAngle;
-  while (aoa > Math.PI) aoa -= 2 * Math.PI;
-  while (aoa < -Math.PI) aoa += 2 * Math.PI;
+  // Normalize AoA to [-π, π]
+  let normAoA = aoa;
+  while (normAoA > Math.PI) normAoA -= 2 * Math.PI;
+  while (normAoA < -Math.PI) normAoA += 2 * Math.PI;
+  const useAngle = velAngle + normAoA;
 
-  const sinA = Math.sin(aoa);
-  const cosA = Math.cos(aoa);
+  const sinA = Math.sin(normAoA);
+  const cosA = Math.cos(normAoA);
 
   // Drag: AoA-dependent cross section
   const Cd = level.aeroNoseDrag * cosA * cosA + level.aeroBroadsideDrag * sinA * sinA;
@@ -333,7 +330,7 @@ function aeroForces(
   }
 
   const heatRate = dragAccel * speed * level.heatCoeff;
-  return { ax, ay, heatRate, aoa };
+  return { ax, ay, heatRate, aoa: normAoA };
 }
 
 // ===================== Physics Update =====================
@@ -405,7 +402,7 @@ export function updateOrbital(
     let ay = -gAccel * (s.y / r);
 
     // Aero forces (AoA-dependent drag + lift)
-    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.inAtmo ? s.angle : NaN, level);
+    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.inAtmo ? s.targetAoA : level.highAtmoAoA, level);
     ax += aero.ax;
     ay += aero.ay;
 
@@ -505,7 +502,7 @@ export function updateOrbital(
   // --- Ship orientation (after substep loop so s.inAtmo is current) ---
   // Snap-rotate on atmo entry
   if (s.inAtmo && !wasInAtmo) {
-    s.targetAoA = level.defaultEntryAoA;
+    s.targetAoA = level.highAtmoAoA;
     s.timeWarpLevel = 0;
     s.timeWarp = 1;
   }
@@ -624,7 +621,9 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
   const maxTime = Math.min(period * 1.8, 20000);
   const stepSize = Math.max(1, maxTime / 1200);
-  const points = predictOrbit(s, level, maxTime, stepSize);
+  // Use current AoA if in atmo, otherwise standard high-atmo AoA
+  const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
+  const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
   _cachedPred = analyzePrediction(points, level);
   _predDirty = false;
   return _cachedPred;
@@ -632,6 +631,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
 
 function predictOrbit(
   s: OrbitalState, level: OrbitalLevel, maxPhysTime: number, stepSize: number,
+  predAoA: number,
 ): PredPoint[] {
   const points: PredPoint[] = [];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
@@ -650,7 +650,7 @@ function predictOrbit(
       const gAccel = level.planetGM / (r * r);
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
-      const aero = aeroForces(x, y, vx, vy, NaN, level); // NaN = use default AoA
+      const aero = aeroForces(x, y, vx, vy, predAoA, level);
       ax += aero.ax;
       ay += aero.ay;
       vx += ax * subDt;
@@ -661,7 +661,7 @@ function predictOrbit(
 
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
-    const aero = aeroForces(x, y, vx, vy, NaN, level);
+    const aero = aeroForces(x, y, vx, vy, predAoA, level);
     points.push({
       x, y, vx, vy, alt,
       inAtmo: alt < level.atmoHeight,
