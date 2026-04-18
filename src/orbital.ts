@@ -1080,36 +1080,7 @@ function drawOrbitalMarkers(
 ): void {
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
 
-  // Periapsis — green diamond
-  const pePos = orbitPosition(elem, 0);
-  const [psx, psy] = ws(pePos.x, pePos.y, cam, W, H);
-  const ms = 6;
-
-  ctx.beginPath();
-  ctx.moveTo(psx, psy - ms);
-  ctx.lineTo(psx + ms, psy);
-  ctx.lineTo(psx, psy + ms);
-  ctx.lineTo(psx - ms, psy);
-  ctx.closePath();
-  ctx.strokeStyle = '#00ff88';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Apoapsis — green diamond
-  if (elem.e < 1) {
-    const apPos = orbitPosition(elem, Math.PI);
-    const [asx, asy] = ws(apPos.x, apPos.y, cam, W, H);
-
-    ctx.beginPath();
-    ctx.moveTo(asx, asy - ms);
-    ctx.lineTo(asx + ms, asy);
-    ctx.lineTo(asx, asy + ms);
-    ctx.lineTo(asx - ms, asy);
-    ctx.closePath();
-    ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
+  // (Pe/Ap diamond markers removed)
 }
 
 // --- Ship ---
