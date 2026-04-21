@@ -141,8 +141,8 @@ export function updateDocking(
   s.sasUp = false; s.sasDown = false; s.sasLeft = false; s.sasRight = false;
   s.sasCW = false; s.sasCCW = false;
 
-  if (input.wingAngleDown) { torque += level.rotTorque; s.rotCCW = true; }
-  if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }
+  if (input.wingAngleDown) { torque += level.rotTorque; s.rotCCW = true; }  // Q = CCW on screen
+  if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp && Math.abs(s.angVel) > 0.01) {
     torque -= s.angVel * level.rotTorque * 5;
     if (s.angVel > 0.01) s.sasCCW = true;  // damping CCW rotation
@@ -188,7 +188,7 @@ export function updateDocking(
   if (s.sas) {
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
     if (!anyInput && (Math.abs(s.vx) > 0.01 || Math.abs(s.vy) > 0.01)) {
-      const maxF = level.thrustForce * 2;
+      const maxF = level.thrustForce * 2; // always base thrust, not affected by Shift
       const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
       const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
       fx += sasFx;
@@ -533,44 +533,43 @@ function drawFlames(
   const mainCol = '#ffaa00';
 
   // Helper to draw main flames for a set of flags
-  function drawMainSet(up: boolean, down: boolean, fwd: boolean, back: boolean, col: string, lw: number) {
+  function drawMainSet(up: boolean, down: boolean, fwd: boolean, back: boolean, col: string, lw: number, flameLen?: number) {
+    const f = flameLen ?? fl;
     ctx.strokeStyle = col;
     ctx.lineWidth = lw;
     for (const tx of [t1x, t2x]) {
       if (up) {
         ctx.beginPath();
         ctx.moveTo(tx - nz * 0.6, fh / 2 + nz);
-        ctx.lineTo(tx, fh / 2 + nz + fl);
+        ctx.lineTo(tx, fh / 2 + nz + f);
         ctx.lineTo(tx + nz * 0.6, fh / 2 + nz);
         ctx.stroke();
       }
       if (down) {
         ctx.beginPath();
         ctx.moveTo(tx - nz * 0.6, -fh / 2 - nz);
-        ctx.lineTo(tx, -fh / 2 - nz - fl);
+        ctx.lineTo(tx, -fh / 2 - nz - f);
         ctx.lineTo(tx + nz * 0.6, -fh / 2 - nz);
         ctx.stroke();
       }
-      // Forward: flames go straight backward (parallel to ship axis)
       if (fwd) {
         ctx.beginPath();
         ctx.moveTo(tx, -fh / 2 - nz);
-        ctx.lineTo(tx - fl, -fh / 2 - nz);
+        ctx.lineTo(tx - f, -fh / 2 - nz);
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(tx, fh / 2 + nz);
-        ctx.lineTo(tx - fl, fh / 2 + nz);
+        ctx.lineTo(tx - f, fh / 2 + nz);
         ctx.stroke();
       }
-      // Backward: flames go straight forward
       if (back) {
         ctx.beginPath();
         ctx.moveTo(tx, -fh / 2 - nz);
-        ctx.lineTo(tx + fl, -fh / 2 - nz);
+        ctx.lineTo(tx + f, -fh / 2 - nz);
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(tx, fh / 2 + nz);
-        ctx.lineTo(tx + fl, fh / 2 + nz);
+        ctx.lineTo(tx + f, fh / 2 + nz);
         ctx.stroke();
       }
     }
@@ -580,13 +579,15 @@ function drawFlames(
   function drawRCS(ccw: boolean, cw: boolean, col: string, len: number) {
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = col;
+    // CCW on screen: top-left fires up, bottom-right fires down
     if (ccw) {
-      ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - len); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + len); ctx.stroke();
-    }
-    if (cw) {
       ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, -fh / 2); ctx.lineTo(x0, -fh / 2 - len); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, fh / 2); ctx.lineTo(x1, fh / 2 + len); ctx.stroke();
+    }
+    // CW on screen: top-right fires up, bottom-left fires down
+    if (cw) {
+      ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - len); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + len); ctx.stroke();
     }
   }
 
@@ -595,9 +596,11 @@ function drawFlames(
   drawMainSet(s.thrustUp, s.thrustDown, s.thrustRight, s.thrustLeft, mainCol, lw);
   drawRCS(s.rotCCW, s.rotCW, '#ff4422', rcsfl);
 
-  // SAS flames (same intensity as player thrust)
-  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, mainCol, lw);
-  drawRCS(s.sasCCW, s.sasCW, '#ff4422', rcsfl);
+  // SAS flames (always normal size, unaffected by Shift)
+  const normalFl = 1.5 * z * flicker;
+  const normalRcs = 1.2 * z * flicker;
+  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, mainCol, 1.5, normalFl);
+  drawRCS(s.sasCCW, s.sasCW, '#ff4422', normalRcs);
 }
 
 // ===================== HUD =====================
