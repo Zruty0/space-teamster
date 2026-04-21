@@ -219,12 +219,13 @@ const MISSION1_DOCKING: DockingLevel = {
 // Position player inside their starting bay
 (() => {
   const bay = MISSION1_DOCKING.bays.find(b => b.spokeIdx === 0 && b.side === 1 && b.slot === 2)!;
-  // Mark it as the player's bay (not target for delivery, but where we start)
-  bay.filled = true; // show our container in the bay initially
+  bay.filled = true;    // show our container in the bay
+  bay.isTarget = false; // NOT a delivery target in exit mode
+  // Clear any target bay (exit mode has no target)
+  for (const b of MISSION1_DOCKING.bays) b.isTarget = false;
   const bp = bayWorldPos(bay, MISSION1_DOCKING.stationX, MISSION1_DOCKING.stationY);
   MISSION1_DOCKING.startX = bp.x;
   MISSION1_DOCKING.startY = bp.y;
-  // Face outward from the bay (opposite of bay open direction)
   MISSION1_DOCKING.startAngle = bp.angle + Math.PI;
 })();
 
