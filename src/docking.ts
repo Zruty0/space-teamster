@@ -396,10 +396,10 @@ export function updateDocking(
     }
   }
 
-  // Tractor beam: alignment-gated, PID-like pull + rotation
+  // Tractor beam: alignment-gated, PID-like pull + rotation (not in exit mode)
   s.beamActive = false;
   s.beamAligned = false;
-  if (level.hasContainer) {
+  if (level.hasContainer && !level.exitMode) {
     const target = level.bays.find(b => b.isTarget);
     if (target) {
       const bp = bayWorldPos(target, level.stationX, level.stationY);
