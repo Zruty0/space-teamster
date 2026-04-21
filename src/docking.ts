@@ -21,7 +21,8 @@ interface BayInfo {
   slot: number;
   filled: boolean;
   isTarget: boolean;
-  colorIdx: number;   // container color variant (0-4)
+  colorIdx: number;
+  isPlayerBay: boolean;  // player starts here (skip collision)
 }
 
 export interface DockingLevel {
@@ -77,7 +78,8 @@ export interface DockingState {
   sasCW: boolean; sasCCW: boolean;
   beamActive: boolean;
   beamAligned: boolean;
-  exitComplete: boolean;   // cleared station in exit mode
+  exitComplete: boolean;
+  leftStartBay: boolean;   // has left the starting bay area (enables collision)
 }
 
 // ===================== Levels =====================
@@ -92,7 +94,7 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
         const isTarget = spoke === targetSpoke && side === targetSide && slot === targetSlot;
         const filled = isTarget ? false : rng() < fillPct;
         const colorIdx = Math.floor(rng() * 5);
-        bays.push({ spokeIdx: spoke, side, slot, filled, isTarget, colorIdx });
+        bays.push({ spokeIdx: spoke, side, slot, filled, isTarget, colorIdx, isPlayerBay: false });
       }
     }
   }
@@ -167,7 +169,7 @@ function stationCollision(
       for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
         const bay = bays.find(b => b.spokeIdx === spoke && b.side === side && b.slot === slot);
 
-        if (bay && bay.filled) {
+        if (bay && bay.filled && !bay.isPlayerBay) {
           const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
           const sly2 = ly * sideSign;
           const contHalfW = CONTAINER_H / 2;
@@ -219,8 +221,9 @@ const MISSION1_DOCKING: DockingLevel = {
 // Position player inside their starting bay
 (() => {
   const bay = MISSION1_DOCKING.bays.find(b => b.spokeIdx === 0 && b.side === 1 && b.slot === 2)!;
-  bay.filled = true;    // show our container in the bay
-  bay.isTarget = false; // NOT a delivery target in exit mode
+  bay.filled = false;   // don't show a static container (player IS the container)
+  bay.isTarget = false;
+  bay.isPlayerBay = true;
   // Clear any target bay (exit mode has no target)
   for (const b of MISSION1_DOCKING.bays) b.isTarget = false;
   const bp = bayWorldPos(bay, MISSION1_DOCKING.stationX, MISSION1_DOCKING.stationY);
@@ -290,6 +293,7 @@ export function createDockingState(level: DockingLevel): DockingState {
     sasCW: false, sasCCW: false,
     beamActive: false, beamAligned: false,
     exitComplete: false,
+    leftStartBay: !level.exitMode, // if not exit mode, collision is always on
   };
 }
 
@@ -448,7 +452,18 @@ export function updateDocking(
   s.x += s.vx * dt;
   s.y += s.vy * dt;
 
-  // Collision: check probe points on frame, cab, and container
+  // Track when player has left the starting bay (for exit mode)
+  if (!s.leftStartBay) {
+    const distFromStart = Math.sqrt(
+      (s.x - level.startX) * (s.x - level.startX) +
+      (s.y - level.startY) * (s.y - level.startY)
+    );
+    if (distFromStart > BAY_SLOT_D + 5) s.leftStartBay = true;
+  }
+
+  // Collision: check probe points (only after leaving start bay)
+  if (!s.leftStartBay) { /* skip collision while inside starting bay */ }
+  else {
   const colCos = Math.cos(s.angle), colSin = Math.sin(s.angle);
   const probes: [number, number][] = [];
 
@@ -500,6 +515,7 @@ export function updateDocking(
       break;
     }
   }
+  } // end collision else block
 
   // Delivery check: container inside target bay + nearly stationary
   if (level.hasContainer && !level.exitMode) {
