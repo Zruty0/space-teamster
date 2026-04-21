@@ -45,6 +45,12 @@ window.addEventListener('keyup', (e) => {
   keys.delete(e.code);
 });
 
+// Clear all keys when window loses focus (prevents stuck keys)
+window.addEventListener('blur', () => {
+  keys.clear();
+  justPressed.clear();
+});
+
 function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
 }
