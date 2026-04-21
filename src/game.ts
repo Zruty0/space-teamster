@@ -22,6 +22,11 @@ import {
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
   orbitalToApproachParams,
 } from './orbital';
+import {
+  DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera,
+  createDockingState, createDockingCamera, updateDocking,
+  updateDockingCamera, renderDocking, drawDockingHUD,
+} from './docking';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -30,9 +35,10 @@ type Phase =
   | { kind: 'levelSelect' }
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: { x: number; y: number; vx: number; vy: number; angle: number } }
-  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked' };
+  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked' }
+  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed' };
 
-const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length;
+const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length + DOCKING_LEVELS.length;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -86,6 +92,14 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private loadDocking(level: DockingLevel): void {
+    const ds = createDockingState(level);
+    const cam = createDockingCamera();
+    this.phase = { kind: 'docking', level, ds, cam, state: 'docking' };
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
   private loadOrbital(level: OrbitalLevel): void {
     const os = createOrbitalState(level);
     const cam = createOrbitalCamera(level);
@@ -116,6 +130,8 @@ export class Game {
       this.handleApproach(input, frameTime);
     } else if (p.kind === 'orbital') {
       this.handleOrbital(input, frameTime);
+    } else if (p.kind === 'docking') {
+      this.handleDocking(input, frameTime);
     }
 
     this.renderFrame();
@@ -148,10 +164,13 @@ export class Game {
     } else if (index < LEVELS.length + APPROACH_LEVELS.length) {
       const ai = index - LEVELS.length;
       this.loadApproach(APPROACH_LEVELS[ai]);
-    } else {
+    } else if (index < LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length) {
       const oi = index - LEVELS.length - APPROACH_LEVELS.length;
-      if (oi >= 0 && oi < ORBITAL_LEVELS.length) {
-        this.loadOrbital(ORBITAL_LEVELS[oi]);
+      this.loadOrbital(ORBITAL_LEVELS[oi]);
+    } else {
+      const di = index - LEVELS.length - APPROACH_LEVELS.length - ORBITAL_LEVELS.length;
+      if (di >= 0 && di < DOCKING_LEVELS.length) {
+        this.loadDocking(DOCKING_LEVELS[di]);
       }
     }
   }
@@ -208,6 +227,31 @@ export class Game {
         return;
       }
     }
+  }
+
+  // --- Docking phase ---
+
+  private handleDocking(input: InputState, frameTime: number): void {
+    const p = this.phase as Extract<Phase, { kind: 'docking' }>;
+
+    if (input.reset) { this.loadDocking(p.level); return; }
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+
+    input.reset = false;
+    input.levelSelect = false;
+
+    this.accumulator += frameTime;
+    while (this.accumulator >= PHYSICS_DT) {
+      if (p.state === 'docking') {
+        updateDocking(p.ds, input, p.level, PHYSICS_DT);
+        if (!p.ds.alive) p.state = 'crashed';
+        if (p.ds.delivered) p.state = 'delivered';
+      }
+      this.accumulator -= PHYSICS_DT;
+      this.time += PHYSICS_DT;
+    }
+
+    updateDockingCamera(p.cam, p.ds, frameTime);
   }
 
   // --- Orbital phase ---
@@ -299,6 +343,9 @@ export class Game {
     } else if (p.kind === 'orbital') {
       renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time);
       drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state);
+    } else if (p.kind === 'docking') {
+      renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
+      drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state);
     }
   }
 }
