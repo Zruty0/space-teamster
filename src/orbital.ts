@@ -255,7 +255,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       rcsAngularAccel: 0.5,
       heatCoeff: 0,
       heatDissipation: 0,
-      transitionAltitude: 8_000,    // hand off to approach at 8km (reduces flat vs radial gravity mismatch)
+      transitionAltitude: 15_000,   // hand off to approach at 15km
       landingSiteAngle: -Math.PI / 3,
       approachLevelIdx: 1,          // Castor approach (APPROACH_LEVELS[1])
       approachGravity: 1.6,
@@ -890,10 +890,20 @@ function predictOrbit(
       const alt = r - level.planetRadius;
       const belowTransition = alt < level.transitionAltitude;
 
-      // Gravity: use approach gravity below transition, orbital GM above
-      const gAccel = belowTransition ? level.approachGravity : level.planetGM / (r * r);
-      let ax = -gAccel * (x / r);
-      let ay = -gAccel * (y / r);
+      // Gravity: above transition = orbital (radial toward center)
+      // Below transition = approach-style (flat, toward surface at LZ)
+      let ax: number, ay: number;
+      if (belowTransition) {
+        // Flat gravity pointing toward planet center at LZ angle
+        const lzCos = Math.cos(level.landingSiteAngle);
+        const lzSin = Math.sin(level.landingSiteAngle);
+        ax = -level.approachGravity * lzCos;
+        ay = -level.approachGravity * lzSin;
+      } else {
+        const gAccel = level.planetGM / (r * r);
+        ax = -gAccel * (x / r);
+        ay = -gAccel * (y / r);
+      }
 
       // Aero: use lowAtmoAoA below transition, predAoA above
       const useAoA = belowTransition ? level.lowAtmoAoA : predAoA;
