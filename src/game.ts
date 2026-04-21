@@ -27,6 +27,7 @@ import {
   createDockingState, createDockingCamera, updateDocking,
   updateDockingCamera, renderDocking, drawDockingHUD,
 } from './docking';
+import { MISSIONS } from './missions';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -38,7 +39,7 @@ type Phase =
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked' }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed' };
 
-const TOTAL_LEVELS = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length + DOCKING_LEVELS.length;
+const TOTAL_LEVELS = MISSIONS.length;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -159,20 +160,17 @@ export class Game {
   }
 
   private launchLevel(index: number): void {
-    if (index < LEVELS.length) {
-      this.loadLanding(LEVELS[index]);
-    } else if (index < LEVELS.length + APPROACH_LEVELS.length) {
-      const ai = index - LEVELS.length;
-      this.loadApproach(APPROACH_LEVELS[ai]);
-    } else if (index < LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length) {
-      const oi = index - LEVELS.length - APPROACH_LEVELS.length;
-      this.loadOrbital(ORBITAL_LEVELS[oi]);
-    } else {
-      const di = index - LEVELS.length - APPROACH_LEVELS.length - ORBITAL_LEVELS.length;
-      if (di >= 0 && di < DOCKING_LEVELS.length) {
-        this.loadDocking(DOCKING_LEVELS[di]);
-      }
+    const mission = MISSIONS[index];
+    if (!mission || mission.stub) return; // can't launch stubs
+
+    // Mission 1: Mail Run — starts at docking (undock from Calloway station)
+    if (mission.id === 1) {
+      this.loadDocking(DOCKING_LEVELS[0]);
+      return;
     }
+
+    // Stubs handled above, but just in case:
+    return;
   }
 
   // --- Landing phase ---

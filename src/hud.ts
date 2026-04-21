@@ -7,6 +7,7 @@ import { LEVELS, LevelDef } from './levels';
 import { APPROACH_LEVELS } from './approach';
 import { ORBITAL_LEVELS } from './orbital';
 import { DOCKING_LEVELS } from './docking';
+import { MISSIONS } from './missions';
 
 const COL_HUD = '#00ff88';
 const COL_HUD_DIM = '#007744';
@@ -17,7 +18,7 @@ const COL_TITLE = '#00ccff';
 
 export type GameState = 'flying' | 'landed' | 'crashed' | 'levelSelect';
 
-// --- Level select screen ---
+// --- Mission select screen ---
 export function drawLevelSelect(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -26,186 +27,61 @@ export function drawLevelSelect(
   const W = canvas.width;
   const H = canvas.height;
 
-  // Background
   ctx.fillStyle = '#050510';
   ctx.fillRect(0, 0, W, H);
 
-  // Compute layout from total item count
-  const totalItems = LEVELS.length + APPROACH_LEVELS.length;
-  const lineH = 44;
-  const totalListH = totalItems * lineH + 40; // +40 for approach header
-  const topPad = 80;
-  const startY = Math.max(topPad + 20, (H - totalListH - topPad) / 2 + topPad);
+  // MISSIONS menu
+  const mLineH = 52;
+  const mStartY = 120;
 
-  // Title
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_TITLE;
   ctx.font = 'bold 36px monospace';
-  ctx.fillText('SPACE TEAMSTER', W / 2, startY - 50);
-
+  ctx.fillText('SPACE TEAMSTER', W / 2, 50);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '16px monospace';
-  ctx.fillText('Select Landing Zone', W / 2, startY - 20);
+  ctx.fillText('Select Mission', W / 2, 80);
 
-  for (let i = 0; i < LEVELS.length; i++) {
-    const level = LEVELS[i];
-    const y = startY + i * lineH;
-    const gravLabel = `${level.gravity.toFixed(1)} m/s²`;
-    const padLabel = `±${level.padHalfWidth}m pad`;
+  for (let i = 0; i < MISSIONS.length; i++) {
+    const m = MISSIONS[i];
+    const y = mStartY + i * mLineH;
+    const sel = selectedIndex === i;
 
-    // Difficulty dots
-    const dots = '●'.repeat(level.id) + '○'.repeat(5 - level.id);
-
-    const selected = selectedIndex === i;
-
-    // Selection highlight
-    if (selected) {
+    if (sel) {
       ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
-      ctx.fillRect(W / 2 - 160, y - 16, 500, lineH - 4);
+      ctx.fillRect(W / 2 - 280, y - 16, 560, mLineH - 4);
       ctx.fillStyle = COL_HUD;
       ctx.font = 'bold 20px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText('▸', W / 2 - 150, y);
+      ctx.fillText('▸', W / 2 - 270, y);
     }
 
-    // Number key
-    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
+    ctx.fillStyle = sel ? COL_TITLE : COL_HUD_DIM;
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(`[${level.id}]`, W / 2 - 140, y);
+    ctx.fillText(`[${m.id}]`, W / 2 - 250, y);
 
-    // Name
-    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
+    const nameCol = m.stub ? COL_HUD_DIM : (sel ? '#ffffff' : COL_HUD);
+    ctx.fillStyle = nameCol;
     ctx.font = 'bold 18px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(level.name, W / 2 - 120, y);
+    ctx.fillText(m.name, W / 2 - 230, y);
 
-    // Subtitle + stats
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '13px monospace';
-    ctx.fillText(`${level.subtitle}  |  g=${gravLabel}  ${padLabel}  ${dots}`, W / 2 - 120, y + 18);
-  }
-
-  // Approach section
-  const approachStartY = startY + LEVELS.length * lineH + 20;
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '16px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('── Approach ──', W / 2, approachStartY);
-
-  for (let i = 0; i < APPROACH_LEVELS.length; i++) {
-    const level = APPROACH_LEVELS[i];
-    const y = approachStartY + 20 + i * lineH;
-    const num = LEVELS.length + 1 + i;
-
-    const selected = selectedIndex === LEVELS.length + i;
-
-    if (selected) {
-      ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
-      ctx.fillRect(W / 2 - 160, y - 16, 500, lineH - 4);
-      ctx.fillStyle = COL_HUD;
-      ctx.font = 'bold 20px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText('▸', W / 2 - 150, y);
+    if (m.stub) {
+      ctx.fillStyle = '#444444';
+      ctx.font = '12px monospace';
+      ctx.fillText('[COMING SOON]', W / 2 - 230 + ctx.measureText(m.name).width + 12, y);
     }
 
-    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`[${num}]`, W / 2 - 140, y);
-
-    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
-    ctx.font = 'bold 18px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(level.name, W / 2 - 120, y);
-
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '13px monospace';
-    ctx.fillText(level.subtitle, W / 2 - 120, y + 18);
+    ctx.fillStyle = m.stub ? '#333333' : COL_HUD_DIM;
+    ctx.font = '12px monospace';
+    ctx.fillText(m.subtitle, W / 2 - 230, y + 18);
   }
 
-  // Orbital section
-  const orbitalStartY = approachStartY + 20 + APPROACH_LEVELS.length * lineH + 20;
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '16px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('── Orbital ──', W / 2, orbitalStartY);
-
-  for (let i = 0; i < ORBITAL_LEVELS.length; i++) {
-    const level = ORBITAL_LEVELS[i];
-    const y = orbitalStartY + 20 + i * lineH;
-    const num = LEVELS.length + APPROACH_LEVELS.length + 1 + i;
-
-    const selected = selectedIndex === LEVELS.length + APPROACH_LEVELS.length + i;
-
-    if (selected) {
-      ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
-      ctx.fillRect(W / 2 - 160, y - 16, 500, lineH - 4);
-      ctx.fillStyle = COL_HUD;
-      ctx.font = 'bold 20px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText('▸', W / 2 - 150, y);
-    }
-
-    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`[${num}]`, W / 2 - 140, y);
-
-    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
-    ctx.font = 'bold 18px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(level.name, W / 2 - 120, y);
-
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '13px monospace';
-    ctx.fillText(level.subtitle, W / 2 - 120, y + 18);
-  }
-
-  // Docking section
-  const dockingStartY = orbitalStartY + 20 + ORBITAL_LEVELS.length * lineH + 20;
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '16px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('── Docking ──', W / 2, dockingStartY);
-
-  for (let i = 0; i < DOCKING_LEVELS.length; i++) {
-    const level = DOCKING_LEVELS[i];
-    const y = dockingStartY + 20 + i * lineH;
-    const num = LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length + 1 + i;
-
-    const selected = selectedIndex === LEVELS.length + APPROACH_LEVELS.length + ORBITAL_LEVELS.length + i;
-
-    if (selected) {
-      ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
-      ctx.fillRect(W / 2 - 160, y - 16, 500, lineH - 4);
-      ctx.fillStyle = COL_HUD;
-      ctx.font = 'bold 20px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText('▸', W / 2 - 150, y);
-    }
-
-    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`[${num}]`, W / 2 - 140, y);
-
-    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
-    ctx.font = 'bold 18px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(level.name, W / 2 - 120, y);
-
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '13px monospace';
-    ctx.fillText(level.subtitle, W / 2 - 120, y + 18);
-  }
-
-  // Footer
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  const footerY = dockingStartY + 20 + DOCKING_LEVELS.length * lineH + 30;
-  ctx.fillText('↑↓: Select  Enter: Launch  (or press 1-9)', W / 2, footerY);
+  ctx.fillText('↑↓: Select  Enter: Launch  (or press 1-7)', W / 2, mStartY + MISSIONS.length * mLineH + 30);
 }
 
 // --- In-game HUD ---
