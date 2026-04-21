@@ -145,4 +145,26 @@ export const LEVELS: LevelDef[] = [
       { xStart: 1200, xEnd: 1205, height: 60 },
     ],
   },
+  // Mission 1: Castor mining settlement
+  {
+    id: 6,
+    name: 'Castor Settlement',
+    subtitle: 'Mining outpost on airless moon',
+    gravity: 1.6,
+    landingMaxVSpeed: 4.0,
+    landingMaxHSpeed: 3.0,
+    landingMaxAngle: 0.26,
+    startX: 980,
+    startY: 300,
+    startVX: 5,
+    startVY: -2,
+    padCenterX: 1000,
+    padHalfWidth: 25,
+    padY: 30,
+    roughness: 0.7,
+    features: [
+      { xStart: 920, xEnd: 935, height: 45 },
+      { xStart: 1050, xEnd: 1065, height: 55 },
+    ],
+  },
 ];

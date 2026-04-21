@@ -297,6 +297,52 @@ export class Game {
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
+  private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): void {
+    // Determine which landing level to use
+    // For now: Castor approach (id=11) -> Castor landing (LEVELS[5], id=6)
+    // Kepler's Rest approach (id=6) -> Luna Station (LEVELS[0], id=1)
+    let landingIdx = 0;
+    if (p.level.id === 11) landingIdx = 5; // Castor
+    const landingLevel = LEVELS[landingIdx];
+
+    // Nudge: clamp speed and position to survivable approach
+    const speed = Math.sqrt(p.as.vx * p.as.vx + p.as.vy * p.as.vy);
+    const maxEntrySpeed = 50; // max speed entering landing phase
+    let vx = p.as.vx;
+    let vy = p.as.vy;
+    if (speed > maxEntrySpeed) {
+      const scale = maxEntrySpeed / speed;
+      vx *= scale;
+      vy *= scale;
+    }
+    // Clamp altitude: at least 150m above pad
+    const minAlt = landingLevel.padY + 150;
+    const startY = Math.max(p.as.y, minAlt);
+    // Nudge vertical speed: no more than -10 m/s downward
+    vy = Math.max(vy, -10);
+
+    config.gravity = landingLevel.gravity;
+    config.landingMaxVSpeed = landingLevel.landingMaxVSpeed;
+    config.landingMaxHSpeed = landingLevel.landingMaxHSpeed;
+    config.landingMaxAngle = landingLevel.landingMaxAngle;
+    config.startX = landingLevel.padCenterX; // start near pad
+    config.startY = startY;
+    config.startVX = Math.min(Math.abs(vx), 10) * (vx > 0 ? 1 : -1); // gentle horizontal
+    config.startVY = vy;
+    const terrain = generateTerrain(landingLevel);
+    const ship = createShip();
+    ship.x = config.startX;
+    ship.y = config.startY;
+    ship.vx = config.startVX;
+    ship.vy = config.startVY;
+    const camera = createCamera();
+    camera.x = ship.x;
+    camera.y = ship.y;
+    this.phase = { kind: 'landing', level: landingLevel, ship, terrain, camera, state: 'flying', score: null };
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
   private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {
     const approachLevel = APPROACH_LEVELS[p.level.approachLevelIdx];
     if (!approachLevel) {
@@ -329,7 +375,10 @@ export class Game {
         else { input.toggleHeatShield = false; input.toggleWings = false; }
 
         if (!p.as.alive) p.state = 'approachFailed';
-        if (p.as.gateReached) p.state = 'approachSuccess';
+        if (p.as.gateReached) {
+          this.transitionApproachToLanding(p);
+          return;
+        }
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;

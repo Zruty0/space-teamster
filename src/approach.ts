@@ -148,7 +148,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     name: 'Castor Descent',
     subtitle: 'Powered descent — no atmosphere',
     gravity: 1.6,
-    startX: -120000, startY: 15000, startVX: 550, startVY: -30, startAngle: 1.5,
+    startX: -120000, startY: 8000, startVX: 550, startVY: -30, startAngle: 1.5,
     surfaceDensity: 0, scaleHeight: 1,   // no atmosphere
     dragNose: 0, dragBroadside: 0, dragShield: 0,
     dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
