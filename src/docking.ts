@@ -5,28 +5,48 @@ import { InputState } from './input';
 
 // ===================== Types =====================
 
+// Station geometry constants
+const HUB_RADIUS = 20;      // central hub radius (meters)
+const SPOKE_WIDTH = 8;       // spoke core width
+const BAY_W = 16;            // bay slot width (along spoke)
+const BAY_D = 8;             // bay slot depth (perpendicular to spoke)
+const BAYS_PER_SIDE = 6;     // bays per side of spoke
+const SPOKE_LEN = BAYS_PER_SIDE * BAY_W; // total spoke length
+
+interface BayInfo {
+  spokeIdx: number;   // 0-3 (right, up, left, down)
+  side: number;       // 0 = left/top side, 1 = right/bottom side
+  slot: number;       // 0-5 along spoke
+  filled: boolean;    // has a container
+  isTarget: boolean;  // delivery target
+}
+
 export interface DockingLevel {
   id: number;
   name: string;
   subtitle: string;
-  hasContainer: boolean;    // loaded or empty tug
+  hasContainer: boolean;
 
-  // Station bay position/orientation
-  bayX: number; bayY: number;
-  bayAngle: number;         // radians, 0 = bay opens rightward
-  bayWidth: number;         // container must fit in this
-  bayDepth: number;
+  // Station center
+  stationX: number; stationY: number;
+
+  // Bay layout (generated)
+  bays: BayInfo[];
 
   // Tractor beam
-  beamRange: number;        // distance at which assist kicks in (meters)
-  beamStrength: number;     // 0..1, how much it helps
+  beamRange: number;
+  beamStrength: number;
 
   // Ship
-  tugMass: number;          // kg (empty)
-  containerMass: number;    // kg (when loaded)
-  thrustForce: number;      // newtons
-  rotTorque: number;        // N·m
-  dampingAssist: boolean;   // SAS default state
+  tugMass: number;
+  containerMass: number;
+  thrustForce: number;
+  rotTorque: number;
+  dampingAssist: boolean;
+
+  // Start
+  startX: number; startY: number;
+  startVX: number; startVY: number;
 }
 
 export interface DockingState {
@@ -53,40 +73,122 @@ export interface DockingState {
 
 // ===================== Levels =====================
 
+function generateBays(targetSpoke: number, targetSide: number, targetSlot: number, fillPct: number): BayInfo[] {
+  const bays: BayInfo[] = [];
+  let seed = 42;
+  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (let spoke = 0; spoke < 4; spoke++) {
+    for (let side = 0; side < 2; side++) {
+      for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
+        const isTarget = spoke === targetSpoke && side === targetSide && slot === targetSlot;
+        const filled = isTarget ? false : rng() < fillPct;
+        bays.push({ spokeIdx: spoke, side, slot, filled, isTarget });
+      }
+    }
+  }
+  return bays;
+}
+
+/** Get world-space center and open direction of a bay. */
+function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; y: number; angle: number } {
+  const spokeAngle = bay.spokeIdx * Math.PI / 2;
+  const dist = HUB_RADIUS + bay.slot * BAY_W + BAY_W / 2;
+  const sideSign = bay.side === 0 ? 1 : -1;
+  const sideOff = (SPOKE_WIDTH / 2 + BAY_D / 2) * sideSign;
+  const sdx = Math.cos(spokeAngle), sdy = Math.sin(spokeAngle);
+  const pdx = -sdy, pdy = sdx; // perpendicular (left of spoke direction)
+  const bx = sx + sdx * dist + pdx * sideOff;
+  const by = sy + sdy * dist + pdy * sideOff;
+  const openAngle = spokeAngle + (bay.side === 0 ? Math.PI / 2 : -Math.PI / 2);
+  return { x: bx, y: by, angle: openAngle };
+}
+
+/** Check if point is inside station solid geometry. Returns push-out vector or null. */
+function stationCollision(
+  px: number, py: number, sx: number, sy: number, bays: BayInfo[],
+): { nx: number; ny: number; depth: number } | null {
+  // Check hub
+  const hdx = px - sx, hdy = py - sy;
+  const hDist = Math.sqrt(hdx * hdx + hdy * hdy);
+  if (hDist < HUB_RADIUS) {
+    const d = HUB_RADIUS - hDist;
+    return { nx: hdx / Math.max(hDist, 0.1), ny: hdy / Math.max(hDist, 0.1), depth: d };
+  }
+  // Check spokes
+  for (let spoke = 0; spoke < 4; spoke++) {
+    const a = spoke * Math.PI / 2;
+    const sdx = Math.cos(a), sdy = Math.sin(a);
+    const pdx = -sdy, pdy = sdx;
+    // Project point into spoke-local coords
+    const lx = (px - sx) * sdx + (py - sy) * sdy; // along spoke
+    const ly = (px - sx) * pdx + (py - sy) * pdy;  // perpendicular
+    if (lx > HUB_RADIUS && lx < HUB_RADIUS + SPOKE_LEN && Math.abs(ly) < SPOKE_WIDTH / 2) {
+      // Inside spoke core
+      const pushPerp = (SPOKE_WIDTH / 2 - Math.abs(ly));
+      const sign = ly > 0 ? 1 : -1;
+      return { nx: pdx * sign, ny: pdy * sign, depth: pushPerp };
+    }
+    // Check filled bays on this spoke
+    for (const bay of bays) {
+      if (bay.spokeIdx !== spoke || !bay.filled) continue;
+      const bp = bayWorldPos(bay, sx, sy);
+      const bdx = px - bp.x, bdy = py - bp.y;
+      // Bay is BAY_W x BAY_D, rotated by openAngle
+      const oa = bp.angle;
+      const blx = bdx * Math.cos(-oa) - bdy * Math.sin(-oa); // depth direction
+      const bly = bdx * Math.sin(-oa) + bdy * Math.cos(-oa); // width direction  
+      if (Math.abs(blx) < BAY_D / 2 && Math.abs(bly) < BAY_W / 2) {
+        // Push out along nearest edge
+        const dx2 = BAY_D / 2 - Math.abs(blx);
+        const dy2 = BAY_W / 2 - Math.abs(bly);
+        if (dx2 < dy2) {
+          const s2 = blx > 0 ? 1 : -1;
+          return { nx: Math.cos(oa) * s2, ny: Math.sin(oa) * s2, depth: dx2 };
+        } else {
+          const s2 = bly > 0 ? 1 : -1;
+          const perpA = oa + Math.PI / 2;
+          return { nx: Math.cos(perpA) * s2, ny: Math.sin(perpA) * s2, depth: dy2 };
+        }
+      }
+    }
+  }
+  return null;
+}
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   {
     id: 9,
     name: 'Container Delivery',
-    subtitle: 'Deliver container to station bay',
+    subtitle: 'Deliver to station bay',
     hasContainer: true,
-    bayX: 80, bayY: 0,
-    bayAngle: Math.PI,       // bay opens leftward (ship approaches from left)
-    bayWidth: 14,
-    bayDepth: 20,
-    beamRange: 15,
+    stationX: 80, stationY: 0,
+    bays: generateBays(0, 1, 3, 0.6), // target: right spoke, bottom side, slot 3
+    beamRange: 12,
     beamStrength: 0.5,
-    thrustForce: 800,
-    rotTorque: 300,
+    thrustForce: 3200,
+    rotTorque: 1200,
     tugMass: 500,
     containerMass: 2000,
     dampingAssist: true,
+    startX: -60, startY: -30,
+    startVX: 2, startVY: 0.5,
   },
   {
     id: 10,
     name: 'Empty Return',
-    subtitle: 'Maneuver empty tug',
+    subtitle: 'Navigate empty tug',
     hasContainer: false,
-    bayX: 80, bayY: 0,
-    bayAngle: Math.PI,
-    bayWidth: 14,
-    bayDepth: 20,
-    beamRange: 15,
+    stationX: 80, stationY: 0,
+    bays: generateBays(2, 0, 1, 0.7),
+    beamRange: 12,
     beamStrength: 0.5,
-    thrustForce: 800,
-    rotTorque: 300,
+    thrustForce: 3200,
+    rotTorque: 1200,
     tugMass: 500,
     containerMass: 0,
     dampingAssist: true,
+    startX: -60, startY: 20,
+    startVX: 1.5, startVY: -0.3,
   },
 ];
 
@@ -94,8 +196,8 @@ export const DOCKING_LEVELS: DockingLevel[] = [
 
 export function createDockingState(level: DockingLevel): DockingState {
   return {
-    x: -60, y: 10,
-    vx: 0, vy: 0,
+    x: level.startX, y: level.startY,
+    vx: level.startVX, vy: level.startVY,
     angle: 0,
     angVel: 0,
     sas: level.dampingAssist,
@@ -204,10 +306,59 @@ export function updateDocking(
     }
   }
 
+  // Tractor beam: pull toward target bay when close
+  if (level.hasContainer) {
+    const target = level.bays.find(b => b.isTarget);
+    if (target) {
+      const bp = bayWorldPos(target, level.stationX, level.stationY);
+      const tdx = bp.x - s.x, tdy = bp.y - s.y;
+      const tDist = Math.sqrt(tdx * tdx + tdy * tdy);
+      if (tDist < level.beamRange && tDist > 0.5) {
+        const strength = level.beamStrength * (1 - tDist / level.beamRange);
+        fx += (tdx / tDist) * strength * mass * 2;
+        fy += (tdy / tDist) * strength * mass * 2;
+      }
+    }
+  }
+
   s.vx += (fx / mass) * dt;
   s.vy += (fy / mass) * dt;
   s.x += s.vx * dt;
   s.y += s.vy * dt;
+
+  // Station collision
+  const col = stationCollision(s.x, s.y, level.stationX, level.stationY, level.bays);
+  if (col) {
+    // Push out
+    s.x += col.nx * col.depth * 1.1;
+    s.y += col.ny * col.depth * 1.1;
+    // Relative velocity along collision normal
+    const vNorm = s.vx * col.nx + s.vy * col.ny;
+    if (vNorm < 0) { // moving into surface
+      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+      if (speed > 5) {
+        s.alive = false; // crash
+        return;
+      }
+      // Bounce (lose 70% energy)
+      s.vx -= col.nx * vNorm * 1.7;
+      s.vy -= col.ny * vNorm * 1.7;
+    }
+  }
+
+  // Delivery check: container inside target bay + nearly stationary
+  if (level.hasContainer) {
+    const target = level.bays.find(b => b.isTarget);
+    if (target) {
+      const bp = bayWorldPos(target, level.stationX, level.stationY);
+      const dx = s.x - bp.x, dy = s.y - bp.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+      if (dist < 3 && speed < 0.5 && Math.abs(s.angVel) < 0.1) {
+        s.delivered = true;
+      }
+    }
+  }
 }
 
 // ===================== Camera =====================
@@ -257,10 +408,10 @@ export function renderDocking(
   // Ship (tug + container)
   drawTug(ctx, cam, s, level, W, H, time);
 
-  // Neutral X at ship position (where dot would be with zero velocity)
+  // Neutral X at ship center
+  const [cx, cy] = dws(s.x, s.y, cam, W, H);
   ctx.strokeStyle = 'rgba(0, 255, 136, 0.15)';
   ctx.lineWidth = 1;
-  const [cx, cy] = dws(s.x, s.y, cam, W, H);
   ctx.beginPath();
   ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
   ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
@@ -301,67 +452,121 @@ function drawStation(
   ctx: CanvasRenderingContext2D, cam: DockingCamera,
   level: DockingLevel, W: number, H: number,
 ): void {
-  const [bx, by] = dws(level.bayX, level.bayY, cam, W, H);
   const z = cam.zoom;
+  const sx = level.stationX, sy = level.stationY;
 
-  ctx.save();
-  ctx.translate(bx, by);
-  ctx.rotate(-level.bayAngle); // screen rotation (Y flipped)
-
-  const bw = level.bayWidth * z;
-  const bd = level.bayDepth * z;
-
-  // Station body (large rectangle behind the bay)
-  const bodyW = 40 * z;
-  const bodyH = 30 * z;
+  // --- Hub (filled dark circle with outline) ---
+  const [hx, hy] = dws(sx, sy, cam, W, H);
+  const hr = HUB_RADIUS * z;
+  ctx.beginPath();
+  ctx.arc(hx, hy, hr, 0, Math.PI * 2);
+  ctx.fillStyle = '#0a0f14';
+  ctx.fill();
   ctx.strokeStyle = '#556677';
   ctx.lineWidth = 2;
-  ctx.strokeRect(0, -bodyH / 2, bodyW, bodyH);
-  ctx.fillStyle = '#0a0f14';
-  ctx.fillRect(0, -bodyH / 2, bodyW, bodyH);
-
-  // Solar panels
-  ctx.strokeStyle = '#445566';
-  ctx.lineWidth = 1.5;
-  const panelW = 15 * z, panelH = 8 * z;
-  ctx.strokeRect(bodyW * 0.3, -bodyH / 2 - panelH - 2 * z, panelW, panelH);
-  ctx.strokeRect(bodyW * 0.3, bodyH / 2 + 2 * z, panelW, panelH);
-
-  // Bay opening (rectangular slot)
-  ctx.strokeStyle = '#88aacc';
-  ctx.lineWidth = 2;
-  // Bay is open on the left side (toward approaching ship)
-  ctx.beginPath();
-  ctx.moveTo(0, -bw / 2);
-  ctx.lineTo(-bd, -bw / 2);
-  ctx.lineTo(-bd, bw / 2);
-  ctx.lineTo(0, bw / 2);
   ctx.stroke();
 
-  // Guide markings inside bay
-  ctx.setLineDash([3, 3]);
-  ctx.strokeStyle = '#44ff88';
-  ctx.lineWidth = 1;
-  // Center line
-  ctx.beginPath();
-  ctx.moveTo(-bd, 0);
-  ctx.lineTo(0, 0);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // --- 4 Spokes ---
+  for (let spoke = 0; spoke < 4; spoke++) {
+    const a = spoke * Math.PI / 2;
+    const sdx = Math.cos(a), sdy = Math.sin(a);
+    const pdx = -sdy, pdy = sdx;
 
-  // Tractor beam range indicator
-  if (level.beamRange > 0) {
-    const br = level.beamRange * z;
+    // Spoke core rectangle
+    const startDist = HUB_RADIUS;
+    const endDist = HUB_RADIUS + SPOKE_LEN;
+    const hw = SPOKE_WIDTH / 2;
+
+    // 4 corners of spoke in world coords
+    const corners = [
+      [sx + sdx * startDist + pdx * hw, sy + sdy * startDist + pdy * hw],
+      [sx + sdx * endDist + pdx * hw, sy + sdy * endDist + pdy * hw],
+      [sx + sdx * endDist - pdx * hw, sy + sdy * endDist - pdy * hw],
+      [sx + sdx * startDist - pdx * hw, sy + sdy * startDist - pdy * hw],
+    ];
+
     ctx.beginPath();
-    ctx.arc(-bd / 2, 0, br, 0, Math.PI * 2);
-    ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = 'rgba(0, 255, 200, 0.15)';
-    ctx.lineWidth = 1;
+    for (let i = 0; i < corners.length; i++) {
+      const [scx, scy] = dws(corners[i][0], corners[i][1], cam, W, H);
+      if (i === 0) ctx.moveTo(scx, scy); else ctx.lineTo(scx, scy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#080c10';
+    ctx.fill();
+    ctx.strokeStyle = '#445566';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
-    ctx.setLineDash([]);
   }
 
-  ctx.restore();
+  // --- Bays ---
+  for (const bay of level.bays) {
+    const bp = bayWorldPos(bay, sx, sy);
+    const oa = bp.angle; // opening direction
+    // Bay rect: BAY_W along spoke, BAY_D depth outward
+    const cos = Math.cos(oa), sin = Math.sin(oa);
+    // Bay center is at bp.x, bp.y. Width direction = perpendicular to open angle.
+    const wdx = -sin, wdy = cos; // width direction (along spoke)
+    const ddx = cos, ddy = sin;  // depth direction (outward)
+
+    // 4 corners (3-sided: open on the inward side toward spoke)
+    const bw2 = BAY_W / 2, bd2 = BAY_D / 2;
+    const c0 = [bp.x - wdx * bw2 - ddx * bd2, bp.y - wdy * bw2 - ddy * bd2]; // inner-left
+    const c1 = [bp.x + wdx * bw2 - ddx * bd2, bp.y + wdy * bw2 - ddy * bd2]; // inner-right
+    const c2 = [bp.x + wdx * bw2 + ddx * bd2, bp.y + wdy * bw2 + ddy * bd2]; // outer-right
+    const c3 = [bp.x - wdx * bw2 + ddx * bd2, bp.y - wdy * bw2 + ddy * bd2]; // outer-left
+
+    if (bay.filled) {
+      // Filled bay: draw container
+      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
+      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
+      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
+      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
+      ctx.beginPath();
+      ctx.moveTo(s0x, s0y); ctx.lineTo(s1x, s1y);
+      ctx.lineTo(s2x, s2y); ctx.lineTo(s3x, s3y);
+      ctx.closePath();
+      ctx.fillStyle = '#0c1a0c';
+      ctx.fill();
+      ctx.strokeStyle = '#335533';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else if (bay.isTarget) {
+      // Target bay: highlight
+      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
+      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
+      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
+      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
+      // Dashed outline
+      ctx.beginPath();
+      ctx.moveTo(s0x, s0y); ctx.lineTo(s1x, s1y);
+      ctx.lineTo(s2x, s2y); ctx.lineTo(s3x, s3y);
+      ctx.closePath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#00ffcc';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // "TGT" label
+      const [tcx, tcy] = dws(bp.x, bp.y, cam, W, H);
+      ctx.font = '9px monospace';
+      ctx.fillStyle = '#00ffcc';
+      ctx.textAlign = 'center';
+      ctx.fillText('TGT', tcx, tcy + 3);
+    } else {
+      // Empty bay: thin outline
+      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
+      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
+      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
+      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
+      // Just the 3 walls (not the spoke-side opening)
+      ctx.beginPath();
+      ctx.moveTo(s0x, s0y); ctx.lineTo(s3x, s3y);
+      ctx.lineTo(s2x, s2y); ctx.lineTo(s1x, s1y);
+      ctx.strokeStyle = '#223322';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
 }
 
 // --- Tug + Container ---
@@ -648,18 +853,55 @@ export function drawDockingHUD(
   ctx.fillText(s.sas ? 'ON' : 'OFF', lx + 50, ly);
   ly += lh;
 
-  // Distance to bay
-  const dx = s.x - level.bayX, dy = s.y - level.bayY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  ctx.fillStyle = DIM; ctx.fillText('BAY', lx, ly);
-  ctx.fillStyle = COL; ctx.fillText(`${dist.toFixed(1)} m`, lx + 50, ly);
-  ly += lh;
+  // Distance to target bay
+  const target = level.bays.find(b => b.isTarget);
+  if (target) {
+    const bp = bayWorldPos(target, level.stationX, level.stationY);
+    const dx = s.x - bp.x, dy = s.y - bp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    ctx.fillStyle = DIM; ctx.fillText('TGT', lx, ly);
+    ctx.fillStyle = dist < level.beamRange ? '#00ffcc' : COL;
+    ctx.fillText(`${dist.toFixed(1)} m`, lx + 50, ly);
+    ly += lh;
+  }
+
+  // State overlays
+  if (state === 'delivered') {
+    ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
+    ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.strokeStyle = '#00ffcc';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00ffcc';
+    ctx.font = 'bold 24px monospace';
+    ctx.fillText('DELIVERED', W / 2, H / 2 - 15);
+    ctx.fillStyle = DIM;
+    ctx.font = '14px monospace';
+    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+  }
+  if (state === 'crashed') {
+    ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';
+    ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.strokeStyle = '#ff3333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff3333';
+    ctx.font = 'bold 24px monospace';
+    ctx.fillText('CRASHED', W / 2, H / 2 - 15);
+    ctx.fillStyle = DIM;
+    ctx.font = '14px monospace';
+    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+  }
 
   // Controls hint
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = DIM;
-  ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q: CCW  E: CW  T: SAS  R: Restart  L: Levels', W / 2, H - 15);
+  if (state === 'docking') {
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = DIM;
+    ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q: CCW  E: CW  T: SAS  Shift: Hi Thrust  R: Restart', W / 2, H - 15);
+  }
 
   ctx.restore();
 }
