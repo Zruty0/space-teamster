@@ -549,7 +549,7 @@ export function updateOrbital(
 
     // For atmospheric bodies: inAtmo when below atmoHeight
     // For airless bodies: inAtmo when below transitionAltitude * 3 (enables zoom + pitch)
-    s.inAtmo = level.atmoHeight > 0 ? alt < level.atmoHeight : alt < level.transitionAltitude * 3;
+    s.inAtmo = level.atmoHeight > 0 ? alt < level.atmoHeight : alt < level.transitionAltitude * 2;
 
     // Thrust
     if (s.fuel > 0) {

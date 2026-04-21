@@ -155,7 +155,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
     maxWingAngle: 0, wingAngleRate: 0,
     thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 120,
-    gateX: 0, gateY: 800, gateRadius: 2500, gateMaxSpeed: 80, gateMinSpeed: 5,
+    gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
     windLayers: [],
     turbulence: [],
     landingLevelId: 0,
