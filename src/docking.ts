@@ -6,12 +6,14 @@ import { InputState } from './input';
 // ===================== Types =====================
 
 // Station geometry constants
-const HUB_RADIUS = 20;      // central hub radius (meters)
-const SPOKE_WIDTH = 8;       // spoke core width
-const BAY_W = 16;            // bay slot width (along spoke)
-const BAY_D = 8;             // bay slot depth (perpendicular to spoke)
-const BAYS_PER_SIDE = 6;     // bays per side of spoke
-const SPOKE_LEN = BAYS_PER_SIDE * BAY_W; // total spoke length
+const HUB_RADIUS = 20;       // central hub radius (meters)
+const SPOKE_WIDTH = 6;        // spoke core width (the stem)
+const BAY_SLOT_W = 6;         // width of each bay slot (along spoke axis, slightly > container height)
+const BAY_SLOT_D = 18;        // depth of each bay slot (perpendicular, > container length)
+const WALL_THICK = 0.8;       // wall thickness between bays
+const BAYS_PER_SIDE = 6;
+const BAY_PITCH = BAY_SLOT_W + WALL_THICK; // center-to-center spacing along spoke
+const SPOKE_LEN = BAYS_PER_SIDE * BAY_PITCH + WALL_THICK;
 
 interface BayInfo {
   spokeIdx: number;   // 0-3 (right, up, left, down)
@@ -89,17 +91,21 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
   return bays;
 }
 
-/** Get world-space center and open direction of a bay. */
+/** Get world-space center and open direction of a bay.
+ *  Bay is perpendicular to spoke. Opens toward the spoke (inward). */
 function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; y: number; angle: number } {
   const spokeAngle = bay.spokeIdx * Math.PI / 2;
-  const dist = HUB_RADIUS + bay.slot * BAY_W + BAY_W / 2;
+  // Position along spoke
+  const alongDist = HUB_RADIUS + WALL_THICK + bay.slot * BAY_PITCH + BAY_SLOT_W / 2;
+  // Side offset: center of bay slot is SPOKE_WIDTH/2 + BAY_SLOT_D/2 away from spoke center
   const sideSign = bay.side === 0 ? 1 : -1;
-  const sideOff = (SPOKE_WIDTH / 2 + BAY_D / 2) * sideSign;
+  const perpDist = (SPOKE_WIDTH / 2 + BAY_SLOT_D / 2) * sideSign;
   const sdx = Math.cos(spokeAngle), sdy = Math.sin(spokeAngle);
   const pdx = -sdy, pdy = sdx; // perpendicular (left of spoke direction)
-  const bx = sx + sdx * dist + pdx * sideOff;
-  const by = sy + sdy * dist + pdy * sideOff;
-  const openAngle = spokeAngle + (bay.side === 0 ? Math.PI / 2 : -Math.PI / 2);
+  const bx = sx + sdx * alongDist + pdx * perpDist;
+  const by = sy + sdy * alongDist + pdy * perpDist;
+  // Bay opens toward spoke (inward) = opposite of perpendicular outward direction
+  const openAngle = spokeAngle + (bay.side === 0 ? -Math.PI / 2 : Math.PI / 2);
   return { x: bx, y: by, angle: openAngle };
 }
 
@@ -114,40 +120,75 @@ function stationCollision(
     const d = HUB_RADIUS - hDist;
     return { nx: hdx / Math.max(hDist, 0.1), ny: hdy / Math.max(hDist, 0.1), depth: d };
   }
-  // Check spokes
+
+  // Check spoke cores and bay walls
   for (let spoke = 0; spoke < 4; spoke++) {
     const a = spoke * Math.PI / 2;
     const sdx = Math.cos(a), sdy = Math.sin(a);
     const pdx = -sdy, pdy = sdx;
-    // Project point into spoke-local coords
-    const lx = (px - sx) * sdx + (py - sy) * sdy; // along spoke
-    const ly = (px - sx) * pdx + (py - sy) * pdy;  // perpendicular
+    // Project into spoke-local coords: lx = along spoke, ly = perpendicular
+    const lx = (px - sx) * sdx + (py - sy) * sdy;
+    const ly = (px - sx) * pdx + (py - sy) * pdy;
+
+    // Spoke core
     if (lx > HUB_RADIUS && lx < HUB_RADIUS + SPOKE_LEN && Math.abs(ly) < SPOKE_WIDTH / 2) {
-      // Inside spoke core
-      const pushPerp = (SPOKE_WIDTH / 2 - Math.abs(ly));
+      const pushPerp = SPOKE_WIDTH / 2 - Math.abs(ly);
       const sign = ly > 0 ? 1 : -1;
       return { nx: pdx * sign, ny: pdy * sign, depth: pushPerp };
     }
-    // Check filled bays on this spoke
-    for (const bay of bays) {
-      if (bay.spokeIdx !== spoke || !bay.filled) continue;
-      const bp = bayWorldPos(bay, sx, sy);
-      const bdx = px - bp.x, bdy = py - bp.y;
-      // Bay is BAY_W x BAY_D, rotated by openAngle
-      const oa = bp.angle;
-      const blx = bdx * Math.cos(-oa) - bdy * Math.sin(-oa); // depth direction
-      const bly = bdx * Math.sin(-oa) + bdy * Math.cos(-oa); // width direction  
-      if (Math.abs(blx) < BAY_D / 2 && Math.abs(bly) < BAY_W / 2) {
-        // Push out along nearest edge
-        const dx2 = BAY_D / 2 - Math.abs(blx);
-        const dy2 = BAY_W / 2 - Math.abs(bly);
-        if (dx2 < dy2) {
-          const s2 = blx > 0 ? 1 : -1;
-          return { nx: Math.cos(oa) * s2, ny: Math.sin(oa) * s2, depth: dx2 };
-        } else {
-          const s2 = bly > 0 ? 1 : -1;
-          const perpA = oa + Math.PI / 2;
-          return { nx: Math.cos(perpA) * s2, ny: Math.sin(perpA) * s2, depth: dy2 };
+
+    // Bay walls: thin rects between each bay slot, extending perpendicular from spoke
+    for (let side = 0; side < 2; side++) {
+      const sideSign = side === 0 ? 1 : -1;
+      for (let wallIdx = 0; wallIdx <= BAYS_PER_SIDE; wallIdx++) {
+        // Wall position along spoke
+        const wallAlongCenter = HUB_RADIUS + wallIdx * BAY_PITCH + WALL_THICK / 2;
+        // Wall extends from spoke edge outward
+        const wallPerpStart = SPOKE_WIDTH / 2;
+        const wallPerpEnd = SPOKE_WIDTH / 2 + BAY_SLOT_D;
+        // Check in spoke-local coords
+        const wlx = lx - wallAlongCenter;
+        const wly = Math.abs(ly) - (wallPerpStart + wallPerpEnd) / 2;
+        const sly = ly * sideSign; // positive = this side
+        if (sly > wallPerpStart && sly < wallPerpEnd && Math.abs(wlx) < WALL_THICK / 2 + 1) {
+          // Inside a wall
+          const pushAlong = WALL_THICK / 2 + 1 - Math.abs(wlx);
+          const sign2 = wlx > 0 ? 1 : -1;
+          return { nx: sdx * sign2, ny: sdy * sign2, depth: pushAlong };
+        }
+      }
+
+      // Bay back walls (the far end of each bay)
+      for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
+        const bay = bays.find(b => b.spokeIdx === spoke && b.side === side && b.slot === slot);
+        // Back wall exists for all bays (filled or empty)
+        const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
+        const backWallPerp = SPOKE_WIDTH / 2 + BAY_SLOT_D;
+        const sly2 = ly * sideSign;
+        if (sly2 > backWallPerp - WALL_THICK && sly2 < backWallPerp + WALL_THICK &&
+            lx > slotCenter - BAY_SLOT_W / 2 && lx < slotCenter + BAY_SLOT_W / 2) {
+          const pushPerp2 = backWallPerp + WALL_THICK - sly2;
+          return { nx: -pdx * sideSign, ny: -pdy * sideSign, depth: pushPerp2 };
+        }
+
+        // Filled bay: container inside is also solid
+        if (bay && bay.filled) {
+          const contHalfW = CONTAINER_H / 2; // container width in bay = container height (rotated)
+          const contHalfD = CONTAINER_W / 2; // container depth in bay = container width
+          const contPerpCenter = SPOKE_WIDTH / 2 + BAY_SLOT_D / 2;
+          if (sly2 > contPerpCenter - contHalfD && sly2 < contPerpCenter + contHalfD &&
+              lx > slotCenter - contHalfW && lx < slotCenter + contHalfW) {
+            // Push out along nearest edge
+            const dpx = contHalfD - Math.abs(sly2 - contPerpCenter);
+            const dpy = contHalfW - Math.abs(lx - slotCenter);
+            if (dpx < dpy) {
+              const s3 = (sly2 - contPerpCenter) > 0 ? 1 : -1;
+              return { nx: pdx * sideSign * s3, ny: pdy * sideSign * s3, depth: dpx };
+            } else {
+              const s3 = (lx - slotCenter) > 0 ? 1 : -1;
+              return { nx: sdx * s3, ny: sdy * s3, depth: dpy };
+            }
+          }
         }
       }
     }
@@ -498,73 +539,119 @@ function drawStation(
     ctx.stroke();
   }
 
-  // --- Bays ---
-  for (const bay of level.bays) {
-    const bp = bayWorldPos(bay, sx, sy);
-    const oa = bp.angle; // opening direction
-    // Bay rect: BAY_W along spoke, BAY_D depth outward
-    const cos = Math.cos(oa), sin = Math.sin(oa);
-    // Bay center is at bp.x, bp.y. Width direction = perpendicular to open angle.
-    const wdx = -sin, wdy = cos; // width direction (along spoke)
-    const ddx = cos, ddy = sin;  // depth direction (outward)
+  // --- Bay walls and containers ---
+  for (let spoke = 0; spoke < 4; spoke++) {
+    const a = spoke * Math.PI / 2;
+    const sdx = Math.cos(a), sdy = Math.sin(a);
+    const pdx = -sdy, pdy = sdx;
 
-    // 4 corners (3-sided: open on the inward side toward spoke)
-    const bw2 = BAY_W / 2, bd2 = BAY_D / 2;
-    const c0 = [bp.x - wdx * bw2 - ddx * bd2, bp.y - wdy * bw2 - ddy * bd2]; // inner-left
-    const c1 = [bp.x + wdx * bw2 - ddx * bd2, bp.y + wdy * bw2 - ddy * bd2]; // inner-right
-    const c2 = [bp.x + wdx * bw2 + ddx * bd2, bp.y + wdy * bw2 + ddy * bd2]; // outer-right
-    const c3 = [bp.x - wdx * bw2 + ddx * bd2, bp.y - wdy * bw2 + ddy * bd2]; // outer-left
+    for (let side = 0; side < 2; side++) {
+      const sideSign = side === 0 ? 1 : -1;
 
-    if (bay.filled) {
-      // Filled bay: draw container
-      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
-      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
-      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
-      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
-      ctx.beginPath();
-      ctx.moveTo(s0x, s0y); ctx.lineTo(s1x, s1y);
-      ctx.lineTo(s2x, s2y); ctx.lineTo(s3x, s3y);
-      ctx.closePath();
-      ctx.fillStyle = '#0c1a0c';
-      ctx.fill();
-      ctx.strokeStyle = '#335533';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    } else if (bay.isTarget) {
-      // Target bay: highlight
-      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
-      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
-      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
-      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
-      // Dashed outline
-      ctx.beginPath();
-      ctx.moveTo(s0x, s0y); ctx.lineTo(s1x, s1y);
-      ctx.lineTo(s2x, s2y); ctx.lineTo(s3x, s3y);
-      ctx.closePath();
-      ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#00ffcc';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // "TGT" label
-      const [tcx, tcy] = dws(bp.x, bp.y, cam, W, H);
-      ctx.font = '9px monospace';
-      ctx.fillStyle = '#00ffcc';
-      ctx.textAlign = 'center';
-      ctx.fillText('TGT', tcx, tcy + 3);
-    } else {
-      // Empty bay: thin outline
-      const [s2x, s2y] = dws(c2[0], c2[1], cam, W, H);
-      const [s3x, s3y] = dws(c3[0], c3[1], cam, W, H);
-      const [s0x, s0y] = dws(c0[0], c0[1], cam, W, H);
-      const [s1x, s1y] = dws(c1[0], c1[1], cam, W, H);
-      // Just the 3 walls (not the spoke-side opening)
-      ctx.beginPath();
-      ctx.moveTo(s0x, s0y); ctx.lineTo(s3x, s3y);
-      ctx.lineTo(s2x, s2y); ctx.lineTo(s1x, s1y);
-      ctx.strokeStyle = '#223322';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      // Draw walls between bays (blue)
+      for (let wallIdx = 0; wallIdx <= BAYS_PER_SIDE; wallIdx++) {
+        const wallAlong = HUB_RADIUS + wallIdx * BAY_PITCH;
+        const wallStart = SPOKE_WIDTH / 2;
+        const wallEnd = SPOKE_WIDTH / 2 + BAY_SLOT_D;
+        // Wall is a thin line from spoke edge outward
+        const w0x = sx + sdx * wallAlong + pdx * wallStart * sideSign;
+        const w0y = sy + sdy * wallAlong + pdy * wallStart * sideSign;
+        const w1x = sx + sdx * wallAlong + pdx * wallEnd * sideSign;
+        const w1y = sy + sdy * wallAlong + pdy * wallEnd * sideSign;
+        const [sw0x, sw0y] = dws(w0x, w0y, cam, W, H);
+        const [sw1x, sw1y] = dws(w1x, w1y, cam, W, H);
+        ctx.beginPath();
+        ctx.moveTo(sw0x, sw0y); ctx.lineTo(sw1x, sw1y);
+        ctx.strokeStyle = '#4466aa';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Draw back walls and contents of each bay
+      for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
+        const bay = level.bays.find(b => b.spokeIdx === spoke && b.side === side && b.slot === slot)!;
+        const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
+        const backPerp = SPOKE_WIDTH / 2 + BAY_SLOT_D;
+
+        // Back wall
+        const bw0x = sx + sdx * (slotCenter - BAY_SLOT_W / 2) + pdx * backPerp * sideSign;
+        const bw0y = sy + sdy * (slotCenter - BAY_SLOT_W / 2) + pdy * backPerp * sideSign;
+        const bw1x = sx + sdx * (slotCenter + BAY_SLOT_W / 2) + pdx * backPerp * sideSign;
+        const bw1y = sy + sdy * (slotCenter + BAY_SLOT_W / 2) + pdy * backPerp * sideSign;
+        const [sbw0x, sbw0y] = dws(bw0x, bw0y, cam, W, H);
+        const [sbw1x, sbw1y] = dws(bw1x, bw1y, cam, W, H);
+        ctx.beginPath();
+        ctx.moveTo(sbw0x, sbw0y); ctx.lineTo(sbw1x, sbw1y);
+        ctx.strokeStyle = '#4466aa';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Container inside (same shape as player's container, different colors)
+        if (bay.filled) {
+          const bp = bayWorldPos(bay, sx, sy);
+          const oa = bp.angle;
+          // Container is CONTAINER_W x CONTAINER_H, centered in bay
+          // In bay coords: long axis perpendicular to spoke (depth direction)
+          const cos2 = Math.cos(oa), sin2 = Math.sin(oa);
+          const cw2 = CONTAINER_W / 2, ch2 = CONTAINER_H / 2;
+          // depth dir = (cos oa, sin oa), width dir = (-sin oa, cos oa)
+          const ddx2 = cos2, ddy2 = sin2;
+          const wdx2 = -sin2, wdy2 = cos2;
+          const corners = [
+            [bp.x - wdx2*ch2 - ddx2*cw2, bp.y - wdy2*ch2 - ddy2*cw2],
+            [bp.x + wdx2*ch2 - ddx2*cw2, bp.y + wdy2*ch2 - ddy2*cw2],
+            [bp.x + wdx2*ch2 + ddx2*cw2, bp.y + wdy2*ch2 + ddy2*cw2],
+            [bp.x - wdx2*ch2 + ddx2*cw2, bp.y - wdy2*ch2 + ddy2*cw2],
+          ];
+          // Color varies by spoke
+          const colors = ['#2a1a1a', '#1a1a2a', '#2a2a1a', '#1a2a2a'];
+          const strokes = ['#aa5533', '#5533aa', '#aaaa33', '#33aa99'];
+          ctx.beginPath();
+          for (let ci = 0; ci < 4; ci++) {
+            const [scx2, scy2] = dws(corners[ci][0], corners[ci][1], cam, W, H);
+            if (ci === 0) ctx.moveTo(scx2, scy2); else ctx.lineTo(scx2, scy2);
+          }
+          ctx.closePath();
+          ctx.fillStyle = colors[spoke % 4];
+          ctx.fill();
+          ctx.strokeStyle = strokes[spoke % 4];
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // Target bay highlight
+        if (bay.isTarget) {
+          const bp = bayWorldPos(bay, sx, sy);
+          const [tcx, tcy] = dws(bp.x, bp.y, cam, W, H);
+          // Dashed rectangle showing where to park
+          const oa = bp.angle;
+          const cos2 = Math.cos(oa), sin2 = Math.sin(oa);
+          const cw2 = CONTAINER_W / 2, ch2 = CONTAINER_H / 2;
+          const ddx2 = cos2, ddy2 = sin2;
+          const wdx2 = -sin2, wdy2 = cos2;
+          const tc = [
+            [bp.x - wdx2*ch2 - ddx2*cw2, bp.y - wdy2*ch2 - ddy2*cw2],
+            [bp.x + wdx2*ch2 - ddx2*cw2, bp.y + wdy2*ch2 - ddy2*cw2],
+            [bp.x + wdx2*ch2 + ddx2*cw2, bp.y + wdy2*ch2 + ddy2*cw2],
+            [bp.x - wdx2*ch2 + ddx2*cw2, bp.y - wdy2*ch2 + ddy2*cw2],
+          ];
+          ctx.beginPath();
+          for (let ci = 0; ci < 4; ci++) {
+            const [scx2, scy2] = dws(tc[ci][0], tc[ci][1], cam, W, H);
+            if (ci === 0) ctx.moveTo(scx2, scy2); else ctx.lineTo(scx2, scy2);
+          }
+          ctx.closePath();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#00ffcc';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = '9px monospace';
+          ctx.fillStyle = '#00ffcc';
+          ctx.textAlign = 'center';
+          ctx.fillText('TGT', tcx, tcy + 3);
+        }
+      }
     }
   }
 }
