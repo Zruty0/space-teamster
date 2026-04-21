@@ -320,19 +320,32 @@ export function orbitalToApproachParams(
   const vRadial = os.vx * radX + os.vy * radY;      // positive = away from planet
   const vTangential = os.vx * tanX + os.vy * tanY;   // positive = in direction of travel
 
-  // Use the orbital prediction's impact point directly.
-  // "On target" in orbital = x=0 in approach (gate position).
-  // "X km short" = approach x = -X*1000. "X km long" = approach x = +X*1000.
-  let approachX = 0;
+  // Compute approach x by simulating the approach trajectory and calibrating.
+  // 1. Start at x=0 with the transition velocity
+  // 2. Run approach physics (flat gravity) to find where it impacts
+  // 3. The impact x tells us how far the ship overshoots/undershoots the gate
+  // 4. Offset starting x to compensate
+  const approachGrav = level.approachGravity;
+  let simX = 0, simY = alt, simVX = vTangential, simVY = vRadial;
+  const simDt = 0.5;
+  for (let t = 0; t < 600; t += simDt) {
+    simVY -= approachGrav * simDt;
+    simX += simVX * simDt;
+    simY += simVY * simDt;
+    if (simY <= 0) break;
+  }
+  // simX is where approach physics says we'd impact (relative to gate at x=0)
+  // We want the impact to match the orbital prediction's short/long
+  let orbitalImpactOffset = 0; // 0 = on target
   if (_cachedPred && _cachedPred.impact) {
     const impAngle = Math.atan2(_cachedPred.impact.y, _cachedPred.impact.x);
     let impDiff = impAngle - level.landingSiteAngle;
     while (impDiff > Math.PI) impDiff -= 2 * Math.PI;
     while (impDiff < -Math.PI) impDiff += 2 * Math.PI;
-    // Positive = impact is ahead of LZ in travel direction ("long")
-    const impDist = (h < 0 ? -impDiff : impDiff) * level.planetRadius;
-    approachX = impDist; // positive = past gate, negative = before gate
+    orbitalImpactOffset = (h < 0 ? -impDiff : impDiff) * level.planetRadius;
   }
+  // Shift: we want simulated impact at orbitalImpactOffset, currently at simX
+  const approachX = orbitalImpactOffset - simX;
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
   // Apply default entry AoA so approach starts at the baseline attitude
