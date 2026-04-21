@@ -329,8 +329,19 @@ export function orbitalToApproachParams(
   // CCW (h>0): angles increase in travel direction. angleDiff < 0 = ship ahead of LZ
   const distAhead = (h < 0 ? angleDiff : -angleDiff) * level.planetRadius;
 
-  // In approach coords: gate/LZ at x=0. Ship ahead of LZ = negative x.
-  const approachX = -distAhead;
+  // Use the orbital prediction's impact point to calibrate approach x.
+  // This ensures "on target" in orbital = "on target" in approach.
+  let approachX = -distAhead;
+  if (_cachedPred && _cachedPred.impact) {
+    const impAngle = Math.atan2(_cachedPred.impact.y, _cachedPred.impact.x);
+    let impDiff = impAngle - level.landingSiteAngle;
+    while (impDiff > Math.PI) impDiff -= 2 * Math.PI;
+    while (impDiff < -Math.PI) impDiff += 2 * Math.PI;
+    const impDistFromLZ = (h < 0 ? impDiff : -impDiff) * level.planetRadius;
+    // Offset: if orbital says impact is at impDistFromLZ from LZ,
+    // adjust approach x so the same offset applies
+    approachX += impDistFromLZ; // shift ship so impact lands at same spot
+  }
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
   // Apply default entry AoA so approach starts at the baseline attitude
