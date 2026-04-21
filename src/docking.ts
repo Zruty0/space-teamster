@@ -417,8 +417,9 @@ function drawTug(
     // Cab
     drawCab(ctx, cabX0, cabW, cabH);
 
-    // Thruster nozzles + flames on the frame
-    drawNozzlesAndFlames(ctx, frameX0, frameX1, frameH, z, s, time);
+    // Nozzles under, flames on top (drawn after frame/container)
+    drawNozzles(ctx, frameX0, frameX1, frameH);
+    // (flames drawn below, after cab)
 
   } else {
     // === EMPTY CONFIG — cab inside a compact frame ===
@@ -436,8 +437,18 @@ function drawTug(
     const innerCabX = -cabW / 2;
     drawCab(ctx, innerCabX, cabW, cabH);
 
-    // Thruster nozzles + flames
-    drawNozzlesAndFlames(ctx, frameX0, frameX1, efH, z, s, time);
+    drawNozzles(ctx, frameX0, frameX1, efH);
+  }
+
+  // Flames drawn LAST (on top of everything)
+  if (level.hasContainer) {
+    const frameW = FRAME_W * z;
+    const frameH = FRAME_H * z;
+    drawFlames(ctx, -frameW / 2, frameW / 2, frameH, z, s, time);
+  } else {
+    const efW = EMPTY_FRAME_W * z;
+    const efH = EMPTY_FRAME_H * z;
+    drawFlames(ctx, -efW / 2, efW / 2, efH, z, s, time);
   }
 
   ctx.restore();
@@ -470,40 +481,42 @@ function drawCab(ctx: CanvasRenderingContext2D, x0: number, w: number, h: number
   ctx.stroke();
 }
 
-function drawNozzlesAndFlames(
+function drawNozzles(
   ctx: CanvasRenderingContext2D,
-  x0: number, x1: number, fh: number, z: number,
-  s: DockingState, time: number,
+  x0: number, x1: number, fh: number,
 ): void {
-  const fw = x1 - x0; // frame width
-  // Thruster blocks offset toward ends (30% from each end)
-  const t1x = x0 + fw * 0.25; // rear thruster block
-  const t2x = x0 + fw * 0.75; // front thruster block
-  const nz = fh * 0.18; // nozzle size (bigger)
-  const hiRender = (s as any)._hiThrustRender;
-  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = (hiRender ? 5 : 1.5) * z * flicker;    // high=current look, normal=4x smaller
-  const rcsfl = (hiRender ? 3 : 1.2) * z * flicker;
-
-  // === 2 main thruster groups on long edges, offset to sides ===
+  const fw = x1 - x0;
+  const t1x = x0 + fw * 0.25;
+  const t2x = x0 + fw * 0.75;
+  const nz = fh * 0.18;
   ctx.fillStyle = '#557755';
   for (const tx of [t1x, t2x]) {
-    // Top
     ctx.beginPath();
     ctx.moveTo(tx - nz, -fh / 2); ctx.lineTo(tx + nz, -fh / 2); ctx.lineTo(tx, -fh / 2 - nz);
     ctx.closePath(); ctx.fill();
-    // Bottom
     ctx.beginPath();
     ctx.moveTo(tx - nz, fh / 2); ctx.lineTo(tx + nz, fh / 2); ctx.lineTo(tx, fh / 2 + nz);
     ctx.closePath(); ctx.fill();
   }
+}
 
-  // === Main thruster flames (from both thruster blocks) ===
+function drawFlames(
+  ctx: CanvasRenderingContext2D,
+  x0: number, x1: number, fh: number, z: number,
+  s: DockingState, time: number,
+): void {
+  const fw = x1 - x0;
+  const t1x = x0 + fw * 0.25;
+  const t2x = x0 + fw * 0.75;
+  const nz = fh * 0.18;
+  const hi = (s as any)._hiThrustRender;
+  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
+  const fl = (hi ? 5 : 1.5) * z * flicker;
+  const rcsfl = (hi ? 3 : 1.2) * z * flicker;
   const mainCol = '#ffaa00';
-  ctx.lineWidth = 2.5;
 
+  ctx.lineWidth = hi ? 2.5 : 1.5;
   for (const tx of [t1x, t2x]) {
-    // Thrust up: flame from bottom nozzles (downward)
     if (s.thrustUp) {
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.6, fh / 2 + nz);
@@ -511,7 +524,6 @@ function drawNozzlesAndFlames(
       ctx.lineTo(tx + nz * 0.6, fh / 2 + nz);
       ctx.strokeStyle = mainCol; ctx.stroke();
     }
-    // Thrust down: flame from top nozzles (upward)
     if (s.thrustDown) {
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.6, -fh / 2 - nz);
@@ -519,23 +531,21 @@ function drawNozzlesAndFlames(
       ctx.lineTo(tx + nz * 0.6, -fh / 2 - nz);
       ctx.strokeStyle = mainCol; ctx.stroke();
     }
-    // Thrust forward: flames from both nozzles angled backward
     if (s.thrustRight) {
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.3, -fh / 2 - nz);
       ctx.lineTo(tx - fl * 0.8, -fh / 2 - nz - fl * 0.3);
-      ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = mainCol; ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.3, fh / 2 + nz);
       ctx.lineTo(tx - fl * 0.8, fh / 2 + nz + fl * 0.3);
       ctx.stroke();
     }
-    // Thrust backward: flames from both nozzles angled forward
     if (s.thrustLeft) {
       ctx.beginPath();
       ctx.moveTo(tx + nz * 0.3, -fh / 2 - nz);
       ctx.lineTo(tx + fl * 0.8, -fh / 2 - nz - fl * 0.3);
-      ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = mainCol; ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(tx + nz * 0.3, fh / 2 + nz);
       ctx.lineTo(tx + fl * 0.8, fh / 2 + nz + fl * 0.3);
@@ -543,32 +553,18 @@ function drawNozzlesAndFlames(
     }
   }
 
-  // === RCS flames at corners for rotation (red, smaller) ===
+  // RCS at corners
   ctx.lineWidth = 1.5;
   const rcsCol = '#ff4422';
-  // CCW rotation (Q): top-right fires up, bottom-left fires down
   if (s.rotCCW) {
     ctx.strokeStyle = rcsCol;
-    // Top-right corner: flame upward
-    ctx.beginPath();
-    ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - rcsfl);
-    ctx.stroke();
-    // Bottom-left corner: flame downward
-    ctx.beginPath();
-    ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + rcsfl);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - rcsfl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + rcsfl); ctx.stroke();
   }
-  // CW rotation (E): top-left fires up, bottom-right fires down
   if (s.rotCW) {
     ctx.strokeStyle = rcsCol;
-    // Top-left corner: flame upward
-    ctx.beginPath();
-    ctx.moveTo(x0 + nz * 0.3, -fh / 2); ctx.lineTo(x0, -fh / 2 - rcsfl);
-    ctx.stroke();
-    // Bottom-right corner: flame downward
-    ctx.beginPath();
-    ctx.moveTo(x1 - nz * 0.3, fh / 2); ctx.lineTo(x1, fh / 2 + rcsfl);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, -fh / 2); ctx.lineTo(x0, -fh / 2 - rcsfl); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, fh / 2); ctx.lineTo(x1, fh / 2 + rcsfl); ctx.stroke();
   }
 }
 
