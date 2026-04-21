@@ -204,14 +204,14 @@ const MISSION1_DOCKING: DockingLevel = {
   exitMode: true,
   exitDistance: 120,
   stationX: 0, stationY: 0,
-  bays: generateBays(0, 1, 2, 0.7), // start in right spoke, bottom side, slot 2
+  bays: generateBays(0, 1, 2, 0.7),
   beamRange: 12,
   beamStrength: 0.5,
   thrustForce: 3200,
   rotTorque: 1200,
   tugMass: 500,
   containerMass: 2000,
-  dampingAssist: true,
+  dampingAssist: false,   // SAS off at start
   // Start inside the bay — compute from bay position
   startX: 0, startY: 0, // will be set by init code
   startVX: 0, startVY: 0,

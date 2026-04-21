@@ -255,7 +255,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       rcsAngularAccel: 0.5,
       heatCoeff: 0,
       heatDissipation: 0,
-      transitionAltitude: 15_000,   // hand off to approach at 15km
+      transitionAltitude: 8_000,    // hand off to approach at 8km (reduces flat vs radial gravity mismatch)
       landingSiteAngle: -Math.PI / 3,
       approachLevelIdx: 1,          // Castor approach (APPROACH_LEVELS[1])
       approachGravity: 1.6,
