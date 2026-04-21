@@ -145,20 +145,17 @@ function stationCollision(
     for (let side = 0; side < 2; side++) {
       const sideSign = side === 0 ? 1 : -1;
       for (let wallIdx = 0; wallIdx <= BAYS_PER_SIDE; wallIdx++) {
-        // Wall position along spoke
-        const wallAlongCenter = HUB_RADIUS + wallIdx * BAY_PITCH + WALL_THICK / 2;
-        // Wall extends from spoke edge outward
+        // Wall rendered as line at HUB_RADIUS + wallIdx * BAY_PITCH
+        // Collision: treat as thin rect centered on same position
+        const wallAlong = HUB_RADIUS + wallIdx * BAY_PITCH;
         const wallPerpStart = SPOKE_WIDTH / 2;
         const wallPerpEnd = SPOKE_WIDTH / 2 + BAY_SLOT_D;
-        // Check in spoke-local coords
-        const wlx = lx - wallAlongCenter;
-        const wly = Math.abs(ly) - (wallPerpStart + wallPerpEnd) / 2;
-        const sly = ly * sideSign; // positive = this side
-        if (sly > wallPerpStart && sly < wallPerpEnd && Math.abs(wlx) < WALL_THICK / 2 + 1) {
-          // Inside a wall
-          const pushAlong = WALL_THICK / 2 + 1 - Math.abs(wlx);
-          const sign2 = wlx > 0 ? 1 : -1;
-          return { nx: sdx * sign2, ny: sdy * sign2, depth: pushAlong };
+        const sly = ly * sideSign;
+        const halfW = WALL_THICK / 2;
+        if (sly > wallPerpStart && sly < wallPerpEnd && Math.abs(lx - wallAlong) < halfW) {
+          const pushAlong = halfW - Math.abs(lx - wallAlong);
+          const sign2 = (lx - wallAlong) > 0 ? 1 : -1;
+          return { nx: sdx * sign2, ny: sdy * sign2, depth: pushAlong + 0.1 };
         }
       }
 
@@ -397,20 +394,41 @@ export function updateDocking(
   s.x += s.vx * dt;
   s.y += s.vy * dt;
 
-  // Collision: check multiple points on the ship's frame, not just center
+  // Collision: check probe points on frame, cab, and container
   const colCos = Math.cos(s.angle), colSin = Math.sin(s.angle);
-  // Ship extent: total length includes frame + gap + cab
-  const halfL = level.hasContainer ? (FRAME_W / 2 + CAB_GAP + CAB_W) : (EMPTY_FRAME_W / 2 + CAB_W);
-  const halfW = level.hasContainer ? FRAME_H / 2 : EMPTY_FRAME_H / 2;
-  // Check corners and midpoints of the bounding box
-  const probeOffsets = [
-    [halfL, 0], [-halfL, 0],       // front/rear center
-    [0, halfW], [0, -halfW],       // side centers
-    [halfL, halfW], [halfL, -halfW],   // front corners
-    [-halfL, halfW], [-halfL, -halfW], // rear corners
-  ];
-  for (const [lx, ly] of probeOffsets) {
-    // Rotate to world
+  const probes: [number, number][] = [];
+
+  if (level.hasContainer) {
+    // Frame: 10 points around the frame perimeter (centered on origin)
+    const fhw = FRAME_W / 2, fhh = FRAME_H / 2;
+    probes.push(
+      [-fhw, -fhh], [-fhw, 0], [-fhw, fhh],           // rear edge
+      [fhw, -fhh], [fhw, 0], [fhw, fhh],              // front edge of frame
+      [0, -fhh], [0, fhh],                              // side centers
+      [-fhw * 0.5, -fhh], [-fhw * 0.5, fhh],          // mid-rear sides
+    );
+    // Cab: 4 corners
+    const cabX0 = fhw + CAB_GAP;
+    const cabX1 = cabX0 + CAB_W;
+    const cabHH = CAB_H / 2;
+    probes.push([cabX0, -cabHH], [cabX0, cabHH], [cabX1, -cabHH * 0.7], [cabX1, cabHH * 0.7]);
+    // Container: 4 corners + 2 midpoints
+    const chw = CONTAINER_W / 2, chh = CONTAINER_H / 2;
+    probes.push([-chw, -chh], [-chw, chh], [chw, -chh], [chw, chh], [0, -chh], [0, chh]);
+  } else {
+    // Empty: frame + cab inside
+    const fhw = EMPTY_FRAME_W / 2, fhh = EMPTY_FRAME_H / 2;
+    probes.push(
+      [-fhw, -fhh], [-fhw, 0], [-fhw, fhh],
+      [fhw, -fhh], [fhw, 0], [fhw, fhh],
+      [0, -fhh], [0, fhh],
+    );
+    // Cab corners
+    const chh2 = CAB_H / 2;
+    probes.push([-CAB_W / 2, -chh2], [CAB_W / 2, -chh2], [-CAB_W / 2, chh2], [CAB_W / 2, chh2]);
+  }
+
+  for (const [lx, ly] of probes) {
     const wx = s.x + lx * colCos - ly * colSin;
     const wy = s.y + lx * colSin + ly * colCos;
     const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays);
@@ -421,10 +439,11 @@ export function updateDocking(
       if (vNorm < 0) {
         const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
         if (speed > 5) { s.alive = false; return; }
-        s.vx -= col.nx * vNorm * 1.7;
-        s.vy -= col.ny * vNorm * 1.7;
+        // Stop along collision normal (no bounce)
+        s.vx -= col.nx * vNorm;
+        s.vy -= col.ny * vNorm;
       }
-      break; // handle one collision per frame
+      break;
     }
   }
 
