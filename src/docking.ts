@@ -145,8 +145,8 @@ export function updateDocking(
   if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp && Math.abs(s.angVel) > 0.01) {
     torque -= s.angVel * level.rotTorque * 5;
-    if (s.angVel > 0.01) s.sasCCW = true;  // damping CCW rotation
-    if (s.angVel < -0.01) s.sasCW = true;
+    if (s.angVel > 0.01) s.sasCW = true;   // rotating CCW, SAS fires CW pattern
+    if (s.angVel < -0.01) s.sasCCW = true;  // rotating CW, SAS fires CCW pattern
   }
   s.angVel += (torque / inertia) * dt;
   s.angle += s.angVel * dt;
