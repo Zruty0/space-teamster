@@ -547,7 +547,9 @@ export function updateOrbital(
     if (s.temperature < 0) s.temperature = 0;
     if (s.temperature > 1.5) s.temperature = 1.5;
 
-    s.inAtmo = alt < level.atmoHeight;
+    // For atmospheric bodies: inAtmo when below atmoHeight
+    // For airless bodies: inAtmo when below transitionAltitude * 3 (enables zoom + pitch)
+    s.inAtmo = level.atmoHeight > 0 ? alt < level.atmoHeight : alt < level.transitionAltitude * 3;
 
     // Thrust
     if (s.fuel > 0) {
