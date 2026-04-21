@@ -595,12 +595,9 @@ function drawFlames(
   drawMainSet(s.thrustUp, s.thrustDown, s.thrustRight, s.thrustLeft, mainCol, lw);
   drawRCS(s.rotCCW, s.rotCW, '#ff4422', rcsfl);
 
-  // SAS flames (dimmer, same positions)
-  const sasfl = fl * 0.6;
-  const sasCol = 'rgba(255, 170, 0, 0.4)';
-  const sasRcsCol = 'rgba(255, 68, 34, 0.4)';
-  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, sasCol, 1);
-  drawRCS(s.sasCCW, s.sasCW, sasRcsCol, rcsfl * 0.6);
+  // SAS flames (same intensity as player thrust)
+  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, mainCol, lw);
+  drawRCS(s.sasCCW, s.sasCW, '#ff4422', rcsfl);
 }
 
 // ===================== HUD =====================
