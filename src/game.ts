@@ -316,8 +316,10 @@ export class Game {
       vx *= scale;
       vy *= scale;
     }
-    // Altitude: start low for a short final
-    const startY = Math.max(landingLevel.padY + 80, Math.min(p.as.y, landingLevel.padY + 120));
+    // Altitude: clamp to a reasonable final approach height
+    // Use startY from the landing level as the target altitude
+    const targetAlt = landingLevel.startY;
+    const startY = Math.max(landingLevel.padY + targetAlt * 0.5, Math.min(p.as.y, landingLevel.padY + targetAlt));
     // Nudge vertical speed: no more than -10 m/s downward
     vy = Math.max(vy, -10);
 

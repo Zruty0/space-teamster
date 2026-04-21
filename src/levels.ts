@@ -155,7 +155,7 @@ export const LEVELS: LevelDef[] = [
     landingMaxHSpeed: 3.0,
     landingMaxAngle: 0.26,
     startX: 980,
-    startY: 300,
+    startY: 250,
     startVX: 5,
     startVY: -2,
     padCenterX: 1000,
