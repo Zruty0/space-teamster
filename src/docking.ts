@@ -90,7 +90,7 @@ export const DOCKING_LEVELS: DockingLevel[] = [
 export function createDockingState(level: DockingLevel): DockingState {
   return {
     x: -60, y: 10,
-    vx: 0.5, vy: 0,
+    vx: 0, vy: 0,
     angle: 0,
     angVel: 0,
     sas: level.dampingAssist,
@@ -102,16 +102,16 @@ export function createDockingState(level: DockingLevel): DockingState {
 
 // ===================== Ship Geometry =====================
 
-// Frame dimensions (meters) — loaded vs empty
-function shipDims(hasContainer: boolean): { w: number; h: number; cw: number; ch: number } {
-  if (hasContainer) {
-    // Loaded: frame wraps around container
-    return { w: 12, h: 8, cw: 10, ch: 6 }; // frame, container
-  } else {
-    // Empty: telescoped/folded compact
-    return { w: 6, h: 4, cw: 0, ch: 0 };
-  }
-}
+// Ship dimensions (meters)
+// Cab is at the front (+X in ship-local). Frame extends behind.
+const CAB_W = 4;   // cab width (along ship axis)
+const CAB_H = 5;   // cab height (perpendicular)
+const FRAME_W = 10; // frame length behind cab (when loaded)
+const FRAME_H = 8;  // frame height (wraps container)
+const CONTAINER_W = 8;
+const CONTAINER_H = 6;
+const EMPTY_FRAME_W = 3; // collapsed frame when empty
+const EMPTY_FRAME_H = 5;
 
 // ===================== Physics =====================
 
@@ -120,8 +120,11 @@ export function updateDocking(
 ): void {
   if (!s.alive || s.delivered) return;
 
-  // SAS toggle
-  if (input.toggleHighThrust) s.sas = !s.sas;
+  // SAS toggle (Space, edge-triggered via stopAssist)
+  // stopAssist is held, so track edge ourselves
+  const spacePressed = input.stopAssist;
+  if (spacePressed && !(s as any)._sasKeyWas) s.sas = !s.sas;
+  (s as any)._sasKeyWas = spacePressed;
 
   const mass = level.tugMass + (level.hasContainer ? level.containerMass : 0);
   const inertia = mass * 2; // simplified rotational inertia
@@ -148,8 +151,10 @@ export function updateDocking(
   if (s.sas) {
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
     if (!anyInput) {
-      fx -= s.vx * mass * 1.5;
-      fy -= s.vy * mass * 1.5;
+      // Damping capped at thruster force
+      const maxF = level.thrustForce;
+      fx -= Math.max(-maxF, Math.min(maxF, s.vx * mass * 0.8));
+      fy -= Math.max(-maxF, Math.min(maxF, s.vy * mass * 0.8));
     }
   }
 
@@ -311,128 +316,168 @@ function drawTug(
 ): void {
   const [sx, sy] = dws(s.x, s.y, cam, W, H);
   const z = cam.zoom;
-  const dims = shipDims(level.hasContainer);
 
   ctx.save();
   ctx.translate(sx, sy);
-  ctx.rotate(-s.angle); // screen rotation
+  ctx.rotate(-s.angle);
 
-  const fw = dims.w * z;  // frame width (pixels)
-  const fh = dims.h * z;  // frame height
-
-  // Frame (wireframe rectangle)
-  ctx.strokeStyle = '#00ff88';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(-fw / 2, -fh / 2, fw, fh);
-
-  // Corner brackets (structural detail)
-  const cb = Math.min(fw, fh) * 0.15;
-  ctx.lineWidth = 2;
-  // Top-left
-  ctx.beginPath();
-  ctx.moveTo(-fw / 2, -fh / 2 + cb); ctx.lineTo(-fw / 2, -fh / 2); ctx.lineTo(-fw / 2 + cb, -fh / 2);
-  ctx.stroke();
-  // Top-right
-  ctx.beginPath();
-  ctx.moveTo(fw / 2, -fh / 2 + cb); ctx.lineTo(fw / 2, -fh / 2); ctx.lineTo(fw / 2 - cb, -fh / 2);
-  ctx.stroke();
-  // Bottom-left
-  ctx.beginPath();
-  ctx.moveTo(-fw / 2, fh / 2 - cb); ctx.lineTo(-fw / 2, fh / 2); ctx.lineTo(-fw / 2 + cb, fh / 2);
-  ctx.stroke();
-  // Bottom-right
-  ctx.beginPath();
-  ctx.moveTo(fw / 2, fh / 2 - cb); ctx.lineTo(fw / 2, fh / 2); ctx.lineTo(fw / 2 - cb, fh / 2);
-  ctx.stroke();
+  // Ship-local coords: +X = front (right on screen when angle=0)
+  const cabW = CAB_W * z;
+  const cabH = CAB_H * z;
 
   if (level.hasContainer) {
+    // === LOADED CONFIG ===
+    const frameW = FRAME_W * z;
+    const frameH = FRAME_H * z;
+    const contW = CONTAINER_W * z;
+    const contH = CONTAINER_H * z;
+
+    // Frame extends behind cab
+    const frameX0 = -frameW; // rear of frame
+    const frameX1 = 0;       // front of frame (meets cab)
+
     // Container inside frame
-    const cw = dims.cw * z;
-    const ch = dims.ch * z;
+    const contX = frameX0 + (frameW - contW) / 2;
     ctx.fillStyle = '#1a2a1a';
-    ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+    ctx.fillRect(contX, -contH / 2, contW, contH);
     ctx.strokeStyle = '#44aa66';
     ctx.lineWidth = 1;
-    ctx.strokeRect(-cw / 2, -ch / 2, cw, ch);
-
-    // Container markings (horizontal stripes)
+    ctx.strokeRect(contX, -contH / 2, contW, contH);
+    // Container stripes
     ctx.strokeStyle = 'rgba(68, 170, 102, 0.3)';
-    ctx.lineWidth = 0.5;
-    const stripes = 3;
-    for (let i = 1; i < stripes; i++) {
-      const y = -ch / 2 + (ch * i) / stripes;
+    for (let i = 1; i < 3; i++) {
+      const ly = -contH / 2 + (contH * i) / 3;
+      ctx.beginPath(); ctx.moveTo(contX, ly); ctx.lineTo(contX + contW, ly); ctx.stroke();
+    }
+
+    // Frame wireframe
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(frameX0, -frameH / 2, frameW, frameH);
+
+    // Corner brackets
+    const cb = frameH * 0.12;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#00ff88';
+    for (const [bx, by, dx, dy] of [
+      [frameX0, -frameH/2, 1, 1], [frameX1, -frameH/2, -1, 1],
+      [frameX0, frameH/2, 1, -1], [frameX1, frameH/2, -1, -1],
+    ] as [number, number, number, number][]) {
       ctx.beginPath();
-      ctx.moveTo(-cw / 2, y);
-      ctx.lineTo(cw / 2, y);
+      ctx.moveTo(bx, by + dy * cb); ctx.lineTo(bx, by); ctx.lineTo(bx + dx * cb, by);
       ctx.stroke();
     }
+
+    // Thruster nozzles on the frame
+    drawNozzlesAndFlames(ctx, frameX0, frameX1, frameH, z, s, time);
+
   } else {
-    // Empty frame — show telescoped inner structure
-    const iw = fw * 0.5;
-    const ih = fh * 0.5;
-    ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+    // === EMPTY CONFIG — frame collapsed around cab ===
+    const efW = EMPTY_FRAME_W * z;
+    const efH = EMPTY_FRAME_H * z;
+    const frameX0 = -efW;
+    const frameX1 = 0;
+
+    // Collapsed frame behind cab
+    ctx.strokeStyle = 'rgba(0, 255, 136, 0.4)';
     ctx.lineWidth = 1;
-    ctx.setLineDash([2, 3]);
-    ctx.strokeRect(-iw / 2, -ih / 2, iw, ih);
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(frameX0, -efH / 2, efW, efH);
     ctx.setLineDash([]);
+
+    // Thruster nozzles on collapsed frame
+    drawNozzlesAndFlames(ctx, frameX0, frameX1, efH, z, s, time);
   }
 
-  // Thruster nozzles (small triangles on each side)
-  const nz = Math.min(fw, fh) * 0.08;
-  ctx.fillStyle = '#557755';
-  // Top (thrust down)
+  // Cab (always at front, same size)
+  // Trapezoid shape: wider at back, narrower at front
+  const cabNarrow = cabH * 0.7;
+  ctx.fillStyle = '#0c180c';
   ctx.beginPath();
-  ctx.moveTo(-nz, -fh / 2); ctx.lineTo(nz, -fh / 2); ctx.lineTo(0, -fh / 2 - nz * 1.5);
-  ctx.closePath(); ctx.fill();
-  // Bottom (thrust up)
-  ctx.beginPath();
-  ctx.moveTo(-nz, fh / 2); ctx.lineTo(nz, fh / 2); ctx.lineTo(0, fh / 2 + nz * 1.5);
-  ctx.closePath(); ctx.fill();
-  // Left (thrust right)
-  ctx.beginPath();
-  ctx.moveTo(-fw / 2, -nz); ctx.lineTo(-fw / 2, nz); ctx.lineTo(-fw / 2 - nz * 1.5, 0);
-  ctx.closePath(); ctx.fill();
-  // Right (thrust left)
-  ctx.beginPath();
-  ctx.moveTo(fw / 2, -nz); ctx.lineTo(fw / 2, nz); ctx.lineTo(fw / 2 + nz * 1.5, 0);
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(0, -cabH / 2);           // back-top
+  ctx.lineTo(cabW, -cabNarrow / 2);    // front-top
+  ctx.lineTo(cabW, cabNarrow / 2);     // front-bottom
+  ctx.lineTo(0, cabH / 2);             // back-bottom
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
 
-  // Thrust flames (screen-direction, but drawn in ship-local coords)
-  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = 5 * z * flicker;
-  ctx.lineWidth = 2;
-
-  // Thrust flames (opposite to thrust direction)
-  if (s.thrustDown) {
-    ctx.beginPath();
-    ctx.moveTo(-nz * 0.8, -fh / 2 - nz * 1.5);
-    ctx.lineTo(0, -fh / 2 - nz * 1.5 - fl);
-    ctx.lineTo(nz * 0.8, -fh / 2 - nz * 1.5);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
-  }
-  if (s.thrustUp) {
-    ctx.beginPath();
-    ctx.moveTo(-nz * 0.8, fh / 2 + nz * 1.5);
-    ctx.lineTo(0, fh / 2 + nz * 1.5 + fl);
-    ctx.lineTo(nz * 0.8, fh / 2 + nz * 1.5);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
-  }
-  if (s.thrustRight) {
-    ctx.beginPath();
-    ctx.moveTo(-fw / 2 - nz * 1.5, -nz * 0.8);
-    ctx.lineTo(-fw / 2 - nz * 1.5 - fl, 0);
-    ctx.lineTo(-fw / 2 - nz * 1.5, nz * 0.8);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
-  }
-  if (s.thrustLeft) {
-    ctx.beginPath();
-    ctx.moveTo(fw / 2 + nz * 1.5, -nz * 0.8);
-    ctx.lineTo(fw / 2 + nz * 1.5 + fl, 0);
-    ctx.lineTo(fw / 2 + nz * 1.5, nz * 0.8);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
-  }
+  // Cockpit window
+  ctx.strokeStyle = '#00ccff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cabW * 0.5, -cabNarrow * 0.3);
+  ctx.lineTo(cabW * 0.85, -cabNarrow * 0.2);
+  ctx.lineTo(cabW * 0.85, cabNarrow * 0.2);
+  ctx.lineTo(cabW * 0.5, cabNarrow * 0.3);
+  ctx.closePath();
+  ctx.stroke();
 
   ctx.restore();
+}
+
+function drawNozzlesAndFlames(
+  ctx: CanvasRenderingContext2D,
+  x0: number, x1: number, fh: number, z: number,
+  s: DockingState, time: number,
+): void {
+  const midX = (x0 + x1) / 2;
+  const nz = fh * 0.06;
+  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
+  const fl = 4 * z * flicker;
+
+  // Nozzle color
+  ctx.fillStyle = '#557755';
+
+  // Rear nozzle (thrust forward = +X)
+  ctx.beginPath();
+  ctx.moveTo(x0, -nz); ctx.lineTo(x0, nz); ctx.lineTo(x0 - nz * 1.5, 0);
+  ctx.closePath(); ctx.fill();
+  // Front nozzle (thrust backward)
+  ctx.beginPath();
+  ctx.moveTo(x1, -nz); ctx.lineTo(x1, nz); ctx.lineTo(x1 + nz * 1.5, 0);
+  ctx.closePath(); ctx.fill();
+  // Top nozzle (thrust down = -Y screen = +Y world)
+  ctx.beginPath();
+  ctx.moveTo(midX - nz, -fh / 2); ctx.lineTo(midX + nz, -fh / 2); ctx.lineTo(midX, -fh / 2 - nz * 1.5);
+  ctx.closePath(); ctx.fill();
+  // Bottom nozzle
+  ctx.beginPath();
+  ctx.moveTo(midX - nz, fh / 2); ctx.lineTo(midX + nz, fh / 2); ctx.lineTo(midX, fh / 2 + nz * 1.5);
+  ctx.closePath(); ctx.fill();
+
+  // Flames (opposite to thrust)
+  ctx.lineWidth = 2;
+  if (s.thrustRight) { // thrusting right = flame from rear (left)
+    ctx.beginPath();
+    ctx.moveTo(x0 - nz * 1.5, -nz * 0.6);
+    ctx.lineTo(x0 - nz * 1.5 - fl, 0);
+    ctx.lineTo(x0 - nz * 1.5, nz * 0.6);
+    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+  }
+  if (s.thrustLeft) { // thrusting left = flame from front
+    ctx.beginPath();
+    ctx.moveTo(x1 + nz * 1.5, -nz * 0.6);
+    ctx.lineTo(x1 + nz * 1.5 + fl, 0);
+    ctx.lineTo(x1 + nz * 1.5, nz * 0.6);
+    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+  }
+  if (s.thrustDown) { // thrusting down = flame from top
+    ctx.beginPath();
+    ctx.moveTo(midX - nz * 0.6, -fh / 2 - nz * 1.5);
+    ctx.lineTo(midX, -fh / 2 - nz * 1.5 - fl);
+    ctx.lineTo(midX + nz * 0.6, -fh / 2 - nz * 1.5);
+    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+  }
+  if (s.thrustUp) { // thrusting up = flame from bottom
+    ctx.beginPath();
+    ctx.moveTo(midX - nz * 0.6, fh / 2 + nz * 1.5);
+    ctx.lineTo(midX, fh / 2 + nz * 1.5 + fl);
+    ctx.lineTo(midX + nz * 0.6, fh / 2 + nz * 1.5);
+    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+  }
 }
 
 // ===================== HUD =====================
