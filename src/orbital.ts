@@ -905,9 +905,9 @@ function predictOrbit(
       const alt = r - level.planetRadius;
       const belowTransition = alt < level.transitionAltitude;
 
-      // Gravity: always radial toward planet center
-      // (approach gravity magnitude below transition, orbital GM above)
-      const gAccel = belowTransition ? level.approachGravity : level.planetGM / (r * r);
+      // Gravity: always orbital GM/r² radial toward center
+      // (consistent physics for the entire orbital prediction)
+      const gAccel = level.planetGM / (r * r);
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
 
@@ -2034,7 +2034,7 @@ export function drawOrbitalHUD(
 
   // --- Warnings ---
   let warnY = 30;
-  if (peInAtmo && state === 'orbiting') {
+  if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_WARN;
@@ -2054,7 +2054,7 @@ export function drawOrbitalHUD(
     warnY += 22;
   }
 
-  if (s.inAtmo && state === 'orbiting') {
+  if (s.inAtmo && level.atmoHeight > 0 && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ff8844';
