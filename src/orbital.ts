@@ -644,7 +644,7 @@ export function updateOrbital(
     // Transition: below transition altitude while in atmosphere
     const newR = Math.sqrt(s.x * s.x + s.y * s.y);
     const newAlt = newR - level.planetRadius;
-    if (newAlt <= level.transitionAltitude && newAlt < level.atmoHeight) {
+    if (newAlt <= level.transitionAltitude) {
       s.enteredAtmo = true;
       return;
     }
