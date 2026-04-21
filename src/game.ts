@@ -34,7 +34,7 @@ const MAX_FRAME_TIME = 0.1;
 
 type Phase =
   | { kind: 'levelSelect' }
-  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null }
+  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number } }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: { x: number; y: number; vx: number; vy: number; angle: number } }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked' }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed' };
@@ -63,21 +63,22 @@ export class Game {
 
   // --- Level loading ---
 
-  private loadLanding(level: LevelDef): void {
+  private loadLanding(level: LevelDef, initOverride?: { x: number; y: number; vx: number; vy: number }): void {
     config.gravity = level.gravity;
     config.landingMaxVSpeed = level.landingMaxVSpeed;
     config.landingMaxHSpeed = level.landingMaxHSpeed;
     config.landingMaxAngle = level.landingMaxAngle;
-    config.startX = level.startX;
-    config.startY = level.startY;
-    config.startVX = level.startVX;
-    config.startVY = level.startVY;
+    const init = initOverride ?? { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY };
+    config.startX = init.x;
+    config.startY = init.y;
+    config.startVX = init.vx;
+    config.startVY = init.vy;
     const terrain = generateTerrain(level);
     const ship = createShip();
     const camera = createCamera();
     camera.x = ship.x;
     camera.y = ship.y;
-    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null };
+    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride };
     setDevPanelMode('landing');
     this.time = 0;
     this.accumulator = 0;
@@ -178,7 +179,7 @@ export class Game {
   private handleLanding(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'landing' }>;
 
-    if (input.reset) { this.loadLanding(p.level); return; }
+    if (input.reset) { this.loadLanding(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
@@ -315,32 +316,18 @@ export class Game {
       vx *= scale;
       vy *= scale;
     }
-    // Clamp altitude: at least 150m above pad
-    const minAlt = landingLevel.padY + 150;
-    const startY = Math.max(p.as.y, minAlt);
+    // Altitude: start low for a short final
+    const startY = Math.max(landingLevel.padY + 80, Math.min(p.as.y, landingLevel.padY + 120));
     // Nudge vertical speed: no more than -10 m/s downward
     vy = Math.max(vy, -10);
 
-    config.gravity = landingLevel.gravity;
-    config.landingMaxVSpeed = landingLevel.landingMaxVSpeed;
-    config.landingMaxHSpeed = landingLevel.landingMaxHSpeed;
-    config.landingMaxAngle = landingLevel.landingMaxAngle;
-    config.startX = landingLevel.padCenterX; // start near pad
-    config.startY = startY;
-    config.startVX = Math.min(Math.abs(vx), 10) * (vx > 0 ? 1 : -1); // gentle horizontal
-    config.startVY = vy;
-    const terrain = generateTerrain(landingLevel);
-    const ship = createShip();
-    ship.x = config.startX;
-    ship.y = config.startY;
-    ship.vx = config.startVX;
-    ship.vy = config.startVY;
-    const camera = createCamera();
-    camera.x = ship.x;
-    camera.y = ship.y;
-    this.phase = { kind: 'landing', level: landingLevel, ship, terrain, camera, state: 'flying', score: null };
-    this.time = 0;
-    this.accumulator = 0;
+    const initOverride = {
+      x: landingLevel.padCenterX,
+      y: startY,
+      vx: Math.min(Math.abs(vx), 10) * (vx > 0 ? 1 : -1),
+      vy: vy,
+    };
+    this.loadLanding(landingLevel, initOverride);
   }
 
   private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {

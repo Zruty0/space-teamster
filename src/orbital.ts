@@ -222,7 +222,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
   // --- Mission 1: Castor orbit (airless moon, deorbit to surface) ---
   (() => {
     const planetRadius = 200_000;  // 200km radius moon
-    const orbitAlt = 50_000;
+    const orbitAlt = 100_000;    // 100km orbit
     const baseTimeScale = 50;
     const surfaceG = 1.6; // m/s²
     const gm = surfaceG * planetRadius * planetRadius;

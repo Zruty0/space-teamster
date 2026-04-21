@@ -296,36 +296,56 @@ function drawLandedOverlay(
   ctx: CanvasRenderingContext2D, W: number, H: number,
   score: LandingScore, level: LevelDef,
 ): void {
+  const mission = MISSIONS.find(m => !m.stub);
+  const completionText = mission?.completionText || '';
+  const boxH = completionText ? 300 : 240;
   ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
-  ctx.fillRect(W / 2 - 200, H / 2 - 120, 400, 240);
+  ctx.fillRect(W / 2 - 250, H / 2 - 130, 500, boxH);
   ctx.strokeStyle = COL_SUCCESS;
   ctx.lineWidth = 2;
-  ctx.strokeRect(W / 2 - 200, H / 2 - 120, 400, 240);
+  ctx.strokeRect(W / 2 - 250, H / 2 - 130, 500, boxH);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_SUCCESS;
   ctx.font = 'bold 28px monospace';
-  ctx.fillText('LANDED', W / 2, H / 2 - 80);
+  ctx.fillText('LANDED', W / 2, H / 2 - 95);
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText(level.name, W / 2, H / 2 - 58);
+  ctx.fillText(level.name, W / 2, H / 2 - 73);
 
   const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' };
   ctx.fillStyle = ratingColors[score.rating];
   ctx.font = 'bold 22px monospace';
-  ctx.fillText(score.rating, W / 2, H / 2 - 30);
+  ctx.fillText(score.rating, W / 2, H / 2 - 45);
 
-  ctx.font = '14px monospace';
+  ctx.font = '13px monospace';
   ctx.fillStyle = COL_HUD;
-  ctx.fillText(`V/Speed: ${score.vSpeed.toFixed(1)} m/s`, W / 2, H / 2 + 0);
-  ctx.fillText(`H/Speed: ${score.hSpeed.toFixed(1)} m/s`, W / 2, H / 2 + 20);
-  ctx.fillText(`Angle: ${(score.angle * 180 / Math.PI).toFixed(1)}°`, W / 2, H / 2 + 40);
-  ctx.fillText(`Offset: ${score.distFromCenter.toFixed(1)} m`, W / 2, H / 2 + 60);
+  ctx.fillText(`V/S: ${score.vSpeed.toFixed(1)}  H/S: ${score.hSpeed.toFixed(1)}  Angle: ${(score.angle * 180 / Math.PI).toFixed(1)}°  Offset: ${score.distFromCenter.toFixed(1)}m`, W / 2, H / 2 - 20);
+
+  if (completionText) {
+    ctx.fillStyle = '#88aa88';
+    ctx.font = '12px monospace';
+    const maxW = 440;
+    const words = completionText.split(' ');
+    let line = '';
+    let ly = H / 2 + 10;
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, W / 2, ly);
+        line = word;
+        ly += 16;
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, W / 2, ly);
+  }
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('R: Fly again  |  L: Choose level', W / 2, H / 2 + 100);
+  ctx.fillText('R: Fly again  |  L: Missions', W / 2, H / 2 - 130 + boxH - 15);
 }
 
 function drawCrashedOverlay(ctx: CanvasRenderingContext2D, W: number, H: number): void {

@@ -33,21 +33,27 @@ export function createCamera(): Camera {
 
 export function updateCamera(cam: Camera, ship: ShipState, terrainHeight: number, dt: number): void {
   const c = config;
-
-  // Target position: ship + velocity lead
-  const targetX = ship.x + ship.vx * c.cameraLeadFactor;
-  const targetY = ship.y + ship.vy * c.cameraLeadFactor;
-
-  // Smooth follow
   const t = 1 - Math.exp(-c.cameraSmoothing * dt);
-  cam.x += (targetX - cam.x) * t;
-  cam.y += (targetY - cam.y) * t;
 
   // Dynamic zoom based on altitude above terrain
   const altitude = ship.y - terrainHeight;
   const zoomT = Math.max(0, Math.min(1, (altitude - c.zoomLowAlt) / (c.zoomHighAlt - c.zoomLowAlt)));
   const targetZoom = c.maxZoom + (c.minZoom - c.maxZoom) * zoomT;
   cam.zoom += (targetZoom - cam.zoom) * t;
+
+  // Horizontal: follow ship with velocity lead
+  const targetX = ship.x + ship.vx * c.cameraLeadFactor;
+  cam.x += (targetX - cam.x) * t;
+
+  // Vertical: pan down to show ground, keep ship in top ~10-20%
+  const viewH = 600 / cam.zoom; // approximate screen height in world units
+  // Ship at 10% from top: cam.y = ship.y - 0.4 * viewH
+  const shipTopCy = ship.y - 0.4 * viewH;
+  // Ground at bottom ~10%: cam.y = terrainHeight + 0.4 * viewH
+  const groundCy = terrainHeight + 0.4 * viewH;
+  // Choose: show ground if possible, but don't push ship below top 10%
+  const targetY = Math.max(shipTopCy, Math.min(ship.y, groundCy));
+  cam.y += (targetY - cam.y) * t;
 }
 
 // --- World-to-screen transform ---
