@@ -107,13 +107,14 @@ export function createDockingState(level: DockingLevel): DockingState {
 
 // Ship dimensions (meters)
 // Cab is at the front (+X in ship-local). Frame extends behind.
-const CAB_W = 4;    // cab length (along ship axis)
-const CAB_H = 5;    // cab width (perpendicular)
-const FRAME_W = 16;  // frame length behind cab (when loaded)
-const FRAME_H = 6;   // frame width (wraps container)
-const CONTAINER_W = 14; // ~5:1 ratio like a 40ft container
+const CAB_W = 4;     // cab length (along ship axis)
+const CAB_H = 3.5;   // cab width (perpendicular) — roughly 20ft container proportions
+const CAB_GAP = 1.5;  // gap between cab and frame
+const FRAME_W = 16;   // frame length (when loaded)
+const FRAME_H = 6;    // frame width (wraps container)
+const CONTAINER_W = 14;
 const CONTAINER_H = 4;
-const EMPTY_FRAME_W = 3;
+const EMPTY_FRAME_W = 6;  // fits around cab like a 20ft container
 const EMPTY_FRAME_H = 5;
 
 // ===================== Physics =====================
@@ -239,6 +240,15 @@ export function renderDocking(
   // Ship (tug + container)
   drawTug(ctx, cam, s, level, W, H, time);
 
+  // Neutral X at ship position (where dot would be with zero velocity)
+  ctx.strokeStyle = 'rgba(0, 255, 136, 0.15)';
+  ctx.lineWidth = 1;
+  const [cx, cy] = dws(s.x, s.y, cam, W, H);
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
+  ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
+  ctx.stroke();
+
   // Prediction dot (where ship will be in 2s)
   const predX = s.x + s.vx * 2;
   const predY = s.y + s.vy * 2;
@@ -349,9 +359,9 @@ function drawTug(
   ctx.translate(sx, sy);
   ctx.rotate(-s.angle);
 
-  // Ship-local coords: +X = front (right on screen when angle=0)
   const cabW = CAB_W * z;
   const cabH = CAB_H * z;
+  const gap = CAB_GAP * z;
 
   if (level.hasContainer) {
     // === LOADED CONFIG ===
@@ -360,22 +370,23 @@ function drawTug(
     const contW = CONTAINER_W * z;
     const contH = CONTAINER_H * z;
 
-    // Frame extends behind cab
-    const frameX0 = -frameW; // rear of frame
-    const frameX1 = 0;       // front of frame (meets cab)
+    // Layout: [frame with container] --gap-- [cab]
+    // Frame center is origin, cab is to the right
+    const frameX0 = -frameW / 2;
+    const frameX1 = frameW / 2;
+    const cabX0 = frameX1 + gap; // cab starts after gap
 
-    // Container inside frame
-    const contX = frameX0 + (frameW - contW) / 2;
+    // Container (centered in frame)
     ctx.fillStyle = '#1a2a1a';
-    ctx.fillRect(contX, -contH / 2, contW, contH);
+    ctx.fillRect(-contW / 2, -contH / 2, contW, contH);
     ctx.strokeStyle = '#44aa66';
     ctx.lineWidth = 1;
-    ctx.strokeRect(contX, -contH / 2, contW, contH);
+    ctx.strokeRect(-contW / 2, -contH / 2, contW, contH);
     // Container stripes
     ctx.strokeStyle = 'rgba(68, 170, 102, 0.3)';
-    for (let i = 1; i < 3; i++) {
-      const ly = -contH / 2 + (contH * i) / 3;
-      ctx.beginPath(); ctx.moveTo(contX, ly); ctx.lineTo(contX + contW, ly); ctx.stroke();
+    for (let i = 1; i < 4; i++) {
+      const lx = -contW / 2 + (contW * i) / 4;
+      ctx.beginPath(); ctx.moveTo(lx, -contH / 2); ctx.lineTo(lx, contH / 2); ctx.stroke();
     }
 
     // Frame wireframe
@@ -386,7 +397,6 @@ function drawTug(
     // Corner brackets
     const cb = frameH * 0.12;
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#00ff88';
     for (const [bx, by, dx, dy] of [
       [frameX0, -frameH/2, 1, 1], [frameX1, -frameH/2, -1, 1],
       [frameX0, frameH/2, 1, -1], [frameX1, frameH/2, -1, -1],
@@ -396,36 +406,52 @@ function drawTug(
       ctx.stroke();
     }
 
-    // Thruster nozzles on the frame
+    // Connecting lines: frame to cab
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(frameX1, -cabH / 2 * 0.8); ctx.lineTo(cabX0, -cabH / 2 * 0.8);
+    ctx.moveTo(frameX1, cabH / 2 * 0.8); ctx.lineTo(cabX0, cabH / 2 * 0.8);
+    ctx.stroke();
+
+    // Cab
+    drawCab(ctx, cabX0, cabW, cabH);
+
+    // Thruster nozzles + flames on the frame
     drawNozzlesAndFlames(ctx, frameX0, frameX1, frameH, z, s, time);
 
   } else {
-    // === EMPTY CONFIG — frame collapsed around cab ===
+    // === EMPTY CONFIG — cab inside a compact frame ===
     const efW = EMPTY_FRAME_W * z;
     const efH = EMPTY_FRAME_H * z;
-    const frameX0 = -efW;
-    const frameX1 = 0;
+    const frameX0 = -efW / 2;
+    const frameX1 = efW / 2;
 
-    // Collapsed frame behind cab
-    ctx.strokeStyle = 'rgba(0, 255, 136, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
+    // Frame (solid, around the cab)
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(frameX0, -efH / 2, efW, efH);
-    ctx.setLineDash([]);
 
-    // Thruster nozzles on collapsed frame
+    // Cab inside frame (centered)
+    const innerCabX = -cabW / 2;
+    drawCab(ctx, innerCabX, cabW, cabH);
+
+    // Thruster nozzles + flames
     drawNozzlesAndFlames(ctx, frameX0, frameX1, efH, z, s, time);
   }
 
-  // Cab (always at front, same size)
-  // Trapezoid shape: wider at back, narrower at front
-  const cabNarrow = cabH * 0.7;
+  ctx.restore();
+}
+
+function drawCab(ctx: CanvasRenderingContext2D, x0: number, w: number, h: number): void {
+  // Trapezoid: wider at back, narrower at front
+  const narrow = h * 0.7;
   ctx.fillStyle = '#0c180c';
   ctx.beginPath();
-  ctx.moveTo(0, -cabH / 2);           // back-top
-  ctx.lineTo(cabW, -cabNarrow / 2);    // front-top
-  ctx.lineTo(cabW, cabNarrow / 2);     // front-bottom
-  ctx.lineTo(0, cabH / 2);             // back-bottom
+  ctx.moveTo(x0, -h / 2);
+  ctx.lineTo(x0 + w, -narrow / 2);
+  ctx.lineTo(x0 + w, narrow / 2);
+  ctx.lineTo(x0, h / 2);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = '#00ff88';
@@ -436,14 +462,12 @@ function drawTug(
   ctx.strokeStyle = '#00ccff';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(cabW * 0.5, -cabNarrow * 0.3);
-  ctx.lineTo(cabW * 0.85, -cabNarrow * 0.2);
-  ctx.lineTo(cabW * 0.85, cabNarrow * 0.2);
-  ctx.lineTo(cabW * 0.5, cabNarrow * 0.3);
+  ctx.moveTo(x0 + w * 0.5, -narrow * 0.3);
+  ctx.lineTo(x0 + w * 0.85, -narrow * 0.2);
+  ctx.lineTo(x0 + w * 0.85, narrow * 0.2);
+  ctx.lineTo(x0 + w * 0.5, narrow * 0.3);
   ctx.closePath();
   ctx.stroke();
-
-  ctx.restore();
 }
 
 function drawNozzlesAndFlames(
@@ -456,10 +480,10 @@ function drawNozzlesAndFlames(
   const t1x = x0 + fw * 0.25; // rear thruster block
   const t2x = x0 + fw * 0.75; // front thruster block
   const nz = fh * 0.18; // nozzle size (bigger)
-  const hiThrust = s.thrustUp || s.thrustDown || s.thrustLeft || s.thrustRight;
+  const hiRender = (s as any)._hiThrustRender;
   const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = (hiThrust && (s as any)._hiThrustRender ? 8 : 5) * z * flicker;
-  const rcsfl = 3 * z * flicker;
+  const fl = (hiRender ? 5 : 1.5) * z * flicker;    // high=current look, normal=4x smaller
+  const rcsfl = (hiRender ? 3 : 1.2) * z * flicker;
 
   // === 2 main thruster groups on long edges, offset to sides ===
   ctx.fillStyle = '#557755';
@@ -479,7 +503,7 @@ function drawNozzlesAndFlames(
   ctx.lineWidth = 2.5;
 
   for (const tx of [t1x, t2x]) {
-    // Thrust up: flame from bottom nozzles
+    // Thrust up: flame from bottom nozzles (downward)
     if (s.thrustUp) {
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.6, fh / 2 + nz);
@@ -487,7 +511,7 @@ function drawNozzlesAndFlames(
       ctx.lineTo(tx + nz * 0.6, fh / 2 + nz);
       ctx.strokeStyle = mainCol; ctx.stroke();
     }
-    // Thrust down: flame from top nozzles
+    // Thrust down: flame from top nozzles (upward)
     if (s.thrustDown) {
       ctx.beginPath();
       ctx.moveTo(tx - nz * 0.6, -fh / 2 - nz);
@@ -495,22 +519,26 @@ function drawNozzlesAndFlames(
       ctx.lineTo(tx + nz * 0.6, -fh / 2 - nz);
       ctx.strokeStyle = mainCol; ctx.stroke();
     }
-    // Thrust forward (+X local): flame from rear side of nozzles
+    // Thrust forward: flames from both nozzles angled backward
     if (s.thrustRight) {
       ctx.beginPath();
-      ctx.moveTo(tx - nz * 0.4, -fh / 2 - nz); ctx.lineTo(tx - fl * 0.6, -fh / 2 - nz * 0.3);
+      ctx.moveTo(tx - nz * 0.3, -fh / 2 - nz);
+      ctx.lineTo(tx - fl * 0.8, -fh / 2 - nz - fl * 0.3);
       ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(tx - nz * 0.4, fh / 2 + nz); ctx.lineTo(tx - fl * 0.6, fh / 2 + nz * 0.3);
+      ctx.moveTo(tx - nz * 0.3, fh / 2 + nz);
+      ctx.lineTo(tx - fl * 0.8, fh / 2 + nz + fl * 0.3);
       ctx.stroke();
     }
-    // Thrust backward (-X local): flame from front side
+    // Thrust backward: flames from both nozzles angled forward
     if (s.thrustLeft) {
       ctx.beginPath();
-      ctx.moveTo(tx + nz * 0.4, -fh / 2 - nz); ctx.lineTo(tx + fl * 0.6, -fh / 2 - nz * 0.3);
+      ctx.moveTo(tx + nz * 0.3, -fh / 2 - nz);
+      ctx.lineTo(tx + fl * 0.8, -fh / 2 - nz - fl * 0.3);
       ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(tx + nz * 0.4, fh / 2 + nz); ctx.lineTo(tx + fl * 0.6, fh / 2 + nz * 0.3);
+      ctx.moveTo(tx + nz * 0.3, fh / 2 + nz);
+      ctx.lineTo(tx + fl * 0.8, fh / 2 + nz + fl * 0.3);
       ctx.stroke();
     }
   }
