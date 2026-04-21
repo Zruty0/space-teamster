@@ -142,6 +142,24 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     ],
     landingLevelId: 1,
   },
+  // Mission 1: Castor approach (airless, powered braking)
+  {
+    id: 11,
+    name: 'Castor Descent',
+    subtitle: 'Powered descent — no atmosphere',
+    gravity: 1.6,
+    startX: -40000, startY: 15000, startVX: 550, startVY: -30, startAngle: 1.5,
+    surfaceDensity: 0, scaleHeight: 1,   // no atmosphere
+    dragNose: 0, dragBroadside: 0, dragShield: 0,
+    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
+    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
+    maxWingAngle: 0, wingAngleRate: 0,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 120,
+    gateX: 0, gateY: 800, gateRadius: 1500, gateMaxSpeed: 80, gateMinSpeed: 5,
+    windLayers: [],
+    turbulence: [],
+    landingLevelId: 0,
+  },
 ];
 
 // ===================== State =====================

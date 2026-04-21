@@ -244,12 +244,24 @@ export class Game {
         updateDocking(p.ds, input, p.level, PHYSICS_DT);
         if (!p.ds.alive) p.state = 'crashed';
         if (p.ds.delivered) p.state = 'delivered';
+        if (p.ds.exitComplete) {
+          this.transitionDockingToOrbital(p);
+          return;
+        }
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
     }
 
     updateDockingCamera(p.cam, p.ds, frameTime);
+  }
+
+  private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): void {
+    // Mission 1: transition to Castor orbit (ORBITAL_LEVELS index 2)
+    const orbLevel = ORBITAL_LEVELS[2]; // Castor orbit
+    if (orbLevel) {
+      this.loadOrbital(orbLevel);
+    }
   }
 
   // --- Orbital phase ---

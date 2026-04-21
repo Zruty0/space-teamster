@@ -219,6 +219,48 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       },
     };
   })(),
+  // --- Mission 1: Castor orbit (airless moon, deorbit to surface) ---
+  (() => {
+    const planetRadius = 200_000;  // 200km radius moon
+    const orbitAlt = 50_000;
+    const baseTimeScale = 50;
+    const surfaceG = 1.6; // m/s²
+    const gm = surfaceG * planetRadius * planetRadius;
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    return {
+      id: 11,
+      name: 'Castor Orbit',
+      subtitle: 'Deorbit to mining settlement',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 0,           // airless
+      atmoColor: [0, 0, 0] as [number, number, number],
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: v,
+      startVY: 0,
+      thrustAccel: 0.05,
+      thrustAccelMax: 1.0,
+      fuelDeltaV: 400,
+      surfaceDensity: 0,
+      scaleHeight: 1,
+      aeroNoseDrag: 0,
+      aeroBroadsideDrag: 0,
+      aeroLiftCoeff: 0,
+      highAtmoAoA: 0,
+      lowAtmoAoA: 0,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 0,
+      heatDissipation: 0,
+      transitionAltitude: 15_000,   // hand off to approach at 15km
+      landingSiteAngle: -Math.PI / 3,
+      approachLevelIdx: 1,          // Castor approach (APPROACH_LEVELS[1])
+      approachGravity: 1.6,
+    };
+  })(),
 ];
 
 // ===================== State =====================

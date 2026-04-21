@@ -29,6 +29,8 @@ export interface DockingLevel {
   name: string;
   subtitle: string;
   hasContainer: boolean;
+  exitMode: boolean;         // true = undocking (goal: get away from station)
+  exitDistance: number;      // meters to clear for exit completion
 
   // Station center
   stationX: number; stationY: number;
@@ -50,6 +52,7 @@ export interface DockingLevel {
   // Start
   startX: number; startY: number;
   startVX: number; startVY: number;
+  startAngle: number;
 }
 
 export interface DockingState {
@@ -72,8 +75,9 @@ export interface DockingState {
   // SAS thruster flags (for rendering SAS corrections)
   sasUp: boolean; sasDown: boolean; sasLeft: boolean; sasRight: boolean;
   sasCW: boolean; sasCCW: boolean;
-  beamActive: boolean;     // tractor beam currently pulling
-  beamAligned: boolean;    // within angle tolerance for beam activation
+  beamActive: boolean;
+  beamAligned: boolean;
+  exitComplete: boolean;   // cleared station in exit mode
 }
 
 // ===================== Levels =====================
@@ -189,14 +193,52 @@ function stationCollision(
   return null;
 }
 
+// Mission 1: Mail Run — undock from Calloway Station
+const MISSION1_DOCKING: DockingLevel = {
+  id: 1,
+  name: 'Calloway Station',
+  subtitle: 'Undock and clear the station',
+  hasContainer: true,
+  exitMode: true,
+  exitDistance: 120,
+  stationX: 0, stationY: 0,
+  bays: generateBays(0, 1, 2, 0.7), // start in right spoke, bottom side, slot 2
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: true,
+  // Start inside the bay — compute from bay position
+  startX: 0, startY: 0, // will be set by init code
+  startVX: 0, startVY: 0,
+  startAngle: 0,
+};
+
+// Position player inside their starting bay
+(() => {
+  const bay = MISSION1_DOCKING.bays.find(b => b.spokeIdx === 0 && b.side === 1 && b.slot === 2)!;
+  // Mark it as the player's bay (not target for delivery, but where we start)
+  bay.filled = true; // show our container in the bay initially
+  const bp = bayWorldPos(bay, MISSION1_DOCKING.stationX, MISSION1_DOCKING.stationY);
+  MISSION1_DOCKING.startX = bp.x;
+  MISSION1_DOCKING.startY = bp.y;
+  // Face outward from the bay (opposite of bay open direction)
+  MISSION1_DOCKING.startAngle = bp.angle + Math.PI;
+})();
+
 export const DOCKING_LEVELS: DockingLevel[] = [
+  MISSION1_DOCKING,
   {
     id: 9,
     name: 'Container Delivery',
     subtitle: 'Deliver to station bay',
     hasContainer: true,
+    exitMode: false,
+    exitDistance: 0,
     stationX: 80, stationY: 0,
-    bays: generateBays(0, 1, 3, 0.6), // target: right spoke, bottom side, slot 3
+    bays: generateBays(0, 1, 3, 0.6),
     beamRange: 12,
     beamStrength: 0.5,
     thrustForce: 3200,
@@ -206,12 +248,15 @@ export const DOCKING_LEVELS: DockingLevel[] = [
     dampingAssist: true,
     startX: -60, startY: -30,
     startVX: 2, startVY: 0.5,
+    startAngle: 0,
   },
   {
     id: 10,
     name: 'Empty Return',
     subtitle: 'Navigate empty tug',
     hasContainer: false,
+    exitMode: false,
+    exitDistance: 0,
     stationX: 80, stationY: 0,
     bays: generateBays(2, 0, 1, 0.7),
     beamRange: 12,
@@ -223,6 +268,7 @@ export const DOCKING_LEVELS: DockingLevel[] = [
     dampingAssist: true,
     startX: -60, startY: 20,
     startVX: 1.5, startVY: -0.3,
+    startAngle: 0,
   },
 ];
 
@@ -232,7 +278,7 @@ export function createDockingState(level: DockingLevel): DockingState {
   return {
     x: level.startX, y: level.startY,
     vx: level.startVX, vy: level.startVY,
-    angle: 0,
+    angle: level.startAngle || 0,
     angVel: 0,
     sas: level.dampingAssist,
     alive: true,
@@ -242,6 +288,7 @@ export function createDockingState(level: DockingLevel): DockingState {
     sasUp: false, sasDown: false, sasLeft: false, sasRight: false,
     sasCW: false, sasCCW: false,
     beamActive: false, beamAligned: false,
+    exitComplete: false,
   };
 }
 
@@ -454,7 +501,7 @@ export function updateDocking(
   }
 
   // Delivery check: container inside target bay + nearly stationary
-  if (level.hasContainer) {
+  if (level.hasContainer && !level.exitMode) {
     const target = level.bays.find(b => b.isTarget);
     if (target) {
       const bp = bayWorldPos(target, level.stationX, level.stationY);
@@ -464,6 +511,15 @@ export function updateDocking(
       if (dist < 3 && speed < 0.5 && Math.abs(s.angVel) < 0.1) {
         s.delivered = true;
       }
+    }
+  }
+
+  // Exit check: far enough from station
+  if (level.exitMode) {
+    const edx = s.x - level.stationX, edy = s.y - level.stationY;
+    const eDist = Math.sqrt(edx * edx + edy * edy);
+    if (eDist > level.exitDistance) {
+      s.exitComplete = true;
     }
   }
 }
@@ -1000,6 +1056,17 @@ export function drawDockingHUD(
     ctx.fillStyle = dist < level.beamRange ? '#00ffcc' : COL;
     ctx.fillText(`${dist.toFixed(1)} m`, lx + 50, ly);
     ly += lh;
+  }
+
+  // Exit mode: show distance to clear
+  if (level.exitMode && state === 'docking') {
+    const edx = s.x - level.stationX, edy = s.y - level.stationY;
+    const eDist = Math.sqrt(edx * edx + edy * edy);
+    const pct = Math.min(100, (eDist / level.exitDistance) * 100);
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = pct >= 100 ? '#00ffcc' : '#ffaa00';
+    ctx.fillText(`CLEAR STATION: ${pct.toFixed(0)}%`, W / 2, 30);
   }
 
   // Tractor beam warning
