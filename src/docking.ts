@@ -8,19 +8,20 @@ import { InputState } from './input';
 // Station geometry constants
 const HUB_RADIUS = 20;       // central hub radius (meters)
 const SPOKE_WIDTH = 6;        // spoke core width (the stem)
-const BAY_SLOT_W = 6;         // width of each bay slot (along spoke axis, slightly > container height)
-const BAY_SLOT_D = 18;        // depth of each bay slot (perpendicular, > container length)
-const WALL_THICK = 0.8;       // wall thickness between bays
+const BAY_SLOT_W = 8;         // width of each bay slot (along spoke, wider for clearance)
+const BAY_SLOT_D = 20;        // depth of each bay slot (perpendicular, open on outside)
+const WALL_THICK = 1.5;       // wall thickness between bays (thicker, more visible)
 const BAYS_PER_SIDE = 6;
 const BAY_PITCH = BAY_SLOT_W + WALL_THICK; // center-to-center spacing along spoke
 const SPOKE_LEN = BAYS_PER_SIDE * BAY_PITCH + WALL_THICK;
 
 interface BayInfo {
-  spokeIdx: number;   // 0-3 (right, up, left, down)
-  side: number;       // 0 = left/top side, 1 = right/bottom side
-  slot: number;       // 0-5 along spoke
-  filled: boolean;    // has a container
-  isTarget: boolean;  // delivery target
+  spokeIdx: number;
+  side: number;
+  slot: number;
+  filled: boolean;
+  isTarget: boolean;
+  colorIdx: number;   // container color variant (0-4)
 }
 
 export interface DockingLevel {
@@ -71,6 +72,8 @@ export interface DockingState {
   // SAS thruster flags (for rendering SAS corrections)
   sasUp: boolean; sasDown: boolean; sasLeft: boolean; sasRight: boolean;
   sasCW: boolean; sasCCW: boolean;
+  beamActive: boolean;     // tractor beam currently pulling
+  beamAligned: boolean;    // within angle tolerance for beam activation
 }
 
 // ===================== Levels =====================
@@ -84,7 +87,8 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
       for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
         const isTarget = spoke === targetSpoke && side === targetSide && slot === targetSlot;
         const filled = isTarget ? false : rng() < fillPct;
-        bays.push({ spokeIdx: spoke, side, slot, filled, isTarget });
+        const colorIdx = Math.floor(rng() * 5);
+        bays.push({ spokeIdx: spoke, side, slot, filled, isTarget, colorIdx });
       }
     }
   }
@@ -158,23 +162,15 @@ function stationCollision(
         }
       }
 
-      // Bay back walls (the far end of each bay)
+      // Filled bay containers are solid
       for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
         const bay = bays.find(b => b.spokeIdx === spoke && b.side === side && b.slot === slot);
-        // Back wall exists for all bays (filled or empty)
-        const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
-        const backWallPerp = SPOKE_WIDTH / 2 + BAY_SLOT_D;
-        const sly2 = ly * sideSign;
-        if (sly2 > backWallPerp - WALL_THICK && sly2 < backWallPerp + WALL_THICK &&
-            lx > slotCenter - BAY_SLOT_W / 2 && lx < slotCenter + BAY_SLOT_W / 2) {
-          const pushPerp2 = backWallPerp + WALL_THICK - sly2;
-          return { nx: -pdx * sideSign, ny: -pdy * sideSign, depth: pushPerp2 };
-        }
 
-        // Filled bay: container inside is also solid
         if (bay && bay.filled) {
-          const contHalfW = CONTAINER_H / 2; // container width in bay = container height (rotated)
-          const contHalfD = CONTAINER_W / 2; // container depth in bay = container width
+          const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
+          const sly2 = ly * sideSign;
+          const contHalfW = CONTAINER_H / 2;
+          const contHalfD = CONTAINER_W / 2;
           const contPerpCenter = SPOKE_WIDTH / 2 + BAY_SLOT_D / 2;
           if (sly2 > contPerpCenter - contHalfD && sly2 < contPerpCenter + contHalfD &&
               lx > slotCenter - contHalfW && lx < slotCenter + contHalfW) {
@@ -248,6 +244,7 @@ export function createDockingState(level: DockingLevel): DockingState {
     rotCW: false, rotCCW: false,
     sasUp: false, sasDown: false, sasLeft: false, sasRight: false,
     sasCW: false, sasCCW: false,
+    beamActive: false, beamAligned: false,
   };
 }
 
@@ -286,10 +283,13 @@ export function updateDocking(
 
   if (input.wingAngleDown) { torque += level.rotTorque; s.rotCCW = true; }  // Q = CCW on screen
   if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
-  if (s.sas && !input.wingAngleDown && !input.wingAngleUp && Math.abs(s.angVel) > 0.01) {
-    torque -= s.angVel * level.rotTorque * 5;
-    if (s.angVel > 0.01) s.sasCW = true;   // rotating CCW, SAS fires CW pattern
-    if (s.angVel < -0.01) s.sasCCW = true;  // rotating CW, SAS fires CCW pattern
+  if (s.sas && !input.wingAngleDown && !input.wingAngleUp) {
+    if (Math.abs(s.angVel) > 0.001) {
+      torque -= s.angVel * level.rotTorque * 10; // strong enough to fully stop
+      if (s.angVel > 0.001) s.sasCW = true;
+      if (s.angVel < -0.001) s.sasCCW = true;
+    }
+    s.angVel *= 0.9; // extra damping to kill residual
   }
   s.angVel += (torque / inertia) * dt;
   s.angle += s.angVel * dt;
@@ -330,34 +330,62 @@ export function updateDocking(
   // SAS translation damping
   if (s.sas) {
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
-    if (!anyInput && (Math.abs(s.vx) > 0.01 || Math.abs(s.vy) > 0.01)) {
-      const maxF = level.thrustForce * 2; // always base thrust, not affected by Shift
-      const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
-      const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
-      fx += sasFx;
-      fy += sasFy;
-      // Decompose SAS force into ship-local for thruster flags
-      const cosA = Math.cos(s.angle), sinA = Math.sin(s.angle);
-      const sasFwd = sasFx * cosA + sasFy * sinA;
-      const sasLat = -sasFx * sinA + sasFy * cosA;
-      if (sasFwd > 0.01) s.sasRight = true;   // forward SAS
-      if (sasFwd < -0.01) s.sasLeft = true;    // backward SAS
-      if (sasLat > 0.01) s.sasUp = true;       // up SAS
-      if (sasLat < -0.01) s.sasDown = true;    // down SAS
+    if (!anyInput) {
+      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+      if (speed > 0.001) {
+        const maxF = level.thrustForce * 3;
+        const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 4.0));
+        const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 4.0));
+        fx += sasFx;
+        fy += sasFy;
+        const cosA = Math.cos(s.angle), sinA = Math.sin(s.angle);
+        const sasFwd = sasFx * cosA + sasFy * sinA;
+        const sasLat = -sasFx * sinA + sasFy * cosA;
+        if (sasFwd > 0.01) s.sasRight = true;
+        if (sasFwd < -0.01) s.sasLeft = true;
+        if (sasLat > 0.01) s.sasUp = true;
+        if (sasLat < -0.01) s.sasDown = true;
+      }
+      s.vx *= 0.95; // extra damping to kill residual
+      s.vy *= 0.95;
     }
   }
 
-  // Tractor beam: pull toward target bay when close
+  // Tractor beam: alignment-gated, PID-like pull + rotation
+  s.beamActive = false;
+  s.beamAligned = false;
   if (level.hasContainer) {
     const target = level.bays.find(b => b.isTarget);
     if (target) {
       const bp = bayWorldPos(target, level.stationX, level.stationY);
       const tdx = bp.x - s.x, tdy = bp.y - s.y;
       const tDist = Math.sqrt(tdx * tdx + tdy * tdy);
-      if (tDist < level.beamRange && tDist > 0.5) {
-        const strength = level.beamStrength * (1 - tDist / level.beamRange);
-        fx += (tdx / tDist) * strength * mass * 2;
-        fy += (tdy / tDist) * strength * mass * 2;
+
+      if (tDist < level.beamRange) {
+        // Check alignment: ship angle vs bay open angle (need ~180° offset since ship backs in)
+        const targetAngle = bp.angle + Math.PI; // ship should face opposite to bay opening
+        let angleDiff = s.angle - targetAngle;
+        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+        if (Math.abs(angleDiff) < 0.18) { // ~10 degrees
+          s.beamAligned = true;
+          s.beamActive = true;
+
+          // Rotational correction: align perfectly
+          const rotK = 5.0; // proportional
+          const rotD = 3.0; // derivative (damping)
+          torque -= angleDiff * level.rotTorque * rotK;
+          torque -= s.angVel * level.rotTorque * rotD;
+
+          // Translational correction: PD controller toward bay center
+          const posK = level.beamStrength * mass * 3.0; // proportional
+          const velK = level.beamStrength * mass * 4.0; // derivative (damping to prevent overshoot)
+          fx += tdx * posK - s.vx * velK;
+          fy += tdy * posK - s.vy * velK;
+        } else {
+          s.beamAligned = false;
+        }
       }
     }
   }
@@ -567,26 +595,11 @@ function drawStation(
         ctx.stroke();
       }
 
-      // Draw back walls and contents of each bay
+      // Draw contents of each bay (no back wall — bays open on outside)
       for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
         const bay = level.bays.find(b => b.spokeIdx === spoke && b.side === side && b.slot === slot)!;
-        const slotCenter = HUB_RADIUS + WALL_THICK + slot * BAY_PITCH + BAY_SLOT_W / 2;
-        const backPerp = SPOKE_WIDTH / 2 + BAY_SLOT_D;
 
-        // Back wall
-        const bw0x = sx + sdx * (slotCenter - BAY_SLOT_W / 2) + pdx * backPerp * sideSign;
-        const bw0y = sy + sdy * (slotCenter - BAY_SLOT_W / 2) + pdy * backPerp * sideSign;
-        const bw1x = sx + sdx * (slotCenter + BAY_SLOT_W / 2) + pdx * backPerp * sideSign;
-        const bw1y = sy + sdy * (slotCenter + BAY_SLOT_W / 2) + pdy * backPerp * sideSign;
-        const [sbw0x, sbw0y] = dws(bw0x, bw0y, cam, W, H);
-        const [sbw1x, sbw1y] = dws(bw1x, bw1y, cam, W, H);
-        ctx.beginPath();
-        ctx.moveTo(sbw0x, sbw0y); ctx.lineTo(sbw1x, sbw1y);
-        ctx.strokeStyle = '#4466aa';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Container inside (same shape as player's container, different colors)
+        // Container inside (same shape as player's container, diverse colors)
         if (bay.filled) {
           const bp = bayWorldPos(bay, sx, sy);
           const oa = bp.angle;
@@ -603,18 +616,17 @@ function drawStation(
             [bp.x + wdx2*ch2 + ddx2*cw2, bp.y + wdy2*ch2 + ddy2*cw2],
             [bp.x - wdx2*ch2 + ddx2*cw2, bp.y - wdy2*ch2 + ddy2*cw2],
           ];
-          // Color varies by spoke
-          const colors = ['#2a1a1a', '#1a1a2a', '#2a2a1a', '#1a2a2a'];
-          const strokes = ['#aa5533', '#5533aa', '#aaaa33', '#33aa99'];
+          const fills = ['#2a1a1a', '#1a1a2a', '#2a2a1a', '#1a2a2a', '#2a1a2a'];
+          const strokes2 = ['#aa5533', '#5533aa', '#aaaa33', '#33aa99', '#aa33aa'];
           ctx.beginPath();
           for (let ci = 0; ci < 4; ci++) {
             const [scx2, scy2] = dws(corners[ci][0], corners[ci][1], cam, W, H);
             if (ci === 0) ctx.moveTo(scx2, scy2); else ctx.lineTo(scx2, scy2);
           }
           ctx.closePath();
-          ctx.fillStyle = colors[spoke % 4];
+          ctx.fillStyle = fills[bay.colorIdx % fills.length];
           ctx.fill();
-          ctx.strokeStyle = strokes[spoke % 4];
+          ctx.strokeStyle = strokes2[bay.colorIdx % strokes2.length];
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -950,6 +962,26 @@ export function drawDockingHUD(
     ctx.fillStyle = dist < level.beamRange ? '#00ffcc' : COL;
     ctx.fillText(`${dist.toFixed(1)} m`, lx + 50, ly);
     ly += lh;
+  }
+
+  // Tractor beam warning
+  if (state === 'docking' && target) {
+    const bp = bayWorldPos(target, level.stationX, level.stationY);
+    const dx = s.x - bp.x, dy = s.y - bp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < level.beamRange) {
+      ctx.font = 'bold 16px monospace';
+      ctx.textAlign = 'center';
+      if (s.beamActive) {
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillText('\u25c7 TRACTOR BEAM ACTIVE \u25c7', W / 2, 30);
+      } else {
+        ctx.fillStyle = '#ffaa00';
+        if (Math.sin(Date.now() * 0.008) > -0.3) {
+          ctx.fillText('ALIGN CONTAINER TO ACTIVATE BEAM', W / 2, 30);
+        }
+      }
+    }
   }
 
   // State overlays
