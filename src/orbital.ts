@@ -320,27 +320,18 @@ export function orbitalToApproachParams(
   const vRadial = os.vx * radX + os.vy * radY;      // positive = away from planet
   const vTangential = os.vx * tanX + os.vy * tanY;   // positive = in direction of travel
 
-  // How far ahead of the LZ is the ship (positive = still needs to travel to reach LZ)
-  const posAngle = Math.atan2(os.y, os.x);
-  let angleDiff = posAngle - level.landingSiteAngle;
-  while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-  while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-  // CW (h<0): angles decrease in travel direction. angleDiff > 0 = ship ahead of LZ
-  // CCW (h>0): angles increase in travel direction. angleDiff < 0 = ship ahead of LZ
-  const distAhead = (h < 0 ? angleDiff : -angleDiff) * level.planetRadius;
-
-  // Use the orbital prediction's impact point to calibrate approach x.
-  // This ensures "on target" in orbital = "on target" in approach.
-  let approachX = -distAhead;
+  // Use the orbital prediction's impact point directly.
+  // "On target" in orbital = x=0 in approach (gate position).
+  // "X km short" = approach x = -X*1000. "X km long" = approach x = +X*1000.
+  let approachX = 0;
   if (_cachedPred && _cachedPred.impact) {
     const impAngle = Math.atan2(_cachedPred.impact.y, _cachedPred.impact.x);
     let impDiff = impAngle - level.landingSiteAngle;
     while (impDiff > Math.PI) impDiff -= 2 * Math.PI;
     while (impDiff < -Math.PI) impDiff += 2 * Math.PI;
-    const impDistFromLZ = (h < 0 ? impDiff : -impDiff) * level.planetRadius;
-    // Offset: if orbital says impact is at impDistFromLZ from LZ,
-    // adjust approach x so the same offset applies
-    approachX += impDistFromLZ; // shift ship so impact lands at same spot
+    // Positive = impact is ahead of LZ in travel direction ("long")
+    const impDist = (h < 0 ? -impDiff : impDiff) * level.planetRadius;
+    approachX = impDist; // positive = past gate, negative = before gate
   }
 
   // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
