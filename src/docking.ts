@@ -62,8 +62,8 @@ export const DOCKING_LEVELS: DockingLevel[] = [
     bayDepth: 20,
     beamRange: 15,
     beamStrength: 0.5,
-    thrustForce: 200,
-    rotTorque: 80,
+    thrustForce: 800,
+    rotTorque: 300,
     tugMass: 500,
     containerMass: 2000,
     dampingAssist: true,
@@ -79,8 +79,8 @@ export const DOCKING_LEVELS: DockingLevel[] = [
     bayDepth: 20,
     beamRange: 15,
     beamStrength: 0.5,
-    thrustForce: 200,
-    rotTorque: 80,
+    thrustForce: 800,
+    rotTorque: 300,
     tugMass: 500,
     containerMass: 0,
     dampingAssist: true,
@@ -107,13 +107,13 @@ export function createDockingState(level: DockingLevel): DockingState {
 
 // Ship dimensions (meters)
 // Cab is at the front (+X in ship-local). Frame extends behind.
-const CAB_W = 4;   // cab width (along ship axis)
-const CAB_H = 5;   // cab height (perpendicular)
-const FRAME_W = 10; // frame length behind cab (when loaded)
-const FRAME_H = 8;  // frame height (wraps container)
-const CONTAINER_W = 8;
-const CONTAINER_H = 6;
-const EMPTY_FRAME_W = 3; // collapsed frame when empty
+const CAB_W = 4;    // cab length (along ship axis)
+const CAB_H = 5;    // cab width (perpendicular)
+const FRAME_W = 16;  // frame length behind cab (when loaded)
+const FRAME_H = 6;   // frame width (wraps container)
+const CONTAINER_W = 14; // ~5:1 ratio like a 40ft container
+const CONTAINER_H = 4;
+const EMPTY_FRAME_W = 3;
 const EMPTY_FRAME_H = 5;
 
 // ===================== Physics =====================
@@ -132,30 +132,57 @@ export function updateDocking(
   // Rotation: Q = CCW, E = CW
   s.rotCCW = false; s.rotCW = false;
   let torque = 0;
-  if (input.wingAngleDown) { torque -= level.rotTorque; s.rotCCW = true; }  // Q = CCW
-  if (input.wingAngleUp) { torque += level.rotTorque; s.rotCW = true; }     // E = CW
+  // Q = CCW on screen = positive angle (world). E = CW on screen = negative angle.
+  // ctx.rotate(-s.angle) means positive angle = CCW on screen. Correct.
+  if (input.wingAngleDown) { torque += level.rotTorque; s.rotCCW = true; }  // Q = CCW on screen
+  if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp) {
-    torque -= s.angVel * level.rotTorque * 2;
+    torque -= s.angVel * level.rotTorque * 5; // strong SAS damping
   }
   s.angVel += (torque / inertia) * dt;
   s.angle += s.angVel * dt;
 
-  // Translation: WASD = screen directions
+  // Translation: WASD = screen directions, decomposed into ship thrusters
   s.thrustUp = false; s.thrustDown = false; s.thrustLeft = false; s.thrustRight = false;
-  let fx = 0, fy = 0;
-  if (input.throttleUp)        { fy += level.thrustForce; s.thrustUp = true; }
-  if (input.throttleDown)      { fy -= level.thrustForce; s.thrustDown = true; }
-  if (input.pitch < -0.1)      { fx -= level.thrustForce; s.thrustLeft = true; }
-  if (input.pitch > 0.1)       { fx += level.thrustForce; s.thrustRight = true; }
+  const hiThrust = input.toggleHighThrust; // Shift held = high thrust
+  const thrustMult = hiThrust ? 4 : 1;
+  const force = level.thrustForce * thrustMult;
+
+  // Screen-direction thrust in world coords
+  let screenFx = 0, screenFy = 0;
+  if (input.throttleUp)        screenFy += force;  // W = screen up = +Y world
+  if (input.throttleDown)      screenFy -= force;  // S = screen down = -Y world
+  if (input.pitch < -0.1)      screenFx -= force;  // A = screen left = -X world
+  if (input.pitch > 0.1)       screenFx += force;  // D = screen right = +X world
+
+  // Decompose into ship-local axes to determine which thrusters fire
+  // Ship forward (+X local) = (cos(angle), sin(angle)) in world
+  // Ship right (+Y local, screen down when angle=0) = (-sin(angle), cos(angle))... 
+  // Actually: ship local +X = forward. In world: (cos a, sin a).
+  // Ship local +Y = right side. In world: perpendicular CW = (sin a, -cos a)? 
+  // Let's just project:
+  const cosA = Math.cos(s.angle), sinA = Math.sin(s.angle);
+  // Ship forward (local +X) in world = (cosA, sinA)
+  // Ship left (local +Y toward screen-top when angle=0) in world = (-sinA, cosA)
+  const fwd = screenFx * cosA + screenFy * sinA;      // forward component
+  const lat = -screenFx * sinA + screenFy * cosA;     // left component
+
+  if (fwd > 0.01) s.thrustRight = true;   // forward thrust (+X local)
+  if (fwd < -0.01) s.thrustLeft = true;   // backward thrust (-X local)
+  if (lat > 0.01) s.thrustUp = true;      // left thrust (+Y local = screen up)
+  if (lat < -0.01) s.thrustDown = true;   // right thrust (-Y local = screen down)
+  (s as any)._hiThrustRender = hiThrust;  // for bigger flames
+
+  let fx = screenFx, fy = screenFy;
 
   // SAS translation damping
   if (s.sas) {
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
     if (!anyInput) {
-      // Damping capped at thruster force
-      const maxF = level.thrustForce;
-      fx -= Math.max(-maxF, Math.min(maxF, s.vx * mass * 0.8));
-      fy -= Math.max(-maxF, Math.min(maxF, s.vy * mass * 0.8));
+      // Damping capped at thruster force (use high-thrust level for stronger SAS)
+      const maxF = level.thrustForce * 2;
+      fx -= Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
+      fy -= Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
     }
   }
 
@@ -424,65 +451,68 @@ function drawNozzlesAndFlames(
   x0: number, x1: number, fh: number, z: number,
   s: DockingState, time: number,
 ): void {
-  const midX = (x0 + x1) / 2;
-  const nz = fh * 0.1; // nozzle size
+  const fw = x1 - x0; // frame width
+  // Thruster blocks offset toward ends (30% from each end)
+  const t1x = x0 + fw * 0.25; // rear thruster block
+  const t2x = x0 + fw * 0.75; // front thruster block
+  const nz = fh * 0.18; // nozzle size (bigger)
+  const hiThrust = s.thrustUp || s.thrustDown || s.thrustLeft || s.thrustRight;
   const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = 5 * z * flicker;     // main flame length
-  const rcsfl = 2.5 * z * flicker; // RCS flame length
+  const fl = (hiThrust && (s as any)._hiThrustRender ? 8 : 5) * z * flicker;
+  const rcsfl = 3 * z * flicker;
 
-  // === 2 main thruster groups on long edges (top + bottom center) ===
+  // === 2 main thruster groups on long edges, offset to sides ===
   ctx.fillStyle = '#557755';
-  // Top thruster group
-  ctx.beginPath();
-  ctx.moveTo(midX - nz, -fh / 2); ctx.lineTo(midX + nz, -fh / 2); ctx.lineTo(midX, -fh / 2 - nz);
-  ctx.closePath(); ctx.fill();
-  // Bottom thruster group
-  ctx.beginPath();
-  ctx.moveTo(midX - nz, fh / 2); ctx.lineTo(midX + nz, fh / 2); ctx.lineTo(midX, fh / 2 + nz);
-  ctx.closePath(); ctx.fill();
+  for (const tx of [t1x, t2x]) {
+    // Top
+    ctx.beginPath();
+    ctx.moveTo(tx - nz, -fh / 2); ctx.lineTo(tx + nz, -fh / 2); ctx.lineTo(tx, -fh / 2 - nz);
+    ctx.closePath(); ctx.fill();
+    // Bottom
+    ctx.beginPath();
+    ctx.moveTo(tx - nz, fh / 2); ctx.lineTo(tx + nz, fh / 2); ctx.lineTo(tx, fh / 2 + nz);
+    ctx.closePath(); ctx.fill();
+  }
 
-  // === Main thruster flames ===
-  ctx.lineWidth = 2.5;
+  // === Main thruster flames (from both thruster blocks) ===
   const mainCol = '#ffaa00';
+  ctx.lineWidth = 2.5;
 
-  // Thrust up: both fire downward
-  if (s.thrustUp) {
-    // Top thruster fires up (flame goes down from bottom nozzle)
-    ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.7, fh / 2 + nz);
-    ctx.lineTo(midX, fh / 2 + nz + fl);
-    ctx.lineTo(midX + nz * 0.7, fh / 2 + nz);
-    ctx.strokeStyle = mainCol; ctx.stroke();
-  }
-  if (s.thrustDown) {
-    // Bottom thruster fires down (flame goes up from top nozzle)
-    ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.7, -fh / 2 - nz);
-    ctx.lineTo(midX, -fh / 2 - nz - fl);
-    ctx.lineTo(midX + nz * 0.7, -fh / 2 - nz);
-    ctx.strokeStyle = mainCol; ctx.stroke();
-  }
-  if (s.thrustRight) {
-    // Both fire leftward (flames from top + bottom pointing left)
-    ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.5, -fh / 2 - nz);
-    ctx.lineTo(midX - fl * 0.7, -fh / 2 - nz * 0.3);
-    ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.5, fh / 2 + nz);
-    ctx.lineTo(midX - fl * 0.7, fh / 2 + nz * 0.3);
-    ctx.strokeStyle = mainCol; ctx.stroke();
-  }
-  if (s.thrustLeft) {
-    // Both fire rightward
-    ctx.beginPath();
-    ctx.moveTo(midX + nz * 0.5, -fh / 2 - nz);
-    ctx.lineTo(midX + fl * 0.7, -fh / 2 - nz * 0.3);
-    ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(midX + nz * 0.5, fh / 2 + nz);
-    ctx.lineTo(midX + fl * 0.7, fh / 2 + nz * 0.3);
-    ctx.strokeStyle = mainCol; ctx.stroke();
+  for (const tx of [t1x, t2x]) {
+    // Thrust up: flame from bottom nozzles
+    if (s.thrustUp) {
+      ctx.beginPath();
+      ctx.moveTo(tx - nz * 0.6, fh / 2 + nz);
+      ctx.lineTo(tx, fh / 2 + nz + fl);
+      ctx.lineTo(tx + nz * 0.6, fh / 2 + nz);
+      ctx.strokeStyle = mainCol; ctx.stroke();
+    }
+    // Thrust down: flame from top nozzles
+    if (s.thrustDown) {
+      ctx.beginPath();
+      ctx.moveTo(tx - nz * 0.6, -fh / 2 - nz);
+      ctx.lineTo(tx, -fh / 2 - nz - fl);
+      ctx.lineTo(tx + nz * 0.6, -fh / 2 - nz);
+      ctx.strokeStyle = mainCol; ctx.stroke();
+    }
+    // Thrust forward (+X local): flame from rear side of nozzles
+    if (s.thrustRight) {
+      ctx.beginPath();
+      ctx.moveTo(tx - nz * 0.4, -fh / 2 - nz); ctx.lineTo(tx - fl * 0.6, -fh / 2 - nz * 0.3);
+      ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tx - nz * 0.4, fh / 2 + nz); ctx.lineTo(tx - fl * 0.6, fh / 2 + nz * 0.3);
+      ctx.stroke();
+    }
+    // Thrust backward (-X local): flame from front side
+    if (s.thrustLeft) {
+      ctx.beginPath();
+      ctx.moveTo(tx + nz * 0.4, -fh / 2 - nz); ctx.lineTo(tx + fl * 0.6, -fh / 2 - nz * 0.3);
+      ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tx + nz * 0.4, fh / 2 + nz); ctx.lineTo(tx + fl * 0.6, fh / 2 + nz * 0.3);
+      ctx.stroke();
+    }
   }
 
   // === RCS flames at corners for rotation (red, smaller) ===
