@@ -370,11 +370,17 @@ export function updateDocking(
           s.beamAligned = true;
           s.beamActive = true;
 
-          // Rotational correction: align perfectly
-          const rotK = 5.0; // proportional
-          const rotD = 3.0; // derivative (damping)
+          // Rotational correction: critically damped PD
+          // For critical damping: D = 2 * sqrt(K * I)
+          const rotK = 3.0;
+          const rotD = 2 * Math.sqrt(rotK * inertia / level.rotTorque) + 2.0;
           torque -= angleDiff * level.rotTorque * rotK;
           torque -= s.angVel * level.rotTorque * rotD;
+          // Snap when very close
+          if (Math.abs(angleDiff) < 0.01 && Math.abs(s.angVel) < 0.05) {
+            s.angle -= angleDiff; // snap to exact target
+            s.angVel = 0;
+          }
 
           // Translational correction: PD controller toward bay center
           const posK = level.beamStrength * mass * 3.0; // proportional
