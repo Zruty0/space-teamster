@@ -284,12 +284,13 @@ export function updateDocking(
   if (input.wingAngleDown) { torque += level.rotTorque; s.rotCCW = true; }  // Q = CCW on screen
   if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp) {
-    if (Math.abs(s.angVel) > 0.001) {
-      torque -= s.angVel * level.rotTorque * 10; // strong enough to fully stop
-      if (s.angVel > 0.001) s.sasCW = true;
-      if (s.angVel < -0.001) s.sasCCW = true;
+    if (Math.abs(s.angVel) > 0.05) {
+      torque -= s.angVel * level.rotTorque * 5;
+      if (s.angVel > 0.01) s.sasCW = true;
+      if (s.angVel < -0.01) s.sasCCW = true;
+    } else {
+      s.angVel = 0; // snap to zero when close
     }
-    s.angVel *= 0.9; // extra damping to kill residual
   }
   s.angVel += (torque / inertia) * dt;
   s.angle += s.angVel * dt;
@@ -332,10 +333,10 @@ export function updateDocking(
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
     if (!anyInput) {
       const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-      if (speed > 0.001) {
-        const maxF = level.thrustForce * 3;
-        const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 4.0));
-        const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 4.0));
+      if (speed > 0.05) {
+        const maxF = level.thrustForce * 2;
+        const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
+        const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
         fx += sasFx;
         fy += sasFy;
         const cosA = Math.cos(s.angle), sinA = Math.sin(s.angle);
@@ -345,9 +346,9 @@ export function updateDocking(
         if (sasFwd < -0.01) s.sasLeft = true;
         if (sasLat > 0.01) s.sasUp = true;
         if (sasLat < -0.01) s.sasDown = true;
+      } else {
+        s.vx = 0; s.vy = 0; // snap to zero when close
       }
-      s.vx *= 0.95; // extra damping to kill residual
-      s.vy *= 0.95;
     }
   }
 
@@ -392,26 +393,38 @@ export function updateDocking(
 
   s.vx += (fx / mass) * dt;
   s.vy += (fy / mass) * dt;
+
   s.x += s.vx * dt;
   s.y += s.vy * dt;
 
-  // Station collision
-  const col = stationCollision(s.x, s.y, level.stationX, level.stationY, level.bays);
-  if (col) {
-    // Push out
-    s.x += col.nx * col.depth * 1.1;
-    s.y += col.ny * col.depth * 1.1;
-    // Relative velocity along collision normal
-    const vNorm = s.vx * col.nx + s.vy * col.ny;
-    if (vNorm < 0) { // moving into surface
-      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-      if (speed > 5) {
-        s.alive = false; // crash
-        return;
+  // Collision: check multiple points on the ship's frame, not just center
+  const colCos = Math.cos(s.angle), colSin = Math.sin(s.angle);
+  // Ship extent: total length includes frame + gap + cab
+  const halfL = level.hasContainer ? (FRAME_W / 2 + CAB_GAP + CAB_W) : (EMPTY_FRAME_W / 2 + CAB_W);
+  const halfW = level.hasContainer ? FRAME_H / 2 : EMPTY_FRAME_H / 2;
+  // Check corners and midpoints of the bounding box
+  const probeOffsets = [
+    [halfL, 0], [-halfL, 0],       // front/rear center
+    [0, halfW], [0, -halfW],       // side centers
+    [halfL, halfW], [halfL, -halfW],   // front corners
+    [-halfL, halfW], [-halfL, -halfW], // rear corners
+  ];
+  for (const [lx, ly] of probeOffsets) {
+    // Rotate to world
+    const wx = s.x + lx * colCos - ly * colSin;
+    const wy = s.y + lx * colSin + ly * colCos;
+    const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays);
+    if (col) {
+      s.x += col.nx * col.depth * 1.1;
+      s.y += col.ny * col.depth * 1.1;
+      const vNorm = s.vx * col.nx + s.vy * col.ny;
+      if (vNorm < 0) {
+        const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+        if (speed > 5) { s.alive = false; return; }
+        s.vx -= col.nx * vNorm * 1.7;
+        s.vy -= col.ny * vNorm * 1.7;
       }
-      // Bounce (lose 70% energy)
-      s.vx -= col.nx * vNorm * 1.7;
-      s.vy -= col.ny * vNorm * 1.7;
+      break; // handle one collision per frame
     }
   }
 
