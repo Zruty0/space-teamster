@@ -142,10 +142,10 @@ export function updateDocking(
   // Translation: WASD = screen directions
   s.thrustUp = false; s.thrustDown = false; s.thrustLeft = false; s.thrustRight = false;
   let fx = 0, fy = 0;
-  if (input.throttleUp)    { fy += level.thrustForce; s.thrustUp = true; }
-  if (input.throttleDown)  { fy -= level.thrustForce; s.thrustDown = true; }
-  if (input.pitch < 0)     { fx -= level.thrustForce; s.thrustLeft = true; }
-  if (input.pitch > 0)     { fx += level.thrustForce; s.thrustRight = true; }
+  if (input.throttleUp)        { fy += level.thrustForce; s.thrustUp = true; }
+  if (input.throttleDown)      { fy -= level.thrustForce; s.thrustDown = true; }
+  if (input.pitch < -0.1)      { fx -= level.thrustForce; s.thrustLeft = true; }
+  if (input.pitch > 0.1)       { fx += level.thrustForce; s.thrustRight = true; }
 
   // SAS translation damping
   if (s.sas) {
