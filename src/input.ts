@@ -92,26 +92,7 @@ export function readInput(): InputState {
   const warpDown = justPressed.has('BracketLeft');
   const toggleHighThrust = keys.has('ShiftLeft') || keys.has('ShiftRight');
 
-  // --- Gamepad ---
-  const gamepads = navigator.getGamepads();
-  const gp = gamepads[0] ?? null;
-  if (gp) {
-    const deadzone = 0.15;
-    const lx = Math.abs(gp.axes[0]) > deadzone ? gp.axes[0] : 0;
-    pitch = clamp(pitch + lx, -1, 1);
-
-    // Right trigger (axis 5 or button 7) = throttle up
-    // Left trigger (axis 4 or button 6) = throttle down
-    // Map triggers: some browsers use axes, some use buttons
-    const rt = gp.buttons[7]?.value ?? 0;
-    const lt = gp.buttons[6]?.value ?? 0;
-    // We'll handle gamepad throttle as direct in ship update later
-    // For now, treat trigger > 0.1 as boolean
-    if (rt > 0.1) (pitch as any); // TODO: gamepad direct throttle
-
-    if (gp.buttons[0]?.pressed) (stopAssist as any); // A
-    if (gp.buttons[1]?.pressed) (killRotation as any); // B
-  }
+  // --- Gamepad disabled (rudder pedals interfere) ---
 
   // Clear edge-triggered keys
   justPressed.clear();
