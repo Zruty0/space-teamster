@@ -44,6 +44,8 @@ export interface DockingState {
   thrustDown: boolean;
   thrustLeft: boolean;
   thrustRight: boolean;
+  rotCW: boolean;      // rotating clockwise (E)
+  rotCCW: boolean;     // rotating counter-clockwise (Q)
 }
 
 // ===================== Levels =====================
@@ -97,6 +99,7 @@ export function createDockingState(level: DockingLevel): DockingState {
     alive: true,
     delivered: false,
     thrustUp: false, thrustDown: false, thrustLeft: false, thrustRight: false,
+    rotCW: false, rotCCW: false,
   };
 }
 
@@ -120,21 +123,19 @@ export function updateDocking(
 ): void {
   if (!s.alive || s.delivered) return;
 
-  // SAS toggle (Space, edge-triggered via stopAssist)
-  // stopAssist is held, so track edge ourselves
-  const spacePressed = input.stopAssist;
-  if (spacePressed && !(s as any)._sasKeyWas) s.sas = !s.sas;
-  (s as any)._sasKeyWas = spacePressed;
+  // SAS toggle (T key)
+  if (input.toggleSAS) s.sas = !s.sas;
 
   const mass = level.tugMass + (level.hasContainer ? level.containerMass : 0);
-  const inertia = mass * 2; // simplified rotational inertia
+  const inertia = mass * 2;
 
-  // Rotation: Q/E
+  // Rotation: Q = CCW, E = CW
+  s.rotCCW = false; s.rotCW = false;
   let torque = 0;
-  if (input.wingAngleDown) torque -= level.rotTorque;  // Q = CCW
-  if (input.wingAngleUp) torque += level.rotTorque;    // E = CW
+  if (input.wingAngleDown) { torque -= level.rotTorque; s.rotCCW = true; }  // Q = CCW
+  if (input.wingAngleUp) { torque += level.rotTorque; s.rotCW = true; }     // E = CW
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp) {
-    torque -= s.angVel * level.rotTorque * 2; // SAS rotation damping
+    torque -= s.angVel * level.rotTorque * 2;
   }
   s.angVel += (torque / inertia) * dt;
   s.angle += s.angVel * dt;
@@ -424,59 +425,92 @@ function drawNozzlesAndFlames(
   s: DockingState, time: number,
 ): void {
   const midX = (x0 + x1) / 2;
-  const nz = fh * 0.06;
+  const nz = fh * 0.1; // nozzle size
   const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = 4 * z * flicker;
+  const fl = 5 * z * flicker;     // main flame length
+  const rcsfl = 2.5 * z * flicker; // RCS flame length
 
-  // Nozzle color
+  // === 2 main thruster groups on long edges (top + bottom center) ===
   ctx.fillStyle = '#557755';
-
-  // Rear nozzle (thrust forward = +X)
+  // Top thruster group
   ctx.beginPath();
-  ctx.moveTo(x0, -nz); ctx.lineTo(x0, nz); ctx.lineTo(x0 - nz * 1.5, 0);
+  ctx.moveTo(midX - nz, -fh / 2); ctx.lineTo(midX + nz, -fh / 2); ctx.lineTo(midX, -fh / 2 - nz);
   ctx.closePath(); ctx.fill();
-  // Front nozzle (thrust backward)
+  // Bottom thruster group
   ctx.beginPath();
-  ctx.moveTo(x1, -nz); ctx.lineTo(x1, nz); ctx.lineTo(x1 + nz * 1.5, 0);
-  ctx.closePath(); ctx.fill();
-  // Top nozzle (thrust down = -Y screen = +Y world)
-  ctx.beginPath();
-  ctx.moveTo(midX - nz, -fh / 2); ctx.lineTo(midX + nz, -fh / 2); ctx.lineTo(midX, -fh / 2 - nz * 1.5);
-  ctx.closePath(); ctx.fill();
-  // Bottom nozzle
-  ctx.beginPath();
-  ctx.moveTo(midX - nz, fh / 2); ctx.lineTo(midX + nz, fh / 2); ctx.lineTo(midX, fh / 2 + nz * 1.5);
+  ctx.moveTo(midX - nz, fh / 2); ctx.lineTo(midX + nz, fh / 2); ctx.lineTo(midX, fh / 2 + nz);
   ctx.closePath(); ctx.fill();
 
-  // Flames (opposite to thrust)
-  ctx.lineWidth = 2;
-  if (s.thrustRight) { // thrusting right = flame from rear (left)
+  // === Main thruster flames ===
+  ctx.lineWidth = 2.5;
+  const mainCol = '#ffaa00';
+
+  // Thrust up: both fire downward
+  if (s.thrustUp) {
+    // Top thruster fires up (flame goes down from bottom nozzle)
     ctx.beginPath();
-    ctx.moveTo(x0 - nz * 1.5, -nz * 0.6);
-    ctx.lineTo(x0 - nz * 1.5 - fl, 0);
-    ctx.lineTo(x0 - nz * 1.5, nz * 0.6);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+    ctx.moveTo(midX - nz * 0.7, fh / 2 + nz);
+    ctx.lineTo(midX, fh / 2 + nz + fl);
+    ctx.lineTo(midX + nz * 0.7, fh / 2 + nz);
+    ctx.strokeStyle = mainCol; ctx.stroke();
   }
-  if (s.thrustLeft) { // thrusting left = flame from front
+  if (s.thrustDown) {
+    // Bottom thruster fires down (flame goes up from top nozzle)
     ctx.beginPath();
-    ctx.moveTo(x1 + nz * 1.5, -nz * 0.6);
-    ctx.lineTo(x1 + nz * 1.5 + fl, 0);
-    ctx.lineTo(x1 + nz * 1.5, nz * 0.6);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+    ctx.moveTo(midX - nz * 0.7, -fh / 2 - nz);
+    ctx.lineTo(midX, -fh / 2 - nz - fl);
+    ctx.lineTo(midX + nz * 0.7, -fh / 2 - nz);
+    ctx.strokeStyle = mainCol; ctx.stroke();
   }
-  if (s.thrustDown) { // thrusting down = flame from top
+  if (s.thrustRight) {
+    // Both fire leftward (flames from top + bottom pointing left)
     ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.6, -fh / 2 - nz * 1.5);
-    ctx.lineTo(midX, -fh / 2 - nz * 1.5 - fl);
-    ctx.lineTo(midX + nz * 0.6, -fh / 2 - nz * 1.5);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+    ctx.moveTo(midX - nz * 0.5, -fh / 2 - nz);
+    ctx.lineTo(midX - fl * 0.7, -fh / 2 - nz * 0.3);
+    ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(midX - nz * 0.5, fh / 2 + nz);
+    ctx.lineTo(midX - fl * 0.7, fh / 2 + nz * 0.3);
+    ctx.strokeStyle = mainCol; ctx.stroke();
   }
-  if (s.thrustUp) { // thrusting up = flame from bottom
+  if (s.thrustLeft) {
+    // Both fire rightward
     ctx.beginPath();
-    ctx.moveTo(midX - nz * 0.6, fh / 2 + nz * 1.5);
-    ctx.lineTo(midX, fh / 2 + nz * 1.5 + fl);
-    ctx.lineTo(midX + nz * 0.6, fh / 2 + nz * 1.5);
-    ctx.strokeStyle = '#ffaa00'; ctx.stroke();
+    ctx.moveTo(midX + nz * 0.5, -fh / 2 - nz);
+    ctx.lineTo(midX + fl * 0.7, -fh / 2 - nz * 0.3);
+    ctx.strokeStyle = mainCol; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(midX + nz * 0.5, fh / 2 + nz);
+    ctx.lineTo(midX + fl * 0.7, fh / 2 + nz * 0.3);
+    ctx.strokeStyle = mainCol; ctx.stroke();
+  }
+
+  // === RCS flames at corners for rotation (red, smaller) ===
+  ctx.lineWidth = 1.5;
+  const rcsCol = '#ff4422';
+  // CCW rotation (Q): top-right fires up, bottom-left fires down
+  if (s.rotCCW) {
+    ctx.strokeStyle = rcsCol;
+    // Top-right corner: flame upward
+    ctx.beginPath();
+    ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - rcsfl);
+    ctx.stroke();
+    // Bottom-left corner: flame downward
+    ctx.beginPath();
+    ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + rcsfl);
+    ctx.stroke();
+  }
+  // CW rotation (E): top-left fires up, bottom-right fires down
+  if (s.rotCW) {
+    ctx.strokeStyle = rcsCol;
+    // Top-left corner: flame upward
+    ctx.beginPath();
+    ctx.moveTo(x0 + nz * 0.3, -fh / 2); ctx.lineTo(x0, -fh / 2 - rcsfl);
+    ctx.stroke();
+    // Bottom-right corner: flame downward
+    ctx.beginPath();
+    ctx.moveTo(x1 - nz * 0.3, fh / 2); ctx.lineTo(x1, fh / 2 + rcsfl);
+    ctx.stroke();
   }
 }
 
@@ -536,7 +570,7 @@ export function drawDockingHUD(
   ctx.font = '12px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = DIM;
-  ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  SHIFT: SAS  R: Restart  L: Levels', W / 2, H - 15);
+  ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q: CCW  E: CW  T: SAS  R: Restart  L: Levels', W / 2, H - 15);
 
   ctx.restore();
 }
