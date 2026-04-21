@@ -68,9 +68,11 @@ export function drawLevelSelect(
     ctx.fillText(m.name, W / 2 - 230, y);
 
     if (m.stub) {
+      ctx.font = 'bold 18px monospace';
+      const nameW = ctx.measureText(m.name).width;
       ctx.fillStyle = '#444444';
-      ctx.font = '12px monospace';
-      ctx.fillText('[COMING SOON]', W / 2 - 230 + ctx.measureText(m.name).width + 12, y);
+      ctx.font = '11px monospace';
+      ctx.fillText('[COMING SOON]', W / 2 - 230 + nameW + 14, y);
     }
 
     ctx.fillStyle = m.stub ? '#333333' : COL_HUD_DIM;
