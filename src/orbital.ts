@@ -665,8 +665,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: y,
       startVX: vx,
       startVY: vy,
-      thrustAccel: 0.08,
-      thrustAccelMax: 1.8,
+      thrustAccel: 0.008,
+      thrustAccelMax: 0.18,
       fuelDeltaV: 2800,
       surfaceDensity: 1.5,
       scaleHeight: 8500,
@@ -1364,8 +1364,6 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
     let bestDist = Infinity;
     let bestRelSpeed = Infinity;
     let hasWithinArrival = false;
-    const arrivalMinR = targetBody.radius + (targetBody.arrivalAltitudeMin ?? 0);
-    const arrivalMaxR = targetBody.radius + (targetBody.arrivalAltitudeMax ?? 0);
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
       const bodyPos = transferBodyState(level, targetBody.id, pt.t);
@@ -1374,11 +1372,7 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const dist = Math.sqrt(dx * dx + dy * dy);
       const relVx = pt.vx - bodyPos.vx, relVy = pt.vy - bodyPos.vy;
       const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
-      const targetR = Math.max(arrivalMinR, Math.min(arrivalMaxR, dist));
-      const vEsc = Math.sqrt(2 * targetBody.gm / Math.max(targetR, 1));
-      const minRelSpeed = Math.max(vEsc * 1.002, vEsc + (targetBody.arrivalSpeedMarginMin ?? 2));
-      const maxRelSpeed = Math.max(minRelSpeed + 1, vEsc + (targetBody.arrivalSpeedMarginMax ?? 100));
-      const withinArrival = dist <= targetBody.patchRadius && relSpeed >= minRelSpeed && relSpeed <= maxRelSpeed;
+      const withinArrival = dist <= targetBody.patchRadius;
       let dominated = false;
       if (withinArrival) {
         if (!hasWithinArrival || relSpeed < bestRelSpeed) {
