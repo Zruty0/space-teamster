@@ -829,9 +829,12 @@ export function updateOrbital(
   }
 
   if (s.inAtmo) {
-    // A/D adjusts target AoA. A = CCW (increase AoA), D = CW (decrease)
+    // A/D is always yaw left/right on screen: A = CCW, D = CW.
+    // Convert that into the player-facing AoA convention (positive = nose above horizon)
+    // based on current orbit direction.
     if (input.pitch !== 0) {
-      s.targetAoA -= input.pitch * level.rcsAngularAccel * dt;
+      const sense = orbitSense(s.x, s.y, s.vx, s.vy);
+      s.targetAoA += input.pitch * sense * level.rcsAngularAccel * dt;
       if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
       if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
     }

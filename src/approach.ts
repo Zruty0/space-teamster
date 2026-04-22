@@ -1258,7 +1258,9 @@ function drawTrajectory(
       tagCol = '#ff6644';
     } else {
       const distKm = Math.abs(diff) / 1000;
-      tag = diff < 0 ? `${distKm.toFixed(1)}km short` : `${distKm.toFixed(1)}km long`;
+      const dir = (pts.length >= 2 ? pts[1].x - pts[0].x : s.vx) >= 0 ? 1 : -1;
+      const isShort = dir > 0 ? diff < 0 : diff > 0;
+      tag = `${distKm.toFixed(1)}km ${isShort ? 'short' : 'long'}`;
       tagCol = '#ff6644';
     }
     const labelX = clamp(lsx, 60, W - 60);
