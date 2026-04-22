@@ -791,6 +791,7 @@ export function predictTrajectory(
   s: ApproachState, level: ApproachLevel,
   predTime: number = 0, maxTime = 180, step = 0.4,
   includeWind: boolean = true,
+  includeTerrain: boolean = true,
 ): TrajectoryResult {
   const points: TrajectoryPoint[] = [];
   let impactX: number | null = null;
@@ -830,8 +831,9 @@ export function predictTrajectory(
         if (inGX && inGY) reachedGate = true;
       }
 
-      if (local.y <= getApproachTerrainHeight(local.x)) {
-        impactX = impactCrossX(prevLocal.x, prevLocal.y, local.x, local.y);
+      const impactHeight = includeTerrain ? getApproachTerrainHeight(local.x) : 0;
+      if (local.y <= impactHeight) {
+        impactX = impactCrossX(prevLocal.x, prevLocal.y - impactHeight, local.x, local.y - impactHeight);
         break;
       }
       prevLocal = local;
@@ -879,8 +881,9 @@ export function predictTrajectory(
       const inGY = y >= tAtGate && y <= level.gateY + tAtGate;
       if (inGX && inGY) reachedGate = true;
     }
-    if (y <= getApproachTerrainHeight(x)) {
-      impactX = impactCrossX(prevX, prevY, x, y);
+    const impactHeight = includeTerrain ? getApproachTerrainHeight(x) : 0;
+    if (y <= impactHeight) {
+      impactX = impactCrossX(prevX, prevY - impactHeight, x, y - impactHeight);
       break;
     }
   }

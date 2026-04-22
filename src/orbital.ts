@@ -1043,7 +1043,7 @@ function hybridizeApproachPrediction(
   }, level);
   const as = createApproachState(approachLevel, init);
   const trajStep = 0.4;
-  const traj = predictTrajectory(as, approachLevel, 0, 240, trajStep, false);
+  const traj = predictTrajectory(as, approachLevel, 0, 240, trajStep, false, false);
   const localDir = init.localDir ?? -1;
 
   const localToWorld = (lx: number, ly: number, lvx: number, lvy: number) => {
@@ -1082,9 +1082,8 @@ function hybridizeApproachPrediction(
     prevX = pt.x; prevY = pt.y; prevVX = lvx; prevVY = lvy;
   }
 
-  // Approach impact is terrain-relative, while orbital prediction looks for alt<=0.
-  // Add an explicit surface-impact endpoint so the red X / label are preserved even
-  // when terrain sits above local y=0.
+  // Orbital estimate ignores terrain and uses the notional surface at y=0.
+  // Add an explicit surface-impact endpoint so the red X / label are preserved.
   if (traj.impactX !== null) {
     const w = localToWorld(traj.impactX, 0, prevVX, prevVY);
     hybridTail.push({
