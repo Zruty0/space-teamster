@@ -476,8 +476,9 @@ export class Game {
   }
 
   private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>): void {
-    if (!p.level.departure) return;
-    const orbitalLevel = ORBITAL_LEVELS.find(l => l.id === p.level.departure!.orbitalLevelId);
+    const orbitalLevelId = p.level.departure?.orbitalLevelId ?? p.level.returnToOrbital?.orbitalLevelId;
+    if (!orbitalLevelId) return;
+    const orbitalLevel = ORBITAL_LEVELS.find(l => l.id === orbitalLevelId);
     if (!orbitalLevel) return;
     this.loadOrbital(orbitalLevel, {
       x: p.as.worldX,
@@ -554,6 +555,10 @@ export class Game {
         if (p.as.gateReached) {
           if (p.level.departure) this.transitionApproachToOrbital(p);
           else this.transitionApproachToLanding(p);
+          return;
+        }
+        if (p.level.returnToOrbital && p.level.spherical && p.as.vy > 0 && p.as.y > p.level.returnToOrbital.exitAltitude + 50) {
+          this.transitionApproachToOrbital(p);
           return;
         }
       }

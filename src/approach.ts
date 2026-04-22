@@ -63,6 +63,12 @@ export interface ApproachLevel {
   // Landing level to transition to (0 = none)
   landingLevelId: number;
 
+  // Optional return-to-orbital profile for abort/climb-out from descent approach
+  returnToOrbital?: {
+    exitAltitude: number;
+    orbitalLevelId: number;
+  };
+
   // Optional departure profile (launch/climb into orbital phase)
   departure?: {
     exitAltitude: number;              // altitude to leave approach for orbital
@@ -194,6 +200,10 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     windLayers: [],
     turbulence: [],
     landingLevelId: 0,
+    returnToOrbital: {
+      exitAltitude: 8_000,
+      orbitalLevelId: 11,
+    },
     spherical: {
       planetRadius: 200_000,
       planetGM: 1.6 * 200_000 * 200_000,
