@@ -430,6 +430,25 @@ export class Game {
     if (p.level.id === 11) landingIdx = 5;
     const landingLevel = LEVELS[landingIdx];
 
+    if (p.level.id === 11) {
+      const gateLeft = p.level.gateX - p.level.gateRadius;
+      const gateWidth = Math.max(1, p.level.gateRadius * 2);
+      const nx = Math.max(0, Math.min(1, (p.as.x - gateLeft) / gateWidth));
+      const ny = Math.max(0, Math.min(1, p.as.y / Math.max(1, p.level.gateY)));
+
+      const landingHalfSpan = 500;
+      const landingAltMin = 100;
+      const landingAltMax = 300;
+      const initOverride = {
+        x: landingLevel.padCenterX + (nx * 2 - 1) * landingHalfSpan,
+        y: landingLevel.padY + (landingAltMin + ny * (landingAltMax - landingAltMin)),
+        vx: Math.max(-20, Math.min(20, p.as.vx)),
+        vy: Math.max(-5, Math.min(20, p.as.vy)),
+      };
+      this.loadLanding(landingLevel, initOverride);
+      return;
+    }
+
     const speed = Math.sqrt(p.as.vx * p.as.vx + p.as.vy * p.as.vy);
     const maxEntrySpeed = 50;
     let vx = p.as.vx;
