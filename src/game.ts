@@ -7,7 +7,7 @@ import {
   COLLISION_POINTS, GEAR_COLLISION_POINTS, localToWorld,
 } from './ship';
 import { TerrainData, generateTerrain, getTerrainHeight, isOnPad } from './terrain';
-import { Camera, createCamera, updateCamera, render, drawLaunchGuidance } from './renderer';
+import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
 import { LEVELS, LevelDef } from './levels';
@@ -23,7 +23,7 @@ import {
   orbitalToApproachParams,
 } from './orbital';
 import {
-  DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera,
+  DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
   createDockingState, createDockingCamera, updateDocking,
   updateDockingCamera, renderDocking, drawDockingHUD,
 } from './docking';
@@ -37,7 +37,7 @@ type Phase =
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number } }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride }
-  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed' };
+  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride };
 
 const TOTAL_LEVELS = MISSIONS.length;
 
@@ -80,7 +80,16 @@ export class Game {
     config.startVY = init.vy;
     const terrain = generateTerrain(level);
     const ship = createShip();
-    if (launchGuidance) ship.gearDeployed = true;
+    if (launchGuidance) {
+      ship.gearDeployed = true;
+      ship.x = level.padCenterX;
+      ship.y = getTerrainHeight(terrain, level.padCenterX) + 6.6;
+      ship.vx = 0;
+      ship.vy = 0;
+      ship.angle = 0;
+      ship.angularVel = 0;
+      ship.throttle = 0;
+    }
     const camera = createCamera();
     camera.x = ship.x;
     camera.y = ship.y;
@@ -100,10 +109,11 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private loadDocking(level: DockingLevel): void {
-    const ds = createDockingState(level);
+  private loadDocking(level: DockingLevel, initOverride?: DockingInitOverride): void {
+    const ds = createDockingState(level, initOverride);
     const cam = createDockingCamera();
-    this.phase = { kind: 'docking', level, ds, cam, state: 'docking' };
+    if (initOverride) { cam.x = ds.x; cam.y = ds.y; }
+    this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride };
     this.time = 0;
     this.accumulator = 0;
   }
@@ -167,27 +177,36 @@ export class Game {
     }
   }
 
-  private launchLevel(index: number): void {
-    const mission = MISSIONS[index];
-    if (!mission || mission.stub) return;
-    this.currentMissionId = mission.id;
+  private startMission(missionId: number): void {
+    this.currentMissionId = missionId;
 
-    if (mission.id === 1) {
+    if (missionId === 1) {
       this.loadDocking(DOCKING_LEVELS[0]);
       return;
     }
 
-    if (mission.id === 2) {
+    if (missionId === 2) {
       const castor = LEVELS[5];
       const departure = APPROACH_LEVELS.find(l => l.id === 12);
       const orbitDir = departure?.spherical?.localDir === -1 ? 1 : -1;
       this.loadLanding(
         castor,
-        { x: castor.padCenterX, y: castor.padY + 8, vx: 0, vy: 0 },
+        { x: castor.padCenterX, y: castor.padY + 6.6, vx: 0, vy: 0 },
         { targetAltitude: castor.startY, orbitDir, nextApproachLevelId: 12 },
       );
-      return;
     }
+  }
+
+  private restartCurrentMission(): boolean {
+    if (this.currentMissionId === null) return false;
+    this.startMission(this.currentMissionId);
+    return true;
+  }
+
+  private launchLevel(index: number): void {
+    const mission = MISSIONS[index];
+    if (!mission || mission.stub) return;
+    this.startMission(mission.id);
   }
 
   // --- Landing phase ---
@@ -195,7 +214,7 @@ export class Game {
   private handleLanding(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'landing' }>;
 
-    if (input.reset) { this.loadLanding(p.level, p.initOverride, p.launchGuidance); return; }
+    if (input.reset) { if (!this.restartCurrentMission()) this.loadLanding(p.level, p.initOverride, p.launchGuidance); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
@@ -209,8 +228,12 @@ export class Game {
     this.accumulator += frameTime;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'flying') {
-        updateShip(p.ship, input, PHYSICS_DT, this.time, input.stopAssist, input.killRotation);
-        this.checkLandingCollision(p);
+        if (this.shouldHoldLaunchOnPad(p, input)) {
+          this.clampLaunchShipToPad(p);
+        } else {
+          updateShip(p.ship, input, PHYSICS_DT, this.time, input.stopAssist, input.killRotation);
+          this.checkLandingCollision(p);
+        }
         if (p.launchGuidance && p.state === 'flying') {
           const alt = p.ship.y - getTerrainHeight(p.terrain, p.ship.x);
           if (alt >= p.launchGuidance.targetAltitude && p.ship.vy >= 0) {
@@ -257,12 +280,37 @@ export class Game {
     }
   }
 
+  private shouldHoldLaunchOnPad(
+    p: Extract<Phase, { kind: 'landing' }>,
+    input: InputState,
+  ): boolean {
+    if (!p.launchGuidance) return false;
+    const onPad = isOnPad(p.terrain, p.ship.x);
+    if (!onPad) return false;
+    const groundY = getTerrainHeight(p.terrain, p.ship.x);
+    const grounded = Math.abs(p.ship.y - (groundY + 6.6)) < 0.2;
+    const settled = Math.abs(p.ship.vx) < 0.2 && Math.abs(p.ship.vy) < 0.2 && Math.abs(p.ship.angularVel) < 0.05 && Math.abs(p.ship.angle) < 0.05;
+    const holding = !input.throttleUp && p.ship.throttle < 0.05;
+    return grounded && settled && holding;
+  }
+
+  private clampLaunchShipToPad(p: Extract<Phase, { kind: 'landing' }>): void {
+    const groundY = getTerrainHeight(p.terrain, p.ship.x);
+    p.ship.x = p.level.padCenterX;
+    p.ship.y = groundY + 6.6;
+    p.ship.vx = 0;
+    p.ship.vy = 0;
+    p.ship.angle = 0;
+    p.ship.angularVel = 0;
+    p.ship.throttle = 0;
+  }
+
   // --- Docking phase ---
 
   private handleDocking(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'docking' }>;
 
-    if (input.reset) { this.loadDocking(p.level); return; }
+    if (input.reset) { if (!this.restartCurrentMission()) this.loadDocking(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -298,7 +346,7 @@ export class Game {
   private handleOrbital(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
 
-    if (input.reset) { this.loadOrbital(p.level, p.initOverride); return; }
+    if (input.reset) { if (!this.restartCurrentMission()) this.loadOrbital(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -399,7 +447,45 @@ export class Game {
 
   private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): void {
     const dockingLevel = DOCKING_LEVELS.find(l => l.id === 12);
-    if (dockingLevel) this.loadDocking(dockingLevel);
+    const station = p.level.station;
+    if (!dockingLevel || !station) return;
+
+    const stAngle = station.startAngle - Math.sqrt(p.level.planetGM / (station.orbitRadius ** 3)) * p.os.time;
+    const stSpeed = Math.sqrt(p.level.planetGM / station.orbitRadius);
+    const stX = station.orbitRadius * Math.cos(stAngle);
+    const stY = station.orbitRadius * Math.sin(stAngle);
+    const stVX = stSpeed * Math.sin(stAngle);
+    const stVY = -stSpeed * Math.cos(stAngle);
+
+    let relX = p.os.x - stX;
+    let relY = p.os.y - stY;
+    let relDist = Math.sqrt(relX * relX + relY * relY);
+    const relVX = p.os.vx - stVX;
+    const relVY = p.os.vy - stVY;
+
+    if (relDist < 1) {
+      relX = relVX;
+      relY = relVY;
+      relDist = Math.sqrt(relX * relX + relY * relY);
+    }
+    if (relDist < 1) {
+      relX = -1;
+      relY = 0;
+      relDist = 1;
+    }
+
+    const ux = relX / relDist;
+    const uy = relY / relDist;
+    const baseDist = dockingLevel.beamRange * 10;
+    const startDist = baseDist * (1 + Math.min(1, relDist / station.captureRadius));
+    const initOverride: DockingInitOverride = {
+      x: ux * startDist,
+      y: uy * startDist,
+      vx: relVX,
+      vy: relVY,
+      angle: Math.atan2(-uy, -ux),
+    };
+    this.loadDocking(dockingLevel, initOverride);
   }
 
   // --- Approach phase ---
@@ -407,7 +493,7 @@ export class Game {
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
 
-    if (input.reset) { this.loadApproach(p.level, p.initOverride); return; }
+    if (input.reset) { if (!this.restartCurrentMission()) this.loadApproach(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -447,9 +533,6 @@ export class Game {
       drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
     } else if (p.kind === 'landing') {
       render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, this.time);
-      if (p.launchGuidance) {
-        drawLaunchGuidance(this.ctx, this.canvas, p.camera, p.terrain, p.launchGuidance.targetAltitude, p.launchGuidance.orbitDir);
-      }
       drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, p.launchGuidance);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);

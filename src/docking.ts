@@ -82,6 +82,14 @@ export interface DockingState {
   leftStartBay: boolean;   // has left the starting bay area (enables collision)
 }
 
+export interface DockingInitOverride {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+}
+
 // ===================== Levels =====================
 
 function generateBays(targetSpoke: number, targetSide: number, targetSlot: number, fillPct: number): BayInfo[] {
@@ -247,9 +255,10 @@ const MISSION2_DOCKING: DockingLevel = {
   rotTorque: 1200,
   tugMass: 500,
   containerMass: 2000,
-  dampingAssist: true,
-  startX: -60, startY: 20,
-  startVX: 1.5, startVY: -0.3,
+  dampingAssist: false,
+  startX: -120, startY: 0,
+  startVX: 0,
+  startVY: 0,
   startAngle: 0,
 };
 
@@ -300,11 +309,11 @@ export const DOCKING_LEVELS: DockingLevel[] = [
 
 // ===================== State =====================
 
-export function createDockingState(level: DockingLevel): DockingState {
+export function createDockingState(level: DockingLevel, override?: DockingInitOverride): DockingState {
   return {
-    x: level.startX, y: level.startY,
-    vx: level.startVX, vy: level.startVY,
-    angle: level.startAngle || 0,
+    x: override?.x ?? level.startX, y: override?.y ?? level.startY,
+    vx: override?.vx ?? level.startVX, vy: override?.vy ?? level.startVY,
+    angle: override?.angle ?? (level.startAngle || 0),
     angVel: 0,
     sas: level.dampingAssist,
     alive: true,

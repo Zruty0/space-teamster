@@ -161,8 +161,6 @@ export function drawHUD(
   ly += lineH;
 
   if (launchGuidance) {
-    drawLabel(ctx, lx, ly, 'TGT', `${launchGuidance.targetAltitude.toFixed(0)} m`, COL_SUCCESS);
-    ly += lineH;
     drawLabel(ctx, lx, ly, 'DIR', launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', COL_SUCCESS);
     ly += lineH;
   }
@@ -204,14 +202,8 @@ export function drawHUD(
   // --- Warnings ---
   const warnings: { text: string; color: string }[] = [];
 
-  if (launchGuidance) {
-    if (altitude < launchGuidance.targetAltitude) {
-      warnings.push({ text: `ASCENT ALT ${(launchGuidance.targetAltitude - altitude).toFixed(0)}m`, color: COL_SUCCESS });
-    } else if (vSpeed < 0) {
-      warnings.push({ text: '⚠ CLIMBING REQUIRED', color: COL_WARNING });
-    } else {
-      warnings.push({ text: 'READY FOR DEPARTURE', color: COL_SUCCESS });
-    }
+  if (launchGuidance && altitude < launchGuidance.targetAltitude && vSpeed < 5) {
+    warnings.push({ text: `CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`, color: COL_SUCCESS });
   }
 
   // Terrain warning
