@@ -442,6 +442,17 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
 
 /** Convert orbital state at transition into approach-phase initial conditions.
  *  Approach coords: gate/LZ at x=0, ship starts at negative x, flies right. */
+function orbitSense(x: number, y: number, vx: number, vy: number): 1 | -1 {
+  return x * vy - y * vx < 0 ? -1 : 1; // -1 = CW, +1 = CCW
+}
+
+function aoaDisplayToPhysical(
+  aoaDisplay: number,
+  x: number, y: number, vx: number, vy: number,
+): number {
+  return -orbitSense(x, y, vx, vy) * aoaDisplay;
+}
+
 export function orbitalToApproachParams(
   os: OrbitalState, level: OrbitalLevel,
 ): ApproachInitOverride {
@@ -451,8 +462,8 @@ export function orbitalToApproachParams(
   const radX = os.x / r;
   const radY = os.y / r;
 
-  const h = os.x * os.vy - os.y * os.vx;
-  const localDir: 1 | -1 = h < 0 ? -1 : 1;
+  // Fixed approach frame: +X is clockwise along the surface.
+  const localDir: 1 | -1 = -1;
   const tanX = -radY * localDir;
   const tanY = radX * localDir;
 
@@ -465,7 +476,8 @@ export function orbitalToApproachParams(
   const approachX = angleDiff * level.planetRadius * localDir;
 
   const velDirApproach = Math.atan2(vTangential, vRadial);
-  const shipAngle = velDirApproach - level.lowAtmoAoA;
+  const noseUpSign = vTangential < 0 ? -1 : 1;
+  const shipAngle = velDirApproach - noseUpSign * level.lowAtmoAoA;
 
   return {
     x: approachX,
@@ -672,7 +684,8 @@ export function updateOrbital(
     let ay = -gAccel * (s.y / r);
 
     // Aero forces (AoA-dependent drag + lift)
-    const aero = aeroForces(s.x, s.y, s.vx, s.vy, s.inAtmo ? s.targetAoA : level.highAtmoAoA, level);
+    const displayAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
+    const aero = aeroForces(s.x, s.y, s.vx, s.vy, aoaDisplayToPhysical(displayAoA, s.x, s.y, s.vx, s.vy), level);
     ax += aero.ax;
     ay += aero.ay;
 
@@ -822,9 +835,9 @@ export function updateOrbital(
       if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
       if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
     }
-    // Ship angle tracks velocity + targetAoA
+    // Ship angle tracks velocity; positive displayed AoA always means "nose above horizon"
     const velAngle = Math.atan2(s.vy, s.vx);
-    s.angle = velAngle + s.targetAoA;
+    s.angle = velAngle + aoaDisplayToPhysical(s.targetAoA, s.x, s.y, s.vx, s.vy);
   } else {
     // In space: track prograde
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1030,8 +1043,9 @@ function predictOrbit(
       let ax = -gAccel * (x / r);
       let ay = -gAccel * (y / r);
 
-      // Aero: use lowAtmoAoA below transition, predAoA above
-      const useAoA = belowTransition ? level.lowAtmoAoA : predAoA;
+      // Aero: use lowAtmoAoA below transition, predAoA above.
+      const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
+      const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
       const aero = aeroForces(x, y, vx, vy, useAoA, level);
       ax += aero.ax;
       ay += aero.ay;
@@ -1043,7 +1057,7 @@ function predictOrbit(
 
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
-    const aero = aeroForces(x, y, vx, vy, predAoA, level);
+    const aero = aeroForces(x, y, vx, vy, aoaDisplayToPhysical(predAoA, x, y, vx, vy), level);
     points.push({
       x, y, vx, vy, alt, t: s.time + t,
       inAtmo: alt < level.atmoHeight,
@@ -2144,11 +2158,7 @@ export function drawOrbitalHUD(
 
   // AoA (when in atmosphere)
   if (s.inAtmo) {
-    const velAngle = Math.atan2(s.vy, s.vx);
-    let aoa = s.angle - velAngle;
-    while (aoa > Math.PI) aoa -= 2 * Math.PI;
-    while (aoa < -Math.PI) aoa += 2 * Math.PI;
-    label(ctx, lx, ly, 'AoA', `${(aoa * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
+    label(ctx, lx, ly, 'AoA', `${(s.targetAoA * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
   }
 
   // Entry parameters — show as soon as orbit enters atmosphere
