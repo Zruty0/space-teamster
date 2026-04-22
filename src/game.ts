@@ -226,12 +226,6 @@ export class Game {
     }
   }
 
-  private restartCurrentMission(): boolean {
-    if (this.currentMissionId === null) return false;
-    this.startMission(this.currentMissionId);
-    return true;
-  }
-
   private launchLevel(index: number): void {
     const mission = MISSIONS[index];
     if (!mission || mission.stub) return;
@@ -243,7 +237,7 @@ export class Game {
   private handleLanding(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'landing' }>;
 
-    if (input.reset) { if (!this.restartCurrentMission()) this.loadLanding(p.level, p.initOverride, p.launchGuidance); return; }
+    if (input.reset) { this.loadLanding(p.level, p.initOverride, p.launchGuidance); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
@@ -339,7 +333,7 @@ export class Game {
   private handleDocking(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'docking' }>;
 
-    if (input.reset) { if (!this.restartCurrentMission()) this.loadDocking(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadDocking(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -375,7 +369,7 @@ export class Game {
   private handleOrbital(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
 
-    if (input.reset) { if (!this.restartCurrentMission()) this.loadOrbital(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadOrbital(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -541,7 +535,7 @@ export class Game {
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
 
-    if (input.reset) { if (!this.restartCurrentMission()) this.loadApproach(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadApproach(p.level, p.initOverride); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
