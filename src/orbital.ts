@@ -666,7 +666,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startVX: vx,
       startVY: vy,
       thrustAccel: 0.008,
-      thrustAccelMax: 0.18,
+      thrustAccelMax: 0.04,
       fuelDeltaV: 2800,
       surfaceDensity: 1.5,
       scaleHeight: 8500,
@@ -1119,7 +1119,13 @@ export function updateOrbital(
           }
         }
 
-        const thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
+        let thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
+        if (thrustMag > effThrust && thrustMag > 0.01) {
+          const scale = effThrust / thrustMag;
+          thrustX *= scale;
+          thrustY *= scale;
+          thrustMag = effThrust;
+        }
         if (thrustMag > 0.01) {
           const dvUsed = thrustMag * subDt;
           if (dvUsed <= s.fuel) {
@@ -2825,20 +2831,21 @@ export function drawOrbitalHUD(
   } else if (level.targetBodyId) {
     const body = getTransferBody(level, level.targetBodyId);
     const pos = body ? transferBodyState(level, body.id, s.time) : null;
+    const pred = getCachedPrediction(s, level);
     if (body && pos) {
       const dx = s.x - pos.x, dy = s.y - pos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const rvx = s.vx - pos.vx, rvy = s.vy - pos.vy;
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-      const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
-      label(ctx, lx, ly, body.name.slice(0, 3).toUpperCase(), `${(dist / 1000).toFixed(0)} km`, targetCol); ly += lh;
-      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < 220 ? COL_OK : COL_HUD); ly += lh;
-      const pred = getCachedPrediction(s, level);
       if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
-        label(ctx, lx, ly, 'CA', `${(ca.dist / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        label(ctx, lx, ly, 'FBY', `${(ca.dist / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
         label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+      } else {
+        const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
+        label(ctx, lx, ly, body.name.slice(0, 3).toUpperCase(), `${(dist / 1000).toFixed(0)} km`, targetCol); ly += lh;
       }
+      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < 220 ? COL_OK : COL_HUD); ly += lh;
     }
   }
 
