@@ -1080,7 +1080,24 @@ function hybridizeApproachPrediction(
       heatRate: 0,
     });
     prevX = pt.x; prevY = pt.y; prevVX = lvx; prevVY = lvy;
-    if (traj.impactX !== null && pt.y <= 0) break;
+  }
+
+  // Approach impact is terrain-relative, while orbital prediction looks for alt<=0.
+  // Add an explicit surface-impact endpoint so the red X / label are preserved even
+  // when terrain sits above local y=0.
+  if (traj.impactX !== null) {
+    const w = localToWorld(traj.impactX, 0, prevVX, prevVY);
+    hybridTail.push({
+      x: w.x,
+      y: w.y,
+      vx: w.vx,
+      vy: w.vy,
+      alt: 0,
+      t: pred.points[pred.approachStart.idx].t + (traj.points.length + 1) * trajStep,
+      inAtmo: true,
+      belowCritical: true,
+      heatRate: 0,
+    });
   }
 
   return analyzePrediction(prefix.concat(hybridTail), level);
