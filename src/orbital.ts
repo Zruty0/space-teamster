@@ -240,30 +240,53 @@ function escapeTargetForLevel(
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
   if (angle === null) return null;
 
-  const vInf = level.escapeVectorSpeed ?? 0;
-  const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
-  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
-  return { angle, speed };
+  return { angle, speed: level.escapeVectorSpeed ?? 0 };
 }
 
 function currentEscapeVector(
   s: OrbitalState, level: OrbitalLevel,
-): { angle: number; speed: number } | null {
+): { angle: number; speed: number; x: number; y: number } | null {
   if (!level.escapeSOIRadius) return null;
+  const patchR = level.escapeSOIRadius;
+  const effSpeed = (vx: number, vy: number) => {
+    const v2 = vx * vx + vy * vy;
+    return Math.sqrt(Math.max(0, v2 - 2 * level.planetGM / patchR));
+  };
+
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
-  if (r >= level.escapeSOIRadius) {
+  if (r >= patchR) {
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-    if (speed > 0.01) return { angle: Math.atan2(s.vy, s.vx), speed };
+    if (speed > 0.01) {
+      const scale = patchR / Math.max(r, 1);
+      return {
+        angle: Math.atan2(s.vy, s.vx),
+        speed: effSpeed(s.vx, s.vy),
+        x: s.x * scale,
+        y: s.y * scale,
+      };
+    }
   }
 
   const pred = getCachedPrediction(s, level);
-  const last = pred.points[pred.points.length - 1];
-  if (!last) return null;
-  const lastR = Math.sqrt(last.x * last.x + last.y * last.y);
-  if (lastR < level.escapeSOIRadius * 0.98) return null;
-  const speed = Math.sqrt(last.vx * last.vx + last.vy * last.vy);
-  if (speed < 0.01) return null;
-  return { angle: Math.atan2(last.vy, last.vx), speed };
+  for (let i = 1; i < pred.points.length; i++) {
+    const prev = pred.points[i - 1];
+    const pt = pred.points[i];
+    const r0 = Math.sqrt(prev.x * prev.x + prev.y * prev.y);
+    const r1 = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+    if (r0 < patchR && r1 >= patchR) {
+      const frac = (patchR - r0) / Math.max(1e-6, (r1 - r0));
+      const x = prev.x + (pt.x - prev.x) * frac;
+      const y = prev.y + (pt.y - prev.y) * frac;
+      const vx = prev.vx + (pt.vx - prev.vx) * frac;
+      const vy = prev.vy + (pt.vy - prev.vy) * frac;
+      return {
+        angle: Math.atan2(vy, vx),
+        speed: effSpeed(vx, vy),
+        x, y,
+      };
+    }
+  }
+  return null;
 }
 
 // ===================== Levels =====================
@@ -2126,11 +2149,19 @@ function drawEscapeGuidance(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  const drawVector = (angle: number, color: string, label: string, outwardScale = 1.02) => {
+  const drawVector = (
+    angle: number, color: string, label: string, outwardScale = 1.02,
+    anchor?: { x: number; y: number },
+  ) => {
     const tipR = level.escapeSOIRadius! * outwardScale;
     const baseR = level.escapeSOIRadius! * 0.9;
     let tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
-    let base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+    let base = anchor ? ws(anchor.x, anchor.y, cam, W, H)
+      : ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+    if (anchor) {
+      const dirLen = 18;
+      tip = [base[0] + Math.cos(angle) * dirLen, base[1] - Math.sin(angle) * dirLen];
+    }
     const margin = 44;
     const onScreen = (p: [number, number]) => p[0] >= margin && p[0] <= W - margin && p[1] >= margin && p[1] <= H - margin;
 
@@ -2177,7 +2208,7 @@ function drawEscapeGuidance(
 
   const current = currentEscapeVector(s, level);
   if (current) {
-    drawVector(current.angle, '#ffaa00', `CUR ${current.speed.toFixed(0)}m/s`, 0.98);
+    drawVector(current.angle, '#ffaa00', `CUR ${current.speed.toFixed(0)}m/s`, 0.98, { x: current.x, y: current.y });
   }
 }
 

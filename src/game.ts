@@ -487,7 +487,7 @@ export class Game {
       const rHatX = rx / Math.max(dist, 1);
       const rHatY = ry / Math.max(dist, 1);
       const radialSpeed = rvx * rHatX + rvy * rHatY;
-      const arrivalReady = dist <= body.patchRadius && radialSpeed < 0 && speed >= minSpeed && speed <= maxSpeed;
+      const arrivalReady = dist <= body.patchRadius && radialSpeed < 0;
       if (!arrivalReady) return false;
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
