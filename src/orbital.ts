@@ -91,6 +91,9 @@ export interface OrbitalLevel {
   escapeSOIRadius?: number;
   escapeToOrbitalLevelId?: number;
   escapeVectorAngle?: number;
+  escapeVectorSpeed?: number;
+  conicRadius?: number;
+  localBaseTimeScale?: number;
 }
 
 export interface OrbitalState {
@@ -154,8 +157,8 @@ const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for 
 const TYCHO_RADIUS = 450_000;
 const TYCHO_SURFACE_G = 3.5;
 const TYCHO_GM = TYCHO_SURFACE_G * TYCHO_RADIUS * TYCHO_RADIUS;
-const CASTOR_SYSTEM_ORBIT_RADIUS = 1_500_000;
-const POLLUX_SYSTEM_ORBIT_RADIUS = 2_100_000;
+const CASTOR_SYSTEM_ORBIT_RADIUS = 15_000_000;
+const POLLUX_SYSTEM_ORBIT_RADIUS = 21_000_000;
 const CASTOR_SYSTEM_START_ANGLE = -1.25;
 const POLLUX_SYSTEM_START_ANGLE = CASTOR_SYSTEM_START_ANGLE + 0.66; // ~38° ahead
 const SHARED_MOON_RADIUS = 200_000;
@@ -164,6 +167,13 @@ const SHARED_MOON_GM = SHARED_MOON_SURFACE_G * SHARED_MOON_RADIUS * SHARED_MOON_
 
 function hillRadius(orbitRadius: number, bodyGM: number, parentGM: number): number {
   return orbitRadius * Math.cbrt(bodyGM / (3 * parentGM));
+}
+
+function hohmannDepartureVInf(innerOrbitRadius: number, outerOrbitRadius: number, parentGM: number): number {
+  const a = (innerOrbitRadius + outerOrbitRadius) * 0.5;
+  const vCirc = Math.sqrt(parentGM / innerOrbitRadius);
+  const vTransfer = Math.sqrt(parentGM * (2 / innerOrbitRadius - 1 / a));
+  return Math.max(0, vTransfer - vCirc);
 }
 
 const CASTOR_TRANSFER_BODY: OrbitalTransferBody = {
@@ -543,11 +553,13 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       escapeSOIRadius: CASTOR_TRANSFER_BODY.soiRadius,
       escapeToOrbitalLevelId: 16,
       escapeVectorAngle: Math.PI / 2,
+      escapeVectorSpeed: hohmannDepartureVInf(CASTOR_SYSTEM_ORBIT_RADIUS, POLLUX_SYSTEM_ORBIT_RADIUS, TYCHO_GM),
+      conicRadius: CASTOR_TRANSFER_BODY.soiRadius,
     };
   })(),
   (() => {
     const planetRadius = TYCHO_RADIUS;
-    const baseTimeScale = 60;
+    const baseTimeScale = 2400;
     const gm = TYCHO_GM;
     const body = CASTOR_TRANSFER_BODY;
     const speed = Math.sqrt(gm / body.orbitRadius);
@@ -565,6 +577,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       atmoHeight: 90_000,
       atmoColor: [70, 135, 210] as [number, number, number],
       baseTimeScale,
+      localBaseTimeScale: 60,
       startX: x,
       startY: y,
       startVX: vx,
@@ -588,6 +601,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       approachGravity: 3.5,
       systemBodies: [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY],
       targetBodyId: 'pollux',
+      conicRadius: POLLUX_SYSTEM_ORBIT_RADIUS * 1.2,
     };
   })(),
   (() => {
@@ -632,6 +646,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: 0.92,
       approachLevelIdx: 6,
       approachGravity: 1.6,
+      conicRadius: POLLUX_TRANSFER_BODY.soiRadius,
     };
   })(),
 ];
@@ -763,6 +778,17 @@ function orbitPosition(elem: OrbitalElements, nu: number): { x: number; y: numbe
   return { x: r * Math.cos(angle), y: r * Math.sin(angle) };
 }
 
+function outgoingEscapeAngle(elem: OrbitalElements): number | null {
+  if (!(elem.e > 1) || !Number.isFinite(elem.e)) return null;
+  const nuInf = Math.acos(-1 / elem.e);
+  return elem.omega + (elem.h >= 0 ? nuInf : -nuInf);
+}
+
+function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
+  if (!(elem.energy > 0)) return null;
+  return Math.sqrt(2 * elem.energy);
+}
+
 // ===================== Atmosphere =====================
 
 /** Get station position at a given physics time. */
@@ -884,12 +910,30 @@ export function updateOrbital(
   const effectiveWarp = s.inAtmo
     ? Math.min(s.timeWarp, atmoWarpCap)
     : s.timeWarp;
-  const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : level.baseTimeScale;
+
+  let spaceBaseScale = level.baseTimeScale;
+  if (level.systemBodies && level.localBaseTimeScale) {
+    const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
+    let nearBody = r0 < level.planetRadius * 8;
+    if (!nearBody) {
+      for (const body of level.systemBodies) {
+        const pos = transferBodyState(level, body.id, s.time);
+        if (!pos) continue;
+        const dx = s.x - pos.x, dy = s.y - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < body.soiRadius * 1.5) { nearBody = true; break; }
+      }
+    }
+    if (nearBody) spaceBaseScale = level.localBaseTimeScale;
+  }
+
+  const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale;
   const totalScale = effectiveBaseScale * effectiveWarp;
   const effectiveDt = dt * totalScale;
 
   // Substeps
-  const substeps = Math.max(1, Math.ceil(effectiveDt / PHYSICS_SUBSTEP));
+  const stepLimit = (!s.inAtmo && level.systemBodies && effectiveBaseScale > 200) ? 20 : PHYSICS_SUBSTEP;
+  const substeps = Math.max(1, Math.ceil(effectiveDt / stepLimit));
   const subDt = effectiveDt / substeps;
 
   s.thrusting = 'none';
@@ -1250,7 +1294,10 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const dist = Math.sqrt(dx * dx + dy * dy);
       const relVx = pt.vx - bodyPos.vx, relVy = pt.vy - bodyPos.vy;
       const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
-      const withinArrival = dist >= arrivalMinR && dist <= arrivalMaxR;
+      const vEsc = Math.sqrt(2 * targetBody.gm / Math.max(dist, 1));
+      const minRelSpeed = Math.max(vEsc * 1.002, vEsc + (targetBody.arrivalSpeedMarginMin ?? 2));
+      const maxRelSpeed = Math.max(minRelSpeed + 1, vEsc + (targetBody.arrivalSpeedMarginMax ?? 100));
+      const withinArrival = dist >= arrivalMinR && dist <= arrivalMaxR && relSpeed >= minRelSpeed && relSpeed <= maxRelSpeed;
       let dominated = false;
       if (withinArrival) {
         if (!hasWithinArrival || relSpeed < bestRelSpeed) {
@@ -1456,6 +1503,7 @@ function predictOrbit(
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
     });
+    if (level.conicRadius && r >= level.conicRadius) return points;
   }
   return points;
 }
@@ -1740,6 +1788,9 @@ export function updateOrbitalCamera(
     if (systemOuterR > 0 && maxR > level.planetRadius * 4) {
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
+    if (level.conicRadius) {
+      maxR = Math.min(maxR, level.conicRadius * 1.05);
+    }
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (0 - cam.x) * smooth;
@@ -1780,7 +1831,7 @@ export function renderOrbital(
     drawStation(ctx, cam, s, level, W, H, rendezvousZoomed);
   }
   if (!level.station) drawLandingSite(ctx, cam, level, W, H);
-  if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, level, W, H);
+  if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
     drawOrbitPrediction(ctx, cam, s, level, W, H);
     drawTrail(ctx, cam, s, W, H);
@@ -2014,7 +2065,7 @@ function drawLandingSite(
 
 function drawEscapeGuidance(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  level: OrbitalLevel, W: number, H: number,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
   const soiR = level.escapeSOIRadius! * cam.zoom;
@@ -2026,30 +2077,41 @@ function drawEscapeGuidance(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  if (level.escapeVectorAngle === undefined) return;
-  const angle = level.escapeVectorAngle;
-  const tipR = level.escapeSOIRadius! * 1.02;
-  const baseR = level.escapeSOIRadius! * 0.9;
-  const tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
-  const base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
-  const dx = tip[0] - base[0], dy = tip[1] - base[1];
-  const len = Math.sqrt(dx * dx + dy * dy) || 1;
-  const nx = dx / len, ny = dy / len;
-  const px = -ny, py = nx;
-  ctx.beginPath();
-  ctx.moveTo(base[0], base[1]);
-  ctx.lineTo(tip[0], tip[1]);
-  ctx.lineTo(tip[0] - nx * 9 + px * 4, tip[1] - ny * 9 + py * 4);
-  ctx.moveTo(tip[0], tip[1]);
-  ctx.lineTo(tip[0] - nx * 9 - px * 4, tip[1] - ny * 9 - py * 4);
-  ctx.strokeStyle = '#66bbff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  const drawVector = (angle: number, color: string, label: string, outwardScale = 1.02) => {
+    const tipR = level.escapeSOIRadius! * outwardScale;
+    const baseR = level.escapeSOIRadius! * 0.9;
+    const tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
+    const base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+    const dx = tip[0] - base[0], dy = tip[1] - base[1];
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = dx / len, ny = dy / len;
+    const px = -ny, py = nx;
+    ctx.beginPath();
+    ctx.moveTo(base[0], base[1]);
+    ctx.lineTo(tip[0], tip[1]);
+    ctx.lineTo(tip[0] - nx * 9 + px * 4, tip[1] - ny * 9 + py * 4);
+    ctx.moveTo(tip[0], tip[1]);
+    ctx.lineTo(tip[0] - nx * 9 - px * 4, tip[1] - ny * 9 - py * 4);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.fillText(label, tip[0], tip[1] - 8);
+  };
 
-  ctx.font = '10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#66bbff';
-  ctx.fillText('EXIT', tip[0], tip[1] - 8);
+  if (level.escapeVectorAngle !== undefined) {
+    const targetLabel = `ESCAPE ${(level.escapeVectorSpeed ?? 0).toFixed(0)}m/s`;
+    drawVector(level.escapeVectorAngle, '#66bbff', targetLabel);
+  }
+
+  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+  const escapeAngle = outgoingEscapeAngle(elem);
+  const vInf = escapeSpeedAtInfinity(elem);
+  if (escapeAngle !== null && vInf !== null) {
+    drawVector(escapeAngle, '#ffaa00', `CUR ${vInf.toFixed(0)}m/s`, 0.98);
+  }
 }
 
 // --- Station (rendezvous target) ---
@@ -2680,6 +2742,21 @@ export function drawOrbitalHUD(
         const ca = pred.targetBodyApproach;
         label(ctx, lx, ly, 'CA', `${(ca.dist / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
         label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+      }
+    }
+  }
+
+  if (level.escapeSOIRadius) {
+    label(ctx, lx, ly, 'ESC', `${(level.escapeVectorSpeed ?? 0).toFixed(0)} m/s`, '#66bbff'); ly += lh;
+    const escapeAngle = outgoingEscapeAngle(elem);
+    const vInf = escapeSpeedAtInfinity(elem);
+    if (escapeAngle !== null && vInf !== null) {
+      label(ctx, lx, ly, 'V∞', `${vInf.toFixed(0)} m/s`, COL_WARN); ly += lh;
+      if (level.escapeVectorAngle !== undefined) {
+        let err = escapeAngle - level.escapeVectorAngle;
+        while (err > Math.PI) err -= 2 * Math.PI;
+        while (err < -Math.PI) err += 2 * Math.PI;
+        label(ctx, lx, ly, 'E-ERR', `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, Math.abs(err) < 0.12 ? COL_OK : COL_WARN); ly += lh;
       }
     }
   }
