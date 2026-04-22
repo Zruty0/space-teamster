@@ -76,6 +76,8 @@ export interface OrbitalLevel {
   // Approach phase linkage
   approachLevelIdx: number;
   approachGravity: number;
+  reentryApproachLevelId?: number;
+  showLandingSite?: boolean;
 
   // Station (rendezvous target, optional)
   station?: {
@@ -273,6 +275,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: -Math.PI / 4,
       approachLevelIdx: 0,  // Kepler's Rest approach
       approachGravity: 8.0,
+      reentryApproachLevelId: 6,
+      showLandingSite: true,
     };
   })(),
   // --- Level 8: Orbital Rendezvous ---
@@ -320,6 +324,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: 0,
       approachLevelIdx: 0,
       approachGravity: 8.0,
+      reentryApproachLevelId: 6,
+      showLandingSite: false,
       station: {
         orbitRadius: stationR,
         startAngle: Math.PI * 0.6,    // ahead of player
@@ -370,6 +376,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: -Math.PI / 3,
       approachLevelIdx: 1,
       approachGravity: 1.6,
+      reentryApproachLevelId: 11,
+      showLandingSite: true,
     };
   })(),
   (() => {
@@ -413,6 +421,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: -Math.PI / 3,
       approachLevelIdx: 2,
       approachGravity: 1.6,
+      reentryApproachLevelId: 12,
+      showLandingSite: false,
       station: {
         orbitRadius: r,
         startAngle: -0.25,
@@ -460,6 +470,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 3,
       approachGravity: 3.5,
+      reentryApproachLevelId: 13,
+      showLandingSite: true,
     };
   })(),
   (() => {
@@ -502,6 +514,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 4,
       approachGravity: 3.5,
+      reentryApproachLevelId: 14,
+      showLandingSite: false,
       station: {
         orbitRadius: planetRadius + stationAlt,
         startAngle: -2.2,
@@ -548,8 +562,10 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       heatDissipation: 0,
       transitionAltitude: 8_000,
       landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 1,
+      approachLevelIdx: 5,
       approachGravity: 1.6,
+      reentryApproachLevelId: 15,
+      showLandingSite: false,
       escapeSOIRadius: CASTOR_TRANSFER_BODY.soiRadius,
       escapeToOrbitalLevelId: 16,
       escapeVectorAngle: Math.PI / 2,
@@ -597,8 +613,10 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       heatDissipation: 0.08,
       transitionAltitude: 20_000,
       landingSiteAngle: Math.PI / 5,
-      approachLevelIdx: 3,
+      approachLevelIdx: 4,
       approachGravity: 3.5,
+      reentryApproachLevelId: 14,
+      showLandingSite: false,
       systemBodies: [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY],
       targetBodyId: 'pollux',
       conicRadius: POLLUX_SYSTEM_ORBIT_RADIUS * 1.2,
@@ -646,6 +664,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       landingSiteAngle: 0.92,
       approachLevelIdx: 6,
       approachGravity: 1.6,
+      reentryApproachLevelId: 16,
+      showLandingSite: true,
       conicRadius: POLLUX_TRANSFER_BODY.soiRadius,
     };
   })(),
@@ -1830,7 +1850,7 @@ export function renderOrbital(
     rendezvousZoomed = dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10;
     drawStation(ctx, cam, s, level, W, H, rendezvousZoomed);
   }
-  if (!level.station) drawLandingSite(ctx, cam, level, W, H);
+  if (!level.station && level.showLandingSite !== false) drawLandingSite(ctx, cam, level, W, H);
   if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
     drawOrbitPrediction(ctx, cam, s, level, W, H);

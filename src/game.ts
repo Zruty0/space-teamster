@@ -134,7 +134,11 @@ export class Game {
     const cam = createOrbitalCamera(level);
     if (initOverride) { cam.x = os.x; cam.y = os.y; }
     this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride };
-    this.showGuidance(level.station ? 'RENDEZVOUS WITH TARGET' : 'DEORBIT TO TARGET');
+    const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
+      : level.targetBodyId ? 'INTERCEPT TARGET BODY'
+      : level.escapeSOIRadius ? 'ESCAPE TOWARD TARGET'
+      : (level.showLandingSite === false ? 'MAINTAIN ORBITAL OBJECTIVE' : 'DEORBIT TO TARGET');
+    this.showGuidance(guidance);
     this.time = 0;
     this.accumulator = 0;
   }
@@ -571,7 +575,10 @@ export class Game {
   }
 
   private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {
-    const approachLevel = APPROACH_LEVELS[p.level.approachLevelIdx];
+    const explicitId = p.level.reentryApproachLevelId;
+    const approachLevel = explicitId
+      ? APPROACH_LEVELS.find(l => l.id === explicitId)
+      : APPROACH_LEVELS[p.level.approachLevelIdx];
     if (!approachLevel) {
       p.state = 'enteredAtmo';
       return;
