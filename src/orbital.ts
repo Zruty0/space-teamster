@@ -228,6 +228,25 @@ export function transferBodyState(
   };
 }
 
+function escapeTargetForLevel(
+  level: OrbitalLevel, time: number,
+): { angle: number; speed: number } | null {
+  if (level.escapeToOrbitalLevelId) {
+    const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
+    const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
+    if (castorState) {
+      return {
+        angle: Math.atan2(castorState.vy, castorState.vx),
+        speed: level.escapeVectorSpeed ?? 0,
+      };
+    }
+  }
+  if (level.escapeVectorAngle !== undefined) {
+    return { angle: level.escapeVectorAngle, speed: level.escapeVectorSpeed ?? 0 };
+  }
+  return null;
+}
+
 // ===================== Levels =====================
 
 function gmForPeriod(planetRadius: number, orbitAlt: number, period: number): number {
@@ -680,6 +699,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
   _predLastStateTime = -1;
   _wasRendezvousZoom = false;
   _maneuverCache = null;
+  const initTime = override?.time ?? 0;
   return {
     x: override?.x ?? level.startX,
     y: override?.y ?? level.startY,
@@ -691,7 +711,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     temperature: 0,
     trail: [],
     trailIdx: 0,
-    time: override?.time ?? 0,
+    time: initTime,
     realTime: 0,
     timeWarp: 1,
     timeWarpLevel: 0,
@@ -935,17 +955,9 @@ export function updateOrbital(
   let spaceBaseScale = level.baseTimeScale;
   if (level.systemBodies && level.localBaseTimeScale) {
     const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
-    let nearBody = r0 < level.planetRadius * 8;
-    if (!nearBody) {
-      for (const body of level.systemBodies) {
-        const pos = transferBodyState(level, body.id, s.time);
-        if (!pos) continue;
-        const dx = s.x - pos.x, dy = s.y - pos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < body.patchRadius * 1.5) { nearBody = true; break; }
-      }
-    }
-    if (nearBody) spaceBaseScale = level.localBaseTimeScale;
+    const tychoAlt = r0 - level.planetRadius;
+    const nearTycho = tychoAlt < 400_000;
+    if (nearTycho) spaceBaseScale = level.localBaseTimeScale;
   }
 
   const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale;
@@ -1489,6 +1501,8 @@ function predictOrbit(
 ): PredPoint[] {
   const points: PredPoint[] = [];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
+  let prevTheta = Math.atan2(y, x);
+  let angleAccum = 0;
   // Substeps per prediction step for accuracy
   const subs = 4;
   const subDt = stepSize / subs;
@@ -1530,7 +1544,14 @@ function predictOrbit(
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
     });
+    const theta = Math.atan2(y, x);
+    let dTheta = theta - prevTheta;
+    while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    angleAccum += Math.abs(dTheta);
+    prevTheta = theta;
     if (level.conicRadius && r >= level.conicRadius) return points;
+    if (angleAccum >= Math.PI * 2) return points;
   }
   return points;
 }
@@ -2129,9 +2150,10 @@ function drawEscapeGuidance(
     ctx.fillText(label, Math.max(70, Math.min(W - 70, tip[0])), Math.max(18, Math.min(H - 18, tip[1] - 8)));
   };
 
-  if (level.escapeVectorAngle !== undefined) {
-    const targetLabel = `ESCAPE ${(level.escapeVectorSpeed ?? 0).toFixed(0)}m/s`;
-    drawVector(level.escapeVectorAngle, '#66bbff', targetLabel);
+  const target = escapeTargetForLevel(level, s.time);
+  if (target) {
+    const targetLabel = `ESCAPE ${target.speed.toFixed(0)}m/s`;
+    drawVector(target.angle, '#66bbff', targetLabel);
   }
 
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
@@ -2773,13 +2795,14 @@ export function drawOrbitalHUD(
   }
 
   if (level.escapeSOIRadius) {
-    label(ctx, lx, ly, 'ESC', `${(level.escapeVectorSpeed ?? 0).toFixed(0)} m/s`, '#66bbff'); ly += lh;
+    const target = escapeTargetForLevel(level, s.time);
+    label(ctx, lx, ly, 'ESC', `${(target?.speed ?? 0).toFixed(0)} m/s`, '#66bbff'); ly += lh;
     const escapeAngle = outgoingEscapeAngle(elem);
     const vInf = escapeSpeedAtInfinity(elem);
     if (escapeAngle !== null && vInf !== null) {
       label(ctx, lx, ly, 'V∞', `${vInf.toFixed(0)} m/s`, COL_WARN); ly += lh;
-      if (level.escapeVectorAngle !== undefined) {
-        let err = escapeAngle - level.escapeVectorAngle;
+      if (target) {
+        let err = escapeAngle - target.angle;
         while (err > Math.PI) err -= 2 * Math.PI;
         while (err < -Math.PI) err += 2 * Math.PI;
         label(ctx, lx, ly, 'E-ERR', `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, Math.abs(err) < 0.12 ? COL_OK : COL_WARN); ly += lh;
