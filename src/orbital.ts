@@ -320,7 +320,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     const planetRadius = 450_000;
     const orbitAlt = 140_000;
     const baseTimeScale = 60;
-    const surfaceG = 3.5;
+    const surfaceG = 5.5;
     const gm = surfaceG * planetRadius * planetRadius;
     const r = planetRadius + orbitAlt;
     const v = Math.sqrt(gm / r);
@@ -354,7 +354,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       transitionAltitude: 20_000,
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 3,
-      approachGravity: 3.5,
+      approachGravity: 5.5,
     };
   })(),
   (() => {
@@ -362,7 +362,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     const orbitAlt = 140_000;
     const stationAlt = 180_000;
     const baseTimeScale = 60;
-    const surfaceG = 3.5;
+    const surfaceG = 5.5;
     const gm = surfaceG * planetRadius * planetRadius;
     const r = planetRadius + orbitAlt;
     const v = Math.sqrt(gm / r);
@@ -396,7 +396,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       transitionAltitude: 20_000,
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 4,
-      approachGravity: 3.5,
+      approachGravity: 5.5,
       station: {
         orbitRadius: planetRadius + stationAlt,
         startAngle: -2.2,
