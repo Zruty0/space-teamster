@@ -171,7 +171,7 @@ export const LEVELS: LevelDef[] = [
     id: 7,
     name: 'Port Kessler',
     subtitle: 'Atmospheric frontier port on Tycho',
-    gravity: 5.5,
+    gravity: 3.5,
     landingMaxVSpeed: 4.0,
     landingMaxHSpeed: 3.0,
     landingMaxAngle: 0.26,
