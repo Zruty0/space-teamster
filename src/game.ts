@@ -506,10 +506,15 @@ export class Game {
       };
     }
 
-    const h0 = orbitalLevel.startX * orbitalLevel.startVY - orbitalLevel.startY * orbitalLevel.startVX;
-    const localDir: 1 | -1 = h0 < 0 ? -1 : 1;
-    const theta = orbitalLevel.landingSiteAngle + as.x / (orbitalLevel.planetRadius * localDir);
-    const r = orbitalLevel.planetRadius + Math.max(0, as.y);
+    const ref = level.orbitalRef ?? {
+      planetRadius: orbitalLevel.planetRadius,
+      planetGM: orbitalLevel.planetGM,
+      landingSiteAngle: orbitalLevel.landingSiteAngle,
+      localDir: -1 as 1 | -1,
+    };
+    const localDir = ref.localDir;
+    const theta = ref.landingSiteAngle + as.x / (ref.planetRadius * localDir);
+    const r = ref.planetRadius + Math.max(0, as.y);
     const radX = Math.cos(theta), radY = Math.sin(theta);
     const tanX = -radY * localDir, tanY = radX * localDir;
     return {
