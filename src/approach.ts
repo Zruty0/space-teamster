@@ -69,6 +69,14 @@ export interface ApproachLevel {
     orbitalLevelId: number;
   };
 
+  // Approximate orbital frame for non-spherical atmospheric approaches
+  orbitalRef?: {
+    planetRadius: number;
+    planetGM: number;
+    landingSiteAngle: number;
+    localDir: 1 | -1;
+  };
+
   // Optional departure profile (launch/climb into orbital phase)
   departure?: {
     exitAltitude: number;              // altitude to leave approach for orbital
@@ -187,6 +195,12 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
       exitAltitude: 25_000,
       orbitalLevelId: 7,
     },
+    orbitalRef: {
+      planetRadius: 600_000,
+      planetGM: ((4 * Math.PI * Math.PI * (800_000 ** 3)) / (5000 ** 2)),
+      landingSiteAngle: -Math.PI / 4,
+      localDir: -1,
+    },
   },
   // Mission 1: Castor approach (airless, powered braking)
   {
@@ -272,6 +286,12 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
       exitAltitude: 30_000,
       orbitalLevelId: 13,
     },
+    orbitalRef: {
+      planetRadius: 450_000,
+      planetGM: 3.5 * 450_000 * 450_000,
+      landingSiteAngle: Math.PI / 5,
+      localDir: -1,
+    },
   },
   {
     id: 14,
@@ -301,6 +321,12 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
       targetOrbitAltitude: 180_000,
       orbitalLevelId: 14,
       orbitDir: -1,
+    },
+    orbitalRef: {
+      planetRadius: 450_000,
+      planetGM: 3.5 * 450_000 * 450_000,
+      landingSiteAngle: Math.PI / 5,
+      localDir: -1,
     },
   },
 ];
@@ -429,20 +455,36 @@ function impactCrossX(prevX: number, prevY: number, x: number, y: number): numbe
 }
 
 export function getApproachApoapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
-  const spherical = level.spherical;
-  if (!spherical) return null;
+  let planetRadius = 0;
+  let planetGM = 0;
+  let wx = s.worldX;
+  let wy = s.worldY;
+  let wvx = s.worldVX;
+  let wvy = s.worldVY;
 
-  const r = Math.sqrt(s.worldX * s.worldX + s.worldY * s.worldY);
-  const v2 = s.worldVX * s.worldVX + s.worldVY * s.worldVY;
-  const energy = v2 * 0.5 - spherical.planetGM / r;
-  const h = s.worldX * s.worldVY - s.worldY * s.worldVX;
-  const e2 = 1 + (2 * energy * h * h) / (spherical.planetGM * spherical.planetGM);
+  if (level.spherical) {
+    planetRadius = level.spherical.planetRadius;
+    planetGM = level.spherical.planetGM;
+  } else if (level.orbitalRef) {
+    planetRadius = level.orbitalRef.planetRadius;
+    planetGM = level.orbitalRef.planetGM;
+    const world = localToWorldFrame(s.x, s.y, s.vx, s.vy, level.orbitalRef, level.orbitalRef.localDir);
+    wx = world.wx; wy = world.wy; wvx = world.wvx; wvy = world.wvy;
+  } else {
+    return null;
+  }
+
+  const r = Math.sqrt(wx * wx + wy * wy);
+  const v2 = wvx * wvx + wvy * wvy;
+  const energy = v2 * 0.5 - planetGM / r;
+  const h = wx * wvy - wy * wvx;
+  const e2 = 1 + (2 * energy * h * h) / (planetGM * planetGM);
   const e = Math.sqrt(Math.max(0, e2));
 
   if (energy >= 0 || e >= 1) return Infinity;
 
-  const a = -spherical.planetGM / (2 * energy);
-  return a * (1 + e) - spherical.planetRadius;
+  const a = -planetGM / (2 * energy);
+  return a * (1 + e) - planetRadius;
 }
 
 function density(y: number, level: ApproachLevel): number {

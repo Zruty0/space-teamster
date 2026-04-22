@@ -1772,13 +1772,34 @@ function drawOrbitPrediction(
   // Impact point marker + distance from LZ (only for landing missions, not station)
   if (pred.impact) {
     const [mx, my] = ws(pred.impact.x, pred.impact.y, cam, W, H);
+    const onScreen = mx > 20 && mx < W - 20 && my > 20 && my < H - 20;
+
     // Red X marker (always)
-    ctx.strokeStyle = '#ff2200';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(mx - 5, my - 5); ctx.lineTo(mx + 5, my + 5);
-    ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
-    ctx.stroke();
+    if (onScreen) {
+      ctx.strokeStyle = '#ff2200';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(mx - 5, my - 5); ctx.lineTo(mx + 5, my + 5);
+      ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
+      ctx.stroke();
+    } else {
+      const margin = 38;
+      const cx = Math.max(margin, Math.min(W - margin, mx));
+      const cy = Math.max(margin, Math.min(H - margin, my));
+      const dx = mx - cx, dy = my - cy;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len > 1) {
+        const nx = dx / len, ny = dy / len;
+        const as = 10;
+        ctx.beginPath();
+        ctx.moveTo(cx + nx * as, cy + ny * as);
+        ctx.lineTo(cx - nx * 4 - ny * as * 0.5, cy - ny * 4 + nx * as * 0.5);
+        ctx.lineTo(cx - nx * 4 + ny * as * 0.5, cy - ny * 4 - nx * as * 0.5);
+        ctx.closePath();
+        ctx.fillStyle = '#ff2200';
+        ctx.fill();
+      }
+    }
 
     // Distance from LZ short/long (only for landing missions)
     if (!level.station) {
@@ -1792,10 +1813,12 @@ function drawOrbitPrediction(
       const distLabel = arcDist < 1 ? 'ON TARGET' :
         `${arcDist.toFixed(0)}km ${isShort ? 'short' : 'long'}`;
       const distCol = arcDist < 5 ? '#00ffcc' : '#ff6644';
+      const labelX = onScreen ? mx : Math.max(60, Math.min(W - 60, mx));
+      const labelY = onScreen ? my + 18 : Math.max(50, Math.min(H - 20, my)) - 14;
       ctx.font = '10px monospace';
       ctx.fillStyle = distCol;
       ctx.textAlign = 'center';
-      ctx.fillText(distLabel, mx, my + 18);
+      ctx.fillText(distLabel, labelX, labelY);
     }
   }
 }
