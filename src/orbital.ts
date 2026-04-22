@@ -382,7 +382,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startVY: 0,
       thrustAccel: 0.08,
       thrustAccelMax: 1.5,
-      fuelDeltaV: 500,
+      fuelDeltaV: 1000,
       surfaceDensity: 1.5,
       scaleHeight: 8500,
       aeroNoseDrag: 0.00002,

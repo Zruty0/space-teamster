@@ -539,12 +539,14 @@ export class Game {
     const station = p.level.station;
     if (!dockingLevel || !station) return;
 
-    const stAngle = station.startAngle - Math.sqrt(p.level.planetGM / (station.orbitRadius ** 3)) * p.os.time;
+    const sense: 1 | -1 = (p.level.startX * p.level.startVY - p.level.startY * p.level.startVX) < 0 ? -1 : 1;
+    const stOmega = sense * Math.sqrt(p.level.planetGM / (station.orbitRadius ** 3));
+    const stAngle = station.startAngle + stOmega * p.os.time;
     const stSpeed = Math.sqrt(p.level.planetGM / station.orbitRadius);
     const stX = station.orbitRadius * Math.cos(stAngle);
     const stY = station.orbitRadius * Math.sin(stAngle);
-    const stVX = stSpeed * Math.sin(stAngle);
-    const stVY = -stSpeed * Math.cos(stAngle);
+    const stVX = -sense * stSpeed * Math.sin(stAngle);
+    const stVY = sense * stSpeed * Math.cos(stAngle);
 
     let relX = p.os.x - stX;
     let relY = p.os.y - stY;
