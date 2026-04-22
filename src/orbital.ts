@@ -6,6 +6,23 @@ import { APPROACH_LEVELS, createApproachState, predictTrajectory, type ApproachI
 
 // ===================== Types =====================
 
+export interface OrbitalTransferBody {
+  id: string;
+  name: string;
+  radius: number;
+  gm: number;
+  color: [number, number, number];
+  orbitRadius: number;
+  startAngle: number;
+  orbitSense: 1 | -1;
+  soiRadius: number;
+  arrivalAltitudeMin?: number;
+  arrivalAltitudeMax?: number;
+  arrivalSpeedMarginMin?: number;
+  arrivalSpeedMarginMax?: number;
+  arrivalOrbitalLevelId?: number;
+}
+
 export interface OrbitalLevel {
   id: number;
   name: string;
@@ -16,6 +33,8 @@ export interface OrbitalLevel {
   planetGM: number;         // gravitational parameter (m³/s²)
   atmoHeight: number;       // atmosphere thickness above surface (meters)
   atmoColor: [number, number, number]; // RGB for atmosphere tint
+  planetFillColor?: string;
+  planetStrokeColor?: string;
 
   // Time scaling: "1x" display = baseTimeScale × real physics rate
   // This makes orbits visually fast while keeping velocities realistic
@@ -65,6 +84,13 @@ export interface OrbitalLevel {
     captureRadius: number;     // meters — get inside this
     captureMaxSpeed: number;   // m/s max relative speed for success
   };
+
+  // Optional transfer-system bodies (for moon-to-moon transfers)
+  systemBodies?: OrbitalTransferBody[];
+  targetBodyId?: string;
+  escapeSOIRadius?: number;
+  escapeToOrbitalLevelId?: number;
+  escapeVectorAngle?: number;
 }
 
 export interface OrbitalState {
@@ -111,6 +137,7 @@ export interface OrbitalInitOverride {
   y: number;
   vx: number;
   vy: number;
+  time?: number;
 }
 
 // ===================== Constants =====================
@@ -123,6 +150,70 @@ const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
 const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
 const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
+
+const TYCHO_RADIUS = 450_000;
+const TYCHO_SURFACE_G = 3.5;
+const TYCHO_GM = TYCHO_SURFACE_G * TYCHO_RADIUS * TYCHO_RADIUS;
+const CASTOR_SYSTEM_ORBIT_RADIUS = 1_500_000;
+const POLLUX_SYSTEM_ORBIT_RADIUS = 2_100_000;
+const CASTOR_SYSTEM_START_ANGLE = -1.25;
+const POLLUX_SYSTEM_START_ANGLE = CASTOR_SYSTEM_START_ANGLE + 0.66; // ~38° ahead
+const SHARED_MOON_RADIUS = 200_000;
+const SHARED_MOON_SURFACE_G = 1.6;
+const SHARED_MOON_GM = SHARED_MOON_SURFACE_G * SHARED_MOON_RADIUS * SHARED_MOON_RADIUS;
+
+function hillRadius(orbitRadius: number, bodyGM: number, parentGM: number): number {
+  return orbitRadius * Math.cbrt(bodyGM / (3 * parentGM));
+}
+
+const CASTOR_TRANSFER_BODY: OrbitalTransferBody = {
+  id: 'castor',
+  name: 'Castor',
+  radius: SHARED_MOON_RADIUS,
+  gm: SHARED_MOON_GM,
+  color: [160, 145, 120],
+  orbitRadius: CASTOR_SYSTEM_ORBIT_RADIUS,
+  startAngle: CASTOR_SYSTEM_START_ANGLE,
+  orbitSense: 1,
+  soiRadius: hillRadius(CASTOR_SYSTEM_ORBIT_RADIUS, SHARED_MOON_GM, TYCHO_GM),
+};
+
+const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
+  id: 'pollux',
+  name: 'Pollux',
+  radius: SHARED_MOON_RADIUS,
+  gm: SHARED_MOON_GM,
+  color: [110, 150, 185],
+  orbitRadius: POLLUX_SYSTEM_ORBIT_RADIUS,
+  startAngle: POLLUX_SYSTEM_START_ANGLE,
+  orbitSense: 1,
+  soiRadius: hillRadius(POLLUX_SYSTEM_ORBIT_RADIUS, SHARED_MOON_GM, TYCHO_GM),
+  arrivalAltitudeMin: 120_000,
+  arrivalAltitudeMax: 220_000,
+  arrivalSpeedMarginMin: 2,
+  arrivalSpeedMarginMax: 100,
+  arrivalOrbitalLevelId: 17,
+};
+
+export function getTransferBody(level: OrbitalLevel, bodyId: string): OrbitalTransferBody | null {
+  return level.systemBodies?.find(b => b.id === bodyId) ?? null;
+}
+
+export function transferBodyState(
+  level: OrbitalLevel, bodyId: string, time: number,
+): { x: number; y: number; vx: number; vy: number } | null {
+  const body = getTransferBody(level, bodyId);
+  if (!body) return null;
+  const omega = body.orbitSense * Math.sqrt(level.planetGM / (body.orbitRadius ** 3));
+  const angle = body.startAngle + omega * time;
+  const speed = Math.sqrt(level.planetGM / body.orbitRadius);
+  return {
+    x: body.orbitRadius * Math.cos(angle),
+    y: body.orbitRadius * Math.sin(angle),
+    vx: -body.orbitSense * speed * Math.sin(angle),
+    vy: body.orbitSense * speed * Math.cos(angle),
+  };
+}
 
 // ===================== Levels =====================
 
@@ -245,6 +336,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       planetGM: gm,
       atmoHeight: 0,
       atmoColor: [0, 0, 0] as [number, number, number],
+      planetFillColor: '#17130e',
+      planetStrokeColor: '#665a46',
       baseTimeScale,
       startX: 0,
       startY: r,
@@ -286,6 +379,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       planetGM: gm,
       atmoHeight: 0,
       atmoColor: [0, 0, 0] as [number, number, number],
+      planetFillColor: '#17130e',
+      planetStrokeColor: '#665a46',
       baseTimeScale,
       startX: 0,
       startY: r,
@@ -405,6 +500,140 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       },
     };
   })(),
+  (() => {
+    const planetRadius = SHARED_MOON_RADIUS;
+    const orbitAlt = 100_000;
+    const baseTimeScale = 50;
+    const gm = SHARED_MOON_GM;
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    return {
+      id: 15,
+      name: 'Castor Transfer',
+      subtitle: 'Escape Castor and set up the Pollux transfer',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 0,
+      atmoColor: [0, 0, 0] as [number, number, number],
+      planetFillColor: '#17130e',
+      planetStrokeColor: '#665a46',
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: v,
+      startVY: 0,
+      thrustAccel: 0.06,
+      thrustAccelMax: 1.2,
+      fuelDeltaV: 800,
+      surfaceDensity: 0,
+      scaleHeight: 1,
+      aeroNoseDrag: 0,
+      aeroBroadsideDrag: 0,
+      aeroLiftCoeff: 0,
+      highAtmoAoA: 0,
+      lowAtmoAoA: 0,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 0,
+      heatDissipation: 0,
+      transitionAltitude: 8_000,
+      landingSiteAngle: -Math.PI / 3,
+      approachLevelIdx: 1,
+      approachGravity: 1.6,
+      escapeSOIRadius: CASTOR_TRANSFER_BODY.soiRadius,
+      escapeToOrbitalLevelId: 16,
+      escapeVectorAngle: Math.PI / 2,
+    };
+  })(),
+  (() => {
+    const planetRadius = TYCHO_RADIUS;
+    const baseTimeScale = 60;
+    const gm = TYCHO_GM;
+    const body = CASTOR_TRANSFER_BODY;
+    const speed = Math.sqrt(gm / body.orbitRadius);
+    const x = body.orbitRadius * Math.cos(body.startAngle);
+    const y = body.orbitRadius * Math.sin(body.startAngle);
+    const vx = -body.orbitSense * speed * Math.sin(body.startAngle);
+    const vy = body.orbitSense * speed * Math.cos(body.startAngle);
+
+    return {
+      id: 16,
+      name: 'Tycho Transfer',
+      subtitle: 'Adjust the transfer and arrive at Pollux',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 90_000,
+      atmoColor: [70, 135, 210] as [number, number, number],
+      baseTimeScale,
+      startX: x,
+      startY: y,
+      startVX: vx,
+      startVY: vy,
+      thrustAccel: 0.08,
+      thrustAccelMax: 1.8,
+      fuelDeltaV: 1400,
+      surfaceDensity: 1.5,
+      scaleHeight: 8500,
+      aeroNoseDrag: 0.00002,
+      aeroBroadsideDrag: 0.0004,
+      aeroLiftCoeff: 0.00012,
+      highAtmoAoA: 0.44,
+      lowAtmoAoA: 0.13,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 1e-5,
+      heatDissipation: 0.08,
+      transitionAltitude: 20_000,
+      landingSiteAngle: Math.PI / 5,
+      approachLevelIdx: 3,
+      approachGravity: 3.5,
+      systemBodies: [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY],
+      targetBodyId: 'pollux',
+    };
+  })(),
+  (() => {
+    const planetRadius = SHARED_MOON_RADIUS;
+    const baseTimeScale = 50;
+    const gm = SHARED_MOON_GM;
+    const arrivalAlt = 180_000;
+    const r = planetRadius + arrivalAlt;
+    const vEsc = Math.sqrt(2 * gm / r);
+    const tangential = vEsc + 60;
+    const radial = -35;
+
+    return {
+      id: 17,
+      name: 'Pollux Arrival',
+      subtitle: 'Brake into Pollux orbit and set up the descent',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 0,
+      atmoColor: [0, 0, 0] as [number, number, number],
+      planetFillColor: '#0e1620',
+      planetStrokeColor: '#5d8aa7',
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: tangential,
+      startVY: radial,
+      thrustAccel: 0.06,
+      thrustAccelMax: 1.2,
+      fuelDeltaV: 650,
+      surfaceDensity: 0,
+      scaleHeight: 1,
+      aeroNoseDrag: 0,
+      aeroBroadsideDrag: 0,
+      aeroLiftCoeff: 0,
+      highAtmoAoA: 0,
+      lowAtmoAoA: 0,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 0,
+      heatDissipation: 0,
+      transitionAltitude: 8_000,
+      landingSiteAngle: 0.92,
+      approachLevelIdx: 6,
+      approachGravity: 1.6,
+    };
+  })(),
 ];
 
 // ===================== State =====================
@@ -426,7 +655,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     temperature: 0,
     trail: [],
     trailIdx: 0,
-    time: 0,
+    time: override?.time ?? 0,
     realTime: 0,
     timeWarp: 1,
     timeWarpLevel: 0,
@@ -898,6 +1127,16 @@ interface ClosestApproach {
   idx: number;
 }
 
+interface TargetBodyApproach {
+  bodyId: string;
+  dist: number;
+  relSpeed: number;
+  shipX: number; shipY: number;
+  bodyX: number; bodyY: number;
+  idx: number;
+  withinArrival: boolean;
+}
+
 interface PredictionResult {
   points: PredPoint[];
   atmoEntry: PredEvent | null;
@@ -905,6 +1144,7 @@ interface PredictionResult {
   approachStart: PredEvent | null;
   impact: PredEvent | null;
   closestApproach: ClosestApproach | null;
+  targetBodyApproach: TargetBodyApproach | null;
 }
 
 function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
@@ -994,7 +1234,52 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
     }
   }
 
-  return { points, atmoEntry, atmoExit, approachStart, impact, closestApproach };
+  let targetBodyApproach: TargetBodyApproach | null = null;
+  const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
+  if (targetBody) {
+    let bestDist = Infinity;
+    let bestRelSpeed = Infinity;
+    let hasWithinArrival = false;
+    const arrivalMinR = targetBody.radius + (targetBody.arrivalAltitudeMin ?? 0);
+    const arrivalMaxR = targetBody.radius + (targetBody.arrivalAltitudeMax ?? 0);
+    for (let i = 0; i < points.length; i++) {
+      const pt = points[i];
+      const bodyPos = transferBodyState(level, targetBody.id, pt.t);
+      if (!bodyPos) continue;
+      const dx = pt.x - bodyPos.x, dy = pt.y - bodyPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const relVx = pt.vx - bodyPos.vx, relVy = pt.vy - bodyPos.vy;
+      const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
+      const withinArrival = dist >= arrivalMinR && dist <= arrivalMaxR;
+      let dominated = false;
+      if (withinArrival) {
+        if (!hasWithinArrival || relSpeed < bestRelSpeed) {
+          bestRelSpeed = relSpeed;
+          hasWithinArrival = true;
+        } else dominated = true;
+      } else if (!hasWithinArrival) {
+        if (dist < bestDist) {
+          bestDist = dist;
+        } else dominated = true;
+      } else dominated = true;
+
+      if (!dominated) {
+        targetBodyApproach = {
+          bodyId: targetBody.id,
+          dist,
+          relSpeed,
+          shipX: pt.x,
+          shipY: pt.y,
+          bodyX: bodyPos.x,
+          bodyY: bodyPos.y,
+          idx: i,
+          withinArrival,
+        };
+      }
+    }
+  }
+
+  return { points, atmoEntry, atmoExit, approachStart, impact, closestApproach, targetBodyApproach };
 }
 
 // Cached prediction — only recomputed when orbit changes
@@ -1451,6 +1736,10 @@ export function updateOrbitalCamera(
     let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
     // If station exists, ensure its orbit is visible too
     if (level.station) maxR = Math.max(maxR, level.station.orbitRadius * 1.15);
+    const systemOuterR = level.systemBodies?.reduce((m, b) => Math.max(m, b.orbitRadius + b.soiRadius), 0) ?? 0;
+    if (systemOuterR > 0 && maxR > level.planetRadius * 4) {
+      maxR = Math.max(maxR, systemOuterR * 1.05);
+    }
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (0 - cam.x) * smooth;
@@ -1479,6 +1768,7 @@ export function renderOrbital(
   drawStars(ctx, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawAtmosphere(ctx, cam, level, W, H);
+  if (level.systemBodies) drawSystemBodies(ctx, cam, s, level, W, H);
   let rendezvousZoomed = false;
   if (level.station) {
     const sp = stationPos(level, s.time)!;
@@ -1490,6 +1780,7 @@ export function renderOrbital(
     drawStation(ctx, cam, s, level, W, H, rendezvousZoomed);
   }
   if (!level.station) drawLandingSite(ctx, cam, level, W, H);
+  if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, level, W, H);
   if (!rendezvousZoomed) {
     drawOrbitPrediction(ctx, cam, s, level, W, H);
     drawTrail(ctx, cam, s, W, H);
@@ -1530,7 +1821,7 @@ function drawPlanet(
 
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = '#0a0f0a';
+  ctx.fillStyle = level.planetFillColor ?? '#0a0f0a';
   ctx.fill();
 
   ctx.beginPath();
@@ -1548,9 +1839,103 @@ function drawPlanet(
     else ctx.lineTo(px, py);
   }
   ctx.closePath();
-  ctx.strokeStyle = '#224422';
+  ctx.strokeStyle = level.planetStrokeColor ?? '#224422';
   ctx.lineWidth = 1.5;
   ctx.stroke();
+}
+
+function drawSystemBodies(
+  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+): void {
+  for (const body of level.systemBodies ?? []) {
+    const pos = transferBodyState(level, body.id, s.time);
+    if (!pos) continue;
+    const [bx, by] = ws(pos.x, pos.y, cam, W, H);
+    const orbitR = body.orbitRadius * cam.zoom;
+    const [cx, cy] = ws(0, 0, cam, W, H);
+    const [cr, cg, cb] = body.color;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.25)`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const br = Math.max(3, body.radius * cam.zoom);
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255,255,255,0.35)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (body.id === level.targetBodyId) {
+      const soiR = body.soiRadius * cam.zoom;
+      ctx.beginPath();
+      ctx.arc(bx, by, soiR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.25)`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const minAlt = body.arrivalAltitudeMin ?? 0;
+      const maxAlt = body.arrivalAltitudeMax ?? minAlt;
+      const ringInner = (body.radius + minAlt) * cam.zoom;
+      const ringOuter = (body.radius + maxAlt) * cam.zoom;
+      ctx.beginPath();
+      ctx.arc(bx, by, ringOuter, 0, Math.PI * 2);
+      ctx.arc(bx, by, ringInner, 0, Math.PI * 2, true);
+      ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.08)`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bx, by, ringOuter, 0, Math.PI * 2);
+      ctx.arc(bx, by, ringInner, 0, Math.PI * 2, true);
+      ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.45)`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([8, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
+    ctx.fillText(body.name.toUpperCase(), bx, by - br - 6);
+  }
+
+  const pred = getCachedPrediction(s, level);
+  if (pred.targetBodyApproach) {
+    const ca = pred.targetBodyApproach;
+    const [bsx, bsy] = ws(ca.bodyX, ca.bodyY, cam, W, H);
+    const [ssx, ssy] = ws(ca.shipX, ca.shipY, cam, W, H);
+    ctx.beginPath();
+    ctx.moveTo(ssx, ssy);
+    ctx.lineTo(bsx, bsy);
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.arc(bsx, bsy, 4, 0, Math.PI * 2);
+    ctx.strokeStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const midX = (ssx + bsx) / 2;
+    const midY = (ssy + bsy) / 2;
+    const distStr = ca.dist > 1000 ? `${(ca.dist / 1000).toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
+    ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+  }
 }
 
 // --- Atmosphere ---
@@ -1625,6 +2010,46 @@ function drawLandingSite(
   const ly = labelR * Math.sin(angle);
   const [lsx, lsy] = ws(lx, ly, cam, W, H);
   ctx.fillText('LZ', lsx, lsy + 4);
+}
+
+function drawEscapeGuidance(
+  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
+  level: OrbitalLevel, W: number, H: number,
+): void {
+  const [cx, cy] = ws(0, 0, cam, W, H);
+  const soiR = level.escapeSOIRadius! * cam.zoom;
+  ctx.beginPath();
+  ctx.arc(cx, cy, soiR, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(120, 180, 255, 0.28)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 8]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (level.escapeVectorAngle === undefined) return;
+  const angle = level.escapeVectorAngle;
+  const tipR = level.escapeSOIRadius! * 1.02;
+  const baseR = level.escapeSOIRadius! * 0.9;
+  const tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
+  const base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+  const dx = tip[0] - base[0], dy = tip[1] - base[1];
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const nx = dx / len, ny = dy / len;
+  const px = -ny, py = nx;
+  ctx.beginPath();
+  ctx.moveTo(base[0], base[1]);
+  ctx.lineTo(tip[0], tip[1]);
+  ctx.lineTo(tip[0] - nx * 9 + px * 4, tip[1] - ny * 9 + py * 4);
+  ctx.moveTo(tip[0], tip[1]);
+  ctx.lineTo(tip[0] - nx * 9 - px * 4, tip[1] - ny * 9 - py * 4);
+  ctx.strokeStyle = '#66bbff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#66bbff';
+  ctx.fillText('EXIT', tip[0], tip[1] - 8);
 }
 
 // --- Station (rendezvous target) ---
@@ -2236,6 +2661,26 @@ export function drawOrbitalHUD(
       label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)}m/s (${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir})`, relCol); ly += lh;
     } else {
       label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relCol); ly += lh;
+    }
+  } else if (level.targetBodyId) {
+    const body = getTransferBody(level, level.targetBodyId);
+    const pos = body ? transferBodyState(level, body.id, s.time) : null;
+    if (body && pos) {
+      const dx = s.x - pos.x, dy = s.y - pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const rvx = s.vx - pos.vx, rvy = s.vy - pos.vy;
+      const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+      const arrivalMinR = body.radius + (body.arrivalAltitudeMin ?? 0);
+      const arrivalMaxR = body.radius + (body.arrivalAltitudeMax ?? 0);
+      const targetCol = dist >= arrivalMinR && dist <= arrivalMaxR ? COL_OK : COL_HUD;
+      label(ctx, lx, ly, body.name.slice(0, 3).toUpperCase(), `${(dist / 1000).toFixed(0)} km`, targetCol); ly += lh;
+      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < 220 ? COL_OK : COL_HUD); ly += lh;
+      const pred = getCachedPrediction(s, level);
+      if (pred.targetBodyApproach) {
+        const ca = pred.targetBodyApproach;
+        label(ctx, lx, ly, 'CA', `${(ca.dist / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+      }
     }
   }
 

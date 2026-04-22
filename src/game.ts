@@ -20,7 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalToApproachParams,
+  orbitalToApproachParams, getTransferBody, transferBodyState,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -242,6 +242,18 @@ export class Game {
       );
       return;
     }
+
+    if (missionId === 5) {
+      const castor = LEVELS.find(l => l.id === 6)!;
+      const departure = APPROACH_LEVELS.find(l => l.id === 15)!;
+      const orbitDir = departure.departure?.orbitDir ?? 1;
+      this.loadLanding(
+        castor,
+        { x: castor.padCenterX, y: castor.padY + 6.6, vx: 0, vy: 0 },
+        { targetAltitude: castor.startY, orbitDir, nextApproachLevelId: 15 },
+      );
+      return;
+    }
   }
 
   private launchLevel(index: number): void {
@@ -414,6 +426,7 @@ export class Game {
           }
           p.state = 'docked';
         }
+        if (this.handleMissionOrbitalTransition(p)) return;
         if (p.os.enteredAtmo) {
           this.transitionOrbitalToApproach(p);
           return;
@@ -424,6 +437,77 @@ export class Game {
     }
 
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
+  }
+
+  private handleMissionOrbitalTransition(p: Extract<Phase, { kind: 'orbital' }>): boolean {
+    if (this.currentMissionId !== 5) return false;
+
+    if (p.level.escapeSOIRadius && p.level.escapeToOrbitalLevelId) {
+      const r = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
+      if (r >= p.level.escapeSOIRadius) {
+        const nextLevel = ORBITAL_LEVELS.find(l => l.id === p.level.escapeToOrbitalLevelId);
+        if (!nextLevel) return false;
+        const castorState = transferBodyState(nextLevel, 'castor', p.os.time);
+        if (!castorState) return false;
+        this.loadOrbital(nextLevel, {
+          x: castorState.x + p.os.x,
+          y: castorState.y + p.os.y,
+          vx: castorState.vx + p.os.vx,
+          vy: castorState.vy + p.os.vy,
+          time: p.os.time,
+        });
+        return true;
+      }
+    }
+
+    if (p.level.targetBodyId) {
+      const body = getTransferBody(p.level, p.level.targetBodyId);
+      const bodyState = body ? transferBodyState(p.level, body.id, p.os.time) : null;
+      if (!body || !bodyState) return false;
+
+      const rx = p.os.x - bodyState.x;
+      const ry = p.os.y - bodyState.y;
+      const rvx = p.os.vx - bodyState.vx;
+      const rvy = p.os.vy - bodyState.vy;
+      const dist = Math.sqrt(rx * rx + ry * ry);
+      const speed = Math.sqrt(rvx * rvx + rvy * rvy);
+      const minR = body.radius + (body.arrivalAltitudeMin ?? 0);
+      const maxR = body.radius + (body.arrivalAltitudeMax ?? 0);
+      const targetR = Math.max(minR, Math.min(maxR, dist));
+      const vEsc = Math.sqrt(2 * body.gm / targetR);
+      const minSpeed = Math.max(vEsc * 1.002, vEsc + (body.arrivalSpeedMarginMin ?? 2));
+      const maxSpeed = Math.max(minSpeed + 1, vEsc + (body.arrivalSpeedMarginMax ?? 100));
+      const rHatX = rx / Math.max(dist, 1);
+      const rHatY = ry / Math.max(dist, 1);
+      const radialSpeed = rvx * rHatX + rvy * rHatY;
+      const arrivalReady = dist <= maxR && dist <= body.soiRadius && radialSpeed < 0 && speed >= minSpeed && speed <= maxSpeed;
+      if (!arrivalReady) return false;
+
+      const arrivalLevelId = body.arrivalOrbitalLevelId;
+      const arrivalLevel = arrivalLevelId ? ORBITAL_LEVELS.find(l => l.id === arrivalLevelId) : null;
+      if (!arrivalLevel) return false;
+
+      const tanX = -rHatY;
+      const tanY = rHatX;
+      const tangentialSpeed = rvx * tanX + rvy * tanY;
+      const speedMag = Math.max(speed, 1);
+      const dirRad = radialSpeed / speedMag;
+      const dirTan = tangentialSpeed / speedMag;
+      const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
+      const targetVR = dirRad * targetSpeed;
+      const targetVT = dirTan * targetSpeed;
+      const initOverride: OrbitalInitOverride = {
+        x: rHatX * targetR,
+        y: rHatY * targetR,
+        vx: rHatX * targetVR + tanX * targetVT,
+        vy: rHatY * targetVR + tanY * targetVT,
+        time: p.os.time,
+      };
+      this.loadOrbital(arrivalLevel, initOverride);
+      return true;
+    }
+
+    return false;
   }
 
   private transitionLandingToApproach(p: Extract<Phase, { kind: 'landing' }>): void {

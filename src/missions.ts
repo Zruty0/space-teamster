@@ -48,7 +48,7 @@ export const MISSIONS: Mission[] = [
     name: 'Twin Run',
     subtitle: 'Transport drilling equipment from Castor to the new outpost on Pollux, its sister moon.',
     completionText: 'The Pollux crew has been working with improvised tools for months. The foreman shakes your hand and won\'t let go.',
-    stub: true,
+    stub: false,
     startPhase: 'landing',
   },
   {
