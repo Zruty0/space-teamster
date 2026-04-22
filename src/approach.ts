@@ -283,7 +283,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     ],
     landingLevelId: 7,
     returnToOrbital: {
-      exitAltitude: 30_000,
+      exitAltitude: 25_000,
       orbitalLevelId: 13,
     },
     orbitalRef: {
@@ -316,7 +316,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     ],
     landingLevelId: 0,
     departure: {
-      exitAltitude: 30_000,
+      exitAltitude: 25_000,
       thresholdApoapsisAltitude: 35_000,
       targetOrbitAltitude: 180_000,
       orbitalLevelId: 14,
@@ -1245,18 +1245,15 @@ function drawTrajectory(
     }
 
     // Label: impact distance, escape, or generic long if prediction runs out
-    let tag: string;
-    let tagCol: string;
+    let tag: string | null = null;
+    let tagCol = '#ff6644';
     if (onTarget) {
       tag = 'ON TARGET';
       tagCol = '#00ffcc';
     } else if (!hasImpact) {
       if (level.returnToOrbital && last.y >= level.returnToOrbital.exitAltitude) {
         tag = 'ESCAPE';
-      } else {
-        tag = 'LONG';
       }
-      tagCol = '#ff6644';
     } else {
       const distKm = Math.abs(diff) / 1000;
       // Short/long is defined relative to the side you are approaching from:
@@ -1265,14 +1262,15 @@ function drawTrajectory(
       const approachingFromRight = s.x > level.gateX;
       const isShort = approachingFromRight ? diff > 0 : diff < 0;
       tag = `${distKm.toFixed(1)}km ${isShort ? 'short' : 'long'}`;
-      tagCol = '#ff6644';
     }
-    const labelX = clamp(lsx, 60, W - 60);
-    const labelY = clamp(lsy - 14, 50, H - 20);
-    ctx.font = 'bold 13px monospace';
-    ctx.fillStyle = tagCol;
-    ctx.textAlign = 'center';
-    ctx.fillText(tag, labelX, labelY);
+    if (tag) {
+      const labelX = clamp(lsx, 60, W - 60);
+      const labelY = clamp(lsy - 14, 50, H - 20);
+      ctx.font = 'bold 13px monospace';
+      ctx.fillStyle = tagCol;
+      ctx.textAlign = 'center';
+      ctx.fillText(tag, labelX, labelY);
+    }
   }
 
   // --- Trajectory markers ---
@@ -1631,7 +1629,8 @@ export function drawApproachHUD(
   let aoa = velAngle - s.angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
   while (aoa < -Math.PI) aoa += 2 * Math.PI;
-  label(ctx, lx, ly, 'AoA', `${(aoa * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
+  const aoaDisplay = (s.vx >= 0 ? 1 : -1) * aoa;
+  label(ctx, lx, ly, 'AoA', `${(aoaDisplay * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
 
   let cfgStr = 'CLEAN';
   let cfgCol = COL_HUD;

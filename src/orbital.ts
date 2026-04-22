@@ -351,7 +351,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       rcsAngularAccel: 0.5,
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
-      transitionAltitude: 30_000,
+      transitionAltitude: 25_000,
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 3,
       approachGravity: 3.5,
@@ -393,7 +393,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       rcsAngularAccel: 0.5,
       heatCoeff: 1e-5,
       heatDissipation: 0.08,
-      transitionAltitude: 30_000,
+      transitionAltitude: 25_000,
       landingSiteAngle: Math.PI / 5,
       approachLevelIdx: 4,
       approachGravity: 3.5,
@@ -412,6 +412,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
 export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOverride): OrbitalState {
   _predDirty = true;
   _cachedPred = null;
+  _predLastStateTime = -1;
   _wasRendezvousZoom = false;
   _maneuverCache = null;
   return {
@@ -788,7 +789,7 @@ export function updateOrbital(
     s.time += subDt;
 
     // Invalidate prediction when orbit changes
-    if (s.thrusting !== 'none' || s.inAtmo) _predDirty = true;
+    if (s.thrusting !== 'none') _predDirty = true;
 
     // Transition: below transition altitude while in atmosphere
     const newR = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -822,10 +823,12 @@ export function updateOrbital(
     s.targetAoA = level.highAtmoAoA;
     s.timeWarpLevel = 0;
     s.timeWarp = 1;
+    _predDirty = true;
   }
   // Snap-rotate on atmo exit
   if (!s.inAtmo && wasInAtmo) {
     s.targetAoA = 0;
+    _predDirty = true;
   }
 
   if (s.inAtmo) {
@@ -837,6 +840,7 @@ export function updateOrbital(
       s.targetAoA += input.pitch * sense * level.rcsAngularAccel * dt;
       if (s.targetAoA > Math.PI * 0.9) s.targetAoA = Math.PI * 0.9;
       if (s.targetAoA < -Math.PI * 0.9) s.targetAoA = -Math.PI * 0.9;
+      _predDirty = true;
     }
     // Ship angle tracks velocity; positive displayed AoA always means "nose above horizon"
     const velAngle = Math.atan2(s.vy, s.vx);
@@ -996,6 +1000,7 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
 let _cachedPred: PredictionResult | null = null;
 let _predDirty = true;
 let _predFrameCount = 0;
+let _predLastStateTime = -1;
 const ATMO_RECALC_INTERVAL = 30; // recalc every N frames when in atmo
 const COAST_RECALC_INTERVAL = 90; // recalc every N frames when coasting (for gradient update)
 
@@ -1037,31 +1042,58 @@ function hybridizeApproachPrediction(
     inRendezvousZoom: false,
   }, level);
   const as = createApproachState(approachLevel, init);
-  const traj = predictTrajectory(as, approachLevel, 0, 240, 0.4, false);
-  if (traj.impactX === null) return pred;
-
+  const trajStep = 0.4;
+  const traj = predictTrajectory(as, approachLevel, 0, 240, trajStep, false);
   const localDir = init.localDir ?? -1;
-  const theta = level.landingSiteAngle + traj.impactX / (level.planetRadius * localDir);
-  const impactX = level.planetRadius * Math.cos(theta);
-  const impactY = level.planetRadius * Math.sin(theta);
-  return {
-    ...pred,
-    impact: {
-      x: impactX,
-      y: impactY,
-      vx: pred.impact?.vx ?? pred.approachStart.vx,
-      vy: pred.impact?.vy ?? pred.approachStart.vy,
-      alt: 0,
-      idx: pred.approachStart.idx + traj.points.length,
-    },
+
+  const localToWorld = (lx: number, ly: number, lvx: number, lvy: number) => {
+    const theta = level.landingSiteAngle + lx / (level.planetRadius * localDir);
+    const r = level.planetRadius + ly;
+    const radX = Math.cos(theta), radY = Math.sin(theta);
+    const tanX = -radY * localDir, tanY = radX * localDir;
+    return {
+      x: radX * r,
+      y: radY * r,
+      vx: tanX * lvx + radX * lvy,
+      vy: tanY * lvx + radY * lvy,
+      alt: ly,
+    };
   };
+
+  const prefix = pred.points.slice(0, pred.approachStart.idx + 1);
+  const hybridTail: PredPoint[] = [];
+  let prevX = as.x, prevY = as.y, prevVX = as.vx, prevVY = as.vy;
+  for (let i = 0; i < traj.points.length; i++) {
+    const pt = traj.points[i];
+    const lvx = i === 0 ? prevVX : (pt.x - prevX) / trajStep;
+    const lvy = i === 0 ? prevVY : (pt.y - prevY) / trajStep;
+    const w = localToWorld(pt.x, pt.y, lvx, lvy);
+    hybridTail.push({
+      x: w.x,
+      y: w.y,
+      vx: w.vx,
+      vy: w.vy,
+      alt: w.alt,
+      t: pred.points[pred.approachStart.idx].t + (i + 1) * trajStep,
+      inAtmo: true,
+      belowCritical: w.alt < level.transitionAltitude,
+      heatRate: 0,
+    });
+    prevX = pt.x; prevY = pt.y; prevVX = lvx; prevVY = lvy;
+    if (traj.impactX !== null && pt.y <= 0) break;
+  }
+
+  return analyzePrediction(prefix.concat(hybridTail), level);
 }
 
 function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
-  _predFrameCount++;
-  // Periodic recalc: faster in atmo (drag), slower when coasting (gradient shift)
-  if (s.inAtmo && _predFrameCount % ATMO_RECALC_INTERVAL === 0) _predDirty = true;
-  else if (_predFrameCount % COAST_RECALC_INTERVAL === 0) _predDirty = true;
+  if (s.time !== _predLastStateTime) {
+    _predLastStateTime = s.time;
+    _predFrameCount++;
+    // Periodic recalc: faster in atmo (drag), slower when coasting (gradient shift)
+    if (s.inAtmo && _predFrameCount % ATMO_RECALC_INTERVAL === 0) _predDirty = true;
+    else if (_predFrameCount % COAST_RECALC_INTERVAL === 0) _predDirty = true;
+  }
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
