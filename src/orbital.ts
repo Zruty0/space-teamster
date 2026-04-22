@@ -240,12 +240,15 @@ function escapeTargetForLevel(
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
   if (angle === null) return null;
 
-  return { angle, speed: level.escapeVectorSpeed ?? 0 };
+  const vInf = level.escapeVectorSpeed ?? 0;
+  const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
+  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
+  return { angle, speed };
 }
 
 function currentEscapeVector(
   s: OrbitalState, level: OrbitalLevel,
-): { angle: number; speed: number; x: number; y: number } | null {
+): { angle: number; speed: number; x: number; y: number; vInf: number } | null {
   if (!level.escapeSOIRadius) return null;
   const patchR = level.escapeSOIRadius;
   const effSpeed = (vx: number, vy: number) => {
@@ -260,9 +263,10 @@ function currentEscapeVector(
       const scale = patchR / Math.max(r, 1);
       return {
         angle: Math.atan2(s.vy, s.vx),
-        speed: effSpeed(s.vx, s.vy),
+        speed,
         x: s.x * scale,
         y: s.y * scale,
+        vInf: effSpeed(s.vx, s.vy),
       };
     }
   }
@@ -281,8 +285,9 @@ function currentEscapeVector(
       const vy = prev.vy + (pt.vy - prev.vy) * frac;
       return {
         angle: Math.atan2(vy, vx),
-        speed: effSpeed(vx, vy),
+        speed: Math.sqrt(vx * vx + vy * vy),
         x, y,
+        vInf: effSpeed(vx, vy),
       };
     }
   }

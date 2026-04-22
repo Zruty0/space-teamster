@@ -456,11 +456,13 @@ export class Game {
         const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
         if (localSpeed < 0.01) return false;
         const escapeAngle = Math.atan2(p.os.vy, p.os.vx);
+        const patchR = p.level.escapeSOIRadius ?? Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
+        const vInf = Math.sqrt(Math.max(0, localSpeed * localSpeed - 2 * p.level.planetGM / Math.max(patchR, 1)));
         this.loadOrbital(nextLevel, {
           x: castorState.x,
           y: castorState.y,
-          vx: castorState.vx + Math.cos(escapeAngle) * localSpeed,
-          vy: castorState.vy + Math.sin(escapeAngle) * localSpeed,
+          vx: castorState.vx + Math.cos(escapeAngle) * vInf,
+          vy: castorState.vy + Math.sin(escapeAngle) * vInf,
           time: p.os.time,
         });
         return true;
@@ -487,7 +489,7 @@ export class Game {
       const rHatX = rx / Math.max(dist, 1);
       const rHatY = ry / Math.max(dist, 1);
       const radialSpeed = rvx * rHatX + rvy * rHatY;
-      const arrivalReady = dist <= body.patchRadius && radialSpeed < 0;
+      const arrivalReady = dist <= body.patchRadius;
       if (!arrivalReady) return false;
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
