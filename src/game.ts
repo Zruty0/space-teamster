@@ -401,15 +401,9 @@ export class Game {
   }
 
   private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): void {
-    if (this.currentMissionId === 1) {
-      const orbLevel = ORBITAL_LEVELS.find(l => l.id === 11);
-      if (orbLevel) this.loadOrbital(orbLevel);
-      return;
-    }
-    if (this.currentMissionId === 3) {
-      const orbLevel = ORBITAL_LEVELS.find(l => l.id === 13);
-      if (orbLevel) this.loadOrbital(orbLevel);
-    }
+    if (!p.level.orbitalLevelId) return;
+    const orbLevel = ORBITAL_LEVELS.find(l => l.id === p.level.orbitalLevelId);
+    if (orbLevel) this.loadOrbital(orbLevel, undefined, this.worldTime);
   }
 
   // --- Orbital phase ---
@@ -433,13 +427,13 @@ export class Game {
 
         if (!p.os.alive) p.state = 'crashed';
         if (p.os.docked) {
-          if (this.currentMissionId === 2 || this.currentMissionId === 4) {
+          if (p.level.dockingLevelId) {
             this.transitionOrbitalToDocking(p);
             return;
           }
           p.state = 'docked';
         }
-        if (this.handleMissionOrbitalTransition(p)) return;
+        if (this.handleOrbitalTransitions(p)) return;
         if (p.os.enteredAtmo) {
           this.transitionOrbitalToApproach(p);
           return;
@@ -453,28 +447,26 @@ export class Game {
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
-  private handleMissionOrbitalTransition(p: Extract<Phase, { kind: 'orbital' }>): boolean {
-    if (this.currentMissionId !== 5) return false;
-
+  private handleOrbitalTransitions(p: Extract<Phase, { kind: 'orbital' }>): boolean {
     if (p.level.escapeSOIRadius && p.level.escapeToOrbitalLevelId) {
       const r = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
       if (r >= p.level.escapeSOIRadius) {
         const nextLevel = ORBITAL_LEVELS.find(l => l.id === p.level.escapeToOrbitalLevelId);
         if (!nextLevel) return false;
-        const castorState = transferBodyState(nextLevel, 'castor', p.os.time);
-        if (!castorState) return false;
+        const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time);
+        if (!originState) return false;
         const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
         if (localSpeed < 0.01) return false;
         const escapeAngle = Math.atan2(p.os.vy, p.os.vx);
         const patchR = p.level.escapeSOIRadius ?? Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
         const vInf = Math.sqrt(Math.max(0, localSpeed * localSpeed - 2 * p.level.planetGM / Math.max(patchR, 1)));
         this.loadOrbital(nextLevel, {
-          x: castorState.x,
-          y: castorState.y,
-          vx: castorState.vx + Math.cos(escapeAngle) * vInf,
-          vy: castorState.vy + Math.sin(escapeAngle) * vInf,
+          x: originState.x,
+          y: originState.y,
+          vx: originState.vx + Math.cos(escapeAngle) * vInf,
+          vy: originState.vy + Math.sin(escapeAngle) * vInf,
           time: p.os.time,
-        });
+        }, p.os.time);
         return true;
       }
     }
@@ -522,7 +514,7 @@ export class Game {
         vy: rHatY * targetVR + tanY * targetVT,
         time: p.os.time,
       };
-      this.loadOrbital(arrivalLevel, initOverride);
+      this.loadOrbital(arrivalLevel, initOverride, p.os.time);
       return true;
     }
 
@@ -599,7 +591,7 @@ export class Game {
       return;
     }
     const params = orbitalToApproachParams(p.os, p.level);
-    this.loadApproach(approachLevel, params);
+    this.loadApproach(approachLevel, params, p.os.time);
   }
 
   private approachToOrbitalInit(level: ApproachLevel, as: ApproachState, orbitalLevel: OrbitalLevel): OrbitalInitOverride {
@@ -631,18 +623,18 @@ export class Game {
     if (!orbitalLevelId) return;
     const orbitalLevel = ORBITAL_LEVELS.find(l => l.id === orbitalLevelId);
     if (!orbitalLevel) return;
-    this.loadOrbital(orbitalLevel, this.approachToOrbitalInit(p.level, p.as, orbitalLevel));
+    this.loadOrbital(orbitalLevel, this.approachToOrbitalInit(p.level, p.as, orbitalLevel), p.worldTimeStart + this.time);
   }
 
   private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): void {
-    const dockingLevelId = this.currentMissionId === 4 ? 14 : 12;
-    const dockingLevel = DOCKING_LEVELS.find(l => l.id === dockingLevelId);
+    const dockingLevelId = p.level.dockingLevelId;
+    const dockingLevel = dockingLevelId ? DOCKING_LEVELS.find(l => l.id === dockingLevelId) : null;
     const station = p.level.station;
     if (!dockingLevel || !station) return;
 
-    const sense: 1 | -1 = (p.level.startX * p.level.startVY - p.level.startY * p.level.startVX) < 0 ? -1 : 1;
+    const sense = station.orbitSense;
     const stOmega = sense * Math.sqrt(p.level.planetGM / (station.orbitRadius ** 3));
-    const stAngle = station.startAngle + stOmega * p.os.time;
+    const stAngle = station.epochAngle + stOmega * (p.os.time - station.epochTime);
     const stSpeed = Math.sqrt(p.level.planetGM / station.orbitRadius);
     const stX = station.orbitRadius * Math.cos(stAngle);
     const stY = station.orbitRadius * Math.sin(stAngle);
@@ -677,7 +669,7 @@ export class Game {
       vy: relVY,
       angle: Math.atan2(-uy, -ux),
     };
-    this.loadDocking(dockingLevel, initOverride);
+    this.loadDocking(dockingLevel, initOverride, p.os.time);
   }
 
   // --- Approach phase ---

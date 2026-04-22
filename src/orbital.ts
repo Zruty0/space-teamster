@@ -3,6 +3,7 @@
 
 import { InputState } from './input';
 import { APPROACH_LEVELS, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
+import { bodyById, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -13,7 +14,8 @@ export interface OrbitalTransferBody {
   gm: number;
   color: [number, number, number];
   orbitRadius: number;
-  startAngle: number;
+  epochAngle: number;
+  epochTime: number;
   orbitSense: 1 | -1;
   patchRadius: number;           // gameplay patch/intercept radius
   displayPatchRadius?: number;   // optional smaller/larger rendered radius
@@ -26,6 +28,7 @@ export interface OrbitalTransferBody {
 
 export interface OrbitalLevel {
   id: number;
+  bodyId: string;
   name: string;
   subtitle: string;
 
@@ -83,10 +86,13 @@ export interface OrbitalLevel {
   // Station (rendezvous target, optional)
   station?: {
     orbitRadius: number;       // meters from planet center
-    startAngle: number;        // radians at t=0
+    epochAngle: number;        // radians at epoch
+    epochTime: number;         // world time at epoch
+    orbitSense: 1 | -1;
     captureRadius: number;     // meters — get inside this
     captureMaxSpeed: number;   // m/s max relative speed for success
   };
+  dockingLevelId?: number;
 
   // Optional transfer-system bodies (for moon-to-moon transfers)
   systemBodies?: OrbitalTransferBody[];
@@ -157,16 +163,15 @@ const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below tr
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
 const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
 
-const TYCHO_RADIUS = 450_000;
-const TYCHO_SURFACE_G = 3.5;
-const TYCHO_GM = TYCHO_SURFACE_G * TYCHO_RADIUS * TYCHO_RADIUS;
-const CASTOR_SYSTEM_ORBIT_RADIUS = 15_000_000;
-const POLLUX_SYSTEM_ORBIT_RADIUS = 21_000_000;
-const CASTOR_SYSTEM_START_ANGLE = -1.25;
-const POLLUX_SYSTEM_START_ANGLE = CASTOR_SYSTEM_START_ANGLE + 0.70; // ~40° ahead; slightly steeper-than-Hohmann setup
-const SHARED_MOON_RADIUS = 200_000;
-const SHARED_MOON_SURFACE_G = 1.6;
-const SHARED_MOON_GM = SHARED_MOON_SURFACE_G * SHARED_MOON_RADIUS * SHARED_MOON_RADIUS;
+const TYCHO = bodyById('tycho');
+const CASTOR = bodyById('castor');
+const POLLUX = bodyById('pollux');
+const TYCHO_RADIUS = TYCHO.radius;
+const TYCHO_GM = TYCHO.gm;
+const CASTOR_SYSTEM_ORBIT_RADIUS = CASTOR.orbit!.radius;
+const POLLUX_SYSTEM_ORBIT_RADIUS = POLLUX.orbit!.radius;
+const SHARED_MOON_RADIUS = CASTOR.radius;
+const SHARED_MOON_GM = CASTOR.gm;
 
 function hillRadius(orbitRadius: number, bodyGM: number, parentGM: number): number {
   return orbitRadius * Math.cbrt(bodyGM / (3 * parentGM));
@@ -181,25 +186,27 @@ function hohmannDepartureVInf(innerOrbitRadius: number, outerOrbitRadius: number
 
 const CASTOR_TRANSFER_BODY: OrbitalTransferBody = {
   id: 'castor',
-  name: 'Castor',
-  radius: SHARED_MOON_RADIUS,
-  gm: SHARED_MOON_GM,
-  color: [160, 145, 120],
-  orbitRadius: CASTOR_SYSTEM_ORBIT_RADIUS,
-  startAngle: CASTOR_SYSTEM_START_ANGLE,
-  orbitSense: 1,
+  name: CASTOR.name,
+  radius: CASTOR.radius,
+  gm: CASTOR.gm,
+  color: CASTOR.color,
+  orbitRadius: CASTOR.orbit!.radius,
+  epochAngle: CASTOR.orbit!.epochAngle,
+  epochTime: CASTOR.orbit!.epochTime,
+  orbitSense: CASTOR.orbit!.orbitSense,
   patchRadius: 700_000,
 };
 
 const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
   id: 'pollux',
-  name: 'Pollux',
-  radius: SHARED_MOON_RADIUS,
-  gm: SHARED_MOON_GM,
-  color: [110, 150, 185],
-  orbitRadius: POLLUX_SYSTEM_ORBIT_RADIUS,
-  startAngle: POLLUX_SYSTEM_START_ANGLE,
-  orbitSense: 1,
+  name: POLLUX.name,
+  radius: POLLUX.radius,
+  gm: POLLUX.gm,
+  color: POLLUX.color,
+  orbitRadius: POLLUX.orbit!.radius,
+  epochAngle: POLLUX.orbit!.epochAngle,
+  epochTime: POLLUX.orbit!.epochTime,
+  orbitSense: POLLUX.orbit!.orbitSense,
   patchRadius: 800_000,
   arrivalAltitudeMin: 120_000,
   arrivalAltitudeMax: 220_000,
@@ -218,7 +225,7 @@ export function transferBodyState(
   const body = getTransferBody(level, bodyId);
   if (!body) return null;
   const omega = body.orbitSense * Math.sqrt(level.planetGM / (body.orbitRadius ** 3));
-  const angle = body.startAngle + omega * time;
+  const angle = body.epochAngle + omega * (time - body.epochTime);
   const speed = Math.sqrt(level.planetGM / body.orbitRadius);
   return {
     x: body.orbitRadius * Math.cos(angle),
@@ -233,16 +240,16 @@ let _cachedEscapeTarget: { levelId: number; timeBin: number; angle: number } | n
 function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: number): number | null {
   if (!level.escapeToOrbitalLevelId) return null;
   const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
-  const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
+  const originState = nextLevel ? transferBodyState(nextLevel, level.bodyId, time) : null;
   const targetBody = nextLevel?.targetBodyId ? getTransferBody(nextLevel, nextLevel.targetBodyId) : null;
-  if (!nextLevel || !castorState || !targetBody) return null;
+  if (!nextLevel || !originState || !targetBody) return null;
 
   const timeBin = Math.floor(time / 200);
   if (_cachedEscapeTarget && _cachedEscapeTarget.levelId === level.id && _cachedEscapeTarget.timeBin === timeBin) {
     return _cachedEscapeTarget.angle;
   }
 
-  const baseAngle = Math.atan2(castorState.vy, castorState.vx);
+  const baseAngle = Math.atan2(originState.vy, originState.vx);
   const transferA = (CASTOR_SYSTEM_ORBIT_RADIUS + POLLUX_SYSTEM_ORBIT_RADIUS) * 0.5;
   const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
   const horizon = hohmannTime * 1.35;
@@ -253,10 +260,10 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
 
   const evalAngle = (angle: number) => {
     const trial: OrbitalState = {
-      x: castorState.x,
-      y: castorState.y,
-      vx: castorState.vx + Math.cos(angle) * vInf,
-      vy: castorState.vy + Math.sin(angle) * vInf,
+      x: originState.x,
+      y: originState.y,
+      vx: originState.vx + Math.cos(angle) * vInf,
+      vy: originState.vy + Math.sin(angle) * vInf,
       fuel: 0,
       alive: true,
       enteredAtmo: false,
@@ -391,346 +398,183 @@ function currentEscapeVector(
 
 // ===================== Levels =====================
 
-function gmForPeriod(planetRadius: number, orbitAlt: number, period: number): number {
-  const r = planetRadius + orbitAlt;
-  return (4 * Math.PI * Math.PI * r * r * r) / (period * period);
+function approachById(id: number) {
+  const level = APPROACH_LEVELS.find(l => l.id === id);
+  if (!level) throw new Error(`Missing approach level ${id}`);
+  return level;
+}
+
+function approachIndexById(id: number): number {
+  const idx = APPROACH_LEVELS.findIndex(l => l.id === id);
+  if (idx < 0) throw new Error(`Missing approach level index ${id}`);
+  return idx;
+}
+
+function createOrbitalBase(
+  id: number,
+  bodyId: 'castor' | 'tycho' | 'pollux',
+  name: string,
+  subtitle: string,
+  startX: number,
+  startY: number,
+  startVX: number,
+  startVY: number,
+  approachLevelId: number,
+): OrbitalLevel {
+  const body = bodyById(bodyId);
+  const atmo = body.atmosphere;
+  const approach = approachById(approachLevelId);
+  return {
+    id,
+    bodyId,
+    name,
+    subtitle,
+    planetRadius: body.radius,
+    planetGM: body.gm,
+    atmoHeight: atmo?.height ?? 0,
+    atmoColor: atmo?.color ?? [0, 0, 0],
+    planetFillColor: body.planetFillColor,
+    planetStrokeColor: body.planetStrokeColor,
+    baseTimeScale: bodyId === 'tycho' ? 60 : 50,
+    startX,
+    startY,
+    startVX,
+    startVY,
+    thrustAccel: bodyId === 'tycho' ? 0.08 : 0.05,
+    thrustAccelMax: bodyId === 'tycho' ? 1.5 : 1.0,
+    fuelDeltaV: bodyId === 'tycho' ? 500 : 400,
+    surfaceDensity: atmo?.surfaceDensity ?? 0,
+    scaleHeight: atmo?.scaleHeight ?? 1,
+    aeroNoseDrag: atmo ? 0.00002 : 0,
+    aeroBroadsideDrag: atmo ? 0.0004 : 0,
+    aeroLiftCoeff: atmo ? 0.00012 : 0,
+    highAtmoAoA: atmo ? 0.44 : 0,
+    lowAtmoAoA: atmo ? 0.13 : 0,
+    rcsAngularAccel: 0.5,
+    heatCoeff: atmo ? 1e-5 : 0,
+    heatDissipation: atmo ? 0.08 : 0,
+    transitionAltitude: bodyId === 'tycho' ? 20_000 : 8_000,
+    landingSiteAngle: approach.frame.landingSiteAngle,
+    approachLevelIdx: approachIndexById(approachLevelId),
+    approachGravity: body.gm / (body.radius * body.radius),
+    reentryApproachLevelId: approachLevelId,
+    showLandingSite: true,
+  };
+}
+
+function createSurfaceOrbitalLevel(
+  id: number,
+  surfacePoiId: 'castor-settlement' | 'port-kessler' | 'pollux-outpost',
+  name: string,
+  subtitle: string,
+  orbitAlt: number,
+  approachLevelId: number,
+  orbitSense: 1 | -1,
+): OrbitalLevel {
+  const poi = surfacePoiById(surfacePoiId);
+  const body = bodyById(poi.bodyId);
+  const r = body.radius + orbitAlt;
+  const v = Math.sqrt(body.gm / r);
+  const level = createOrbitalBase(id, poi.bodyId as 'castor' | 'tycho' | 'pollux', name, subtitle, 0, r, -orbitSense * v, 0, approachLevelId);
+  level.landingSiteAngle = poi.surfaceAngle;
+  return level;
+}
+
+function createStationOrbitalLevel(
+  id: number,
+  stationPoiId: 'calloway' | 'anchor' | 'morrow',
+  name: string,
+  subtitle: string,
+  playerOrbitAlt: number,
+  approachLevelId: number,
+  startSense: 1 | -1,
+  fuelDeltaV: number,
+  dockingLevelId: number,
+): OrbitalLevel {
+  const stationPoi = stationPoiById(stationPoiId);
+  const body = bodyById(stationPoi.bodyId);
+  const r = body.radius + playerOrbitAlt;
+  const v = Math.sqrt(body.gm / r);
+  const level = createOrbitalBase(id, stationPoi.bodyId as 'castor' | 'tycho' | 'pollux', name, subtitle, 0, r, -startSense * v, 0, approachLevelId);
+  level.fuelDeltaV = fuelDeltaV;
+  level.showLandingSite = false;
+  level.station = {
+    orbitRadius: stationPoi.orbit.radius,
+    epochAngle: stationPoi.orbit.epochAngle,
+    epochTime: stationPoi.orbit.epochTime,
+    orbitSense: stationPoi.orbit.orbitSense,
+    captureRadius: stationPoi.captureRadius,
+    captureMaxSpeed: stationPoi.captureMaxSpeed,
+  };
+  level.dockingLevelId = dockingLevelId;
+  return level;
+}
+
+function createTransferSeedFromBody(body: OrbitalTransferBody): { x: number; y: number; vx: number; vy: number } {
+  const speed = Math.sqrt(TYCHO_GM / body.orbitRadius);
+  return {
+    x: body.orbitRadius * Math.cos(body.epochAngle),
+    y: body.orbitRadius * Math.sin(body.epochAngle),
+    vx: -body.orbitSense * speed * Math.sin(body.epochAngle),
+    vy: body.orbitSense * speed * Math.cos(body.epochAngle),
+  };
 }
 
 export const ORBITAL_LEVELS: OrbitalLevel[] = [
-  // --- Mission 1: Castor orbit (airless moon, deorbit to surface) ---
   (() => {
-    const planetRadius = 200_000;  // 200km radius moon
-    const orbitAlt = 100_000;    // 100km orbit
-    const baseTimeScale = 50;
-    const surfaceG = 1.6; // m/s²
-    const gm = surfaceG * planetRadius * planetRadius;
-    const r = planetRadius + orbitAlt;
-    const v = Math.sqrt(gm / r);
-
-    return {
-      id: 11,
-      name: 'Castor Orbit',
-      subtitle: 'Deorbit to mining settlement',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 0,
-      atmoColor: [0, 0, 0] as [number, number, number],
-      planetFillColor: '#17130e',
-      planetStrokeColor: '#665a46',
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: v,
-      startVY: 0,
-      thrustAccel: 0.05,
-      thrustAccelMax: 1.0,
-      fuelDeltaV: 400,
-      surfaceDensity: 0,
-      scaleHeight: 1,
-      aeroNoseDrag: 0,
-      aeroBroadsideDrag: 0,
-      aeroLiftCoeff: 0,
-      highAtmoAoA: 0,
-      lowAtmoAoA: 0,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 0,
-      heatDissipation: 0,
-      transitionAltitude: 8_000,
-      landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 1,
-      approachGravity: 1.6,
-      reentryApproachLevelId: 11,
-      showLandingSite: true,
-    };
+    const level = createSurfaceOrbitalLevel(11, 'castor-settlement', 'Castor Orbit', 'Deorbit to mining settlement', 100_000, 11, -1);
+    return level;
   })(),
   (() => {
-    const planetRadius = 200_000;
-    const orbitAlt = 100_000;
-    const baseTimeScale = 50;
-    const surfaceG = 1.6;
-    const gm = surfaceG * planetRadius * planetRadius;
-    const r = planetRadius + orbitAlt;
-    const v = Math.sqrt(gm / r);
-
-    return {
-      id: 12,
-      name: 'Calloway Rendezvous',
-      subtitle: 'Raise apoapsis and rendezvous with Calloway Station',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 0,
-      atmoColor: [0, 0, 0] as [number, number, number],
-      planetFillColor: '#17130e',
-      planetStrokeColor: '#665a46',
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: v,
-      startVY: 0,
-      thrustAccel: 0.05,
-      thrustAccelMax: 1.0,
-      fuelDeltaV: 400,
-      surfaceDensity: 0,
-      scaleHeight: 1,
-      aeroNoseDrag: 0,
-      aeroBroadsideDrag: 0,
-      aeroLiftCoeff: 0,
-      highAtmoAoA: 0,
-      lowAtmoAoA: 0,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 0,
-      heatDissipation: 0,
-      transitionAltitude: 8_000,
-      landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 2,
-      approachGravity: 1.6,
-      reentryApproachLevelId: 12,
-      showLandingSite: false,
-      station: {
-        orbitRadius: r,
-        startAngle: -0.25,
-        captureRadius: 20_000,
-        captureMaxSpeed: 20,
-      },
-    };
+    const level = createStationOrbitalLevel(12, 'calloway', 'Calloway Rendezvous', 'Raise apoapsis and rendezvous with Calloway Station', 100_000, 12, -1, 400, 12);
+    return level;
   })(),
   (() => {
-    const planetRadius = 450_000;
-    const orbitAlt = 140_000;
-    const baseTimeScale = 60;
-    const surfaceG = 3.5;
-    const gm = surfaceG * planetRadius * planetRadius;
-    const r = planetRadius + orbitAlt;
-    const v = Math.sqrt(gm / r);
-
-    return {
-      id: 13,
-      name: 'Tycho Orbit',
-      subtitle: 'Deorbit toward the surface target',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 90_000,
-      atmoColor: [70, 135, 210] as [number, number, number],
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: -v,
-      startVY: 0,
-      thrustAccel: 0.08,
-      thrustAccelMax: 1.5,
-      fuelDeltaV: 500,
-      surfaceDensity: 1.5,
-      scaleHeight: 8500,
-      aeroNoseDrag: 0.00002,
-      aeroBroadsideDrag: 0.0004,
-      aeroLiftCoeff: 0.00012,
-      highAtmoAoA: 0.44,
-      lowAtmoAoA: 0.13,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 1e-5,
-      heatDissipation: 0.08,
-      transitionAltitude: 20_000,
-      landingSiteAngle: Math.PI / 5,
-      approachLevelIdx: 3,
-      approachGravity: 3.5,
-      reentryApproachLevelId: 13,
-      showLandingSite: true,
-    };
+    const level = createSurfaceOrbitalLevel(13, 'port-kessler', 'Tycho Orbit', 'Deorbit toward the surface target', 140_000, 13, 1);
+    return level;
   })(),
   (() => {
-    const planetRadius = 450_000;
-    const orbitAlt = 140_000;
-    const stationAlt = 180_000;
-    const baseTimeScale = 60;
-    const surfaceG = 3.5;
-    const gm = surfaceG * planetRadius * planetRadius;
-    const r = planetRadius + orbitAlt;
-    const v = Math.sqrt(gm / r);
-
-    return {
-      id: 14,
-      name: 'Anchor Rendezvous',
-      subtitle: 'Raise apoapsis and rendezvous with Anchor Station',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 90_000,
-      atmoColor: [70, 135, 210] as [number, number, number],
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: -v,
-      startVY: 0,
-      thrustAccel: 0.08,
-      thrustAccelMax: 1.5,
-      fuelDeltaV: 1000,
-      surfaceDensity: 1.5,
-      scaleHeight: 8500,
-      aeroNoseDrag: 0.00002,
-      aeroBroadsideDrag: 0.0004,
-      aeroLiftCoeff: 0.00012,
-      highAtmoAoA: 0.44,
-      lowAtmoAoA: 0.13,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 1e-5,
-      heatDissipation: 0.08,
-      transitionAltitude: 20_000,
-      landingSiteAngle: Math.PI / 5,
-      approachLevelIdx: 4,
-      approachGravity: 3.5,
-      reentryApproachLevelId: 14,
-      showLandingSite: false,
-      station: {
-        orbitRadius: planetRadius + stationAlt,
-        startAngle: -2.2,
-        captureRadius: 25_000,
-        captureMaxSpeed: 22,
-      },
-    };
+    const level = createStationOrbitalLevel(14, 'anchor', 'Anchor Rendezvous', 'Raise apoapsis and rendezvous with Anchor Station', 140_000, 14, 1, 1000, 14);
+    return level;
   })(),
   (() => {
-    const planetRadius = SHARED_MOON_RADIUS;
-    const orbitAlt = 100_000;
-    const baseTimeScale = 50;
-    const gm = SHARED_MOON_GM;
-    const r = planetRadius + orbitAlt;
-    const v = Math.sqrt(gm / r);
-
-    return {
-      id: 15,
-      name: 'Castor Transfer',
-      subtitle: 'Escape Castor and set up the Pollux transfer',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 0,
-      atmoColor: [0, 0, 0] as [number, number, number],
-      planetFillColor: '#17130e',
-      planetStrokeColor: '#665a46',
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: v,
-      startVY: 0,
-      thrustAccel: 0.06,
-      thrustAccelMax: 1.2,
-      fuelDeltaV: 1600,
-      surfaceDensity: 0,
-      scaleHeight: 1,
-      aeroNoseDrag: 0,
-      aeroBroadsideDrag: 0,
-      aeroLiftCoeff: 0,
-      highAtmoAoA: 0,
-      lowAtmoAoA: 0,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 0,
-      heatDissipation: 0,
-      transitionAltitude: 8_000,
-      landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 5,
-      approachGravity: 1.6,
-      reentryApproachLevelId: 15,
-      showLandingSite: false,
-      escapeSOIRadius: CASTOR_TRANSFER_BODY.patchRadius,
-      escapeToOrbitalLevelId: 16,
-      escapeVectorAngle: Math.PI / 2,
-      escapeVectorSpeed: hohmannDepartureVInf(CASTOR_SYSTEM_ORBIT_RADIUS, POLLUX_SYSTEM_ORBIT_RADIUS, TYCHO_GM),
-      conicRadius: CASTOR_TRANSFER_BODY.patchRadius,
-    };
+    const level = createSurfaceOrbitalLevel(15, 'castor-settlement', 'Castor Transfer', 'Escape Castor and set up the Pollux transfer', 100_000, 15, -1);
+    level.showLandingSite = false;
+    level.thrustAccel = 0.06;
+    level.thrustAccelMax = 1.2;
+    level.fuelDeltaV = 1600;
+    level.escapeSOIRadius = CASTOR_TRANSFER_BODY.patchRadius;
+    level.escapeToOrbitalLevelId = 16;
+    level.escapeVectorAngle = Math.PI / 2;
+    level.escapeVectorSpeed = hohmannDepartureVInf(CASTOR_SYSTEM_ORBIT_RADIUS, POLLUX_SYSTEM_ORBIT_RADIUS, TYCHO_GM);
+    level.conicRadius = CASTOR_TRANSFER_BODY.patchRadius;
+    return level;
   })(),
   (() => {
-    const planetRadius = TYCHO_RADIUS;
-    const baseTimeScale = 2400;
-    const gm = TYCHO_GM;
-    const body = CASTOR_TRANSFER_BODY;
-    const speed = Math.sqrt(gm / body.orbitRadius);
-    const x = body.orbitRadius * Math.cos(body.startAngle);
-    const y = body.orbitRadius * Math.sin(body.startAngle);
-    const vx = -body.orbitSense * speed * Math.sin(body.startAngle);
-    const vy = body.orbitSense * speed * Math.cos(body.startAngle);
-
-    return {
-      id: 16,
-      name: 'Tycho Transfer',
-      subtitle: 'Adjust the transfer and arrive at Pollux',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 90_000,
-      atmoColor: [70, 135, 210] as [number, number, number],
-      baseTimeScale,
-      localBaseTimeScale: 60,
-      startX: x,
-      startY: y,
-      startVX: vx,
-      startVY: vy,
-      thrustAccel: 0.016,
-      thrustAccelMax: 0.04,
-      fuelDeltaV: 2800,
-      surfaceDensity: 1.5,
-      scaleHeight: 8500,
-      aeroNoseDrag: 0.00002,
-      aeroBroadsideDrag: 0.0004,
-      aeroLiftCoeff: 0.00012,
-      highAtmoAoA: 0.44,
-      lowAtmoAoA: 0.13,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 1e-5,
-      heatDissipation: 0.08,
-      transitionAltitude: 20_000,
-      landingSiteAngle: Math.PI / 5,
-      approachLevelIdx: 4,
-      approachGravity: 3.5,
-      reentryApproachLevelId: 14,
-      showLandingSite: false,
-      systemBodies: [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY],
-      targetBodyId: 'pollux',
-      conicRadius: POLLUX_SYSTEM_ORBIT_RADIUS * 1.2,
-    };
+    const seed = createTransferSeedFromBody(CASTOR_TRANSFER_BODY);
+    const level = createOrbitalBase(16, 'tycho', 'Tycho Transfer', 'Adjust the transfer and arrive at Pollux', seed.x, seed.y, seed.vx, seed.vy, 14);
+    level.baseTimeScale = 2400;
+    level.localBaseTimeScale = 60;
+    level.thrustAccel = 0.016;
+    level.thrustAccelMax = 0.04;
+    level.fuelDeltaV = 2800;
+    level.showLandingSite = false;
+    level.systemBodies = [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY];
+    level.targetBodyId = 'pollux';
+    level.conicRadius = POLLUX_SYSTEM_ORBIT_RADIUS * 1.2;
+    return level;
   })(),
   (() => {
-    const planetRadius = SHARED_MOON_RADIUS;
-    const baseTimeScale = 50;
-    const gm = SHARED_MOON_GM;
-    const arrivalAlt = 180_000;
-    const r = planetRadius + arrivalAlt;
-    const vEsc = Math.sqrt(2 * gm / r);
-    const tangential = vEsc + 60;
-    const radial = -35;
-
-    return {
-      id: 17,
-      name: 'Pollux Arrival',
-      subtitle: 'Brake into Pollux orbit and set up the descent',
-      planetRadius,
-      planetGM: gm,
-      atmoHeight: 0,
-      atmoColor: [0, 0, 0] as [number, number, number],
-      planetFillColor: '#0e1620',
-      planetStrokeColor: '#5d8aa7',
-      baseTimeScale,
-      startX: 0,
-      startY: r,
-      startVX: tangential,
-      startVY: radial,
-      thrustAccel: 0.06,
-      thrustAccelMax: 1.2,
-      fuelDeltaV: 1300,
-      surfaceDensity: 0,
-      scaleHeight: 1,
-      aeroNoseDrag: 0,
-      aeroBroadsideDrag: 0,
-      aeroLiftCoeff: 0,
-      highAtmoAoA: 0,
-      lowAtmoAoA: 0,
-      rcsAngularAccel: 0.5,
-      heatCoeff: 0,
-      heatDissipation: 0,
-      transitionAltitude: 8_000,
-      landingSiteAngle: 0.92,
-      approachLevelIdx: 6,
-      approachGravity: 1.6,
-      reentryApproachLevelId: 16,
-      showLandingSite: true,
-      conicRadius: POLLUX_TRANSFER_BODY.patchRadius,
-    };
+    const level = createOrbitalBase(17, 'pollux', 'Pollux Arrival', 'Brake into Pollux orbit and set up the descent', 0, SHARED_MOON_RADIUS + 180_000, 0, 0, 16);
+    const r = level.startY;
+    const vEsc = Math.sqrt(2 * level.planetGM / r);
+    level.startVX = vEsc + 60;
+    level.startVY = -35;
+    level.thrustAccel = 0.06;
+    level.thrustAccelMax = 1.2;
+    level.fuelDeltaV = 1300;
+    level.conicRadius = POLLUX_TRANSFER_BODY.patchRadius;
+    return level;
   })(),
 ];
 
@@ -877,15 +721,15 @@ export function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
 
 /** Get station position at a given physics time. */
 function stationOrbitSense(level: OrbitalLevel): 1 | -1 {
-  return orbitSense(level.startX, level.startY, level.startVX, level.startVY);
+  return level.station?.orbitSense ?? orbitSense(level.startX, level.startY, level.startVX, level.startVY);
 }
 
 function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; vx: number; vy: number } | null {
   if (!level.station) return null;
   const st = level.station;
-  const sense = stationOrbitSense(level);
+  const sense = st.orbitSense;
   const omega = sense * Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
-  const angle = st.startAngle + omega * time;
+  const angle = st.epochAngle + omega * (time - st.epochTime);
   const x = st.orbitRadius * Math.cos(angle);
   const y = st.orbitRadius * Math.sin(angle);
   const v = Math.sqrt(level.planetGM / st.orbitRadius);
@@ -1319,7 +1163,7 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
     const stV = Math.sqrt(level.planetGM / st.orbitRadius);
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
-      const stAngle = st.startAngle + omega * pt.t;
+      const stAngle = st.epochAngle + omega * (pt.t - st.epochTime);
       const stX = st.orbitRadius * Math.cos(stAngle);
       const stY = st.orbitRadius * Math.sin(stAngle);
       const dx = pt.x - stX, dy = pt.y - stY;
@@ -1727,7 +1571,7 @@ function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggesti
         const arrivalY = rTarget * Math.sin(arrivalAngle);
         
         const arrivalPhysTime = pt.t + tof;
-        const stAngle = st.startAngle + stOmega * arrivalPhysTime;
+        const stAngle = st.epochAngle + stOmega * (arrivalPhysTime - st.epochTime);
         const stX = rTarget * Math.cos(stAngle);
         const stY = rTarget * Math.sin(stAngle);
         

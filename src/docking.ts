@@ -32,6 +32,7 @@ export interface DockingLevel {
   hasContainer: boolean;
   exitMode: boolean;         // true = undocking (goal: get away from station)
   exitDistance: number;      // meters to clear for exit completion
+  orbitalLevelId?: number;
 
   // Station center
   stationX: number; stationY: number;
@@ -211,6 +212,7 @@ const MISSION1_DOCKING: DockingLevel = {
   hasContainer: true,
   exitMode: true,
   exitDistance: 120,
+  orbitalLevelId: 11,
   stationX: 0, stationY: 0,
   bays: generateBays(0, 1, 2, 0.7),
   beamRange: 12,
@@ -269,6 +271,7 @@ const MISSION3_DOCKING: DockingLevel = {
   hasContainer: true,
   exitMode: true,
   exitDistance: 160,
+  orbitalLevelId: 13,
   stationX: 0, stationY: 0,
   bays: generateBays(1, 0, 4, 0.65),
   beamRange: 12,
