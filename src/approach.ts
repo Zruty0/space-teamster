@@ -4,94 +4,65 @@
 import { config } from './config';
 import { InputState } from './input';
 import { Camera, worldToScreen } from './renderer';
+import { type BodyDef, type SurfacePoiDef, bodyById, surfacePoiById } from './world';
 
 // ===================== Types =====================
+
+export interface ApproachFrame {
+  planetRadius: number;
+  planetGM: number;
+  landingSiteAngle: number;
+  localDir: 1 | -1;
+}
 
 export interface ApproachLevel {
   id: number;
   name: string;
   subtitle: string;
-
+  body: BodyDef;
+  poi: SurfacePoiDef;
+  frame: ApproachFrame;
   gravity: number;
-
-  // Entry
   startX: number;
   startY: number;
   startVX: number;
   startVY: number;
   startAngle: number;
-
-  // Atmosphere
   surfaceDensity: number;
   scaleHeight: number;
-
-  // Aero (effective Cd = Cd * A / m)
-  dragNose: number;         // streamlined, nose-first
-  dragBroadside: number;    // maximum cross-section (sideways)
+  dragNose: number;
+  dragBroadside: number;
   dragShield: number;
   dragWingPerRad: number;
-  liftBody: number;          // body lift coefficient (lifting body effect)
+  liftBody: number;
   liftWingPerRad: number;
-
-  // Heat
   heatCoeff: number;
   dissipation: number;
   shieldHeatMult: number;
   wingsMaxTemp: number;
-
-  // Wings
   maxWingAngle: number;
   wingAngleRate: number;
-
-  // Engine
   thrustAccel: number;
-  thrustAccelMax: number;  // high thrust mode
+  thrustAccelMax: number;
   fuelSeconds: number;
-
-  // Gate
   gateX: number;
   gateY: number;
   gateRadius: number;
   gateMaxSpeed: number;
   gateMinSpeed: number;
-
-  // Wind layers: horizontal wind bands at specific altitudes
   windLayers: WindLayer[];
-  // Turbulence: altitude range with random perturbations
   turbulence: TurbulenceZone[];
-
-  // Landing level to transition to (0 = none)
   landingLevelId: number;
-
-  // Optional return-to-orbital profile for abort/climb-out from descent approach
   returnToOrbital?: {
     exitAltitude: number;
     orbitalLevelId: number;
   };
-
-  // Approximate orbital frame for non-spherical atmospheric approaches
-  orbitalRef?: {
-    planetRadius: number;
-    planetGM: number;
-    landingSiteAngle: number;
-    localDir: 1 | -1;
-  };
-
-  // Optional departure profile (launch/climb into orbital phase)
   departure?: {
-    exitAltitude: number;              // altitude to leave approach for orbital
-    thresholdApoapsisAltitude: number; // minimum apoapsis altitude to hand off
-    targetOrbitAltitude: number;       // mission target orbit altitude (HUD only)
-    orbitalLevelId: number;            // orbital level to enter on success
-    orbitDir?: 1 | -1;                 // +1 = right, -1 = left guidance cue
-  };
-
-  // Optional spherical/local planetary model for seamless orbital handoff
-  spherical?: {
-    planetRadius: number;
-    planetGM: number;
-    landingSiteAngle: number;
-    localDir?: 1 | -1; // +1 = CCW, -1 = CW in local +X direction
+    exitAltitude: number;
+    thresholdApoapsisAltitude: number;
+    targetOrbitAltitude: number;
+    orbitalLevelId: number;
+    orbitDir?: 1 | -1;
   };
 }
 
@@ -109,15 +80,15 @@ export interface ApproachInitOverride {
 }
 
 export interface WindLayer {
-  altitudeCenter: number;  // meters
-  altitudeWidth: number;   // half-width of the band
-  strength: number;        // m/s² (positive = rightward)
+  altitudeCenter: number;
+  altitudeWidth: number;
+  strength: number;
 }
 
 export interface TurbulenceZone {
   altitudeMin: number;
   altitudeMax: number;
-  strength: number;        // m/s² peak random force
+  strength: number;
 }
 
 const APPROACH_WARP_SPEEDS = [1, 2, 5];
@@ -129,21 +100,17 @@ export interface ApproachState {
   vy: number;
   angle: number;
   angularVel: number;
-
   worldX: number;
   worldY: number;
   worldVX: number;
   worldVY: number;
   localDir: 1 | -1;
-
   throttle: number;
   fuel: number;
-
   heatShield: boolean;
   wingsDeployed: boolean;
-  wingAngle: number;      // tilt angle in radians (minWingAngle..maxWingAngle)
+  wingAngle: number;
   temperature: number;
-
   alive: boolean;
   gateReached: boolean;
   gateSpeed: number;
@@ -166,231 +133,165 @@ export interface TrajectoryResult {
   points: TrajectoryPoint[];
   impactX: number | null;
   reachedGate: boolean;
-  overheatIdx: number;    // first index where temp >= 1.0 (-1 if none)
-  wingFoldIdx: number;    // first index where temp >= wingsMaxTemp (-1 if none)
+  overheatIdx: number;
+  wingFoldIdx: number;
 }
 
-// ===================== Levels =====================
+const TYCHO_WIND_LAYERS: WindLayer[] = [
+  { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
+  { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
+  { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
+];
+
+const TYCHO_TURBULENCE: TurbulenceZone[] = [
+  { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
+];
+
+function createApproachFrame(poi: SurfacePoiDef): ApproachFrame {
+  const body = bodyById(poi.bodyId);
+  return {
+    planetRadius: body.radius,
+    planetGM: body.gm,
+    landingSiteAngle: poi.surfaceAngle,
+    localDir: -1,
+  };
+}
+
+export function createDescentApproach(
+  surfacePoiId: string,
+  id: number,
+  fuelSeconds?: number,
+  returnToOrbitalLevelId?: number,
+): ApproachLevel {
+  const poi = surfacePoiById(surfacePoiId);
+  const body = bodyById(poi.bodyId);
+  const atmo = body.atmosphere;
+  const airless = !atmo;
+  return {
+    id,
+    name: airless ? `${poi.name} Descent` : `${poi.name} Descent`,
+    subtitle: airless ? 'Powered descent — arrive at the target site' : 'Atmospheric approach — arrive at the target site',
+    body,
+    poi,
+    frame: createApproachFrame(poi),
+    gravity: body.gm / (body.radius * body.radius),
+    startX: poi.descentProfile.startX,
+    startY: poi.descentProfile.startY,
+    startVX: poi.descentProfile.startVX,
+    startVY: poi.descentProfile.startVY,
+    startAngle: poi.descentProfile.startAngle,
+    surfaceDensity: atmo?.surfaceDensity ?? 0,
+    scaleHeight: atmo?.scaleHeight ?? 1,
+    dragNose: atmo ? 0.000020 : 0,
+    dragBroadside: atmo ? 0.00040 : 0,
+    dragShield: atmo ? 0.00035 : 0,
+    dragWingPerRad: atmo ? 0.00015 : 0,
+    liftBody: atmo ? 0.00012 : 0,
+    liftWingPerRad: atmo ? 0.00085 : 0,
+    heatCoeff: atmo ? 1e-5 : 0,
+    dissipation: atmo ? 0.08 : 0,
+    shieldHeatMult: atmo ? 0.12 : 0,
+    wingsMaxTemp: atmo ? 0.50 : 1,
+    maxWingAngle: atmo ? 1.0 : 0,
+    wingAngleRate: atmo ? 1.0 : 0,
+    thrustAccel: 15,
+    thrustAccelMax: 150,
+    fuelSeconds: fuelSeconds ?? (atmo ? 85 : 120),
+    gateX: 0,
+    gateY: poi.descentProfile.gateY,
+    gateRadius: poi.descentProfile.gateRadius,
+    gateMaxSpeed: poi.descentProfile.gateMaxSpeed,
+    gateMinSpeed: poi.descentProfile.gateMinSpeed,
+    windLayers: atmo ? TYCHO_WIND_LAYERS : [],
+    turbulence: atmo ? TYCHO_TURBULENCE : [],
+    landingLevelId: poi.bodyId === 'castor' ? 6 : poi.bodyId === 'tycho' ? 7 : 8,
+    returnToOrbital: {
+      exitAltitude: atmo ? 20_000 : 8_000,
+      orbitalLevelId: returnToOrbitalLevelId ?? (poi.bodyId === 'castor' ? 11 : poi.bodyId === 'tycho' ? 13 : 17),
+    },
+  };
+}
+
+export function createDepartureApproach(
+  surfacePoiId: string,
+  id: number,
+  options?: {
+    subtitle?: string;
+    fuelSeconds?: number;
+    exitAltitude?: number;
+    thresholdApoapsisAltitude?: number;
+    targetOrbitAltitude?: number;
+    orbitalLevelId?: number;
+    orbitDir?: 1 | -1;
+  },
+): ApproachLevel {
+  const poi = surfacePoiById(surfacePoiId);
+  const body = bodyById(poi.bodyId);
+  const atmo = body.atmosphere;
+  const defaults = poi.departureProfile;
+  return {
+    id,
+    name: `${poi.name} Departure`,
+    subtitle: options?.subtitle ?? (atmo ? 'Atmospheric departure — build speed for orbit' : 'Launch and build horizontal speed for orbit'),
+    body,
+    poi,
+    frame: createApproachFrame(poi),
+    gravity: body.gm / (body.radius * body.radius),
+    startX: 0,
+    startY: defaults.startY,
+    startVX: 0,
+    startVY: defaults.startVY,
+    startAngle: 0,
+    surfaceDensity: atmo?.surfaceDensity ?? 0,
+    scaleHeight: atmo?.scaleHeight ?? 1,
+    dragNose: atmo ? 0.000020 : 0,
+    dragBroadside: atmo ? 0.00040 : 0,
+    dragShield: atmo ? 0.00035 : 0,
+    dragWingPerRad: atmo ? 0.00015 : 0,
+    liftBody: atmo ? 0.00012 : 0,
+    liftWingPerRad: atmo ? 0.00085 : 0,
+    heatCoeff: atmo ? 1e-5 : 0,
+    dissipation: atmo ? 0.08 : 0,
+    shieldHeatMult: atmo ? 0.12 : 0,
+    wingsMaxTemp: atmo ? 0.50 : 1,
+    maxWingAngle: atmo ? 1.0 : 0,
+    wingAngleRate: atmo ? 1.0 : 0,
+    thrustAccel: 15,
+    thrustAccelMax: 150,
+    fuelSeconds: options?.fuelSeconds ?? defaults.fuelSeconds,
+    gateX: 0,
+    gateY: 0,
+    gateRadius: 0,
+    gateMaxSpeed: 0,
+    gateMinSpeed: 0,
+    windLayers: atmo ? TYCHO_WIND_LAYERS : [],
+    turbulence: atmo ? TYCHO_TURBULENCE : [],
+    landingLevelId: 0,
+    departure: {
+      exitAltitude: options?.exitAltitude ?? defaults.exitAltitude,
+      thresholdApoapsisAltitude: options?.thresholdApoapsisAltitude ?? defaults.thresholdApoapsisAltitude,
+      targetOrbitAltitude: options?.targetOrbitAltitude ?? defaults.targetOrbitAltitude,
+      orbitalLevelId: options?.orbitalLevelId ?? (poi.bodyId === 'castor' ? 12 : 14),
+      orbitDir: options?.orbitDir ?? defaults.orbitDir,
+    },
+  };
+}
 
 export const APPROACH_LEVELS: ApproachLevel[] = [
-  {
-    id: 6,
-    name: "Kepler's Rest",
-    subtitle: 'Atmospheric reentry — learn the ropes',
-    gravity: 8.0,
-    startX: -60000, startY: 20000, startVX: 900, startVY: -50, startAngle: 1.5,
-    surfaceDensity: 1.5, scaleHeight: 8000,
-    dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
-    dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
-    heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
-    maxWingAngle: 1.0, wingAngleRate: 1.0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 80,
-    gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
-    windLayers: [
-      { altitudeCenter: 12000, altitudeWidth: 1500, strength: 8 },    // tailwind at 12km
-      { altitudeCenter: 7000, altitudeWidth: 1200, strength: -12 },   // headwind at 7km
-      { altitudeCenter: 3500, altitudeWidth: 800, strength: 5 },      // light tailwind low
-    ],
-    turbulence: [
-      { altitudeMin: 4000, altitudeMax: 9000, strength: 3 },          // mid-altitude turbulence
-    ],
-    landingLevelId: 1,
-    returnToOrbital: {
-      exitAltitude: 25_000,
-      orbitalLevelId: 7,
-    },
-    orbitalRef: {
-      planetRadius: 600_000,
-      planetGM: ((4 * Math.PI * Math.PI * (800_000 ** 3)) / (5000 ** 2)),
-      landingSiteAngle: -Math.PI / 4,
-      localDir: -1,
-    },
-  },
-  // Mission 1: Castor approach (airless, powered braking)
-  {
-    id: 11,
-    name: 'Castor Descent',
-    subtitle: 'Powered descent — no atmosphere',
-    gravity: 1.6,
-    startX: -120000, startY: 8000, startVX: 550, startVY: -30, startAngle: 1.5,
-    surfaceDensity: 0, scaleHeight: 1,   // no atmosphere
-    dragNose: 0, dragBroadside: 0, dragShield: 0,
-    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
-    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
-    maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 120,
-    gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
-    windLayers: [],
-    turbulence: [],
-    landingLevelId: 6,
-    returnToOrbital: {
-      exitAltitude: 8_000,
-      orbitalLevelId: 11,
-    },
-    spherical: {
-      planetRadius: 200_000,
-      planetGM: 1.6 * 200_000 * 200_000,
-      landingSiteAngle: -Math.PI / 3,
-      localDir: -1,
-    },
-  },
-  {
-    id: 12,
-    name: 'Castor Departure',
-    subtitle: 'Launch and build horizontal speed for orbit',
-    gravity: 1.6,
-    startX: 0, startY: 250, startVX: 0, startVY: 5, startAngle: 0,
-    surfaceDensity: 0, scaleHeight: 1,
-    dragNose: 0, dragBroadside: 0, dragShield: 0,
-    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
-    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
-    maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 120,
-    gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
-    windLayers: [],
-    turbulence: [],
-    landingLevelId: 0,
-    departure: {
-      exitAltitude: 8_000,
-      thresholdApoapsisAltitude: 20_000,
-      targetOrbitAltitude: 100_000,
-      orbitalLevelId: 12,
-      orbitDir: 1,
-    },
-    spherical: {
-      planetRadius: 200_000,
-      planetGM: 1.6 * 200_000 * 200_000,
-      landingSiteAngle: -Math.PI / 3,
-      localDir: -1,
-    },
-  },
-  {
-    id: 13,
-    name: 'Tycho Descent',
-    subtitle: 'Atmospheric approach — arrive at the port',
-    gravity: 3.5,
-    startX: -70000, startY: 22000, startVX: 980, startVY: -55, startAngle: 1.5,
-    surfaceDensity: 1.5, scaleHeight: 8500,
-    dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
-    dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
-    heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
-    maxWingAngle: 1.0, wingAngleRate: 1.0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 85,
-    gateX: 0, gateY: 1800, gateRadius: 1700, gateMaxSpeed: 150, gateMinSpeed: 15,
-    windLayers: [
-      { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
-      { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
-      { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
-    ],
-    turbulence: [
-      { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
-    ],
-    landingLevelId: 7,
-    returnToOrbital: {
-      exitAltitude: 20_000,
-      orbitalLevelId: 13,
-    },
-    orbitalRef: {
-      planetRadius: 450_000,
-      planetGM: 3.5 * 450_000 * 450_000,
-      landingSiteAngle: Math.PI / 5,
-      localDir: -1,
-    },
-  },
-  {
-    id: 14,
-    name: 'Tycho Departure',
-    subtitle: 'Atmospheric departure — build speed for orbit',
-    gravity: 3.5,
-    startX: 0, startY: 320, startVX: 0, startVY: 5, startAngle: 0,
-    surfaceDensity: 1.5, scaleHeight: 8500,
-    dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
-    dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
-    heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
-    maxWingAngle: 1.0, wingAngleRate: 1.0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 90,
-    gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
-    windLayers: [
-      { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
-      { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
-      { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
-    ],
-    turbulence: [
-      { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
-    ],
-    landingLevelId: 0,
-    departure: {
-      exitAltitude: 30_000,
-      thresholdApoapsisAltitude: 35_000,
-      targetOrbitAltitude: 180_000,
-      orbitalLevelId: 14,
-      orbitDir: -1,
-    },
-    orbitalRef: {
-      planetRadius: 450_000,
-      planetGM: 3.5 * 450_000 * 450_000,
-      landingSiteAngle: Math.PI / 5,
-      localDir: -1,
-    },
-  },
-  {
-    id: 15,
-    name: 'Castor Transfer Departure',
+  createDescentApproach('castor-settlement', 10, 120, 11),
+  createDescentApproach('castor-settlement', 11, 120, 11),
+  createDepartureApproach('castor-settlement', 12, { fuelSeconds: 140, orbitalLevelId: 12 }),
+  createDescentApproach('port-kessler', 13, 85, 13),
+  createDepartureApproach('port-kessler', 14, { orbitalLevelId: 14 }),
+  createDepartureApproach('castor-settlement', 15, {
+    orbitalLevelId: 15,
     subtitle: 'Launch and build speed for the Pollux transfer',
-    gravity: 1.6,
-    startX: 0, startY: 250, startVX: 0, startVY: 5, startAngle: 0,
-    surfaceDensity: 0, scaleHeight: 1,
-    dragNose: 0, dragBroadside: 0, dragShield: 0,
-    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
-    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
-    maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 280,
-    gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
-    windLayers: [],
-    turbulence: [],
-    landingLevelId: 0,
-    departure: {
-      exitAltitude: 8_000,
-      thresholdApoapsisAltitude: 20_000,
-      targetOrbitAltitude: 100_000,
-      orbitalLevelId: 15,
-      orbitDir: 1,
-    },
-    spherical: {
-      planetRadius: 200_000,
-      planetGM: 1.6 * 200_000 * 200_000,
-      landingSiteAngle: -Math.PI / 3,
-      localDir: -1,
-    },
-  },
-  {
-    id: 16,
-    name: 'Pollux Descent',
-    subtitle: 'Powered descent — arrive at the new outpost',
-    gravity: 1.6,
-    startX: -110000, startY: 9000, startVX: 540, startVY: -26, startAngle: 1.5,
-    surfaceDensity: 0, scaleHeight: 1,
-    dragNose: 0, dragBroadside: 0, dragShield: 0,
-    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
-    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
-    maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 260,
-    gateX: 0, gateY: 1600, gateRadius: 1900, gateMaxSpeed: 150, gateMinSpeed: 15,
-    windLayers: [],
-    turbulence: [],
-    landingLevelId: 8,
-    returnToOrbital: {
-      exitAltitude: 8_000,
-      orbitalLevelId: 17,
-    },
-    spherical: {
-      planetRadius: 200_000,
-      planetGM: 1.6 * 200_000 * 200_000,
-      landingSiteAngle: 0.92,
-      localDir: -1,
-    },
-  },
+    fuelSeconds: 280,
+  }),
+  createDescentApproach('pollux-outpost', 16, 260, 17),
 ];
+
+export const DEFAULT_APPROACH_LEVEL = APPROACH_LEVELS[2];
 
 // ===================== State =====================
 
@@ -404,10 +305,9 @@ export function createApproachState(
     angle: level.startAngle,
   };
 
-  const spherical = level.spherical;
-  let localDir: 1 | -1 = override?.localDir
-    ?? spherical?.localDir
-    ?? (init.vx >= 0 ? 1 : -1);
+  const frame = level.frame;
+  const airless = level.body.atmosphere === null;
+  let localDir: 1 | -1 = override?.localDir ?? frame.localDir;
 
   let worldX = init.x;
   let worldY = init.y;
@@ -418,24 +318,25 @@ export function createApproachState(
   let vx = init.vx;
   let vy = init.vy;
 
-  if (spherical) {
-    if (override?.wx !== undefined && override?.wy !== undefined && override?.wvx !== undefined && override?.wvy !== undefined) {
-      worldX = override.wx;
-      worldY = override.wy;
-      worldVX = override.wvx;
-      worldVY = override.wvy;
-      if (override.localDir === undefined) {
-        const h = worldX * worldVY - worldY * worldVX;
-        if (Math.abs(h) > 1e-6) localDir = h < 0 ? -1 : 1;
-      }
-    } else {
-      const world = localToWorldFrame(init.x, init.y, init.vx, init.vy, spherical, localDir);
-      worldX = world.wx;
-      worldY = world.wy;
-      worldVX = world.wvx;
-      worldVY = world.wvy;
+  if (override?.wx !== undefined && override?.wy !== undefined && override?.wvx !== undefined && override?.wvy !== undefined) {
+    worldX = override.wx;
+    worldY = override.wy;
+    worldVX = override.wvx;
+    worldVY = override.wvy;
+    if (override.localDir === undefined) {
+      const h = worldX * worldVY - worldY * worldVX;
+      if (Math.abs(h) > 1e-6) localDir = h < 0 ? -1 : 1;
     }
-    const local = worldToLocalFrame(worldX, worldY, worldVX, worldVY, spherical, localDir);
+  } else {
+    const world = localToWorldFrame(init.x, init.y, init.vx, init.vy, frame, localDir);
+    worldX = world.wx;
+    worldY = world.wy;
+    worldVX = world.wvx;
+    worldVY = world.wvy;
+  }
+
+  if (airless || override?.wx !== undefined) {
+    const local = worldToLocalFrame(worldX, worldY, worldVX, worldVY, frame, localDir);
     x = local.x;
     y = local.y;
     vx = local.vx;
@@ -474,18 +375,18 @@ function wrapAngle(a: number): number {
 
 function worldToLocalFrame(
   wx: number, wy: number, wvx: number, wvy: number,
-  spherical: NonNullable<ApproachLevel['spherical']>, localDir: 1 | -1,
+  frame: ApproachFrame, localDir: 1 | -1,
 ): { x: number; y: number; vx: number; vy: number } {
   const r = Math.sqrt(wx * wx + wy * wy);
   const theta = Math.atan2(wy, wx);
-  const angleDiff = wrapAngle(theta - spherical.landingSiteAngle);
+  const angleDiff = wrapAngle(theta - frame.landingSiteAngle);
   const radX = wx / r;
   const radY = wy / r;
   const tanX = -radY * localDir;
   const tanY = radX * localDir;
   return {
-    x: angleDiff * spherical.planetRadius * localDir,
-    y: r - spherical.planetRadius,
+    x: angleDiff * frame.planetRadius * localDir,
+    y: r - frame.planetRadius,
     vx: wvx * tanX + wvy * tanY,
     vy: wvx * radX + wvy * radY,
   };
@@ -493,10 +394,10 @@ function worldToLocalFrame(
 
 function localToWorldFrame(
   x: number, y: number, vx: number, vy: number,
-  spherical: NonNullable<ApproachLevel['spherical']>, localDir: 1 | -1,
+  frame: ApproachFrame, localDir: 1 | -1,
 ): { wx: number; wy: number; wvx: number; wvy: number } {
-  const theta = spherical.landingSiteAngle + x / (spherical.planetRadius * localDir);
-  const r = spherical.planetRadius + y;
+  const theta = frame.landingSiteAngle + x / (frame.planetRadius * localDir);
+  const r = frame.planetRadius + y;
   const radX = Math.cos(theta);
   const radY = Math.sin(theta);
   const tanX = -radY * localDir;
@@ -521,23 +422,16 @@ function impactCrossX(prevX: number, prevY: number, x: number, y: number): numbe
 }
 
 export function getApproachApoapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
-  let planetRadius = 0;
-  let planetGM = 0;
+  const planetRadius = level.frame.planetRadius;
+  const planetGM = level.frame.planetGM;
   let wx = s.worldX;
   let wy = s.worldY;
   let wvx = s.worldVX;
   let wvy = s.worldVY;
 
-  if (level.spherical) {
-    planetRadius = level.spherical.planetRadius;
-    planetGM = level.spherical.planetGM;
-  } else if (level.orbitalRef) {
-    planetRadius = level.orbitalRef.planetRadius;
-    planetGM = level.orbitalRef.planetGM;
-    const world = localToWorldFrame(s.x, s.y, s.vx, s.vy, level.orbitalRef, level.orbitalRef.localDir);
+  if (level.body.atmosphere !== null) {
+    const world = localToWorldFrame(s.x, s.y, s.vx, s.vy, level.frame, level.frame.localDir);
     wx = world.wx; wy = world.wy; wvx = world.wvx; wvy = world.wvy;
-  } else {
-    return null;
   }
 
   const r = Math.sqrt(wx * wx + wy * wy);
@@ -740,15 +634,15 @@ export function updateApproach(
   angAccel -= s.angularVel * config.angularDrag;
 
   s.retroFiring = false;
-  const spherical = level.spherical;
+  const airless = level.body.atmosphere === null;
 
-  if (spherical) {
+  if (airless) {
     const r = Math.sqrt(s.worldX * s.worldX + s.worldY * s.worldY);
     const radX = s.worldX / r;
     const radY = s.worldY / r;
     const tanX = -radY * s.localDir;
     const tanY = radX * s.localDir;
-    const g = spherical.planetGM / (r * r);
+    const g = level.frame.planetGM / (r * r);
     let ax = -g * radX;
     let ay = -g * radY;
 
@@ -781,7 +675,7 @@ export function updateApproach(
     s.worldX += s.worldVX * dt;
     s.worldY += s.worldVY * dt;
 
-    const local = worldToLocalFrame(s.worldX, s.worldY, s.worldVX, s.worldVY, spherical, s.localDir);
+    const local = worldToLocalFrame(s.worldX, s.worldY, s.worldVX, s.worldVY, level.frame, s.localDir);
     s.x = local.x;
     s.y = local.y;
     s.vx = local.vx;
@@ -867,15 +761,15 @@ export function predictTrajectory(
   const wing = s.wingsDeployed ? s.wingAngle : 0;
   let dead = false;
   let prevTooHot = temp >= level.wingsMaxTemp;
-  const spherical = level.spherical;
+  const airless = level.body.atmosphere === null;
 
-  if (spherical) {
+  if (airless) {
     let wx = s.worldX, wy = s.worldY, wvx = s.worldVX, wvy = s.worldVY;
-    let prevLocal = worldToLocalFrame(wx, wy, wvx, wvy, spherical, s.localDir);
+    let prevLocal = worldToLocalFrame(wx, wy, wvx, wvy, level.frame, s.localDir);
 
     for (let t = 0; t < maxTime; t += step) {
       const r = Math.sqrt(wx * wx + wy * wy);
-      const g = spherical.planetGM / (r * r);
+      const g = level.frame.planetGM / (r * r);
       const ax = -g * (wx / r);
       const ay = -g * (wy / r);
 
@@ -884,7 +778,7 @@ export function predictTrajectory(
       wx += wvx * step;
       wy += wvy * step;
 
-      const local = worldToLocalFrame(wx, wy, wvx, wvy, spherical, s.localDir);
+      const local = worldToLocalFrame(wx, wy, wvx, wvy, level.frame, s.localDir);
       points.push({ x: local.x, y: local.y, temp: clamp(temp, 0, 1), burnedUp: false });
 
       if (!reachedGate) {

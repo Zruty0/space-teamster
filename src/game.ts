@@ -34,10 +34,10 @@ const MAX_FRAME_TIME = 0.1;
 
 type Phase =
   | { kind: 'levelSelect' }
-  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number } }
-  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride }
-  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride }
-  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride };
+  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number }
+  | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number }
+  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number }
+  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number };
 
 const TOTAL_LEVELS = MISSIONS.length;
 
@@ -47,6 +47,7 @@ export class Game {
   private phase: Phase = { kind: 'levelSelect' };
   private accumulator = 0;
   private time = 0;
+  private worldTime = 0;
   private lastFrameTime = 0;
   private menuSelection = 0;
   private currentMissionId: number | null = null;
@@ -70,6 +71,7 @@ export class Game {
     level: LevelDef,
     initOverride?: { x: number; y: number; vx: number; vy: number },
     launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number },
+    worldTimeStart: number = this.worldTime,
   ): void {
     config.gravity = level.gravity;
     config.landingMaxVSpeed = level.landingMaxVSpeed;
@@ -95,51 +97,56 @@ export class Game {
     const camera = createCamera();
     camera.x = ship.x;
     camera.y = ship.y;
-    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance };
+    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart };
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
     setDevPanelMode('landing');
     this.time = 0;
+    this.worldTime = worldTimeStart;
     this.accumulator = 0;
   }
 
-  private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride): void {
+  private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
     const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
     if (initOverride) { cam.x = as.x; cam.y = as.y; }
-    this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride };
+    this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart };
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
       this.showGuidance(`CLIMB to ${(level.departure.exitAltitude / 1000).toFixed(1)}km and ACCELERATE ${dir}`);
     } else {
       this.showGuidance('ARRIVE AT TARGET AREA');
     }
-    setDevPanelMode('approach', () => this.loadApproach(level, initOverride));
+    setDevPanelMode('approach', () => this.loadApproach(level, initOverride, worldTimeStart));
     this.time = 0;
+    this.worldTime = worldTimeStart;
     this.accumulator = 0;
   }
 
-  private loadDocking(level: DockingLevel, initOverride?: DockingInitOverride): void {
+  private loadDocking(level: DockingLevel, initOverride?: DockingInitOverride, worldTimeStart: number = this.worldTime): void {
     const ds = createDockingState(level, initOverride);
     const cam = createDockingCamera();
     if (initOverride) { cam.x = ds.x; cam.y = ds.y; }
-    this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride };
+    this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart };
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
+    this.worldTime = worldTimeStart;
     this.accumulator = 0;
   }
 
-  private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride): void {
-    const os = createOrbitalState(level, initOverride);
+  private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
+    const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time: worldTimeStart };
+    const os = createOrbitalState(level, effectiveInit);
     const cam = createOrbitalCamera(level);
     if (initOverride) { cam.x = os.x; cam.y = os.y; }
-    this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride };
+    this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart };
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
       : level.escapeSOIRadius ? 'ESCAPE TOWARD TARGET'
       : (level.showLandingSite === false ? 'MAINTAIN ORBITAL OBJECTIVE' : 'DEORBIT TO TARGET');
     this.showGuidance(guidance);
     this.time = 0;
+    this.worldTime = worldTimeStart;
     this.accumulator = 0;
   }
 
@@ -271,7 +278,7 @@ export class Game {
   private handleLanding(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'landing' }>;
 
-    if (input.reset) { this.loadLanding(p.level, p.initOverride, p.launchGuidance); return; }
+    if (input.reset) { this.loadLanding(p.level, p.initOverride, p.launchGuidance, p.worldTimeStart); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
@@ -304,6 +311,7 @@ export class Game {
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
+      this.worldTime += PHYSICS_DT;
     }
 
     const th = getTerrainHeight(p.terrain, p.ship.x);
@@ -367,7 +375,7 @@ export class Game {
   private handleDocking(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'docking' }>;
 
-    if (input.reset) { this.loadDocking(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadDocking(p.level, p.initOverride, p.worldTimeStart); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -386,6 +394,7 @@ export class Game {
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
+      this.worldTime += PHYSICS_DT;
     }
 
     updateDockingCamera(p.cam, p.ds, p.level, frameTime, this.canvas.width, this.canvas.height);
@@ -408,7 +417,7 @@ export class Game {
   private handleOrbital(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
 
-    if (input.reset) { this.loadOrbital(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadOrbital(p.level, p.initOverride, p.worldTimeStart); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -438,6 +447,7 @@ export class Game {
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
+      this.worldTime += PHYSICS_DT;
     }
 
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
@@ -593,7 +603,7 @@ export class Game {
   }
 
   private approachToOrbitalInit(level: ApproachLevel, as: ApproachState, orbitalLevel: OrbitalLevel): OrbitalInitOverride {
-    if (level.spherical) {
+    if (level.body.atmosphere === null) {
       return {
         x: as.worldX,
         y: as.worldY,
@@ -602,12 +612,7 @@ export class Game {
       };
     }
 
-    const ref = level.orbitalRef ?? {
-      planetRadius: orbitalLevel.planetRadius,
-      planetGM: orbitalLevel.planetGM,
-      landingSiteAngle: orbitalLevel.landingSiteAngle,
-      localDir: -1 as 1 | -1,
-    };
+    const ref = level.frame;
     const localDir = ref.localDir;
     const theta = ref.landingSiteAngle + as.x / (ref.planetRadius * localDir);
     const r = ref.planetRadius + Math.max(0, as.y);
@@ -680,7 +685,7 @@ export class Game {
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
 
-    if (input.reset) { this.loadApproach(p.level, p.initOverride); return; }
+    if (input.reset) { this.loadApproach(p.level, p.initOverride, p.worldTimeStart); return; }
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
 
     input.reset = false;
@@ -724,6 +729,7 @@ export class Game {
       }
       this.accumulator -= PHYSICS_DT;
       this.time += PHYSICS_DT;
+      this.worldTime += PHYSICS_DT;
     }
 
     updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
