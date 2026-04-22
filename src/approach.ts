@@ -283,7 +283,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     ],
     landingLevelId: 7,
     returnToOrbital: {
-      exitAltitude: 25_000,
+      exitAltitude: 20_000,
       orbitalLevelId: 13,
     },
     orbitalRef: {
@@ -316,7 +316,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     ],
     landingLevelId: 0,
     departure: {
-      exitAltitude: 25_000,
+      exitAltitude: 20_000,
       thresholdApoapsisAltitude: 35_000,
       targetOrbitAltitude: 180_000,
       orbitalLevelId: 14,
