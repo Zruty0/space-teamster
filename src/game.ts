@@ -475,17 +475,36 @@ export class Game {
     this.loadApproach(approachLevel, params);
   }
 
+  private approachToOrbitalInit(level: ApproachLevel, as: ApproachState, orbitalLevel: OrbitalLevel): OrbitalInitOverride {
+    if (level.spherical) {
+      return {
+        x: as.worldX,
+        y: as.worldY,
+        vx: as.worldVX,
+        vy: as.worldVY,
+      };
+    }
+
+    const h0 = orbitalLevel.startX * orbitalLevel.startVY - orbitalLevel.startY * orbitalLevel.startVX;
+    const localDir: 1 | -1 = h0 < 0 ? -1 : 1;
+    const theta = orbitalLevel.landingSiteAngle + as.x / (orbitalLevel.planetRadius * localDir);
+    const r = orbitalLevel.planetRadius + Math.max(0, as.y);
+    const radX = Math.cos(theta), radY = Math.sin(theta);
+    const tanX = -radY * localDir, tanY = radX * localDir;
+    return {
+      x: radX * r,
+      y: radY * r,
+      vx: tanX * as.vx + radX * as.vy,
+      vy: tanY * as.vx + radY * as.vy,
+    };
+  }
+
   private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>): void {
     const orbitalLevelId = p.level.departure?.orbitalLevelId ?? p.level.returnToOrbital?.orbitalLevelId;
     if (!orbitalLevelId) return;
     const orbitalLevel = ORBITAL_LEVELS.find(l => l.id === orbitalLevelId);
     if (!orbitalLevel) return;
-    this.loadOrbital(orbitalLevel, {
-      x: p.as.worldX,
-      y: p.as.worldY,
-      vx: p.as.worldVX,
-      vy: p.as.worldVY,
-    });
+    this.loadOrbital(orbitalLevel, this.approachToOrbitalInit(p.level, p.as, orbitalLevel));
   }
 
   private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): void {
@@ -557,7 +576,7 @@ export class Game {
           else this.transitionApproachToLanding(p);
           return;
         }
-        if (p.level.returnToOrbital && p.level.spherical && p.as.vy > 0 && p.as.y > p.level.returnToOrbital.exitAltitude + 50) {
+        if (p.level.returnToOrbital && p.as.vy > 0 && p.as.y > p.level.returnToOrbital.exitAltitude + 50) {
           this.transitionApproachToOrbital(p);
           return;
         }

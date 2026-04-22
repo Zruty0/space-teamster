@@ -182,6 +182,10 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
       { altitudeMin: 4000, altitudeMax: 9000, strength: 3 },          // mid-altitude turbulence
     ],
     landingLevelId: 1,
+    returnToOrbital: {
+      exitAltitude: 25_000,
+      orbitalLevelId: 7,
+    },
   },
   // Mission 1: Castor approach (airless, powered braking)
   {
@@ -1115,11 +1119,12 @@ function drawTrajectory(
   const last = pts[pts.length - 1];
   if (last) {
     const [lsx, lsy] = ws(last.x, Math.max(last.y, 0), cam, W, H);
+    const hasImpact = result.impactX !== null;
     const endX = result.impactX ?? last.x;
     const diff = endX - level.gateX;
-    const onTarget = Math.abs(diff) < level.gateRadius;
+    const onTarget = hasImpact && Math.abs(diff) < level.gateRadius;
 
-    // X marker at impact (if on screen)
+    // X marker at impact/end point (if on screen)
     if (lsx > -50 && lsx < W + 50 && lsy > -50 && lsy < H + 50) {
       if (onTarget) {
         ctx.beginPath();
@@ -1137,12 +1142,24 @@ function drawTrajectory(
       }
     }
 
-    // Distance label: always on screen
-    const distKm = Math.abs(diff) / 1000;
-    const tag = onTarget ? 'ON TARGET'
-      : diff < 0 ? `${distKm.toFixed(1)}km short`
-      : `${distKm.toFixed(1)}km long`;
-    const tagCol = onTarget ? '#00ffcc' : '#ff6644';
+    // Label: impact distance, escape, or generic long if prediction runs out
+    let tag: string;
+    let tagCol: string;
+    if (onTarget) {
+      tag = 'ON TARGET';
+      tagCol = '#00ffcc';
+    } else if (!hasImpact) {
+      if (level.returnToOrbital && last.y >= level.returnToOrbital.exitAltitude) {
+        tag = 'ESCAPE';
+      } else {
+        tag = 'LONG';
+      }
+      tagCol = '#ff6644';
+    } else {
+      const distKm = Math.abs(diff) / 1000;
+      tag = diff < 0 ? `${distKm.toFixed(1)}km short` : `${distKm.toFixed(1)}km long`;
+      tagCol = '#ff6644';
+    }
     const labelX = clamp(lsx, 60, W - 60);
     const labelY = clamp(lsy - 14, 50, H - 20);
     ctx.font = 'bold 13px monospace';
