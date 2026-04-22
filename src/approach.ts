@@ -62,6 +62,35 @@ export interface ApproachLevel {
 
   // Landing level to transition to (0 = none)
   landingLevelId: number;
+
+  // Optional departure profile (launch/climb into orbital phase)
+  departure?: {
+    exitAltitude: number;              // altitude to leave approach for orbital
+    thresholdApoapsisAltitude: number; // minimum apoapsis altitude to hand off
+    targetOrbitAltitude: number;       // mission target orbit altitude (HUD only)
+    orbitalLevelId: number;            // orbital level to enter on success
+  };
+
+  // Optional spherical/local planetary model for seamless orbital handoff
+  spherical?: {
+    planetRadius: number;
+    planetGM: number;
+    landingSiteAngle: number;
+    localDir?: 1 | -1; // +1 = CCW, -1 = CW in local +X direction
+  };
+}
+
+export interface ApproachInitOverride {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+  wx?: number;
+  wy?: number;
+  wvx?: number;
+  wvy?: number;
+  localDir?: 1 | -1;
 }
 
 export interface WindLayer {
@@ -83,6 +112,12 @@ export interface ApproachState {
   vy: number;
   angle: number;
   angularVel: number;
+
+  worldX: number;
+  worldY: number;
+  worldVX: number;
+  worldVY: number;
+  localDir: 1 | -1;
 
   throttle: number;
   fuel: number;
@@ -159,6 +194,41 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     windLayers: [],
     turbulence: [],
     landingLevelId: 0,
+    spherical: {
+      planetRadius: 200_000,
+      planetGM: 1.6 * 200_000 * 200_000,
+      landingSiteAngle: -Math.PI / 3,
+      localDir: -1,
+    },
+  },
+  {
+    id: 12,
+    name: 'Castor Departure',
+    subtitle: 'Launch and build horizontal speed for orbit',
+    gravity: 1.6,
+    startX: 0, startY: 250, startVX: 0, startVY: 5, startAngle: 0,
+    surfaceDensity: 0, scaleHeight: 1,
+    dragNose: 0, dragBroadside: 0, dragShield: 0,
+    dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
+    heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
+    maxWingAngle: 0, wingAngleRate: 0,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 120,
+    gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
+    windLayers: [],
+    turbulence: [],
+    landingLevelId: 0,
+    departure: {
+      exitAltitude: 8_000,
+      thresholdApoapsisAltitude: 20_000,
+      targetOrbitAltitude: 100_000,
+      orbitalLevelId: 12,
+    },
+    spherical: {
+      planetRadius: 200_000,
+      planetGM: 1.6 * 200_000 * 200_000,
+      landingSiteAngle: -Math.PI / 3,
+      localDir: -1,
+    },
   },
 ];
 
@@ -166,17 +236,56 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
 
 export function createApproachState(
   level: ApproachLevel,
-  override?: { x: number; y: number; vx: number; vy: number; angle: number },
+  override?: ApproachInitOverride,
 ): ApproachState {
   const init = override ?? {
     x: level.startX, y: level.startY,
     vx: level.startVX, vy: level.startVY,
     angle: level.startAngle,
   };
+
+  const spherical = level.spherical;
+  let localDir: 1 | -1 = override?.localDir
+    ?? spherical?.localDir
+    ?? (init.vx >= 0 ? 1 : -1);
+
+  let worldX = init.x;
+  let worldY = init.y;
+  let worldVX = init.vx;
+  let worldVY = init.vy;
+  let x = init.x;
+  let y = init.y;
+  let vx = init.vx;
+  let vy = init.vy;
+
+  if (spherical) {
+    if (override?.wx !== undefined && override?.wy !== undefined && override?.wvx !== undefined && override?.wvy !== undefined) {
+      worldX = override.wx;
+      worldY = override.wy;
+      worldVX = override.wvx;
+      worldVY = override.wvy;
+      if (override.localDir === undefined) {
+        const h = worldX * worldVY - worldY * worldVX;
+        if (Math.abs(h) > 1e-6) localDir = h < 0 ? -1 : 1;
+      }
+    } else {
+      const world = localToWorldFrame(init.x, init.y, init.vx, init.vy, spherical, localDir);
+      worldX = world.wx;
+      worldY = world.wy;
+      worldVX = world.wvx;
+      worldVY = world.wvy;
+    }
+    const local = worldToLocalFrame(worldX, worldY, worldVX, worldVY, spherical, localDir);
+    x = local.x;
+    y = local.y;
+    vx = local.vx;
+    vy = local.vy;
+  }
+
   return {
-    x: init.x, y: init.y,
-    vx: init.vx, vy: init.vy,
+    x, y, vx, vy,
     angle: init.angle, angularVel: 0,
+    worldX, worldY, worldVX, worldVY, localDir,
     throttle: 0, fuel: level.fuelSeconds,
     heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
@@ -190,6 +299,77 @@ const MIN_WING_ANGLE = 0.087; // ~5 degrees
 
 function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
+}
+
+function wrapAngle(a: number): number {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+function worldToLocalFrame(
+  wx: number, wy: number, wvx: number, wvy: number,
+  spherical: NonNullable<ApproachLevel['spherical']>, localDir: 1 | -1,
+): { x: number; y: number; vx: number; vy: number } {
+  const r = Math.sqrt(wx * wx + wy * wy);
+  const theta = Math.atan2(wy, wx);
+  const angleDiff = wrapAngle(theta - spherical.landingSiteAngle);
+  const radX = wx / r;
+  const radY = wy / r;
+  const tanX = -radY * localDir;
+  const tanY = radX * localDir;
+  return {
+    x: angleDiff * spherical.planetRadius * localDir,
+    y: r - spherical.planetRadius,
+    vx: wvx * tanX + wvy * tanY,
+    vy: wvx * radX + wvy * radY,
+  };
+}
+
+function localToWorldFrame(
+  x: number, y: number, vx: number, vy: number,
+  spherical: NonNullable<ApproachLevel['spherical']>, localDir: 1 | -1,
+): { wx: number; wy: number; wvx: number; wvy: number } {
+  const theta = spherical.landingSiteAngle + x / (spherical.planetRadius * localDir);
+  const r = spherical.planetRadius + y;
+  const radX = Math.cos(theta);
+  const radY = Math.sin(theta);
+  const tanX = -radY * localDir;
+  const tanY = radX * localDir;
+  return {
+    wx: radX * r,
+    wy: radY * r,
+    wvx: tanX * vx + radX * vy,
+    wvy: tanY * vx + radY * vy,
+  };
+}
+
+function impactCrossX(prevX: number, prevY: number, x: number, y: number): number {
+  const prevGround = getApproachTerrainHeight(prevX);
+  const ground = getApproachTerrainHeight(x);
+  const prevClearance = prevY - prevGround;
+  const clearance = y - ground;
+  const denom = prevClearance - clearance;
+  if (Math.abs(denom) < 1e-6) return x;
+  const t = clamp(prevClearance / denom, 0, 1);
+  return prevX + (x - prevX) * t;
+}
+
+export function getApproachApoapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
+  const spherical = level.spherical;
+  if (!spherical) return null;
+
+  const r = Math.sqrt(s.worldX * s.worldX + s.worldY * s.worldY);
+  const v2 = s.worldVX * s.worldVX + s.worldVY * s.worldVY;
+  const energy = v2 * 0.5 - spherical.planetGM / r;
+  const h = s.worldX * s.worldVY - s.worldY * s.worldVX;
+  const e2 = 1 + (2 * energy * h * h) / (spherical.planetGM * spherical.planetGM);
+  const e = Math.sqrt(Math.max(0, e2));
+
+  if (energy >= 0 || e >= 1) return Infinity;
+
+  const a = -spherical.planetGM / (2 * energy);
+  return a * (1 + e) - spherical.planetRadius;
 }
 
 function density(y: number, level: ApproachLevel): number {
@@ -336,30 +516,25 @@ export function updateApproach(
     if (s.heatShield) { s.heatShield = false; }
     else { s.heatShield = true; s.wingsDeployed = false; }
   }
-  // G: toggle wings (deploy at min angle)
   if (input.toggleWings && !s.wingsDeployed) {
     s.wingsDeployed = true;
     s.wingAngle = MIN_WING_ANGLE;
     s.heatShield = false;
   }
-  // Wing angle (Q/E)
   if (s.wingsDeployed) {
     if (input.wingAngleUp) {
       s.wingAngle = clamp(s.wingAngle + level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
     }
     if (input.wingAngleDown) {
-      // Fold toward min; when at min and still holding Q, accumulate fold timer
       s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
     }
   }
-  // Q held at min angle for 0.5s → retract wings
   if (s.wingsDeployed && input.wingAngleDown && s.wingAngle <= MIN_WING_ANGLE + 0.001) {
     s._foldTimer = (s._foldTimer ?? 0) + dt;
     if (s._foldTimer >= 0.5) { s.wingsDeployed = false; s._foldTimer = 0; }
   } else {
     s._foldTimer = 0;
   }
-  // E held when wings retracted for 0.5s → deploy
   if (!s.wingsDeployed && !s.heatShield && input.wingAngleUp) {
     s._deployTimer = (s._deployTimer ?? 0) + dt;
     if (s._deployTimer >= 0.5) {
@@ -370,15 +545,11 @@ export function updateApproach(
   } else {
     s._deployTimer = 0;
   }
-  // Force fold wings if too hot (same speed as Q)
   if (s.temperature > level.wingsMaxTemp && s.wingsDeployed) {
     s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
-    if (s.wingAngle <= MIN_WING_ANGLE + 0.001) {
-      s.wingsDeployed = false;
-    }
+    if (s.wingAngle <= MIN_WING_ANGLE + 0.001) s.wingsDeployed = false;
   }
 
-  // --- Throttle ---
   const canBurn = s.fuel > 0;
   if (input.throttleUp && canBurn) {
     s.throttle = clamp(s.throttle + 2.5 * dt, 0, 1);
@@ -386,69 +557,101 @@ export function updateApproach(
     s.throttle = clamp(s.throttle - 3.0 * dt, 0, 1);
   }
 
-  // --- Rotation (RCS) ---
   let angAccel = 0;
   if (Math.abs(input.pitch) > 0.01) angAccel += input.pitch * config.rcsAngularAccel;
   angAccel -= s.angularVel * config.angularDrag;
 
-  // --- Forces ---
-  const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
-  const { ax: aeroAx, ay: aeroAy, heatRate, aoa } = aeroForces(
-    s.x, s.y, s.vx, s.vy, s.angle, s.heatShield, effectiveWing, level,
-  );
-  let ax = aeroAx;
-  let ay = -level.gravity + aeroAy;
-
-  // Wind layers (horizontal force)
-  ax += getWind(s.y, level, time);
-
-  // Turbulence (rotational — bumps the ship's attitude)
-  angAccel += getTurbulenceTorque(s.x, s.y, time, level);
-
-  // Engine thrust (W = forward along ship nose)
-  if (s.throttle > 0.01 && canBurn) {
-    const t = s.throttle * effThrust;
-    ax += Math.sin(s.angle) * t;
-    ay += Math.cos(s.angle) * t;
-    s.fuel -= s.throttle * dt;
-    if (s.fuel < 0) s.fuel = 0;
-  }
-
-  // Retro thrust (S = reverse along ship nose, equal power)
-  const spd = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   s.retroFiring = false;
-  if (input.throttleDown && canBurn) {
-    const t = effThrust;
-    ax -= Math.sin(s.angle) * t;
-    ay -= Math.cos(s.angle) * t;
-    s.fuel -= dt;
-    if (s.fuel < 0) s.fuel = 0;
-    s.retroFiring = true;
+  const spherical = level.spherical;
+
+  if (spherical) {
+    const r = Math.sqrt(s.worldX * s.worldX + s.worldY * s.worldY);
+    const radX = s.worldX / r;
+    const radY = s.worldY / r;
+    const tanX = -radY * s.localDir;
+    const tanY = radX * s.localDir;
+    const g = spherical.planetGM / (r * r);
+    let ax = -g * radX;
+    let ay = -g * radY;
+
+    if (s.throttle > 0.01 && canBurn) {
+      const t = s.throttle * effThrust;
+      const noseX = Math.sin(s.angle);
+      const noseY = Math.cos(s.angle);
+      ax += (tanX * noseX + radX * noseY) * t;
+      ay += (tanY * noseX + radY * noseY) * t;
+      s.fuel -= s.throttle * dt;
+      if (s.fuel < 0) s.fuel = 0;
+    }
+
+    if (input.throttleDown && canBurn) {
+      const t = effThrust;
+      const noseX = Math.sin(s.angle);
+      const noseY = Math.cos(s.angle);
+      ax -= (tanX * noseX + radX * noseY) * t;
+      ay -= (tanY * noseX + radY * noseY) * t;
+      s.fuel -= dt;
+      if (s.fuel < 0) s.fuel = 0;
+      s.retroFiring = true;
+    }
+
+    s.angularVel += angAccel * dt;
+    s.angle = wrapAngle(s.angle + s.angularVel * dt);
+
+    s.worldVX += ax * dt;
+    s.worldVY += ay * dt;
+    s.worldX += s.worldVX * dt;
+    s.worldY += s.worldVY * dt;
+
+    const local = worldToLocalFrame(s.worldX, s.worldY, s.worldVX, s.worldVY, spherical, s.localDir);
+    s.x = local.x;
+    s.y = local.y;
+    s.vx = local.vx;
+    s.vy = local.vy;
+  } else {
+    const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
+    const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
+      s.x, s.y, s.vx, s.vy, s.angle, s.heatShield, effectiveWing, level,
+    );
+    let ax = aeroAx;
+    let ay = -level.gravity + aeroAy;
+
+    ax += getWind(s.y, level, time);
+    angAccel += getTurbulenceTorque(s.x, s.y, time, level);
+
+    if (s.throttle > 0.01 && canBurn) {
+      const t = s.throttle * effThrust;
+      ax += Math.sin(s.angle) * t;
+      ay += Math.cos(s.angle) * t;
+      s.fuel -= s.throttle * dt;
+      if (s.fuel < 0) s.fuel = 0;
+    }
+
+    if (input.throttleDown && canBurn) {
+      const t = effThrust;
+      ax -= Math.sin(s.angle) * t;
+      ay -= Math.cos(s.angle) * t;
+      s.fuel -= dt;
+      if (s.fuel < 0) s.fuel = 0;
+      s.retroFiring = true;
+    }
+
+    const hm = s.heatShield ? level.shieldHeatMult : 1.0;
+    s.temperature += (heatRate * hm - level.dissipation * s.temperature) * dt;
+    s.temperature = clamp(s.temperature, 0, 1.5);
+    if (s.temperature >= 1.0) { s.alive = false; return; }
+
+    s.angularVel += angAccel * dt;
+    s.angle = wrapAngle(s.angle + s.angularVel * dt);
+
+    s.vx += ax * dt;
+    s.vy += ay * dt;
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
   }
 
-
-
-  // --- Heat ---
-  const hm = s.heatShield ? level.shieldHeatMult : 1.0;
-  s.temperature += (heatRate * hm - level.dissipation * s.temperature) * dt;
-  s.temperature = clamp(s.temperature, 0, 1.5);
-  if (s.temperature >= 1.0) { s.alive = false; return; }
-
-  // --- Integrate ---
-  s.angularVel += angAccel * dt;
-  s.angle += s.angularVel * dt;
-  while (s.angle > Math.PI) s.angle -= 2 * Math.PI;
-  while (s.angle < -Math.PI) s.angle += 2 * Math.PI;
-
-  s.vx += ax * dt;
-  s.vy += ay * dt;
-  s.x += s.vx * dt;
-  s.y += s.vy * dt;
-
-  // --- Bounds ---
   if (s.y <= getApproachTerrainHeight(s.x)) { s.alive = false; return; }
 
-  // --- Gate (rectangular: gateX ± gateRadius, 0 to gateY) ---
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const inGateX = s.x >= level.gateX - level.gateRadius && s.x <= level.gateX + level.gateRadius;
   const terrainAtGate = getApproachTerrainHeight(s.x);
@@ -456,6 +659,14 @@ export function updateApproach(
   if (inGateX && inGateY && speed <= level.gateMaxSpeed && speed >= level.gateMinSpeed) {
     s.gateReached = true;
     s.gateSpeed = speed;
+  }
+
+  if (level.departure) {
+    const apa = getApproachApoapsisAltitude(s, level);
+    if (s.y >= level.departure.exitAltitude && apa !== null && apa >= level.departure.thresholdApoapsisAltitude) {
+      s.gateReached = true;
+      s.gateSpeed = Math.abs(s.vx);
+    }
   }
 }
 
@@ -470,32 +681,67 @@ export function predictTrajectory(
   let reachedGate = false;
   let overheatIdx = -1;
   let wingFoldIdx = -1;
-  let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   let temp = s.temperature;
   const angle = s.angle;
   const shield = s.heatShield;
   const wing = s.wingsDeployed ? s.wingAngle : 0;
   let dead = false;
   let prevTooHot = temp >= level.wingsMaxTemp;
+  const spherical = level.spherical;
+
+  if (spherical) {
+    let wx = s.worldX, wy = s.worldY, wvx = s.worldVX, wvy = s.worldVY;
+    let prevLocal = worldToLocalFrame(wx, wy, wvx, wvy, spherical, s.localDir);
+
+    for (let t = 0; t < maxTime; t += step) {
+      const r = Math.sqrt(wx * wx + wy * wy);
+      const g = spherical.planetGM / (r * r);
+      const ax = -g * (wx / r);
+      const ay = -g * (wy / r);
+
+      wvx += ax * step;
+      wvy += ay * step;
+      wx += wvx * step;
+      wy += wvy * step;
+
+      const local = worldToLocalFrame(wx, wy, wvx, wvy, spherical, s.localDir);
+      points.push({ x: local.x, y: local.y, temp: clamp(temp, 0, 1), burnedUp: false });
+
+      if (!reachedGate) {
+        const inGX = local.x >= level.gateX - level.gateRadius && local.x <= level.gateX + level.gateRadius;
+        const tAtGate = getApproachTerrainHeight(local.x);
+        const inGY = local.y >= tAtGate && local.y <= level.gateY + tAtGate;
+        if (inGX && inGY) reachedGate = true;
+      }
+
+      if (local.y <= getApproachTerrainHeight(local.x)) {
+        impactX = impactCrossX(prevLocal.x, prevLocal.y, local.x, local.y);
+        break;
+      }
+      prevLocal = local;
+    }
+
+    return { points, impactX, reachedGate, overheatIdx, wingFoldIdx };
+  }
+
+  let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
+  let prevX = x, prevY = y;
 
   for (let t = 0; t < maxTime; t += step) {
     const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, shield, wing, level);
-    let ax = aax + getWind(y, level, predTime);  // wind in prediction (current time snapshot)
-    const ay = -level.gravity + aay;   // no turbulence in prediction (unpredictable)
+    let ax = aax + getWind(y, level, predTime);
+    const ay = -level.gravity + aay;
 
     const hm = shield ? level.shieldHeatMult : 1.0;
     temp += (heatRate * hm - level.dissipation * temp) * step;
-    // Track where wings become unusable (too hot) or usable again (cooled down)
     const tooHotForWings = temp >= level.wingsMaxTemp;
     if (wingFoldIdx < 0) {
-      // If we start cool, mark where it gets too hot
-      // If we start hot, mark where it cools enough for wings
       if (points.length === 0) {
         // first point — set initial state
       } else if (!prevTooHot && tooHotForWings) {
-        wingFoldIdx = points.length; // just became too hot
+        wingFoldIdx = points.length;
       } else if (prevTooHot && !tooHotForWings) {
-        wingFoldIdx = points.length; // just became cool enough
+        wingFoldIdx = points.length;
       }
     }
     prevTooHot = tooHotForWings;
@@ -503,6 +749,7 @@ export function predictTrajectory(
     if (temp >= 1.0) dead = true;
     temp = clamp(temp, 0, 1.5);
 
+    prevX = x; prevY = y;
     vx += ax * step;
     vy += ay * step;
     x += vx * step;
@@ -514,9 +761,12 @@ export function predictTrajectory(
       const inGX = x >= level.gateX - level.gateRadius && x <= level.gateX + level.gateRadius;
       const tAtGate = getApproachTerrainHeight(x);
       const inGY = y >= tAtGate && y <= level.gateY + tAtGate;
-      if (inGX && inGY) { reachedGate = true; }
+      if (inGX && inGY) reachedGate = true;
     }
-    if (y <= getApproachTerrainHeight(x)) { impactX = x; break; }
+    if (y <= getApproachTerrainHeight(x)) {
+      impactX = impactCrossX(prevX, prevY, x, y);
+      break;
+    }
   }
   return { points, impactX, reachedGate, overheatIdx, wingFoldIdx };
 }
@@ -537,10 +787,29 @@ export function updateApproachCamera(
 ): void {
   const smooth = 1 - Math.exp(-2.0 * dt);
 
-  // --- Compute desired zoom ---
   const baseZoom = 0.04;
-  const maxZoom = baseZoom * 2;    // can zoom in 2x when close
-  const minZoom = baseZoom * 0.2;  // can zoom out 5x when far
+  const maxZoom = baseZoom * 2;
+  const minZoom = baseZoom * 0.2;
+
+  if (level.departure) {
+    const exitAlt = level.departure.exitAltitude;
+    const hDist = Math.max(1500, Math.abs(s.vx) * 10 + 2000);
+    const vDist = Math.max(s.y, exitAlt) + 600;
+    const targetZoom = clamp(Math.min((W * 0.75) / hDist, (H * 0.8) / vDist), minZoom, maxZoom);
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+
+    const viewW = W / cam.zoom;
+    const viewH = H / cam.zoom;
+    const groundH = getApproachTerrainHeight(s.x);
+    const shipTopCy = s.y - 0.33 * viewH;
+    const groundCy = groundH + 0.38 * viewH;
+    const cx = s.x + clamp(s.vx * 2.5, -viewW * 0.2, viewW * 0.2);
+    const cy = Math.max(shipTopCy, Math.min(s.y, groundCy));
+
+    cam.x += (cx - cam.x) * smooth;
+    cam.y += (cy - cam.y) * smooth;
+    return;
+  }
 
   // Fit both ship and gate horizontally in ~80% of screen
   const hDist = Math.abs(level.gateX - s.x) + level.gateRadius;
@@ -557,42 +826,27 @@ export function updateApproachCamera(
   const viewW = W / z;
   const viewH = H / z;
 
-  // --- Camera center: ship in middle, then adjust ---
   let cx = s.x;
   let cy = s.y;
 
-  // Horizontal: pan toward gate until gate is at least 10% from edge,
-  // but don't push ship past 10% from the opposite edge.
   const gateX = level.gateX;
-  // Gate at 90% from ship side: gate needs to be at screen frac 0.9 (or 0.1)
-  // gateWorldX = cx + viewW * (frac - 0.5)
-  // To put gate at 90%: cx = gateX - viewW * 0.4
-  // To put gate at 10%: cx = gateX + viewW * 0.4
   if (gateX > s.x) {
-    // Gate to the right: pan right
-    const gateCx = gateX - viewW * 0.4; // gate at 90% from left
-    const shipLimitCx = s.x + viewW * 0.4; // ship at 10% from left
+    const gateCx = gateX - viewW * 0.4;
+    const shipLimitCx = s.x + viewW * 0.4;
     cx = Math.min(gateCx, shipLimitCx);
-    cx = Math.max(cx, s.x); // don't pan away from gate
+    cx = Math.max(cx, s.x);
   } else {
-    // Gate to the left: pan left
-    const gateCx = gateX + viewW * 0.4; // gate at 10% from left
-    const shipLimitCx = s.x - viewW * 0.4; // ship at 90% from left
+    const gateCx = gateX + viewW * 0.4;
+    const shipLimitCx = s.x - viewW * 0.4;
     cx = Math.max(gateCx, shipLimitCx);
-    cx = Math.min(cx, s.x); // don't pan away from gate
+    cx = Math.min(cx, s.x);
   }
 
-  // Vertical: pan down to show ground at bottom 10%.
-  // Ground height below ship (approximate)
   const groundH = getApproachTerrainHeight(s.x);
-  // Ground at 90% from top: world y at 90% = cy - 0.4*viewH = groundH
   const groundCy = groundH + 0.4 * viewH;
-  // Ship at 10% from top: cy = ship.y - 0.4 * viewH
   const shipTopCy = s.y - 0.4 * viewH;
-  // Start at ship center, only pan down, clamped
   cy = Math.max(shipTopCy, Math.min(s.y, groundCy));
 
-  // Smooth follow
   cam.x += (cx - cam.x) * smooth;
   cam.y += (cy - cam.y) * smooth;
 }
@@ -667,8 +921,11 @@ export function renderApproach(
   // --- Trajectory preview ---
   drawTrajectory(ctx, cam, s, level, W, H, time);
 
-  // --- Gate ---
-  drawGate(ctx, cam, s, level, W, H);
+  if (level.departure) {
+    drawDepartureTarget(ctx, cam, level, W, H);
+  } else {
+    drawGate(ctx, cam, s, level, W, H);
+  }
 
   // --- Ship ---
   drawApproachShip(ctx, cam, s, level, W, H, time);
@@ -842,6 +1099,8 @@ function drawTrajectory(
   }
   ctx.globalAlpha = 1;
 
+  if (level.departure) return;
+
   // Impact point marker + distance indicator (always visible)
   const last = pts[pts.length - 1];
   if (last) {
@@ -929,6 +1188,47 @@ function drawTrajectory(
       ctx.moveTo(mx + 7, my - 7); ctx.lineTo(mx - 7, my + 7);
       ctx.stroke();
     }
+  }
+}
+
+function drawDepartureTarget(
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera,
+  level: ApproachLevel, W: number, H: number,
+): void {
+  if (!level.departure) return;
+
+  const targetY = level.departure.exitAltitude;
+  const [, sy] = ws(cam.x, targetY, cam, W, H);
+  const onScreen = sy > 0 && sy < H;
+
+  if (onScreen) {
+    ctx.strokeStyle = COL_GATE_DIM;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 6]);
+    ctx.beginPath();
+    ctx.moveTo(0, sy);
+    ctx.lineTo(W, sy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = '11px monospace';
+    ctx.fillStyle = COL_GATE;
+    ctx.textAlign = 'center';
+    ctx.fillText(`TARGET ALT ${(targetY / 1000).toFixed(1)}km`, W / 2, sy - 8);
+  } else {
+    const cy = clamp(sy, 36, H - 36);
+    const dir = sy < 0 ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(W - 34, cy + dir * 10);
+    ctx.lineTo(W - 42, cy - dir * 4);
+    ctx.lineTo(W - 26, cy - dir * 4);
+    ctx.closePath();
+    ctx.fillStyle = COL_GATE;
+    ctx.fill();
+    ctx.font = '11px monospace';
+    ctx.fillStyle = COL_GATE;
+    ctx.textAlign = 'right';
+    ctx.fillText(`TARGET ALT ${(targetY / 1000).toFixed(1)}km`, W - 50, cy + 4);
   }
 }
 
@@ -1157,6 +1457,8 @@ export function drawApproachHUD(
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const altKm = (s.y / 1000);
   const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - level.gateY) ** 2);
+  const departure = level.departure;
+  const apa = departure ? getApproachApoapsisAltitude(s, level) : null;
 
   ctx.save();
   const lx = 20;
@@ -1166,7 +1468,6 @@ export function drawApproachHUD(
   ctx.font = '14px "Courier New", monospace';
   ctx.textAlign = 'left';
 
-  // Level name (top right)
   ctx.font = '13px monospace';
   ctx.textAlign = 'right';
   ctx.fillStyle = COL_HUD_DIM;
@@ -1174,48 +1475,54 @@ export function drawApproachHUD(
   ctx.textAlign = 'left';
   ctx.font = '14px "Courier New", monospace';
 
-  // Altitude
   label(ctx, lx, ly, 'ALT', `${altKm.toFixed(1)} km`, COL_HUD); ly += lh;
 
-  // Speed
-  const spdCol = speed > level.gateMaxSpeed ? COL_WARN : speed < level.gateMinSpeed ? COL_HUD_DIM : COL_OK;
-  label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, spdCol); ly += lh;
+  if (departure) {
+    label(ctx, lx, ly, 'H/S', `${Math.abs(s.vx).toFixed(0)} m/s`, COL_HUD); ly += lh;
+    label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
+    label(ctx, lx, ly, 'TGT', `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, COL_GATE); ly += lh;
+    const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
+    const apaCol = apa === null ? COL_HUD_DIM
+      : apa >= departure.targetOrbitAltitude ? COL_OK
+      : apa >= departure.thresholdApoapsisAltitude ? COL_WARN
+      : COL_HUD;
+    label(ctx, lx, ly, 'ApA', apaText, apaCol); ly += lh;
+  } else {
+    const spdCol = speed > level.gateMaxSpeed ? COL_WARN : speed < level.gateMinSpeed ? COL_HUD_DIM : COL_OK;
+    label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, spdCol); ly += lh;
+    label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  }
 
-  // V/Speed
-  label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
-
-  // AoA
   const velAngle = Math.atan2(s.vx, s.vy);
   let aoa = velAngle - s.angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
   while (aoa < -Math.PI) aoa += 2 * Math.PI;
   label(ctx, lx, ly, 'AoA', `${(aoa * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
 
-  // Config
   let cfgStr = 'CLEAN';
   let cfgCol = COL_HUD;
   if (s.heatShield) { cfgStr = 'SHIELD'; cfgCol = '#ff8800'; }
   else if (s.wingsDeployed) { cfgStr = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`; cfgCol = '#00ccff'; }
   label(ctx, lx, ly, 'CFG', cfgStr, cfgCol); ly += lh;
 
-  // Atmosphere density
-  const rho = density(s.y, level);
-  const rhoFrac = rho / level.surfaceDensity;
-  const rhoCol = rhoFrac > 0.3 ? COL_WARN : rhoFrac > 0.05 ? COL_HUD : COL_HUD_DIM;
-  label(ctx, lx, ly, 'ATM', `${(rhoFrac * 100).toFixed(1)}%`, rhoCol); ly += lh;
+  if (!departure) {
+    const rho = density(s.y, level);
+    const rhoFrac = rho / level.surfaceDensity;
+    const rhoCol = rhoFrac > 0.3 ? COL_WARN : rhoFrac > 0.05 ? COL_HUD : COL_HUD_DIM;
+    label(ctx, lx, ly, 'ATM', `${(rhoFrac * 100).toFixed(1)}%`, rhoCol); ly += lh;
+  }
 
-  // Fuel
   const fuelPct = level.fuelSeconds > 0 ? (s.fuel / level.fuelSeconds * 100) : 0;
   const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
   label(ctx, lx, ly, 'FUEL', `${fuelPct.toFixed(0)}%`, fuelCol); ly += lh;
 
-  // Thrust mode
   if (s.highThrust) {
     label(ctx, lx, ly, 'THR', 'HIGH', COL_WARN); ly += lh;
   }
 
-  // Gate distance
-  label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
+  if (!departure) {
+    label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
+  }
 
   // --- Temperature bar (right side) ---
   const barX = W - 45;

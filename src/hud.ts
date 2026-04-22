@@ -95,6 +95,8 @@ export function drawHUD(
   state: GameState,
   landingScore: LandingScore | null,
   level: LevelDef,
+  completionText: string = '',
+  launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1 },
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -158,6 +160,13 @@ export function drawHUD(
   drawLabel(ctx, lx, ly, 'GEAR', ship.gearDeployed ? 'DOWN' : 'UP', gearColor);
   ly += lineH;
 
+  if (launchGuidance) {
+    drawLabel(ctx, lx, ly, 'TGT', `${launchGuidance.targetAltitude.toFixed(0)} m`, COL_SUCCESS);
+    ly += lineH;
+    drawLabel(ctx, lx, ly, 'DIR', launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', COL_SUCCESS);
+    ly += lineH;
+  }
+
   // --- Throttle bar ---
   const barX = lx;
   const barY = ly + 10;
@@ -194,6 +203,16 @@ export function drawHUD(
 
   // --- Warnings ---
   const warnings: { text: string; color: string }[] = [];
+
+  if (launchGuidance) {
+    if (altitude < launchGuidance.targetAltitude) {
+      warnings.push({ text: `ASCENT ALT ${(launchGuidance.targetAltitude - altitude).toFixed(0)}m`, color: COL_SUCCESS });
+    } else if (vSpeed < 0) {
+      warnings.push({ text: '⚠ CLIMBING REQUIRED', color: COL_WARNING });
+    } else {
+      warnings.push({ text: 'READY FOR DEPARTURE', color: COL_SUCCESS });
+    }
+  }
 
   // Terrain warning
   if (vSpeed < -1 && (ship.throttle < 0.05 || altitude > 100)) {
@@ -240,7 +259,7 @@ export function drawHUD(
 
   // --- State overlays ---
   if (state === 'landed' && landingScore) {
-    drawLandedOverlay(ctx, W, H, landingScore, level);
+    drawLandedOverlay(ctx, W, H, landingScore, level, completionText);
   }
   if (state === 'crashed') {
     drawCrashedOverlay(ctx, W, H);
@@ -294,10 +313,8 @@ export function calculateLandingScore(ship: ShipState, terrain: TerrainData): La
 
 function drawLandedOverlay(
   ctx: CanvasRenderingContext2D, W: number, H: number,
-  score: LandingScore, level: LevelDef,
+  score: LandingScore, level: LevelDef, completionText: string,
 ): void {
-  const mission = MISSIONS.find(m => !m.stub);
-  const completionText = mission?.completionText || '';
   const boxH = completionText ? 300 : 240;
   ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
   ctx.fillRect(W / 2 - 250, H / 2 - 130, 500, boxH);

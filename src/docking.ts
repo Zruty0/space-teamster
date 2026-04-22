@@ -232,8 +232,30 @@ const MISSION1_DOCKING: DockingLevel = {
   MISSION1_DOCKING.startAngle = bp.angle + Math.PI;
 })();
 
+const MISSION2_DOCKING: DockingLevel = {
+  id: 12,
+  name: 'Calloway Station',
+  subtitle: 'Deliver core samples to the lab bay',
+  hasContainer: true,
+  exitMode: false,
+  exitDistance: 0,
+  stationX: 0, stationY: 0,
+  bays: generateBays(2, 0, 1, 0.7),
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: true,
+  startX: -60, startY: 20,
+  startVX: 1.5, startVY: -0.3,
+  startAngle: 0,
+};
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   MISSION1_DOCKING,
+  MISSION2_DOCKING,
   {
     id: 9,
     name: 'Container Delivery',
@@ -1024,6 +1046,7 @@ export function drawDockingHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: DockingState, level: DockingLevel,
   state: 'docking' | 'delivered' | 'crashed',
+  completionText: string = '',
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1108,18 +1131,36 @@ export function drawDockingHUD(
 
   // State overlays
   if (state === 'delivered') {
+    const boxH = completionText ? 200 : 120;
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
-    ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.fillRect(W / 2 - 230, H / 2 - 80, 460, boxH);
     ctx.strokeStyle = '#00ffcc';
     ctx.lineWidth = 2;
-    ctx.strokeRect(W / 2 - 200, H / 2 - 60, 400, 120);
+    ctx.strokeRect(W / 2 - 230, H / 2 - 80, 460, boxH);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#00ffcc';
     ctx.font = 'bold 24px monospace';
-    ctx.fillText('DELIVERED', W / 2, H / 2 - 15);
+    ctx.fillText('DELIVERED', W / 2, H / 2 - 35);
+    if (completionText) {
+      ctx.fillStyle = '#88aa88';
+      ctx.font = '12px monospace';
+      const maxW = 400;
+      const words = completionText.split(' ');
+      let line = '';
+      let y = H / 2 - 5;
+      for (const word of words) {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx.measureText(test).width > maxW) {
+          ctx.fillText(line, W / 2, y);
+          line = word;
+          y += 16;
+        } else line = test;
+      }
+      if (line) ctx.fillText(line, W / 2, y);
+    }
     ctx.fillStyle = DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 - 80 + boxH - 15);
   }
   if (state === 'crashed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';

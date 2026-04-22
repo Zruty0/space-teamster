@@ -15,7 +15,7 @@ export const MISSIONS: Mission[] = [
     id: 1,
     name: 'Mail Run',
     subtitle: 'Deliver supplies from Orbital Hub Calloway to the mining settlement on Castor.',
-    completionText: 'Mail, rations, snacks, small purchases — small pleasures for the hard-working miners. You\'re invited to join the evening at The Rusty Vein.',
+    completionText: 'Mail, rations, snacks, packages — small pleasures for the hard-working miners. You\'re invited to join the evening at The Rusty Vein.',
     stub: false,
     startPhase: 'docking',
   },
@@ -24,7 +24,7 @@ export const MISSIONS: Mission[] = [
     name: 'Core Samples',
     subtitle: 'Haul geological survey cores from Castor\'s mining camp back to Calloway Station.',
     completionText: 'The lab techs have been waiting weeks for these. Dr. Vasquez is already pulling the first core before your container clamps disengage.',
-    stub: true,
+    stub: false,
     startPhase: 'landing',
   },
   {

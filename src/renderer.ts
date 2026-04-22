@@ -95,6 +95,53 @@ export function render(
   drawShip(ctx, cam, ship, W, H, time);
 }
 
+export function drawLaunchGuidance(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  cam: Camera,
+  terrain: TerrainData,
+  targetAltitude: number,
+  orbitDir: 1 | -1,
+): void {
+  const W = canvas.width;
+  const H = canvas.height;
+  const worldY = terrain.pad.y + targetAltitude;
+  const [, sy] = worldToScreen(cam.x, worldY, cam, W, H);
+  const onScreen = sy > 0 && sy < H;
+
+  ctx.save();
+  if (onScreen) {
+    ctx.strokeStyle = 'rgba(0,255,204,0.55)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([12, 8]);
+    ctx.beginPath();
+    ctx.moveTo(0, sy);
+    ctx.lineTo(W, sy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#00ffcc';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    const dirArrow = orbitDir > 0 ? '→' : '←';
+    ctx.fillText(`ASCENT ALT ${targetAltitude.toFixed(0)}m   ${dirArrow}`, W / 2, sy - 10);
+  } else {
+    const cy = Math.max(36, Math.min(H - 36, sy));
+    const dir = sy < 0 ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(W - 36, cy + dir * 10);
+    ctx.lineTo(W - 44, cy - dir * 4);
+    ctx.lineTo(W - 28, cy - dir * 4);
+    ctx.closePath();
+    ctx.fillStyle = '#00ffcc';
+    ctx.fill();
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(`ASCENT ${targetAltitude.toFixed(0)}m`, W - 50, cy + 4);
+  }
+  ctx.restore();
+}
+
 // --- Stars ---
 function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, W: number, H: number): void {
   // Parallax stars based on camera position

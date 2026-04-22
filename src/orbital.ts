@@ -2,6 +2,7 @@
 // Self-contained module: physics, prediction, rendering, HUD.
 
 import { InputState } from './input';
+import type { ApproachInitOverride } from './approach';
 
 // ===================== Types =====================
 
@@ -103,6 +104,13 @@ export interface OrbitalState {
   // Rendezvous
   docked: boolean;
   inRendezvousZoom: boolean;   // in close-proximity rendezvous mode
+}
+
+export interface OrbitalInitOverride {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
 }
 
 // ===================== Constants =====================
@@ -235,7 +243,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       subtitle: 'Deorbit to mining settlement',
       planetRadius,
       planetGM: gm,
-      atmoHeight: 0,           // airless
+      atmoHeight: 0,
       atmoColor: [0, 0, 0] as [number, number, number],
       baseTimeScale,
       startX: 0,
@@ -255,26 +263,73 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       rcsAngularAccel: 0.5,
       heatCoeff: 0,
       heatDissipation: 0,
-      transitionAltitude: 8_000,    // hand off to approach at 8km
+      transitionAltitude: 8_000,
       landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 1,          // Castor approach (APPROACH_LEVELS[1])
+      approachLevelIdx: 1,
       approachGravity: 1.6,
+    };
+  })(),
+  (() => {
+    const planetRadius = 200_000;
+    const orbitAlt = 100_000;
+    const baseTimeScale = 50;
+    const surfaceG = 1.6;
+    const gm = surfaceG * planetRadius * planetRadius;
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    return {
+      id: 12,
+      name: 'Calloway Rendezvous',
+      subtitle: 'Raise apoapsis and rendezvous with Calloway Station',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 0,
+      atmoColor: [0, 0, 0] as [number, number, number],
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: v,
+      startVY: 0,
+      thrustAccel: 0.05,
+      thrustAccelMax: 1.0,
+      fuelDeltaV: 400,
+      surfaceDensity: 0,
+      scaleHeight: 1,
+      aeroNoseDrag: 0,
+      aeroBroadsideDrag: 0,
+      aeroLiftCoeff: 0,
+      highAtmoAoA: 0,
+      lowAtmoAoA: 0,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 0,
+      heatDissipation: 0,
+      transitionAltitude: 8_000,
+      landingSiteAngle: -Math.PI / 3,
+      approachLevelIdx: 1,
+      approachGravity: 1.6,
+      station: {
+        orbitRadius: r,
+        startAngle: -0.25,
+        captureRadius: 20_000,
+        captureMaxSpeed: 20,
+      },
     };
   })(),
 ];
 
 // ===================== State =====================
 
-export function createOrbitalState(level: OrbitalLevel): OrbitalState {
+export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOverride): OrbitalState {
   _predDirty = true;
   _cachedPred = null;
   _wasRendezvousZoom = false;
   _maneuverCache = null;
   return {
-    x: level.startX,
-    y: level.startY,
-    vx: level.startVX,
-    vy: level.startVY,
+    x: override?.x ?? level.startX,
+    y: override?.y ?? level.startY,
+    vx: override?.vx ?? level.startVX,
+    vy: override?.vy ?? level.startVY,
     fuel: level.fuelDeltaV,
     alive: true,
     enteredAtmo: false,
@@ -300,56 +355,26 @@ export function createOrbitalState(level: OrbitalLevel): OrbitalState {
  *  Approach coords: gate/LZ at x=0, ship starts at negative x, flies right. */
 export function orbitalToApproachParams(
   os: OrbitalState, level: OrbitalLevel,
-): { x: number; y: number; vx: number; vy: number; angle: number } {
+): ApproachInitOverride {
   const r = Math.sqrt(os.x * os.x + os.y * os.y);
   const alt = r - level.planetRadius;
 
-  // Local radial (up) unit vector
   const radX = os.x / r;
   const radY = os.y / r;
 
-  // Angular momentum determines orbit direction
-  // h = x*vy - y*vx; h < 0 = CW, h > 0 = CCW
   const h = os.x * os.vy - os.y * os.vx;
+  const localDir: 1 | -1 = h < 0 ? -1 : 1;
+  const tanX = -radY * localDir;
+  const tanY = radX * localDir;
 
-  // Local tangent: perpendicular to radial, in direction of travel
-  const tanX = h >= 0 ? -radY : radY;
-  const tanY = h >= 0 ? radX : -radX;
+  const vRadial = os.vx * radX + os.vy * radY;
+  const vTangential = os.vx * tanX + os.vy * tanY;
 
-  // Decompose velocity into radial and tangential
-  const vRadial = os.vx * radX + os.vy * radY;      // positive = away from planet
-  const vTangential = os.vx * tanX + os.vy * tanY;   // positive = in direction of travel
+  let angleDiff = Math.atan2(os.y, os.x) - level.landingSiteAngle;
+  while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+  while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+  const approachX = angleDiff * level.planetRadius * localDir;
 
-  // Compute approach x by simulating the approach trajectory and calibrating.
-  // 1. Start at x=0 with the transition velocity
-  // 2. Run approach physics (flat gravity) to find where it impacts
-  // 3. The impact x tells us how far the ship overshoots/undershoots the gate
-  // 4. Offset starting x to compensate
-  const approachGrav = level.approachGravity;
-  let simX = 0, simY = alt, simVX = vTangential, simVY = vRadial;
-  const simDt = 0.5;
-  for (let t = 0; t < 600; t += simDt) {
-    simVY -= approachGrav * simDt;
-    simX += simVX * simDt;
-    simY += simVY * simDt;
-    if (simY <= 0) break;
-  }
-  // simX is where approach physics says we'd impact (relative to gate at x=0)
-  // We want the impact to match the orbital prediction's short/long
-  let orbitalImpactOffset = 0; // 0 = on target
-  if (_cachedPred && _cachedPred.impact) {
-    const impAngle = Math.atan2(_cachedPred.impact.y, _cachedPred.impact.x);
-    let impDiff = impAngle - level.landingSiteAngle;
-    while (impDiff > Math.PI) impDiff -= 2 * Math.PI;
-    while (impDiff < -Math.PI) impDiff += 2 * Math.PI;
-    orbitalImpactOffset = (h < 0 ? -impDiff : impDiff) * level.planetRadius;
-  }
-  // Shift: we want simulated impact at orbitalImpactOffset, currently at simX
-  const approachX = orbitalImpactOffset - simX;
-
-  // Ship angle in approach frame: 0 = pointing up, positive = tilted toward travel
-  // Apply default entry AoA so approach starts at the baseline attitude
-  // Approach AoA convention: aoa = velAngle - shipAngle, so shipAngle = velAngle - aoa
   const velDirApproach = Math.atan2(vTangential, vRadial);
   const shipAngle = velDirApproach - level.lowAtmoAoA;
 
@@ -359,6 +384,11 @@ export function orbitalToApproachParams(
     vx: vTangential,
     vy: vRadial,
     angle: shipAngle,
+    wx: os.x,
+    wy: os.y,
+    wvx: os.vx,
+    wvy: os.vy,
+    localDir,
   };
 }
 
