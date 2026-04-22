@@ -32,7 +32,7 @@ export const MISSIONS: Mission[] = [
     name: 'Festival Freight',
     subtitle: 'Deliver decorations from Anchor Station to Port Kessler on Tycho for Founders\' Day.',
     completionText: 'The whole town turns out to unload. Kids are already hanging lanterns. The festival committee insists you stay for the opening ceremony at Kessler Square.',
-    stub: true,
+    stub: false,
     startPhase: 'docking',
   },
   {
@@ -40,7 +40,7 @@ export const MISSIONS: Mission[] = [
     name: 'The Morning After',
     subtitle: 'Haul recycling and festival waste from Port Kessler back up to Anchor Station.',
     completionText: 'Not glamorous, but Anchor\'s waste chief slips you a bonus for the quick turnaround. \'Fastest cleanup in three years,\' she says.',
-    stub: true,
+    stub: false,
     startPhase: 'landing',
   },
   {

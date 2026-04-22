@@ -75,6 +75,7 @@ export interface ApproachLevel {
     thresholdApoapsisAltitude: number; // minimum apoapsis altitude to hand off
     targetOrbitAltitude: number;       // mission target orbit altitude (HUD only)
     orbitalLevelId: number;            // orbital level to enter on success
+    orbitDir?: 1 | -1;                 // +1 = right, -1 = left guidance cue
   };
 
   // Optional spherical/local planetary model for seamless orbital handoff
@@ -203,7 +204,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     gateX: 0, gateY: 1500, gateRadius: 2000, gateMaxSpeed: 150, gateMinSpeed: 15,
     windLayers: [],
     turbulence: [],
-    landingLevelId: 0,
+    landingLevelId: 6,
     returnToOrbital: {
       exitAltitude: 8_000,
       orbitalLevelId: 11,
@@ -236,12 +237,70 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
       thresholdApoapsisAltitude: 20_000,
       targetOrbitAltitude: 100_000,
       orbitalLevelId: 12,
+      orbitDir: 1,
     },
     spherical: {
       planetRadius: 200_000,
       planetGM: 1.6 * 200_000 * 200_000,
       landingSiteAngle: -Math.PI / 3,
       localDir: -1,
+    },
+  },
+  {
+    id: 13,
+    name: 'Tycho Descent',
+    subtitle: 'Atmospheric approach — arrive at the port',
+    gravity: 3.5,
+    startX: -70000, startY: 22000, startVX: 980, startVY: -55, startAngle: 1.5,
+    surfaceDensity: 1.5, scaleHeight: 8500,
+    dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
+    dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
+    heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
+    maxWingAngle: 1.0, wingAngleRate: 1.0,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 85,
+    gateX: 0, gateY: 1800, gateRadius: 1700, gateMaxSpeed: 150, gateMinSpeed: 15,
+    windLayers: [
+      { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
+      { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
+      { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
+    ],
+    turbulence: [
+      { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
+    ],
+    landingLevelId: 7,
+    returnToOrbital: {
+      exitAltitude: 30_000,
+      orbitalLevelId: 13,
+    },
+  },
+  {
+    id: 14,
+    name: 'Tycho Departure',
+    subtitle: 'Atmospheric departure — build speed for orbit',
+    gravity: 3.5,
+    startX: 0, startY: 320, startVX: 0, startVY: 5, startAngle: 0,
+    surfaceDensity: 1.5, scaleHeight: 8500,
+    dragNose: 0.000020, dragBroadside: 0.00040, dragShield: 0.00035,
+    dragWingPerRad: 0.00015, liftBody: 0.00012, liftWingPerRad: 0.00085,
+    heatCoeff: 1e-5, dissipation: 0.08, shieldHeatMult: 0.12, wingsMaxTemp: 0.50,
+    maxWingAngle: 1.0, wingAngleRate: 1.0,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 90,
+    gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
+    windLayers: [
+      { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
+      { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
+      { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
+    ],
+    turbulence: [
+      { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
+    ],
+    landingLevelId: 0,
+    departure: {
+      exitAltitude: 30_000,
+      thresholdApoapsisAltitude: 35_000,
+      targetOrbitAltitude: 180_000,
+      orbitalLevelId: 14,
+      orbitDir: -1,
     },
   },
 ];

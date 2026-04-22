@@ -262,9 +262,67 @@ const MISSION2_DOCKING: DockingLevel = {
   startAngle: 0,
 };
 
+const MISSION3_DOCKING: DockingLevel = {
+  id: 13,
+  name: 'Anchor Station',
+  subtitle: 'Undock and clear the station',
+  hasContainer: true,
+  exitMode: true,
+  exitDistance: 160,
+  stationX: 0, stationY: 0,
+  bays: generateBays(1, 0, 4, 0.65),
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: false,
+  startX: 0, startY: 0,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 0,
+};
+
+(() => {
+  const bay = MISSION3_DOCKING.bays.find(b => b.spokeIdx === 1 && b.side === 0 && b.slot === 4)!;
+  bay.filled = false;
+  bay.isTarget = false;
+  bay.isPlayerBay = true;
+  for (const b of MISSION3_DOCKING.bays) b.isTarget = false;
+  const bp = bayWorldPos(bay, MISSION3_DOCKING.stationX, MISSION3_DOCKING.stationY);
+  MISSION3_DOCKING.startX = bp.x;
+  MISSION3_DOCKING.startY = bp.y;
+  MISSION3_DOCKING.startAngle = bp.angle + Math.PI;
+})();
+
+const MISSION4_DOCKING: DockingLevel = {
+  id: 14,
+  name: 'Anchor Station',
+  subtitle: 'Deliver waste to the processing bay',
+  hasContainer: true,
+  exitMode: false,
+  exitDistance: 0,
+  stationX: 0, stationY: 0,
+  bays: generateBays(3, 1, 2, 0.7),
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: false,
+  startX: -120, startY: 0,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 0,
+};
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   MISSION1_DOCKING,
   MISSION2_DOCKING,
+  MISSION3_DOCKING,
+  MISSION4_DOCKING,
   {
     id: 9,
     name: 'Container Delivery',

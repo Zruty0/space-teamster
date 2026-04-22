@@ -316,6 +316,95 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       },
     };
   })(),
+  (() => {
+    const planetRadius = 450_000;
+    const orbitAlt = 140_000;
+    const baseTimeScale = 60;
+    const surfaceG = 3.5;
+    const gm = surfaceG * planetRadius * planetRadius;
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    return {
+      id: 13,
+      name: 'Tycho Orbit',
+      subtitle: 'Deorbit toward the surface target',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 90_000,
+      atmoColor: [70, 135, 210] as [number, number, number],
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: -v,
+      startVY: 0,
+      thrustAccel: 0.08,
+      thrustAccelMax: 1.5,
+      fuelDeltaV: 500,
+      surfaceDensity: 1.5,
+      scaleHeight: 8500,
+      aeroNoseDrag: 0.00002,
+      aeroBroadsideDrag: 0.0004,
+      aeroLiftCoeff: 0.00012,
+      highAtmoAoA: 0.44,
+      lowAtmoAoA: 0.13,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 1e-5,
+      heatDissipation: 0.08,
+      transitionAltitude: 30_000,
+      landingSiteAngle: Math.PI / 5,
+      approachLevelIdx: 3,
+      approachGravity: 3.5,
+    };
+  })(),
+  (() => {
+    const planetRadius = 450_000;
+    const orbitAlt = 140_000;
+    const stationAlt = 180_000;
+    const baseTimeScale = 60;
+    const surfaceG = 3.5;
+    const gm = surfaceG * planetRadius * planetRadius;
+    const r = planetRadius + orbitAlt;
+    const v = Math.sqrt(gm / r);
+
+    return {
+      id: 14,
+      name: 'Anchor Rendezvous',
+      subtitle: 'Raise apoapsis and rendezvous with Anchor Station',
+      planetRadius,
+      planetGM: gm,
+      atmoHeight: 90_000,
+      atmoColor: [70, 135, 210] as [number, number, number],
+      baseTimeScale,
+      startX: 0,
+      startY: r,
+      startVX: -v,
+      startVY: 0,
+      thrustAccel: 0.08,
+      thrustAccelMax: 1.5,
+      fuelDeltaV: 500,
+      surfaceDensity: 1.5,
+      scaleHeight: 8500,
+      aeroNoseDrag: 0.00002,
+      aeroBroadsideDrag: 0.0004,
+      aeroLiftCoeff: 0.00012,
+      highAtmoAoA: 0.44,
+      lowAtmoAoA: 0.13,
+      rcsAngularAccel: 0.5,
+      heatCoeff: 1e-5,
+      heatDissipation: 0.08,
+      transitionAltitude: 30_000,
+      landingSiteAngle: Math.PI / 5,
+      approachLevelIdx: 4,
+      approachGravity: 3.5,
+      station: {
+        orbitRadius: planetRadius + stationAlt,
+        startAngle: -2.2,
+        captureRadius: 25_000,
+        captureMaxSpeed: 22,
+      },
+    };
+  })(),
 ];
 
 // ===================== State =====================

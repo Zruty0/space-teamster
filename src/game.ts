@@ -109,10 +109,10 @@ export class Game {
     if (initOverride) { cam.x = as.x; cam.y = as.y; }
     this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride };
     if (level.departure) {
-      const dir = level.spherical?.localDir === -1 ? 'RIGHT' : 'LEFT';
+      const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
       this.showGuidance(`CLIMB to ${(level.departure.exitAltitude / 1000).toFixed(1)}km and ACCELERATE ${dir}`);
     } else {
-      this.showGuidance('REACH THE GATE');
+      this.showGuidance('ARRIVE AT TARGET AREA');
     }
     setDevPanelMode('approach', () => this.loadApproach(level, initOverride));
     this.time = 0;
@@ -210,19 +210,37 @@ export class Game {
     this.currentMissionId = missionId;
 
     if (missionId === 1) {
-      this.loadDocking(DOCKING_LEVELS[0]);
+      this.loadDocking(DOCKING_LEVELS.find(l => l.id === 1)!);
       return;
     }
 
     if (missionId === 2) {
-      const castor = LEVELS[5];
-      const departure = APPROACH_LEVELS.find(l => l.id === 12);
-      const orbitDir = departure?.spherical?.localDir === -1 ? 1 : -1;
+      const castor = LEVELS.find(l => l.id === 6)!;
+      const departure = APPROACH_LEVELS.find(l => l.id === 12)!;
+      const orbitDir = departure.departure?.orbitDir ?? 1;
       this.loadLanding(
         castor,
         { x: castor.padCenterX, y: castor.padY + 6.6, vx: 0, vy: 0 },
         { targetAltitude: castor.startY, orbitDir, nextApproachLevelId: 12 },
       );
+      return;
+    }
+
+    if (missionId === 3) {
+      this.loadDocking(DOCKING_LEVELS.find(l => l.id === 13)!);
+      return;
+    }
+
+    if (missionId === 4) {
+      const tycho = LEVELS.find(l => l.id === 7)!;
+      const departure = APPROACH_LEVELS.find(l => l.id === 14)!;
+      const orbitDir = departure.departure?.orbitDir ?? 1;
+      this.loadLanding(
+        tycho,
+        { x: tycho.padCenterX, y: tycho.padY + 6.6, vx: 0, vy: 0 },
+        { targetAltitude: tycho.startY, orbitDir, nextApproachLevelId: 14 },
+      );
+      return;
     }
   }
 
@@ -361,6 +379,11 @@ export class Game {
     if (this.currentMissionId === 1) {
       const orbLevel = ORBITAL_LEVELS.find(l => l.id === 11);
       if (orbLevel) this.loadOrbital(orbLevel);
+      return;
+    }
+    if (this.currentMissionId === 3) {
+      const orbLevel = ORBITAL_LEVELS.find(l => l.id === 13);
+      if (orbLevel) this.loadOrbital(orbLevel);
     }
   }
 
@@ -385,7 +408,7 @@ export class Game {
 
         if (!p.os.alive) p.state = 'crashed';
         if (p.os.docked) {
-          if (this.currentMissionId === 2) {
+          if (this.currentMissionId === 2 || this.currentMissionId === 4) {
             this.transitionOrbitalToDocking(p);
             return;
           }
@@ -420,11 +443,9 @@ export class Game {
   }
 
   private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): void {
-    let landingIdx = 0;
-    if (p.level.id === 11) landingIdx = 5;
-    const landingLevel = LEVELS[landingIdx];
+    const landingLevel = LEVELS.find(l => l.id === p.level.landingLevelId) ?? LEVELS[0];
 
-    if (p.level.id === 11) {
+    if (p.level.gateRadius > 0) {
       const gateLeft = p.level.gateX - p.level.gateRadius;
       const gateWidth = Math.max(1, p.level.gateRadius * 2);
       const nx = Math.max(0, Math.min(1, (p.as.x - gateLeft) / gateWidth));
@@ -508,7 +529,8 @@ export class Game {
   }
 
   private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): void {
-    const dockingLevel = DOCKING_LEVELS.find(l => l.id === 12);
+    const dockingLevelId = this.currentMissionId === 4 ? 14 : 12;
+    const dockingLevel = DOCKING_LEVELS.find(l => l.id === dockingLevelId);
     const station = p.level.station;
     if (!dockingLevel || !station) return;
 
