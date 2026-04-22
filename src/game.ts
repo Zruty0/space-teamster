@@ -50,6 +50,8 @@ export class Game {
   private lastFrameTime = 0;
   private menuSelection = 0;
   private currentMissionId: number | null = null;
+  private guidanceText = '';
+  private guidanceUntil = 0;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
@@ -94,6 +96,8 @@ export class Game {
     camera.x = ship.x;
     camera.y = ship.y;
     this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance };
+    if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
+    else this.showGuidance('LAND ON THE PAD');
     setDevPanelMode('landing');
     this.time = 0;
     this.accumulator = 0;
@@ -104,6 +108,12 @@ export class Game {
     const cam = createApproachCamera(level);
     if (initOverride) { cam.x = as.x; cam.y = as.y; }
     this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride };
+    if (level.departure) {
+      const dir = level.spherical?.localDir === -1 ? 'RIGHT' : 'LEFT';
+      this.showGuidance(`CLIMB to ${(level.departure.exitAltitude / 1000).toFixed(1)}km and ACCELERATE ${dir}`);
+    } else {
+      this.showGuidance('REACH THE GATE');
+    }
     setDevPanelMode('approach', () => this.loadApproach(level, initOverride));
     this.time = 0;
     this.accumulator = 0;
@@ -114,6 +124,7 @@ export class Game {
     const cam = createDockingCamera();
     if (initOverride) { cam.x = ds.x; cam.y = ds.y; }
     this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride };
+    this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
     this.accumulator = 0;
   }
@@ -123,8 +134,26 @@ export class Game {
     const cam = createOrbitalCamera(level);
     if (initOverride) { cam.x = os.x; cam.y = os.y; }
     this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride };
+    this.showGuidance(level.station ? 'RENDEZVOUS WITH TARGET' : 'DEORBIT TO TARGET');
     this.time = 0;
     this.accumulator = 0;
+  }
+
+  private showGuidance(text: string, duration = 4): void {
+    this.guidanceText = text;
+    this.guidanceUntil = performance.now() / 1000 + duration;
+  }
+
+  private drawGuidanceBanner(): void {
+    const now = performance.now() / 1000;
+    if (!this.guidanceText || now > this.guidanceUntil) return;
+    const W = this.canvas.width;
+    this.ctx.save();
+    this.ctx.font = 'bold 18px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillStyle = '#00ffcc';
+    this.ctx.fillText(this.guidanceText, W / 2, 30);
+    this.ctx.restore();
   }
 
   // --- Main loop ---
@@ -331,7 +360,7 @@ export class Game {
       this.time += PHYSICS_DT;
     }
 
-    updateDockingCamera(p.cam, p.ds, frameTime);
+    updateDockingCamera(p.cam, p.ds, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
   private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): void {
@@ -544,5 +573,6 @@ export class Game {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
       drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText);
     }
+    this.drawGuidanceBanner();
   }
 }

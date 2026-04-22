@@ -306,7 +306,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       heatDissipation: 0,
       transitionAltitude: 8_000,
       landingSiteAngle: -Math.PI / 3,
-      approachLevelIdx: 1,
+      approachLevelIdx: 2,
       approachGravity: 1.6,
       station: {
         orbitRadius: r,

@@ -584,11 +584,38 @@ export function createDockingCamera(): DockingCamera {
 }
 
 export function updateDockingCamera(
-  cam: DockingCamera, s: DockingState, dt: number,
+  cam: DockingCamera, s: DockingState, level: DockingLevel, dt: number, W: number, H: number,
 ): void {
   const smooth = 1 - Math.exp(-3.0 * dt);
-  cam.x += (s.x - cam.x) * smooth;
-  cam.y += (s.y - cam.y) * smooth;
+
+  let targetX = s.x;
+  let targetY = s.y;
+  let targetZoom = 4;
+
+  if (level.exitMode) {
+    const dx = level.stationX - s.x;
+    const dy = level.stationY - s.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    targetX = (s.x + level.stationX) * 0.5;
+    targetY = (s.y + level.stationY) * 0.5;
+    targetZoom = Math.min(4, Math.max(1.8, Math.min((W * 0.7) / Math.max(dist, 40), (H * 0.7) / Math.max(dist, 40))));
+  } else {
+    const target = level.bays.find(b => b.isTarget);
+    if (target) {
+      const bp = bayWorldPos(target, level.stationX, level.stationY);
+      const dx = bp.x - s.x;
+      const dy = bp.y - s.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      targetX = (s.x + bp.x) * 0.5;
+      targetY = (s.y + bp.y) * 0.5;
+      const fitDist = Math.max(30, dist + 25);
+      targetZoom = Math.min(4, Math.max(2.0, Math.min((W * 0.7) / fitDist, (H * 0.7) / fitDist)));
+    }
+  }
+
+  cam.x += (targetX - cam.x) * smooth;
+  cam.y += (targetY - cam.y) * smooth;
+  cam.zoom += (targetZoom - cam.zoom) * smooth;
 }
 
 // ===================== Rendering =====================
@@ -636,6 +663,42 @@ export function renderDocking(
   ctx.arc(px, py, 3, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
   ctx.fill();
+
+  drawDockingTargetIndicator(ctx, cam, s, level, W, H);
+}
+
+function drawDockingTargetIndicator(
+  ctx: CanvasRenderingContext2D, cam: DockingCamera,
+  s: DockingState, level: DockingLevel, W: number, H: number,
+): void {
+  const target = level.bays.find(b => b.isTarget);
+  if (!target) return;
+  const bp = bayWorldPos(target, level.stationX, level.stationY);
+  const [tx, ty] = dws(bp.x, bp.y, cam, W, H);
+  const margin = 40;
+  const onScreen = tx > margin && tx < W - margin && ty > margin && ty < H - margin;
+  if (onScreen) return;
+
+  const cx = Math.max(margin, Math.min(W - margin, tx));
+  const cy = Math.max(margin, Math.min(H - margin, ty));
+  const dx = tx - cx, dy = ty - cy;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return;
+  const nx = dx / len, ny = dy / len;
+  const as = 10;
+  ctx.beginPath();
+  ctx.moveTo(cx + nx * as, cy + ny * as);
+  ctx.lineTo(cx - nx * 4 - ny * as * 0.5, cy - ny * 4 + nx * as * 0.5);
+  ctx.lineTo(cx - nx * 4 + ny * as * 0.5, cy - ny * 4 - nx * as * 0.5);
+  ctx.closePath();
+  ctx.fillStyle = '#00ffcc';
+  ctx.fill();
+
+  const dist = Math.sqrt((s.x - bp.x) ** 2 + (s.y - bp.y) ** 2);
+  ctx.font = '11px monospace';
+  ctx.fillStyle = '#00ffcc';
+  ctx.textAlign = 'center';
+  ctx.fillText(`TGT ${dist.toFixed(0)}m`, cx, cy - 14);
 }
 
 // --- Stars ---
@@ -1111,11 +1174,10 @@ export function drawDockingHUD(
   if (level.exitMode && state === 'docking') {
     const edx = s.x - level.stationX, edy = s.y - level.stationY;
     const eDist = Math.sqrt(edx * edx + edy * edy);
-    const pct = Math.min(100, (eDist / level.exitDistance) * 100);
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = pct >= 100 ? '#00ffcc' : '#ffaa00';
-    ctx.fillText(`CLEAR STATION: ${pct.toFixed(0)}%`, W / 2, 30);
+    ctx.fillStyle = eDist >= level.exitDistance ? '#00ffcc' : '#ffaa00';
+    ctx.fillText(`CLEAR STATION: ${eDist.toFixed(0)}m`, W / 2, 30);
   }
 
   // Tractor beam warning

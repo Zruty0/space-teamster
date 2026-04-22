@@ -1214,7 +1214,7 @@ function drawDepartureTarget(
     ctx.font = '11px monospace';
     ctx.fillStyle = COL_GATE;
     ctx.textAlign = 'center';
-    ctx.fillText(`TARGET ALT ${(targetY / 1000).toFixed(1)}km`, W / 2, sy - 8);
+    ctx.fillText(`TRANSFER ALT ${(targetY / 1000).toFixed(1)}km`, W / 2, sy - 8);
   } else {
     const cy = clamp(sy, 36, H - 36);
     const dir = sy < 0 ? -1 : 1;
@@ -1228,7 +1228,7 @@ function drawDepartureTarget(
     ctx.font = '11px monospace';
     ctx.fillStyle = COL_GATE;
     ctx.textAlign = 'right';
-    ctx.fillText(`TARGET ALT ${(targetY / 1000).toFixed(1)}km`, W - 50, cy + 4);
+    ctx.fillText(`TRANSFER ALT ${(targetY / 1000).toFixed(1)}km`, W - 50, cy + 4);
   }
 }
 
@@ -1480,7 +1480,7 @@ export function drawApproachHUD(
   if (departure) {
     label(ctx, lx, ly, 'H/S', `${Math.abs(s.vx).toFixed(0)} m/s`, COL_HUD); ly += lh;
     label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
-    label(ctx, lx, ly, 'TGT', `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, COL_GATE); ly += lh;
+    label(ctx, lx, ly, 'TGT ALT', `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, COL_GATE); ly += lh;
     const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
     const apaCol = apa === null ? COL_HUD_DIM
       : apa >= departure.targetOrbitAltitude ? COL_OK
