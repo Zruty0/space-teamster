@@ -15,7 +15,8 @@ export interface OrbitalTransferBody {
   orbitRadius: number;
   startAngle: number;
   orbitSense: 1 | -1;
-  soiRadius: number;
+  patchRadius: number;           // gameplay patch/intercept radius
+  displayPatchRadius?: number;   // optional smaller/larger rendered radius
   arrivalAltitudeMin?: number;
   arrivalAltitudeMax?: number;
   arrivalSpeedMarginMin?: number;
@@ -187,7 +188,7 @@ const CASTOR_TRANSFER_BODY: OrbitalTransferBody = {
   orbitRadius: CASTOR_SYSTEM_ORBIT_RADIUS,
   startAngle: CASTOR_SYSTEM_START_ANGLE,
   orbitSense: 1,
-  soiRadius: hillRadius(CASTOR_SYSTEM_ORBIT_RADIUS, SHARED_MOON_GM, TYCHO_GM),
+  patchRadius: 700_000,
 };
 
 const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
@@ -199,7 +200,7 @@ const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
   orbitRadius: POLLUX_SYSTEM_ORBIT_RADIUS,
   startAngle: POLLUX_SYSTEM_START_ANGLE,
   orbitSense: 1,
-  soiRadius: hillRadius(POLLUX_SYSTEM_ORBIT_RADIUS, SHARED_MOON_GM, TYCHO_GM),
+  patchRadius: 800_000,
   arrivalAltitudeMin: 120_000,
   arrivalAltitudeMax: 220_000,
   arrivalSpeedMarginMin: 2,
@@ -566,11 +567,11 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       approachGravity: 1.6,
       reentryApproachLevelId: 15,
       showLandingSite: false,
-      escapeSOIRadius: CASTOR_TRANSFER_BODY.soiRadius,
+      escapeSOIRadius: CASTOR_TRANSFER_BODY.patchRadius,
       escapeToOrbitalLevelId: 16,
       escapeVectorAngle: Math.PI / 2,
       escapeVectorSpeed: hohmannDepartureVInf(CASTOR_SYSTEM_ORBIT_RADIUS, POLLUX_SYSTEM_ORBIT_RADIUS, TYCHO_GM),
-      conicRadius: CASTOR_TRANSFER_BODY.soiRadius,
+      conicRadius: CASTOR_TRANSFER_BODY.patchRadius,
     };
   })(),
   (() => {
@@ -666,7 +667,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       approachGravity: 1.6,
       reentryApproachLevelId: 16,
       showLandingSite: true,
-      conicRadius: POLLUX_TRANSFER_BODY.soiRadius,
+      conicRadius: POLLUX_TRANSFER_BODY.patchRadius,
     };
   })(),
 ];
@@ -771,7 +772,7 @@ interface OrbitalElements {
   trueAnomaly: number;
 }
 
-function computeElements(x: number, y: number, vx: number, vy: number, gm: number): OrbitalElements {
+export function computeElements(x: number, y: number, vx: number, vy: number, gm: number): OrbitalElements {
   const r = Math.sqrt(x * x + y * y);
   const v2 = vx * vx + vy * vy;
   const energy = v2 / 2 - gm / r;
@@ -798,13 +799,13 @@ function orbitPosition(elem: OrbitalElements, nu: number): { x: number; y: numbe
   return { x: r * Math.cos(angle), y: r * Math.sin(angle) };
 }
 
-function outgoingEscapeAngle(elem: OrbitalElements): number | null {
+export function outgoingEscapeAngle(elem: OrbitalElements): number | null {
   if (!(elem.e > 1) || !Number.isFinite(elem.e)) return null;
   const nuInf = Math.acos(-1 / elem.e);
   return elem.omega + (elem.h >= 0 ? nuInf : -nuInf);
 }
 
-function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
+export function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
   if (!(elem.energy > 0)) return null;
   return Math.sqrt(2 * elem.energy);
 }
@@ -941,7 +942,7 @@ export function updateOrbital(
         if (!pos) continue;
         const dx = s.x - pos.x, dy = s.y - pos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < body.soiRadius * 1.5) { nearBody = true; break; }
+        if (dist < body.patchRadius * 1.5) { nearBody = true; break; }
       }
     }
     if (nearBody) spaceBaseScale = level.localBaseTimeScale;
@@ -1314,10 +1315,11 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const dist = Math.sqrt(dx * dx + dy * dy);
       const relVx = pt.vx - bodyPos.vx, relVy = pt.vy - bodyPos.vy;
       const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
-      const vEsc = Math.sqrt(2 * targetBody.gm / Math.max(dist, 1));
+      const targetR = Math.max(arrivalMinR, Math.min(arrivalMaxR, dist));
+      const vEsc = Math.sqrt(2 * targetBody.gm / Math.max(targetR, 1));
       const minRelSpeed = Math.max(vEsc * 1.002, vEsc + (targetBody.arrivalSpeedMarginMin ?? 2));
       const maxRelSpeed = Math.max(minRelSpeed + 1, vEsc + (targetBody.arrivalSpeedMarginMax ?? 100));
-      const withinArrival = dist >= arrivalMinR && dist <= arrivalMaxR && relSpeed >= minRelSpeed && relSpeed <= maxRelSpeed;
+      const withinArrival = dist <= targetBody.patchRadius && relSpeed >= minRelSpeed && relSpeed <= maxRelSpeed;
       let dominated = false;
       if (withinArrival) {
         if (!hasWithinArrival || relSpeed < bestRelSpeed) {
@@ -1804,7 +1806,7 @@ export function updateOrbitalCamera(
     let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
     // If station exists, ensure its orbit is visible too
     if (level.station) maxR = Math.max(maxR, level.station.orbitRadius * 1.15);
-    const systemOuterR = level.systemBodies?.reduce((m, b) => Math.max(m, b.orbitRadius + b.soiRadius), 0) ?? 0;
+    const systemOuterR = level.systemBodies?.reduce((m, b) => Math.max(m, b.orbitRadius + (b.displayPatchRadius ?? b.patchRadius)), 0) ?? 0;
     if (systemOuterR > 0 && maxR > level.planetRadius * 4) {
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
@@ -1945,30 +1947,12 @@ function drawSystemBodies(
     ctx.stroke();
 
     if (body.id === level.targetBodyId) {
-      const soiR = body.soiRadius * cam.zoom;
+      const patchR = (body.displayPatchRadius ?? body.patchRadius) * cam.zoom;
       ctx.beginPath();
-      ctx.arc(bx, by, soiR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.25)`;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 6]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      const minAlt = body.arrivalAltitudeMin ?? 0;
-      const maxAlt = body.arrivalAltitudeMax ?? minAlt;
-      const ringInner = (body.radius + minAlt) * cam.zoom;
-      const ringOuter = (body.radius + maxAlt) * cam.zoom;
-      ctx.beginPath();
-      ctx.arc(bx, by, ringOuter, 0, Math.PI * 2);
-      ctx.arc(bx, by, ringInner, 0, Math.PI * 2, true);
-      ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.08)`;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(bx, by, ringOuter, 0, Math.PI * 2);
-      ctx.arc(bx, by, ringInner, 0, Math.PI * 2, true);
+      ctx.arc(bx, by, patchR, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.45)`;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([8, 6]);
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 6]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -2752,9 +2736,7 @@ export function drawOrbitalHUD(
       const dist = Math.sqrt(dx * dx + dy * dy);
       const rvx = s.vx - pos.vx, rvy = s.vy - pos.vy;
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-      const arrivalMinR = body.radius + (body.arrivalAltitudeMin ?? 0);
-      const arrivalMaxR = body.radius + (body.arrivalAltitudeMax ?? 0);
-      const targetCol = dist >= arrivalMinR && dist <= arrivalMaxR ? COL_OK : COL_HUD;
+      const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
       label(ctx, lx, ly, body.name.slice(0, 3).toUpperCase(), `${(dist / 1000).toFixed(0)} km`, targetCol); ly += lh;
       label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < 220 ? COL_OK : COL_HUD); ly += lh;
       const pred = getCachedPrediction(s, level);

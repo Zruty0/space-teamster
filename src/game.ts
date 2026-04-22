@@ -21,6 +21,7 @@ import {
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
   orbitalToApproachParams, getTransferBody, transferBodyState,
+  computeElements, outgoingEscapeAngle, escapeSpeedAtInfinity,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -453,11 +454,15 @@ export class Game {
         if (!nextLevel) return false;
         const castorState = transferBodyState(nextLevel, 'castor', p.os.time);
         if (!castorState) return false;
+        const elem = computeElements(p.os.x, p.os.y, p.os.vx, p.os.vy, p.level.planetGM);
+        const escapeAngle = outgoingEscapeAngle(elem);
+        const escapeSpeed = escapeSpeedAtInfinity(elem);
+        if (escapeAngle === null || escapeSpeed === null) return false;
         this.loadOrbital(nextLevel, {
-          x: castorState.x + p.os.x,
-          y: castorState.y + p.os.y,
-          vx: castorState.vx + p.os.vx,
-          vy: castorState.vy + p.os.vy,
+          x: castorState.x,
+          y: castorState.y,
+          vx: castorState.vx + Math.cos(escapeAngle) * escapeSpeed,
+          vy: castorState.vy + Math.sin(escapeAngle) * escapeSpeed,
           time: p.os.time,
         });
         return true;
@@ -484,7 +489,7 @@ export class Game {
       const rHatX = rx / Math.max(dist, 1);
       const rHatY = ry / Math.max(dist, 1);
       const radialSpeed = rvx * rHatX + rvy * rHatY;
-      const arrivalReady = dist <= maxR && dist <= body.soiRadius && radialSpeed < 0 && speed >= minSpeed && speed <= maxSpeed;
+      const arrivalReady = dist <= body.patchRadius && radialSpeed < 0 && speed >= minSpeed && speed <= maxSpeed;
       if (!arrivalReady) return false;
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
