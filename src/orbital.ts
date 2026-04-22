@@ -1468,8 +1468,13 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
-  const maxTime = Math.min(period * 0.95, 20000); // just under 1 orbit
-  const stepSize = Math.max(1, maxTime / 1200);
+  let maxTime = Math.min(period * 0.95, 20000); // just under 1 orbit for local-body gameplay
+  if (level.systemBodies) {
+    const targetOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
+    const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
+    maxTime = Math.max(maxTime, Math.min(transferTime * 1.5, 400000));
+  }
+  const stepSize = Math.max(1, maxTime / 1600);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
@@ -2084,8 +2089,27 @@ function drawEscapeGuidance(
   const drawVector = (angle: number, color: string, label: string, outwardScale = 1.02) => {
     const tipR = level.escapeSOIRadius! * outwardScale;
     const baseR = level.escapeSOIRadius! * 0.9;
-    const tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
-    const base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+    let tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
+    let base = ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
+    const margin = 44;
+    const onScreen = (p: [number, number]) => p[0] >= margin && p[0] <= W - margin && p[1] >= margin && p[1] <= H - margin;
+
+    if (!onScreen(tip) || !onScreen(base)) {
+      const ox = Math.max(margin, Math.min(W - margin, cx));
+      const oy = Math.max(margin, Math.min(H - margin, cy));
+      let dirX = Math.cos(angle);
+      let dirY = -Math.sin(angle); // screen-space Y flip
+      const dirLen = Math.sqrt(dirX * dirX + dirY * dirY) || 1;
+      dirX /= dirLen; dirY /= dirLen;
+
+      const tx = dirX > 0 ? (W - margin - ox) / dirX : dirX < 0 ? (margin - ox) / dirX : Infinity;
+      const ty = dirY > 0 ? (H - margin - oy) / dirY : dirY < 0 ? (margin - oy) / dirY : Infinity;
+      const candidates = [tx, ty].filter(v => Number.isFinite(v) && v > 0);
+      const t = candidates.length > 0 ? Math.min(...candidates) : 0;
+      tip = [ox + dirX * t, oy + dirY * t];
+      base = [tip[0] - dirX * 18, tip[1] - dirY * 18];
+    }
+
     const dx = tip[0] - base[0], dy = tip[1] - base[1];
     const len = Math.sqrt(dx * dx + dy * dy) || 1;
     const nx = dx / len, ny = dy / len;
@@ -2102,7 +2126,7 @@ function drawEscapeGuidance(
     ctx.font = '10px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = color;
-    ctx.fillText(label, tip[0], tip[1] - 8);
+    ctx.fillText(label, Math.max(70, Math.min(W - 70, tip[0])), Math.max(18, Math.min(H - 18, tip[1] - 8)));
   };
 
   if (level.escapeVectorAngle !== undefined) {
