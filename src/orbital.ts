@@ -231,20 +231,39 @@ export function transferBodyState(
 function escapeTargetForLevel(
   level: OrbitalLevel, time: number,
 ): { angle: number; speed: number } | null {
+  let angle: number | null = null;
   if (level.escapeToOrbitalLevelId) {
     const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
     const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
-    if (castorState) {
-      return {
-        angle: Math.atan2(castorState.vy, castorState.vx),
-        speed: level.escapeVectorSpeed ?? 0,
-      };
-    }
+    if (castorState) angle = Math.atan2(castorState.vy, castorState.vx);
   }
-  if (level.escapeVectorAngle !== undefined) {
-    return { angle: level.escapeVectorAngle, speed: level.escapeVectorSpeed ?? 0 };
+  if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
+  if (angle === null) return null;
+
+  const vInf = level.escapeVectorSpeed ?? 0;
+  const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
+  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
+  return { angle, speed };
+}
+
+function currentEscapeVector(
+  s: OrbitalState, level: OrbitalLevel,
+): { angle: number; speed: number } | null {
+  if (!level.escapeSOIRadius) return null;
+  const r = Math.sqrt(s.x * s.x + s.y * s.y);
+  if (r >= level.escapeSOIRadius) {
+    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+    if (speed > 0.01) return { angle: Math.atan2(s.vy, s.vx), speed };
   }
-  return null;
+
+  const pred = getCachedPrediction(s, level);
+  const last = pred.points[pred.points.length - 1];
+  if (!last) return null;
+  const lastR = Math.sqrt(last.x * last.x + last.y * last.y);
+  if (lastR < level.escapeSOIRadius * 0.98) return null;
+  const speed = Math.sqrt(last.vx * last.vx + last.vy * last.vy);
+  if (speed < 0.01) return null;
+  return { angle: Math.atan2(last.vy, last.vx), speed };
 }
 
 // ===================== Levels =====================
@@ -2156,11 +2175,9 @@ function drawEscapeGuidance(
     drawVector(target.angle, '#66bbff', targetLabel);
   }
 
-  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-  const escapeAngle = outgoingEscapeAngle(elem);
-  const vInf = escapeSpeedAtInfinity(elem);
-  if (escapeAngle !== null && vInf !== null) {
-    drawVector(escapeAngle, '#ffaa00', `CUR ${vInf.toFixed(0)}m/s`, 0.98);
+  const current = currentEscapeVector(s, level);
+  if (current) {
+    drawVector(current.angle, '#ffaa00', `CUR ${current.speed.toFixed(0)}m/s`, 0.98);
   }
 }
 
@@ -2743,8 +2760,9 @@ export function drawOrbitalHUD(
   // ApA: green normally, yellow if in upper atmo, orange if below critical
   const apInAtmo = apAlt < level.atmoHeight / 1000;
   const apBelowCrit = apAlt < level.transitionAltitude / 1000;
-  const apCol = apAlt === Infinity ? COL_WARN : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
-  const apStr = apAlt === Infinity ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
+  const escapeApsis = level.escapeSOIRadius ? elem.apoapsis >= level.escapeSOIRadius : false;
+  const apCol = (apAlt === Infinity || escapeApsis) ? COL_WARN : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
+  const apStr = (apAlt === Infinity || escapeApsis) ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
   label(ctx, lx, ly, 'ApA', apStr, apCol); ly += lh;
 
   // Atmosphere altitude
@@ -2797,12 +2815,11 @@ export function drawOrbitalHUD(
   if (level.escapeSOIRadius) {
     const target = escapeTargetForLevel(level, s.time);
     label(ctx, lx, ly, 'ESC', `${(target?.speed ?? 0).toFixed(0)} m/s`, '#66bbff'); ly += lh;
-    const escapeAngle = outgoingEscapeAngle(elem);
-    const vInf = escapeSpeedAtInfinity(elem);
-    if (escapeAngle !== null && vInf !== null) {
-      label(ctx, lx, ly, 'V∞', `${vInf.toFixed(0)} m/s`, COL_WARN); ly += lh;
+    const current = currentEscapeVector(s, level);
+    if (current) {
+      label(ctx, lx, ly, 'VESC', `${current.speed.toFixed(0)} m/s`, COL_WARN); ly += lh;
       if (target) {
-        let err = escapeAngle - target.angle;
+        let err = current.angle - target.angle;
         while (err > Math.PI) err -= 2 * Math.PI;
         while (err < -Math.PI) err += 2 * Math.PI;
         label(ctx, lx, ly, 'E-ERR', `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, Math.abs(err) < 0.12 ? COL_OK : COL_WARN); ly += lh;

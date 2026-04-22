@@ -21,7 +21,6 @@ import {
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
   orbitalToApproachParams, getTransferBody, transferBodyState,
-  computeElements, outgoingEscapeAngle, escapeSpeedAtInfinity,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -454,15 +453,14 @@ export class Game {
         if (!nextLevel) return false;
         const castorState = transferBodyState(nextLevel, 'castor', p.os.time);
         if (!castorState) return false;
-        const elem = computeElements(p.os.x, p.os.y, p.os.vx, p.os.vy, p.level.planetGM);
-        const escapeAngle = outgoingEscapeAngle(elem);
-        const escapeSpeed = escapeSpeedAtInfinity(elem);
-        if (escapeAngle === null || escapeSpeed === null) return false;
+        const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
+        if (localSpeed < 0.01) return false;
+        const escapeAngle = Math.atan2(p.os.vy, p.os.vx);
         this.loadOrbital(nextLevel, {
           x: castorState.x,
           y: castorState.y,
-          vx: castorState.vx + Math.cos(escapeAngle) * escapeSpeed,
-          vy: castorState.vy + Math.sin(escapeAngle) * escapeSpeed,
+          vx: castorState.vx + Math.cos(escapeAngle) * localSpeed,
+          vy: castorState.vy + Math.sin(escapeAngle) * localSpeed,
           time: p.os.time,
         });
         return true;
