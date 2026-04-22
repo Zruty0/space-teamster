@@ -616,7 +616,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startVY: 0,
       thrustAccel: 0.06,
       thrustAccelMax: 1.2,
-      fuelDeltaV: 800,
+      fuelDeltaV: 1600,
       surfaceDensity: 0,
       scaleHeight: 1,
       aeroNoseDrag: 0,
@@ -667,7 +667,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startVY: vy,
       thrustAccel: 0.08,
       thrustAccelMax: 1.8,
-      fuelDeltaV: 1400,
+      fuelDeltaV: 2800,
       surfaceDensity: 1.5,
       scaleHeight: 8500,
       aeroNoseDrag: 0.00002,
@@ -716,7 +716,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startVY: radial,
       thrustAccel: 0.06,
       thrustAccelMax: 1.2,
-      fuelDeltaV: 650,
+      fuelDeltaV: 1300,
       surfaceDensity: 0,
       scaleHeight: 1,
       aeroNoseDrag: 0,
@@ -1597,7 +1597,7 @@ function predictOrbit(
     while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
     angleAccum += Math.abs(dTheta);
     prevTheta = theta;
-    if (level.conicRadius && r >= level.conicRadius) return points;
+    if (!level.systemBodies && level.conicRadius && r >= level.conicRadius) return points;
     if (angleAccum >= Math.PI * 2) return points;
   }
   return points;

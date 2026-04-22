@@ -686,7 +686,19 @@ export class Game {
     input.reset = false;
     input.levelSelect = false;
 
-    this.accumulator += frameTime;
+    if (input.warpUp) {
+      p.as.timeWarpLevel = Math.min(p.as.timeWarpLevel + 1, 2);
+      p.as.timeWarp = [1, 2, 5][p.as.timeWarpLevel];
+    }
+    if (input.warpDown) {
+      p.as.timeWarpLevel = Math.max(p.as.timeWarpLevel - 1, 0);
+      p.as.timeWarp = [1, 2, 5][p.as.timeWarpLevel];
+    }
+    input.warpUp = false;
+    input.warpDown = false;
+
+    const effectiveFrameTime = frameTime * p.as.timeWarp;
+    this.accumulator += effectiveFrameTime;
     let edgeConsumed = false;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'approaching') {
@@ -710,7 +722,7 @@ export class Game {
       this.time += PHYSICS_DT;
     }
 
-    updateApproachCamera(p.cam, p.as, p.level, frameTime, this.canvas.width, this.canvas.height);
+    updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
   }
 
   // --- Render ---

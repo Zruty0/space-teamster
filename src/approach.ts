@@ -120,6 +120,8 @@ export interface TurbulenceZone {
   strength: number;        // m/s² peak random force
 }
 
+const APPROACH_WARP_SPEEDS = [1, 2, 5];
+
 export interface ApproachState {
   x: number;
   y: number;
@@ -147,6 +149,8 @@ export interface ApproachState {
   gateSpeed: number;
   retroFiring: boolean;
   highThrust: boolean;
+  timeWarp: number;
+  timeWarpLevel: number;
   _foldTimer: number;
   _deployTimer: number;
 }
@@ -340,7 +344,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
     heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
     maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 140,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 280,
     gateX: 0, gateY: 0, gateRadius: 0, gateMaxSpeed: 0, gateMinSpeed: 0,
     windLayers: [],
     turbulence: [],
@@ -370,7 +374,7 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     dragWingPerRad: 0, liftBody: 0, liftWingPerRad: 0,
     heatCoeff: 0, dissipation: 0, shieldHeatMult: 0, wingsMaxTemp: 1,
     maxWingAngle: 0, wingAngleRate: 0,
-    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 130,
+    thrustAccel: 15, thrustAccelMax: 150, fuelSeconds: 260,
     gateX: 0, gateY: 1600, gateRadius: 1900, gateMaxSpeed: 150, gateMinSpeed: 15,
     windLayers: [],
     turbulence: [],
@@ -445,6 +449,7 @@ export function createApproachState(
     throttle: 0, fuel: level.fuelSeconds,
     heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
+    timeWarp: 1, timeWarpLevel: 0,
     _foldTimer: 0, _deployTimer: 0,
   };
 }
@@ -1712,6 +1717,9 @@ export function drawApproachHUD(
   if (s.highThrust) {
     label(ctx, lx, ly, 'THR', 'HIGH', COL_WARN); ly += lh;
   }
+  if (s.timeWarp > 1) {
+    label(ctx, lx, ly, 'WARP', `${s.timeWarp}x`, COL_WARN); ly += lh;
+  }
 
   if (!departure) {
     label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
@@ -1829,7 +1837,7 @@ export function drawApproachHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  H: Shield  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  H: Shield  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();
