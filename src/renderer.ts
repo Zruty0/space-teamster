@@ -3,6 +3,7 @@
 
 import { config } from './config';
 import { ShipState, SHIP_OUTLINE, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT, localToWorld } from './ship';
+import { LevelDef } from './levels';
 import { TerrainData } from './terrain';
 
 // --- Colors ---
@@ -73,6 +74,7 @@ export function render(
   cam: Camera,
   ship: ShipState,
   terrain: TerrainData,
+  level: LevelDef,
   time: number,
 ): void {
   const W = canvas.width;
@@ -86,7 +88,7 @@ export function render(
   drawStars(ctx, cam, W, H);
 
   // Terrain
-  drawTerrain(ctx, cam, terrain, W, H);
+  drawTerrain(ctx, cam, terrain, level, W, H);
 
   // Landing pad markings
   drawPad(ctx, cam, terrain, W, H);
@@ -168,7 +170,7 @@ function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, W: number, H: num
 // --- Terrain ---
 function drawTerrain(
   ctx: CanvasRenderingContext2D, cam: Camera,
-  terrain: TerrainData, W: number, H: number
+  terrain: TerrainData, level: LevelDef, W: number, H: number
 ): void {
   // Find visible x range
   const leftX = cam.x - W / (2 * cam.zoom) - 10;
@@ -197,7 +199,7 @@ function drawTerrain(
   ctx.lineTo(sxEnd, H + 10);
   ctx.lineTo(sxStart, H + 10);
   ctx.closePath();
-  ctx.fillStyle = '#080e08';
+  ctx.fillStyle = level.terrainFillColor ?? '#080e08';
   ctx.fill();
 
   // Draw terrain outline
@@ -207,12 +209,12 @@ function drawTerrain(
     const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
     ctx.lineTo(sx, sy);
   }
-  ctx.strokeStyle = COL_TERRAIN;
+  ctx.strokeStyle = level.terrainStrokeColor ?? COL_TERRAIN;
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   // Brighter edge on top of terrain
-  ctx.strokeStyle = COL_TERRAIN_BRIGHT;
+  ctx.strokeStyle = level.terrainBrightColor ?? COL_TERRAIN_BRIGHT;
   ctx.lineWidth = 0.5;
   ctx.stroke();
 }

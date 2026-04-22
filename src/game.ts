@@ -739,7 +739,7 @@ export class Game {
     if (p.kind === 'levelSelect') {
       drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
     } else if (p.kind === 'landing') {
-      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, this.time);
+      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time);
       drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, p.launchGuidance);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);

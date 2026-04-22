@@ -27,6 +27,9 @@ export interface LevelDef {
   padY: number;
   roughness: number;       // terrain amplitude multiplier
   features: TerrainFeature[];
+  terrainFillColor?: string;
+  terrainStrokeColor?: string;
+  terrainBrightColor?: string;
 }
 
 export const LEVELS: LevelDef[] = [
@@ -166,6 +169,9 @@ export const LEVELS: LevelDef[] = [
       { xStart: 920, xEnd: 935, height: 45 },
       { xStart: 1050, xEnd: 1065, height: 55 },
     ],
+    terrainFillColor: '#17130e',
+    terrainStrokeColor: '#665a46',
+    terrainBrightColor: '#8b7b61',
   },
   {
     id: 7,
@@ -216,5 +222,8 @@ export const LEVELS: LevelDef[] = [
       { xStart: 1085, xEnd: 1108, height: 82 },
       { xStart: 1140, xEnd: 1170, height: 50 },
     ],
+    terrainFillColor: '#0e1620',
+    terrainStrokeColor: '#5d8aa7',
+    terrainBrightColor: '#86aec8',
   },
 ];

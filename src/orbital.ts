@@ -1994,12 +1994,18 @@ function drawSystemBodies(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
+  const [cx, cy] = ws(0, 0, cam, W, H);
+  const tychoR = Math.max(8, level.planetRadius * cam.zoom);
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(120, 180, 255, 0.9)';
+  ctx.fillText('TYCHO', cx, cy - tychoR - 8);
+
   for (const body of level.systemBodies ?? []) {
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
     const [bx, by] = ws(pos.x, pos.y, cam, W, H);
     const orbitR = body.orbitRadius * cam.zoom;
-    const [cx, cy] = ws(0, 0, cam, W, H);
     const [cr, cg, cb] = body.color;
 
     ctx.beginPath();
