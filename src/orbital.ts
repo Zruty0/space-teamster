@@ -2,7 +2,7 @@
 // Self-contained module: physics, prediction, rendering, HUD.
 
 import { InputState } from './input';
-import type { ApproachInitOverride } from './approach';
+import { APPROACH_LEVELS, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 
 // ===================== Types =====================
 
@@ -1002,6 +1002,61 @@ const COAST_RECALC_INTERVAL = 90; // recalc every N frames when coasting (for gr
 /** Mark prediction as needing recomputation (call when orbit changes). */
 export function invalidatePrediction(): void { _predDirty = true; }
 
+function hybridizeApproachPrediction(
+  pred: PredictionResult, level: OrbitalLevel,
+): PredictionResult {
+  if (!pred.approachStart || level.atmoHeight <= 0) return pred;
+  const approachLevel = APPROACH_LEVELS[level.approachLevelIdx];
+  if (!approachLevel || approachLevel.departure) return pred;
+
+  const init = orbitalToApproachParams({
+    x: pred.approachStart.x,
+    y: pred.approachStart.y,
+    vx: pred.approachStart.vx,
+    vy: pred.approachStart.vy,
+    fuel: 0,
+    alive: true,
+    enteredAtmo: false,
+    temperature: 0,
+    trail: [],
+    trailIdx: 0,
+    time: 0,
+    realTime: 0,
+    timeWarp: 1,
+    timeWarpLevel: 0,
+    thrustPro: false,
+    thrustRetro: false,
+    thrustLeft: false,
+    thrustRight: false,
+    thrusting: 'none',
+    highThrust: false,
+    inAtmo: true,
+    angle: 0,
+    targetAoA: 0,
+    docked: false,
+    inRendezvousZoom: false,
+  }, level);
+  const as = createApproachState(approachLevel, init);
+  const traj = predictTrajectory(as, approachLevel, 0, 240, 0.4, false);
+  if (traj.impactX === null) return pred;
+
+  const localDir = init.localDir ?? -1;
+  const theta = level.landingSiteAngle + traj.impactX / (level.planetRadius * localDir);
+  const impactX = level.planetRadius * Math.cos(theta);
+  const impactY = level.planetRadius * Math.sin(theta);
+  return {
+    ...pred,
+    impact: {
+      x: impactX,
+      y: impactY,
+      vx: pred.impact?.vx ?? pred.approachStart.vx,
+      vy: pred.impact?.vy ?? pred.approachStart.vy,
+      alt: 0,
+      idx: pred.approachStart.idx + traj.points.length,
+    },
+  };
+}
+
 function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionResult {
   _predFrameCount++;
   // Periodic recalc: faster in atmo (drag), slower when coasting (gradient shift)
@@ -1015,7 +1070,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
-  _cachedPred = analyzePrediction(points, level);
+  _cachedPred = hybridizeApproachPrediction(analyzePrediction(points, level), level);
   _predDirty = false;
   return _cachedPred;
 }

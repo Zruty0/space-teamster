@@ -790,6 +790,7 @@ export function updateApproach(
 export function predictTrajectory(
   s: ApproachState, level: ApproachLevel,
   predTime: number = 0, maxTime = 180, step = 0.4,
+  includeWind: boolean = true,
 ): TrajectoryResult {
   const points: TrajectoryPoint[] = [];
   let impactX: number | null = null;
@@ -844,7 +845,7 @@ export function predictTrajectory(
 
   for (let t = 0; t < maxTime; t += step) {
     const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, shield, wing, level);
-    let ax = aax + getWind(y, level, predTime);
+    let ax = aax + (includeWind ? getWind(y, level, predTime) : 0);
     const ay = -level.gravity + aay;
 
     const hm = shield ? level.shieldHeatMult : 1.0;
