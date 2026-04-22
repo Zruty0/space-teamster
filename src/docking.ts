@@ -1170,14 +1170,14 @@ export function drawDockingHUD(
     ly += lh;
   }
 
-  // Exit mode: show distance to clear
-  if (level.exitMode && state === 'docking') {
+  // Exit mode: show distance to station on left HUD only
+  if (level.exitMode) {
     const edx = s.x - level.stationX, edy = s.y - level.stationY;
     const eDist = Math.sqrt(edx * edx + edy * edy);
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = eDist >= level.exitDistance ? '#00ffcc' : '#ffaa00';
-    ctx.fillText(`CLEAR STATION: ${eDist.toFixed(0)}m`, W / 2, 30);
+    ctx.fillStyle = DIM; ctx.fillText('STN', lx, ly);
+    ctx.fillStyle = eDist >= level.exitDistance ? '#00ffcc' : COL;
+    ctx.fillText(`${eDist.toFixed(0)} m`, lx + 50, ly);
+    ly += lh;
   }
 
   // Tractor beam warning
