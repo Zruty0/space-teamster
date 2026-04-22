@@ -458,6 +458,10 @@ export function createApproachState(
 
 const MIN_WING_ANGLE = 0.087; // ~5 degrees
 
+function effectiveWingMaxAngle(level: ApproachLevel): number {
+  return Math.max(level.maxWingAngle, MIN_WING_ANGLE);
+}
+
 function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
 }
@@ -688,22 +692,19 @@ export function updateApproach(
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
   const effThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
 
-  // --- Deployables (mutually exclusive) ---
-  if (input.toggleHeatShield) {
-    if (s.heatShield) { s.heatShield = false; }
-    else { s.heatShield = true; s.wingsDeployed = false; }
-  }
+  // --- Deployables ---
+  s.heatShield = false;
   if (input.toggleWings && !s.wingsDeployed) {
     s.wingsDeployed = true;
     s.wingAngle = MIN_WING_ANGLE;
-    s.heatShield = false;
   }
   if (s.wingsDeployed) {
+    const wingMaxAngle = effectiveWingMaxAngle(level);
     if (input.wingAngleUp) {
-      s.wingAngle = clamp(s.wingAngle + level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
+      s.wingAngle = clamp(s.wingAngle + level.wingAngleRate * dt, MIN_WING_ANGLE, wingMaxAngle);
     }
     if (input.wingAngleDown) {
-      s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
+      s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, wingMaxAngle);
     }
   }
   if (s.wingsDeployed && input.wingAngleDown && s.wingAngle <= MIN_WING_ANGLE + 0.001) {
@@ -712,7 +713,7 @@ export function updateApproach(
   } else {
     s._foldTimer = 0;
   }
-  if (!s.wingsDeployed && !s.heatShield && input.wingAngleUp) {
+  if (!s.wingsDeployed && input.wingAngleUp) {
     s._deployTimer = (s._deployTimer ?? 0) + dt;
     if (s._deployTimer >= 0.5) {
       s.wingsDeployed = true;
@@ -723,7 +724,7 @@ export function updateApproach(
     s._deployTimer = 0;
   }
   if (s.temperature > level.wingsMaxTemp && s.wingsDeployed) {
-    s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, level.maxWingAngle);
+    s.wingAngle = clamp(s.wingAngle - level.wingAngleRate * dt, MIN_WING_ANGLE, effectiveWingMaxAngle(level));
     if (s.wingAngle <= MIN_WING_ANGLE + 0.001) s.wingsDeployed = false;
   }
 
@@ -1565,28 +1566,11 @@ function drawApproachShip(
   ctx.stroke();
 
   // --- Heat shield: orange fill on the front half of the ship ---
-  if (s.heatShield) {
-    ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size * 0.5, size * 0.5);
-    ctx.lineTo(-size * 0.5, size * 0.5);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 136, 0, 0.5)';
-    ctx.fill();
-    // Bright edge on the nose half
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.5, size * 0.5);
-    ctx.lineTo(0, -size);
-    ctx.lineTo(size * 0.5, size * 0.5);
-    ctx.strokeStyle = '#ffaa33';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-
   // --- Wings (min angle = swept back/streamlined, max = perpendicular) ---
   if (s.wingsDeployed) {
     // Normalize: 0 = fully swept, 1 = fully perpendicular
-    const t = (s.wingAngle - MIN_WING_ANGLE) / (level.maxWingAngle - MIN_WING_ANGLE);
+    const wingMaxAngle = effectiveWingMaxAngle(level);
+    const t = (s.wingAngle - MIN_WING_ANGLE) / Math.max(wingMaxAngle - MIN_WING_ANGLE, 1e-6);
     const wingSpan = size * (0.5 + t * 0.7);  // longer at max
     // Sweep: at min angle wings point backward (+y), at max they're perpendicular (0)
     const sweepY = (1 - t) * size * 0.6;
@@ -1699,8 +1683,7 @@ export function drawApproachHUD(
 
   let cfgStr = 'CLEAN';
   let cfgCol = COL_HUD;
-  if (s.heatShield) { cfgStr = 'SHIELD'; cfgCol = '#ff8800'; }
-  else if (s.wingsDeployed) { cfgStr = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`; cfgCol = '#00ccff'; }
+  if (s.wingsDeployed) { cfgStr = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`; cfgCol = '#00ccff'; }
   label(ctx, lx, ly, 'CFG', cfgStr, cfgCol); ly += lh;
 
   if (!departure) {
@@ -1837,7 +1820,7 @@ export function drawApproachHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  H: Shield  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();
