@@ -537,19 +537,21 @@ function orbitPosition(elem: OrbitalElements, nu: number): { x: number; y: numbe
 // ===================== Atmosphere =====================
 
 /** Get station position at a given physics time. */
+function stationOrbitSense(level: OrbitalLevel): 1 | -1 {
+  return orbitSense(level.startX, level.startY, level.startVX, level.startVY);
+}
+
 function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; vx: number; vy: number } | null {
   if (!level.station) return null;
   const st = level.station;
-  // Negative omega = CW rotation (matching player's CW orbit)
-  const omega = -Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
+  const sense = stationOrbitSense(level);
+  const omega = sense * Math.sqrt(level.planetGM / (st.orbitRadius * st.orbitRadius * st.orbitRadius));
   const angle = st.startAngle + omega * time;
   const x = st.orbitRadius * Math.cos(angle);
   const y = st.orbitRadius * Math.sin(angle);
-  // Velocity = derivative of position: v = R * omega * (-sin, cos)
-  // omega is negative (CW), so velocity is (v*sin(angle), -v*cos(angle))
   const v = Math.sqrt(level.planetGM / st.orbitRadius);
-  const vx = v * Math.sin(angle);   // CW tangential
-  const vy = -v * Math.cos(angle);
+  const vx = -sense * v * Math.sin(angle);
+  const vy = sense * v * Math.cos(angle);
   return { x, y, vx, vy };
 }
 
@@ -946,7 +948,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
     let bestRelSpeed = Infinity;
     let hasWithinCapture = false;
     const st = level.station;
-    const omega = -Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
+    const sense = stationOrbitSense(level);
+    const omega = sense * Math.sqrt(level.planetGM / (st.orbitRadius ** 3));
     const stV = Math.sqrt(level.planetGM / st.orbitRadius);
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
@@ -955,8 +958,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const stY = st.orbitRadius * Math.sin(stAngle);
       const dx = pt.x - stX, dy = pt.y - stY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const stVx = stV * Math.sin(stAngle);
-      const stVy = -stV * Math.cos(stAngle);
+      const stVx = -sense * stV * Math.sin(stAngle);
+      const stVy = sense * stV * Math.cos(stAngle);
       const relVx = pt.vx - stVx, relVy = pt.vy - stVy;
       const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
 
@@ -976,10 +979,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       } else dominated = true;
 
       if (!dominated) {
-        // Decompose relative velocity into prograde and radial
-        // Station prograde (CW): (sin(stAngle), -cos(stAngle))
-        // Station radial out: (cos(stAngle), sin(stAngle))
-        const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
+        // Decompose relative velocity into station prograde and radial
+        const progX = -sense * Math.sin(stAngle), progY = sense * Math.cos(stAngle);
         const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
         const progradeRel = relVx * progX + relVy * progY;
         const radialRel = relVx * radX + relVy * radY;
@@ -1229,7 +1230,7 @@ function computeManeuver(s: OrbitalState, level: OrbitalLevel): ManeuverSuggesti
   const st = level.station;
   const gm = level.planetGM;
   const rTarget = st.orbitRadius;
-  const stOmega = -Math.sqrt(gm / (rTarget * rTarget * rTarget));
+  const stOmega = stationOrbitSense(level) * Math.sqrt(gm / (rTarget * rTarget * rTarget));
   
   // Check if there's already a good flyby — don't suggest if so
   const pred = getCachedPrediction(s, level);
