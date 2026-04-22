@@ -228,19 +228,114 @@ export function transferBodyState(
   };
 }
 
+let _cachedEscapeTarget: { levelId: number; timeBin: number; angle: number } | null = null;
+
+function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: number): number | null {
+  if (!level.escapeToOrbitalLevelId) return null;
+  const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
+  const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
+  const targetBody = nextLevel?.targetBodyId ? getTransferBody(nextLevel, nextLevel.targetBodyId) : null;
+  if (!nextLevel || !castorState || !targetBody) return null;
+
+  const timeBin = Math.floor(time / 200);
+  if (_cachedEscapeTarget && _cachedEscapeTarget.levelId === level.id && _cachedEscapeTarget.timeBin === timeBin) {
+    return _cachedEscapeTarget.angle;
+  }
+
+  const baseAngle = Math.atan2(castorState.vy, castorState.vx);
+  const transferA = (CASTOR_SYSTEM_ORBIT_RADIUS + POLLUX_SYSTEM_ORBIT_RADIUS) * 0.5;
+  const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
+  const horizon = hohmannTime * 1.35;
+  const stepSize = Math.max(120, horizon / 480);
+  let bestAngle = baseAngle;
+  let bestDist = Infinity;
+  let bestRelSpeed = Infinity;
+
+  const evalAngle = (angle: number) => {
+    const trial: OrbitalState = {
+      x: castorState.x,
+      y: castorState.y,
+      vx: castorState.vx + Math.cos(angle) * vInf,
+      vy: castorState.vy + Math.sin(angle) * vInf,
+      fuel: 0,
+      alive: true,
+      enteredAtmo: false,
+      temperature: 0,
+      trail: [],
+      trailIdx: 0,
+      time,
+      realTime: 0,
+      timeWarp: 1,
+      timeWarpLevel: 0,
+      thrustPro: false,
+      thrustRetro: false,
+      thrustLeft: false,
+      thrustRight: false,
+      thrusting: 'none',
+      highThrust: false,
+      inAtmo: false,
+      angle: 0,
+      targetAoA: nextLevel.highAtmoAoA,
+      docked: false,
+      inRendezvousZoom: false,
+    };
+    const points = predictOrbit(trial, nextLevel, horizon, stepSize, nextLevel.highAtmoAoA);
+    let minDist = Infinity;
+    let relSpeedAtMin = Infinity;
+    for (const pt of points) {
+      const bodyPos = transferBodyState(nextLevel, targetBody.id, pt.t);
+      if (!bodyPos) continue;
+      const dx = pt.x - bodyPos.x;
+      const dy = pt.y - bodyPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        const rvx = pt.vx - bodyPos.vx;
+        const rvy = pt.vy - bodyPos.vy;
+        relSpeedAtMin = Math.sqrt(rvx * rvx + rvy * rvy);
+      }
+    }
+    if (minDist < bestDist - 1 || (Math.abs(minDist - bestDist) <= 1 && relSpeedAtMin < bestRelSpeed)) {
+      bestDist = minDist;
+      bestRelSpeed = relSpeedAtMin;
+      bestAngle = angle;
+    }
+  };
+
+  const coarseRange = Math.PI * 0.45;
+  for (let i = 0; i <= 24; i++) {
+    const f = i / 24;
+    evalAngle(baseAngle - coarseRange + f * coarseRange * 2);
+  }
+  for (let pass = 0; pass < 2; pass++) {
+    const refineRange = pass === 0 ? Math.PI * 0.08 : Math.PI * 0.025;
+    const center = bestAngle;
+    for (let i = 0; i <= 10; i++) {
+      const f = i / 10;
+      evalAngle(center - refineRange + f * refineRange * 2);
+    }
+  }
+
+  _cachedEscapeTarget = { levelId: level.id, timeBin, angle: bestAngle };
+  return bestAngle;
+}
+
 function escapeTargetForLevel(
   level: OrbitalLevel, time: number,
 ): { angle: number; speed: number } | null {
   let angle: number | null = null;
+  const vInf = level.escapeVectorSpeed ?? 0;
   if (level.escapeToOrbitalLevelId) {
-    const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
-    const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
-    if (castorState) angle = Math.atan2(castorState.vy, castorState.vx);
+    angle = optimizedEscapeTargetAngle(level, time, vInf);
+    if (angle === null) {
+      const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
+      const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
+      if (castorState) angle = Math.atan2(castorState.vy, castorState.vx);
+    }
   }
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
   if (angle === null) return null;
 
-  const vInf = level.escapeVectorSpeed ?? 0;
   const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
   const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
   return { angle, speed };
