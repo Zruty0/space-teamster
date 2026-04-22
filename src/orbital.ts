@@ -665,7 +665,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
       startY: y,
       startVX: vx,
       startVY: vy,
-      thrustAccel: 0.008,
+      thrustAccel: 0.016,
       thrustAccelMax: 0.04,
       fuelDeltaV: 2800,
       surfaceDensity: 1.5,
