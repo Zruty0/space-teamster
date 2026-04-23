@@ -1401,7 +1401,10 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
     const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
     maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 1.5, period * 1.02), 800000));
   }
-  const stepSize = Math.max(1, maxTime / 2200);
+  const rNow = Math.sqrt(s.x * s.x + s.y * s.y);
+  const altNow = rNow - level.planetRadius;
+  const localDetail = level.systemBodies && altNow < Math.max(level.atmoHeight * 2, 400000);
+  const stepSize = localDetail ? Math.min(5, Math.max(1, maxTime / 2200)) : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
@@ -1414,7 +1417,17 @@ function predictOrbit(
   s: OrbitalState, level: OrbitalLevel, maxPhysTime: number, stepSize: number,
   predAoA: number,
 ): PredPoint[] {
-  const points: PredPoint[] = [];
+  const points: PredPoint[] = [{
+    x: s.x,
+    y: s.y,
+    vx: s.vx,
+    vy: s.vy,
+    alt: Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius,
+    t: s.time,
+    inAtmo: Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius < level.atmoHeight,
+    belowCritical: Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius < level.transitionAltitude,
+    heatRate: 0,
+  }];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   let prevTheta = Math.atan2(y, x);
   let angleAccum = 0;
