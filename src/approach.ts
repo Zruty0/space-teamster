@@ -993,7 +993,7 @@ export function renderApproach(
   drawAtmoBackground(ctx, cam, W, H, level);
 
   // --- Terrain (Perlin noise ground) ---
-  drawApproachTerrain(ctx, cam, W, H);
+  drawApproachTerrain(ctx, cam, level, W, H);
 
 
   // --- Wind layers ---
@@ -1041,7 +1041,7 @@ function drawAtmoBackground(
 }
 
 function drawApproachTerrain(
-  ctx: CanvasRenderingContext2D, cam: ApproachCamera, W: number, H: number,
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera, level: ApproachLevel, W: number, H: number,
 ): void {
   // Check if ground could be visible (conservative: highest terrain ~1500m)
   const screenBottomWorldY = cam.y - H / (2 * cam.zoom);
@@ -1070,7 +1070,7 @@ function drawApproachTerrain(
   ctx.lineTo(lastSx + 10, H + 10);
   ctx.lineTo(firstSx - 10, H + 10);
   ctx.closePath();
-  ctx.fillStyle = '#060c06';
+  ctx.fillStyle = level.body.terrainFillColor ?? '#060c06';
   ctx.fill();
 
   // Outline
@@ -1082,8 +1082,12 @@ function drawApproachTerrain(
     if (i === 0) ctx.moveTo(sx, sy);
     else ctx.lineTo(sx, sy);
   }
-  ctx.strokeStyle = COL_GROUND;
+  ctx.strokeStyle = level.body.terrainStrokeColor ?? COL_GROUND;
   ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.strokeStyle = level.body.terrainBrightColor ?? level.body.terrainStrokeColor ?? COL_GROUND;
+  ctx.lineWidth = 0.5;
   ctx.stroke();
 }
 

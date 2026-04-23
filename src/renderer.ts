@@ -91,7 +91,7 @@ export function render(
   drawTerrain(ctx, cam, terrain, level, W, H);
 
   // Landing pad markings
-  drawPad(ctx, cam, terrain, W, H);
+  drawPad(ctx, cam, terrain, level, W, H);
 
   // Ship
   drawShip(ctx, cam, ship, W, H, time);
@@ -222,18 +222,20 @@ function drawTerrain(
 // --- Landing pad ---
 function drawPad(
   ctx: CanvasRenderingContext2D, cam: Camera,
-  terrain: TerrainData, W: number, H: number
+  terrain: TerrainData, level: LevelDef, W: number, H: number
 ): void {
   const pad = terrain.pad;
   const [lx, ly] = worldToScreen(pad.left, pad.y, cam, W, H);
   const [rx, ry] = worldToScreen(pad.right, pad.y, cam, W, H);
   const [cx, cy] = worldToScreen(pad.centerX, pad.y, cam, W, H);
+  const padCol = level.terrainBrightColor ?? COL_PAD;
+  const padMarkCol = level.terrainStrokeColor ?? COL_PAD_MARKING;
 
   // Pad surface line
   ctx.beginPath();
   ctx.moveTo(lx, ly);
   ctx.lineTo(rx, ry);
-  ctx.strokeStyle = COL_PAD;
+  ctx.strokeStyle = padCol;
   ctx.lineWidth = 3;
   ctx.stroke();
 
@@ -244,7 +246,7 @@ function drawPad(
   ctx.lineTo(lx, ly - markerH);
   ctx.moveTo(rx, ry);
   ctx.lineTo(rx, ry - markerH);
-  ctx.strokeStyle = COL_PAD;
+  ctx.strokeStyle = padCol;
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -257,7 +259,7 @@ function drawPad(
     ctx.lineTo(cx, cy + ds);
     ctx.lineTo(cx - ds, cy);
     ctx.closePath();
-    ctx.strokeStyle = COL_PAD_MARKING;
+    ctx.strokeStyle = padMarkCol;
     ctx.lineWidth = 1;
     ctx.stroke();
   }
@@ -286,7 +288,7 @@ function drawPad(
     ctx.lineTo(clampX - dirX * 4 + perpX * arrowSize * 0.6, clampY - dirY * 4 + perpY * arrowSize * 0.6);
     ctx.lineTo(clampX - dirX * 4 - perpX * arrowSize * 0.6, clampY - dirY * 4 - perpY * arrowSize * 0.6);
     ctx.closePath();
-    ctx.fillStyle = COL_PAD;
+    ctx.fillStyle = padCol;
     ctx.globalAlpha = 0.8;
     ctx.fill();
 
@@ -295,7 +297,7 @@ function drawPad(
       (cam.x - pad.centerX) ** 2 + (cam.y - pad.y) ** 2
     );
     ctx.font = '11px monospace';
-    ctx.fillStyle = COL_PAD;
+    ctx.fillStyle = padCol;
     ctx.textAlign = 'center';
     ctx.fillText(`PAD ${Math.round(distM)}m`, clampX, clampY - 14);
     ctx.globalAlpha = 1;
