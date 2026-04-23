@@ -475,9 +475,12 @@ export class Game {
         const escapeAngle = Math.atan2(p.os.vy, p.os.vx);
         const patchR = p.level.escapeSOIRadius ?? Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
         const vInf = Math.sqrt(Math.max(0, localSpeed * localSpeed - 2 * p.level.planetGM / Math.max(patchR, 1)));
+        const localR = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
+        const preservePatchOffset = nextLevel.targetBodyId === p.level.bodyId && localR > 0.01;
+        const scale = preservePatchOffset ? (patchR / localR) : 0;
         this.loadOrbital(nextLevel, {
-          x: originState.x,
-          y: originState.y,
+          x: originState.x + p.os.x * scale,
+          y: originState.y + p.os.y * scale,
           vx: originState.vx + Math.cos(escapeAngle) * vInf,
           vy: originState.vy + Math.sin(escapeAngle) * vInf,
           time: p.os.time,

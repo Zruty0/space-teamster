@@ -335,11 +335,14 @@ function escapeTargetForLevel(
   let angle: number | null = null;
   const vInf = level.escapeVectorSpeed ?? 0;
   if (level.escapeToOrbitalLevelId) {
-    angle = optimizedEscapeTargetAngle(level, time, vInf);
-    if (angle === null) {
-      const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
-      const castorState = nextLevel ? transferBodyState(nextLevel, 'castor', time) : null;
-      if (castorState) angle = Math.atan2(castorState.vy, castorState.vx);
+    const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
+    const retargetsSameBody = nextLevel?.targetBodyId === level.bodyId;
+    if (!retargetsSameBody) {
+      angle = optimizedEscapeTargetAngle(level, time, vInf);
+      if (angle === null) {
+        const fallbackState = nextLevel ? transferBodyState(nextLevel, level.bodyId, time) : null;
+        if (fallbackState) angle = Math.atan2(fallbackState.vy, fallbackState.vx);
+      }
     }
   }
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
@@ -651,6 +654,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     level.thrustAccel = 0.06;
     level.thrustAccelMax = 1.2;
     level.fuelDeltaV = 1300;
+    level.escapeSOIRadius = POLLUX_TRANSFER_BODY.patchRadius;
+    level.escapeToOrbitalLevelId = 16;
     level.conicRadius = POLLUX_TRANSFER_BODY.patchRadius;
     return level;
   })(),
@@ -1839,7 +1844,7 @@ export function updateOrbitalCamera(
     if (showSystemView && systemOuterR > 0) {
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
-    if (level.conicRadius && showSystemView) {
+    if (level.conicRadius && (showSystemView || !level.systemBodies)) {
       maxR = Math.min(maxR, level.conicRadius * 1.05);
     }
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
@@ -2842,7 +2847,11 @@ export function drawOrbitalHUD(
 
   if (level.escapeSOIRadius) {
     const target = escapeTargetForLevel(level, s.time);
-    label(ctx, lx, ly, 'ESC', `${(target?.speed ?? 0).toFixed(0)} m/s`, '#66bbff'); ly += lh;
+    if (target) {
+      label(ctx, lx, ly, 'ESC', `${target.speed.toFixed(0)} m/s`, '#66bbff'); ly += lh;
+    } else {
+      label(ctx, lx, ly, 'SOI', `${(level.escapeSOIRadius / 1000).toFixed(0)} km`, '#66bbff'); ly += lh;
+    }
     const current = currentEscapeVector(s, level);
     if (current) {
       label(ctx, lx, ly, 'VESC', `${current.speed.toFixed(0)} m/s`, COL_WARN); ly += lh;
