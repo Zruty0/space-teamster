@@ -824,6 +824,80 @@ export function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
   return Math.sqrt(2 * elem.energy);
 }
 
+function stumpffC(z: number): number {
+  if (z > 1e-8) {
+    const sz = Math.sqrt(z);
+    return (1 - Math.cos(sz)) / z;
+  }
+  if (z < -1e-8) {
+    const sz = Math.sqrt(-z);
+    return (1 - Math.cosh(sz)) / z;
+  }
+  return 0.5 - z / 24 + (z * z) / 720;
+}
+
+function stumpffS(z: number): number {
+  if (z > 1e-8) {
+    const sz = Math.sqrt(z);
+    return (sz - Math.sin(sz)) / (sz * sz * sz);
+  }
+  if (z < -1e-8) {
+    const sz = Math.sqrt(-z);
+    return (Math.sinh(sz) - sz) / (sz * sz * sz);
+  }
+  return (1 / 6) - z / 120 + (z * z) / 5040;
+}
+
+function propagateTwoBodyState(
+  x: number, y: number, vx: number, vy: number,
+  gm: number, dt: number,
+): { x: number; y: number; vx: number; vy: number } {
+  if (dt === 0) return { x, y, vx, vy };
+
+  const r0 = Math.sqrt(x * x + y * y);
+  const v2 = vx * vx + vy * vy;
+  const rv0 = (x * vx + y * vy) / Math.max(r0, 1e-9);
+  const sqrtMu = Math.sqrt(gm);
+  const alpha = 2 / r0 - v2 / gm;
+
+  let chi = Math.abs(alpha) > 1e-6
+    ? sqrtMu * Math.abs(alpha) * dt
+    : sqrtMu * dt / Math.max(r0, 1);
+
+  for (let i = 0; i < 12; i++) {
+    const z = alpha * chi * chi;
+    const C = stumpffC(z);
+    const S = stumpffS(z);
+    const F = (r0 * rv0 / sqrtMu) * chi * chi * C
+      + (1 - alpha * r0) * chi * chi * chi * S
+      + r0 * chi
+      - sqrtMu * dt;
+    const dF = (r0 * rv0 / sqrtMu) * chi * (1 - z * S)
+      + (1 - alpha * r0) * chi * chi * C
+      + r0;
+    const dChi = F / Math.max(Math.abs(dF), 1e-9);
+    chi -= dChi;
+    if (Math.abs(dChi) < 1e-7) break;
+  }
+
+  const z = alpha * chi * chi;
+  const C = stumpffC(z);
+  const S = stumpffS(z);
+  const f = 1 - (chi * chi / r0) * C;
+  const g = dt - (chi * chi * chi / sqrtMu) * S;
+  const nx = f * x + g * vx;
+  const ny = f * y + g * vy;
+  const r = Math.sqrt(nx * nx + ny * ny);
+  const fdot = (sqrtMu / (Math.max(r, 1e-9) * r0)) * (alpha * chi * chi * chi * S - chi);
+  const gdot = 1 - (chi * chi / Math.max(r, 1e-9)) * C;
+  return {
+    x: nx,
+    y: ny,
+    vx: fdot * x + gdot * vx,
+    vy: fdot * y + gdot * vy,
+  };
+}
+
 // ===================== Atmosphere =====================
 
 /** Get station position at a given physics time. */
@@ -990,119 +1064,131 @@ export function updateOrbital(
 
     if (r < level.planetRadius) { s.alive = false; return; }
 
-    // Gravity
-    const gAccel = level.planetGM / (r * r);
-    let ax = -gAccel * (s.x / r);
-    let ay = -gAccel * (s.y / r);
-
-    // Aero forces (AoA-dependent drag + lift)
-    const displayAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
-    const aero = aeroForces(s.x, s.y, s.vx, s.vy, aoaDisplayToPhysical(displayAoA, s.x, s.y, s.vx, s.vy), level);
-    ax += aero.ax;
-    ay += aero.ay;
-
-    // Heat
-    s.temperature += (aero.heatRate - level.heatDissipation * s.temperature) * subDt;
-    if (s.temperature < 0) s.temperature = 0;
-    if (s.temperature > 1.5) s.temperature = 1.5;
-
     // Low-pass mode: real atmosphere for atmospheric bodies, low-altitude handling for airless ones.
     s.inAtmo = isLowPassMode(level, alt);
+    const vacuumCoast = !boostHeld && !s.inAtmo && atmoDensity(alt, level) < 1e-10;
 
-    // Thrust
-    if (s.fuel > 0) {
-      const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-      if (speed > 0.01) {
-        let thrustX = 0, thrustY = 0;
+    if (vacuumCoast) {
+      s.temperature += (-level.heatDissipation * s.temperature) * subDt;
+      if (s.temperature < 0) s.temperature = 0;
+      const next = propagateTwoBodyState(s.x, s.y, s.vx, s.vy, level.planetGM, subDt);
+      s.x = next.x;
+      s.y = next.y;
+      s.vx = next.vx;
+      s.vy = next.vy;
+      s.time += subDt;
+    } else {
+      // Gravity
+      const gAccel = level.planetGM / (r * r);
+      let ax = -gAccel * (s.x / r);
+      let ay = -gAccel * (s.y / r);
 
-        if (s.inRendezvousZoom) {
-          // Rendezvous zoom: WASD = screen coordinates
-          // W = +Y world (screen up), S = -Y, A = -X (screen left), D = +X
-          if (input.throttleUp)    { thrustY += effThrust; }
-          if (input.throttleDown)  { thrustY -= effThrust; }
-          if (input.pitch < 0)     { thrustX -= effThrust; } // A = left
-          if (input.pitch > 0)     { thrustX += effThrust; } // D = right
-          // Decompose into ship's 4 thrusters (prograde/retro/left/right)
-          if (thrustX !== 0 || thrustY !== 0) {
-            const pdx = s.vx / speed, pdy = s.vy / speed;
-            const leftX = -pdy, leftY = pdx;
-            const prog = thrustX * pdx + thrustY * pdy;
-            const lat = thrustX * leftX + thrustY * leftY;
-            if (prog > 0.01) s.thrustPro = true;
-            if (prog < -0.01) s.thrustRetro = true;
-            if (lat > 0.01) s.thrustLeft = true;
-            if (lat < -0.01) s.thrustRight = true;
-            s.thrusting = 'prograde'; // mark as thrusting for prediction dirty
-          }
-        } else if (s.inAtmo) {
-          const noseX = Math.cos(s.angle);
-          const noseY = Math.sin(s.angle);
-          if (input.throttleUp) {
-            thrustX += noseX * effThrust;
-            thrustY += noseY * effThrust;
-            s.thrusting = 'prograde'; s.thrustPro = true;
-          }
-          if (input.throttleDown) {
-            thrustX -= noseX * effThrust;
-            thrustY -= noseY * effThrust;
-            s.thrusting = 'retrograde'; s.thrustRetro = true;
-          }
-        } else {
-          const pdx = s.vx / speed;
-          const pdy = s.vy / speed;
-          const leftX = -pdy;
-          const leftY = pdx;
-          if (input.throttleUp) {
-            thrustX += pdx * effThrust;
-            thrustY += pdy * effThrust;
-            s.thrusting = 'prograde'; s.thrustPro = true;
-          }
-          if (input.throttleDown) {
-            thrustX -= pdx * effThrust;
-            thrustY -= pdy * effThrust;
-            s.thrusting = 'retrograde'; s.thrustRetro = true;
-          }
-          if (input.pitch < 0) {
-            thrustX += leftX * effThrust;
-            thrustY += leftY * effThrust;
-            s.thrusting = 'left'; s.thrustLeft = true;
-          }
-          if (input.pitch > 0) {
-            thrustX -= leftX * effThrust;
-            thrustY -= leftY * effThrust;
-            s.thrusting = 'right'; s.thrustRight = true;
-          }
-        }
+      // Aero forces (AoA-dependent drag + lift)
+      const displayAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
+      const aero = aeroForces(s.x, s.y, s.vx, s.vy, aoaDisplayToPhysical(displayAoA, s.x, s.y, s.vx, s.vy), level);
+      ax += aero.ax;
+      ay += aero.ay;
 
-        let thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
-        if (thrustMag > effThrust && thrustMag > THRUST_EPS) {
-          const scale = effThrust / thrustMag;
-          thrustX *= scale;
-          thrustY *= scale;
-          thrustMag = effThrust;
-        }
-        if (thrustMag > THRUST_EPS) {
-          const dvUsed = thrustMag * subDt;
-          if (dvUsed <= s.fuel) {
-            ax += thrustX;
-            ay += thrustY;
-            s.fuel -= dvUsed;
+      // Heat
+      s.temperature += (aero.heatRate - level.heatDissipation * s.temperature) * subDt;
+      if (s.temperature < 0) s.temperature = 0;
+      if (s.temperature > 1.5) s.temperature = 1.5;
+
+      // Thrust
+      if (s.fuel > 0) {
+        const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+        if (speed > 0.01) {
+          let thrustX = 0, thrustY = 0;
+
+          if (s.inRendezvousZoom) {
+            // Rendezvous zoom: WASD = screen coordinates
+            // W = +Y world (screen up), S = -Y, A = -X (screen left), D = +X
+            if (input.throttleUp)    { thrustY += effThrust; }
+            if (input.throttleDown)  { thrustY -= effThrust; }
+            if (input.pitch < 0)     { thrustX -= effThrust; } // A = left
+            if (input.pitch > 0)     { thrustX += effThrust; } // D = right
+            // Decompose into ship's 4 thrusters (prograde/retro/left/right)
+            if (thrustX !== 0 || thrustY !== 0) {
+              const pdx = s.vx / speed, pdy = s.vy / speed;
+              const leftX = -pdy, leftY = pdx;
+              const prog = thrustX * pdx + thrustY * pdy;
+              const lat = thrustX * leftX + thrustY * leftY;
+              if (prog > 0.01) s.thrustPro = true;
+              if (prog < -0.01) s.thrustRetro = true;
+              if (lat > 0.01) s.thrustLeft = true;
+              if (lat < -0.01) s.thrustRight = true;
+              s.thrusting = 'prograde'; // mark as thrusting for prediction dirty
+            }
+          } else if (s.inAtmo) {
+            const noseX = Math.cos(s.angle);
+            const noseY = Math.sin(s.angle);
+            if (input.throttleUp) {
+              thrustX += noseX * effThrust;
+              thrustY += noseY * effThrust;
+              s.thrusting = 'prograde'; s.thrustPro = true;
+            }
+            if (input.throttleDown) {
+              thrustX -= noseX * effThrust;
+              thrustY -= noseY * effThrust;
+              s.thrusting = 'retrograde'; s.thrustRetro = true;
+            }
           } else {
-            const frac = s.fuel / dvUsed;
-            ax += thrustX * frac;
-            ay += thrustY * frac;
-            s.fuel = 0;
+            const pdx = s.vx / speed;
+            const pdy = s.vy / speed;
+            const leftX = -pdy;
+            const leftY = pdx;
+            if (input.throttleUp) {
+              thrustX += pdx * effThrust;
+              thrustY += pdy * effThrust;
+              s.thrusting = 'prograde'; s.thrustPro = true;
+            }
+            if (input.throttleDown) {
+              thrustX -= pdx * effThrust;
+              thrustY -= pdy * effThrust;
+              s.thrusting = 'retrograde'; s.thrustRetro = true;
+            }
+            if (input.pitch < 0) {
+              thrustX += leftX * effThrust;
+              thrustY += leftY * effThrust;
+              s.thrusting = 'left'; s.thrustLeft = true;
+            }
+            if (input.pitch > 0) {
+              thrustX -= leftX * effThrust;
+              thrustY -= leftY * effThrust;
+              s.thrusting = 'right'; s.thrustRight = true;
+            }
+          }
+
+          let thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
+          if (thrustMag > effThrust && thrustMag > THRUST_EPS) {
+            const scale = effThrust / thrustMag;
+            thrustX *= scale;
+            thrustY *= scale;
+            thrustMag = effThrust;
+          }
+          if (thrustMag > THRUST_EPS) {
+            const dvUsed = thrustMag * subDt;
+            if (dvUsed <= s.fuel) {
+              ax += thrustX;
+              ay += thrustY;
+              s.fuel -= dvUsed;
+            } else {
+              const frac = s.fuel / dvUsed;
+              ax += thrustX * frac;
+              ay += thrustY * frac;
+              s.fuel = 0;
+            }
           }
         }
       }
-    }
 
-    // Symplectic Euler
-    s.vx += ax * subDt;
-    s.vy += ay * subDt;
-    s.x += s.vx * subDt;
-    s.y += s.vy * subDt;
-    s.time += subDt;
+      // Symplectic Euler
+      s.vx += ax * subDt;
+      s.vy += ay * subDt;
+      s.x += s.vx * subDt;
+      s.y += s.vy * subDt;
+      s.time += subDt;
+    }
 
     if (!s.pendingBodyCapture && level.targetBodyId) {
       const targetBody = getTransferBody(level, level.targetBodyId);
