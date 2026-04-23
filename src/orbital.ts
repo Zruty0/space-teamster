@@ -2355,9 +2355,7 @@ function drawSystemBodies(
       const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
       const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
       const signedAltKm = `${Math.round(flybyAlt / 1000)}km`;
-      const labelText = ca.impactsBody
-        ? `${signedAltKm} ${flybySense}`
-        : `FBY ${signedAltKm} ${flybySense}`;
+      const labelText = `FBY ${signedAltKm} ${flybySense}`;
 
       ctx.beginPath();
       ctx.arc(ssx, ssy, 6, 0, Math.PI * 2);
