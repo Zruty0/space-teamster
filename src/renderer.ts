@@ -2,9 +2,12 @@
 // Wireframe style on dark background.
 
 import { config } from './config';
-import { ShipState, SHIP_OUTLINE, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT, localToWorld } from './ship';
+import {
+  ShipState, SHIP_OUTLINE, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
+  COLLISION_POINTS, GEAR_COLLISION_POINTS, localToWorld,
+} from './ship';
 import { LevelDef } from './levels';
-import { TerrainData } from './terrain';
+import { TerrainData, getTerrainHeight } from './terrain';
 
 // --- Colors ---
 const COL_BG = '#050510';
@@ -92,6 +95,9 @@ export function render(
 
   // Landing pad markings
   drawPad(ctx, cam, terrain, level, W, H);
+
+  // Predicted trajectory
+  drawPredictedTrajectory(ctx, cam, ship, terrain, W, H, time);
 
   // Ship
   drawShip(ctx, cam, ship, W, H, time);
@@ -302,6 +308,97 @@ function drawPad(
     ctx.fillText(`PAD ${Math.round(distM)}m`, clampX, clampY - 14);
     ctx.globalAlpha = 1;
   }
+}
+
+function predictLandingTrajectory(
+  ship: ShipState,
+  terrain: TerrainData,
+  time: number,
+  horizon = 5,
+  dt = 1 / 30,
+): [number, number][] {
+  const sim: ShipState = { ...ship };
+  const points: [number, number][] = [[sim.x, sim.y]];
+  const collisionPoints = sim.gearDeployed ? GEAR_COLLISION_POINTS : COLLISION_POINTS;
+
+  for (let t = 0; t < horizon; t += dt) {
+    let ax = 0;
+    let ay = -config.gravity;
+    let angAccel = 0;
+
+    const thrustAccel = sim.throttle * config.mainEngineAccel;
+    if (thrustAccel > 0.01) {
+      const thrustAngle = sim.angle - sim.gimbalAngle;
+      ax += Math.sin(thrustAngle) * thrustAccel;
+      ay += Math.cos(thrustAngle) * thrustAccel;
+      angAccel += thrustAccel * Math.sin(sim.gimbalAngle) * config.gimbalTorqueEfficiency;
+    }
+
+    const speed = Math.sqrt(sim.vx * sim.vx + sim.vy * sim.vy);
+    if (speed > 0.01) {
+      ax -= sim.vx * speed * config.dragCoeff;
+      ay -= sim.vy * speed * config.dragCoeff;
+    }
+
+    angAccel -= sim.angularVel * config.angularDrag;
+
+    if (config.windEnabled) {
+      const windTime = time + t;
+      const wind = Math.sin(windTime * config.windFrequency * 2 * Math.PI)
+                 * Math.sin(windTime * config.windFrequency * 0.7 * 2 * Math.PI + 1.3)
+                 * config.windStrength;
+      ax += wind;
+    }
+
+    sim.angularVel += angAccel * dt;
+    sim.angle += sim.angularVel * dt;
+    while (sim.angle > Math.PI) sim.angle -= Math.PI * 2;
+    while (sim.angle < -Math.PI) sim.angle += Math.PI * 2;
+
+    sim.vx += ax * dt;
+    sim.vy += ay * dt;
+    sim.x += sim.vx * dt;
+    sim.y += sim.vy * dt;
+    points.push([sim.x, sim.y]);
+
+    let hit = false;
+    for (const [lx, ly] of collisionPoints) {
+      const [wx, wy] = localToWorld(lx, ly, sim.x, sim.y, sim.angle);
+      if (wy <= getTerrainHeight(terrain, wx)) {
+        hit = true;
+        break;
+      }
+    }
+    if (hit) break;
+  }
+
+  return points;
+}
+
+function drawPredictedTrajectory(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  ship: ShipState,
+  terrain: TerrainData,
+  W: number,
+  H: number,
+  time: number,
+): void {
+  const points = predictLandingTrajectory(ship, terrain, time);
+  if (points.length < 2) return;
+
+  ctx.beginPath();
+  const [sx0, sy0] = worldToScreen(points[0][0], points[0][1], cam, W, H);
+  ctx.moveTo(sx0, sy0);
+  for (let i = 1; i < points.length; i++) {
+    const [sx, sy] = worldToScreen(points[i][0], points[i][1], cam, W, H);
+    ctx.lineTo(sx, sy);
+  }
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([7, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 // --- Ship ---
