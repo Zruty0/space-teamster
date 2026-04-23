@@ -1720,8 +1720,21 @@ export function updateOrbitalCamera(
   _wasRendezvousZoom = inRendezvousZoom;
   s.inRendezvousZoom = inRendezvousZoom;
 
-  if (level.systemBodies && !inRendezvousZoom) {
-    // Transfer view: keep the Tycho-centric system readable even while skimming upper atmosphere.
+  if (s.inAtmo) {
+    // In atmosphere: stay zoomed toward the ship, even in transfer missions,
+    // but keep enough surrounding space visible to read the immediate trajectory.
+    const r = Math.sqrt(s.x * s.x + s.y * s.y);
+    const alt = r - level.planetRadius;
+    const transferView = !!level.systemBodies;
+    const viewRadius = transferView
+      ? Math.max(alt * 8, level.transitionAltitude * 6, 180000)
+      : Math.max(alt * 6, 60000);
+    const targetZoom = halfScreen / viewRadius;
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+    cam.x += (s.x - cam.x) * smooth;
+    cam.y += (s.y - cam.y) * smooth;
+  } else if (level.systemBodies && !inRendezvousZoom) {
+    // Transfer view after leaving atmosphere: zoom back out to the full Tycho-centric system.
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
     let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
     const systemOuterR = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius + (b.displayPatchRadius ?? b.patchRadius)), 0);
@@ -1731,15 +1744,6 @@ export function updateOrbitalCamera(
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (0 - cam.x) * smooth;
     cam.y += (0 - cam.y) * smooth;
-  } else if (s.inAtmo) {
-    // In atmosphere: zoom in toward ship
-    const r = Math.sqrt(s.x * s.x + s.y * s.y);
-    const alt = r - level.planetRadius;
-    const viewRadius = Math.max(alt * 6, 60000);
-    const targetZoom = halfScreen / viewRadius;
-    cam.zoom += (targetZoom - cam.zoom) * smooth;
-    cam.x += (s.x - cam.x) * smooth;
-    cam.y += (s.y - cam.y) * smooth;
   } else if (inRendezvousZoom) {
     // Rendezvous proximity: zoom in, center on ship (hard track)
     const sp = stationPos(level, s.time)!;
