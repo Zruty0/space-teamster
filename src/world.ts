@@ -15,8 +15,9 @@ export interface OrbitModeDef {
   maxOuterOrbitWallTime?: number;
   thrustAccel?: number;
   thrustAccelMax?: number;
-  thrustReferenceOrbitAltitude?: number;
-  matchEscapeBurnTimesToModeId?: string;
+  thrustWallDvPerSec?: number;
+  thrustWallDvPerSecMax?: number;
+  matchWallThrustToModeId?: string;
 }
 
 export interface BodyDef {
@@ -150,15 +151,13 @@ export const BODIES: BodyDef[] = [
         baseTimeScale: 60,
         thrustAccel: 0.08,
         thrustAccelMax: 1.5,
-        thrustReferenceOrbitAltitude: 140_000,
       },
       {
         id: 'high',
         label: 'Tycho high orbit',
         minAltitude: 360_000,
         maxOuterOrbitWallTime: 300,
-        thrustReferenceOrbitAltitude: 140_000,
-        matchEscapeBurnTimesToModeId: 'low',
+        matchWallThrustToModeId: 'low',
       },
     ],
   },

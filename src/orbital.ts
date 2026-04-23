@@ -522,13 +522,6 @@ function createTransferSeedFromBody(body: OrbitalTransferBody): { x: number; y: 
   };
 }
 
-function expectedEscapeDeltaV(x: number, y: number, vx: number, vy: number, planetGM: number): number {
-  const r = Math.sqrt(x * x + y * y);
-  const speed = Math.sqrt(vx * vx + vy * vy);
-  const vEsc = Math.sqrt(2 * planetGM / Math.max(r, 1));
-  return Math.max(1, vEsc - speed);
-}
-
 function resolvedModeBaseTimeScale(level: OrbitalLevel, modeId: string): number {
   const mode = bodyOrbitModeById(level.bodyId, modeId);
   if (!mode) return level.baseTimeScale;
@@ -542,18 +535,13 @@ function resolvedModeBaseTimeScale(level: OrbitalLevel, modeId: string): number 
   return mode.baseTimeScale ?? level.baseTimeScale;
 }
 
-function referenceModeEscapeBurnTimes(bodyId: string, modeId: string): { low: number; high: number } | null {
-  const body = bodyById(bodyId);
+function referenceModeWallThrust(bodyId: string, modeId: string): { low: number; high: number } | null {
   const mode = bodyOrbitModeById(bodyId, modeId);
-  if (!mode?.thrustAccel || !mode.thrustAccelMax || !mode.baseTimeScale) return null;
-  const refAlt = mode.thrustReferenceOrbitAltitude ?? 0;
-  const r = body.radius + refAlt;
-  const vCirc = Math.sqrt(body.gm / r);
-  const dvEscape = Math.sqrt(2 * body.gm / r) - vCirc;
-  return {
-    low: dvEscape / (mode.thrustAccel * mode.baseTimeScale),
-    high: dvEscape / (mode.thrustAccelMax * mode.baseTimeScale),
-  };
+  if (!mode) return null;
+  const low = mode.thrustWallDvPerSec ?? ((mode.thrustAccel !== undefined && mode.baseTimeScale !== undefined) ? mode.thrustAccel * mode.baseTimeScale : undefined);
+  const high = mode.thrustWallDvPerSecMax ?? ((mode.thrustAccelMax !== undefined && mode.baseTimeScale !== undefined) ? mode.thrustAccelMax * mode.baseTimeScale : undefined);
+  if (low === undefined || high === undefined) return null;
+  return { low, high };
 }
 
 function applyOrbitMode(level: OrbitalLevel, modeId: string): OrbitalLevel {
@@ -563,12 +551,13 @@ function applyOrbitMode(level: OrbitalLevel, modeId: string): OrbitalLevel {
   level.baseTimeScale = resolvedModeBaseTimeScale(level, modeId);
   if (mode.thrustAccel !== undefined) level.thrustAccel = mode.thrustAccel;
   if (mode.thrustAccelMax !== undefined) level.thrustAccelMax = mode.thrustAccelMax;
-  if (mode.matchEscapeBurnTimesToModeId) {
-    const burnTimes = referenceModeEscapeBurnTimes(level.bodyId, mode.matchEscapeBurnTimesToModeId);
-    if (burnTimes) {
-      const dvEscape = expectedEscapeDeltaV(level.startX, level.startY, level.startVX, level.startVY, level.planetGM);
-      level.thrustWallDvPerSec = dvEscape / burnTimes.low;
-      level.thrustWallDvPerSecMax = dvEscape / burnTimes.high;
+  if (mode.thrustWallDvPerSec !== undefined) level.thrustWallDvPerSec = mode.thrustWallDvPerSec;
+  if (mode.thrustWallDvPerSecMax !== undefined) level.thrustWallDvPerSecMax = mode.thrustWallDvPerSecMax;
+  if (mode.matchWallThrustToModeId) {
+    const wallThrust = referenceModeWallThrust(level.bodyId, mode.matchWallThrustToModeId);
+    if (wallThrust) {
+      level.thrustWallDvPerSec = wallThrust.low;
+      level.thrustWallDvPerSecMax = wallThrust.high;
     }
   }
   return level;
