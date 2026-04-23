@@ -2052,6 +2052,7 @@ function drawSystemBodies(
   const pred = getCachedPrediction(s, level);
   if (pred.targetBodyApproach) {
     const ca = pred.targetBodyApproach;
+    const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
     const [bsx, bsy] = ws(ca.bodyX, ca.bodyY, cam, W, H);
     const [ssx, ssy] = ws(ca.shipX, ca.shipY, cam, W, H);
     ctx.beginPath();
@@ -2076,6 +2077,16 @@ function drawSystemBodies(
     ctx.textAlign = 'center';
     ctx.fillStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
     ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+
+    if (ca.withinArrival && targetBody) {
+      const flybyAlt = Math.max(0, ca.dist - targetBody.radius);
+      const altStr = flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`;
+      const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#00ffcc';
+      ctx.fillText(altStr, bsx + Math.max(10, patchR + 6), bsy + 3);
+    }
   }
 }
 
