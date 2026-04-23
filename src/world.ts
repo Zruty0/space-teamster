@@ -230,7 +230,7 @@ export const BODIES: BodyDef[] = [
       transitionAltitude: 8_000,
     },
     transferGameplay: {
-      patchRadius: 1_400_000,
+      patchRadius: 1_050_000,
     },
     orbit: {
       parentBodyId: 'tycho',
@@ -260,7 +260,7 @@ export const BODIES: BodyDef[] = [
       transitionAltitude: 8_000,
     },
     transferGameplay: {
-      patchRadius: 1_600_000,
+      patchRadius: 1_200_000,
     },
     orbit: {
       parentBodyId: 'tycho',

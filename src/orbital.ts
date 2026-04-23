@@ -1208,6 +1208,8 @@ interface TargetBodyApproach {
   relVX: number; relVY: number;
   idx: number;
   withinArrival: boolean;
+  flybyAltitude?: number;
+  impactsBody?: boolean;
 }
 
 interface PredictionResult {
@@ -1218,6 +1220,105 @@ interface PredictionResult {
   impact: PredEvent | null;
   closestApproach: ClosestApproach | null;
   targetBodyApproach: TargetBodyApproach | null;
+}
+
+export function normalizeArrivalState(
+  body: OrbitalTransferBody,
+  rx: number, ry: number, rvx: number, rvy: number,
+): { x: number; y: number; vx: number; vy: number; dist: number; speed: number } {
+  const dist = Math.sqrt(rx * rx + ry * ry);
+  const speed = Math.sqrt(rvx * rvx + rvy * rvy);
+  const minR = body.radius + (body.arrivalAltitudeMin ?? 0);
+  const maxR = body.radius + (body.arrivalAltitudeMax ?? 0);
+  const targetR = Math.max(minR, Math.min(maxR, dist));
+  const vEsc = Math.sqrt(2 * body.gm / targetR);
+  const minSpeed = Math.max(vEsc * 1.002, vEsc + (body.arrivalSpeedMarginMin ?? 2));
+  const maxSpeed = Math.max(minSpeed + 1, vEsc + (body.arrivalSpeedMarginMax ?? 100));
+  const rHatX = rx / Math.max(dist, 1);
+  const rHatY = ry / Math.max(dist, 1);
+  const radialSpeed = rvx * rHatX + rvy * rHatY;
+  const tanX = -rHatY;
+  const tanY = rHatX;
+  const tangentialSpeed = rvx * tanX + rvy * tanY;
+  const speedMag = Math.max(speed, 1);
+  const dirRad = radialSpeed / speedMag;
+  const dirTan = tangentialSpeed / speedMag;
+  const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
+  const targetVR = dirRad * targetSpeed;
+  const targetVT = dirTan * targetSpeed;
+  return {
+    x: rHatX * targetR,
+    y: rHatY * targetR,
+    vx: rHatX * targetVR + tanX * targetVT,
+    vy: rHatY * targetVR + tanY * targetVT,
+    dist: targetR,
+    speed: targetSpeed,
+  };
+}
+
+function simulateTargetBodyEncounter(
+  body: OrbitalTransferBody,
+  local: { x: number; y: number; vx: number; vy: number },
+): { x: number; y: number; vx: number; vy: number; dist: number; relSpeed: number; dt: number; impactsBody: boolean } {
+  let x = local.x;
+  let y = local.y;
+  let vx = local.vx;
+  let vy = local.vy;
+  let bestX = x;
+  let bestY = y;
+  let bestVX = vx;
+  let bestVY = vy;
+  let bestDist = Math.sqrt(x * x + y * y);
+  let bestDt = 0;
+  const baseR = Math.max(bestDist, body.radius + 1);
+  const refPeriod = Math.PI * 2 * Math.sqrt((baseR ** 3) / body.gm);
+  const maxTime = Math.min(Math.max(refPeriod * 2, 6_000), 30_000);
+  const stepSize = Math.min(2, Math.max(0.25, refPeriod / 6_000));
+  const subDt = stepSize / 4;
+  let prevDist = bestDist;
+
+  for (let t = 0; t < maxTime; t += stepSize) {
+    for (let i = 0; i < 4; i++) {
+      const r = Math.sqrt(x * x + y * y);
+      if (r <= body.radius) {
+        return { x, y, vx, vy, dist: body.radius, relSpeed: Math.sqrt(vx * vx + vy * vy), dt: t, impactsBody: true };
+      }
+      const g = body.gm / (r * r);
+      vx += -(x / r) * g * subDt;
+      vy += -(y / r) * g * subDt;
+      x += vx * subDt;
+      y += vy * subDt;
+    }
+
+    const r = Math.sqrt(x * x + y * y);
+    if (r < bestDist) {
+      bestDist = r;
+      bestX = x;
+      bestY = y;
+      bestVX = vx;
+      bestVY = vy;
+      bestDt = t + stepSize;
+    }
+    if (r <= body.radius) {
+      return { x, y, vx, vy, dist: body.radius, relSpeed: Math.sqrt(vx * vx + vy * vy), dt: t + stepSize, impactsBody: true };
+    }
+    const radialSpeed = (x * vx + y * vy) / Math.max(r, 1);
+    if (t > 0 && prevDist < body.patchRadius && r >= body.patchRadius && radialSpeed > 0) {
+      break;
+    }
+    prevDist = r;
+  }
+
+  return {
+    x: bestX,
+    y: bestY,
+    vx: bestVX,
+    vy: bestVY,
+    dist: bestDist,
+    relSpeed: Math.sqrt(bestVX * bestVX + bestVY * bestVY),
+    dt: bestDt,
+    impactsBody: bestDist <= body.radius,
+  };
 }
 
 function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
@@ -1310,35 +1411,23 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   let targetBodyApproach: TargetBodyApproach | null = null;
   const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
   if (targetBody) {
-    let bestDist = Infinity;
-    let bestRelSpeed = Infinity;
-    let hasWithinArrival = false;
+    let bestOutside: TargetBodyApproach | null = null;
+    let bestOutsideDist = Infinity;
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
       const bodyPos = transferBodyState(level, targetBody.id, pt.t);
       if (!bodyPos) continue;
-      const dx = pt.x - bodyPos.x, dy = pt.y - bodyPos.y;
+      const dx = pt.x - bodyPos.x;
+      const dy = pt.y - bodyPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const relVx = pt.vx - bodyPos.vx, relVy = pt.vy - bodyPos.vy;
-      const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
-      const withinArrival = dist <= targetBody.patchRadius;
-      let dominated = false;
-      if (withinArrival) {
-        if (!hasWithinArrival || relSpeed < bestRelSpeed) {
-          bestRelSpeed = relSpeed;
-          hasWithinArrival = true;
-        } else dominated = true;
-      } else if (!hasWithinArrival) {
-        if (dist < bestDist) {
-          bestDist = dist;
-        } else dominated = true;
-      } else dominated = true;
-
-      if (!dominated) {
-        targetBodyApproach = {
+      if (dist < bestOutsideDist) {
+        const relVx = pt.vx - bodyPos.vx;
+        const relVy = pt.vy - bodyPos.vy;
+        bestOutsideDist = dist;
+        bestOutside = {
           bodyId: targetBody.id,
           dist,
-          relSpeed,
+          relSpeed: Math.sqrt(relVx * relVx + relVy * relVy),
           shipX: pt.x,
           shipY: pt.y,
           bodyX: bodyPos.x,
@@ -1348,9 +1437,60 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
           relVX: relVx,
           relVY: relVy,
           idx: i,
-          withinArrival,
+          withinArrival: false,
         };
       }
+    }
+
+    targetBodyApproach = bestOutside;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const pt = points[i];
+      const prevBody = transferBodyState(level, targetBody.id, prev.t);
+      const bodyPos = transferBodyState(level, targetBody.id, pt.t);
+      if (!prevBody || !bodyPos) continue;
+      const prevDx = prev.x - prevBody.x;
+      const prevDy = prev.y - prevBody.y;
+      const prevDist = Math.sqrt(prevDx * prevDx + prevDy * prevDy);
+      const dx = pt.x - bodyPos.x;
+      const dy = pt.y - bodyPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (!(prevDist > targetBody.patchRadius && dist <= targetBody.patchRadius)) continue;
+
+      const frac = (targetBody.patchRadius - prevDist) / Math.max(-1e-6, dist - prevDist);
+      const tCross = prev.t + (pt.t - prev.t) * frac;
+      const shipX = prev.x + (pt.x - prev.x) * frac;
+      const shipY = prev.y + (pt.y - prev.y) * frac;
+      const shipVX = prev.vx + (pt.vx - prev.vx) * frac;
+      const shipVY = prev.vy + (pt.vy - prev.vy) * frac;
+      const bodyCross = transferBodyState(level, targetBody.id, tCross);
+      if (!bodyCross) break;
+      const rx = shipX - bodyCross.x;
+      const ry = shipY - bodyCross.y;
+      const rvx = shipVX - bodyCross.vx;
+      const rvy = shipVY - bodyCross.vy;
+      const normalized = normalizeArrivalState(targetBody, rx, ry, rvx, rvy);
+      const encounter = simulateTargetBodyEncounter(targetBody, normalized);
+      const bodyEncounter = transferBodyState(level, targetBody.id, tCross + encounter.dt);
+      if (!bodyEncounter) break;
+      targetBodyApproach = {
+        bodyId: targetBody.id,
+        dist: encounter.dist,
+        relSpeed: encounter.relSpeed,
+        shipX: bodyEncounter.x + encounter.x,
+        shipY: bodyEncounter.y + encounter.y,
+        bodyX: bodyEncounter.x,
+        bodyY: bodyEncounter.y,
+        relX: encounter.x,
+        relY: encounter.y,
+        relVX: encounter.vx,
+        relVY: encounter.vy,
+        idx: i,
+        withinArrival: true,
+        flybyAltitude: Math.max(0, encounter.dist - targetBody.radius),
+        impactsBody: encounter.impactsBody,
+      };
+      break;
     }
   }
 
@@ -2059,21 +2199,25 @@ function drawSystemBodies(
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    const midX = (ssx + bsx) / 2;
-    const midY = (ssy + bsy) / 2;
-    const distStr = ca.dist > 1000 ? `${(ca.dist / 1000).toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
-    ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+    if (!ca.withinArrival) {
+      const midX = (ssx + bsx) / 2;
+      const midY = (ssy + bsy) / 2;
+      const distStr = ca.dist > 1000 ? `${(ca.dist / 1000).toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffaa00';
+      ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
+    }
 
     if (ca.withinArrival && targetBody) {
-      const flybyAlt = Math.max(0, ca.dist - targetBody.radius);
-      const altStr = flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`;
+      const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
+      const altStr = ca.impactsBody
+        ? 'IMPACT'
+        : (flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`);
       const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
       ctx.font = '10px monospace';
       ctx.textAlign = 'left';
-      ctx.fillStyle = '#00ffcc';
+      ctx.fillStyle = ca.impactsBody ? '#ff6666' : '#00ffcc';
       ctx.fillText(altStr, bsx + Math.max(10, patchR + 6), bsy + 3);
     }
   }
@@ -2852,9 +2996,9 @@ export function drawOrbitalHUD(
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
       if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
-        const flybyMetric = ca.withinArrival ? Math.max(0, ca.dist - body.radius) : ca.dist;
+        const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? Math.max(0, ca.dist - body.radius)) : ca.dist;
         const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
-        label(ctx, lx, ly, 'FBY', `${(flybyMetric / 1000).toFixed(0)} km ${flybySense}`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        label(ctx, lx, ly, 'FBY', `${ca.impactsBody ? 'IMPACT' : `${(flybyMetric / 1000).toFixed(0)} km`} ${flybySense}`, ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_OK : COL_WARN)); ly += lh;
         const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
         if (arrivalLevel) {
           const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));

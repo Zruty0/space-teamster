@@ -20,7 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector,
+  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, normalizeArrivalState,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -462,16 +462,6 @@ export class Game {
       const rvx = p.os.vx - bodyState.vx;
       const rvy = p.os.vy - bodyState.vy;
       const dist = Math.sqrt(rx * rx + ry * ry);
-      const speed = Math.sqrt(rvx * rvx + rvy * rvy);
-      const minR = body.radius + (body.arrivalAltitudeMin ?? 0);
-      const maxR = body.radius + (body.arrivalAltitudeMax ?? 0);
-      const targetR = Math.max(minR, Math.min(maxR, dist));
-      const vEsc = Math.sqrt(2 * body.gm / targetR);
-      const minSpeed = Math.max(vEsc * 1.002, vEsc + (body.arrivalSpeedMarginMin ?? 2));
-      const maxSpeed = Math.max(minSpeed + 1, vEsc + (body.arrivalSpeedMarginMax ?? 100));
-      const rHatX = rx / Math.max(dist, 1);
-      const rHatY = ry / Math.max(dist, 1);
-      const radialSpeed = rvx * rHatX + rvy * rHatY;
       const arrivalReady = dist <= body.patchRadius;
       if (!arrivalReady) return false;
 
@@ -479,20 +469,12 @@ export class Game {
       const arrivalLevel = arrivalLevelId ? orbitalLevelById(arrivalLevelId) : null;
       if (!arrivalLevel) return false;
 
-      const tanX = -rHatY;
-      const tanY = rHatX;
-      const tangentialSpeed = rvx * tanX + rvy * tanY;
-      const speedMag = Math.max(speed, 1);
-      const dirRad = radialSpeed / speedMag;
-      const dirTan = tangentialSpeed / speedMag;
-      const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
-      const targetVR = dirRad * targetSpeed;
-      const targetVT = dirTan * targetSpeed;
+      const normalized = normalizeArrivalState(body, rx, ry, rvx, rvy);
       const initOverride: OrbitalInitOverride = {
-        x: rHatX * targetR,
-        y: rHatY * targetR,
-        vx: rHatX * targetVR + tanX * targetVT,
-        vy: rHatY * targetVR + tanY * targetVT,
+        x: normalized.x,
+        y: normalized.y,
+        vx: normalized.vx,
+        vy: normalized.vy,
         time: p.os.time,
       };
       this.loadOrbital(arrivalLevel, initOverride, p.os.time);
