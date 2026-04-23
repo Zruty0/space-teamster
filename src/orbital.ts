@@ -170,6 +170,7 @@ const WARP_SPEEDS = [1, 2, 5, 10, 25, 50, 100];
 const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
+const SYSTEM_TRANSFER_SUBSTEP = 0.5;
 const THRUST_EPS = 1e-6;
 const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
 const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
@@ -955,7 +956,11 @@ export function updateOrbital(
   const effectiveDt = dt * totalScale;
 
   // Substeps
-  const stepLimit = (!s.inAtmo && level.systemBodies && effectiveBaseScale > 200) ? 20 : PHYSICS_SUBSTEP;
+  // High-transfer pacing used to jump from fine local integration to ~20s physics steps,
+  // which visibly changed the orbit right at the low->high regime boundary.
+  const stepLimit = (!s.inAtmo && level.systemBodies && effectiveBaseScale > 200)
+    ? SYSTEM_TRANSFER_SUBSTEP
+    : PHYSICS_SUBSTEP;
   const substeps = Math.max(1, Math.ceil(effectiveDt / stepLimit));
   const subDt = effectiveDt / substeps;
 
