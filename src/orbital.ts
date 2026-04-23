@@ -2840,7 +2840,8 @@ export function drawOrbitalHUD(
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
       if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
-        label(ctx, lx, ly, 'FBY', `${(ca.dist / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        const flybyMetric = ca.withinArrival ? Math.max(0, ca.dist - body.radius) : ca.dist;
+        label(ctx, lx, ly, 'FBY', `${(flybyMetric / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
         label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
       } else {
         const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
