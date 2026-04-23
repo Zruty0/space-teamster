@@ -146,6 +146,14 @@ export interface OrbitalState {
   docked: boolean;
   inRendezvousZoom: boolean;   // in close-proximity rendezvous mode
   pacingModeId: string;
+  pendingBodyCapture?: {
+    bodyId: string;
+    time: number;
+    rx: number;
+    ry: number;
+    rvx: number;
+    rvy: number;
+  };
 }
 
 export interface OrbitalInitOverride {
@@ -911,6 +919,7 @@ export function updateOrbital(
 
   // Track wall-clock time (for trail)
   s.realTime += dt;
+  s.pendingBodyCapture = undefined;
 
   // --- Time warp controls ---
   if (input.warpUp) {
@@ -966,6 +975,11 @@ export function updateOrbital(
   // Deferred to after substep loop — see below
 
   for (let step = 0; step < substeps; step++) {
+    const prevTime = s.time;
+    const prevX = s.x;
+    const prevY = s.y;
+    const prevVX = s.vx;
+    const prevVY = s.vy;
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
 
@@ -1084,6 +1098,40 @@ export function updateOrbital(
     s.x += s.vx * subDt;
     s.y += s.vy * subDt;
     s.time += subDt;
+
+    if (!s.pendingBodyCapture && level.targetBodyId) {
+      const targetBody = getTransferBody(level, level.targetBodyId);
+      const prevBody = targetBody ? transferBodyState(level, targetBody.id, prevTime) : null;
+      const nextBody = targetBody ? transferBodyState(level, targetBody.id, s.time) : null;
+      if (targetBody && prevBody && nextBody) {
+        const prevRX = prevX - prevBody.x;
+        const prevRY = prevY - prevBody.y;
+        const prevDist = Math.sqrt(prevRX * prevRX + prevRY * prevRY);
+        const nextRX = s.x - nextBody.x;
+        const nextRY = s.y - nextBody.y;
+        const nextDist = Math.sqrt(nextRX * nextRX + nextRY * nextRY);
+        if (prevDist > targetBody.patchRadius && nextDist <= targetBody.patchRadius) {
+          const denom = nextDist - prevDist;
+          const frac = Math.max(0, Math.min(1, (targetBody.patchRadius - prevDist) / (Math.abs(denom) > 1e-6 ? denom : -1e-6)));
+          const crossTime = prevTime + (s.time - prevTime) * frac;
+          const shipX = prevX + (s.x - prevX) * frac;
+          const shipY = prevY + (s.y - prevY) * frac;
+          const shipVX = prevVX + (s.vx - prevVX) * frac;
+          const shipVY = prevVY + (s.vy - prevVY) * frac;
+          const bodyCross = transferBodyState(level, targetBody.id, crossTime);
+          if (bodyCross) {
+            s.pendingBodyCapture = {
+              bodyId: targetBody.id,
+              time: crossTime,
+              rx: shipX - bodyCross.x,
+              ry: shipY - bodyCross.y,
+              rvx: shipVX - bodyCross.vx,
+              rvy: shipVY - bodyCross.vy,
+            };
+          }
+        }
+      }
+    }
 
     // Invalidate prediction when orbit changes
     if (s.thrusting !== 'none') _predDirty = true;
@@ -1457,7 +1505,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (!(prevDist > targetBody.patchRadius && dist <= targetBody.patchRadius)) continue;
 
-      const frac = (targetBody.patchRadius - prevDist) / Math.max(-1e-6, dist - prevDist);
+      const denom = dist - prevDist;
+      const frac = Math.max(0, Math.min(1, (targetBody.patchRadius - prevDist) / (Math.abs(denom) > 1e-6 ? denom : -1e-6)));
       const tCross = prev.t + (pt.t - prev.t) * frac;
       const shipX = prev.x + (pt.x - prev.x) * frac;
       const shipY = prev.y + (pt.y - prev.y) * frac;
@@ -2182,7 +2231,6 @@ function drawSystemBodies(
   if (pred.targetBodyApproach) {
     const ca = pred.targetBodyApproach;
     const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
-    const currentTargetPos = targetBody ? transferBodyState(level, targetBody.id, s.time) : null;
     const [ssx, ssy] = ws(ca.shipX, ca.shipY, cam, W, H);
 
     if (!ca.withinArrival) {
@@ -2211,33 +2259,20 @@ function drawSystemBodies(
       ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
     }
 
-    if (ca.withinArrival && targetBody && currentTargetPos) {
-      const [tbx, tby] = ws(currentTargetPos.x, currentTargetPos.y, cam, W, H);
-      const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
-      const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
-      const altStr = ca.impactsBody
-        ? 'IMPACT'
-        : (flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`);
-      const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
-
-      ctx.beginPath();
-      ctx.arc(ssx, ssy, 4, 0, Math.PI * 2);
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(tbx, tby, patchR, 0, Math.PI * 2);
-      ctx.strokeStyle = ca.impactsBody ? 'rgba(255, 102, 102, 0.7)' : 'rgba(0, 255, 204, 0.7)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 6]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.font = '10px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = accent;
-      ctx.fillText(altStr, tbx + Math.max(10, patchR + 6), tby + 3);
+    if (ca.withinArrival && targetBody) {
+      const bodyPos = transferBodyState(level, targetBody.id, s.time);
+      if (bodyPos) {
+        const [bsx, bsy] = ws(bodyPos.x, bodyPos.y, cam, W, H);
+        const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
+        const altStr = ca.impactsBody
+          ? 'IMPACT'
+          : (flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`);
+        const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = ca.impactsBody ? '#ff6666' : '#00ffcc';
+        ctx.fillText(altStr, bsx + Math.max(10, patchR + 6), bsy + 3);
+      }
     }
   }
 }

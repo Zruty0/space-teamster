@@ -397,6 +397,13 @@ export class Game {
     this.accumulator += frameTime;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'orbiting') {
+        const prevOrbitalState = {
+          x: p.os.x,
+          y: p.os.y,
+          vx: p.os.vx,
+          vy: p.os.vy,
+          time: p.os.time,
+        };
         updateOrbital(p.os, input, p.level, PHYSICS_DT);
         // Clear edge triggers after first step
         input.warpUp = false;
@@ -410,7 +417,7 @@ export class Game {
           }
           p.state = 'docked';
         }
-        if (this.handleOrbitalTransitions(p)) return;
+        if (this.handleOrbitalTransitions(p, prevOrbitalState)) return;
         if (p.os.enteredAtmo) {
           this.transitionOrbitalToApproach(p);
           return;
@@ -424,7 +431,10 @@ export class Game {
     updateOrbitalCamera(p.cam, p.os, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
-  private handleOrbitalTransitions(p: Extract<Phase, { kind: 'orbital' }>): boolean {
+  private handleOrbitalTransitions(
+    p: Extract<Phase, { kind: 'orbital' }>,
+    prev?: { x: number; y: number; vx: number; vy: number; time: number },
+  ): boolean {
     if (p.level.escapeSOIRadius && p.level.escapeToOrbitalLevelId) {
       const r = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
       if (r >= p.level.escapeSOIRadius) {
@@ -457,27 +467,66 @@ export class Game {
       const bodyState = body ? transferBodyState(p.level, body.id, p.os.time) : null;
       if (!body || !bodyState) return false;
 
-      const rx = p.os.x - bodyState.x;
-      const ry = p.os.y - bodyState.y;
-      const rvx = p.os.vx - bodyState.vx;
-      const rvy = p.os.vy - bodyState.vy;
-      const dist = Math.sqrt(rx * rx + ry * ry);
-      const arrivalReady = dist <= body.patchRadius;
+      let captureRX = p.os.x - bodyState.x;
+      let captureRY = p.os.y - bodyState.y;
+      let captureRVX = p.os.vx - bodyState.vx;
+      let captureRVY = p.os.vy - bodyState.vy;
+      let captureTime = p.os.time;
+      let captureDist = Math.sqrt(captureRX * captureRX + captureRY * captureRY);
+      let arrivalReady = captureDist <= body.patchRadius;
+
+      if (!arrivalReady && p.os.pendingBodyCapture?.bodyId === body.id) {
+        captureRX = p.os.pendingBodyCapture.rx;
+        captureRY = p.os.pendingBodyCapture.ry;
+        captureRVX = p.os.pendingBodyCapture.rvx;
+        captureRVY = p.os.pendingBodyCapture.rvy;
+        captureTime = p.os.pendingBodyCapture.time;
+        captureDist = Math.sqrt(captureRX * captureRX + captureRY * captureRY);
+        arrivalReady = captureDist <= body.patchRadius;
+      }
+
+      if (!arrivalReady && prev) {
+        const prevBodyState = transferBodyState(p.level, body.id, prev.time);
+        if (prevBodyState) {
+          const prevRX = prev.x - prevBodyState.x;
+          const prevRY = prev.y - prevBodyState.y;
+          const prevDist = Math.sqrt(prevRX * prevRX + prevRY * prevRY);
+          if (prevDist > body.patchRadius && captureDist <= body.patchRadius) {
+            const denom = captureDist - prevDist;
+            const frac = Math.max(0, Math.min(1, (body.patchRadius - prevDist) / (Math.abs(denom) > 1e-6 ? denom : -1e-6)));
+            captureTime = prev.time + (p.os.time - prev.time) * frac;
+            const shipX = prev.x + (p.os.x - prev.x) * frac;
+            const shipY = prev.y + (p.os.y - prev.y) * frac;
+            const shipVX = prev.vx + (p.os.vx - prev.vx) * frac;
+            const shipVY = prev.vy + (p.os.vy - prev.vy) * frac;
+            const crossBodyState = transferBodyState(p.level, body.id, captureTime);
+            if (crossBodyState) {
+              captureRX = shipX - crossBodyState.x;
+              captureRY = shipY - crossBodyState.y;
+              captureRVX = shipVX - crossBodyState.vx;
+              captureRVY = shipVY - crossBodyState.vy;
+              captureDist = Math.sqrt(captureRX * captureRX + captureRY * captureRY);
+              arrivalReady = true;
+            }
+          }
+        }
+      }
+
       if (!arrivalReady) return false;
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
       const arrivalLevel = arrivalLevelId ? orbitalLevelById(arrivalLevelId) : null;
       if (!arrivalLevel) return false;
 
-      const normalized = normalizeArrivalState(body, rx, ry, rvx, rvy);
+      const normalized = normalizeArrivalState(body, captureRX, captureRY, captureRVX, captureRVY);
       const initOverride: OrbitalInitOverride = {
         x: normalized.x,
         y: normalized.y,
         vx: normalized.vx,
         vy: normalized.vy,
-        time: p.os.time,
+        time: captureTime,
       };
-      this.loadOrbital(arrivalLevel, initOverride, p.os.time);
+      this.loadOrbital(arrivalLevel, initOverride, captureTime);
       return true;
     }
 
