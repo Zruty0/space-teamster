@@ -766,6 +766,13 @@ function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; 
   return { x, y, vx, vy };
 }
 
+function transferDesiredWallDvPerSec(level: OrbitalLevel, highThrust: boolean): number {
+  if (!level.systemBodies) return 0;
+  const fullBurnWallTime = highThrust ? 120 : 400;
+  const floor = highThrust ? 10 : 3.5;
+  return Math.max(floor, level.fuelDeltaV / fullBurnWallTime);
+}
+
 function atmoDensity(alt: number, level: OrbitalLevel): number {
   if (alt <= 0) return level.surfaceDensity;
   if (alt >= level.atmoHeight) return 0;
@@ -891,7 +898,9 @@ export function updateOrbital(
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
 
   const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
-  const effThrust = s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust;
+  const effThrust = level.systemBodies
+    ? (transferDesiredWallDvPerSec(level, s.highThrust) / (s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale))
+    : (s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust);
 
   // --- Ship orientation (applied after substep loop updates s.inAtmo) ---
   // Deferred to after substep loop — see below
