@@ -1720,7 +1720,18 @@ export function updateOrbitalCamera(
   _wasRendezvousZoom = inRendezvousZoom;
   s.inRendezvousZoom = inRendezvousZoom;
 
-  if (s.inAtmo) {
+  if (level.systemBodies && !inRendezvousZoom) {
+    // Transfer view: keep the Tycho-centric system readable even while skimming upper atmosphere.
+    const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+    let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
+    const systemOuterR = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius + (b.displayPatchRadius ?? b.patchRadius)), 0);
+    maxR = Math.max(maxR, systemOuterR * 1.05);
+    if (level.conicRadius) maxR = Math.min(maxR, level.conicRadius * 1.05);
+    const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
+    cam.zoom += (targetZoom - cam.zoom) * smooth;
+    cam.x += (0 - cam.x) * smooth;
+    cam.y += (0 - cam.y) * smooth;
+  } else if (s.inAtmo) {
     // In atmosphere: zoom in toward ship
     const r = Math.sqrt(s.x * s.x + s.y * s.y);
     const alt = r - level.planetRadius;
@@ -2109,11 +2120,11 @@ function drawStation(
   let prevOx = 0, prevOy = 0;
   let dashAccum = 0, dashOn = true;
   const dashLen = zoomed ? 5 : 8;   // tighter dashes when zoomed
+  const orbitDir = st.orbitSense;
   ctx.lineWidth = 1.5;
   for (let i = 1; i <= steps; i++) {
     const frac = i / steps;
-    // CW from station position (negative angle direction)
-    const a = stAngle - frac * Math.PI * 2;
+    const a = stAngle + orbitDir * frac * Math.PI * 2;
     const ox = cx + Math.cos(a) * orbitR;
     const oy = cy - Math.sin(a) * orbitR;
     if (i === 1) { prevOx = ox; prevOy = oy; continue; }
