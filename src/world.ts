@@ -184,7 +184,7 @@ export const BODIES: BodyDef[] = [
       {
         id: 'low',
         label: 'Tycho low orbit',
-        maxAltitude: 360_000,
+        maxAltitude: 800_000,
         baseTimeScale: 60,
         thrustAccel: 0.08,
         thrustAccelMax: 1.5,
@@ -192,7 +192,7 @@ export const BODIES: BodyDef[] = [
       {
         id: 'high',
         label: 'Tycho high orbit',
-        minAltitude: 360_000,
+        minAltitude: 800_000,
         baseTimeScale: 2400,
         thrustWallDvPerSec: 4.8,
         thrustWallDvPerSecMax: 90,
@@ -230,7 +230,7 @@ export const BODIES: BodyDef[] = [
       transitionAltitude: 8_000,
     },
     transferGameplay: {
-      patchRadius: 700_000,
+      patchRadius: 1_400_000,
     },
     orbit: {
       parentBodyId: 'tycho',
@@ -260,7 +260,7 @@ export const BODIES: BodyDef[] = [
       transitionAltitude: 8_000,
     },
     transferGameplay: {
-      patchRadius: 800_000,
+      patchRadius: 1_600_000,
     },
     orbit: {
       parentBodyId: 'tycho',

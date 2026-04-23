@@ -145,6 +145,7 @@ export interface OrbitalState {
   // Rendezvous
   docked: boolean;
   inRendezvousZoom: boolean;   // in close-proximity rendezvous mode
+  pacingModeId: string;
 }
 
 export interface OrbitalInitOverride {
@@ -289,6 +290,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
       targetAoA: nextLevel.highAtmoAoA,
       docked: false,
       inRendezvousZoom: false,
+      pacingModeId: currentPacingProfile(nextLevel, Math.sqrt(originState.x * originState.x + originState.y * originState.y) - nextLevel.planetRadius).orbitModeId,
     };
     const points = predictOrbit(trial, nextLevel, horizon, stepSize, nextLevel.highAtmoAoA);
     let minDist = Infinity;
@@ -608,9 +610,13 @@ function resolvedOrbitModeForAltitude(level: OrbitalLevel, alt: number) {
   return resolved;
 }
 
-function currentPacingProfile(level: OrbitalLevel, alt: number) {
+function currentPacingProfile(level: OrbitalLevel, alt: number, lockedOrbitModeId?: string) {
   const lowPass = isLowPassMode(level, alt);
-  const orbitMode = resolvedOrbitModeForAltitude(level, alt);
+  const orbitMode = lowPass
+    ? null
+    : ((lockedOrbitModeId && lockedOrbitModeId !== 'atmo')
+      ? (bodyOrbitModeById(level.bodyId, lockedOrbitModeId) ?? resolvedOrbitModeForAltitude(level, alt))
+      : resolvedOrbitModeForAltitude(level, alt));
   return {
     lowPass,
     orbitModeId: lowPass ? 'atmo' : (orbitMode?.id ?? level.orbitModeId ?? 'default'),
@@ -675,9 +681,12 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
   _wasRendezvousZoom = false;
   _maneuverCache = null;
   const initTime = override?.time ?? 0;
+  const x = override?.x ?? level.startX;
+  const y = override?.y ?? level.startY;
+  const alt = Math.sqrt(x * x + y * y) - level.planetRadius;
   return {
-    x: override?.x ?? level.startX,
-    y: override?.y ?? level.startY,
+    x,
+    y,
     vx: override?.vx ?? level.startVX,
     vy: override?.vy ?? level.startVY,
     fuel: level.fuelDeltaV,
@@ -698,6 +707,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     targetAoA: 0,
     docked: false,
     inRendezvousZoom: false,
+    pacingModeId: currentPacingProfile(level, alt).orbitModeId,
   };
 }
 
@@ -913,8 +923,8 @@ export function updateOrbital(
   }
 
   // Thrust cancels time warp
-  const thrusting = input.throttleUp || input.throttleDown || input.pitch !== 0;
-  if (thrusting && s.timeWarpLevel > 0) {
+  const boostHeld = input.throttleUp || input.throttleDown || input.pitch !== 0;
+  if (boostHeld && s.timeWarpLevel > 0) {
     s.timeWarpLevel = 0;
     s.timeWarp = 1;
   }
@@ -924,7 +934,7 @@ export function updateOrbital(
 
   const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
   const alt0 = r0 - level.planetRadius;
-  const pacing = currentPacingProfile(level, alt0);
+  const pacing = currentPacingProfile(level, alt0, boostHeld ? s.pacingModeId : undefined);
   const inLowAtmo = alt0 < level.transitionAltitude;
   const atmoWarpCap = inLowAtmo ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP;
   const effectiveWarp = pacing.lowPass
@@ -1116,6 +1126,11 @@ export function updateOrbital(
   if (!s.inAtmo && wasInAtmo) {
     s.targetAoA = 0;
     _predDirty = true;
+  }
+
+  if (!boostHeld) {
+    const settledAlt = Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius;
+    s.pacingModeId = currentPacingProfile(level, settledAlt).orbitModeId;
   }
 
   if (s.inAtmo) {
@@ -1386,6 +1401,7 @@ function hybridizeApproachPrediction(
     targetAoA: 0,
     docked: false,
     inRendezvousZoom: false,
+    pacingModeId: 'atmo',
   }, level);
   const as = createApproachState(approachLevel, init);
   const trajStep = 0.4;
@@ -1467,7 +1483,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   }
   const rNow = Math.sqrt(s.x * s.x + s.y * s.y);
   const altNow = rNow - level.planetRadius;
-  const pacing = currentPacingProfile(level, altNow);
+  const pacing = currentPacingProfile(level, altNow, s.thrusting !== 'none' ? s.pacingModeId : undefined);
   const localDetail = !!level.systemBodies && pacing.orbitModeId !== level.orbitModeId;
   const stepSize = localDetail ? Math.min(5, Math.max(1, maxTime / 2200)) : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
@@ -1800,7 +1816,7 @@ export function updateOrbitalCamera(
 
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
   const alt = r - level.planetRadius;
-  const pacing = currentPacingProfile(level, alt);
+  const pacing = currentPacingProfile(level, alt, s.thrusting !== 'none' ? s.pacingModeId : undefined);
 
   if (pacing.lowPass) {
     // Low-pass / atmosphere: most zoom, center on the ship, keep local trajectory readable.
