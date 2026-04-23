@@ -2919,22 +2919,20 @@ export function drawOrbitalHUD(
 
   // --- Warnings ---
   let warnY = 30;
-  if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = COL_WARN;
-    if (Math.sin(Date.now() * 0.008) > -0.3) {
-      ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
-    }
-    warnY += 22;
-  }
-
   if (elem.periapsis < level.planetRadius && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_DANGER;
     if (Math.sin(Date.now() * 0.012) > -0.3) {
       ctx.fillText('⚠ IMPACT TRAJECTORY', W / 2, warnY);
+    }
+    warnY += 22;
+  } else if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COL_WARN;
+    if (Math.sin(Date.now() * 0.008) > -0.3) {
+      ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
     }
     warnY += 22;
   }
