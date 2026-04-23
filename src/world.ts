@@ -6,6 +6,19 @@ export interface CircularOrbitDef {
   orbitSense: 1 | -1;
 }
 
+export interface OrbitModeDef {
+  id: string;
+  label: string;
+  baseTimeScale?: number;
+  maxOuterOrbitWallTime?: number;
+  localBaseTimeScale?: number;
+  localZoneAltitude?: number;
+  thrustAccel?: number;
+  thrustAccelMax?: number;
+  thrustReferenceOrbitAltitude?: number;
+  matchEscapeBurnTimesToModeId?: string;
+}
+
 export interface BodyDef {
   id: string;
   name: string;
@@ -24,6 +37,7 @@ export interface BodyDef {
     color: [number, number, number];
   } | null;
   orbit?: CircularOrbitDef;
+  orbitModes?: OrbitModeDef[];
 }
 
 export interface TerrainFeature {
@@ -128,6 +142,25 @@ export const BODIES: BodyDef[] = [
       scaleHeight: 8500,
       color: [70, 135, 210],
     },
+    orbitModes: [
+      {
+        id: 'low',
+        label: 'Tycho low orbit',
+        baseTimeScale: 60,
+        thrustAccel: 0.08,
+        thrustAccelMax: 1.5,
+        thrustReferenceOrbitAltitude: 140_000,
+      },
+      {
+        id: 'high',
+        label: 'Tycho high orbit',
+        maxOuterOrbitWallTime: 300,
+        localBaseTimeScale: 60,
+        localZoneAltitude: 400_000,
+        thrustReferenceOrbitAltitude: 140_000,
+        matchEscapeBurnTimesToModeId: 'low',
+      },
+    ],
   },
   {
     id: 'castor',
@@ -399,6 +432,10 @@ export function bodyById(bodyId: string): BodyDef {
   const body = BODIES.find(b => b.id === bodyId);
   if (!body) throw new Error(`Unknown body: ${bodyId}`);
   return body;
+}
+
+export function bodyOrbitModeById(bodyId: string, modeId: string): OrbitModeDef | null {
+  return bodyById(bodyId).orbitModes?.find(m => m.id === modeId) ?? null;
 }
 
 export function surfacePoiById(poiId: string): SurfacePoiDef {

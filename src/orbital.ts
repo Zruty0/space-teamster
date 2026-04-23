@@ -3,7 +3,7 @@
 
 import { InputState } from './input';
 import { APPROACH_LEVELS, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
-import { bodyById, stationPoiById, surfacePoiById } from './world';
+import { bodyById, bodyOrbitModeById, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -53,6 +53,8 @@ export interface OrbitalLevel {
   // Ship
   thrustAccel: number;      // m/s² (low/precision thrust)
   thrustAccelMax: number;   // m/s² (high/full thrust after warmup)
+  thrustWallDvPerSec?: number;     // optional wall-clock Δv/s target for precision thrust
+  thrustWallDvPerSecMax?: number;  // optional wall-clock Δv/s target for max thrust
   fuelDeltaV: number;       // total delta-v budget in m/s
 
   // Atmosphere (for aerobraking)
@@ -102,7 +104,9 @@ export interface OrbitalLevel {
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
   conicRadius?: number;
+  orbitModeId?: string;
   localBaseTimeScale?: number;
+  localZoneAltitude?: number;
 }
 
 export interface OrbitalState {
@@ -520,6 +524,60 @@ function createTransferSeedFromBody(body: OrbitalTransferBody): { x: number; y: 
   };
 }
 
+function expectedEscapeDeltaV(x: number, y: number, vx: number, vy: number, planetGM: number): number {
+  const r = Math.sqrt(x * x + y * y);
+  const speed = Math.sqrt(vx * vx + vy * vy);
+  const vEsc = Math.sqrt(2 * planetGM / Math.max(r, 1));
+  return Math.max(1, vEsc - speed);
+}
+
+function resolvedModeBaseTimeScale(level: OrbitalLevel, modeId: string): number {
+  const mode = bodyOrbitModeById(level.bodyId, modeId);
+  if (!mode) return level.baseTimeScale;
+  if (mode.maxOuterOrbitWallTime && level.systemBodies?.length) {
+    const outerOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
+    if (outerOrbit > 0) {
+      const outerPeriod = Math.PI * 2 * Math.sqrt((outerOrbit ** 3) / level.planetGM);
+      return Math.max(1, Math.ceil((outerPeriod / mode.maxOuterOrbitWallTime) / 50) * 50);
+    }
+  }
+  return mode.baseTimeScale ?? level.baseTimeScale;
+}
+
+function referenceModeEscapeBurnTimes(bodyId: string, modeId: string): { low: number; high: number } | null {
+  const body = bodyById(bodyId);
+  const mode = bodyOrbitModeById(bodyId, modeId);
+  if (!mode?.thrustAccel || !mode.thrustAccelMax || !mode.baseTimeScale) return null;
+  const refAlt = mode.thrustReferenceOrbitAltitude ?? 0;
+  const r = body.radius + refAlt;
+  const vCirc = Math.sqrt(body.gm / r);
+  const dvEscape = Math.sqrt(2 * body.gm / r) - vCirc;
+  return {
+    low: dvEscape / (mode.thrustAccel * mode.baseTimeScale),
+    high: dvEscape / (mode.thrustAccelMax * mode.baseTimeScale),
+  };
+}
+
+function applyOrbitMode(level: OrbitalLevel, modeId: string): OrbitalLevel {
+  const mode = bodyOrbitModeById(level.bodyId, modeId);
+  if (!mode) return level;
+  level.orbitModeId = modeId;
+  level.baseTimeScale = resolvedModeBaseTimeScale(level, modeId);
+  level.localBaseTimeScale = mode.localBaseTimeScale;
+  level.localZoneAltitude = mode.localZoneAltitude;
+  if (mode.thrustAccel !== undefined) level.thrustAccel = mode.thrustAccel;
+  if (mode.thrustAccelMax !== undefined) level.thrustAccelMax = mode.thrustAccelMax;
+  if (mode.matchEscapeBurnTimesToModeId) {
+    const burnTimes = referenceModeEscapeBurnTimes(level.bodyId, mode.matchEscapeBurnTimesToModeId);
+    if (burnTimes) {
+      const dvEscape = expectedEscapeDeltaV(level.startX, level.startY, level.startVX, level.startVY, level.planetGM);
+      level.thrustWallDvPerSec = dvEscape / burnTimes.low;
+      level.thrustWallDvPerSecMax = dvEscape / burnTimes.high;
+    }
+  }
+  return level;
+}
+
 export const ORBITAL_LEVELS: OrbitalLevel[] = [
   (() => {
     const level = createSurfaceOrbitalLevel(11, 'castor-settlement', 'Castor Orbit', 'Deorbit to mining settlement', 100_000, 11, -1);
@@ -531,11 +589,11 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
   })(),
   (() => {
     const level = createSurfaceOrbitalLevel(13, 'port-kessler', 'Tycho Orbit', 'Deorbit toward the surface target', 140_000, 13, 1);
-    return level;
+    return applyOrbitMode(level, 'low');
   })(),
   (() => {
     const level = createStationOrbitalLevel(14, 'anchor', 'Anchor Rendezvous', 'Raise apoapsis and rendezvous with Anchor Station', 140_000, 14, 1, 1000, 14);
-    return level;
+    return applyOrbitMode(level, 'low');
   })(),
   (() => {
     const level = createSurfaceOrbitalLevel(15, 'castor-settlement', 'Castor Transfer', 'Escape Castor and set up the Pollux transfer', 100_000, 15, -1);
@@ -553,16 +611,12 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
   (() => {
     const seed = createTransferSeedFromBody(CASTOR_TRANSFER_BODY);
     const level = createOrbitalBase(16, 'tycho', 'Tycho Transfer', 'Adjust the transfer and arrive at Pollux', seed.x, seed.y, seed.vx, seed.vy, 14);
-    level.baseTimeScale = 2400;
-    level.localBaseTimeScale = 60;
-    level.thrustAccel = 0.012;
-    level.thrustAccelMax = 0.03;
     level.fuelDeltaV = 2800;
     level.showLandingSite = false;
     level.systemBodies = [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY];
     level.targetBodyId = 'pollux';
     level.conicRadius = POLLUX_SYSTEM_ORBIT_RADIUS * 1.2;
-    return level;
+    return applyOrbitMode(level, 'high');
   })(),
   (() => {
     const level = createOrbitalBase(17, 'pollux', 'Pollux Arrival', 'Brake into Pollux orbit and set up the descent', 0, SHARED_MOON_RADIUS + 180_000, 0, 0, 16);
@@ -578,10 +632,6 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
   })(),
   (() => {
     const level = createSurfaceOrbitalLevel(18, 'port-kessler', 'Castor Transfer', 'Leave Tycho and intercept Castor', 140_000, 17, 1);
-    level.baseTimeScale = 2400;
-    level.localBaseTimeScale = 60;
-    level.thrustAccel = 0.012;
-    level.thrustAccelMax = 0.03;
     level.fuelDeltaV = 2200;
     level.showLandingSite = false;
     level.systemBodies = [
@@ -597,7 +647,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     ];
     level.targetBodyId = 'castor';
     level.conicRadius = CASTOR_SYSTEM_ORBIT_RADIUS * 1.2;
-    return level;
+    return applyOrbitMode(level, 'high');
   })(),
   (() => {
     const level = createStationOrbitalLevel(19, 'morrow', 'Morrow Rendezvous', 'Raise or trim your orbit and rendezvous with Morrow Station', 100_000, 12, -1, 900, 15);
@@ -766,13 +816,6 @@ function stationPos(level: OrbitalLevel, time: number): { x: number; y: number; 
   return { x, y, vx, vy };
 }
 
-function transferDesiredWallDvPerSec(level: OrbitalLevel, highThrust: boolean): number {
-  if (!level.systemBodies) return 0;
-  const fullBurnWallTime = highThrust ? 120 : 400;
-  const floor = highThrust ? 10 : 3.5;
-  return Math.max(floor, level.fuelDeltaV / fullBurnWallTime);
-}
-
 function atmoDensity(alt: number, level: OrbitalLevel): number {
   if (alt <= 0) return level.surfaceDensity;
   if (alt >= level.atmoHeight) return 0;
@@ -878,7 +921,7 @@ export function updateOrbital(
   if (level.systemBodies && level.localBaseTimeScale) {
     const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
     const tychoAlt = r0 - level.planetRadius;
-    const nearTycho = tychoAlt < 400_000;
+    const nearTycho = tychoAlt < (level.localZoneAltitude ?? 400_000);
     if (nearTycho) spaceBaseScale = level.localBaseTimeScale;
   }
 
@@ -898,8 +941,9 @@ export function updateOrbital(
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
 
   const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
-  const effThrust = level.systemBodies
-    ? (transferDesiredWallDvPerSec(level, s.highThrust) / (s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale))
+  const wallThrust = s.highThrust ? level.thrustWallDvPerSecMax : level.thrustWallDvPerSec;
+  const effThrust = wallThrust !== undefined
+    ? (wallThrust / (s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale))
     : (s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust);
 
   // --- Ship orientation (applied after substep loop updates s.inAtmo) ---
