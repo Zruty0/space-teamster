@@ -218,7 +218,10 @@ export class Game {
   }
 
   private startMission(missionId: number): void {
+    const mission = MISSIONS.find(m => m.id === missionId);
+    if (!mission) return;
     this.currentMissionId = missionId;
+    this.worldTime = mission.startWorldTime;
 
     if (missionId === 1) {
       this.loadDocking(DOCKING_LEVELS.find(l => l.id === 1)!);
