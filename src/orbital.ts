@@ -1610,6 +1610,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const rvx = shipVX - bodyCross.vx;
       const rvy = shipVY - bodyCross.vy;
       const normalized = normalizeArrivalState(targetBody, rx, ry, rvx, rvy);
+      const localElem = computeElements(normalized.x, normalized.y, normalized.vx, normalized.vy, targetBody.gm);
+      const flybyAltitude = localElem.periapsis - targetBody.radius;
       const encounter = simulateTargetBodyEncounter(targetBody, normalized);
       targetBodyApproach = {
         bodyId: targetBody.id,
@@ -1625,8 +1627,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
         relVY: encounter.vy,
         idx: i,
         withinArrival: true,
-        flybyAltitude: Math.max(0, encounter.dist - targetBody.radius),
-        impactsBody: encounter.impactsBody,
+        flybyAltitude,
+        impactsBody: flybyAltitude < 0 || encounter.impactsBody,
       };
       break;
     }
@@ -2349,12 +2351,13 @@ function drawSystemBodies(
     }
 
     if (ca.withinArrival && targetBody) {
-      const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
+      const flybyAlt = ca.flybyAltitude ?? (ca.dist - targetBody.radius);
       const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
       const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
+      const signedAltKm = `${Math.round(flybyAlt / 1000)}km`;
       const labelText = ca.impactsBody
-        ? 'IMPACT'
-        : `FBY ${(flybyAlt / 1000).toFixed(0)}km ${flybySense}`;
+        ? `${signedAltKm} ${flybySense}`
+        : `FBY ${signedAltKm} ${flybySense}`;
 
       ctx.beginPath();
       ctx.arc(ssx, ssy, 6, 0, Math.PI * 2);
@@ -3145,9 +3148,9 @@ export function drawOrbitalHUD(
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
       if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
-        const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? Math.max(0, ca.dist - body.radius)) : ca.dist;
+        const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? (ca.dist - body.radius)) : ca.dist;
         const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
-        label(ctx, lx, ly, 'FBY', `${ca.impactsBody ? 'IMPACT' : `${(flybyMetric / 1000).toFixed(0)} km`} ${flybySense}`, ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_OK : COL_WARN)); ly += lh;
+        label(ctx, lx, ly, 'FBY', `${Math.round(flybyMetric / 1000)} km ${flybySense}`, ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_OK : COL_WARN)); ly += lh;
         const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
         if (arrivalLevel) {
           const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
