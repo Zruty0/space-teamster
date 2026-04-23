@@ -555,8 +555,8 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     const level = createOrbitalBase(16, 'tycho', 'Tycho Transfer', 'Adjust the transfer and arrive at Pollux', seed.x, seed.y, seed.vx, seed.vy, 14);
     level.baseTimeScale = 2400;
     level.localBaseTimeScale = 60;
-    level.thrustAccel = 0.016;
-    level.thrustAccelMax = 0.04;
+    level.thrustAccel = 0.012;
+    level.thrustAccelMax = 0.03;
     level.fuelDeltaV = 2800;
     level.showLandingSite = false;
     level.systemBodies = [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY];
@@ -1371,9 +1371,9 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (level.systemBodies) {
     const targetOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
     const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
-    maxTime = Math.max(maxTime, Math.min(transferTime * 1.5, 400000));
+    maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 1.5, period * 1.02), 800000));
   }
-  const stepSize = Math.max(1, maxTime / 1600);
+  const stepSize = Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
