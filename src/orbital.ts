@@ -1520,16 +1520,14 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const rvy = shipVY - bodyCross.vy;
       const normalized = normalizeArrivalState(targetBody, rx, ry, rvx, rvy);
       const encounter = simulateTargetBodyEncounter(targetBody, normalized);
-      const bodyEncounter = transferBodyState(level, targetBody.id, tCross + encounter.dt);
-      if (!bodyEncounter) break;
       targetBodyApproach = {
         bodyId: targetBody.id,
         dist: encounter.dist,
         relSpeed: encounter.relSpeed,
-        shipX: bodyEncounter.x + encounter.x,
-        shipY: bodyEncounter.y + encounter.y,
-        bodyX: bodyEncounter.x,
-        bodyY: bodyEncounter.y,
+        shipX,
+        shipY,
+        bodyX: bodyCross.x,
+        bodyY: bodyCross.y,
         relX: encounter.x,
         relY: encounter.y,
         relVX: encounter.vx,
