@@ -105,8 +105,6 @@ export interface OrbitalLevel {
   escapeVectorSpeed?: number;
   conicRadius?: number;
   orbitModeId?: string;
-  localBaseTimeScale?: number;
-  localZoneAltitude?: number;
 }
 
 export interface OrbitalState {
@@ -563,8 +561,6 @@ function applyOrbitMode(level: OrbitalLevel, modeId: string): OrbitalLevel {
   if (!mode) return level;
   level.orbitModeId = modeId;
   level.baseTimeScale = resolvedModeBaseTimeScale(level, modeId);
-  level.localBaseTimeScale = mode.localBaseTimeScale;
-  level.localZoneAltitude = mode.localZoneAltitude;
   if (mode.thrustAccel !== undefined) level.thrustAccel = mode.thrustAccel;
   if (mode.thrustAccelMax !== undefined) level.thrustAccelMax = mode.thrustAccelMax;
   if (mode.matchEscapeBurnTimesToModeId) {
@@ -576,6 +572,45 @@ function applyOrbitMode(level: OrbitalLevel, modeId: string): OrbitalLevel {
     }
   }
   return level;
+}
+
+function isLowPassMode(level: OrbitalLevel, alt: number): boolean {
+  return level.atmoHeight > 0 ? alt < level.atmoHeight : alt < level.transitionAltitude * 2;
+}
+
+function modeMatchesAltitude(mode: { minAltitude?: number; maxAltitude?: number }, alt: number): boolean {
+  if (mode.minAltitude !== undefined && alt < mode.minAltitude) return false;
+  if (mode.maxAltitude !== undefined && alt >= mode.maxAltitude) return false;
+  return true;
+}
+
+function resolvedOrbitModeForAltitude(level: OrbitalLevel, alt: number) {
+  const activeModeId = level.orbitModeId;
+  if (!activeModeId) return null;
+  const bodyModes = bodyById(level.bodyId).orbitModes ?? [];
+  const maxIdx = bodyModes.findIndex(m => m.id === activeModeId);
+  if (maxIdx < 0) return bodyOrbitModeById(level.bodyId, activeModeId);
+
+  let resolved = bodyModes[Math.min(maxIdx, bodyModes.length - 1)] ?? null;
+  for (let i = 0; i <= maxIdx; i++) {
+    const mode = bodyModes[i];
+    if (modeMatchesAltitude(mode, alt)) resolved = mode;
+  }
+  return resolved;
+}
+
+function currentPacingProfile(level: OrbitalLevel, alt: number) {
+  const lowPass = isLowPassMode(level, alt);
+  const orbitMode = resolvedOrbitModeForAltitude(level, alt);
+  return {
+    lowPass,
+    orbitModeId: lowPass ? 'atmo' : (orbitMode?.id ?? level.orbitModeId ?? 'default'),
+    baseTimeScale: lowPass ? ATMO_TIME_SCALE : (orbitMode ? resolvedModeBaseTimeScale(level, orbitMode.id) : level.baseTimeScale),
+    thrustAccel: orbitMode?.thrustAccel ?? level.thrustAccel,
+    thrustAccelMax: orbitMode?.thrustAccelMax ?? level.thrustAccelMax,
+    thrustWallDvPerSec: !lowPass && orbitMode?.id === level.orbitModeId ? level.thrustWallDvPerSec : undefined,
+    thrustWallDvPerSecMax: !lowPass && orbitMode?.id === level.orbitModeId ? level.thrustWallDvPerSecMax : undefined,
+  };
 }
 
 export const ORBITAL_LEVELS: OrbitalLevel[] = [
@@ -905,27 +940,19 @@ export function updateOrbital(
     s.timeWarp = 1;
   }
 
-  // Detect atmo entry/exit for snap-rotate
+  // Detect low-pass entry/exit for snap-rotate
   const wasInAtmo = s.inAtmo;
 
-  // In atmosphere: slow down time, cap warp based on altitude
   const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
   const alt0 = r0 - level.planetRadius;
+  const pacing = currentPacingProfile(level, alt0);
   const inLowAtmo = alt0 < level.transitionAltitude;
   const atmoWarpCap = inLowAtmo ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP;
-  const effectiveWarp = s.inAtmo
+  const effectiveWarp = pacing.lowPass
     ? Math.min(s.timeWarp, atmoWarpCap)
     : s.timeWarp;
 
-  let spaceBaseScale = level.baseTimeScale;
-  if (level.systemBodies && level.localBaseTimeScale) {
-    const r0 = Math.sqrt(s.x * s.x + s.y * s.y);
-    const tychoAlt = r0 - level.planetRadius;
-    const nearTycho = tychoAlt < (level.localZoneAltitude ?? 400_000);
-    if (nearTycho) spaceBaseScale = level.localBaseTimeScale;
-  }
-
-  const effectiveBaseScale = s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale;
+  const effectiveBaseScale = pacing.baseTimeScale;
   const totalScale = effectiveBaseScale * effectiveWarp;
   const effectiveDt = dt * totalScale;
 
@@ -940,11 +967,11 @@ export function updateOrbital(
   // Toggle high thrust with Space
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
 
-  const baseThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
-  const wallThrust = s.highThrust ? level.thrustWallDvPerSecMax : level.thrustWallDvPerSec;
+  const baseThrust = s.highThrust ? pacing.thrustAccelMax : pacing.thrustAccel;
+  const wallThrust = s.highThrust ? pacing.thrustWallDvPerSecMax : pacing.thrustWallDvPerSec;
   const effThrust = wallThrust !== undefined
-    ? (wallThrust / (s.inAtmo ? ATMO_TIME_SCALE : spaceBaseScale))
-    : (s.inAtmo ? baseThrust * ATMO_THRUST_MULT : baseThrust);
+    ? (wallThrust / pacing.baseTimeScale)
+    : (pacing.lowPass ? baseThrust * ATMO_THRUST_MULT : baseThrust);
 
   // --- Ship orientation (applied after substep loop updates s.inAtmo) ---
   // Deferred to after substep loop — see below
@@ -971,9 +998,8 @@ export function updateOrbital(
     if (s.temperature < 0) s.temperature = 0;
     if (s.temperature > 1.5) s.temperature = 1.5;
 
-    // For atmospheric bodies: inAtmo when below atmoHeight
-    // For airless bodies: inAtmo when below transitionAltitude * 3 (enables zoom + pitch)
-    s.inAtmo = level.atmoHeight > 0 ? alt < level.atmoHeight : alt < level.transitionAltitude * 2;
+    // Low-pass mode: real atmosphere for atmospheric bodies, low-altitude handling for airless ones.
+    s.inAtmo = isLowPassMode(level, alt);
 
     // Thrust
     if (s.fuel > 0) {
@@ -1456,7 +1482,8 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   }
   const rNow = Math.sqrt(s.x * s.x + s.y * s.y);
   const altNow = rNow - level.planetRadius;
-  const localDetail = level.systemBodies && altNow < Math.max(level.atmoHeight * 2, 400000);
+  const pacing = currentPacingProfile(level, altNow);
+  const localDetail = !!level.systemBodies && pacing.orbitModeId !== level.orbitModeId;
   const stepSize = localDetail ? Math.min(5, Math.max(1, maxTime / 2200)) : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
@@ -1786,11 +1813,12 @@ export function updateOrbitalCamera(
   _wasRendezvousZoom = inRendezvousZoom;
   s.inRendezvousZoom = inRendezvousZoom;
 
-  if (s.inAtmo) {
-    // In atmosphere: stay zoomed toward the ship, even in transfer missions,
-    // but keep enough surrounding space visible to read the immediate trajectory.
-    const r = Math.sqrt(s.x * s.x + s.y * s.y);
-    const alt = r - level.planetRadius;
+  const r = Math.sqrt(s.x * s.x + s.y * s.y);
+  const alt = r - level.planetRadius;
+  const pacing = currentPacingProfile(level, alt);
+
+  if (pacing.lowPass) {
+    // Low-pass / atmosphere: most zoom, center on the ship, keep local trajectory readable.
     const transferView = !!level.systemBodies;
     const viewRadius = transferView
       ? Math.max(alt * 8, level.transitionAltitude * 6, 180000)
@@ -1799,17 +1827,6 @@ export function updateOrbitalCamera(
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (s.x - cam.x) * smooth;
     cam.y += (s.y - cam.y) * smooth;
-  } else if (level.systemBodies && !inRendezvousZoom) {
-    // Transfer view after leaving atmosphere: zoom back out to the full Tycho-centric system.
-    const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-    let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
-    const systemOuterR = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius + (b.displayPatchRadius ?? b.patchRadius)), 0);
-    maxR = Math.max(maxR, systemOuterR * 1.05);
-    if (level.conicRadius) maxR = Math.min(maxR, level.conicRadius * 1.05);
-    const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
-    cam.zoom += (targetZoom - cam.zoom) * smooth;
-    cam.x += (0 - cam.x) * smooth;
-    cam.y += (0 - cam.y) * smooth;
   } else if (inRendezvousZoom) {
     // Rendezvous proximity: zoom in, center on ship (hard track)
     const sp = stationPos(level, s.time)!;
@@ -1823,16 +1840,17 @@ export function updateOrbitalCamera(
     cam.x = s.x;
     cam.y = s.y;
   } else {
-    // In space: show full orbit, centered on planet
+    // Low orbit shows the local orbit around the current body; only the unlocked highest
+    // transfer mode zooms out to the full system.
     const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
     let maxR = elem.e < 1 ? elem.apoapsis * 1.15 : Math.sqrt(s.x * s.x + s.y * s.y) * 1.5;
-    // If station exists, ensure its orbit is visible too
     if (level.station) maxR = Math.max(maxR, level.station.orbitRadius * 1.15);
+    const showSystemView = !!level.systemBodies && pacing.orbitModeId === level.orbitModeId;
     const systemOuterR = level.systemBodies?.reduce((m, b) => Math.max(m, b.orbitRadius + (b.displayPatchRadius ?? b.patchRadius)), 0) ?? 0;
-    if (systemOuterR > 0 && maxR > level.planetRadius * 4) {
+    if (showSystemView && systemOuterR > 0) {
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
-    if (level.conicRadius) {
+    if (level.conicRadius && showSystemView) {
       maxR = Math.min(maxR, level.conicRadius * 1.05);
     }
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);

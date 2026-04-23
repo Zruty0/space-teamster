@@ -9,10 +9,10 @@ export interface CircularOrbitDef {
 export interface OrbitModeDef {
   id: string;
   label: string;
+  minAltitude?: number;
+  maxAltitude?: number;
   baseTimeScale?: number;
   maxOuterOrbitWallTime?: number;
-  localBaseTimeScale?: number;
-  localZoneAltitude?: number;
   thrustAccel?: number;
   thrustAccelMax?: number;
   thrustReferenceOrbitAltitude?: number;
@@ -146,6 +146,7 @@ export const BODIES: BodyDef[] = [
       {
         id: 'low',
         label: 'Tycho low orbit',
+        maxAltitude: 360_000,
         baseTimeScale: 60,
         thrustAccel: 0.08,
         thrustAccelMax: 1.5,
@@ -154,9 +155,8 @@ export const BODIES: BodyDef[] = [
       {
         id: 'high',
         label: 'Tycho high orbit',
+        minAltitude: 360_000,
         maxOuterOrbitWallTime: 300,
-        localBaseTimeScale: 60,
-        localZoneAltitude: 400_000,
         thrustReferenceOrbitAltitude: 140_000,
         matchEscapeBurnTimesToModeId: 'low',
       },
