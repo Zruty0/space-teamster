@@ -217,6 +217,12 @@ const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
   arrivalOrbitalLevelId: 17,
 };
 
+function transferBodyDefForLocalBody(bodyId: string): OrbitalTransferBody | null {
+  if (bodyId === 'castor') return CASTOR_TRANSFER_BODY;
+  if (bodyId === 'pollux') return POLLUX_TRANSFER_BODY;
+  return null;
+}
+
 export function getTransferBody(level: OrbitalLevel, bodyId: string): OrbitalTransferBody | null {
   return level.systemBodies?.find(b => b.id === bodyId) ?? null;
 }
@@ -482,6 +488,11 @@ function createSurfaceOrbitalLevel(
   const v = Math.sqrt(body.gm / r);
   const level = createOrbitalBase(id, poi.bodyId as 'castor' | 'tycho' | 'pollux', name, subtitle, 0, r, -orbitSense * v, 0, approachLevelId);
   level.landingSiteAngle = poi.surfaceAngle;
+  const transferBody = transferBodyDefForLocalBody(level.bodyId);
+  if (transferBody) {
+    level.conicRadius = transferBody.patchRadius;
+    level.escapeSOIRadius = transferBody.patchRadius;
+  }
   return level;
 }
 
@@ -512,6 +523,11 @@ function createStationOrbitalLevel(
     captureMaxSpeed: stationPoi.captureMaxSpeed,
   };
   level.dockingLevelId = dockingLevelId;
+  const transferBody = transferBodyDefForLocalBody(level.bodyId);
+  if (transferBody) {
+    level.conicRadius = transferBody.patchRadius;
+    level.escapeSOIRadius = transferBody.patchRadius;
+  }
   return level;
 }
 
@@ -681,6 +697,7 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
   (() => {
     const level = createStationOrbitalLevel(19, 'morrow', 'Morrow Rendezvous', 'Raise or trim your orbit and rendezvous with Morrow Station', 100_000, 12, -1, 900, 15);
     level.showLandingSite = false;
+    level.escapeToOrbitalLevelId = 18;
     return level;
   })(),
 ];
