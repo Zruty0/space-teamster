@@ -362,6 +362,7 @@ export class Game {
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'docking') {
         updateDocking(p.ds, input, p.level, PHYSICS_DT);
+        input.toggleSAS = false;
         if (!p.ds.alive) p.state = 'crashed';
         if (p.ds.delivered) p.state = 'delivered';
         if (p.ds.exitComplete) {

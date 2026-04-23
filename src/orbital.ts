@@ -257,7 +257,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
   const targetBodyDef = nextLevel?.targetBodyId ? bodyById(nextLevel.targetBodyId) : null;
   if (!nextLevel || !originState || !targetBody || !originBody.orbit || !targetBodyDef?.orbit) return null;
 
-  const timeBin = Math.floor(time / 200);
+  const timeBin = Math.floor(time / 20);
   if (_cachedEscapeTarget && _cachedEscapeTarget.levelId === level.id && _cachedEscapeTarget.timeBin === timeBin) {
     return _cachedEscapeTarget.angle;
   }
