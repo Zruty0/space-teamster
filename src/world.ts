@@ -157,7 +157,7 @@ export const BODIES: BodyDef[] = [
         label: 'Tycho high orbit',
         minAltitude: 360_000,
         baseTimeScale: 2400,
-        thrustWallDvPerSec: 14.4,
+        thrustWallDvPerSec: 4.8,
         thrustWallDvPerSecMax: 90,
       },
     ],
