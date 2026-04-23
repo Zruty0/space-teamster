@@ -370,11 +370,11 @@ export const STATION_POIS: StationPoiDef[] = [
   {
     id: 'morrow',
     name: 'Morrow Station',
-    subtitle: 'Remote Castor research station',
+    subtitle: 'High-orbit Castor research station',
     bodyId: 'castor',
     orbit: {
       parentBodyId: 'castor',
-      radius: 340_000,
+      radius: 420_000,
       epochAngle: 1.4,
       epochTime: 0,
       orbitSense: -1,

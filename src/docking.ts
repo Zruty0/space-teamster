@@ -321,11 +321,34 @@ const MISSION4_DOCKING: DockingLevel = {
   startAngle: 0,
 };
 
+const MISSION6_DOCKING: DockingLevel = {
+  id: 15,
+  name: 'Morrow Station',
+  subtitle: 'Deliver medical supplies to the research dock',
+  hasContainer: true,
+  exitMode: false,
+  exitDistance: 0,
+  stationX: 0, stationY: 0,
+  bays: generateBays(1, 1, 4, 0.55),
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: false,
+  startX: -120, startY: 0,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 0,
+};
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   MISSION1_DOCKING,
   MISSION2_DOCKING,
   MISSION3_DOCKING,
   MISSION4_DOCKING,
+  MISSION6_DOCKING,
 ];
 
 // ===================== State =====================

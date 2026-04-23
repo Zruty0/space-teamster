@@ -60,9 +60,9 @@ export const MISSIONS: Mission[] = [
   {
     id: 6,
     name: 'The Hard Way Up',
-    subtitle: 'Deliver medical supplies from Port Kessler on Tycho to the research station on Castor.',
+    subtitle: 'Deliver medical supplies from Port Kessler on Tycho to Morrow Station in high Castor orbit.',
     completionText: 'The station medic checks every crate twice. \'You have no idea how long we\'ve been rationing,\' she says quietly.',
-    stub: true,
+    stub: false,
     startWorldTime: 0,
     startPhase: 'landing',
   },

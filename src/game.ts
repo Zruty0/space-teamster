@@ -268,6 +268,18 @@ export class Game {
       );
       return;
     }
+
+    if (missionId === 6) {
+      const tycho = LEVELS.find(l => l.id === 7)!;
+      const departure = APPROACH_LEVELS.find(l => l.id === 17)!;
+      const orbitDir = departure.departure?.orbitDir ?? 1;
+      this.loadLanding(
+        tycho,
+        { x: tycho.padCenterX, y: tycho.padY + 6.6, vx: 0, vy: 0 },
+        { targetAltitude: tycho.startY, orbitDir, nextApproachLevelId: 17 },
+      );
+      return;
+    }
   }
 
   private launchLevel(index: number): void {

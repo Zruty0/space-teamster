@@ -289,6 +289,11 @@ export const APPROACH_LEVELS: ApproachLevel[] = [
     fuelSeconds: 280,
   }),
   createDescentApproach('pollux-outpost', 16, 260, 17),
+  createDepartureApproach('port-kessler', 17, {
+    orbitalLevelId: 18,
+    subtitle: 'Atmospheric departure — build speed for the Castor transfer',
+    fuelSeconds: 110,
+  }),
 ];
 
 export const DEFAULT_APPROACH_LEVEL = APPROACH_LEVELS[2];

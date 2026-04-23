@@ -576,6 +576,34 @@ export const ORBITAL_LEVELS: OrbitalLevel[] = [
     level.conicRadius = POLLUX_TRANSFER_BODY.patchRadius;
     return level;
   })(),
+  (() => {
+    const level = createSurfaceOrbitalLevel(18, 'port-kessler', 'Castor Transfer', 'Leave Tycho and intercept Castor', 140_000, 17, 1);
+    level.baseTimeScale = 2400;
+    level.localBaseTimeScale = 60;
+    level.thrustAccel = 0.012;
+    level.thrustAccelMax = 0.03;
+    level.fuelDeltaV = 2200;
+    level.showLandingSite = false;
+    level.systemBodies = [
+      {
+        ...CASTOR_TRANSFER_BODY,
+        arrivalAltitudeMin: 120_000,
+        arrivalAltitudeMax: 220_000,
+        arrivalSpeedMarginMin: 2,
+        arrivalSpeedMarginMax: 100,
+        arrivalOrbitalLevelId: 19,
+      },
+      POLLUX_TRANSFER_BODY,
+    ];
+    level.targetBodyId = 'castor';
+    level.conicRadius = CASTOR_SYSTEM_ORBIT_RADIUS * 1.2;
+    return level;
+  })(),
+  (() => {
+    const level = createStationOrbitalLevel(19, 'morrow', 'Morrow Rendezvous', 'Raise or trim your orbit and rendezvous with Morrow Station', 100_000, 12, -1, 900, 15);
+    level.showLandingSite = false;
+    return level;
+  })(),
 ];
 
 // ===================== State =====================
