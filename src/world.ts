@@ -20,6 +20,18 @@ export interface OrbitModeDef {
   matchWallThrustToModeId?: string;
 }
 
+export interface WindLayerDef {
+  altitudeCenter: number;
+  altitudeWidth: number;
+  strength: number;
+}
+
+export interface TurbulenceZoneDef {
+  altitudeMin: number;
+  altitudeMax: number;
+  strength: number;
+}
+
 export interface BodyDef {
   id: string;
   name: string;
@@ -39,6 +51,21 @@ export interface BodyDef {
   } | null;
   orbit?: CircularOrbitDef;
   orbitModes?: OrbitModeDef[];
+  orbitalDefaults: {
+    baseTimeScale: number;
+    thrustAccel: number;
+    thrustAccelMax: number;
+    fuelDeltaV: number;
+    transitionAltitude: number;
+  };
+  approachEnvironment?: {
+    windLayers: WindLayerDef[];
+    turbulence: TurbulenceZoneDef[];
+  };
+  transferGameplay?: {
+    patchRadius: number;
+    displayPatchRadius?: number;
+  };
 }
 
 export interface TerrainFeature {
@@ -130,6 +157,16 @@ const POLLUX_SYSTEM_ORBIT_RADIUS = 21_000_000;
 const CASTOR_SYSTEM_EPOCH_ANGLE = -1.25;
 const POLLUX_SYSTEM_EPOCH_ANGLE = CASTOR_SYSTEM_EPOCH_ANGLE + 0.70;
 
+const TYCHO_WIND_LAYERS: WindLayerDef[] = [
+  { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
+  { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
+  { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
+];
+
+const TYCHO_TURBULENCE: TurbulenceZoneDef[] = [
+  { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
+];
+
 export const BODIES: BodyDef[] = [
   {
     id: 'tycho',
@@ -161,6 +198,17 @@ export const BODIES: BodyDef[] = [
         thrustWallDvPerSecMax: 90,
       },
     ],
+    orbitalDefaults: {
+      baseTimeScale: 60,
+      thrustAccel: 0.08,
+      thrustAccelMax: 1.5,
+      fuelDeltaV: 500,
+      transitionAltitude: 20_000,
+    },
+    approachEnvironment: {
+      windLayers: TYCHO_WIND_LAYERS,
+      turbulence: TYCHO_TURBULENCE,
+    },
   },
   {
     id: 'castor',
@@ -174,6 +222,16 @@ export const BODIES: BodyDef[] = [
     terrainStrokeColor: '#665a46',
     terrainBrightColor: '#8b7b61',
     atmosphere: null,
+    orbitalDefaults: {
+      baseTimeScale: 50,
+      thrustAccel: 0.05,
+      thrustAccelMax: 1.0,
+      fuelDeltaV: 400,
+      transitionAltitude: 8_000,
+    },
+    transferGameplay: {
+      patchRadius: 700_000,
+    },
     orbit: {
       parentBodyId: 'tycho',
       radius: CASTOR_SYSTEM_ORBIT_RADIUS,
@@ -194,6 +252,16 @@ export const BODIES: BodyDef[] = [
     terrainStrokeColor: '#5d8aa7',
     terrainBrightColor: '#86aec8',
     atmosphere: null,
+    orbitalDefaults: {
+      baseTimeScale: 50,
+      thrustAccel: 0.05,
+      thrustAccelMax: 1.0,
+      fuelDeltaV: 400,
+      transitionAltitude: 8_000,
+    },
+    transferGameplay: {
+      patchRadius: 800_000,
+    },
     orbit: {
       parentBodyId: 'tycho',
       radius: POLLUX_SYSTEM_ORBIT_RADIUS,

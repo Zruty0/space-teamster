@@ -1,5 +1,7 @@
 // Mission definitions for Space Teamster campaign.
 
+import { type MissionStartDef } from './campaign-content';
+
 export interface Mission {
   id: number;
   name: string;
@@ -7,8 +9,7 @@ export interface Mission {
   completionText: string;
   stub: boolean;           // true = "coming soon", not playable yet
   startWorldTime: number;  // absolute system time to reset to on mission start
-  // Phase chain for this mission (first phase is starting phase)
-  startPhase: 'docking' | 'orbital' | 'approach' | 'landing';
+  start: MissionStartDef;
 }
 
 export const MISSIONS: Mission[] = [
@@ -19,7 +20,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'Mail, rations, snacks, packages — small pleasures for the hard-working miners. You\'re invited to join the evening at The Rusty Vein.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'docking',
+    start: { kind: 'docking', dockingLevelId: 1 },
   },
   {
     id: 2,
@@ -28,7 +29,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'The lab techs have been waiting weeks for these. Dr. Vasquez is already pulling the first core before your container clamps disengage.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'landing',
+    start: { kind: 'landing', poiId: 'castor-settlement', departureApproachLevelId: 12 },
   },
   {
     id: 3,
@@ -37,7 +38,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'The whole town turns out to unload. Kids are already hanging lanterns. The festival committee insists you stay for the opening ceremony at Kessler Square.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'docking',
+    start: { kind: 'docking', dockingLevelId: 13 },
   },
   {
     id: 4,
@@ -46,7 +47,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'Not glamorous, but Anchor\'s waste chief slips you a bonus for the quick turnaround. \'Fastest cleanup in three years,\' she says.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'landing',
+    start: { kind: 'landing', poiId: 'port-kessler', departureApproachLevelId: 14 },
   },
   {
     id: 5,
@@ -55,7 +56,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'The Pollux crew has been working with improvised tools for months. The foreman shakes your hand and won\'t let go.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'landing',
+    start: { kind: 'landing', poiId: 'castor-settlement', departureApproachLevelId: 15 },
   },
   {
     id: 6,
@@ -64,7 +65,7 @@ export const MISSIONS: Mission[] = [
     completionText: 'The station medic checks every crate twice. \'You have no idea how long we\'ve been rationing,\' she says quietly.',
     stub: false,
     startWorldTime: 0,
-    startPhase: 'landing',
+    start: { kind: 'landing', poiId: 'port-kessler', departureApproachLevelId: 17 },
   },
   {
     id: 7,
@@ -73,6 +74,6 @@ export const MISSIONS: Mission[] = [
     completionText: 'Dock workers at Kessler give you the nod — the one reserved for drivers who\'ve done the long haul. Your name goes on the board at The Rusty Anchor.',
     stub: true,
     startWorldTime: 0,
-    startPhase: 'docking',
+    start: { kind: 'docking', dockingLevelId: 1 },
   },
 ];

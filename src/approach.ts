@@ -1,10 +1,12 @@
 // Approach phase: atmospheric reentry to reach a target gate.
 // Self-contained module: physics, prediction, rendering, HUD.
 
+import { APPROACH_PHASES, type ApproachPhaseDef } from './campaign-content';
 import { config } from './config';
 import { InputState } from './input';
+import { landingLevelByPoiId } from './levels';
 import { Camera, worldToScreen } from './renderer';
-import { type BodyDef, type SurfacePoiDef, bodyById, surfacePoiById } from './world';
+import { type BodyDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef, bodyById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -79,17 +81,9 @@ export interface ApproachInitOverride {
   localDir?: 1 | -1;
 }
 
-export interface WindLayer {
-  altitudeCenter: number;
-  altitudeWidth: number;
-  strength: number;
-}
+export type WindLayer = WindLayerDef;
 
-export interface TurbulenceZone {
-  altitudeMin: number;
-  altitudeMax: number;
-  strength: number;
-}
+export type TurbulenceZone = TurbulenceZoneDef;
 
 const APPROACH_WARP_SPEEDS = [1, 2, 5];
 
@@ -137,16 +131,6 @@ export interface TrajectoryResult {
   wingFoldIdx: number;
 }
 
-const TYCHO_WIND_LAYERS: WindLayer[] = [
-  { altitudeCenter: 14000, altitudeWidth: 1800, strength: 7 },
-  { altitudeCenter: 8000, altitudeWidth: 1400, strength: -10 },
-  { altitudeCenter: 4200, altitudeWidth: 900, strength: 4 },
-];
-
-const TYCHO_TURBULENCE: TurbulenceZone[] = [
-  { altitudeMin: 4500, altitudeMax: 9500, strength: 3 },
-];
-
 function createApproachFrame(poi: SurfacePoiDef): ApproachFrame {
   const body = bodyById(poi.bodyId);
   return {
@@ -157,20 +141,25 @@ function createApproachFrame(poi: SurfacePoiDef): ApproachFrame {
   };
 }
 
-export function createDescentApproach(
-  surfacePoiId: string,
-  id: number,
-  fuelSeconds?: number,
-  returnToOrbitalLevelId?: number,
-): ApproachLevel {
-  const poi = surfacePoiById(surfacePoiId);
+function approachEnvironment(body: BodyDef): { windLayers: WindLayer[]; turbulence: TurbulenceZone[] } {
+  return {
+    windLayers: body.approachEnvironment?.windLayers ?? [],
+    turbulence: body.approachEnvironment?.turbulence ?? [],
+  };
+}
+
+function createDescentApproach(def: ApproachPhaseDef): ApproachLevel {
+  const poi = surfacePoiById(def.poiId);
   const body = bodyById(poi.bodyId);
   const atmo = body.atmosphere;
   const airless = !atmo;
+  const landingLevel = landingLevelByPoiId(def.landingPoiId ?? poi.id);
+  if (!landingLevel) throw new Error(`Missing landing level for ${def.landingPoiId ?? poi.id}`);
+  const env = approachEnvironment(body);
   return {
-    id,
-    name: airless ? `${poi.name} Descent` : `${poi.name} Descent`,
-    subtitle: airless ? 'Powered descent — arrive at the target site' : 'Atmospheric approach — arrive at the target site',
+    id: def.id,
+    name: `${poi.name} Descent`,
+    subtitle: def.subtitle ?? (airless ? 'Powered descent — arrive at the target site' : 'Atmospheric approach — arrive at the target site'),
     body,
     poi,
     frame: createApproachFrame(poi),
@@ -196,43 +185,32 @@ export function createDescentApproach(
     wingAngleRate: atmo ? 1.0 : 0,
     thrustAccel: 15,
     thrustAccelMax: 150,
-    fuelSeconds: fuelSeconds ?? (atmo ? 85 : 120),
+    fuelSeconds: def.fuelSeconds ?? (atmo ? 85 : 120),
     gateX: 0,
     gateY: poi.descentProfile.gateY,
     gateRadius: poi.descentProfile.gateRadius,
     gateMaxSpeed: poi.descentProfile.gateMaxSpeed,
     gateMinSpeed: poi.descentProfile.gateMinSpeed,
-    windLayers: atmo ? TYCHO_WIND_LAYERS : [],
-    turbulence: atmo ? TYCHO_TURBULENCE : [],
-    landingLevelId: poi.bodyId === 'castor' ? 6 : poi.bodyId === 'tycho' ? 7 : 8,
+    windLayers: env.windLayers,
+    turbulence: env.turbulence,
+    landingLevelId: landingLevel.id,
     returnToOrbital: {
-      exitAltitude: atmo ? 20_000 : 8_000,
-      orbitalLevelId: returnToOrbitalLevelId ?? (poi.bodyId === 'castor' ? 11 : poi.bodyId === 'tycho' ? 13 : 17),
+      exitAltitude: body.orbitalDefaults.transitionAltitude,
+      orbitalLevelId: def.returnToOrbitalLevelId ?? 0,
     },
   };
 }
 
-export function createDepartureApproach(
-  surfacePoiId: string,
-  id: number,
-  options?: {
-    subtitle?: string;
-    fuelSeconds?: number;
-    exitAltitude?: number;
-    thresholdApoapsisAltitude?: number;
-    targetOrbitAltitude?: number;
-    orbitalLevelId?: number;
-    orbitDir?: 1 | -1;
-  },
-): ApproachLevel {
-  const poi = surfacePoiById(surfacePoiId);
+function createDepartureApproach(def: ApproachPhaseDef): ApproachLevel {
+  const poi = surfacePoiById(def.poiId);
   const body = bodyById(poi.bodyId);
   const atmo = body.atmosphere;
   const defaults = poi.departureProfile;
+  const env = approachEnvironment(body);
   return {
-    id,
+    id: def.id,
     name: `${poi.name} Departure`,
-    subtitle: options?.subtitle ?? (atmo ? 'Atmospheric departure — build speed for orbit' : 'Launch and build horizontal speed for orbit'),
+    subtitle: def.subtitle ?? (atmo ? 'Atmospheric departure — build speed for orbit' : 'Launch and build horizontal speed for orbit'),
     body,
     poi,
     frame: createApproachFrame(poi),
@@ -258,43 +236,32 @@ export function createDepartureApproach(
     wingAngleRate: atmo ? 1.0 : 0,
     thrustAccel: 15,
     thrustAccelMax: 150,
-    fuelSeconds: options?.fuelSeconds ?? defaults.fuelSeconds,
+    fuelSeconds: def.fuelSeconds ?? defaults.fuelSeconds,
     gateX: 0,
     gateY: 0,
     gateRadius: 0,
     gateMaxSpeed: 0,
     gateMinSpeed: 0,
-    windLayers: atmo ? TYCHO_WIND_LAYERS : [],
-    turbulence: atmo ? TYCHO_TURBULENCE : [],
+    windLayers: env.windLayers,
+    turbulence: env.turbulence,
     landingLevelId: 0,
     departure: {
-      exitAltitude: options?.exitAltitude ?? defaults.exitAltitude,
-      thresholdApoapsisAltitude: options?.thresholdApoapsisAltitude ?? defaults.thresholdApoapsisAltitude,
-      targetOrbitAltitude: options?.targetOrbitAltitude ?? defaults.targetOrbitAltitude,
-      orbitalLevelId: options?.orbitalLevelId ?? (poi.bodyId === 'castor' ? 12 : 14),
-      orbitDir: options?.orbitDir ?? defaults.orbitDir,
+      exitAltitude: def.exitAltitude ?? defaults.exitAltitude,
+      thresholdApoapsisAltitude: def.thresholdApoapsisAltitude ?? defaults.thresholdApoapsisAltitude,
+      targetOrbitAltitude: def.targetOrbitAltitude ?? defaults.targetOrbitAltitude,
+      orbitalLevelId: def.departureOrbitalLevelId ?? 0,
+      orbitDir: def.orbitDir ?? defaults.orbitDir,
     },
   };
 }
 
-export const APPROACH_LEVELS: ApproachLevel[] = [
-  createDescentApproach('castor-settlement', 10, 120, 11),
-  createDescentApproach('castor-settlement', 11, 120, 11),
-  createDepartureApproach('castor-settlement', 12, { fuelSeconds: 140, orbitalLevelId: 12 }),
-  createDescentApproach('port-kessler', 13, 85, 13),
-  createDepartureApproach('port-kessler', 14, { orbitalLevelId: 14 }),
-  createDepartureApproach('castor-settlement', 15, {
-    orbitalLevelId: 15,
-    subtitle: 'Launch and build speed for the Pollux transfer',
-    fuelSeconds: 280,
-  }),
-  createDescentApproach('pollux-outpost', 16, 260, 17),
-  createDepartureApproach('port-kessler', 17, {
-    orbitalLevelId: 18,
-    subtitle: 'Atmospheric departure — build speed for the Castor transfer',
-    fuelSeconds: 110,
-  }),
-];
+export const APPROACH_LEVELS: ApproachLevel[] = APPROACH_PHASES.map(def =>
+  def.kind === 'descent' ? createDescentApproach(def) : createDepartureApproach(def)
+);
+
+export function approachLevelById(id: number): ApproachLevel | undefined {
+  return APPROACH_LEVELS.find(l => l.id === id);
+}
 
 export const DEFAULT_APPROACH_LEVEL = APPROACH_LEVELS[2];
 

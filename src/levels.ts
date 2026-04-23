@@ -1,3 +1,4 @@
+import { LANDING_PHASES } from './campaign-content';
 import { type BodyDef, type SurfacePoiDef, bodyById, surfacePoiById, type TerrainFeature } from './world';
 
 export { type TerrainFeature };
@@ -54,10 +55,14 @@ export function createLandingLevel(surfacePoiId: string, id: number): LevelDef {
   };
 }
 
-export const LEVELS: LevelDef[] = [
-  createLandingLevel('castor-settlement', 6),
-  createLandingLevel('port-kessler', 7),
-  createLandingLevel('pollux-outpost', 8),
-];
+export const LEVELS: LevelDef[] = LANDING_PHASES.map(def => createLandingLevel(def.poiId, def.id));
+
+export function landingLevelById(id: number): LevelDef | undefined {
+  return LEVELS.find(l => l.id === id);
+}
+
+export function landingLevelByPoiId(poiId: string): LevelDef | undefined {
+  return LEVELS.find(l => l.poi.id === poiId);
+}
 
 export const DEFAULT_LANDING_LEVEL = LEVELS[0];

@@ -10,17 +10,17 @@ import { TerrainData, generateTerrain, getTerrainHeight, isOnPad } from './terra
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
-import { LEVELS, LevelDef } from './levels';
+import { LEVELS, LevelDef, landingLevelById, landingLevelByPoiId } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
-  updateApproachCamera, renderApproach, drawApproachHUD,
+  updateApproachCamera, renderApproach, drawApproachHUD, approachLevelById,
 } from './approach';
 import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector,
+  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -222,61 +222,23 @@ export class Game {
     if (!mission) return;
     this.currentMissionId = missionId;
     this.worldTime = mission.startWorldTime;
+    const start = mission.start;
 
-    if (missionId === 1) {
-      this.loadDocking(DOCKING_LEVELS.find(l => l.id === 1)!);
+    if (start.kind === 'docking') {
+      const dockingLevel = DOCKING_LEVELS.find(l => l.id === start.dockingLevelId);
+      if (dockingLevel) this.loadDocking(dockingLevel);
       return;
     }
 
-    if (missionId === 2) {
-      const castor = LEVELS.find(l => l.id === 6)!;
-      const departure = APPROACH_LEVELS.find(l => l.id === 12)!;
-      const orbitDir = departure.departure?.orbitDir ?? 1;
+    if (start.kind === 'landing') {
+      const landingLevel = landingLevelByPoiId(start.poiId);
+      const departure = approachLevelById(start.departureApproachLevelId);
+      if (!landingLevel || !departure?.departure) return;
+      const orbitDir = departure.departure.orbitDir ?? 1;
       this.loadLanding(
-        castor,
-        { x: castor.padCenterX, y: castor.padY + 6.6, vx: 0, vy: 0 },
-        { targetAltitude: castor.startY, orbitDir, nextApproachLevelId: 12 },
-      );
-      return;
-    }
-
-    if (missionId === 3) {
-      this.loadDocking(DOCKING_LEVELS.find(l => l.id === 13)!);
-      return;
-    }
-
-    if (missionId === 4) {
-      const tycho = LEVELS.find(l => l.id === 7)!;
-      const departure = APPROACH_LEVELS.find(l => l.id === 14)!;
-      const orbitDir = departure.departure?.orbitDir ?? 1;
-      this.loadLanding(
-        tycho,
-        { x: tycho.padCenterX, y: tycho.padY + 6.6, vx: 0, vy: 0 },
-        { targetAltitude: tycho.startY, orbitDir, nextApproachLevelId: 14 },
-      );
-      return;
-    }
-
-    if (missionId === 5) {
-      const castor = LEVELS.find(l => l.id === 6)!;
-      const departure = APPROACH_LEVELS.find(l => l.id === 15)!;
-      const orbitDir = departure.departure?.orbitDir ?? 1;
-      this.loadLanding(
-        castor,
-        { x: castor.padCenterX, y: castor.padY + 6.6, vx: 0, vy: 0 },
-        { targetAltitude: castor.startY, orbitDir, nextApproachLevelId: 15 },
-      );
-      return;
-    }
-
-    if (missionId === 6) {
-      const tycho = LEVELS.find(l => l.id === 7)!;
-      const departure = APPROACH_LEVELS.find(l => l.id === 17)!;
-      const orbitDir = departure.departure?.orbitDir ?? 1;
-      this.loadLanding(
-        tycho,
-        { x: tycho.padCenterX, y: tycho.padY + 6.6, vx: 0, vy: 0 },
-        { targetAltitude: tycho.startY, orbitDir, nextApproachLevelId: 17 },
+        landingLevel,
+        { x: landingLevel.padCenterX, y: landingLevel.padY + 6.6, vx: 0, vy: 0 },
+        { targetAltitude: landingLevel.startY, orbitDir, nextApproachLevelId: departure.id },
       );
       return;
     }
@@ -417,7 +379,7 @@ export class Game {
 
   private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): void {
     if (!p.level.orbitalLevelId) return;
-    const orbLevel = ORBITAL_LEVELS.find(l => l.id === p.level.orbitalLevelId);
+    const orbLevel = orbitalLevelById(p.level.orbitalLevelId);
     if (orbLevel) this.loadOrbital(orbLevel, undefined, this.worldTime);
   }
 
@@ -466,7 +428,7 @@ export class Game {
     if (p.level.escapeSOIRadius && p.level.escapeToOrbitalLevelId) {
       const r = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
       if (r >= p.level.escapeSOIRadius) {
-        const nextLevel = ORBITAL_LEVELS.find(l => l.id === p.level.escapeToOrbitalLevelId);
+        const nextLevel = orbitalLevelById(p.level.escapeToOrbitalLevelId);
         if (!nextLevel) return false;
         const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time);
         if (!originState) return false;
@@ -514,7 +476,7 @@ export class Game {
       if (!arrivalReady) return false;
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
-      const arrivalLevel = arrivalLevelId ? ORBITAL_LEVELS.find(l => l.id === arrivalLevelId) : null;
+      const arrivalLevel = arrivalLevelId ? orbitalLevelById(arrivalLevelId) : null;
       if (!arrivalLevel) return false;
 
       const tanX = -rHatY;
@@ -542,7 +504,7 @@ export class Game {
 
   private transitionLandingToApproach(p: Extract<Phase, { kind: 'landing' }>): void {
     const nextId = p.launchGuidance?.nextApproachLevelId;
-    const approachLevel = APPROACH_LEVELS.find(l => l.id === nextId);
+    const approachLevel = nextId ? approachLevelById(nextId) : undefined;
     if (!approachLevel) return;
 
     const terrainH = getTerrainHeight(p.terrain, p.ship.x);
@@ -557,7 +519,7 @@ export class Game {
   }
 
   private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): void {
-    const landingLevel = LEVELS.find(l => l.id === p.level.landingLevelId) ?? LEVELS[0];
+    const landingLevel = landingLevelById(p.level.landingLevelId) ?? LEVELS[0];
 
     if (p.level.gateRadius > 0) {
       const gateLeft = p.level.gateX - p.level.gateRadius;
@@ -603,7 +565,7 @@ export class Game {
   private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {
     const explicitId = p.level.reentryApproachLevelId;
     const approachLevel = explicitId
-      ? APPROACH_LEVELS.find(l => l.id === explicitId)
+      ? approachLevelById(explicitId)
       : APPROACH_LEVELS[p.level.approachLevelIdx];
     if (!approachLevel) {
       p.state = 'enteredAtmo';
@@ -640,7 +602,7 @@ export class Game {
   private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>): void {
     const orbitalLevelId = p.level.departure?.orbitalLevelId ?? p.level.returnToOrbital?.orbitalLevelId;
     if (!orbitalLevelId) return;
-    const orbitalLevel = ORBITAL_LEVELS.find(l => l.id === orbitalLevelId);
+    const orbitalLevel = orbitalLevelId ? orbitalLevelById(orbitalLevelId) : undefined;
     if (!orbitalLevel) return;
     this.loadOrbital(orbitalLevel, this.approachToOrbitalInit(p.level, p.as, orbitalLevel), p.worldTimeStart + this.time);
   }

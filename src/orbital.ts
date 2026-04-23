@@ -1,8 +1,9 @@
 // Orbital phase: 2D Keplerian orbit around a planet with aerobraking.
 // Self-contained module: physics, prediction, rendering, HUD.
 
+import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
 import { InputState } from './input';
-import { APPROACH_LEVELS, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
+import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 import { bodyById, bodyOrbitModeById, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
@@ -166,20 +167,6 @@ const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below tr
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
 const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
 
-const TYCHO = bodyById('tycho');
-const CASTOR = bodyById('castor');
-const POLLUX = bodyById('pollux');
-const TYCHO_RADIUS = TYCHO.radius;
-const TYCHO_GM = TYCHO.gm;
-const CASTOR_SYSTEM_ORBIT_RADIUS = CASTOR.orbit!.radius;
-const POLLUX_SYSTEM_ORBIT_RADIUS = POLLUX.orbit!.radius;
-const SHARED_MOON_RADIUS = CASTOR.radius;
-const SHARED_MOON_GM = CASTOR.gm;
-
-function hillRadius(orbitRadius: number, bodyGM: number, parentGM: number): number {
-  return orbitRadius * Math.cbrt(bodyGM / (3 * parentGM));
-}
-
 function hohmannDepartureVInf(innerOrbitRadius: number, outerOrbitRadius: number, parentGM: number): number {
   const a = (innerOrbitRadius + outerOrbitRadius) * 0.5;
   const vCirc = Math.sqrt(parentGM / innerOrbitRadius);
@@ -187,41 +174,47 @@ function hohmannDepartureVInf(innerOrbitRadius: number, outerOrbitRadius: number
   return Math.max(0, vTransfer - vCirc);
 }
 
-const CASTOR_TRANSFER_BODY: OrbitalTransferBody = {
-  id: 'castor',
-  name: CASTOR.name,
-  radius: CASTOR.radius,
-  gm: CASTOR.gm,
-  color: CASTOR.color,
-  orbitRadius: CASTOR.orbit!.radius,
-  epochAngle: CASTOR.orbit!.epochAngle,
-  epochTime: CASTOR.orbit!.epochTime,
-  orbitSense: CASTOR.orbit!.orbitSense,
-  patchRadius: 700_000,
-};
+function transferBodyFromDef(levelBodyId: string, def: TransferSystemBodyDef): OrbitalTransferBody {
+  const body = bodyById(def.bodyId);
+  if (!body.orbit || body.orbit.parentBodyId !== levelBodyId) {
+    throw new Error(`Body ${def.bodyId} is not orbiting ${levelBodyId}`);
+  }
+  return {
+    id: body.id,
+    name: body.name,
+    radius: body.radius,
+    gm: body.gm,
+    color: body.color,
+    orbitRadius: body.orbit.radius,
+    epochAngle: body.orbit.epochAngle,
+    epochTime: body.orbit.epochTime,
+    orbitSense: body.orbit.orbitSense,
+    patchRadius: def.patchRadius,
+    displayPatchRadius: def.displayPatchRadius,
+    arrivalAltitudeMin: def.arrivalAltitudeMin,
+    arrivalAltitudeMax: def.arrivalAltitudeMax,
+    arrivalSpeedMarginMin: def.arrivalSpeedMarginMin,
+    arrivalSpeedMarginMax: def.arrivalSpeedMarginMax,
+    arrivalOrbitalLevelId: def.arrivalOrbitalLevelId,
+  };
+}
 
-const POLLUX_TRANSFER_BODY: OrbitalTransferBody = {
-  id: 'pollux',
-  name: POLLUX.name,
-  radius: POLLUX.radius,
-  gm: POLLUX.gm,
-  color: POLLUX.color,
-  orbitRadius: POLLUX.orbit!.radius,
-  epochAngle: POLLUX.orbit!.epochAngle,
-  epochTime: POLLUX.orbit!.epochTime,
-  orbitSense: POLLUX.orbit!.orbitSense,
-  patchRadius: 800_000,
-  arrivalAltitudeMin: 120_000,
-  arrivalAltitudeMax: 220_000,
-  arrivalSpeedMarginMin: 2,
-  arrivalSpeedMarginMax: 100,
-  arrivalOrbitalLevelId: 17,
-};
-
-function transferBodyDefForLocalBody(bodyId: string): OrbitalTransferBody | null {
-  if (bodyId === 'castor') return CASTOR_TRANSFER_BODY;
-  if (bodyId === 'pollux') return POLLUX_TRANSFER_BODY;
-  return null;
+function localTransferBodyForBody(bodyId: string): OrbitalTransferBody | null {
+  const body = bodyById(bodyId);
+  if (!body.orbit || !body.transferGameplay) return null;
+  return {
+    id: body.id,
+    name: body.name,
+    radius: body.radius,
+    gm: body.gm,
+    color: body.color,
+    orbitRadius: body.orbit.radius,
+    epochAngle: body.orbit.epochAngle,
+    epochTime: body.orbit.epochTime,
+    orbitSense: body.orbit.orbitSense,
+    patchRadius: body.transferGameplay.patchRadius,
+    displayPatchRadius: body.transferGameplay.displayPatchRadius,
+  };
 }
 
 export function getTransferBody(level: OrbitalLevel, bodyId: string): OrbitalTransferBody | null {
@@ -251,7 +244,9 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
   const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
   const originState = nextLevel ? transferBodyState(nextLevel, level.bodyId, time) : null;
   const targetBody = nextLevel?.targetBodyId ? getTransferBody(nextLevel, nextLevel.targetBodyId) : null;
-  if (!nextLevel || !originState || !targetBody) return null;
+  const originBody = bodyById(level.bodyId);
+  const targetBodyDef = nextLevel?.targetBodyId ? bodyById(nextLevel.targetBodyId) : null;
+  if (!nextLevel || !originState || !targetBody || !originBody.orbit || !targetBodyDef?.orbit) return null;
 
   const timeBin = Math.floor(time / 200);
   if (_cachedEscapeTarget && _cachedEscapeTarget.levelId === level.id && _cachedEscapeTarget.timeBin === timeBin) {
@@ -259,7 +254,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
   }
 
   const baseAngle = Math.atan2(originState.vy, originState.vx);
-  const transferA = (CASTOR_SYSTEM_ORBIT_RADIUS + POLLUX_SYSTEM_ORBIT_RADIUS) * 0.5;
+  const transferA = (originBody.orbit.radius + targetBodyDef.orbit.radius) * 0.5;
   const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
   const horizon = hohmannTime * 1.35;
   const stepSize = Math.max(120, horizon / 480);
@@ -411,7 +406,7 @@ export function currentEscapeVector(
 // ===================== Levels =====================
 
 function approachById(id: number) {
-  const level = APPROACH_LEVELS.find(l => l.id === id);
+  const level = approachLevelById(id);
   if (!level) throw new Error(`Missing approach level ${id}`);
   return level;
 }
@@ -424,7 +419,7 @@ function approachIndexById(id: number): number {
 
 function createOrbitalBase(
   id: number,
-  bodyId: 'castor' | 'tycho' | 'pollux',
+  bodyId: string,
   name: string,
   subtitle: string,
   startX: number,
@@ -447,14 +442,14 @@ function createOrbitalBase(
     atmoColor: atmo?.color ?? [0, 0, 0],
     planetFillColor: body.planetFillColor,
     planetStrokeColor: body.planetStrokeColor,
-    baseTimeScale: bodyId === 'tycho' ? 60 : 50,
+    baseTimeScale: body.orbitalDefaults.baseTimeScale,
     startX,
     startY,
     startVX,
     startVY,
-    thrustAccel: bodyId === 'tycho' ? 0.08 : 0.05,
-    thrustAccelMax: bodyId === 'tycho' ? 1.5 : 1.0,
-    fuelDeltaV: bodyId === 'tycho' ? 500 : 400,
+    thrustAccel: body.orbitalDefaults.thrustAccel,
+    thrustAccelMax: body.orbitalDefaults.thrustAccelMax,
+    fuelDeltaV: body.orbitalDefaults.fuelDeltaV,
     surfaceDensity: atmo?.surfaceDensity ?? 0,
     scaleHeight: atmo?.scaleHeight ?? 1,
     aeroNoseDrag: atmo ? 0.00002 : 0,
@@ -465,7 +460,7 @@ function createOrbitalBase(
     rcsAngularAccel: 0.5,
     heatCoeff: atmo ? 1e-5 : 0,
     heatDissipation: atmo ? 0.08 : 0,
-    transitionAltitude: bodyId === 'tycho' ? 20_000 : 8_000,
+    transitionAltitude: body.orbitalDefaults.transitionAltitude,
     landingSiteAngle: approach.frame.landingSiteAngle,
     approachLevelIdx: approachIndexById(approachLevelId),
     approachGravity: body.gm / (body.radius * body.radius),
@@ -474,22 +469,8 @@ function createOrbitalBase(
   };
 }
 
-function createSurfaceOrbitalLevel(
-  id: number,
-  surfacePoiId: 'castor-settlement' | 'port-kessler' | 'pollux-outpost',
-  name: string,
-  subtitle: string,
-  orbitAlt: number,
-  approachLevelId: number,
-  orbitSense: 1 | -1,
-): OrbitalLevel {
-  const poi = surfacePoiById(surfacePoiId);
-  const body = bodyById(poi.bodyId);
-  const r = body.radius + orbitAlt;
-  const v = Math.sqrt(body.gm / r);
-  const level = createOrbitalBase(id, poi.bodyId as 'castor' | 'tycho' | 'pollux', name, subtitle, 0, r, -orbitSense * v, 0, approachLevelId);
-  level.landingSiteAngle = poi.surfaceAngle;
-  const transferBody = transferBodyDefForLocalBody(level.bodyId);
+function applyLocalChildBodyClamp(level: OrbitalLevel): OrbitalLevel {
+  const transferBody = localTransferBodyForBody(level.bodyId);
   if (transferBody) {
     level.conicRadius = transferBody.patchRadius;
     level.escapeSOIRadius = transferBody.patchRadius;
@@ -497,24 +478,37 @@ function createSurfaceOrbitalLevel(
   return level;
 }
 
-function createStationOrbitalLevel(
-  id: number,
-  stationPoiId: 'calloway' | 'anchor' | 'morrow',
-  name: string,
-  subtitle: string,
-  playerOrbitAlt: number,
-  approachLevelId: number,
-  startSense: 1 | -1,
-  fuelDeltaV: number,
-  dockingLevelId: number,
-): OrbitalLevel {
-  const stationPoi = stationPoiById(stationPoiId);
-  const body = bodyById(stationPoi.bodyId);
-  const r = body.radius + playerOrbitAlt;
+function createSurfaceOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'surfaceOrbit' }>): OrbitalLevel {
+  const poi = surfacePoiById(def.poiId);
+  const body = bodyById(poi.bodyId);
+  const r = body.radius + def.orbitAlt;
   const v = Math.sqrt(body.gm / r);
-  const level = createOrbitalBase(id, stationPoi.bodyId as 'castor' | 'tycho' | 'pollux', name, subtitle, 0, r, -startSense * v, 0, approachLevelId);
-  level.fuelDeltaV = fuelDeltaV;
-  level.showLandingSite = false;
+  const level = createOrbitalBase(def.id, poi.bodyId, def.name, def.subtitle, 0, r, -def.orbitSense * v, 0, def.reentryApproachLevelId);
+  level.landingSiteAngle = poi.surfaceAngle;
+  if (def.fuelDeltaV !== undefined) level.fuelDeltaV = def.fuelDeltaV;
+  if (def.thrustAccel !== undefined) level.thrustAccel = def.thrustAccel;
+  if (def.thrustAccelMax !== undefined) level.thrustAccelMax = def.thrustAccelMax;
+  if (def.showLandingSite !== undefined) level.showLandingSite = def.showLandingSite;
+  if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
+  if (def.escapeTargetBodyId) {
+    const originBody = bodyById(level.bodyId);
+    const targetBody = bodyById(def.escapeTargetBodyId);
+    const parentBody = originBody.orbit ? bodyById(originBody.orbit.parentBodyId) : null;
+    if (originBody.orbit && targetBody.orbit && parentBody) {
+      level.escapeVectorSpeed = hohmannDepartureVInf(originBody.orbit.radius, targetBody.orbit.radius, parentBody.gm);
+    }
+  }
+  return applyLocalChildBodyClamp(level);
+}
+
+function createStationOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'stationOrbit' }>): OrbitalLevel {
+  const stationPoi = stationPoiById(def.stationPoiId);
+  const body = bodyById(stationPoi.bodyId);
+  const r = body.radius + def.playerOrbitAlt;
+  const v = Math.sqrt(body.gm / r);
+  const level = createOrbitalBase(def.id, stationPoi.bodyId, def.name, def.subtitle, 0, r, -def.startSense * v, 0, def.reentryApproachLevelId);
+  level.fuelDeltaV = def.fuelDeltaV;
+  level.showLandingSite = def.showLandingSite ?? false;
   level.station = {
     orbitRadius: stationPoi.orbit.radius,
     epochAngle: stationPoi.orbit.epochAngle,
@@ -523,23 +517,29 @@ function createStationOrbitalLevel(
     captureRadius: stationPoi.captureRadius,
     captureMaxSpeed: stationPoi.captureMaxSpeed,
   };
-  level.dockingLevelId = dockingLevelId;
-  const transferBody = transferBodyDefForLocalBody(level.bodyId);
-  if (transferBody) {
-    level.conicRadius = transferBody.patchRadius;
-    level.escapeSOIRadius = transferBody.patchRadius;
-  }
-  return level;
+  level.dockingLevelId = def.dockingLevelId;
+  if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
+  return applyLocalChildBodyClamp(level);
 }
 
-function createTransferSeedFromBody(body: OrbitalTransferBody): { x: number; y: number; vx: number; vy: number } {
-  const speed = Math.sqrt(TYCHO_GM / body.orbitRadius);
-  return {
-    x: body.orbitRadius * Math.cos(body.epochAngle),
-    y: body.orbitRadius * Math.sin(body.epochAngle),
-    vx: -body.orbitSense * speed * Math.sin(body.epochAngle),
-    vy: body.orbitSense * speed * Math.cos(body.epochAngle),
-  };
+function createTransferSeed(levelBodyId: string, seed: OrbitalSeedDef): { x: number; y: number; vx: number; vy: number } {
+  if (seed.kind === 'transferBodyOrbit') {
+    const body = bodyById(seed.bodyId);
+    if (!body.orbit || body.orbit.parentBodyId !== levelBodyId) throw new Error(`Body ${seed.bodyId} is not orbiting ${levelBodyId}`);
+    const speed = Math.sqrt(bodyById(levelBodyId).gm / body.orbit.radius);
+    return {
+      x: body.orbit.radius * Math.cos(body.orbit.epochAngle),
+      y: body.orbit.radius * Math.sin(body.orbit.epochAngle),
+      vx: -body.orbit.orbitSense * speed * Math.sin(body.orbit.epochAngle),
+      vy: body.orbit.orbitSense * speed * Math.cos(body.orbit.epochAngle),
+    };
+  }
+
+  const poi = surfacePoiById(seed.poiId);
+  const body = bodyById(poi.bodyId);
+  const r = body.radius + seed.orbitAlt;
+  const v = Math.sqrt(body.gm / r);
+  return { x: 0, y: r, vx: -seed.orbitSense * v, vy: 0 };
 }
 
 function resolvedModeBaseTimeScale(level: OrbitalLevel, modeId: string): number {
@@ -622,86 +622,49 @@ function currentPacingProfile(level: OrbitalLevel, alt: number) {
   };
 }
 
-export const ORBITAL_LEVELS: OrbitalLevel[] = [
-  (() => {
-    const level = createSurfaceOrbitalLevel(11, 'castor-settlement', 'Castor Orbit', 'Deorbit to mining settlement', 100_000, 11, -1);
-    return level;
-  })(),
-  (() => {
-    const level = createStationOrbitalLevel(12, 'calloway', 'Calloway Rendezvous', 'Raise apoapsis and rendezvous with Calloway Station', 100_000, 12, -1, 400, 12);
-    return level;
-  })(),
-  (() => {
-    const level = createSurfaceOrbitalLevel(13, 'port-kessler', 'Tycho Orbit', 'Deorbit toward the surface target', 140_000, 13, 1);
-    return applyOrbitMode(level, 'low');
-  })(),
-  (() => {
-    const level = createStationOrbitalLevel(14, 'anchor', 'Anchor Rendezvous', 'Raise apoapsis and rendezvous with Anchor Station', 140_000, 14, 1, 1000, 14);
-    return applyOrbitMode(level, 'low');
-  })(),
-  (() => {
-    const level = createSurfaceOrbitalLevel(15, 'castor-settlement', 'Castor Transfer', 'Escape Castor and set up the Pollux transfer', 100_000, 15, -1);
-    level.showLandingSite = false;
-    level.thrustAccel = 0.06;
-    level.thrustAccelMax = 1.2;
-    level.fuelDeltaV = 1600;
-    level.escapeSOIRadius = CASTOR_TRANSFER_BODY.patchRadius;
-    level.escapeToOrbitalLevelId = 16;
-    level.escapeVectorAngle = Math.PI / 2;
-    level.escapeVectorSpeed = hohmannDepartureVInf(CASTOR_SYSTEM_ORBIT_RADIUS, POLLUX_SYSTEM_ORBIT_RADIUS, TYCHO_GM);
-    level.conicRadius = CASTOR_TRANSFER_BODY.patchRadius;
-    return level;
-  })(),
-  (() => {
-    const seed = createTransferSeedFromBody(CASTOR_TRANSFER_BODY);
-    const level = createOrbitalBase(16, 'tycho', 'Tycho Transfer', 'Adjust the transfer and arrive at Pollux', seed.x, seed.y, seed.vx, seed.vy, 14);
-    level.fuelDeltaV = 2800;
-    level.showLandingSite = false;
-    level.systemBodies = [CASTOR_TRANSFER_BODY, POLLUX_TRANSFER_BODY];
-    level.targetBodyId = 'pollux';
-    level.conicRadius = POLLUX_SYSTEM_ORBIT_RADIUS * 1.2;
-    return applyOrbitMode(level, 'high');
-  })(),
-  (() => {
-    const level = createOrbitalBase(17, 'pollux', 'Pollux Arrival', 'Brake into Pollux orbit and set up the descent', 0, SHARED_MOON_RADIUS + 180_000, 0, 0, 16);
-    const r = level.startY;
-    const vEsc = Math.sqrt(2 * level.planetGM / r);
-    level.startVX = vEsc + 60;
-    level.startVY = -35;
-    level.thrustAccel = 0.06;
-    level.thrustAccelMax = 1.2;
-    level.fuelDeltaV = 1300;
-    level.escapeSOIRadius = POLLUX_TRANSFER_BODY.patchRadius;
-    level.escapeToOrbitalLevelId = 16;
-    level.conicRadius = POLLUX_TRANSFER_BODY.patchRadius;
-    return level;
-  })(),
-  (() => {
-    const level = createSurfaceOrbitalLevel(18, 'port-kessler', 'Castor Transfer', 'Leave Tycho and intercept Castor', 140_000, 17, 1);
-    level.fuelDeltaV = 2200;
-    level.showLandingSite = false;
-    level.systemBodies = [
-      {
-        ...CASTOR_TRANSFER_BODY,
-        arrivalAltitudeMin: 120_000,
-        arrivalAltitudeMax: 220_000,
-        arrivalSpeedMarginMin: 2,
-        arrivalSpeedMarginMax: 100,
-        arrivalOrbitalLevelId: 19,
-      },
-      POLLUX_TRANSFER_BODY,
-    ];
-    level.targetBodyId = 'castor';
-    level.conicRadius = CASTOR_SYSTEM_ORBIT_RADIUS * 1.2;
-    return applyOrbitMode(level, 'high');
-  })(),
-  (() => {
-    const level = createStationOrbitalLevel(19, 'morrow', 'Morrow Rendezvous', 'Raise or trim your orbit and rendezvous with Morrow Station', 100_000, 12, -1, 900, 15);
-    level.showLandingSite = false;
-    level.escapeToOrbitalLevelId = 18;
-    return level;
-  })(),
-];
+function createSystemTransferLevel(def: Extract<OrbitalPhaseDef, { kind: 'systemTransfer' }>): OrbitalLevel {
+  const seed = createTransferSeed(def.bodyId, def.seed);
+  const level = createOrbitalBase(def.id, def.bodyId, def.name, def.subtitle, seed.x, seed.y, seed.vx, seed.vy, def.reentryApproachLevelId);
+  level.fuelDeltaV = def.fuelDeltaV;
+  level.showLandingSite = def.showLandingSite ?? false;
+  level.systemBodies = def.systemBodies.map(bodyDef => transferBodyFromDef(def.bodyId, bodyDef));
+  level.targetBodyId = def.targetBodyId;
+  const conicBody = level.systemBodies.find(body => body.id === def.conicRadiusBodyId);
+  if (conicBody) level.conicRadius = conicBody.orbitRadius * def.conicRadiusScale;
+  return def.orbitModeId ? applyOrbitMode(level, def.orbitModeId) : level;
+}
+
+function createBodyArrivalLevel(def: Extract<OrbitalPhaseDef, { kind: 'bodyArrival' }>): OrbitalLevel {
+  const body = bodyById(def.bodyId);
+  const level = createOrbitalBase(def.id, def.bodyId, def.name, def.subtitle, 0, body.radius + def.startAltitude, 0, 0, def.reentryApproachLevelId);
+  const r = level.startY;
+  const vEsc = Math.sqrt(2 * level.planetGM / r);
+  level.startVX = vEsc + def.startExcessSpeed;
+  level.startVY = def.startRadialVelocity;
+  level.thrustAccel = 0.06;
+  level.thrustAccelMax = 1.2;
+  level.fuelDeltaV = def.fuelDeltaV;
+  level.showLandingSite = def.showLandingSite ?? true;
+  if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
+  return applyLocalChildBodyClamp(level);
+}
+
+function createOrbitalLevel(def: OrbitalPhaseDef): OrbitalLevel {
+  const level = def.kind === 'surfaceOrbit'
+    ? createSurfaceOrbitalLevel(def)
+    : def.kind === 'stationOrbit'
+      ? createStationOrbitalLevel(def)
+      : def.kind === 'systemTransfer'
+        ? createSystemTransferLevel(def)
+        : createBodyArrivalLevel(def);
+  return ('orbitModeId' in def && def.orbitModeId) ? applyOrbitMode(level, def.orbitModeId) : level;
+}
+
+export const ORBITAL_LEVELS: OrbitalLevel[] = ORBITAL_PHASES.map(createOrbitalLevel);
+
+export function orbitalLevelById(id: number): OrbitalLevel | undefined {
+  return ORBITAL_LEVELS.find(l => l.id === id);
+}
 
 // ===================== State =====================
 
@@ -1984,11 +1947,11 @@ function drawSystemBodies(
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  const tychoR = Math.max(8, level.planetRadius * cam.zoom);
+  const centerBodyR = Math.max(8, level.planetRadius * cam.zoom);
   ctx.font = '11px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(120, 180, 255, 0.9)';
-  ctx.fillText('TYCHO', cx, cy - tychoR - 8);
+  ctx.fillText(bodyById(level.bodyId).name.toUpperCase(), cx, cy - centerBodyR - 8);
 
   let offscreenTargetLabel: { x: number; y: number; color: string; name: string } | null = null;
 
@@ -2190,14 +2153,14 @@ function drawEscapeGuidance(
 
   const drawVector = (
     angle: number, color: string, label: string, outwardScale = 1.02,
-    anchor?: { x: number; y: number },
+    originAnchor?: { x: number; y: number },
   ) => {
     const tipR = level.escapeSOIRadius! * outwardScale;
     const baseR = level.escapeSOIRadius! * 0.9;
     let tip = ws(Math.cos(angle) * tipR, Math.sin(angle) * tipR, cam, W, H);
-    let base = anchor ? ws(anchor.x, anchor.y, cam, W, H)
+    let base = originAnchor ? ws(originAnchor.x, originAnchor.y, cam, W, H)
       : ws(Math.cos(angle) * baseR, Math.sin(angle) * baseR, cam, W, H);
-    if (anchor) {
+    if (originAnchor) {
       const dirLen = 18;
       tip = [base[0] + Math.cos(angle) * dirLen, base[1] - Math.sin(angle) * dirLen];
     }
