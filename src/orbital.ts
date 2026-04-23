@@ -1968,6 +1968,8 @@ function drawSystemBodies(
   ctx.fillStyle = 'rgba(120, 180, 255, 0.9)';
   ctx.fillText('TYCHO', cx, cy - tychoR - 8);
 
+  let offscreenTargetLabel: { x: number; y: number; color: string; name: string } | null = null;
+
   for (const body of level.systemBodies ?? []) {
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
@@ -2003,10 +2005,36 @@ function drawSystemBodies(
       ctx.setLineDash([]);
     }
 
-    ctx.font = '10px monospace';
+    const visible = bx >= 24 && bx <= W - 24 && by >= 24 && by <= H - 24;
+    if (visible) {
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
+      ctx.fillText(body.name.toUpperCase(), bx, by - br - 6);
+    } else if (body.id === level.targetBodyId) {
+      const dx = bx - W / 2;
+      const dy = by - H / 2;
+      const edgeInset = 18;
+      const scale = Math.min(
+        ((W / 2) - edgeInset) / Math.max(Math.abs(dx), 1),
+        ((H / 2) - edgeInset) / Math.max(Math.abs(dy), 1),
+      );
+      offscreenTargetLabel = {
+        x: W / 2 + dx * scale,
+        y: H / 2 + dy * scale,
+        color: `rgba(${cr}, ${cg}, ${cb}, 0.95)`,
+        name: body.name.toUpperCase(),
+      };
+    }
+  }
+
+  if (offscreenTargetLabel) {
+    ctx.font = '11px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
-    ctx.fillText(body.name.toUpperCase(), bx, by - br - 6);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = offscreenTargetLabel.color;
+    ctx.fillText(offscreenTargetLabel.name, offscreenTargetLabel.x, offscreenTargetLabel.y);
+    ctx.textBaseline = 'alphabetic';
   }
 
   const pred = getCachedPrediction(s, level);
