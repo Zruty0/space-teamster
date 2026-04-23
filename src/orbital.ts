@@ -1761,11 +1761,9 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
     const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
     maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 1.5, period * 1.02), 800000));
   }
-  const rNow = Math.sqrt(s.x * s.x + s.y * s.y);
-  const altNow = rNow - level.planetRadius;
-  const pacing = currentPacingProfile(level, altNow, s.thrusting !== 'none' ? s.pacingModeId : undefined);
-  const localDetail = !!level.systemBodies && pacing.orbitModeId !== level.orbitModeId;
-  const stepSize = localDetail ? Math.min(5, Math.max(1, maxTime / 2200)) : Math.max(1, maxTime / 2200);
+  const stepSize = level.systemBodies
+    ? Math.min(20, Math.max(2, maxTime / 2200))
+    : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
@@ -1792,43 +1790,59 @@ function predictOrbit(
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   let prevTheta = Math.atan2(y, x);
   let angleAccum = 0;
-  // Substeps per prediction step for accuracy
+  // Substeps per prediction step for accuracy when atmosphere is involved
   const subs = 4;
   const subDt = stepSize / subs;
 
   for (let t = 0; t < maxPhysTime; t += stepSize) {
-    for (let si = 0; si < subs; si++) {
-      const r = Math.sqrt(x * x + y * y);
-      if (r < level.planetRadius) {
-        points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
-        return points;
+    const r0 = Math.sqrt(x * x + y * y);
+    if (r0 < level.planetRadius) {
+      points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
+      return points;
+    }
+    const alt0 = r0 - level.planetRadius;
+    const vacuumCoast = atmoDensity(alt0, level) < 1e-10;
+
+    if (vacuumCoast) {
+      const next = propagateTwoBodyState(x, y, vx, vy, level.planetGM, stepSize);
+      x = next.x;
+      y = next.y;
+      vx = next.vx;
+      vy = next.vy;
+    } else {
+      for (let si = 0; si < subs; si++) {
+        const r = Math.sqrt(x * x + y * y);
+        if (r < level.planetRadius) {
+          points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
+          return points;
+        }
+        const alt = r - level.planetRadius;
+        const belowTransition = alt < level.transitionAltitude;
+
+        // Gravity: always orbital GM/r² radial toward center
+        // (consistent physics for the entire orbital prediction)
+        const gAccel = level.planetGM / (r * r);
+        let ax = -gAccel * (x / r);
+        let ay = -gAccel * (y / r);
+
+        // Aero: use lowAtmoAoA below transition, predAoA above.
+        const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
+        const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
+        const aero = aeroForces(x, y, vx, vy, useAoA, level);
+        ax += aero.ax;
+        ay += aero.ay;
+        vx += ax * subDt;
+        vy += ay * subDt;
+        x += vx * subDt;
+        y += vy * subDt;
       }
-      const alt = r - level.planetRadius;
-      const belowTransition = alt < level.transitionAltitude;
-
-      // Gravity: always orbital GM/r² radial toward center
-      // (consistent physics for the entire orbital prediction)
-      const gAccel = level.planetGM / (r * r);
-      let ax = -gAccel * (x / r);
-      let ay = -gAccel * (y / r);
-
-      // Aero: use lowAtmoAoA below transition, predAoA above.
-      const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
-      const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
-      const aero = aeroForces(x, y, vx, vy, useAoA, level);
-      ax += aero.ax;
-      ay += aero.ay;
-      vx += ax * subDt;
-      vy += ay * subDt;
-      x += vx * subDt;
-      y += vy * subDt;
     }
 
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
     const aero = aeroForces(x, y, vx, vy, aoaDisplayToPhysical(predAoA, x, y, vx, vy), level);
     points.push({
-      x, y, vx, vy, alt, t: s.time + t,
+      x, y, vx, vy, alt, t: s.time + t + stepSize,
       inAtmo: alt < level.atmoHeight,
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
