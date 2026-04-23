@@ -845,6 +845,10 @@ export function escapeSpeedAtInfinity(elem: OrbitalElements): number | null {
 // ===================== Atmosphere =====================
 
 /** Get station position at a given physics time. */
+function senseLabel(sense: 1 | -1): 'CW' | 'CCW' {
+  return sense < 0 ? 'CW' : 'CCW';
+}
+
 function stationOrbitSense(level: OrbitalLevel): 1 | -1 {
   return level.station?.orbitSense ?? orbitSense(level.startX, level.startY, level.startVX, level.startVY);
 }
@@ -1222,6 +1226,8 @@ interface TargetBodyApproach {
   relSpeed: number;
   shipX: number; shipY: number;
   bodyX: number; bodyY: number;
+  relX: number; relY: number;
+  relVX: number; relVY: number;
   idx: number;
   withinArrival: boolean;
 }
@@ -1359,6 +1365,10 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
           shipY: pt.y,
           bodyX: bodyPos.x,
           bodyY: bodyPos.y,
+          relX: dx,
+          relY: dy,
+          relVX: relVx,
+          relVY: relVy,
           idx: i,
           withinArrival,
         };
@@ -2864,7 +2874,14 @@ export function drawOrbitalHUD(
       if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
         const flybyMetric = ca.withinArrival ? Math.max(0, ca.dist - body.radius) : ca.dist;
-        label(ctx, lx, ly, 'FBY', `${(flybyMetric / 1000).toFixed(0)} km`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
+        label(ctx, lx, ly, 'FBY', `${(flybyMetric / 1000).toFixed(0)} km ${flybySense}`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
+        const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
+        if (arrivalLevel) {
+          const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
+          const targetAltKm = (Math.sqrt(arrivalLevel.startX * arrivalLevel.startX + arrivalLevel.startY * arrivalLevel.startY) - arrivalLevel.planetRadius) / 1000;
+          label(ctx, lx, ly, 'TGT ORB', `${targetAltKm.toFixed(0)} km ${targetSense}`, COL_HUD_DIM); ly += lh;
+        }
         label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
       } else {
         const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
