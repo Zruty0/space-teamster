@@ -160,6 +160,7 @@ const WARP_SPEEDS = [1, 2, 5, 10, 25, 50, 100];
 const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
+const THRUST_EPS = 1e-6;
 const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
 const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
@@ -359,14 +360,14 @@ function escapeTargetForLevel(
   return { angle, speed };
 }
 
-function currentEscapeVector(
+export function currentEscapeVector(
   s: OrbitalState, level: OrbitalLevel,
 ): { angle: number; speed: number; x: number; y: number; vInf: number } | null {
   if (!level.escapeSOIRadius) return null;
   const patchR = level.escapeSOIRadius;
-  const effSpeed = (vx: number, vy: number) => {
+  const effSpeed = (vx: number, vy: number, radius: number) => {
     const v2 = vx * vx + vy * vy;
-    return Math.sqrt(Math.max(0, v2 - 2 * level.planetGM / patchR));
+    return Math.sqrt(Math.max(0, v2 - 2 * level.planetGM / Math.max(radius, 1)));
   };
 
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -379,7 +380,7 @@ function currentEscapeVector(
         speed,
         x: s.x * scale,
         y: s.y * scale,
-        vInf: effSpeed(s.vx, s.vy),
+        vInf: effSpeed(s.vx, s.vy, r),
       };
     }
   }
@@ -400,7 +401,7 @@ function currentEscapeVector(
         angle: Math.atan2(vy, vx),
         speed: Math.sqrt(vx * vx + vy * vy),
         x, y,
-        vInf: effSpeed(vx, vy),
+        vInf: effSpeed(vx, vy, patchR),
       };
     }
   }
@@ -1078,13 +1079,13 @@ export function updateOrbital(
         }
 
         let thrustMag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
-        if (thrustMag > effThrust && thrustMag > 0.01) {
+        if (thrustMag > effThrust && thrustMag > THRUST_EPS) {
           const scale = effThrust / thrustMag;
           thrustX *= scale;
           thrustY *= scale;
           thrustMag = effThrust;
         }
-        if (thrustMag > 0.01) {
+        if (thrustMag > THRUST_EPS) {
           const dvUsed = thrustMag * subDt;
           if (dvUsed <= s.fuel) {
             ax += thrustX;

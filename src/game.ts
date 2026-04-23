@@ -20,7 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalToApproachParams, getTransferBody, transferBodyState,
+  orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -470,12 +470,13 @@ export class Game {
         if (!nextLevel) return false;
         const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time);
         if (!originState) return false;
-        const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
-        if (localSpeed < 0.01) return false;
-        const escapeAngle = Math.atan2(p.os.vy, p.os.vx);
-        const patchR = p.level.escapeSOIRadius ?? Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
-        const vInf = Math.sqrt(Math.max(0, localSpeed * localSpeed - 2 * p.level.planetGM / Math.max(patchR, 1)));
         const localR = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
+        const patchR = p.level.escapeSOIRadius ?? localR;
+        const escape = currentEscapeVector(p.os, p.level);
+        const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
+        if (!escape && localSpeed < 0.01) return false;
+        const escapeAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
+        const vInf = escape?.vInf ?? 0;
         const preservePatchOffset = nextLevel.targetBodyId === p.level.bodyId && localR > 0.01;
         const scale = preservePatchOffset ? (patchR / localR) : 0;
         this.loadOrbital(nextLevel, {
