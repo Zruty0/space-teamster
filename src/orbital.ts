@@ -2260,29 +2260,25 @@ function drawSystemBodies(
     }
 
     if (ca.withinArrival && targetBody) {
-      const bodyPos = transferBodyState(level, targetBody.id, s.time);
-      if (bodyPos) {
-        const [bsx, bsy] = ws(bodyPos.x, bodyPos.y, cam, W, H);
-        const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
-        const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
-        const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
+      const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
+      const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
+      const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
+      const labelText = ca.impactsBody
+        ? 'IMPACT'
+        : `FBY ${(flybyAlt / 1000).toFixed(0)}km ${flybySense}`;
 
-        ctx.beginPath();
-        ctx.arc(bsx, bsy, patchR, 0, Math.PI * 2);
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([5, 6]);
-        ctx.stroke();
-        ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(ssx, ssy, 6, 0, Math.PI * 2);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-        const labelText = ca.impactsBody
-          ? 'IMPACT'
-          : `FBY ${(flybyAlt / 1000).toFixed(0)}km ${flybySense}`;
-        ctx.font = '10px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#00ffcc';
-        ctx.fillText(labelText, bsx + Math.max(10, patchR + 6), bsy + 3);
-      }
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = accent;
+      ctx.fillText(labelText, ssx + 10, ssy - 8);
     }
   }
 }
