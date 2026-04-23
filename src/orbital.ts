@@ -2264,14 +2264,24 @@ function drawSystemBodies(
       if (bodyPos) {
         const [bsx, bsy] = ws(bodyPos.x, bodyPos.y, cam, W, H);
         const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
-        const altStr = ca.impactsBody
-          ? 'IMPACT'
-          : (flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`);
+        const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
         const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
+
+        ctx.beginPath();
+        ctx.arc(bsx, bsy, patchR, 0, Math.PI * 2);
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const labelText = ca.impactsBody
+          ? 'IMPACT'
+          : `FBY ${(flybyAlt / 1000).toFixed(0)}km ${flybySense}`;
         ctx.font = '10px monospace';
         ctx.textAlign = 'left';
-        ctx.fillStyle = ca.impactsBody ? '#ff6666' : '#00ffcc';
-        ctx.fillText(altStr, bsx + Math.max(10, patchR + 6), bsy + 3);
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillText(labelText, bsx + Math.max(10, patchR + 6), bsy + 3);
       }
     }
   }
