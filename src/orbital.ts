@@ -2182,24 +2182,26 @@ function drawSystemBodies(
   if (pred.targetBodyApproach) {
     const ca = pred.targetBodyApproach;
     const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
-    const [bsx, bsy] = ws(ca.bodyX, ca.bodyY, cam, W, H);
+    const currentTargetPos = targetBody ? transferBodyState(level, targetBody.id, s.time) : null;
     const [ssx, ssy] = ws(ca.shipX, ca.shipY, cam, W, H);
-    ctx.beginPath();
-    ctx.moveTo(ssx, ssy);
-    ctx.lineTo(bsx, bsy);
-    ctx.setLineDash([3, 4]);
-    ctx.strokeStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.beginPath();
-    ctx.arc(bsx, bsy, 4, 0, Math.PI * 2);
-    ctx.strokeStyle = ca.withinArrival ? '#00ffcc' : '#ffaa00';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
 
     if (!ca.withinArrival) {
+      const [bsx, bsy] = ws(ca.bodyX, ca.bodyY, cam, W, H);
+      ctx.beginPath();
+      ctx.moveTo(ssx, ssy);
+      ctx.lineTo(bsx, bsy);
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.arc(bsx, bsy, 4, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
       const midX = (ssx + bsx) / 2;
       const midY = (ssy + bsy) / 2;
       const distStr = ca.dist > 1000 ? `${(ca.dist / 1000).toFixed(1)}km` : `${ca.dist.toFixed(0)}m`;
@@ -2209,16 +2211,33 @@ function drawSystemBodies(
       ctx.fillText(`${distStr}  ${ca.relSpeed.toFixed(0)}m/s`, midX, midY - 6);
     }
 
-    if (ca.withinArrival && targetBody) {
+    if (ca.withinArrival && targetBody && currentTargetPos) {
+      const [tbx, tby] = ws(currentTargetPos.x, currentTargetPos.y, cam, W, H);
+      const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
       const flybyAlt = ca.flybyAltitude ?? Math.max(0, ca.dist - targetBody.radius);
       const altStr = ca.impactsBody
         ? 'IMPACT'
         : (flybyAlt >= 1000 ? `${(flybyAlt / 1000).toFixed(0)} km` : `${flybyAlt.toFixed(0)} m`);
-      const patchR = (targetBody.displayPatchRadius ?? targetBody.patchRadius) * cam.zoom;
+      const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
+
+      ctx.beginPath();
+      ctx.arc(ssx, ssy, 4, 0, Math.PI * 2);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(tbx, tby, patchR, 0, Math.PI * 2);
+      ctx.strokeStyle = ca.impactsBody ? 'rgba(255, 102, 102, 0.7)' : 'rgba(0, 255, 204, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
       ctx.font = '10px monospace';
       ctx.textAlign = 'left';
-      ctx.fillStyle = ca.impactsBody ? '#ff6666' : '#00ffcc';
-      ctx.fillText(altStr, bsx + Math.max(10, patchR + 6), bsy + 3);
+      ctx.fillStyle = accent;
+      ctx.fillText(altStr, tbx + Math.max(10, patchR + 6), tby + 3);
     }
   }
 }
