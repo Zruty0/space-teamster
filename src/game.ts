@@ -44,6 +44,9 @@ interface PhaseCompletion {
   phaseDvUsed: number;
   missionDvUsed: number;
   completionText: string;
+  ratingText?: string;
+  ratingColor?: string;
+  detailText?: string;
   onContinue: () => void;
   onRetry: () => void;
 }
@@ -313,6 +316,7 @@ export class Game {
     p: Exclude<Phase, { kind: 'levelSelect' }>,
     onContinue: () => void,
     completionText: string = '',
+    extra: Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText'> = {},
   ): void {
     const phaseDvUsed = this.phaseDvUsed(p);
     const missionDvUsed = this.missionDvForPhase(p);
@@ -323,6 +327,7 @@ export class Game {
       phaseDvUsed,
       missionDvUsed,
       completionText,
+      ...extra,
       onContinue: () => {
         this.phaseCompletion = null;
         onContinue();
@@ -358,10 +363,21 @@ export class Game {
           this.checkLandingCollision(p);
         }
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {
-          this.completePhase(p, () => {
-            this.currentMissionId = null;
-            this.phase = { kind: 'levelSelect' };
-          }, this.currentMissionCompletionText());
+          const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' } as const;
+          const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
+          this.completePhase(
+            p,
+            () => {
+              this.currentMissionId = null;
+              this.phase = { kind: 'levelSelect' };
+            },
+            this.currentMissionCompletionText(),
+            {
+              ratingText: score.rating,
+              ratingColor: ratingColors[score.rating],
+              detailText: `V/S: ${score.vSpeed.toFixed(1)}  H/S: ${score.hSpeed.toFixed(1)}  Angle: ${(score.angle * 180 / Math.PI).toFixed(1)}°  Offset: ${score.distFromCenter.toFixed(1)}m`,
+            },
+          );
           return;
         }
         if (p.launchGuidance && p.state === 'flying') {
@@ -877,6 +893,9 @@ export class Game {
         this.phaseCompletion.phaseDvUsed,
         this.phaseCompletion.missionDvUsed,
         this.phaseCompletion.completionText,
+        this.phaseCompletion.ratingText,
+        this.phaseCompletion.ratingColor,
+        this.phaseCompletion.detailText,
       );
     }
   }

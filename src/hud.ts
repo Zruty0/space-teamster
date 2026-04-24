@@ -372,10 +372,13 @@ export function drawPhaseCompleteOverlay(
   phaseDvUsed: number,
   missionDvUsed: number,
   completionText: string = '',
+  ratingText: string = '',
+  ratingColor: string = COL_SUCCESS,
+  detailText: string = '',
 ): void {
   const W = canvas.width;
   const H = canvas.height;
-  const boxH = completionText ? 250 : 170;
+  const boxH = ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170);
   const top = H / 2 - boxH / 2;
 
   ctx.save();
@@ -391,8 +394,23 @@ export function drawPhaseCompleteOverlay(
   ctx.fillText(`${title}: success`, W / 2, top + 32);
 
   ctx.font = '15px monospace';
+  ctx.fillStyle = COL_SUCCESS;
   ctx.fillText(`DeltaV used this phase: ${phaseDvUsed.toFixed(0)} m/s`, W / 2, top + 70);
   ctx.fillText(`DeltaV used this mission: ${missionDvUsed.toFixed(0)} m/s`, W / 2, top + 96);
+
+  let y = top + 126;
+  if (ratingText) {
+    ctx.fillStyle = ratingColor;
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText(ratingText, W / 2, y);
+    y += 24;
+  }
+  if (detailText) {
+    ctx.fillStyle = COL_HUD;
+    ctx.font = '13px monospace';
+    ctx.fillText(detailText, W / 2, y);
+    y += 22;
+  }
 
   if (completionText) {
     ctx.fillStyle = '#88aa88';
@@ -400,7 +418,6 @@ export function drawPhaseCompleteOverlay(
     const maxW = 500;
     const words = completionText.split(' ');
     let line = '';
-    let y = top + 126;
     for (const word of words) {
       const test = line ? `${line} ${word}` : word;
       if (ctx.measureText(test).width > maxW) {
