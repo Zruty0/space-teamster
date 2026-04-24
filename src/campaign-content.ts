@@ -156,7 +156,7 @@ export const ORBITAL_PHASES: OrbitalPhaseDef[] = [
     playerOrbitAlt: 100_000,
     reentryApproachLevelId: 12,
     startSense: -1,
-    fuelDeltaV: 400,
+    fuelDeltaV: 2000,
     dockingLevelId: 12,
   },
   {
