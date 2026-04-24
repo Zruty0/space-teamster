@@ -101,6 +101,7 @@ export interface ApproachState {
   localDir: 1 | -1;
   throttle: number;
   fuel: number;
+  dvUsed: number;
   heatShield: boolean;
   wingsDeployed: boolean;
   wingAngle: number;
@@ -319,7 +320,7 @@ export function createApproachState(
     x, y, vx, vy,
     angle: init.angle, angularVel: 0,
     worldX, worldY, worldVX, worldVY, localDir,
-    throttle: 0, fuel: level.fuelSeconds,
+    throttle: 0, fuel: 0, dvUsed: 0,
     heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
     timeWarp: 1, timeWarpLevel: 0,
@@ -594,7 +595,7 @@ export function updateApproach(
     if (s.wingAngle <= MIN_WING_ANGLE + 0.001) s.wingsDeployed = false;
   }
 
-  const canBurn = s.fuel > 0;
+  const canBurn = true;
   if (input.throttleUp && canBurn) {
     s.throttle = clamp(s.throttle + 2.5 * dt, 0, 1);
   } else if (!input.throttleDown) {
@@ -624,8 +625,7 @@ export function updateApproach(
       const noseY = Math.cos(s.angle);
       ax += (tanX * noseX + radX * noseY) * t;
       ay += (tanY * noseX + radY * noseY) * t;
-      s.fuel -= s.throttle * dt;
-      if (s.fuel < 0) s.fuel = 0;
+      s.dvUsed += t * dt;
     }
 
     if (input.throttleDown && canBurn) {
@@ -634,8 +634,7 @@ export function updateApproach(
       const noseY = Math.cos(s.angle);
       ax -= (tanX * noseX + radX * noseY) * t;
       ay -= (tanY * noseX + radY * noseY) * t;
-      s.fuel -= dt;
-      if (s.fuel < 0) s.fuel = 0;
+      s.dvUsed += t * dt;
       s.retroFiring = true;
     }
 
@@ -667,16 +666,14 @@ export function updateApproach(
       const t = s.throttle * effThrust;
       ax += Math.sin(s.angle) * t;
       ay += Math.cos(s.angle) * t;
-      s.fuel -= s.throttle * dt;
-      if (s.fuel < 0) s.fuel = 0;
+      s.dvUsed += t * dt;
     }
 
     if (input.throttleDown && canBurn) {
       const t = effThrust;
       ax -= Math.sin(s.angle) * t;
       ay -= Math.cos(s.angle) * t;
-      s.fuel -= dt;
-      if (s.fuel < 0) s.fuel = 0;
+      s.dvUsed += t * dt;
       s.retroFiring = true;
     }
 
@@ -1455,7 +1452,7 @@ function drawApproachShip(
   }
 
   // --- Main thrust flame (from bottom) ---
-  if (s.throttle > 0.05 && s.fuel > 0) {
+  if (s.throttle > 0.05) {
     const flicker = 0.7 + 0.3 * Math.sin(time * 40);
     const fl = (3 + s.throttle * 10) * flicker;
     ctx.beginPath();
@@ -1503,6 +1500,9 @@ export function drawApproachHUD(
   s: ApproachState, level: ApproachLevel,
   state: 'approaching' | 'approachSuccess' | 'approachFailed',
   time: number,
+  phaseDvUsed: number = 0,
+  missionDvUsed: number = 0,
+  suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1563,9 +1563,7 @@ export function drawApproachHUD(
     label(ctx, lx, ly, 'ATM', `${(rhoFrac * 100).toFixed(1)}%`, rhoCol); ly += lh;
   }
 
-  const fuelPct = level.fuelSeconds > 0 ? (s.fuel / level.fuelSeconds * 100) : 0;
-  const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
-  label(ctx, lx, ly, 'FUEL', `${fuelPct.toFixed(0)}%`, fuelCol); ly += lh;
+  label(ctx, lx, ly, 'ΔV USED', `${s.dvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
   if (s.highThrust) {
     label(ctx, lx, ly, 'THR', 'HIGH', COL_WARN); ly += lh;
@@ -1577,6 +1575,9 @@ export function drawApproachHUD(
   if (!departure) {
     label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
   }
+
+  label(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  label(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
   // --- Temperature bar (right side) ---
   const barX = W - 45;
@@ -1650,7 +1651,7 @@ export function drawApproachHUD(
   }
 
   // --- State overlays ---
-  if (state === 'approachSuccess') {
+  if (!suppressStateOverlays && state === 'approachSuccess') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
     ctx.strokeStyle = COL_OK;
@@ -1665,10 +1666,10 @@ export function drawApproachHUD(
     ctx.fillText(`Speed: ${s.gateSpeed.toFixed(0)} m/s`, W / 2, H / 2);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 50);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 50);
   }
 
-  if (state === 'approachFailed') {
+  if (!suppressStateOverlays && state === 'approachFailed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
     ctx.strokeStyle = COL_DANGER;
@@ -1682,7 +1683,7 @@ export function drawApproachHUD(
     ctx.fillText(msg, W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
 
   // --- Controls hint ---

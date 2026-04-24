@@ -16,6 +16,7 @@ export interface InputState {
   menuUp: boolean;         // edge-triggered
   menuDown: boolean;       // edge-triggered
   menuConfirm: boolean;    // edge-triggered (Enter/Space)
+  continueAction: boolean; // edge-triggered (Enter)
   // Approach controls
   toggleWings: boolean;    // G edge-triggered (deploy/retract wings)
   wingAngleUp: boolean;    // E held (increase wing angle)
@@ -81,6 +82,7 @@ export function readInput(): InputState {
   const menuUp = justPressed.has('ArrowUp') || justPressed.has('KeyW');
   const menuDown = justPressed.has('ArrowDown') || justPressed.has('KeyS');
   const menuConfirm = justPressed.has('Enter') || justPressed.has('Space');
+  const continueAction = justPressed.has('Enter');
 
   // Approach controls
   const toggleWings = justPressed.has('KeyG');
@@ -113,6 +115,7 @@ export function readInput(): InputState {
     menuUp,
     menuDown,
     menuConfirm,
+    continueAction,
     toggleWings,
     wingAngleUp,
     wingAngleDown,

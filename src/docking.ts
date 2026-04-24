@@ -81,6 +81,7 @@ export interface DockingState {
   beamAligned: boolean;
   exitComplete: boolean;
   leftStartBay: boolean;   // has left the starting bay area (enables collision)
+  dvUsed: number;
 }
 
 export interface DockingInitOverride {
@@ -369,6 +370,7 @@ export function createDockingState(level: DockingLevel, override?: DockingInitOv
     beamActive: false, beamAligned: false,
     exitComplete: false,
     leftStartBay: !level.exitMode, // if not exit mode, collision is always on
+    dvUsed: 0,
   };
 }
 
@@ -475,6 +477,10 @@ export function updateDocking(
       }
     }
   }
+
+  const thrusterFx = fx;
+  const thrusterFy = fy;
+  s.dvUsed += Math.sqrt(thrusterFx * thrusterFx + thrusterFy * thrusterFy) / mass * dt;
 
   // Tractor beam: alignment-gated, PID-like pull + rotation (not in exit mode)
   s.beamActive = false;
@@ -1163,6 +1169,9 @@ export function drawDockingHUD(
   s: DockingState, level: DockingLevel,
   state: 'docking' | 'delivered' | 'crashed',
   completionText: string = '',
+  phaseDvUsed: number = 0,
+  missionDvUsed: number = 0,
+  suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1200,6 +1209,14 @@ export function drawDockingHUD(
   ctx.fillStyle = DIM; ctx.fillText('SAS', lx, ly);
   ctx.fillStyle = s.sas ? '#00ffcc' : DIM;
   ctx.fillText(s.sas ? 'ON' : 'OFF', lx + 50, ly);
+  ly += lh;
+
+  ctx.fillStyle = DIM; ctx.fillText('PH ΔV', lx, ly);
+  ctx.fillStyle = COL; ctx.fillText(`${phaseDvUsed.toFixed(0)} m/s`, lx + 50, ly);
+  ly += lh;
+
+  ctx.fillStyle = DIM; ctx.fillText('MIS ΔV', lx, ly);
+  ctx.fillStyle = COL; ctx.fillText(`${missionDvUsed.toFixed(0)} m/s`, lx + 50, ly);
   ly += lh;
 
   // Distance to target bay
@@ -1245,7 +1262,7 @@ export function drawDockingHUD(
   }
 
   // State overlays
-  if (state === 'delivered') {
+  if (!suppressStateOverlays && state === 'delivered') {
     const boxH = completionText ? 200 : 120;
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 230, H / 2 - 80, 460, boxH);
@@ -1275,9 +1292,9 @@ export function drawDockingHUD(
     }
     ctx.fillStyle = DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 - 80 + boxH - 15);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 - 80 + boxH - 15);
   }
-  if (state === 'crashed') {
+  if (!suppressStateOverlays && state === 'crashed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
     ctx.strokeStyle = '#ff3333';
@@ -1289,7 +1306,7 @@ export function drawDockingHUD(
     ctx.fillText('CRASHED', W / 2, H / 2 - 15);
     ctx.fillStyle = DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
 
   // Controls hint

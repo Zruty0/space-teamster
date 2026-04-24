@@ -114,7 +114,8 @@ export interface OrbitalState {
   vx: number;
   vy: number;
 
-  fuel: number;      // remaining delta-v in m/s
+  fuel: number;      // legacy field; no longer caps thrust
+  dvUsed: number;
   alive: boolean;
   enteredAtmo: boolean;
   temperature: number; // 0..1, for display
@@ -279,6 +280,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
       vx: originState.vx + Math.cos(angle) * vInf,
       vy: originState.vy + Math.sin(angle) * vInf,
       fuel: 0,
+      dvUsed: 0,
       alive: true,
       enteredAtmo: false,
       temperature: 0,
@@ -698,7 +700,8 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     y,
     vx: override?.vx ?? level.startVX,
     vy: override?.vy ?? level.startVY,
-    fuel: level.fuelDeltaV,
+    fuel: 0,
+    dvUsed: 0,
     alive: true,
     enteredAtmo: false,
     temperature: 0,
@@ -1095,7 +1098,7 @@ export function updateOrbital(
       if (s.temperature > 1.5) s.temperature = 1.5;
 
       // Thrust
-      if (s.fuel > 0) {
+      {
         const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
         if (speed > 0.01) {
           let thrustX = 0, thrustY = 0;
@@ -1168,16 +1171,9 @@ export function updateOrbital(
           }
           if (thrustMag > THRUST_EPS) {
             const dvUsed = thrustMag * subDt;
-            if (dvUsed <= s.fuel) {
-              ax += thrustX;
-              ay += thrustY;
-              s.fuel -= dvUsed;
-            } else {
-              const frac = s.fuel / dvUsed;
-              ax += thrustX * frac;
-              ay += thrustY * frac;
-              s.fuel = 0;
-            }
+            ax += thrustX;
+            ay += thrustY;
+            s.dvUsed += dvUsed;
           }
         }
       }
@@ -1661,6 +1657,7 @@ function hybridizeApproachPrediction(
     vx: pred.approachStart.vx,
     vy: pred.approachStart.vy,
     fuel: 0,
+    dvUsed: 0,
     alive: true,
     enteredAtmo: false,
     temperature: 0,
@@ -3081,6 +3078,9 @@ export function drawOrbitalHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: OrbitalState, level: OrbitalLevel,
   state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked',
+  phaseDvUsed: number = 0,
+  missionDvUsed: number = 0,
+  suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -3199,10 +3199,8 @@ export function drawOrbitalHUD(
 
   label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
 
-  // Fuel
-  const fuelPct = level.fuelDeltaV > 0 ? (s.fuel / level.fuelDeltaV * 100) : 0;
-  const fuelCol = fuelPct < 20 ? COL_DANGER : fuelPct < 50 ? COL_WARN : COL_HUD;
-  label(ctx, lx, ly, '\u0394V', `${s.fuel.toFixed(0)} m/s (${fuelPct.toFixed(0)}%)`, fuelCol); ly += lh;
+  label(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  label(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
   // Thrust mode
   const thrLabel = s.highThrust ? 'HIGH' : 'LOW';
@@ -3296,7 +3294,7 @@ export function drawOrbitalHUD(
   }
 
   // --- State overlays ---
-  if (state === 'enteredAtmo') {
+  if (!suppressStateOverlays && state === 'enteredAtmo') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
     ctx.strokeStyle = COL_OK;
@@ -3312,10 +3310,10 @@ export function drawOrbitalHUD(
     ctx.fillText(`Altitude: ${alt.toFixed(1)} km`, W / 2, H / 2 + 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 55);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 55);
   }
 
-  if (state === 'docked') {
+  if (!suppressStateOverlays && state === 'docked') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
     ctx.strokeStyle = COL_OK;
@@ -3330,10 +3328,10 @@ export function drawOrbitalHUD(
     ctx.fillText('Successful', W / 2, H / 2 - 5);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 55);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 55);
   }
 
-  if (state === 'crashed') {
+  if (!suppressStateOverlays && state === 'crashed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 60, 400, 120);
     ctx.strokeStyle = COL_DANGER;
@@ -3346,7 +3344,7 @@ export function drawOrbitalHUD(
     ctx.fillText('IMPACT', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('R: Retry  |  L: Levels', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
 
   // Controls hint

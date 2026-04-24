@@ -19,6 +19,7 @@ export interface ShipState {
   rcsRotLeft: boolean;
   rcsRotRight: boolean;
   rcsTranslating: boolean;
+  dvUsed: number;
 }
 
 export function createShip(): ShipState {
@@ -36,6 +37,7 @@ export function createShip(): ShipState {
     rcsRotLeft: false,
     rcsRotRight: false,
     rcsTranslating: false,
+    dvUsed: 0,
   };
 }
 
@@ -94,6 +96,7 @@ export function updateShip(
     // Gimbal torque
     angAccel += thrustAccel * Math.sin(ship.gimbalAngle) * c.gimbalTorqueEfficiency;
 
+    ship.dvUsed += thrustAccel * dt;
     ship.thrustFiring = true;
   } else {
     ship.thrustFiring = false;
