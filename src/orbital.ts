@@ -4,7 +4,7 @@
 import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
 import { InputState } from './input';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
-import { bodyById, bodyOrbitModeById, stationPoiById, surfacePoiById } from './world';
+import { bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -104,6 +104,7 @@ export interface OrbitalLevel {
   escapeToOrbitalLevelId?: number;
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
+  parentTransferPeriapsisAltitude?: number;
   conicRadius?: number;
   orbitModeId?: string;
 }
@@ -344,9 +345,47 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
   return bestAngle;
 }
 
+function parentTransferTargetForLevel(
+  level: OrbitalLevel, time: number,
+): { angle: number; speed: number; vInf: number } | null {
+  if (level.parentTransferPeriapsisAltitude === undefined || !level.escapeToOrbitalLevelId) return null;
+  const originBody = bodyById(level.bodyId);
+  if (!originBody.orbit) return null;
+  const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
+  if (!nextLevel || nextLevel.bodyId !== originBody.orbit.parentBodyId) return null;
+
+  const parentState = bodyStateRelativeToParent(level.bodyId, time);
+  const rApo = originBody.orbit.radius;
+  const rPeri = nextLevel.planetRadius + level.parentTransferPeriapsisAltitude;
+  if (rPeri <= 0 || rPeri >= rApo) return null;
+
+  const a = (rApo + rPeri) * 0.5;
+  const transferSpeedAtApo = Math.sqrt(nextLevel.planetGM * (2 / rApo - 1 / a));
+  const parentSpeed = Math.hypot(parentState.vx, parentState.vy);
+  if (parentSpeed < 1e-6) return null;
+
+  const tanX = parentState.vx / parentSpeed;
+  const tanY = parentState.vy / parentSpeed;
+  const desiredVX = tanX * transferSpeedAtApo;
+  const desiredVY = tanY * transferSpeedAtApo;
+  const vInfX = desiredVX - parentState.vx;
+  const vInfY = desiredVY - parentState.vy;
+  const vInf = Math.hypot(vInfX, vInfY);
+  const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
+  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
+  return {
+    angle: Math.atan2(vInfY, vInfX),
+    speed,
+    vInf,
+  };
+}
+
 function escapeTargetForLevel(
   level: OrbitalLevel, time: number,
 ): { angle: number; speed: number } | null {
+  const parentTarget = parentTransferTargetForLevel(level, time);
+  if (parentTarget) return { angle: parentTarget.angle, speed: parentTarget.speed };
+
   let angle: number | null = null;
   const vInf = level.escapeVectorSpeed ?? 0;
   if (level.escapeToOrbitalLevelId) {
@@ -503,6 +542,7 @@ function createSurfaceOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'surfac
   if (def.thrustAccelMax !== undefined) level.thrustAccelMax = def.thrustAccelMax;
   if (def.showLandingSite !== undefined) level.showLandingSite = def.showLandingSite;
   if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
+  if (def.parentTransferPeriapsisAltitude !== undefined) level.parentTransferPeriapsisAltitude = def.parentTransferPeriapsisAltitude;
   if (def.escapeTargetBodyId) {
     const originBody = bodyById(level.bodyId);
     const targetBody = bodyById(def.escapeTargetBodyId);
@@ -532,6 +572,7 @@ function createStationOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'statio
   };
   level.dockingLevelId = def.dockingLevelId;
   if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
+  if (def.parentTransferPeriapsisAltitude !== undefined) level.parentTransferPeriapsisAltitude = def.parentTransferPeriapsisAltitude;
   return applyLocalChildBodyClamp(level);
 }
 

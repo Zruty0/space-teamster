@@ -72,8 +72,8 @@ export const MISSIONS: Mission[] = [
     name: 'Long Haul',
     subtitle: 'Priority cargo from Calloway Station in Castor orbit to Port Kessler on Tycho.',
     completionText: 'Dock workers at Kessler give you the nod — the one reserved for drivers who\'ve done the long haul. Your name goes on the board at The Rusty Anchor.',
-    stub: true,
+    stub: false,
     startWorldTime: 0,
-    start: { kind: 'docking', dockingLevelId: 1 },
+    start: { kind: 'docking', dockingLevelId: 16 },
   },
 ];

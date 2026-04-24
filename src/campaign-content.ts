@@ -58,6 +58,7 @@ export type OrbitalPhaseDef =
     orbitModeId?: string;
     escapeToOrbitalLevelId?: number;
     escapeTargetBodyId?: string;
+    parentTransferPeriapsisAltitude?: number;
   }
   | {
     id: number;
@@ -73,6 +74,7 @@ export type OrbitalPhaseDef =
     showLandingSite?: boolean;
     orbitModeId?: string;
     escapeToOrbitalLevelId?: number;
+    parentTransferPeriapsisAltitude?: number;
   }
   | {
     id: number;
@@ -133,6 +135,14 @@ export const APPROACH_PHASES: ApproachPhaseDef[] = [
     subtitle: 'Atmospheric departure — build speed for the Castor transfer',
     fuelSeconds: 110,
     departureOrbitalLevelId: 18,
+  },
+  {
+    id: 18,
+    kind: 'departure',
+    poiId: 'castor-settlement',
+    subtitle: 'Launch and build speed for the Tycho transfer',
+    fuelSeconds: 280,
+    departureOrbitalLevelId: 20,
   },
 ];
 
@@ -279,6 +289,22 @@ export const ORBITAL_PHASES: OrbitalPhaseDef[] = [
     dockingLevelId: 15,
     showLandingSite: false,
     escapeToOrbitalLevelId: 18,
+  },
+  {
+    id: 20,
+    kind: 'surfaceOrbit',
+    poiId: 'castor-settlement',
+    name: 'Castor Transfer',
+    subtitle: 'Escape Castor and set up Tycho arrival',
+    orbitAlt: 100_000,
+    reentryApproachLevelId: 18,
+    orbitSense: -1,
+    showLandingSite: false,
+    fuelDeltaV: 1600,
+    thrustAccel: 0.06,
+    thrustAccelMax: 1.2,
+    escapeToOrbitalLevelId: 13,
+    parentTransferPeriapsisAltitude: 200_000,
   },
 ];
 

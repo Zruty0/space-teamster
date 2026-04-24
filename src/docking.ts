@@ -344,12 +344,48 @@ const MISSION6_DOCKING: DockingLevel = {
   startAngle: 0,
 };
 
+const MISSION7_DOCKING: DockingLevel = {
+  id: 16,
+  name: 'Calloway Station',
+  subtitle: 'Undock and clear the station',
+  hasContainer: true,
+  exitMode: true,
+  exitDistance: 120,
+  orbitalLevelId: 20,
+  stationX: 0, stationY: 0,
+  bays: generateBays(0, 1, 2, 0.7),
+  beamRange: 12,
+  beamStrength: 0.5,
+  thrustForce: 3200,
+  rotTorque: 1200,
+  tugMass: 500,
+  containerMass: 2000,
+  dampingAssist: false,
+  startX: 0, startY: 0,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 0,
+};
+
+(() => {
+  const bay = MISSION7_DOCKING.bays.find(b => b.spokeIdx === 0 && b.side === 1 && b.slot === 2)!;
+  bay.filled = false;
+  bay.isTarget = false;
+  bay.isPlayerBay = true;
+  for (const b of MISSION7_DOCKING.bays) b.isTarget = false;
+  const bp = bayWorldPos(bay, MISSION7_DOCKING.stationX, MISSION7_DOCKING.stationY);
+  MISSION7_DOCKING.startX = bp.x;
+  MISSION7_DOCKING.startY = bp.y;
+  MISSION7_DOCKING.startAngle = bp.angle + Math.PI;
+})();
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   MISSION1_DOCKING,
   MISSION2_DOCKING,
   MISSION3_DOCKING,
   MISSION4_DOCKING,
   MISSION6_DOCKING,
+  MISSION7_DOCKING,
 ];
 
 // ===================== State =====================

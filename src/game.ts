@@ -28,6 +28,7 @@ import {
   updateDockingCamera, renderDocking, drawDockingHUD,
 } from './docking';
 import { MISSIONS } from './missions';
+import { bodyById, bodyStateRelativeToParent } from './world';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -573,7 +574,9 @@ export class Game {
       if (r >= p.level.escapeSOIRadius) {
         const nextLevel = orbitalLevelById(p.level.escapeToOrbitalLevelId);
         if (!nextLevel) return null;
-        const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time);
+        const parentBodyId = bodyById(p.level.bodyId).orbit?.parentBodyId;
+        const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time)
+          ?? ((parentBodyId && nextLevel.bodyId === parentBodyId) ? bodyStateRelativeToParent(p.level.bodyId, p.os.time) : null);
         if (!originState) return null;
         const localR = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
         const patchR = p.level.escapeSOIRadius ?? localR;
