@@ -36,8 +36,8 @@ window.addEventListener('keydown', (e) => {
     justPressed.add(e.code);
   }
   keys.add(e.code);
-  // Prevent browser scroll on space/arrows
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+  // Prevent browser scroll/navigation on gameplay keys
+  if (['Space', 'Backspace', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
     e.preventDefault();
   }
 });
@@ -69,7 +69,7 @@ export function readInput(): InputState {
   const killRotation = keys.has('KeyQ');
 
   const toggleGear = justPressed.has('KeyG');
-  const reset = justPressed.has('KeyR');
+  const reset = justPressed.has('Backspace');
   const toggleDevPanel = justPressed.has('F2') || justPressed.has('Backquote');
   const levelSelect = justPressed.has('KeyL');
   let levelPick = 0;

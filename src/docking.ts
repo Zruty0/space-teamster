@@ -1297,7 +1297,7 @@ export function drawDockingHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = DIM;
-    ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  T: SAS  Shift: Hi Thrust  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  T: SAS  Shift: Hi Thrust  BACKSPACE: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();

@@ -262,7 +262,7 @@ export function drawHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Throttle  A/D: Pitch  G: Gear  SPACE: Hover  Q: Level  R: Restart  L: Levels  F2: Dev', W / 2, H - 15);
+    ctx.fillText('W/S: Throttle  A/D: Pitch  G: Gear  SPACE: Hover  Q: Level  BACKSPACE: Restart  L: Levels  F2: Dev', W / 2, H - 15);
   }
 
   ctx.restore();

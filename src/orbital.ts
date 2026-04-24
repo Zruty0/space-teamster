@@ -3354,7 +3354,7 @@ export function drawOrbitalHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SHIFT: Hi/Lo Thrust  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SHIFT: Hi/Lo Thrust  [/]: Warp  BACKSPACE: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();

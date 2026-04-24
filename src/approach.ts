@@ -1690,7 +1690,7 @@ export function drawApproachHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  [/]: Warp  R: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  [/]: Warp  BACKSPACE: Restart  L: Levels', W / 2, H - 15);
   }
 
   ctx.restore();
