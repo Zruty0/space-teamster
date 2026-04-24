@@ -305,6 +305,10 @@ export class Game {
     return mission?.completionText ?? '';
   }
 
+  private isOrbitalDeorbitObjective(level: OrbitalLevel): boolean {
+    return !level.station && !level.targetBodyId && !level.escapeSOIRadius && level.showLandingSite !== false;
+  }
+
   private reloadPhase(p: Exclude<Phase, { kind: 'levelSelect' }>): void {
     this.phaseCompletion = null;
     this.missionDvUsed = p.missionDvStart;
@@ -550,10 +554,14 @@ export class Game {
           return;
         }
         if (p.os.enteredAtmo) {
-          this.completePhase(p, () => this.transitionOrbitalToApproach(p), '', {
-            tone: 'transition',
-            title: 'Entering atmosphere',
-          });
+          if (this.isOrbitalDeorbitObjective(p.level)) {
+            this.completePhase(p, () => this.transitionOrbitalToApproach(p));
+          } else {
+            this.completePhase(p, () => this.transitionOrbitalToApproach(p), '', {
+              tone: 'transition',
+              title: 'Entering atmosphere',
+            });
+          }
           return;
         }
       }
