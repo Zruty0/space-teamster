@@ -134,13 +134,19 @@ export function updateShip(
     ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
   }
 
-  // --- Landing SAS (T): damp horizontal motion without affecting rotation ---
+  // --- Landing SAS (T): damp translational motion without affecting rotation ---
   if (ship.sas) {
     const sasAccelMax = c.mainEngineAccel * 0.1;
-    const sasAccel = clamp(-ship.vx * 1.5, -sasAccelMax, sasAccelMax);
-    if (Math.abs(sasAccel) > 0.01) {
-      ax += sasAccel;
-      ship.dvUsed += Math.abs(sasAccel) * dt;
+    const sasTargetAX = -ship.vx * 1.5;
+    const sasTargetAY = -ship.vy * 1.5;
+    const sasMag = Math.hypot(sasTargetAX, sasTargetAY);
+    if (sasMag > 0.01) {
+      const scale = Math.min(1, sasAccelMax / sasMag);
+      const sasAX = sasTargetAX * scale;
+      const sasAY = sasTargetAY * scale;
+      ax += sasAX;
+      ay += sasAY;
+      ship.dvUsed += Math.hypot(sasAX, sasAY) * dt;
       ship.rcsTranslating = true;
     }
   }
