@@ -378,26 +378,30 @@ export function drawPhaseCompleteOverlay(
   ratingText: string = '',
   ratingColor: string = COL_SUCCESS,
   detailText: string = '',
+  tone: 'success' | 'transition' = 'success',
 ): void {
   const W = canvas.width;
   const H = canvas.height;
   const boxH = ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170);
   const top = H / 2 - boxH / 2;
 
+  const accent = tone === 'transition' ? COL_WARNING : COL_SUCCESS;
+  const fill = tone === 'transition' ? 'rgba(28, 18, 0, 0.82)' : 'rgba(0, 20, 0, 0.78)';
+
   ctx.save();
-  ctx.fillStyle = 'rgba(0, 20, 0, 0.78)';
+  ctx.fillStyle = fill;
   ctx.fillRect(W / 2 - 280, top, 560, boxH);
-  ctx.strokeStyle = COL_SUCCESS;
+  ctx.strokeStyle = accent;
   ctx.lineWidth = 2;
   ctx.strokeRect(W / 2 - 280, top, 560, boxH);
 
   ctx.textAlign = 'center';
-  ctx.fillStyle = COL_SUCCESS;
+  ctx.fillStyle = accent;
   ctx.font = 'bold 22px monospace';
-  ctx.fillText(`${title}: success`, W / 2, top + 32);
+  ctx.fillText(tone === 'transition' ? title : `${title}: success`, W / 2, top + 32);
 
   ctx.font = '15px monospace';
-  ctx.fillStyle = COL_SUCCESS;
+  ctx.fillStyle = accent;
   ctx.fillText(`DeltaV used this phase: ${phaseDvUsed.toFixed(0)} m/s`, W / 2, top + 70);
   ctx.fillText(`DeltaV used this mission: ${missionDvUsed.toFixed(0)} m/s`, W / 2, top + 96);
 

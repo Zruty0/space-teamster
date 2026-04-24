@@ -41,6 +41,7 @@ type Phase =
 
 interface PhaseCompletion {
   title: string;
+  tone?: 'success' | 'transition';
   phaseDvUsed: number;
   missionDvUsed: number;
   completionText: string;
@@ -316,14 +317,15 @@ export class Game {
     p: Exclude<Phase, { kind: 'levelSelect' }>,
     onContinue: () => void,
     completionText: string = '',
-    extra: Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText'> = {},
+    extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {},
   ): void {
     const phaseDvUsed = this.phaseDvUsed(p);
     const missionDvUsed = this.missionDvForPhase(p);
     this.missionDvUsed = missionDvUsed;
     this.guidanceText = '';
     this.phaseCompletion = {
-      title: this.phaseTitle(p),
+      title: extra.title ?? this.phaseTitle(p),
+      tone: extra.tone ?? 'success',
       phaseDvUsed,
       missionDvUsed,
       completionText,
@@ -547,7 +549,10 @@ export class Game {
           return;
         }
         if (p.os.enteredAtmo) {
-          this.completePhase(p, () => this.transitionOrbitalToApproach(p));
+          this.completePhase(p, () => this.transitionOrbitalToApproach(p), '', {
+            tone: 'transition',
+            title: 'Entering atmosphere',
+          });
           return;
         }
       }
@@ -903,6 +908,7 @@ export class Game {
         this.phaseCompletion.ratingText,
         this.phaseCompletion.ratingColor,
         this.phaseCompletion.detailText,
+        this.phaseCompletion.tone,
       );
     }
   }
