@@ -163,6 +163,9 @@ export function drawHUD(
   drawLabel(ctx, lx, ly, 'GEAR', ship.gearDeployed ? 'DOWN' : 'UP', gearColor);
   ly += lineH;
 
+  drawLabel(ctx, lx, ly, 'SAS', ship.sas ? 'ON' : 'OFF', ship.sas ? COL_SUCCESS : COL_HUD_DIM);
+  ly += lineH;
+
   if (launchGuidance) {
     drawLabel(ctx, lx, ly, 'DIR', launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', COL_SUCCESS);
     ly += lineH;
@@ -270,7 +273,7 @@ export function drawHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Throttle  A/D: Pitch  G: Gear  SPACE: Hover  Q: Level  BACKSPACE: Restart  L: Levels  F2: Dev', W / 2, H - 15);
+    ctx.fillText('W/S: Throttle  A/D: Pitch  G: Gear  T: SAS  SPACE: Hover  Q: Level  BACKSPACE: Restart  L: Levels  F2: Dev', W / 2, H - 15);
   }
 
   ctx.restore();

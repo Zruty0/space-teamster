@@ -347,8 +347,12 @@ export class Game {
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
     }
+    if (input.toggleSAS && p.state === 'flying') {
+      p.ship.sas = !p.ship.sas;
+    }
 
     input.toggleGear = false;
+    input.toggleSAS = false;
     input.reset = false;
     input.levelSelect = false;
     input.levelPick = 0;
@@ -414,10 +418,12 @@ export class Game {
             const groundY = getTerrainHeight(p.terrain, p.ship.x);
             p.ship.vx = 0; p.ship.vy = 0; p.ship.angularVel = 0; p.ship.angle = 0;
             p.ship.y = groundY + 6.6;
+            p.ship.sas = false;
           } else {
             p.state = 'landed';
             p.score = calculateLandingScore(p.ship, p.terrain);
             p.ship.vx = 0; p.ship.vy = 0; p.ship.angularVel = 0;
+            p.ship.sas = false;
           }
         } else {
           p.state = 'crashed';
@@ -450,6 +456,7 @@ export class Game {
     p.ship.angle = 0;
     p.ship.angularVel = 0;
     p.ship.throttle = 0;
+    p.ship.sas = false;
   }
 
   // --- Docking phase ---

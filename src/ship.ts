@@ -19,6 +19,7 @@ export interface ShipState {
   rcsRotLeft: boolean;
   rcsRotRight: boolean;
   rcsTranslating: boolean;
+  sas: boolean;
   dvUsed: number;
 }
 
@@ -37,6 +38,7 @@ export function createShip(): ShipState {
     rcsRotLeft: false,
     rcsRotRight: false,
     rcsTranslating: false,
+    sas: false,
     dvUsed: 0,
   };
 }
@@ -130,6 +132,17 @@ export function updateShip(
   if (stopAssistActive) {
     // Simple: gravity / maxAccel, assumes ship is upright. Player compensates for tilt.
     ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
+  }
+
+  // --- Landing SAS (T): damp horizontal motion without affecting rotation ---
+  if (ship.sas) {
+    const sasAccelMax = c.mainEngineAccel * 0.1;
+    const sasAccel = clamp(-ship.vx * 1.5, -sasAccelMax, sasAccelMax);
+    if (Math.abs(sasAccel) > 0.01) {
+      ax += sasAccel;
+      ship.dvUsed += Math.abs(sasAccel) * dt;
+      ship.rcsTranslating = true;
+    }
   }
 
   // --- Atmospheric drag ---
