@@ -161,7 +161,7 @@ export class Game {
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
       : level.escapeSOIRadius ? 'ESCAPE TOWARD TARGET'
-      : (level.showLandingSite === false ? 'MAINTAIN ORBITAL OBJECTIVE' : 'DEORBIT TO TARGET');
+      : (level.showLandingSite === false ? 'MAINTAIN ORBITAL OBJECTIVE' : 'DEORBIT AND LAND NEAR THE LZ');
     this.showGuidance(guidance);
     this.time = 0;
     this.worldTime = worldTimeStart;
