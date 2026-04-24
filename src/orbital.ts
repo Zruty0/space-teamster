@@ -1793,13 +1793,17 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (!_predDirty && _cachedPred) return _cachedPred;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const period = elem.a > 0 ? 2 * Math.PI * Math.sqrt(elem.a ** 3 / level.planetGM) : 10000;
-  let maxTime = Math.min(period * 0.95, 20000); // just under 1 orbit for local-body gameplay
+  const alt = Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius;
+  const pacing = currentPacingProfile(level, alt, s.pacingModeId);
+  let maxTime = Math.min(period * 0.95, 20000); // just under 1 orbit for normal local-body gameplay
   if (level.systemBodies) {
     const targetOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
     const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
     maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 1.5, period * 1.02), 800000));
+  } else if (!pacing.lowPass && pacing.orbitModeId === 'high') {
+    maxTime = Math.min(period * 1.02, 800000);
   }
-  const stepSize = level.systemBodies
+  const stepSize = (level.systemBodies || (!pacing.lowPass && pacing.orbitModeId === 'high'))
     ? Math.min(20, Math.max(2, maxTime / 2200))
     : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
