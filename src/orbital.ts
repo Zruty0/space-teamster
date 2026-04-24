@@ -3275,9 +3275,11 @@ export function drawOrbitalHUD(
     label(ctx, lx, ly, 'AoA', `${(s.targetAoA * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
   }
 
+  const pred = getCachedPrediction(s, level);
+  const predictedImpact = pred.impact !== null;
+
   // Entry parameters — show as soon as orbit enters atmosphere
   if (peInAtmo && state === 'orbiting') {
-    const pred = getCachedPrediction(s, level);
     // Use approach start point if available, otherwise atmo entry
     const entryPt = pred.approachStart || pred.atmoEntry;
     if (entryPt) {
@@ -3300,7 +3302,7 @@ export function drawOrbitalHUD(
 
   // --- Warnings ---
   let warnY = 30;
-  if (elem.periapsis < level.planetRadius && state === 'orbiting') {
+  if (predictedImpact && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_DANGER;
