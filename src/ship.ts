@@ -64,12 +64,8 @@ function angleDelta(target: number, current: number): number {
 }
 
 export function landingAutoAngleTarget(vx: number, vy: number): number {
-  let refVX = vx;
-  let refVY = vy;
-  if (refVY > 0) {
-    refVX = -refVX;
-    refVY = -refVY;
-  }
+  const refVX = vx;
+  const refVY = vy > 0 ? -vy : vy;
   const downwardSpeed = Math.max(0, -refVY);
   const descentSpeed = Math.hypot(refVX, downwardSpeed);
   if (descentSpeed < 1.0 || downwardSpeed < 0.5 || Math.abs(refVX) < 0.15) return 0;
