@@ -35,7 +35,7 @@ const MAX_FRAME_TIME = 0.1;
 
 type Phase =
   | { kind: 'levelSelect' }
-  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number; missionDvStart: number }
+  | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number; facingSign?: 1 | -1 }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number; missionDvStart: number }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number };
@@ -85,7 +85,7 @@ export class Game {
 
   private loadLanding(
     level: LevelDef,
-    initOverride?: { x: number; y: number; vx: number; vy: number },
+    initOverride?: { x: number; y: number; vx: number; vy: number; facingSign?: 1 | -1 },
     launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number },
     worldTimeStart: number = this.worldTime,
   ): void {
@@ -100,6 +100,9 @@ export class Game {
     config.startVY = init.vy;
     const terrain = generateTerrain(level);
     const ship = createShip();
+    ship.facingSign = launchGuidance
+      ? (launchGuidance.orbitDir > 0 ? 1 : -1)
+      : (initOverride?.facingSign ?? 1);
     if (launchGuidance) {
       ship.gearDeployed = true;
       ship.x = level.padCenterX;
@@ -415,7 +418,7 @@ export class Game {
   private checkLandingCollision(p: Extract<Phase, { kind: 'landing' }>): void {
     const pts = [...COLLISION_POINTS, ...(p.ship.gearDeployed ? GEAR_COLLISION_POINTS : [])];
     for (const [lx, ly] of pts) {
-      const [wx, wy] = localToWorld(lx, ly, p.ship.x, p.ship.y, p.ship.angle);
+      const [wx, wy] = localToWorld(lx, ly, p.ship.x, p.ship.y, p.ship.angle, p.ship.facingSign);
       if (wy <= getTerrainHeight(p.terrain, wx)) {
         const onPad = isOnPad(p.terrain, wx);
         if (!onPad) { p.state = 'crashed'; return; }
@@ -705,11 +708,14 @@ export class Game {
       const landingHalfSpan = 500;
       const landingAltMin = 100;
       const landingAltMax = 300;
+      const noseX = Math.sin(p.as.angle);
+      const facingSign: 1 | -1 = Math.abs(noseX) > 0.05 ? (noseX > 0 ? 1 : -1) : (p.as.vx < 0 ? -1 : 1);
       const initOverride = {
         x: landingLevel.padCenterX + (nx * 2 - 1) * landingHalfSpan,
         y: landingLevel.padY + (landingAltMin + ny * (landingAltMax - landingAltMin)),
         vx: Math.max(-20, Math.min(20, p.as.vx)),
         vy: Math.max(-5, Math.min(20, p.as.vy)),
+        facingSign,
       };
       this.loadLanding(landingLevel, initOverride);
       return;
@@ -728,11 +734,14 @@ export class Game {
     const startY = Math.max(landingLevel.padY + targetAlt * 0.5, Math.min(p.as.y, landingLevel.padY + targetAlt));
     vy = Math.max(vy, -10);
 
+    const noseX = Math.sin(p.as.angle);
+    const facingSign: 1 | -1 = Math.abs(noseX) > 0.05 ? (noseX > 0 ? 1 : -1) : (vx < 0 ? -1 : 1);
     const initOverride = {
       x: landingLevel.padCenterX,
       y: startY,
       vx: Math.min(Math.abs(vx), 10) * (vx > 0 ? 1 : -1),
       vy: vy,
+      facingSign,
     };
     this.loadLanding(landingLevel, initOverride);
   }

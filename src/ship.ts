@@ -14,6 +14,7 @@ export interface ShipState {
   throttle: number;     // 0..1; cruise pulse strength gear-up, constant lift gear-down
   gimbalAngle: number;  // rad, current engine thrust direction in world coords
   renderGimbalAngle: number; // rad, visual nacelle direction in world coords
+  facingSign: 1 | -1;
   gearDeployed: boolean;
   autoRotateEnabled: boolean;
   // Computed / display
@@ -37,6 +38,7 @@ export function createShip(): ShipState {
     throttle: 0,
     gimbalAngle: 0,
     renderGimbalAngle: 0,
+    facingSign: 1,
     gearDeployed: false,
     autoRotateEnabled: true,
     thrustFiring: false,
@@ -146,8 +148,8 @@ export function updateShip(
       ship.throttle = thrustAccel / c.mainEngineAccel;
       ship.gimbalAngle = Math.atan2(thrustAX, thrustAY);
     } else {
-      // Idle nacelles point left, away from the cab.
-      ship.gimbalAngle = Math.PI / 2 - ship.angle;
+      // Idle nacelles point away from the cab.
+      ship.gimbalAngle = ship.facingSign > 0 ? (Math.PI / 2 - ship.angle) : (-Math.PI / 2 - ship.angle);
     }
   }
 
@@ -294,12 +296,14 @@ export const GEAR_COLLISION_POINTS: [number, number][] = [
 // Transform local point to world coords
 export function localToWorld(
   lx: number, ly: number,
-  shipX: number, shipY: number, angle: number
+  shipX: number, shipY: number, angle: number,
+  facingSign: 1 | -1 = 1,
 ): [number, number] {
+  const localX = lx * facingSign;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   return [
-    shipX + lx * cos + ly * sin,
-    shipY - lx * sin + ly * cos,
+    shipX + localX * cos + ly * sin,
+    shipY - localX * sin + ly * cos,
   ];
 }

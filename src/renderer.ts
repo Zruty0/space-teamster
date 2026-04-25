@@ -368,7 +368,7 @@ function predictLandingTrajectory(
 
     let hit = false;
     for (const [lx, ly] of collisionPoints) {
-      const [wx, wy] = localToWorld(lx, ly, sim.x, sim.y, sim.angle);
+      const [wx, wy] = localToWorld(lx, ly, sim.x, sim.y, sim.angle, sim.facingSign);
       if (wy <= getTerrainHeight(terrain, wx)) {
         hit = true;
         break;
@@ -417,7 +417,7 @@ function drawShip(
   const exhaustPerpY = exhaustDirX;
   // Container / frame body
   const outline = SHIP_OUTLINE.map(([lx, ly]) => {
-    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle, ship.facingSign);
     return worldToScreen(wx, wy, cam, W, H);
   });
   ctx.beginPath();
@@ -434,8 +434,8 @@ function drawShip(
   // Container with ribs
   drawPolyline(ctx, cam, ship, [[-5.5, -2.0], [5.5, -2.0], [5.5, 2.0], [-5.5, 2.0], [-5.5, -2.0]], '#44aa66', 1, W, H);
   for (const x of [-3.0, -1.0, 1.0, 3.0]) {
-    const [wx0, wy0] = localToWorld(x, -2.0, ship.x, ship.y, ship.angle);
-    const [wx1, wy1] = localToWorld(x, 2.0, ship.x, ship.y, ship.angle);
+    const [wx0, wy0] = localToWorld(x, -2.0, ship.x, ship.y, ship.angle, ship.facingSign);
+    const [wx1, wy1] = localToWorld(x, 2.0, ship.x, ship.y, ship.angle, ship.facingSign);
     const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
     const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
     ctx.beginPath();
@@ -462,7 +462,7 @@ function drawShip(
     [8.05, 1.55],
   ] as [number, number][];
   const sideWindowScreen = sideWindow.map(([lx, ly]) => {
-    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle, ship.facingSign);
     return worldToScreen(wx, wy, cam, W, H);
   });
   ctx.beginPath();
@@ -479,9 +479,9 @@ function drawShip(
 
   // Engine pods as filled circles on the belt frame, with nacelles aimed by the current thrust vector
   for (const [px, py] of ENGINE_PODS) {
-    const [podWX, podWY] = localToWorld(px, py, ship.x, ship.y, ship.angle);
+    const [podWX, podWY] = localToWorld(px, py, ship.x, ship.y, ship.angle, ship.facingSign);
     const [sx, sy] = worldToScreen(podWX, podWY, cam, W, H);
-    const [sxR, syR] = worldToScreen(...localToWorld(px + 0.8, py, ship.x, ship.y, ship.angle), cam, W, H);
+    const [sxR, syR] = worldToScreen(...localToWorld(px + 0.8, py, ship.x, ship.y, ship.angle, ship.facingSign), cam, W, H);
     const r = Math.hypot(sxR - sx, syR - sy);
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
@@ -514,7 +514,7 @@ function drawShip(
 
   // Cockpit window / windshield
   const cockpit = COCKPIT_LINE.map(([lx, ly]) => {
-    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle, ship.facingSign);
     return worldToScreen(wx, wy, cam, W, H);
   });
   ctx.beginPath();
@@ -539,7 +539,7 @@ function drawPolyline(
   color: string, lineWidth: number, W: number, H: number
 ): void {
   const screenPts = points.map(([lx, ly]) => {
-    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle, ship.facingSign);
     return worldToScreen(wx, wy, cam, W, H);
   });
   ctx.beginPath();
@@ -571,7 +571,7 @@ function drawThrust(
   const brightFlashActive = thrustLevel >= 0.2;
 
   for (const [podX, podY] of ENGINE_PODS) {
-    const [podWX, podWY] = localToWorld(podX, podY, ship.x, ship.y, ship.angle);
+    const [podWX, podWY] = localToWorld(podX, podY, ship.x, ship.y, ship.angle, ship.facingSign);
     const nozzleX = podWX + flameDirX * 1.35;
     const nozzleY = podWY + flameDirY * 1.35;
     const [sNozX, sNozY] = worldToScreen(nozzleX, nozzleY, cam, W, H);
@@ -687,10 +687,10 @@ function drawRCS(
 
   for (const p of puffs) {
     const [sx, sy] = worldToScreen(
-      ...localToWorld(p.x, p.y, ship.x, ship.y, ship.angle), cam, W, H
+      ...localToWorld(p.x, p.y, ship.x, ship.y, ship.angle, ship.facingSign), cam, W, H
     );
     const [ex, ey] = worldToScreen(
-      ...localToWorld(p.x + p.dx * puffLen, p.y + p.dy * puffLen, ship.x, ship.y, ship.angle), cam, W, H
+      ...localToWorld(p.x + p.dx * puffLen, p.y + p.dy * puffLen, ship.x, ship.y, ship.angle, ship.facingSign), cam, W, H
     );
     ctx.beginPath();
     ctx.moveTo(sx, sy);
