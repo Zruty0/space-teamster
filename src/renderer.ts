@@ -13,6 +13,7 @@ import { TerrainData, getTerrainHeight } from './terrain';
 const COL_BG = '#050510';
 const COL_SHIP = '#00ff88';
 const COL_SHIP_DIM = '#006633';
+const COL_TRIM = '#2d7a55';
 const COL_COCKPIT = '#00ccff';
 const COL_THRUST = '#ffaa00';
 const COL_THRUST_CORE = '#ffffff';
@@ -420,13 +421,13 @@ function drawShip(
   ctx.stroke();
 
   // Belt line
-  drawPolyline(ctx, cam, ship, BELT_LINE, COL_SHIP, 1.2, W, H);
+  drawPolyline(ctx, cam, ship, BELT_LINE, COL_TRIM, 1.6, W, H);
 
-  // Inner container with ribs
-  drawPolyline(ctx, cam, ship, [[-5.4, -2.1], [5.4, -2.1], [5.4, 2.1], [-5.4, 2.1], [-5.4, -2.1]], '#44aa66', 1, W, H);
-  for (const x of [-2.7, 0, 2.7]) {
-    const [wx0, wy0] = localToWorld(x, -2.1, ship.x, ship.y, ship.angle);
-    const [wx1, wy1] = localToWorld(x, 2.1, ship.x, ship.y, ship.angle);
+  // Container with ribs
+  drawPolyline(ctx, cam, ship, [[-5.5, -2.0], [5.5, -2.0], [5.5, 2.0], [-5.5, 2.0], [-5.5, -2.0]], '#44aa66', 1, W, H);
+  for (const x of [-3.0, -1.0, 1.0, 3.0]) {
+    const [wx0, wy0] = localToWorld(x, -2.0, ship.x, ship.y, ship.angle);
+    const [wx1, wy1] = localToWorld(x, 2.0, ship.x, ship.y, ship.angle);
     const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
     const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
     ctx.beginPath();
@@ -437,24 +438,29 @@ function drawShip(
     ctx.stroke();
   }
 
-  // Cab, separated from container
+  // Cab, separated from container, truck-facing right
   drawPolyline(ctx, cam, ship, [...CAB_OUTLINE, CAB_OUTLINE[0]], COL_SHIP, 1.5, W, H);
   drawPolyline(ctx, cam, ship, [[6.2, 1.0], [7.0, 1.0]], COL_SHIP_DIM, 1, W, H);
   drawPolyline(ctx, cam, ship, [[6.2, -0.8], [7.0, -0.8]], COL_SHIP_DIM, 1, W, H);
+  drawPolyline(ctx, cam, ship, [[7.8, -1.8], [7.8, 3.1]], COL_SHIP_DIM, 1, W, H); // rear cab pillar
+  drawPolyline(ctx, cam, ship, [[10.4, 2.8], [10.8, 1.2]], COL_SHIP_DIM, 1, W, H); // front windshield edge
+  drawPolyline(ctx, cam, ship, [[10.6, -1.8], [10.9, -1.4]], COL_SHIP_DIM, 1, W, H); // bumper/nose
 
-  // Engine pods as circles on the belt frame
+  // Engine pods as filled circles on the belt frame
   for (const [px, py] of ENGINE_PODS) {
     const [sx, sy] = worldToScreen(...localToWorld(px, py, ship.x, ship.y, ship.angle), cam, W, H);
     const [sxR, syR] = worldToScreen(...localToWorld(px + 0.8, py, ship.x, ship.y, ship.angle), cam, W, H);
     const r = Math.hypot(sxR - sx, syR - sy);
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fillStyle = COL_TRIM;
+    ctx.fill();
     ctx.strokeStyle = COL_SHIP;
     ctx.lineWidth = 1.2;
     ctx.stroke();
   }
 
-  // Cockpit window
+  // Cockpit window / windshield
   const cockpit = COCKPIT_LINE.map(([lx, ly]) => {
     const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
     return worldToScreen(wx, wy, cam, W, H);
@@ -463,7 +469,7 @@ function drawShip(
   ctx.moveTo(cockpit[0][0], cockpit[0][1]);
   for (let i = 1; i < cockpit.length; i++) ctx.lineTo(cockpit[i][0], cockpit[i][1]);
   ctx.strokeStyle = COL_COCKPIT;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.2;
   ctx.stroke();
 
   if (ship.gearDeployed) {
@@ -507,7 +513,9 @@ function drawThrust(
   const flamePerpX = -flameDirY;
   const flamePerpY = flameDirX;
 
-  for (const [nozzleX, nozzleY] of ENGINE_PODS) {
+  for (const [podX, podY] of ENGINE_PODS) {
+    const nozzleX = podX;
+    const nozzleY = podY - 0.8; // exhaust port at bottom of circular pod
     const tipX = nozzleX + flameDirX * flameLength;
     const tipY = nozzleY + flameDirY * flameLength;
     const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
