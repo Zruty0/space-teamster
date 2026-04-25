@@ -2974,22 +2974,22 @@ function drawShip(
   ctx.translate(sx, sy);
   ctx.rotate(screenAngle);
 
-  const cabFrontY = -size * 0.8;
-  const cabBackY = -size * 0.15;
+  const cabFrontY = -size * 0.82;
+  const cabBackY = -size * 0.32;
   const cabHalfFrontW = size * 0.22;
   const cabHalfBackW = size * 0.34;
   const frameX0 = -size * 0.42;
   const frameX1 = size * 0.42;
-  const frameY0 = -size * 0.02;
-  const frameY1 = size * 0.82;
+  const frameY0 = -size * 0.04;
+  const frameY1 = size * 1.02;
   const contX0 = -size * 0.28;
   const contX1 = size * 0.28;
   const contY0 = size * 0.12;
-  const contY1 = size * 0.66;
+  const contY1 = size * 0.86;
   const rearNozzleY = frameY1;
   const rearNozzleLeftX = -size * 0.2;
   const rearNozzleRightX = size * 0.2;
-  const sideThrusterY = size * 0.34;
+  const sideThrusterY = size * 0.42;
   const sideThrusterX = size * 0.42;
 
   // Container fill
