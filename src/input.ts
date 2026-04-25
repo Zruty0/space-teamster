@@ -7,6 +7,14 @@ export interface InputState {
   throttleDown: boolean;
   stopAssist: boolean;
   killRotation: boolean;
+  moveUp: boolean;
+  moveDown: boolean;
+  moveLeft: boolean;
+  moveRight: boolean;
+  rotateLeft: boolean;
+  rotateRight: boolean;
+  shiftHeld: boolean;
+  setHoverThrottle: boolean;
   toggleGear: boolean;     // edge-triggered (true only on press frame)
   reset: boolean;          // edge-triggered
   toggleDevPanel: boolean; // edge-triggered
@@ -69,6 +77,15 @@ export function readInput(): InputState {
   const stopAssist = keys.has('Space');
   const killRotation = keys.has('KeyQ');
 
+  const moveUp = keys.has('KeyW');
+  const moveDown = keys.has('KeyS');
+  const moveLeft = keys.has('KeyA');
+  const moveRight = keys.has('KeyD');
+  const rotateLeft = keys.has('KeyQ');
+  const rotateRight = keys.has('KeyE');
+  const shiftHeld = keys.has('ShiftLeft') || keys.has('ShiftRight');
+  const setHoverThrottle = justPressed.has('Space');
+
   const toggleGear = justPressed.has('KeyG');
   const reset = justPressed.has('Backspace');
   const toggleDevPanel = justPressed.has('F2') || justPressed.has('Backquote');
@@ -94,7 +111,7 @@ export function readInput(): InputState {
   // Orbital controls
   const warpUp = justPressed.has('BracketRight');
   const warpDown = justPressed.has('BracketLeft');
-  const toggleHighThrust = keys.has('ShiftLeft') || keys.has('ShiftRight');
+  const toggleHighThrust = shiftHeld;
 
   // --- Gamepad disabled (rudder pedals interfere) ---
 
@@ -107,6 +124,14 @@ export function readInput(): InputState {
     throttleDown,
     stopAssist,
     killRotation,
+    moveUp,
+    moveDown,
+    moveLeft,
+    moveRight,
+    rotateLeft,
+    rotateRight,
+    shiftHeld,
+    setHoverThrottle,
     toggleGear,
     reset,
     toggleDevPanel,

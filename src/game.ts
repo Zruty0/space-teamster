@@ -370,7 +370,7 @@ export class Game {
         if (this.shouldHoldLaunchOnPad(p, input)) {
           this.clampLaunchShipToPad(p);
         } else {
-          updateShip(p.ship, input, PHYSICS_DT, this.time, input.stopAssist, input.killRotation);
+          updateShip(p.ship, input, PHYSICS_DT, this.time);
           this.checkLandingCollision(p);
         }
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {

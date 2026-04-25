@@ -9,10 +9,10 @@ export interface ShipState {
   y: number;
   vx: number;
   vy: number;
-  angle: number;        // rad, 0 = nose up, positive = CW
+  angle: number;        // rad, 0 = craft horizontal, positive = CW
   angularVel: number;   // rad/s
-  throttle: number;     // 0..1
-  gimbalAngle: number;  // rad, current gimbal offset
+  throttle: number;     // 0..1; cruise pulse strength gear-up, constant lift gear-down
+  gimbalAngle: number;  // rad, current engine thrust direction in world coords
   gearDeployed: boolean;
   // Computed / display
   thrustFiring: boolean;
@@ -51,75 +51,42 @@ function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
 }
 
+function wrapAngle(angle: number): number {
+  while (angle > Math.PI) angle -= 2 * Math.PI;
+  while (angle < -Math.PI) angle += 2 * Math.PI;
+  return angle;
+}
+
+function angleDelta(target: number, current: number): number {
+  return wrapAngle(target - current);
+}
+
 export function updateShip(
   ship: ShipState,
   input: InputState,
   dt: number,
   time: number,
-  stopAssistActive: boolean,
-  killRotActive: boolean,
 ): void {
   const c = config;
 
-  // --- Throttle ---
-  const throttleRate = ship.gearDeployed ? c.throttleRate * 0.25 : c.throttleRate;
-  if (input.throttleUp) {
-    ship.throttle = clamp(ship.throttle + throttleRate * dt, 0, 1);
-  }
-  if (input.throttleDown) {
-    ship.throttle = clamp(ship.throttle - throttleRate * dt, 0, 1);
-  }
-
-  // --- Gimbal ---
-  const gimbalTarget = input.pitch * c.gimbalMaxAngle;
-  const gimbalDelta = gimbalTarget - ship.gimbalAngle;
-  const maxGimbalChange = c.gimbalSlewRate * dt;
-  ship.gimbalAngle += clamp(gimbalDelta, -maxGimbalChange, maxGimbalChange);
-
-  // (Gear toggle handled at frame level in game.ts)
-
-  // === Forces & Torques ===
   let ax = 0;
-  let ay = 0;
+  let ay = -c.gravity;
   let angAccel = 0;
 
-  // --- Gravity ---
-  ay -= c.gravity;
+  ship.thrustFiring = false;
+  ship.rcsRotLeft = false;
+  ship.rcsRotRight = false;
+  ship.rcsTranslating = false;
 
-  // --- Main engine thrust ---
-  const thrustAccel = ship.throttle * c.mainEngineAccel;
-  if (thrustAccel > 0.01) {
-    // Thrust direction: ship angle adjusted by gimbal
-    // Positive gimbal → CW torque → thrust goes slightly left in world
-    const thrustAngle = ship.angle - ship.gimbalAngle;
-    ax += Math.sin(thrustAngle) * thrustAccel;
-    ay += Math.cos(thrustAngle) * thrustAccel;
-
-    // Gimbal torque
-    angAccel += thrustAccel * Math.sin(ship.gimbalAngle) * c.gimbalTorqueEfficiency;
-
-    ship.dvUsed += thrustAccel * dt;
-    ship.thrustFiring = true;
-  } else {
-    ship.thrustFiring = false;
-  }
-
-  // --- RCS rotation ---
-  const rcsPitchInput = input.pitch;
-  if (Math.abs(rcsPitchInput) > 0.01) {
-    angAccel += rcsPitchInput * c.rcsAngularAccel;
-    ship.rcsRotRight = rcsPitchInput > 0;
-    ship.rcsRotLeft = rcsPitchInput < 0;
-  } else {
-    ship.rcsRotRight = false;
-    ship.rcsRotLeft = false;
-  }
-
-  // --- Auto-level assist (Q): rotate toward 0° using RCS ---
-  if (killRotActive) {
-    // PD controller to drive angle to 0 and angular velocity to 0
-    const angleError = -ship.angle; // target is 0
-    const desiredAngVel = angleError * 5.0; // proportional gain
+  // --- Hull rotation: Q/E in both gear modes ---
+  const rotateInput = (input.rotateRight ? 1 : 0) - (input.rotateLeft ? 1 : 0);
+  if (Math.abs(rotateInput) > 0.01) {
+    angAccel += rotateInput * c.rcsAngularAccel;
+    ship.rcsRotRight = rotateInput > 0;
+    ship.rcsRotLeft = rotateInput < 0;
+  } else if (ship.gearDeployed) {
+    // Gear-down auto-level when Q/E are not held.
+    const desiredAngVel = angleDelta(0, ship.angle) * 5.0;
     const angVelError = desiredAngVel - ship.angularVel;
     const levelAccel = clamp(angVelError * 8.0, -c.rcsAngularAccel * 2, c.rcsAngularAccel * 2);
     angAccel += levelAccel;
@@ -127,11 +94,47 @@ export function updateShip(
     ship.rcsRotLeft = levelAccel < -0.1;
   }
 
-  // --- Hover assist (Space): set throttle to counteract gravity at level orientation ---
-  ship.rcsTranslating = false;
-  if (stopAssistActive) {
-    // Simple: gravity / maxAccel, assumes ship is upright. Player compensates for tilt.
-    ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
+  let thrustAX = 0;
+  let thrustAY = 0;
+
+  if (ship.gearDeployed) {
+    // Gear down: constant vertical lift, optional lateral component.
+    const throttleRate = c.throttleRate * 0.25;
+    if (input.throttleUp) ship.throttle = clamp(ship.throttle + throttleRate * dt, 0, 1);
+    if (input.throttleDown) ship.throttle = clamp(ship.throttle - throttleRate * dt, 0, 1);
+    if (input.setHoverThrottle) ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
+
+    const lateralSign = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
+    const lateralAccel = lateralSign * c.mainEngineAccel * (input.shiftHeld ? 1 : 0.1);
+    const liftAccel = ship.throttle * c.mainEngineAccel;
+
+    thrustAX = lateralAccel;
+    thrustAY = liftAccel;
+    ship.gimbalAngle = Math.hypot(thrustAX, thrustAY) > 1e-6 ? Math.atan2(thrustAX, thrustAY) : 0;
+  } else {
+    // Gear up: world-space translational thrust, normalized on diagonals.
+    ship.throttle = 0;
+    const inputX = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
+    const inputY = (input.moveUp ? 1 : 0) - (input.moveDown ? 1 : 0);
+    const inputMag = Math.hypot(inputX, inputY);
+    if (inputMag > 1e-6) {
+      const thrustAccel = c.mainEngineAccel * (input.shiftHeld ? 1 : 0.1);
+      thrustAX = inputX / inputMag * thrustAccel;
+      thrustAY = inputY / inputMag * thrustAccel;
+      ship.throttle = thrustAccel / c.mainEngineAccel;
+      ship.gimbalAngle = Math.atan2(thrustAX, thrustAY);
+    } else {
+      // Idle nacelles point left, away from the cab.
+      ship.gimbalAngle = Math.PI / 2 - ship.angle;
+    }
+  }
+
+  const thrustMag = Math.hypot(thrustAX, thrustAY);
+  if (thrustMag > 1e-6) {
+    ax += thrustAX;
+    ay += thrustAY;
+    ship.dvUsed += thrustMag * dt;
+    ship.thrustFiring = true;
   }
 
   // --- Landing SAS (T): damp translational motion without affecting rotation ---
@@ -171,11 +174,7 @@ export function updateShip(
 
   // === Integration (symplectic Euler) ===
   ship.angularVel += angAccel * dt;
-  ship.angle += ship.angularVel * dt;
-
-  // Normalize angle to [-π, π]
-  while (ship.angle > Math.PI) ship.angle -= 2 * Math.PI;
-  while (ship.angle < -Math.PI) ship.angle += 2 * Math.PI;
+  ship.angle = wrapAngle(ship.angle + ship.angularVel * dt);
 
   ship.vx += ax * dt;
   ship.vy += ay * dt;
