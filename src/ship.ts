@@ -64,9 +64,10 @@ function angleDelta(target: number, current: number): number {
 }
 
 export function landingAutoAngleTarget(vx: number, vy: number): number {
-  const speed = Math.hypot(vx, vy);
-  if (speed < 1.0 || Math.abs(vx) < 0.15) return 0;
-  const offsetFromDown = Math.atan2(vx, -vy);
+  const downwardSpeed = Math.max(0, -vy);
+  const descentSpeed = Math.hypot(vx, downwardSpeed);
+  if (descentSpeed < 1.0 || downwardSpeed < 0.5 || Math.abs(vx) < 0.15) return 0;
+  const offsetFromDown = Math.atan2(vx, downwardSpeed);
   return clamp(offsetFromDown * 0.5, -Math.PI / 4, Math.PI / 4);
 }
 
