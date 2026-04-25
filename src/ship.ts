@@ -186,7 +186,7 @@ export function updateShip(
 
 // --- Ship geometry for rendering & collision ---
 
-export const LANDING_GEAR_REST_HEIGHT = 5.75;
+export const LANDING_GEAR_REST_HEIGHT = 4.05;
 
 // Side-view cargo tug / container truck. The craft is wide in landing view:
 // long container + frame body, short cab separated to the right, engines and legs on the belt.
@@ -231,17 +231,17 @@ export const COCKPIT_LINE: [number, number][] = [
 // Small horizontal foot at the end.
 export const GEAR_LEFT: [number, number][] = [
   [-2.0, 0.0],
-  [-3.6, -2.77],
-  [-2.5, -5.76],
-  [-3.0, -5.76],
-  [-2.0, -5.76],
+  [-3.12, -1.94],
+  [-2.35, -4.03],
+  [-2.85, -4.03],
+  [-1.85, -4.03],
 ];
 export const GEAR_RIGHT: [number, number][] = [
   [2.0, 0.0],
-  [3.6, -2.77],
-  [2.5, -5.76],
-  [2.0, -5.76],
-  [3.0, -5.76],
+  [3.12, -1.94],
+  [2.35, -4.03],
+  [1.85, -4.03],
+  [2.85, -4.03],
 ];
 
 // Collision check points (local coords): both container and cab are part of the hitbox.
@@ -256,10 +256,10 @@ export const COLLISION_POINTS: [number, number][] = [
 
 // When gear deployed, the lowest points change.
 export const GEAR_COLLISION_POINTS: [number, number][] = [
-  [-3.0, -5.76],
-  [-2.0, -5.76],
-  [2.0, -5.76],
-  [3.0, -5.76],
+  [-2.85, -4.03],
+  [-1.85, -4.03],
+  [1.85, -4.03],
+  [2.85, -4.03],
 ];
 
 // Transform local point to world coords
