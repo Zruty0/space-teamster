@@ -309,7 +309,7 @@ export class Game {
   }
 
   private isOrbitalDeorbitObjective(level: OrbitalLevel): boolean {
-    return !level.station && !level.targetBodyId && !level.escapeSOIRadius && level.showLandingSite !== false;
+    return !level.station && !level.targetBodyId && level.showLandingSite !== false;
   }
 
   private reloadPhase(p: Exclude<Phase, { kind: 'levelSelect' }>): void {
@@ -563,7 +563,7 @@ export class Game {
           } else {
             this.completePhase(p, () => this.transitionOrbitalToApproach(p), '', {
               tone: 'transition',
-              title: 'Entering atmosphere',
+              title: p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach',
             });
           }
           return;
