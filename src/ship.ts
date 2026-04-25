@@ -13,6 +13,7 @@ export interface ShipState {
   angularVel: number;   // rad/s
   throttle: number;     // 0..1; cruise pulse strength gear-up, constant lift gear-down
   gimbalAngle: number;  // rad, current engine thrust direction in world coords
+  renderGimbalAngle: number; // rad, visual nacelle direction in world coords
   gearDeployed: boolean;
   // Computed / display
   thrustFiring: boolean;
@@ -33,6 +34,7 @@ export function createShip(): ShipState {
     angularVel: 0,
     throttle: 0,
     gimbalAngle: 0,
+    renderGimbalAngle: 0,
     gearDeployed: false,
     thrustFiring: false,
     rcsRotLeft: false,
@@ -61,6 +63,13 @@ function angleDelta(target: number, current: number): number {
   return wrapAngle(target - current);
 }
 
+export function landingAutoAngleTarget(vx: number, vy: number): number {
+  const speed = Math.hypot(vx, vy);
+  if (speed < 1.0 || Math.abs(vx) < 0.15) return 0;
+  const offsetFromDown = Math.atan2(vx, -vy);
+  return clamp(offsetFromDown * 0.5, -Math.PI / 4, Math.PI / 4);
+}
+
 export function updateShip(
   ship: ShipState,
   input: InputState,
@@ -85,8 +94,9 @@ export function updateShip(
     ship.rcsRotRight = rotateInput > 0;
     ship.rcsRotLeft = rotateInput < 0;
   } else if (ship.gearDeployed) {
-    // Gear-down auto-level when Q/E are not held.
-    const desiredAngVel = angleDelta(0, ship.angle) * 5.0;
+    // Gear-down auto-level when Q/E are not held, with slight velocity-following tilt.
+    const targetAngle = landingAutoAngleTarget(ship.vx, ship.vy);
+    const desiredAngVel = angleDelta(targetAngle, ship.angle) * 5.0;
     const angVelError = desiredAngVel - ship.angularVel;
     const levelAccel = clamp(angVelError * 8.0, -c.rcsAngularAccel * 2, c.rcsAngularAccel * 2);
     angAccel += levelAccel;
@@ -136,6 +146,13 @@ export function updateShip(
     ship.dvUsed += thrustMag * dt;
     ship.thrustFiring = true;
   }
+
+  // Visual-only nacelle slew, intentionally slower than actual thrust-vector changes.
+  const nacelleSlewRate = 6.0;
+  const nacelleDelta = angleDelta(ship.gimbalAngle, ship.renderGimbalAngle);
+  ship.renderGimbalAngle = wrapAngle(
+    ship.renderGimbalAngle + clamp(nacelleDelta, -nacelleSlewRate * dt, nacelleSlewRate * dt),
+  );
 
   // --- Landing SAS (T): damp translational motion without affecting rotation ---
   if (ship.sas) {

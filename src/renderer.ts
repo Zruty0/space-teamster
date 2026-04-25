@@ -4,7 +4,7 @@
 import { config } from './config';
 import {
   ShipState, SHIP_OUTLINE, CAB_OUTLINE, BELT_LINE, ENGINE_PODS, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
-  COLLISION_POINTS, GEAR_COLLISION_POINTS, localToWorld,
+  COLLISION_POINTS, GEAR_COLLISION_POINTS, landingAutoAngleTarget, localToWorld,
 } from './ship';
 import { LevelDef } from './levels';
 import { TerrainData, getTerrainHeight } from './terrain';
@@ -341,7 +341,8 @@ function predictLandingTrajectory(
 
     angAccel -= sim.angularVel * config.angularDrag;
     if (sim.gearDeployed) {
-      const desiredAngVel = -sim.angle * 5.0;
+      const targetAngle = landingAutoAngleTarget(sim.vx, sim.vy);
+      const desiredAngVel = (targetAngle - sim.angle) * 5.0;
       const angVelError = desiredAngVel - sim.angularVel;
       angAccel += Math.max(-config.rcsAngularAccel * 2, Math.min(config.rcsAngularAccel * 2, angVelError * 8.0));
     }
@@ -410,8 +411,8 @@ function drawShip(
   ctx: CanvasRenderingContext2D, cam: Camera,
   ship: ShipState, W: number, H: number, time: number
 ): void {
-  const exhaustDirX = -Math.sin(ship.gimbalAngle);
-  const exhaustDirY = -Math.cos(ship.gimbalAngle);
+  const exhaustDirX = -Math.sin(ship.renderGimbalAngle);
+  const exhaustDirY = -Math.cos(ship.renderGimbalAngle);
   const exhaustPerpX = -exhaustDirY;
   const exhaustPerpY = exhaustDirX;
   // Container / frame body
@@ -556,17 +557,63 @@ function drawThrust(
   ship: ShipState, W: number, H: number, time: number
 ): void {
   const flicker = 0.85 + 0.15 * Math.sin(time * 40) * Math.cos(time * 67);
-  const flameLength = (1.2 + ship.throttle * 3) * flicker;
-  const flameWidth = (1.0 + ship.throttle * 1.2) * flicker;
-  const flameDirX = -Math.sin(ship.gimbalAngle);
-  const flameDirY = -Math.cos(ship.gimbalAngle);
+  const flameDirX = -Math.sin(ship.renderGimbalAngle);
+  const flameDirY = -Math.cos(ship.renderGimbalAngle);
   const flamePerpX = -flameDirY;
   const flamePerpY = flameDirX;
+  const minLengthPx = 8;
+  const minWidthPx = 4;
+  const zoom = Math.max(cam.zoom, 0.001);
+  const flameLength = Math.max((1.2 + ship.throttle * 3) * flicker, minLengthPx / zoom);
+  const flameWidth = Math.max((1.0 + ship.throttle * 1.2) * flicker, minWidthPx / zoom);
+  const simplified = zoom < 1.35;
 
   for (const [podX, podY] of ENGINE_PODS) {
     const [podWX, podWY] = localToWorld(podX, podY, ship.x, ship.y, ship.angle);
     const nozzleX = podWX + flameDirX * 1.35;
     const nozzleY = podWY + flameDirY * 1.35;
+    const [sNozX, sNozY] = worldToScreen(nozzleX, nozzleY, cam, W, H);
+
+    const glowR = Math.max(2.4, 1.2 * zoom);
+    ctx.beginPath();
+    ctx.arc(sNozX, sNozY, glowR * 1.45, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 190, 80, 0.42)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(sNozX, sNozY, glowR * 0.85, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 245, 210, 0.95)';
+    ctx.fill();
+
+    if (simplified) {
+      const flameLengthPx = Math.max(minLengthPx + ship.throttle * 4, flameLength * zoom);
+      const flameWidthPx = Math.max(minWidthPx + ship.throttle * 2, flameWidth * zoom);
+      const dirSX = flameDirX;
+      const dirSY = -flameDirY;
+      const tipSX = sNozX + dirSX * flameLengthPx;
+      const tipSY = sNozY + dirSY * flameLengthPx;
+      const leftSX = sNozX - (-dirSY) * flameWidthPx * 0.5;
+      const leftSY = sNozY - dirSX * flameWidthPx * 0.5;
+      const rightSX = sNozX + (-dirSY) * flameWidthPx * 0.5;
+      const rightSY = sNozY + dirSX * flameWidthPx * 0.5;
+
+      ctx.beginPath();
+      ctx.moveTo(leftSX, leftSY);
+      ctx.lineTo(tipSX, tipSY);
+      ctx.lineTo(rightSX, rightSY);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 210, 110, 0.95)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(sNozX - (-dirSY) * flameWidthPx * 0.18, sNozY - dirSX * flameWidthPx * 0.18);
+      ctx.lineTo(sNozX + dirSX * flameLengthPx * 0.55, sNozY + dirSY * flameLengthPx * 0.55);
+      ctx.lineTo(sNozX + (-dirSY) * flameWidthPx * 0.18, sNozY + dirSX * flameWidthPx * 0.18);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 250, 225, 0.98)';
+      ctx.fill();
+      continue;
+    }
+
     const tipX = nozzleX + flameDirX * flameLength;
     const tipY = nozzleY + flameDirY * flameLength;
     const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
@@ -590,7 +637,6 @@ function drawThrust(
     const coreTipX = nozzleX + flameDirX * coreLength;
     const coreTipY = nozzleY + flameDirY * coreLength;
     const [sCoreX, sCoreY] = worldToScreen(coreTipX, coreTipY, cam, W, H);
-    const [sNozX, sNozY] = worldToScreen(nozzleX, nozzleY, cam, W, H);
     const [sLeftX, sLeftY] = worldToScreen(nozzleX - flamePerpX * flameWidth * 0.18, nozzleY - flamePerpY * flameWidth * 0.18, cam, W, H);
     const [sRightX, sRightY] = worldToScreen(nozzleX + flamePerpX * flameWidth * 0.18, nozzleY + flamePerpY * flameWidth * 0.18, cam, W, H);
     ctx.beginPath();
