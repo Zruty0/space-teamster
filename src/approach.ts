@@ -1530,35 +1530,49 @@ function drawApproachShip(
 
   // Main thrust flame (rear)
   if (s.throttle > 0.05) {
-    const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-    const fl = (size * 0.55 + s.throttle * size * 1.35) * flicker;
+    const hi = s.highThrust;
+    const flicker = 0.7 + 0.3 * Math.sin(time * (hi ? 55 : 40));
+    const fl = (size * (hi ? 0.85 : 0.55) + s.throttle * size * (hi ? 1.9 : 1.35)) * flicker;
+    const mainCol = hi ? '#ffdd66' : '#ffaa00';
+    const coreCol = hi ? '#fff0b0' : '#ffdd66';
+    const flameWidth = hi ? 2.6 : 2;
     for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
       ctx.beginPath();
       ctx.moveTo(x - size * 0.08, rearNozzleY + size * 0.06);
       ctx.lineTo(x, rearNozzleY + fl);
       ctx.lineTo(x + size * 0.08, rearNozzleY + size * 0.06);
-      ctx.strokeStyle = '#ffaa00';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = mainCol;
+      ctx.lineWidth = flameWidth;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - size * 0.04, rearNozzleY + size * 0.04);
+      ctx.lineTo(x, rearNozzleY + fl * 0.58);
+      ctx.lineTo(x + size * 0.04, rearNozzleY + size * 0.04);
+      ctx.strokeStyle = coreCol;
+      ctx.lineWidth = hi ? 1.8 : 1.3;
       ctx.stroke();
     }
   }
 
   // Retro thrust flame (nose)
   if (s.retroFiring) {
-    const flicker = 0.7 + 0.3 * Math.sin(time * 45);
-    const fl = (size * 0.75 + size * 0.95) * flicker;
+    const hi = s.highThrust;
+    const flicker = 0.7 + 0.3 * Math.sin(time * (hi ? 58 : 45));
+    const fl = (size * (hi ? 1.15 : 0.75) + size * 0.95) * flicker;
+    const retroCol = hi ? '#ffaa44' : '#ff6600';
+    const coreCol = hi ? '#ffdd88' : '#ffcc44';
     ctx.beginPath();
     ctx.moveTo(-size * 0.11, cabFrontY);
     ctx.lineTo(0, cabFrontY - fl);
     ctx.lineTo(size * 0.11, cabFrontY);
-    ctx.strokeStyle = '#ff6600';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = retroCol;
+    ctx.lineWidth = hi ? 2.6 : 2;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(0, cabFrontY);
     ctx.lineTo(0, cabFrontY - fl * 0.5);
-    ctx.strokeStyle = '#ffcc44';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = coreCol;
+    ctx.lineWidth = hi ? 1.8 : 1.5;
     ctx.stroke();
   }
 
