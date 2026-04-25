@@ -142,6 +142,7 @@ export interface OrbitalState {
 
   // Ship orientation (used in atmosphere for AoA control)
   angle: number;
+  renderAngle: number;
   targetAoA: number;
 
   // Rendezvous
@@ -178,6 +179,18 @@ const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
 const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
 const ATMO_TIME_SCALE = 20; // base time scale in atmosphere (vs 100 in space) = 5x slowdown
 const ATMO_THRUST_MULT = 5;  // thrust multiplier in atmosphere (compensate for slower time)
+
+function normalizeAngle(angle: number): number {
+  while (angle > Math.PI) angle -= Math.PI * 2;
+  while (angle < -Math.PI) angle += Math.PI * 2;
+  return angle;
+}
+
+function moveAngleToward(current: number, target: number, maxDelta: number): number {
+  const delta = normalizeAngle(target - current);
+  if (Math.abs(delta) <= maxDelta) return target;
+  return normalizeAngle(current + Math.sign(delta) * maxDelta);
+}
 
 function hohmannDepartureVInf(innerOrbitRadius: number, outerOrbitRadius: number, parentGM: number): number {
   const a = (innerOrbitRadius + outerOrbitRadius) * 0.5;
@@ -299,6 +312,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
       highThrust: false,
       inAtmo: false,
       angle: 0,
+      renderAngle: 0,
       targetAoA: nextLevel.highAtmoAoA,
       docked: false,
       inRendezvousZoom: false,
@@ -757,6 +771,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     highThrust: false,
     inAtmo: false,
     angle: 0,
+    renderAngle: Math.atan2(override?.vy ?? level.startVY, override?.vx ?? level.startVX),
     targetAoA: 0,
     docked: false,
     inRendezvousZoom: false,
@@ -1093,6 +1108,8 @@ export function updateOrbital(
   const effThrust = wallThrust !== undefined
     ? (wallThrust / pacing.baseTimeScale)
     : (pacing.lowPass ? baseThrust * ATMO_THRUST_MULT : baseThrust);
+  let visualThrustX = 0;
+  let visualThrustY = 0;
 
   // --- Ship orientation (applied after substep loop updates s.inAtmo) ---
   // Deferred to after substep loop — see below
@@ -1214,6 +1231,8 @@ export function updateOrbital(
             const dvUsed = thrustMag * subDt;
             ax += thrustX;
             ay += thrustY;
+            visualThrustX = thrustX;
+            visualThrustY = thrustY;
             s.dvUsed += dvUsed;
           }
         }
@@ -1323,11 +1342,20 @@ export function updateOrbital(
     // Ship angle tracks velocity; positive displayed AoA always means "nose above horizon"
     const velAngle = Math.atan2(s.vy, s.vx);
     s.angle = velAngle + aoaDisplayToPhysical(s.targetAoA, s.x, s.y, s.vx, s.vy);
+    s.renderAngle = s.angle;
   } else {
-    // In space: track prograde
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
     if (speed > 0.1) s.angle = Math.atan2(s.vy, s.vx);
     s.targetAoA = 0;
+
+    let targetRenderAngle = s.renderAngle;
+    if (Math.hypot(visualThrustX, visualThrustY) > THRUST_EPS) {
+      targetRenderAngle = Math.atan2(visualThrustY, visualThrustX);
+    } else if (speed > 0.1) {
+      targetRenderAngle = Math.atan2(s.vy, s.vx);
+    }
+    const maxRenderDelta = (Math.PI * 0.5 / 0.2) * dt;
+    s.renderAngle = moveAngleToward(s.renderAngle, targetRenderAngle, maxRenderDelta);
   }
 
   // Trail update (wall-clock time)
@@ -1716,6 +1744,7 @@ function hybridizeApproachPrediction(
     highThrust: false,
     inAtmo: true,
     angle: 0,
+    renderAngle: 0,
     targetAoA: 0,
     docked: false,
     inRendezvousZoom: false,
@@ -2965,10 +2994,8 @@ function drawShip(
   const [sx, sy] = ws(s.x, s.y, cam, W, H);
   const size = 10;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-  // Ship angle: use s.angle (world angle where 0=right, pi/2=up)
-  // Screen rotation: 0=up, positive=CW. Convert: screen = pi/2 - world
-  // Or equivalently: for world angle θ, nose at (cos θ, sin θ), screen rotation = atan2(cos θ, sin θ)
-  const screenAngle = Math.atan2(Math.cos(s.angle), Math.sin(s.angle));
+  // Screen rotation: 0=up, positive=CW. Convert world-angle to screen-angle.
+  const screenAngle = Math.atan2(Math.cos(s.renderAngle), Math.sin(s.renderAngle));
 
   ctx.save();
   ctx.translate(sx, sy);
@@ -3073,8 +3100,9 @@ function drawShip(
   const mainCol = hi ? '#ffdd66' : '#ffaa00';
   const retroCol = hi ? '#ffaa44' : '#ff6600';
   const rcsCol = hi ? '#ff8844' : '#ff4400';
+  const anyVacuumThrust = !s.inAtmo && (s.thrustPro || s.thrustRetro || s.thrustLeft || s.thrustRight);
 
-  if (s.thrustPro) {
+  if (anyVacuumThrust) {
     const fl = flameBase * flicker;
     for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
       ctx.beginPath();
@@ -3085,36 +3113,49 @@ function drawShip(
       ctx.lineWidth = fw;
       ctx.stroke();
     }
-  }
-  if (s.thrustRetro) {
-    const fl = flameBase * flicker;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.11, cabFrontY);
-    ctx.lineTo(0, cabFrontY - fl);
-    ctx.lineTo(size * 0.11, cabFrontY);
-    ctx.strokeStyle = retroCol;
-    ctx.lineWidth = fw;
-    ctx.stroke();
-  }
-  if (s.thrustLeft) {
-    const fl = flameRcs * flicker;
-    ctx.beginPath();
-    ctx.moveTo(sideThrusterX, sideThrusterY - size * 0.08);
-    ctx.lineTo(sideThrusterX + fl, sideThrusterY);
-    ctx.lineTo(sideThrusterX, sideThrusterY + size * 0.08);
-    ctx.strokeStyle = rcsCol;
-    ctx.lineWidth = fw;
-    ctx.stroke();
-  }
-  if (s.thrustRight) {
-    const fl = flameRcs * flicker;
-    ctx.beginPath();
-    ctx.moveTo(-sideThrusterX, sideThrusterY - size * 0.08);
-    ctx.lineTo(-sideThrusterX - fl, sideThrusterY);
-    ctx.lineTo(-sideThrusterX, sideThrusterY + size * 0.08);
-    ctx.strokeStyle = rcsCol;
-    ctx.lineWidth = fw;
-    ctx.stroke();
+  } else {
+    if (s.thrustPro) {
+      const fl = flameBase * flicker;
+      for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.08, rearNozzleY + size * 0.06);
+        ctx.lineTo(x, rearNozzleY + fl);
+        ctx.lineTo(x + size * 0.08, rearNozzleY + size * 0.06);
+        ctx.strokeStyle = mainCol;
+        ctx.lineWidth = fw;
+        ctx.stroke();
+      }
+    }
+    if (s.thrustRetro) {
+      const fl = flameBase * flicker;
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.11, cabFrontY);
+      ctx.lineTo(0, cabFrontY - fl);
+      ctx.lineTo(size * 0.11, cabFrontY);
+      ctx.strokeStyle = retroCol;
+      ctx.lineWidth = fw;
+      ctx.stroke();
+    }
+    if (s.thrustLeft) {
+      const fl = flameRcs * flicker;
+      ctx.beginPath();
+      ctx.moveTo(sideThrusterX, sideThrusterY - size * 0.08);
+      ctx.lineTo(sideThrusterX + fl, sideThrusterY);
+      ctx.lineTo(sideThrusterX, sideThrusterY + size * 0.08);
+      ctx.strokeStyle = rcsCol;
+      ctx.lineWidth = fw;
+      ctx.stroke();
+    }
+    if (s.thrustRight) {
+      const fl = flameRcs * flicker;
+      ctx.beginPath();
+      ctx.moveTo(-sideThrusterX, sideThrusterY - size * 0.08);
+      ctx.lineTo(-sideThrusterX - fl, sideThrusterY);
+      ctx.lineTo(-sideThrusterX, sideThrusterY + size * 0.08);
+      ctx.strokeStyle = rcsCol;
+      ctx.lineWidth = fw;
+      ctx.stroke();
+    }
   }
 
   ctx.restore();
