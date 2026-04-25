@@ -1122,80 +1122,81 @@ function drawFlames(
   const t2x = x0 + fw * 0.75;
   const nz = fh * 0.18;
   const hi = (s as any)._hiThrustRender;
-  const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-  const fl = (hi ? 5 : 1.5) * z * flicker;
-  const rcsfl = (hi ? 3 : 1.2) * z * flicker;
-  const mainCol = '#ffaa00';
+  const flicker = 0.8 + 0.2 * Math.sin(time * 40) * Math.cos(time * 67);
+  const fl = (hi ? 4.2 : 2.2) * z * flicker;
+  const rcsfl = (hi ? 2.2 : 1.3) * z * flicker;
 
-  // Helper to draw main flames for a set of flags
-  function drawMainSet(up: boolean, down: boolean, fwd: boolean, back: boolean, col: string, lw: number, flameLen?: number) {
+  function drawGlow(x: number, y: number, r: number, outer = 0.42, inner = 0.95) {
+    ctx.beginPath();
+    ctx.arc(x, y, r * 1.45, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 190, 80, ${outer})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.85, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 245, 210, ${inner})`;
+    ctx.fill();
+  }
+
+  function drawFlare(x: number, y: number, dx: number, dy: number, len: number, width: number, glow = true) {
+    const px = -dy;
+    const py = dx;
+    if (glow) drawGlow(x, y, Math.max(1.2, width * 0.7));
+
+    ctx.beginPath();
+    ctx.moveTo(x - px * width * 0.5, y - py * width * 0.5);
+    ctx.lineTo(x + dx * len, y + dy * len);
+    ctx.lineTo(x + px * width * 0.5, y + py * width * 0.5);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 210, 110, 0.95)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(x - px * width * 0.18, y - py * width * 0.18);
+    ctx.lineTo(x + dx * len * 0.55, y + dy * len * 0.55);
+    ctx.lineTo(x + px * width * 0.18, y + py * width * 0.18);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 250, 225, 0.98)';
+    ctx.fill();
+  }
+
+  function drawMainSet(up: boolean, down: boolean, fwd: boolean, back: boolean, flameLen?: number) {
     const f = flameLen ?? fl;
-    ctx.strokeStyle = col;
-    ctx.lineWidth = lw;
+    const width = nz * 0.95;
     for (const tx of [t1x, t2x]) {
-      if (up) {
-        ctx.beginPath();
-        ctx.moveTo(tx - nz * 0.6, fh / 2 + nz);
-        ctx.lineTo(tx, fh / 2 + nz + f);
-        ctx.lineTo(tx + nz * 0.6, fh / 2 + nz);
-        ctx.stroke();
-      }
-      if (down) {
-        ctx.beginPath();
-        ctx.moveTo(tx - nz * 0.6, -fh / 2 - nz);
-        ctx.lineTo(tx, -fh / 2 - nz - f);
-        ctx.lineTo(tx + nz * 0.6, -fh / 2 - nz);
-        ctx.stroke();
-      }
+      if (up) drawFlare(tx, fh / 2 + nz, 0, 1, f, width);
+      if (down) drawFlare(tx, -fh / 2 - nz, 0, -1, f, width);
       if (fwd) {
-        ctx.beginPath();
-        ctx.moveTo(tx, -fh / 2 - nz);
-        ctx.lineTo(tx - f, -fh / 2 - nz);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(tx, fh / 2 + nz);
-        ctx.lineTo(tx - f, fh / 2 + nz);
-        ctx.stroke();
+        drawFlare(tx, -fh / 2 - nz, -1, 0, f * 0.9, width * 0.75);
+        drawFlare(tx, fh / 2 + nz, -1, 0, f * 0.9, width * 0.75);
       }
       if (back) {
-        ctx.beginPath();
-        ctx.moveTo(tx, -fh / 2 - nz);
-        ctx.lineTo(tx + f, -fh / 2 - nz);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(tx, fh / 2 + nz);
-        ctx.lineTo(tx + f, fh / 2 + nz);
-        ctx.stroke();
+        drawFlare(tx, -fh / 2 - nz, 1, 0, f * 0.9, width * 0.75);
+        drawFlare(tx, fh / 2 + nz, 1, 0, f * 0.9, width * 0.75);
       }
     }
   }
 
-  // Helper to draw RCS flames at corners
-  function drawRCS(ccw: boolean, cw: boolean, col: string, len: number) {
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = col;
+  function drawRCS(ccw: boolean, cw: boolean, len: number) {
+    const width = Math.max(0.9, nz * 0.45);
     // CCW on screen: top-left fires up, bottom-right fires down
     if (ccw) {
-      ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, -fh / 2); ctx.lineTo(x0, -fh / 2 - len); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, fh / 2); ctx.lineTo(x1, fh / 2 + len); ctx.stroke();
+      drawFlare(x0 + nz * 0.3, -fh / 2, 0, -1, len, width, false);
+      drawFlare(x1 - nz * 0.3, fh / 2, 0, 1, len, width, false);
     }
     // CW on screen: top-right fires up, bottom-left fires down
     if (cw) {
-      ctx.beginPath(); ctx.moveTo(x1 - nz * 0.3, -fh / 2); ctx.lineTo(x1, -fh / 2 - len); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x0 + nz * 0.3, fh / 2); ctx.lineTo(x0, fh / 2 + len); ctx.stroke();
+      drawFlare(x1 - nz * 0.3, -fh / 2, 0, -1, len, width, false);
+      drawFlare(x0 + nz * 0.3, fh / 2, 0, 1, len, width, false);
     }
   }
 
-  // Player thrust flames
-  const lw = hi ? 2.5 : 1.5;
-  drawMainSet(s.thrustUp, s.thrustDown, s.thrustRight, s.thrustLeft, mainCol, lw);
-  drawRCS(s.rotCCW, s.rotCW, '#ff4422', rcsfl);
+  drawMainSet(s.thrustUp, s.thrustDown, s.thrustRight, s.thrustLeft);
+  drawRCS(s.rotCCW, s.rotCW, rcsfl);
 
-  // SAS flames (always normal size, unaffected by Shift)
-  const normalFl = 1.5 * z * flicker;
-  const normalRcs = 1.2 * z * flicker;
-  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, mainCol, 1.5, normalFl);
-  drawRCS(s.sasCCW, s.sasCW, '#ff4422', normalRcs);
+  const normalFl = 2.0 * z * flicker;
+  const normalRcs = 1.1 * z * flicker;
+  drawMainSet(s.sasUp, s.sasDown, s.sasRight, s.sasLeft, normalFl);
+  drawRCS(s.sasCCW, s.sasCW, normalRcs);
 }
 
 // ===================== HUD =====================
