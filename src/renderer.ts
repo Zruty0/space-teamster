@@ -3,7 +3,7 @@
 
 import { config } from './config';
 import {
-  ShipState, SHIP_OUTLINE, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
+  ShipState, SHIP_OUTLINE, CAB_OUTLINE, BELT_LINE, ENGINE_PODS, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
   COLLISION_POINTS, GEAR_COLLISION_POINTS, localToWorld,
 } from './ship';
 import { LevelDef } from './levels';
@@ -406,33 +406,27 @@ function drawShip(
   ctx: CanvasRenderingContext2D, cam: Camera,
   ship: ShipState, W: number, H: number, time: number
 ): void {
-  // Transform and draw outer frame/cab silhouette
+  // Container / frame body
   const outline = SHIP_OUTLINE.map(([lx, ly]) => {
     const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
     return worldToScreen(wx, wy, cam, W, H);
   });
-
   ctx.beginPath();
   ctx.moveTo(outline[0][0], outline[0][1]);
-  for (let i = 1; i < outline.length; i++) {
-    ctx.lineTo(outline[i][0], outline[i][1]);
-  }
+  for (let i = 1; i < outline.length; i++) ctx.lineTo(outline[i][0], outline[i][1]);
   ctx.closePath();
   ctx.strokeStyle = COL_SHIP;
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Inner container rectangle
-  drawPolyline(ctx, cam, ship, [
-    [-1.6, -5.3],
-    [1.6, -5.3],
-    [1.6, 5.3],
-    [-1.6, 5.3],
-    [-1.6, -5.3],
-  ], '#44aa66', 1, W, H);
-  for (const x of [-0.55, 0.55]) {
-    const [wx0, wy0] = localToWorld(x, -5.3, ship.x, ship.y, ship.angle);
-    const [wx1, wy1] = localToWorld(x, 5.3, ship.x, ship.y, ship.angle);
+  // Belt line
+  drawPolyline(ctx, cam, ship, BELT_LINE, COL_SHIP, 1.2, W, H);
+
+  // Inner container with ribs
+  drawPolyline(ctx, cam, ship, [[-5.4, -2.1], [5.4, -2.1], [5.4, 2.1], [-5.4, 2.1], [-5.4, -2.1]], '#44aa66', 1, W, H);
+  for (const x of [-2.7, 0, 2.7]) {
+    const [wx0, wy0] = localToWorld(x, -2.1, ship.x, ship.y, ship.angle);
+    const [wx1, wy1] = localToWorld(x, 2.1, ship.x, ship.y, ship.angle);
     const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
     const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
     ctx.beginPath();
@@ -443,19 +437,21 @@ function drawShip(
     ctx.stroke();
   }
 
-  // Cab/frame join lines
-  drawPolyline(ctx, cam, ship, [[-1.8, 6.0], [-2.3, 6.0]], COL_SHIP, 1, W, H);
-  drawPolyline(ctx, cam, ship, [[1.8, 6.0], [2.3, 6.0]], COL_SHIP, 1, W, H);
+  // Cab, separated from container
+  drawPolyline(ctx, cam, ship, [...CAB_OUTLINE, CAB_OUTLINE[0]], COL_SHIP, 1.5, W, H);
+  drawPolyline(ctx, cam, ship, [[6.2, 1.0], [7.0, 1.0]], COL_SHIP_DIM, 1, W, H);
+  drawPolyline(ctx, cam, ship, [[6.2, -0.8], [7.0, -0.8]], COL_SHIP_DIM, 1, W, H);
 
-  // Engine pods on the belt of the frame at ~1/6 and ~5/6 of container length
-  for (const y of [-4.0, 4.0]) {
-    drawPolyline(ctx, cam, ship, [
-      [2.3, y + 0.9],
-      [3.1, y + 0.7],
-      [3.1, y - 0.7],
-      [2.3, y - 0.9],
-      [2.3, y + 0.9],
-    ], COL_SHIP, 1.2, W, H);
+  // Engine pods as circles on the belt frame
+  for (const [px, py] of ENGINE_PODS) {
+    const [sx, sy] = worldToScreen(...localToWorld(px, py, ship.x, ship.y, ship.angle), cam, W, H);
+    const [sxR, syR] = worldToScreen(...localToWorld(px + 0.8, py, ship.x, ship.y, ship.angle), cam, W, H);
+    const r = Math.hypot(sxR - sx, syR - sy);
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = COL_SHIP;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
   }
 
   // Cockpit window
@@ -465,25 +461,18 @@ function drawShip(
   });
   ctx.beginPath();
   ctx.moveTo(cockpit[0][0], cockpit[0][1]);
-  for (let i = 1; i < cockpit.length; i++) {
-    ctx.lineTo(cockpit[i][0], cockpit[i][1]);
-  }
+  for (let i = 1; i < cockpit.length; i++) ctx.lineTo(cockpit[i][0], cockpit[i][1]);
   ctx.strokeStyle = COL_COCKPIT;
   ctx.lineWidth = 1;
   ctx.stroke();
 
   if (ship.gearDeployed) {
-    drawPolyline(ctx, cam, ship, GEAR_LEFT, COL_GEAR, 1.7, W, H);
-    drawPolyline(ctx, cam, ship, GEAR_RIGHT, COL_GEAR, 1.7, W, H);
+    drawPolyline(ctx, cam, ship, GEAR_LEFT, COL_GEAR, 1.8, W, H);
+    drawPolyline(ctx, cam, ship, GEAR_RIGHT, COL_GEAR, 1.8, W, H);
   }
 
-  if (ship.thrustFiring) {
-    drawThrust(ctx, cam, ship, W, H, time);
-  }
-
-  if (ship.rcsRotLeft || ship.rcsRotRight || ship.rcsTranslating) {
-    drawRCS(ctx, cam, ship, W, H, time);
-  }
+  if (ship.thrustFiring) drawThrust(ctx, cam, ship, W, H, time);
+  if (ship.rcsRotLeft || ship.rcsRotRight || ship.rcsTranslating) drawRCS(ctx, cam, ship, W, H, time);
 }
 
 function drawPolyline(
@@ -518,7 +507,7 @@ function drawThrust(
   const flamePerpX = -flameDirY;
   const flamePerpY = flameDirX;
 
-  for (const [nozzleX, nozzleY] of [[3.1, -4.0], [3.1, 4.0]] as [number, number][]) {
+  for (const [nozzleX, nozzleY] of ENGINE_PODS) {
     const tipX = nozzleX + flameDirX * flameLength;
     const tipY = nozzleY + flameDirY * flameLength;
     const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
@@ -579,16 +568,16 @@ function drawRCS(
   const puffs: Puff[] = [];
 
   if (ship.rcsRotRight) {
-    puffs.push({ x: 2.7, y: 7.6, dx: 1, dy: 0 });
-    puffs.push({ x: -2.7, y: -5.2, dx: -1, dy: 0 });
+    puffs.push({ x: 9.6, y: 3.0, dx: 1, dy: 0 });
+    puffs.push({ x: -5.8, y: -2.2, dx: -1, dy: 0 });
   }
   if (ship.rcsRotLeft) {
-    puffs.push({ x: -2.7, y: 7.6, dx: -1, dy: 0 });
-    puffs.push({ x: 2.7, y: -5.2, dx: 1, dy: 0 });
+    puffs.push({ x: -5.8, y: 2.2, dx: -1, dy: 0 });
+    puffs.push({ x: 9.6, y: -1.2, dx: 1, dy: 0 });
   }
   if (ship.rcsTranslating) {
-    puffs.push({ x: 0, y: 8.8, dx: 0, dy: 1 });
-    puffs.push({ x: 0, y: -5.8, dx: 0, dy: -1 });
+    puffs.push({ x: 8.8, y: 3.6, dx: 0.6, dy: 0.8 });
+    puffs.push({ x: -5.5, y: -2.6, dx: -0.6, dy: -0.8 });
   }
 
   ctx.strokeStyle = COL_RCS;

@@ -186,67 +186,73 @@ export function updateShip(
 
 // --- Ship geometry for rendering & collision ---
 
-export const LANDING_GEAR_REST_HEIGHT = 8.0;
+export const LANDING_GEAR_REST_HEIGHT = 6.8;
 
-// Outline vertices in local coords (origin = CoM, y-up, meters)
-// Side-view cargo tug: short cab on top, frame around a long container below.
+// Side-view cargo tug / container truck. The craft is wide in landing view:
+// long container + frame body, short cab separated to the right, engines and legs on the belt.
 export const SHIP_OUTLINE: [number, number][] = [
-  [0, 10.0],
-  [1.1, 9.1],
-  [1.8, 6.0],
-  [2.3, 6.0],
-  [2.3, -6.0],
-  [-2.3, -6.0],
-  [-2.3, 6.0],
-  [-1.8, 6.0],
-  [-1.1, 9.1],
+  [-6.2, 2.6],
+  [6.2, 2.6],
+  [6.2, -2.6],
+  [-6.2, -2.6],
+];
+
+export const CAB_OUTLINE: [number, number][] = [
+  [7.0, 3.2],
+  [8.6, 3.9],
+  [10.6, 3.1],
+  [10.6, -1.6],
+  [7.0, -1.6],
+];
+
+export const BELT_LINE: [number, number][] = [
+  [-6.2, 0],
+  [6.2, 0],
+];
+
+export const ENGINE_PODS: [number, number][] = [
+  [-4.0, 0],
+  [4.0, 0],
 ];
 
 // Cockpit window detail line
 export const COCKPIT_LINE: [number, number][] = [
-  [-0.7, 8.6],
-  [0, 9.3],
-  [0.7, 8.6],
+  [8.0, 3.0],
+  [9.2, 3.3],
+  [10.0, 2.7],
 ];
 
-// Landing gear (deployed), left and right legs with one joint each
-// Mounted at about 2/6 and 4/6 of the container length.
+// Landing gear (deployed), left and right legs with one joint each.
+// Attached to the belt at about 2/6 and 4/6 of the container length.
 export const GEAR_LEFT: [number, number][] = [
-  [-1.8, -2.0],
-  [-2.8, -5.2],
-  [-3.8, -8.0],
-  [-3.1, -8.0],
+  [-2.0, 0.0],
+  [-2.8, -3.0],
+  [-3.6, -6.8],
+  [-2.8, -6.8],
 ];
 export const GEAR_RIGHT: [number, number][] = [
-  [1.8, 2.0],
-  [2.8, -4.6],
-  [3.8, -8.0],
-  [3.1, -8.0],
+  [2.0, 0.0],
+  [2.8, -3.0],
+  [3.6, -6.8],
+  [2.8, -6.8],
 ];
 
-// Collision check points (local coords)
-// Cover both the long container/frame body and the cab.
+// Collision check points (local coords): both container and cab are part of the hitbox.
 export const COLLISION_POINTS: [number, number][] = [
-  [0, -6.0],
-  [-2.3, -6.0],
-  [2.3, -6.0],
-  [-2.3, 0],
-  [2.3, 0],
-  [-2.3, 6.0],
-  [2.3, 6.0],
-  [-1.8, 6.0],
-  [1.8, 6.0],
-  [-1.1, 10.0],
-  [1.1, 10.0],
-  [0, 10.0],
+  [-6.2, -2.6], [0, -2.6], [6.2, -2.6],
+  [-6.2, 0], [6.2, 0],
+  [-6.2, 2.6], [0, 2.6], [6.2, 2.6],
+  [7.0, -1.6], [10.6, -1.6],
+  [7.0, 1.2], [10.6, 1.2],
+  [8.6, 3.9], [10.0, 3.0],
 ];
 
-// When gear deployed, the lowest points change
+// When gear deployed, the lowest points change.
 export const GEAR_COLLISION_POINTS: [number, number][] = [
-  [-3.8, -8.0],
-  [-3.1, -8.0],
-  [3.1, -8.0],
-  [3.8, -8.0],
+  [-3.6, -6.8],
+  [-2.8, -6.8],
+  [2.8, -6.8],
+  [3.6, -6.8],
 ];
 
 // Transform local point to world coords
