@@ -561,12 +561,14 @@ function drawThrust(
   const flameDirY = -Math.cos(ship.renderGimbalAngle);
   const flamePerpX = -flameDirY;
   const flamePerpY = flameDirX;
+  const thrustLevel = ship.thrustVisualLevel;
   const minLengthPx = 8;
   const minWidthPx = 4;
   const zoom = Math.max(cam.zoom, 0.001);
-  const flameLength = Math.max((1.2 + ship.throttle * 3) * flicker, minLengthPx / zoom);
-  const flameWidth = Math.max((1.0 + ship.throttle * 1.2) * flicker, minWidthPx / zoom);
+  const flameLength = Math.max((1.2 + thrustLevel * 3) * flicker, minLengthPx / zoom);
+  const flameWidth = Math.max((1.0 + thrustLevel * 1.2) * flicker, minWidthPx / zoom);
   const simplified = zoom < 1.35;
+  const brightFlashActive = thrustLevel >= 0.2;
 
   for (const [podX, podY] of ENGINE_PODS) {
     const [podWX, podWY] = localToWorld(podX, podY, ship.x, ship.y, ship.angle);
@@ -575,18 +577,20 @@ function drawThrust(
     const [sNozX, sNozY] = worldToScreen(nozzleX, nozzleY, cam, W, H);
 
     const glowR = Math.max(2.4, 1.2 * zoom);
-    ctx.beginPath();
-    ctx.arc(sNozX, sNozY, glowR * 1.45, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 190, 80, 0.42)';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(sNozX, sNozY, glowR * 0.85, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 245, 210, 0.95)';
-    ctx.fill();
+    if (brightFlashActive) {
+      ctx.beginPath();
+      ctx.arc(sNozX, sNozY, glowR * 1.45, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 190, 80, 0.42)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sNozX, sNozY, glowR * 0.85, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 245, 210, 0.95)';
+      ctx.fill();
+    }
 
     if (simplified) {
-      const flameLengthPx = Math.max(minLengthPx + ship.throttle * 4, flameLength * zoom);
-      const flameWidthPx = Math.max(minWidthPx + ship.throttle * 2, flameWidth * zoom);
+      const flameLengthPx = Math.max(minLengthPx + thrustLevel * 4, flameLength * zoom);
+      const flameWidthPx = Math.max(minWidthPx + thrustLevel * 2, flameWidth * zoom);
       const dirSX = flameDirX;
       const dirSY = -flameDirY;
       const tipSX = sNozX + dirSX * flameLengthPx;

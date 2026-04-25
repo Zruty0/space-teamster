@@ -17,6 +17,7 @@ export interface ShipState {
   gearDeployed: boolean;
   // Computed / display
   thrustFiring: boolean;
+  thrustVisualLevel: number;
   rcsRotLeft: boolean;
   rcsRotRight: boolean;
   rcsTranslating: boolean;
@@ -37,6 +38,7 @@ export function createShip(): ShipState {
     renderGimbalAngle: 0,
     gearDeployed: false,
     thrustFiring: false,
+    thrustVisualLevel: 0,
     rcsRotLeft: false,
     rcsRotRight: false,
     rcsTranslating: false,
@@ -86,6 +88,7 @@ export function updateShip(
   let angAccel = 0;
 
   ship.thrustFiring = false;
+  ship.thrustVisualLevel = 0;
   ship.rcsRotLeft = false;
   ship.rcsRotRight = false;
   ship.rcsTranslating = false;
@@ -148,6 +151,7 @@ export function updateShip(
     ay += thrustAY;
     ship.dvUsed += thrustMag * dt;
     ship.thrustFiring = true;
+    ship.thrustVisualLevel = thrustMag / c.mainEngineAccel;
   }
 
   // Visual-only nacelle slew, intentionally slower than actual thrust-vector changes.
