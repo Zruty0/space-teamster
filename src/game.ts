@@ -4,7 +4,7 @@ import { config } from './config';
 import { InputState, readInput } from './input';
 import {
   ShipState, createShip, updateShip,
-  COLLISION_POINTS, GEAR_COLLISION_POINTS, localToWorld,
+  COLLISION_POINTS, GEAR_COLLISION_POINTS, LANDING_GEAR_REST_HEIGHT, localToWorld,
 } from './ship';
 import { TerrainData, generateTerrain, getTerrainHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
@@ -103,7 +103,7 @@ export class Game {
     if (launchGuidance) {
       ship.gearDeployed = true;
       ship.x = level.padCenterX;
-      ship.y = getTerrainHeight(terrain, level.padCenterX) + 6.6;
+      ship.y = getTerrainHeight(terrain, level.padCenterX) + LANDING_GEAR_REST_HEIGHT;
       ship.vx = 0;
       ship.vy = 0;
       ship.angle = 0;
@@ -267,7 +267,7 @@ export class Game {
       const orbitDir = departure.departure.orbitDir ?? 1;
       this.loadLanding(
         landingLevel,
-        { x: landingLevel.padCenterX, y: landingLevel.padY + 6.6, vx: 0, vy: 0 },
+        { x: landingLevel.padCenterX, y: landingLevel.padY + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 },
         { targetAltitude: landingLevel.startY, orbitDir, nextApproachLevelId: departure.id },
       );
       return;
@@ -424,7 +424,7 @@ export class Game {
           if (p.launchGuidance) {
             const groundY = getTerrainHeight(p.terrain, p.ship.x);
             p.ship.vx = 0; p.ship.vy = 0; p.ship.angularVel = 0; p.ship.angle = 0;
-            p.ship.y = groundY + 6.6;
+            p.ship.y = groundY + LANDING_GEAR_REST_HEIGHT;
             p.ship.sas = false;
           } else {
             p.state = 'landed';
@@ -448,7 +448,7 @@ export class Game {
     const onPad = isOnPad(p.terrain, p.ship.x);
     if (!onPad) return false;
     const groundY = getTerrainHeight(p.terrain, p.ship.x);
-    const grounded = Math.abs(p.ship.y - (groundY + 6.6)) < 0.2;
+    const grounded = Math.abs(p.ship.y - (groundY + LANDING_GEAR_REST_HEIGHT)) < 0.2;
     const settled = Math.abs(p.ship.vx) < 0.2 && Math.abs(p.ship.vy) < 0.2 && Math.abs(p.ship.angularVel) < 0.05 && Math.abs(p.ship.angle) < 0.05;
     const holding = !input.throttleUp && p.ship.throttle < 0.05;
     return grounded && settled && holding;
@@ -457,7 +457,7 @@ export class Game {
   private clampLaunchShipToPad(p: Extract<Phase, { kind: 'landing' }>): void {
     const groundY = getTerrainHeight(p.terrain, p.ship.x);
     p.ship.x = p.level.padCenterX;
-    p.ship.y = groundY + 6.6;
+    p.ship.y = groundY + LANDING_GEAR_REST_HEIGHT;
     p.ship.vx = 0;
     p.ship.vy = 0;
     p.ship.angle = 0;

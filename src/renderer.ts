@@ -406,13 +406,12 @@ function drawShip(
   ctx: CanvasRenderingContext2D, cam: Camera,
   ship: ShipState, W: number, H: number, time: number
 ): void {
-  // Transform and draw ship outline
+  // Transform and draw outer frame/cab silhouette
   const outline = SHIP_OUTLINE.map(([lx, ly]) => {
     const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
     return worldToScreen(wx, wy, cam, W, H);
   });
 
-  // Ship body
   ctx.beginPath();
   ctx.moveTo(outline[0][0], outline[0][1]);
   for (let i = 1; i < outline.length; i++) {
@@ -422,6 +421,42 @@ function drawShip(
   ctx.strokeStyle = COL_SHIP;
   ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  // Inner container rectangle
+  drawPolyline(ctx, cam, ship, [
+    [-1.6, -5.3],
+    [1.6, -5.3],
+    [1.6, 5.3],
+    [-1.6, 5.3],
+    [-1.6, -5.3],
+  ], '#44aa66', 1, W, H);
+  for (const x of [-0.55, 0.55]) {
+    const [wx0, wy0] = localToWorld(x, -5.3, ship.x, ship.y, ship.angle);
+    const [wx1, wy1] = localToWorld(x, 5.3, ship.x, ship.y, ship.angle);
+    const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
+    const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
+    ctx.beginPath();
+    ctx.moveTo(sx0, sy0);
+    ctx.lineTo(sx1, sy1);
+    ctx.strokeStyle = '#335f33';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Cab/frame join lines
+  drawPolyline(ctx, cam, ship, [[-1.8, 6.0], [-2.3, 6.0]], COL_SHIP, 1, W, H);
+  drawPolyline(ctx, cam, ship, [[1.8, 6.0], [2.3, 6.0]], COL_SHIP, 1, W, H);
+
+  // Engine pods on the belt of the frame at ~1/6 and ~5/6 of container length
+  for (const y of [-4.0, 4.0]) {
+    drawPolyline(ctx, cam, ship, [
+      [2.3, y + 0.9],
+      [3.1, y + 0.7],
+      [3.1, y - 0.7],
+      [2.3, y - 0.9],
+      [2.3, y + 0.9],
+    ], COL_SHIP, 1.2, W, H);
+  }
 
   // Cockpit window
   const cockpit = COCKPIT_LINE.map(([lx, ly]) => {
@@ -437,18 +472,15 @@ function drawShip(
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Landing gear
   if (ship.gearDeployed) {
-    drawPolyline(ctx, cam, ship, GEAR_LEFT, COL_GEAR, 1.5, W, H);
-    drawPolyline(ctx, cam, ship, GEAR_RIGHT, COL_GEAR, 1.5, W, H);
+    drawPolyline(ctx, cam, ship, GEAR_LEFT, COL_GEAR, 1.7, W, H);
+    drawPolyline(ctx, cam, ship, GEAR_RIGHT, COL_GEAR, 1.7, W, H);
   }
 
-  // Main engine thrust
   if (ship.thrustFiring) {
     drawThrust(ctx, cam, ship, W, H, time);
   }
 
-  // RCS puffs
   if (ship.rcsRotLeft || ship.rcsRotRight || ship.rcsTranslating) {
     drawRCS(ctx, cam, ship, W, H, time);
   }
@@ -477,74 +509,58 @@ function drawThrust(
   ctx: CanvasRenderingContext2D, cam: Camera,
   ship: ShipState, W: number, H: number, time: number
 ): void {
-  // Engine nozzle is at (0, -4.5) in local space
-  // Thrust direction is opposite to gimbal-adjusted "up"
-  // Flame extends from nozzle, flickering
-
   const flicker = 0.7 + 0.3 * Math.sin(time * 40) * Math.cos(time * 67);
   const flameLength = (4 + ship.throttle * 12) * flicker;
   const flameWidth = (1 + ship.throttle * 2) * flicker;
-
-  // Nozzle center in local space
-  const nozzleX = 0;
-  const nozzleY = -4.5;
-
-  // Flame direction: opposite of thrust (along gimbal-adjusted "down")
-  // In local space, the flame goes in direction (sin(gimbalAngle), -cos(gimbalAngle))
-  // because the nozzle swivels by gimbalAngle
   const flameAngle = ship.gimbalAngle;
   const flameDirX = Math.sin(flameAngle);
   const flameDirY = -Math.cos(flameAngle);
   const flamePerpX = -flameDirY;
   const flamePerpY = flameDirX;
 
-  // Flame tip
-  const tipX = nozzleX + flameDirX * flameLength;
-  const tipY = nozzleY + flameDirY * flameLength;
+  for (const [nozzleX, nozzleY] of [[3.1, -4.0], [3.1, 4.0]] as [number, number][]) {
+    const tipX = nozzleX + flameDirX * flameLength;
+    const tipY = nozzleY + flameDirY * flameLength;
+    const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
+    const baseLeftY = nozzleY - flamePerpY * flameWidth * 0.5;
+    const baseRightX = nozzleX + flamePerpX * flameWidth * 0.5;
+    const baseRightY = nozzleY + flamePerpY * flameWidth * 0.5;
 
-  // Flame base corners
-  const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
-  const baseLeftY = nozzleY - flamePerpY * flameWidth * 0.5;
-  const baseRightX = nozzleX + flamePerpX * flameWidth * 0.5;
-  const baseRightY = nozzleY + flamePerpY * flameWidth * 0.5;
+    const [sTipX, sTipY] = worldToScreen(
+      ...localToWorld(tipX, tipY, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    const [sBlX, sBlY] = worldToScreen(
+      ...localToWorld(baseLeftX, baseLeftY, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    const [sBrX, sBrY] = worldToScreen(
+      ...localToWorld(baseRightX, baseRightY, ship.x, ship.y, ship.angle), cam, W, H
+    );
 
-  // Transform all to screen
-  const [sTipX, sTipY] = worldToScreen(
-    ...localToWorld(tipX, tipY, ship.x, ship.y, ship.angle), cam, W, H
-  );
-  const [sBlX, sBlY] = worldToScreen(
-    ...localToWorld(baseLeftX, baseLeftY, ship.x, ship.y, ship.angle), cam, W, H
-  );
-  const [sBrX, sBrY] = worldToScreen(
-    ...localToWorld(baseRightX, baseRightY, ship.x, ship.y, ship.angle), cam, W, H
-  );
+    ctx.beginPath();
+    ctx.moveTo(sBlX, sBlY);
+    ctx.lineTo(sTipX, sTipY);
+    ctx.lineTo(sBrX, sBrY);
+    ctx.strokeStyle = COL_THRUST;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+    ctx.stroke();
 
-  // Outer flame
-  ctx.beginPath();
-  ctx.moveTo(sBlX, sBlY);
-  ctx.lineTo(sTipX, sTipY);
-  ctx.lineTo(sBrX, sBrY);
-  ctx.strokeStyle = COL_THRUST;
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = 0.8;
-  ctx.stroke();
-
-  // Inner flame (core)
-  const coreLength = flameLength * 0.5;
-  const coreTipX = nozzleX + flameDirX * coreLength;
-  const coreTipY = nozzleY + flameDirY * coreLength;
-  const [sCoreX, sCoreY] = worldToScreen(
-    ...localToWorld(coreTipX, coreTipY, ship.x, ship.y, ship.angle), cam, W, H
-  );
-  const [sNozX, sNozY] = worldToScreen(
-    ...localToWorld(nozzleX, nozzleY, ship.x, ship.y, ship.angle), cam, W, H
-  );
-  ctx.beginPath();
-  ctx.moveTo(sNozX, sNozY);
-  ctx.lineTo(sCoreX, sCoreY);
-  ctx.strokeStyle = COL_THRUST_CORE;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+    const coreLength = flameLength * 0.5;
+    const coreTipX = nozzleX + flameDirX * coreLength;
+    const coreTipY = nozzleY + flameDirY * coreLength;
+    const [sCoreX, sCoreY] = worldToScreen(
+      ...localToWorld(coreTipX, coreTipY, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    const [sNozX, sNozY] = worldToScreen(
+      ...localToWorld(nozzleX, nozzleY, ship.x, ship.y, ship.angle), cam, W, H
+    );
+    ctx.beginPath();
+    ctx.moveTo(sNozX, sNozY);
+    ctx.lineTo(sCoreX, sCoreY);
+    ctx.strokeStyle = COL_THRUST_CORE;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
 
   ctx.globalAlpha = 1;
 }
@@ -563,17 +579,16 @@ function drawRCS(
   const puffs: Puff[] = [];
 
   if (ship.rcsRotRight) {
-    puffs.push({ x: 2, y: 3, dx: 1, dy: 0 });    // top-right fires right (pushes left)
-    puffs.push({ x: -2, y: -3, dx: -1, dy: 0 });  // bottom-left fires left (pushes right)
+    puffs.push({ x: 2.7, y: 7.6, dx: 1, dy: 0 });
+    puffs.push({ x: -2.7, y: -5.2, dx: -1, dy: 0 });
   }
   if (ship.rcsRotLeft) {
-    puffs.push({ x: -2, y: 3, dx: -1, dy: 0 });   // top-left fires left
-    puffs.push({ x: 2, y: -3, dx: 1, dy: 0 });    // bottom-right fires right
+    puffs.push({ x: -2.7, y: 7.6, dx: -1, dy: 0 });
+    puffs.push({ x: 2.7, y: -5.2, dx: 1, dy: 0 });
   }
   if (ship.rcsTranslating) {
-    // Show small puffs in the direction opposing velocity (approximate)
-    puffs.push({ x: 0, y: 3, dx: 0, dy: 1 });
-    puffs.push({ x: 0, y: -3, dx: 0, dy: -1 });
+    puffs.push({ x: 0, y: 8.8, dx: 0, dy: 1 });
+    puffs.push({ x: 0, y: -5.8, dx: 0, dy: -1 });
   }
 
   ctx.strokeStyle = COL_RCS;

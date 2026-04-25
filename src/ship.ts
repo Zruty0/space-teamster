@@ -186,60 +186,67 @@ export function updateShip(
 
 // --- Ship geometry for rendering & collision ---
 
+export const LANDING_GEAR_REST_HEIGHT = 8.0;
+
 // Outline vertices in local coords (origin = CoM, y-up, meters)
+// Side-view cargo tug: short cab on top, frame around a long container below.
 export const SHIP_OUTLINE: [number, number][] = [
-  [0, 5],        // nose
-  [1.2, 3.5],    // right shoulder
-  [1.8, 1],      // right upper body
-  [2, -2],       // right lower body
-  [2.5, -3],     // right engine mount
-  [2.5, -4.5],   // right engine bottom
-  [1.2, -4.5],   // right engine inner
-  [1.2, -3],     // right inner step
-  [-1.2, -3],    // left inner step
-  [-1.2, -4.5],  // left engine inner
-  [-2.5, -4.5],  // left engine bottom
-  [-2.5, -3],    // left engine mount
-  [-2, -2],      // left lower body
-  [-1.8, 1],     // left upper body
-  [-1.2, 3.5],   // left shoulder
+  [0, 10.0],
+  [1.1, 9.1],
+  [1.8, 6.0],
+  [2.3, 6.0],
+  [2.3, -6.0],
+  [-2.3, -6.0],
+  [-2.3, 6.0],
+  [-1.8, 6.0],
+  [-1.1, 9.1],
 ];
 
 // Cockpit window detail line
 export const COCKPIT_LINE: [number, number][] = [
-  [-0.8, 3.8],
-  [0, 4.5],
-  [0.8, 3.8],
+  [-0.7, 8.6],
+  [0, 9.3],
+  [0.7, 8.6],
 ];
 
-// Landing gear (deployed), left and right legs
+// Landing gear (deployed), left and right legs with one joint each
+// Mounted at about 2/6 and 4/6 of the container length.
 export const GEAR_LEFT: [number, number][] = [
-  [-1.5, -4.5],
-  [-2.5, -6.5],
-  [-3.2, -6.5],
+  [-1.8, -2.0],
+  [-2.8, -5.2],
+  [-3.8, -8.0],
+  [-3.1, -8.0],
 ];
 export const GEAR_RIGHT: [number, number][] = [
-  [1.5, -4.5],
-  [2.5, -6.5],
-  [3.2, -6.5],
+  [1.8, 2.0],
+  [2.8, -4.6],
+  [3.8, -8.0],
+  [3.1, -8.0],
 ];
 
 // Collision check points (local coords)
+// Cover both the long container/frame body and the cab.
 export const COLLISION_POINTS: [number, number][] = [
-  [0, -4.5],     // bottom center
-  [-2.5, -4.5],  // left engine bottom
-  [2.5, -4.5],   // right engine bottom
-  [0, 5],        // nose
-  [-2, 0],       // left body
-  [2, 0],        // right body
+  [0, -6.0],
+  [-2.3, -6.0],
+  [2.3, -6.0],
+  [-2.3, 0],
+  [2.3, 0],
+  [-2.3, 6.0],
+  [2.3, 6.0],
+  [-1.8, 6.0],
+  [1.8, 6.0],
+  [-1.1, 10.0],
+  [1.1, 10.0],
+  [0, 10.0],
 ];
 
 // When gear deployed, the lowest points change
 export const GEAR_COLLISION_POINTS: [number, number][] = [
-  [-2.5, -6.5],  // left gear foot
-  [-3.2, -6.5],
-  [2.5, -6.5],   // right gear foot
-  [3.2, -6.5],
+  [-3.8, -8.0],
+  [-3.1, -8.0],
+  [3.1, -8.0],
+  [3.8, -8.0],
 ];
 
 // Transform local point to world coords
