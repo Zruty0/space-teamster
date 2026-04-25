@@ -446,7 +446,7 @@ function drawShip(
   drawPolyline(ctx, cam, ship, [[10.4, 2.8], [10.8, 1.2]], COL_SHIP_DIM, 1, W, H); // front windshield edge
   drawPolyline(ctx, cam, ship, [[10.6, -1.8], [10.9, -1.4]], COL_SHIP_DIM, 1, W, H); // bumper/nose
 
-  // Engine pods as filled circles on the belt frame
+  // Engine pods as filled circles on the belt frame, with visible downward funnels
   for (const [px, py] of ENGINE_PODS) {
     const [sx, sy] = worldToScreen(...localToWorld(px, py, ship.x, ship.y, ship.angle), cam, W, H);
     const [sxR, syR] = worldToScreen(...localToWorld(px + 0.8, py, ship.x, ship.y, ship.angle), cam, W, H);
@@ -457,6 +457,22 @@ function drawShip(
     ctx.fill();
     ctx.strokeStyle = COL_SHIP;
     ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    const funnel = [
+      localToWorld(px - 0.42, py - 0.55, ship.x, ship.y, ship.angle),
+      localToWorld(px + 0.42, py - 0.55, ship.x, ship.y, ship.angle),
+      localToWorld(px + 0.26, py - 1.35, ship.x, ship.y, ship.angle),
+      localToWorld(px - 0.26, py - 1.35, ship.x, ship.y, ship.angle),
+    ].map(([wx, wy]) => worldToScreen(wx, wy, cam, W, H));
+    ctx.beginPath();
+    ctx.moveTo(funnel[0][0], funnel[0][1]);
+    for (let i = 1; i < funnel.length; i++) ctx.lineTo(funnel[i][0], funnel[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = '#173322';
+    ctx.fill();
+    ctx.strokeStyle = COL_SHIP;
+    ctx.lineWidth = 1.1;
     ctx.stroke();
   }
 
@@ -504,9 +520,9 @@ function drawThrust(
   ctx: CanvasRenderingContext2D, cam: Camera,
   ship: ShipState, W: number, H: number, time: number
 ): void {
-  const flicker = 0.7 + 0.3 * Math.sin(time * 40) * Math.cos(time * 67);
-  const flameLength = (4 + ship.throttle * 12) * flicker;
-  const flameWidth = (1 + ship.throttle * 2) * flicker;
+  const flicker = 0.8 + 0.2 * Math.sin(time * 40) * Math.cos(time * 67);
+  const flameLength = (2 + ship.throttle * 6) * flicker;
+  const flameWidth = (1.2 + ship.throttle * 1.6) * flicker;
   const flameAngle = ship.gimbalAngle;
   const flameDirX = Math.sin(flameAngle);
   const flameDirY = -Math.cos(flameAngle);
@@ -515,7 +531,7 @@ function drawThrust(
 
   for (const [podX, podY] of ENGINE_PODS) {
     const nozzleX = podX;
-    const nozzleY = podY - 0.8; // exhaust port at bottom of circular pod
+    const nozzleY = podY - 1.35; // exhaust exits from end of the funnel
     const tipX = nozzleX + flameDirX * flameLength;
     const tipY = nozzleY + flameDirY * flameLength;
     const baseLeftX = nozzleX - flamePerpX * flameWidth * 0.5;
@@ -537,12 +553,11 @@ function drawThrust(
     ctx.moveTo(sBlX, sBlY);
     ctx.lineTo(sTipX, sTipY);
     ctx.lineTo(sBrX, sBrY);
-    ctx.strokeStyle = COL_THRUST;
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.8;
-    ctx.stroke();
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 200, 80, 0.92)';
+    ctx.fill();
 
-    const coreLength = flameLength * 0.5;
+    const coreLength = flameLength * 0.55;
     const coreTipX = nozzleX + flameDirX * coreLength;
     const coreTipY = nozzleY + flameDirY * coreLength;
     const [sCoreX, sCoreY] = worldToScreen(
@@ -552,11 +567,12 @@ function drawThrust(
       ...localToWorld(nozzleX, nozzleY, ship.x, ship.y, ship.angle), cam, W, H
     );
     ctx.beginPath();
-    ctx.moveTo(sNozX, sNozY);
+    ctx.moveTo(sNozX - (sBrX - sBlX) * 0.18, sNozY);
     ctx.lineTo(sCoreX, sCoreY);
-    ctx.strokeStyle = COL_THRUST_CORE;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    ctx.lineTo(sNozX + (sBrX - sBlX) * 0.18, sNozY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 245, 210, 0.95)';
+    ctx.fill();
   }
 
   ctx.globalAlpha = 1;
