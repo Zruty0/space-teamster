@@ -446,6 +446,29 @@ function drawShip(
   drawPolyline(ctx, cam, ship, [[10.4, 2.8], [10.8, 1.2]], COL_SHIP_DIM, 1, W, H); // front windshield edge
   drawPolyline(ctx, cam, ship, [[10.6, -1.8], [10.9, -1.4]], COL_SHIP_DIM, 1, W, H); // bumper/nose
 
+  const sideWindow = [
+    [8.05, 2.9],
+    [9.05, 2.9],
+    [9.7, 2.35],
+    [9.65, 1.55],
+    [8.05, 1.55],
+  ] as [number, number][];
+  const sideWindowScreen = sideWindow.map(([lx, ly]) => {
+    const [wx, wy] = localToWorld(lx, ly, ship.x, ship.y, ship.angle);
+    return worldToScreen(wx, wy, cam, W, H);
+  });
+  ctx.beginPath();
+  ctx.moveTo(sideWindowScreen[0][0], sideWindowScreen[0][1]);
+  for (let i = 1; i < sideWindowScreen.length; i++) ctx.lineTo(sideWindowScreen[i][0], sideWindowScreen[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(70, 190, 255, 0.35)';
+  ctx.fill();
+  ctx.strokeStyle = COL_COCKPIT;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  drawPolyline(ctx, cam, ship, [[7.9, -0.15], [8.35, -0.15]], COL_SHIP, 1.2, W, H); // door handle
+
   // Engine pods as filled circles on the belt frame, with visible downward funnels
   for (const [px, py] of ENGINE_PODS) {
     const [sx, sy] = worldToScreen(...localToWorld(px, py, ship.x, ship.y, ship.angle), cam, W, H);
