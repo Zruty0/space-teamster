@@ -1422,63 +1422,141 @@ function drawApproachShip(
   ctx.translate(sx, sy);
   ctx.rotate(s.angle);
 
-  // --- Body triangle ---
+  const cabFrontY = -size * 0.82;
+  const cabBackY = -size * 0.32;
+  const cabHalfFrontW = size * 0.22;
+  const cabHalfBackW = size * 0.34;
+  const frameX0 = -size * 0.42;
+  const frameX1 = size * 0.42;
+  const frameY0 = -size * 0.04;
+  const frameY1 = size * 1.02;
+  const contX0 = -size * 0.28;
+  const contX1 = size * 0.28;
+  const contY0 = size * 0.12;
+  const contY1 = size * 0.86;
+  const rearNozzleY = frameY1;
+  const rearNozzleLeftX = -size * 0.2;
+  const rearNozzleRightX = size * 0.2;
+
+  // Container fill
+  ctx.fillStyle = '#102010';
+  ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  for (let i = 1; i < 3; i++) {
+    const x = contX0 + ((contX1 - contX0) * i) / 3;
+    ctx.beginPath();
+    ctx.moveTo(x, contY0);
+    ctx.lineTo(x, contY1);
+    ctx.stroke();
+  }
+
+  // Frame
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(frameX0, frameY0, frameX1 - frameX0, frameY1 - frameY0);
+  const bracket = size * 0.12;
+  for (const [bx, by, dx, dy] of [
+    [frameX0, frameY0, 1, 1], [frameX1, frameY0, -1, 1],
+    [frameX0, frameY1, 1, -1], [frameX1, frameY1, -1, -1],
+  ] as [number, number, number, number][]) {
+    ctx.beginPath();
+    ctx.moveTo(bx, by + dy * bracket);
+    ctx.lineTo(bx, by);
+    ctx.lineTo(bx + dx * bracket, by);
+    ctx.stroke();
+  }
+
+  // Cab struts
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, -size);
-  ctx.lineTo(size * 0.5, size * 0.5);
-  ctx.lineTo(-size * 0.5, size * 0.5);
+  ctx.moveTo(-cabHalfBackW * 0.75, cabBackY);
+  ctx.lineTo(frameX0 * 0.65, frameY0);
+  ctx.moveTo(cabHalfBackW * 0.75, cabBackY);
+  ctx.lineTo(frameX1 * 0.65, frameY0);
+  ctx.stroke();
+
+  // Cab trapezoid
+  ctx.beginPath();
+  ctx.moveTo(-cabHalfFrontW, cabFrontY);
+  ctx.lineTo(cabHalfFrontW, cabFrontY);
+  ctx.lineTo(cabHalfBackW, cabBackY);
+  ctx.lineTo(-cabHalfBackW, cabBackY);
   ctx.closePath();
+  ctx.fillStyle = '#0a140a';
+  ctx.fill();
   ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // --- Heat shield: orange fill on the front half of the ship ---
-  // --- Wings (min angle = swept back/streamlined, max = perpendicular) ---
+  // Cockpit window
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.13, -size * 0.58);
+  ctx.lineTo(0, -size * 0.68);
+  ctx.lineTo(size * 0.13, -size * 0.58);
+  ctx.strokeStyle = '#00ccff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Wings mounted to the schematic frame shoulders
   if (s.wingsDeployed) {
-    // Normalize: 0 = fully swept, 1 = fully perpendicular
     const wingMaxAngle = effectiveWingMaxAngle(level);
     const t = (s.wingAngle - MIN_WING_ANGLE) / Math.max(wingMaxAngle - MIN_WING_ANGLE, 1e-6);
-    const wingSpan = size * (0.5 + t * 0.7);  // longer at max
-    // Sweep: at min angle wings point backward (+y), at max they're perpendicular (0)
-    const sweepY = (1 - t) * size * 0.6;
+    const wingRootY = size * 0.16;
+    const wingRootX = size * 0.34;
+    const wingSpan = size * (0.38 + t * 0.72);
+    const sweepY = size * (0.55 * (1 - t) + 0.04);
     ctx.beginPath();
-    ctx.moveTo(-size * 0.25, size * 0.05);
-    ctx.lineTo(-wingSpan, size * 0.05 + sweepY);
-    ctx.moveTo(size * 0.25, size * 0.05);
-    ctx.lineTo(wingSpan, size * 0.05 + sweepY);
+    ctx.moveTo(-wingRootX, wingRootY);
+    ctx.lineTo(-(wingRootX + wingSpan), wingRootY + sweepY);
+    ctx.moveTo(wingRootX, wingRootY);
+    ctx.lineTo(wingRootX + wingSpan, wingRootY + sweepY);
     ctx.strokeStyle = '#00ccff';
     ctx.lineWidth = 2;
     ctx.stroke();
   }
 
-  // --- Main thrust flame (from bottom) ---
-  if (s.throttle > 0.05) {
-    const flicker = 0.7 + 0.3 * Math.sin(time * 40);
-    const fl = (3 + s.throttle * 10) * flicker;
+  // Rear nozzles
+  ctx.strokeStyle = '#557755';
+  ctx.lineWidth = 1.2;
+  for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
     ctx.beginPath();
-    ctx.moveTo(-size * 0.2, size * 0.5);
-    ctx.lineTo(0, size * 0.5 + fl);
-    ctx.lineTo(size * 0.2, size * 0.5);
-    ctx.strokeStyle = '#ffaa00';
-    ctx.lineWidth = 2;
+    ctx.moveTo(x - size * 0.07, rearNozzleY);
+    ctx.lineTo(x, rearNozzleY + size * 0.12);
+    ctx.lineTo(x + size * 0.07, rearNozzleY);
     ctx.stroke();
   }
 
-  // --- Retro thrust flame (from nose) ---
+  // Main thrust flame (rear)
+  if (s.throttle > 0.05) {
+    const flicker = 0.7 + 0.3 * Math.sin(time * 40);
+    const fl = (size * 0.55 + s.throttle * size * 1.35) * flicker;
+    for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
+      ctx.beginPath();
+      ctx.moveTo(x - size * 0.08, rearNozzleY + size * 0.06);
+      ctx.lineTo(x, rearNozzleY + fl);
+      ctx.lineTo(x + size * 0.08, rearNozzleY + size * 0.06);
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // Retro thrust flame (nose)
   if (s.retroFiring) {
     const flicker = 0.7 + 0.3 * Math.sin(time * 45);
-    const fl = (3 + 10) * flicker;
+    const fl = (size * 0.75 + size * 0.95) * flicker;
     ctx.beginPath();
-    ctx.moveTo(-size * 0.15, -size);
-    ctx.lineTo(0, -size - fl);
-    ctx.lineTo(size * 0.15, -size);
+    ctx.moveTo(-size * 0.11, cabFrontY);
+    ctx.lineTo(0, cabFrontY - fl);
+    ctx.lineTo(size * 0.11, cabFrontY);
     ctx.strokeStyle = '#ff6600';
     ctx.lineWidth = 2;
     ctx.stroke();
-    // Inner core
     ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(0, -size - fl * 0.5);
+    ctx.moveTo(0, cabFrontY);
+    ctx.lineTo(0, cabFrontY - fl * 0.5);
     ctx.strokeStyle = '#ffcc44';
     ctx.lineWidth = 1.5;
     ctx.stroke();
