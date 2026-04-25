@@ -1354,7 +1354,7 @@ export function updateOrbital(
     } else if (speed > 0.1) {
       targetRenderAngle = Math.atan2(s.vy, s.vx);
     }
-    const maxRenderDelta = (Math.PI * 0.5 / 0.2) * dt;
+    const maxRenderDelta = (Math.PI * 0.5 / 0.1) * dt;
     s.renderAngle = moveAngleToward(s.renderAngle, targetRenderAngle, maxRenderDelta);
   }
 
