@@ -2974,42 +2974,124 @@ function drawShip(
   ctx.translate(sx, sy);
   ctx.rotate(screenAngle);
 
-  // Triangle
+  const cabFrontY = -size * 0.8;
+  const cabBackY = -size * 0.15;
+  const cabHalfFrontW = size * 0.22;
+  const cabHalfBackW = size * 0.34;
+  const frameX0 = -size * 0.42;
+  const frameX1 = size * 0.42;
+  const frameY0 = -size * 0.02;
+  const frameY1 = size * 0.82;
+  const contX0 = -size * 0.28;
+  const contX1 = size * 0.28;
+  const contY0 = size * 0.12;
+  const contY1 = size * 0.66;
+  const rearNozzleY = frameY1;
+  const rearNozzleLeftX = -size * 0.2;
+  const rearNozzleRightX = size * 0.2;
+  const sideThrusterY = size * 0.34;
+  const sideThrusterX = size * 0.42;
+
+  // Container fill
+  ctx.fillStyle = '#102010';
+  ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  for (let i = 1; i < 3; i++) {
+    const x = contX0 + ((contX1 - contX0) * i) / 3;
+    ctx.beginPath();
+    ctx.moveTo(x, contY0);
+    ctx.lineTo(x, contY1);
+    ctx.stroke();
+  }
+
+  // Frame
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(frameX0, frameY0, frameX1 - frameX0, frameY1 - frameY0);
+  const bracket = size * 0.12;
+  for (const [bx, by, dx, dy] of [
+    [frameX0, frameY0, 1, 1], [frameX1, frameY0, -1, 1],
+    [frameX0, frameY1, 1, -1], [frameX1, frameY1, -1, -1],
+  ] as [number, number, number, number][]) {
+    ctx.beginPath();
+    ctx.moveTo(bx, by + dy * bracket);
+    ctx.lineTo(bx, by);
+    ctx.lineTo(bx + dx * bracket, by);
+    ctx.stroke();
+  }
+
+  // Cab struts
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, -size);
-  ctx.lineTo(size * 0.5, size * 0.5);
-  ctx.lineTo(-size * 0.5, size * 0.5);
+  ctx.moveTo(-cabHalfBackW * 0.75, cabBackY);
+  ctx.lineTo(frameX0 * 0.65, frameY0);
+  ctx.moveTo(cabHalfBackW * 0.75, cabBackY);
+  ctx.lineTo(frameX1 * 0.65, frameY0);
+  ctx.stroke();
+
+  // Cab trapezoid
+  ctx.beginPath();
+  ctx.moveTo(-cabHalfFrontW, cabFrontY);
+  ctx.lineTo(cabHalfFrontW, cabFrontY);
+  ctx.lineTo(cabHalfBackW, cabBackY);
+  ctx.lineTo(-cabHalfBackW, cabBackY);
   ctx.closePath();
+  ctx.fillStyle = '#0a140a';
+  ctx.fill();
   ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  // Cockpit window
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.13, -size * 0.58);
+  ctx.lineTo(0, -size * 0.68);
+  ctx.lineTo(size * 0.13, -size * 0.58);
+  ctx.strokeStyle = '#00ccff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Rear nozzles
+  ctx.strokeStyle = '#557755';
+  ctx.lineWidth = 1.2;
+  for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
+    ctx.beginPath();
+    ctx.moveTo(x - size * 0.07, rearNozzleY);
+    ctx.lineTo(x, rearNozzleY + size * 0.12);
+    ctx.lineTo(x + size * 0.07, rearNozzleY);
+    ctx.stroke();
+  }
 
   // Thrust flames — bigger in high thrust mode
   const hi = s.highThrust;
   const flicker = 0.7 + 0.3 * Math.sin(time * (hi ? 55 : 40));
   const flameBase = hi ? 24 : 8;
   const flameRcs = hi ? 18 : 6;
-  const fw = hi ? 3 : 2;       // line width
+  const fw = hi ? 3 : 2;
   const mainCol = hi ? '#ffdd66' : '#ffaa00';
   const retroCol = hi ? '#ffaa44' : '#ff6600';
   const rcsCol = hi ? '#ff8844' : '#ff4400';
 
   if (s.thrustPro) {
     const fl = flameBase * flicker;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.2, size * 0.5);
-    ctx.lineTo(0, size * 0.5 + fl);
-    ctx.lineTo(size * 0.2, size * 0.5);
-    ctx.strokeStyle = mainCol;
-    ctx.lineWidth = fw;
-    ctx.stroke();
+    for (const x of [rearNozzleLeftX, rearNozzleRightX]) {
+      ctx.beginPath();
+      ctx.moveTo(x - size * 0.08, rearNozzleY + size * 0.06);
+      ctx.lineTo(x, rearNozzleY + fl);
+      ctx.lineTo(x + size * 0.08, rearNozzleY + size * 0.06);
+      ctx.strokeStyle = mainCol;
+      ctx.lineWidth = fw;
+      ctx.stroke();
+    }
   }
   if (s.thrustRetro) {
     const fl = flameBase * flicker;
     ctx.beginPath();
-    ctx.moveTo(-size * 0.15, -size);
-    ctx.lineTo(0, -size - fl);
-    ctx.lineTo(size * 0.15, -size);
+    ctx.moveTo(-size * 0.11, cabFrontY);
+    ctx.lineTo(0, cabFrontY - fl);
+    ctx.lineTo(size * 0.11, cabFrontY);
     ctx.strokeStyle = retroCol;
     ctx.lineWidth = fw;
     ctx.stroke();
@@ -3017,9 +3099,9 @@ function drawShip(
   if (s.thrustLeft) {
     const fl = flameRcs * flicker;
     ctx.beginPath();
-    ctx.moveTo(size * 0.4, -size * 0.2);
-    ctx.lineTo(size * 0.4 + fl, 0);
-    ctx.lineTo(size * 0.4, size * 0.2);
+    ctx.moveTo(sideThrusterX, sideThrusterY - size * 0.08);
+    ctx.lineTo(sideThrusterX + fl, sideThrusterY);
+    ctx.lineTo(sideThrusterX, sideThrusterY + size * 0.08);
     ctx.strokeStyle = rcsCol;
     ctx.lineWidth = fw;
     ctx.stroke();
@@ -3027,9 +3109,9 @@ function drawShip(
   if (s.thrustRight) {
     const fl = flameRcs * flicker;
     ctx.beginPath();
-    ctx.moveTo(-size * 0.4, -size * 0.2);
-    ctx.lineTo(-size * 0.4 - fl, 0);
-    ctx.lineTo(-size * 0.4, size * 0.2);
+    ctx.moveTo(-sideThrusterX, sideThrusterY - size * 0.08);
+    ctx.lineTo(-sideThrusterX - fl, sideThrusterY);
+    ctx.lineTo(-sideThrusterX, sideThrusterY + size * 0.08);
     ctx.strokeStyle = rcsCol;
     ctx.lineWidth = fw;
     ctx.stroke();
