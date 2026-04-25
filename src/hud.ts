@@ -274,8 +274,8 @@ export function drawHUD(
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
     const controls = ship.gearDeployed
-      ? 'GEAR DOWN: W/S Throttle  A/D Lateral  SHIFT+A/D Max Lateral  Q/E Rotate  SPACE Hover  G Gear  T SAS  BACKSPACE Restart'
-      : 'GEAR UP: WASD World Thrust  SHIFT+WASD Full Thrust  Q/E Rotate  G Gear  T SAS  BACKSPACE Restart';
+      ? 'GEAR DOWN: W/S Throttle  A/D 5% Lateral  SHIFT+A/D Max Lateral  Q/E Rotate  SPACE Hover  G Gear  T SAS  BACKSPACE Restart'
+      : 'GEAR UP: WASD 20% World Thrust  SHIFT+WASD Full Thrust  Q/E Rotate  G Gear  T SAS  BACKSPACE Restart';
     ctx.fillText(controls, W / 2, H - 15);
   }
 

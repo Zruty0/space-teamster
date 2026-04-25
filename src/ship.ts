@@ -105,7 +105,7 @@ export function updateShip(
     if (input.setHoverThrottle) ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
 
     const lateralSign = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
-    const lateralAccel = lateralSign * c.mainEngineAccel * (input.shiftHeld ? 1 : 0.1);
+    const lateralAccel = lateralSign * c.mainEngineAccel * (input.shiftHeld ? 1 : 0.05);
     const liftAccel = ship.throttle * c.mainEngineAccel;
 
     thrustAX = lateralAccel;
@@ -118,7 +118,7 @@ export function updateShip(
     const inputY = (input.moveUp ? 1 : 0) - (input.moveDown ? 1 : 0);
     const inputMag = Math.hypot(inputX, inputY);
     if (inputMag > 1e-6) {
-      const thrustAccel = c.mainEngineAccel * (input.shiftHeld ? 1 : 0.1);
+      const thrustAccel = c.mainEngineAccel * (input.shiftHeld ? 1 : 0.2);
       thrustAX = inputX / inputMag * thrustAccel;
       thrustAY = inputY / inputMag * thrustAccel;
       ship.throttle = thrustAccel / c.mainEngineAccel;
