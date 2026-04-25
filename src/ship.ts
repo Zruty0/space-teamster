@@ -72,7 +72,7 @@ export function landingAutoAngleTarget(vx: number, vy: number): number {
   const descentSpeed = Math.hypot(refVX, downwardSpeed);
   if (descentSpeed < 1.0 || downwardSpeed < 0.5 || Math.abs(refVX) < 0.15) return 0;
   const offsetFromDown = Math.atan2(refVX, downwardSpeed);
-  return clamp(offsetFromDown * 0.5, -Math.PI / 12, Math.PI / 12);
+  return clamp(offsetFromDown * 0.1, -Math.PI / 12, Math.PI / 12);
 }
 
 export function updateShip(
