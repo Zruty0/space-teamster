@@ -66,13 +66,17 @@ function angleDelta(target: number, current: number): number {
 }
 
 export function landingAutoAngleTarget(vx: number, vy: number): number {
-  const refVX = vx;
-  const refVY = vy > 0 ? -vy : vy;
-  const downwardSpeed = Math.max(0, -refVY);
-  const descentSpeed = Math.hypot(refVX, downwardSpeed);
-  if (descentSpeed < 1.0 || downwardSpeed < 0.5 || Math.abs(refVX) < 0.15) return 0;
-  const offsetFromDown = Math.atan2(refVX, downwardSpeed);
-  return clamp(offsetFromDown * 0.1, -Math.PI / 12, Math.PI / 12);
+  const lateralSpeed = vx;
+  const verticalSpeed = vy;
+  const upward = verticalSpeed > 0;
+  const downwardEquivalentSpeed = upward ? verticalSpeed : -verticalSpeed;
+  const referenceDownwardSpeed = Math.max(0, downwardEquivalentSpeed);
+  const referenceSpeed = Math.hypot(lateralSpeed, referenceDownwardSpeed);
+  if (referenceSpeed < 1.0 || referenceDownwardSpeed < 0.5 || Math.abs(lateralSpeed) < 0.15) return 0;
+
+  const offsetFromDown = Math.atan2(lateralSpeed, referenceDownwardSpeed);
+  const signedTilt = upward ? offsetFromDown : -offsetFromDown;
+  return clamp(signedTilt * 0.1, -Math.PI / 12, Math.PI / 12);
 }
 
 export function updateShip(
