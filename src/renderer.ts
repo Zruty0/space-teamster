@@ -340,7 +340,7 @@ function predictLandingTrajectory(
     }
 
     angAccel -= sim.angularVel * config.angularDrag;
-    if (sim.gearDeployed) {
+    if (sim.autoRotateEnabled) {
       const targetAngle = landingAutoAngleTarget(sim.vx, sim.vy);
       const desiredAngVel = (targetAngle - sim.angle) * 5.0;
       const angVelError = desiredAngVel - sim.angularVel;

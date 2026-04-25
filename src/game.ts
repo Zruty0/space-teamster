@@ -353,6 +353,7 @@ export class Game {
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
     if (input.toggleGear && p.state === 'flying') {
       p.ship.gearDeployed = !p.ship.gearDeployed;
+      p.ship.autoRotateEnabled = true;
     }
     if (input.toggleSAS && p.state === 'flying') {
       p.ship.sas = !p.ship.sas;

@@ -15,6 +15,7 @@ export interface ShipState {
   gimbalAngle: number;  // rad, current engine thrust direction in world coords
   renderGimbalAngle: number; // rad, visual nacelle direction in world coords
   gearDeployed: boolean;
+  autoRotateEnabled: boolean;
   // Computed / display
   thrustFiring: boolean;
   thrustVisualLevel: number;
@@ -37,6 +38,7 @@ export function createShip(): ShipState {
     gimbalAngle: 0,
     renderGimbalAngle: 0,
     gearDeployed: false,
+    autoRotateEnabled: true,
     thrustFiring: false,
     thrustVisualLevel: 0,
     rcsRotLeft: false,
@@ -100,11 +102,11 @@ export function updateShip(
   // --- Hull rotation: Q/E in both gear modes ---
   const rotateInput = (input.rotateRight ? 1 : 0) - (input.rotateLeft ? 1 : 0);
   if (Math.abs(rotateInput) > 0.01) {
+    ship.autoRotateEnabled = false;
     angAccel += rotateInput * c.rcsAngularAccel;
     ship.rcsRotRight = rotateInput > 0;
     ship.rcsRotLeft = rotateInput < 0;
-  } else if (ship.gearDeployed) {
-    // Gear-down auto-level when Q/E are not held, with slight velocity-following tilt.
+  } else if (ship.autoRotateEnabled) {
     const targetAngle = landingAutoAngleTarget(ship.vx, ship.vy);
     const desiredAngVel = angleDelta(targetAngle, ship.angle) * 5.0;
     const angVelError = desiredAngVel - ship.angularVel;
