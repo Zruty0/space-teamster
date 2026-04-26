@@ -686,12 +686,14 @@ export class Game {
     if (!approachLevel) return;
 
     const terrainH = getTerrainHeight(p.terrain, p.ship.x);
+    const speed = Math.hypot(p.ship.vx, p.ship.vy);
+    const progradeAngle = speed > 0.1 ? Math.atan2(p.ship.vx, p.ship.vy) : p.ship.angle;
     const initOverride: ApproachInitOverride = {
       x: p.ship.x - p.level.padCenterX,
       y: Math.max(0, p.ship.y - terrainH),
       vx: p.ship.vx,
       vy: p.ship.vy,
-      angle: p.ship.angle,
+      angle: progradeAngle,
     };
     this.loadApproach(approachLevel, initOverride);
   }
