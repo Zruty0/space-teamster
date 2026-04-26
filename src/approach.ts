@@ -86,6 +86,7 @@ export type WindLayer = WindLayerDef;
 export type TurbulenceZone = TurbulenceZoneDef;
 
 const APPROACH_WARP_SPEEDS = [1, 2, 5];
+const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
 
 export interface ApproachState {
   x: number;
@@ -1650,9 +1651,9 @@ export function drawApproachHUD(
 
   if (!departure) {
     const rho = density(s.y, level);
-    const rhoFrac = rho / level.surfaceDensity;
-    const rhoCol = rhoFrac > 0.3 ? COL_WARN : rhoFrac > 0.05 ? COL_HUD : COL_HUD_DIM;
-    label(ctx, lx, ly, 'ATM', `${(rhoFrac * 100).toFixed(1)}%`, rhoCol); ly += lh;
+    const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
+    const rhoCol = rhoFracStd > 0.3 ? COL_WARN : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
+    label(ctx, lx, ly, 'ATM', `${(rhoFracStd * 100).toFixed(1)}%`, rhoCol); ly += lh;
   }
 
   label(ctx, lx, ly, 'ΔV USED', `${s.dvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
