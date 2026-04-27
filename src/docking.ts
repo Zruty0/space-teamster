@@ -1,6 +1,7 @@
 // Docking phase: visual prototype for tug + container delivery.
 // Self-contained module: physics, rendering, HUD.
 
+import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
 
 // ===================== Types =====================
@@ -79,6 +80,7 @@ export interface DockingState {
   sasCW: boolean; sasCCW: boolean;
   beamActive: boolean;
   beamAligned: boolean;
+  highThrust: boolean;
   exitComplete: boolean;
   leftStartBay: boolean;   // has left the starting bay area (enables collision)
   dvUsed: number;
@@ -404,6 +406,7 @@ export function createDockingState(level: DockingLevel, override?: DockingInitOv
     sasUp: false, sasDown: false, sasLeft: false, sasRight: false,
     sasCW: false, sasCCW: false,
     beamActive: false, beamAligned: false,
+    highThrust: false,
     exitComplete: false,
     leftStartBay: !level.exitMode, // if not exit mode, collision is always on
     dvUsed: 0,
@@ -460,6 +463,7 @@ export function updateDocking(
   // Translation: WASD = screen directions, decomposed into ship thrusters
   s.thrustUp = false; s.thrustDown = false; s.thrustLeft = false; s.thrustRight = false;
   const hiThrust = input.toggleHighThrust; // Shift held = high thrust
+  s.highThrust = hiThrust;
   const thrustMult = hiThrust ? 4 : 1;
   const force = level.thrustForce * thrustMult;
 
@@ -1220,63 +1224,54 @@ export function drawDockingHUD(
   const lx = 20;
   let ly = 30;
   const lh = 20;
-  const COL = '#00ff88';
-  const DIM = '#007744';
 
-  // Level name
   ctx.font = '13px monospace';
   ctx.textAlign = 'right';
-  ctx.fillStyle = DIM;
+  ctx.fillStyle = COL_HUD_DIM;
   ctx.fillText(level.name, W - 20, 24);
 
   ctx.textAlign = 'left';
   ctx.font = '14px "Courier New", monospace';
 
-  // Speed
-  ctx.fillStyle = DIM; ctx.fillText('SPD', lx, ly);
-  ctx.fillStyle = COL; ctx.fillText(`${speed.toFixed(1)} m/s`, lx + 50, ly);
-  ly += lh;
+  drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(1)} m/s`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'ANG', `${(s.angle * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'THR', s.highThrust ? 'HIGH' : 'LOW', s.highThrust ? COL_WARNING : COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'SAS', s.sas ? 'ON' : 'OFF', s.sas ? COL_SUCCESS : COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  // Angle
-  ctx.fillStyle = DIM; ctx.fillText('ANG', lx, ly);
-  ctx.fillStyle = COL; ctx.fillText(`${(s.angle * 180 / Math.PI).toFixed(1)}°`, lx + 50, ly);
-  ly += lh;
-
-  // SAS
-  ctx.fillStyle = DIM; ctx.fillText('SAS', lx, ly);
-  ctx.fillStyle = s.sas ? '#00ffcc' : DIM;
-  ctx.fillText(s.sas ? 'ON' : 'OFF', lx + 50, ly);
-  ly += lh;
-
-  ctx.fillStyle = DIM; ctx.fillText('PH ΔV', lx, ly);
-  ctx.fillStyle = COL; ctx.fillText(`${phaseDvUsed.toFixed(0)} m/s`, lx + 50, ly);
-  ly += lh;
-
-  ctx.fillStyle = DIM; ctx.fillText('MIS ΔV', lx, ly);
-  ctx.fillStyle = COL; ctx.fillText(`${missionDvUsed.toFixed(0)} m/s`, lx + 50, ly);
-  ly += lh;
-
-  // Distance to target bay
   const target = level.bays.find(b => b.isTarget);
+  const panelRows: { label: string; value: string; color?: string }[] = [];
+  let guidance = level.exitMode
+    ? `NEXT: clear the station to at least ${level.exitDistance.toFixed(0)} m.`
+    : 'NEXT: close on the target bay and align the container.';
+
   if (target) {
     const bp = bayWorldPos(target, level.stationX, level.stationY);
     const dx = s.x - bp.x, dy = s.y - bp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    ctx.fillStyle = DIM; ctx.fillText('TGT', lx, ly);
-    ctx.fillStyle = dist < level.beamRange ? '#00ffcc' : COL;
-    ctx.fillText(`${dist.toFixed(1)} m`, lx + 50, ly);
-    ly += lh;
+    panelRows.push({ label: 'TGT', value: `${dist.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
+    if (!level.exitMode) {
+      guidance = s.beamActive
+        ? 'NEXT: hold alignment and let the tractor beam pull you in.'
+        : dist < level.beamRange
+          ? 'NEXT: align the container to activate the tractor beam.'
+          : 'NEXT: close on the target bay and align the container.';
+    }
   }
 
-  // Exit mode: show distance to station on left HUD only
   if (level.exitMode) {
     const edx = s.x - level.stationX, edy = s.y - level.stationY;
     const eDist = Math.sqrt(edx * edx + edy * edy);
-    ctx.fillStyle = DIM; ctx.fillText('STN', lx, ly);
-    ctx.fillStyle = eDist >= level.exitDistance ? '#00ffcc' : COL;
-    ctx.fillText(`${eDist.toFixed(0)} m`, lx + 50, ly);
-    ly += lh;
+    panelRows.push({ label: 'STN', value: `${eDist.toFixed(0)} m`, color: eDist >= level.exitDistance ? COL_SUCCESS : COL_HUD });
   }
+
+  drawHudInfoPanel(ctx, canvas, {
+    title: 'TARGET',
+    name: level.name,
+    rows: panelRows,
+    guidance,
+  });
 
   // Tractor beam warning
   if (state === 'docking' && target) {
@@ -1327,7 +1322,7 @@ export function drawDockingHUD(
       }
       if (line) ctx.fillText(line, W / 2, y);
     }
-    ctx.fillStyle = DIM;
+    ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 - 80 + boxH - 15);
   }
@@ -1341,7 +1336,7 @@ export function drawDockingHUD(
     ctx.fillStyle = '#ff3333';
     ctx.font = 'bold 24px monospace';
     ctx.fillText('CRASHED', W / 2, H / 2 - 15);
-    ctx.fillStyle = DIM;
+    ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
@@ -1350,7 +1345,7 @@ export function drawDockingHUD(
   if (state === 'docking') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = DIM;
+    ctx.fillStyle = COL_HUD_DIM;
     ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  T: SAS  Shift: Hi Thrust  BACKSPACE: Restart  L: Levels', W / 2, H - 15);
   }
 

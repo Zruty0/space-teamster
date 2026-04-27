@@ -1,12 +1,13 @@
 // Approach phase: atmospheric reentry to reach a target gate.
 // Self-contained module: physics, prediction, rendering, HUD.
 
-import { APPROACH_PHASES, type ApproachPhaseDef } from './campaign-content';
+import { APPROACH_PHASES, ORBITAL_PHASES, type ApproachPhaseDef } from './campaign-content';
 import { config } from './config';
+import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
 import { landingLevelByPoiId } from './levels';
 import { Camera, worldToScreen } from './renderer';
-import { type BodyDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef, bodyById, surfacePoiById } from './world';
+import { type BodyDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef, bodyById, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -1582,13 +1583,26 @@ function drawApproachShip(
 
 // ===================== HUD =====================
 
-const COL_HUD = '#00ff88';
-const COL_HUD_DIM = '#007744';
-const COL_WARN = '#ffaa00';
-const COL_DANGER = '#ff3333';
-const COL_OK = '#00ffcc';
+function approachDepartureTargetName(level: ApproachLevel): string {
+  const orbitalId = level.departure?.orbitalLevelId;
+  if (!orbitalId) return `${level.body.name} Orbit`;
+  const orbital = ORBITAL_PHASES.find(phase => phase.id === orbitalId);
+  if (!orbital) return `${level.body.name} Orbit`;
+  if (orbital.kind === 'stationOrbit') return stationPoiById(orbital.stationPoiId).name;
+  if (orbital.kind === 'systemTransfer') return bodyById(orbital.targetBodyId).name;
+  if (orbital.kind === 'bodyArrival') return bodyById(orbital.bodyId).name;
+  if (orbital.kind === 'surfaceOrbit') {
+    if (orbital.escapeTargetBodyId) return bodyById(orbital.escapeTargetBodyId).name;
+    if (orbital.parentTransferPeriapsisAltitude !== undefined) {
+      const body = bodyById(surfacePoiById(orbital.poiId).bodyId);
+      if (body.orbit) return bodyById(body.orbit.parentBodyId).name;
+    }
+    return `${bodyById(surfacePoiById(orbital.poiId).bodyId).name} Orbit`;
+  }
+  return level.body.name;
+}
 
-export function drawApproachHUD(
+function drawApproachHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: ApproachState, level: ApproachLevel,
   state: 'approaching' | 'approachSuccess' | 'approachFailed',
@@ -1603,6 +1617,10 @@ export function drawApproachHUD(
   const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - level.gateY) ** 2);
   const departure = level.departure;
   const apa = departure ? getApproachApoapsisAltitude(s, level) : null;
+  const rho = density(s.y, level);
+  const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
+  const rhoCol = rhoFracStd > 0.3 ? COL_WARNING : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
+  const tempCol = tempColor(s.temperature);
 
   ctx.save();
   const lx = 20;
@@ -1619,97 +1637,90 @@ export function drawApproachHUD(
   ctx.textAlign = 'left';
   ctx.font = '14px "Courier New", monospace';
 
-  label(ctx, lx, ly, 'ALT', `${altKm.toFixed(1)} km`, COL_HUD); ly += lh;
-
-  if (departure) {
-    label(ctx, lx, ly, 'H/S', `${Math.abs(s.vx).toFixed(0)} m/s`, COL_HUD); ly += lh;
-    label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
-    label(ctx, lx, ly, 'TGT ALT', `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, COL_GATE); ly += lh;
-    const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
-    const apaCol = apa === null ? COL_HUD_DIM
-      : apa >= departure.targetOrbitAltitude ? COL_OK
-      : apa >= departure.thresholdApoapsisAltitude ? COL_WARN
-      : COL_HUD;
-    label(ctx, lx, ly, 'ApA', apaText, apaCol); ly += lh;
-  } else {
-    const spdCol = speed > level.gateMaxSpeed ? COL_WARN : speed < level.gateMinSpeed ? COL_HUD_DIM : COL_OK;
-    label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, spdCol); ly += lh;
-    label(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
-  }
+  drawHudLabel(ctx, lx, ly, 'ALT', `${altKm.toFixed(1)} km`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'H/S', `${Math.abs(s.vx).toFixed(0)} m/s`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'V/S', `${s.vy.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  const spdCol = departure
+    ? COL_HUD
+    : (speed > level.gateMaxSpeed ? COL_WARNING : speed < level.gateMinSpeed ? COL_HUD_DIM : COL_SUCCESS);
+  drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, spdCol); ly += lh;
 
   const velAngle = Math.atan2(s.vx, s.vy);
   let aoa = velAngle - s.angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
   while (aoa < -Math.PI) aoa += 2 * Math.PI;
   const aoaDisplay = (s.vx >= 0 ? 1 : -1) * aoa;
-  label(ctx, lx, ly, 'AoA', `${(aoaDisplay * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'AoA', `${(aoaDisplay * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
 
   let cfgStr = 'CLEAN';
   let cfgCol = COL_HUD;
   if (s.wingsDeployed) { cfgStr = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`; cfgCol = '#00ccff'; }
-  label(ctx, lx, ly, 'CFG', cfgStr, cfgCol); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'CFG', cfgStr, cfgCol); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'ATM', `${(rhoFracStd * 100).toFixed(1)}%`, rhoCol); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'THR', s.highThrust ? 'HIGH' : 'LOW', s.highThrust ? COL_WARNING : COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'WARP', `${s.timeWarp}x`, s.timeWarp > 1 ? COL_WARNING : COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  if (!departure) {
-    const rho = density(s.y, level);
-    const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
-    const rhoCol = rhoFracStd > 0.3 ? COL_WARN : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
-    label(ctx, lx, ly, 'ATM', `${(rhoFracStd * 100).toFixed(1)}%`, rhoCol); ly += lh;
-  }
+  const panelRows = departure
+    ? (() => {
+        const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
+        const apaCol = apa === null ? COL_HUD_DIM
+          : apa >= departure.targetOrbitAltitude ? COL_SUCCESS
+          : apa >= departure.thresholdApoapsisAltitude ? COL_WARNING
+          : COL_HUD;
+        return [
+          { label: 'TGT ALT', value: `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
+          { label: 'ApA', value: apaText, color: apaCol },
+          { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? '→ RIGHT' : '← LEFT', color: COL_SUCCESS },
+        ];
+      })()
+    : [
+        { label: 'TGT', value: `${(distGate / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+        { label: 'SPD WIN', value: `${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: COL_HUD_DIM },
+      ];
 
-  label(ctx, lx, ly, 'ΔV USED', `${s.dvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  drawHudInfoPanel(ctx, canvas, {
+    title: 'TARGET',
+    name: departure ? approachDepartureTargetName(level) : level.poi.name,
+    rows: panelRows,
+    guidance: departure
+      ? 'NEXT: climb and raise apoapsis to the target orbit for handoff.'
+      : 'NEXT: arrive at target area and match speed.',
+  });
 
-  if (s.highThrust) {
-    label(ctx, lx, ly, 'THR', 'HIGH', COL_WARN); ly += lh;
-  }
-  if (s.timeWarp > 1) {
-    label(ctx, lx, ly, 'WARP', `${s.timeWarp}x`, COL_WARN); ly += lh;
-  }
-
-  if (!departure) {
-    label(ctx, lx, ly, 'TGT', `${(distGate / 1000).toFixed(1)} km`, COL_OK); ly += lh;
-  }
-
-  label(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-  label(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-
-  // --- Temperature bar (right side) ---
-  const barX = W - 45;
-  const barY = 50;
-  const barW = 20;
-  const barH = 150;
+  // --- Temperature bar (left side) ---
+  const barX = 190;
+  const barY = 54;
+  const barW = 18;
+  const barH = 130;
 
   ctx.strokeStyle = COL_HUD_DIM;
   ctx.lineWidth = 1;
   ctx.strokeRect(barX, barY, barW, barH);
 
-  // Fill
   const fillH = barH * Math.min(s.temperature, 1);
-  const tCol = tempColor(s.temperature);
-  ctx.fillStyle = tCol;
+  ctx.fillStyle = tempCol;
   ctx.fillRect(barX, barY + barH - fillH, barW, fillH);
 
-  // Wings-max-temp tick
   const wmY = barY + barH - barH * level.wingsMaxTemp;
   ctx.strokeStyle = '#00ccff';
-  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(barX - 4, wmY);
   ctx.lineTo(barX + barW + 4, wmY);
   ctx.stroke();
   ctx.fillStyle = '#00ccff';
   ctx.font = '9px monospace';
-  ctx.fillText('WNG', barX - 30, wmY + 3);
-
+  ctx.textAlign = 'left';
+  ctx.fillText('WNG', barX + barW + 8, wmY + 3);
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('TEMP', barX + barW / 2, barY + barH + 14);
+  ctx.fillText('TEMP', barX - 2, barY + barH + 14);
 
   // --- Warnings (center top) ---
   let warnY = 30;
   const now = Date.now();
 
-  // Wings too hot
   if (s.temperature > level.wingsMaxTemp * 0.8 && s.wingsDeployed) {
     if (Math.sin(now * 0.012) > -0.3) {
       ctx.font = 'bold 18px monospace';
@@ -1720,39 +1731,36 @@ export function drawApproachHUD(
     }
   }
 
-  // Wind annunciation
   const windAccel = getWind(s.y, level, time);
   if (Math.abs(windAccel) > 1) {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     const windDir = windAccel > 0 ? '→' : '←';
-    const windCol = Math.abs(windAccel) > 8 ? COL_WARN : '#5588cc';
+    const windCol = Math.abs(windAccel) > 8 ? COL_WARNING : '#5588cc';
     ctx.fillStyle = windCol;
     ctx.fillText(`WIND ${windDir} ${Math.abs(windAccel).toFixed(0)} m/s²`, W / 2, warnY);
     warnY += 22;
   }
 
-  // Turbulence annunciation
   if (inTurbulence(s.y, level)) {
     if (Math.sin(now * 0.008) > -0.2) {
       ctx.font = 'bold 16px monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = COL_WARN;
+      ctx.fillStyle = COL_WARNING;
       ctx.fillText('⚠ TURBULENCE', W / 2, warnY);
       warnY += 22;
     }
   }
 
-  // --- State overlays ---
   if (!suppressStateOverlays && state === 'approachSuccess') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
-    ctx.strokeStyle = COL_OK;
+    ctx.strokeStyle = COL_SUCCESS;
     ctx.lineWidth = 2;
     ctx.strokeRect(W / 2 - 200, H / 2 - 80, 400, 160);
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = COL_OK;
+    ctx.fillStyle = COL_SUCCESS;
     ctx.font = 'bold 28px monospace';
     ctx.fillText('TARGET REACHED', W / 2, H / 2 - 40);
     ctx.font = '16px monospace';
@@ -1779,7 +1787,6 @@ export function drawApproachHUD(
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
 
-  // --- Controls hint ---
   if (state === 'approaching') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
@@ -1790,9 +1797,4 @@ export function drawApproachHUD(
   ctx.restore();
 }
 
-function label(ctx: CanvasRenderingContext2D, x: number, y: number, lbl: string, val: string, col: string): void {
-  ctx.fillStyle = '#558855';
-  ctx.fillText(lbl, x, y);
-  ctx.fillStyle = col;
-  ctx.fillText(val, x + 50, y);
-}
+export { drawApproachHUD };

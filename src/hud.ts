@@ -3,18 +3,9 @@
 import { config } from './config';
 import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
-import { LEVELS, LevelDef } from './levels';
-import { APPROACH_LEVELS } from './approach';
-import { ORBITAL_LEVELS } from './orbital';
-import { DOCKING_LEVELS } from './docking';
+import { LevelDef } from './levels';
 import { MISSIONS } from './missions';
-
-const COL_HUD = '#00ff88';
-const COL_HUD_DIM = '#007744';
-const COL_WARNING = '#ffaa00';
-const COL_DANGER = '#ff3333';
-const COL_SUCCESS = '#00ffcc';
-const COL_TITLE = '#00ccff';
+import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 
 export type GameState = 'flying' | 'landed' | 'crashed' | 'levelSelect';
 
@@ -116,9 +107,9 @@ export function drawHUD(
   ctx.font = '13px monospace';
   ctx.textAlign = 'right';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText(`${level.name}  [g=${config.gravity.toFixed(1)}]`, W - 20, 24);
+  ctx.fillText(`${level.name}  [g=${level.gravity.toFixed(1)}]`, W - 20, 24);
 
-  // --- Left panel: flight data ---
+  // --- Left panel: ship state ---
   const lx = 20;
   let ly = 30;
   const lineH = 20;
@@ -126,55 +117,60 @@ export function drawHUD(
   ctx.font = '14px "Courier New", monospace';
   ctx.textAlign = 'left';
 
-  // Altitude
-  drawLabel(ctx, lx, ly, 'ALT', `${altitude.toFixed(1)} m`, COL_HUD);
+  drawHudLabel(ctx, lx, ly, 'ALT', `${altitude.toFixed(1)} m`, COL_HUD);
   ly += lineH;
 
-  // Vertical speed
   const vsColor = Math.abs(vSpeed) > config.landingMaxVSpeed * 2 ? COL_DANGER :
                    Math.abs(vSpeed) > config.landingMaxVSpeed ? COL_WARNING : COL_HUD;
-  drawLabel(ctx, lx, ly, 'V/S', `${vSpeed.toFixed(1)} m/s`, vsColor);
+  drawHudLabel(ctx, lx, ly, 'V/S', `${vSpeed.toFixed(1)} m/s`, vsColor);
   ly += lineH;
 
-  // Horizontal speed
   const hsColor = Math.abs(hSpeed) > config.landingMaxHSpeed * 2 ? COL_DANGER :
                    Math.abs(hSpeed) > config.landingMaxHSpeed ? COL_WARNING : COL_HUD;
-  drawLabel(ctx, lx, ly, 'H/S', `${hSpeed.toFixed(1)} m/s`, hsColor);
+  drawHudLabel(ctx, lx, ly, 'H/S', `${hSpeed.toFixed(1)} m/s`, hsColor);
   ly += lineH;
 
-  // Speed
-  drawLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(1)} m/s`, COL_HUD);
+  drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(1)} m/s`, COL_HUD);
   ly += lineH;
 
-  // Pitch
   const pitchColor = Math.abs(ship.angle) > config.landingMaxAngle * 2 ? COL_DANGER :
                       Math.abs(ship.angle) > config.landingMaxAngle ? COL_WARNING : COL_HUD;
-  drawLabel(ctx, lx, ly, 'PIT', `${pitchDeg.toFixed(1)}°`, pitchColor);
+  drawHudLabel(ctx, lx, ly, 'ATT', `${pitchDeg.toFixed(1)}°`, pitchColor);
   ly += lineH;
 
-  // Throttle + mode
-  const thrMode = ship.gearDeployed ? 'LND' : 'CRZ';
-  const thrModeColor = ship.gearDeployed ? COL_SUCCESS : COL_HUD;
-  drawLabel(ctx, lx, ly, 'THR', `${(ship.throttle * 100).toFixed(0)}% ${thrMode}`, thrModeColor);
+  drawHudLabel(ctx, lx, ly, 'CFG', ship.gearDeployed ? 'GEAR DOWN' : 'GEAR UP', ship.gearDeployed ? COL_SUCCESS : COL_HUD_DIM);
   ly += lineH;
 
-  // Gear
-  const gearColor = ship.gearDeployed ? COL_SUCCESS : COL_HUD_DIM;
-  drawLabel(ctx, lx, ly, 'GEAR', ship.gearDeployed ? 'DOWN' : 'UP', gearColor);
+  drawHudLabel(ctx, lx, ly, 'THR', `${(ship.throttle * 100).toFixed(0)}%`, COL_HUD);
   ly += lineH;
 
-  drawLabel(ctx, lx, ly, 'SAS', ship.sas ? 'ON' : 'OFF', ship.sas ? COL_SUCCESS : COL_HUD_DIM);
+  drawHudLabel(ctx, lx, ly, 'SAS', ship.sas ? 'ON' : 'OFF', ship.sas ? COL_SUCCESS : COL_HUD_DIM);
   ly += lineH;
 
-  if (launchGuidance) {
-    drawLabel(ctx, lx, ly, 'DIR', launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', COL_SUCCESS);
-    ly += lineH;
-  }
+  drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD);
+  ly += lineH;
+  drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD);
+  ly += lineH;
 
-  drawLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD);
-  ly += lineH;
-  drawLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD);
-  ly += lineH;
+  const landingGuidance = launchGuidance
+    ? (altitude < launchGuidance.targetAltitude
+      ? `NEXT: climb above ${(launchGuidance.targetAltitude / 1000).toFixed(1)} km and build horizontal speed.`
+      : 'NEXT: build horizontal speed for orbital handoff.')
+    : 'NEXT: settle near the pad with low speed and low angle.';
+
+  drawHudInfoPanel(ctx, canvas, {
+    title: launchGuidance ? 'TARGET' : 'LANDING SITE',
+    name: launchGuidance ? `${level.body.name} Orbit` : level.name,
+    rows: launchGuidance
+      ? [
+          { label: 'TGT ALT', value: `${(launchGuidance.targetAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+          { label: 'DIR', value: launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', color: COL_SUCCESS },
+        ]
+      : [
+          { label: 'BODY', value: level.body.name, color: COL_HUD },
+        ],
+    guidance: landingGuidance,
+  });
 
   // --- Throttle bar ---
   const barX = lx;
@@ -212,10 +208,6 @@ export function drawHUD(
 
   // --- Warnings ---
   const warnings: { text: string; color: string }[] = [];
-
-  if (launchGuidance && altitude < launchGuidance.targetAltitude && vSpeed < 5) {
-    warnings.push({ text: `CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`, color: COL_SUCCESS });
-  }
 
   // Terrain warning
   if (vSpeed < -1 && (ship.throttle < 0.05 || altitude > 100)) {
@@ -280,17 +272,6 @@ export function drawHUD(
   }
 
   ctx.restore();
-}
-
-function drawLabel(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number,
-  label: string, value: string, color: string,
-): void {
-  ctx.fillStyle = '#558855';
-  ctx.fillText(label, x, y);
-  ctx.fillStyle = color;
-  ctx.fillText(value, x + 50, y);
 }
 
 export interface LandingScore {

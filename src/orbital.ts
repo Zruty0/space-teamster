@@ -2,6 +2,7 @@
 // Self-contained module: physics, prediction, rendering, HUD.
 
 import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
+import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 import { bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
@@ -88,6 +89,7 @@ export interface OrbitalLevel {
 
   // Station (rendezvous target, optional)
   station?: {
+    id: string;
     orbitRadius: number;       // meters from planet center
     epochAngle: number;        // radians at epoch
     epochTime: number;         // world time at epoch
@@ -102,6 +104,7 @@ export interface OrbitalLevel {
   targetBodyId?: string;
   escapeSOIRadius?: number;
   escapeToOrbitalLevelId?: number;
+  escapeTargetBodyId?: string;
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
   parentTransferPeriapsisAltitude?: number;
@@ -557,6 +560,7 @@ function createSurfaceOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'surfac
   if (def.showLandingSite !== undefined) level.showLandingSite = def.showLandingSite;
   if (def.escapeToOrbitalLevelId) level.escapeToOrbitalLevelId = def.escapeToOrbitalLevelId;
   if (def.parentTransferPeriapsisAltitude !== undefined) level.parentTransferPeriapsisAltitude = def.parentTransferPeriapsisAltitude;
+  if (def.escapeTargetBodyId) level.escapeTargetBodyId = def.escapeTargetBodyId;
   if (def.escapeTargetBodyId) {
     const originBody = bodyById(level.bodyId);
     const targetBody = bodyById(def.escapeTargetBodyId);
@@ -577,6 +581,7 @@ function createStationOrbitalLevel(def: Extract<OrbitalPhaseDef, { kind: 'statio
   level.fuelDeltaV = def.fuelDeltaV;
   level.showLandingSite = def.showLandingSite ?? false;
   level.station = {
+    id: stationPoi.id,
     orbitRadius: stationPoi.orbit.radius,
     epochAngle: stationPoi.orbit.epochAngle,
     epochTime: stationPoi.orbit.epochTime,
@@ -3242,11 +3247,115 @@ function drawShip(
 
 // ===================== HUD =====================
 
-const COL_HUD = '#00ff88';
-const COL_HUD_DIM = '#007744';
-const COL_WARN = '#ffaa00';
-const COL_DANGER = '#ff3333';
-const COL_OK = '#00ffcc';
+const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
+
+function orbitalTargetPanel(
+  s: OrbitalState,
+  level: OrbitalLevel,
+  pred: PredictionResult,
+): { name: string; rows: { label: string; value: string; color?: string }[]; guidance: string } {
+  if (level.station) {
+    const station = stationPoiById(level.station.id);
+    const sp = stationPos(level, s.time)!;
+    const dx = s.x - sp.x;
+    const dy = s.y - sp.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const rvx = s.vx - sp.vx;
+    const rvy = s.vy - sp.vy;
+    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+    const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
+    const rows = [{ label: 'TGT', value: distStr, color: dist < level.station.captureRadius ? COL_SUCCESS : COL_HUD }];
+    if (relSpd < 200 && dist < level.station.captureRadius * 3) {
+      const stAngle = Math.atan2(sp.y, sp.x);
+      const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
+      const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
+      const pRel = rvx * progX + rvy * progY;
+      const rRel = rvx * radX + rvy * radY;
+      const pDir = pRel >= 0 ? '→' : '←';
+      const rDir = rRel >= 0 ? '↑' : '↓';
+      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)}m/s (${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir})`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
+    } else {
+      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
+    }
+    const guidance = dist < level.station.captureRadius
+      ? `NEXT: hold relative speed below ${level.station.captureMaxSpeed.toFixed(0)} m/s.`
+      : 'NEXT: match speed and close for docking.';
+    return { name: station.name, rows, guidance };
+  }
+
+  if (level.targetBodyId) {
+    const body = getTransferBody(level, level.targetBodyId);
+    const pos = body ? transferBodyState(level, body.id, s.time) : null;
+    if (body && pos) {
+      const dx = s.x - pos.x;
+      const dy = s.y - pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const rvx = s.vx - pos.vx;
+      const rvy = s.vy - pos.vy;
+      const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+      const rows: { label: string; value: string; color?: string }[] = [];
+      if (pred.targetBodyApproach) {
+        const ca = pred.targetBodyApproach;
+        const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? (ca.dist - body.radius)) : ca.dist;
+        const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
+        rows.push({ label: 'FBY', value: `${Math.round(flybyMetric / 1000)} km ${flybySense}`, color: ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_SUCCESS : COL_WARNING) });
+        const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
+        if (arrivalLevel) {
+          const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
+          const targetAltKm = (Math.sqrt(arrivalLevel.startX * arrivalLevel.startX + arrivalLevel.startY * arrivalLevel.startY) - arrivalLevel.planetRadius) / 1000;
+          rows.push({ label: 'TGT ORB', value: `${targetAltKm.toFixed(0)} km ${targetSense}`, color: COL_HUD_DIM });
+        }
+        rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
+      } else {
+        rows.push({ label: 'TGT', value: `${(dist / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
+      }
+      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < 220 ? COL_SUCCESS : COL_HUD });
+      return {
+        name: body.name,
+        rows,
+        guidance: 'NEXT: shape the intercept and arrive inside the target circle.',
+      };
+    }
+  }
+
+  if (level.escapeSOIRadius && (level.escapeTargetBodyId || level.parentTransferPeriapsisAltitude !== undefined)) {
+    const rows: { label: string; value: string; color?: string }[] = [];
+    const target = escapeTargetForLevel(level, s.time);
+    if (target) {
+      rows.push({ label: 'ESC', value: `${target.speed.toFixed(0)} m/s`, color: '#66bbff' });
+    } else {
+      rows.push({ label: 'SOI', value: `${(level.escapeSOIRadius / 1000).toFixed(0)} km`, color: '#66bbff' });
+    }
+    const current = currentEscapeVector(s, level);
+    if (current) {
+      rows.push({ label: 'VESC', value: `${current.speed.toFixed(0)} m/s`, color: COL_WARNING });
+      if (target) {
+        let err = current.angle - target.angle;
+        while (err > Math.PI) err -= 2 * Math.PI;
+        while (err < -Math.PI) err += 2 * Math.PI;
+        rows.push({ label: 'E-ERR', value: `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, color: Math.abs(err) < 0.12 ? COL_SUCCESS : COL_WARNING });
+      }
+    }
+    const name = level.escapeTargetBodyId
+      ? bodyById(level.escapeTargetBodyId).name
+      : (() => {
+          const body = bodyById(level.bodyId);
+          return (body.orbit ? bodyById(body.orbit.parentBodyId).name : body.name);
+        })();
+    return {
+      name,
+      rows,
+      guidance: 'NEXT: line up the escape vector and exit the local SOI.',
+    };
+  }
+
+  const approachLevel = level.reentryApproachLevelId !== undefined ? approachLevelById(level.reentryApproachLevelId) : undefined;
+  return {
+    name: approachLevel?.poi.name ?? bodyById(level.bodyId).name,
+    rows: [{ label: 'BODY', value: bodyById(level.bodyId).name, color: COL_HUD }],
+    guidance: level.atmoHeight > 0 ? 'NEXT: deorbit and land near the LZ.' : 'NEXT: descend and enter approach near the target site.',
+  };
+}
 
 export function drawOrbitalHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
@@ -3259,19 +3368,30 @@ export function drawOrbitalHUD(
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
-  const alt = (r - level.planetRadius) / 1000;
+  const altKm = (r - level.planetRadius) / 1000;
+  const altMeters = r - level.planetRadius;
 
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
   const peAlt = (elem.periapsis - level.planetRadius) / 1000;
   const apAlt = elem.e < 1 ? (elem.apoapsis - level.planetRadius) / 1000 : Infinity;
+  const peInAtmo = peAlt < level.atmoHeight / 1000;
+  const peBelowCrit = peAlt < level.transitionAltitude / 1000;
+  const apInAtmo = apAlt < level.atmoHeight / 1000;
+  const apBelowCrit = apAlt < level.transitionAltitude / 1000;
+  const escapeApsis = level.escapeSOIRadius ? elem.apoapsis >= level.escapeSOIRadius : false;
+  const pred = getCachedPrediction(s, level);
+  const predictedImpact = pred.impact !== null;
+  const rho = level.atmoHeight > 0 ? atmoDensity(Math.max(0, altMeters), level) : 0;
+  const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
+  const rhoCol = rhoFracStd > 0.3 ? COL_WARNING : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
+  const tempCol = s.temperature > 0.7 ? COL_DANGER : s.temperature > 0.3 ? COL_WARNING : COL_HUD;
 
   ctx.save();
 
-  // Level name
   ctx.font = '13px monospace';
   ctx.textAlign = 'right';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText(level.name, W - 20, 24);
+  ctx.fillText(`${level.name}  [g=${(level.planetGM / (level.planetRadius * level.planetRadius)).toFixed(1)}]`, W - 20, 24);
 
   const lx = 20;
   let ly = 30;
@@ -3279,131 +3399,37 @@ export function drawOrbitalHUD(
   ctx.font = '14px "Courier New", monospace';
   ctx.textAlign = 'left';
 
-  label(ctx, lx, ly, 'ALT', `${alt.toFixed(1)} km`, COL_HUD); ly += lh;
-  label(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-
-  // PeA: green normally, yellow if in upper atmo, orange if below critical
-  const peInAtmo = peAlt < level.atmoHeight / 1000;
-  const peBelowCrit = peAlt < level.transitionAltitude / 1000;
+  drawHudLabel(ctx, lx, ly, 'ALT', `${altKm.toFixed(1)} km`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
   const peCol = peBelowCrit ? '#ff8844' : peInAtmo ? '#ffdd00' : COL_HUD;
-  label(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
-
-  // ApA: green normally, yellow if in upper atmo, orange if below critical
-  const apInAtmo = apAlt < level.atmoHeight / 1000;
-  const apBelowCrit = apAlt < level.transitionAltitude / 1000;
-  const escapeApsis = level.escapeSOIRadius ? elem.apoapsis >= level.escapeSOIRadius : false;
-  const apCol = (apAlt === Infinity || escapeApsis) ? COL_WARN : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
+  drawHudLabel(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
+  const apCol = (apAlt === Infinity || escapeApsis) ? COL_WARNING : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
   const apStr = (apAlt === Infinity || escapeApsis) ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
-  label(ctx, lx, ly, 'ApA', apStr, apCol); ly += lh;
-
-  // Atmosphere altitude
-  label(ctx, lx, ly, 'ATM', `${(level.atmoHeight / 1000).toFixed(0)} km`, COL_HUD_DIM); ly += lh;
-
-  // Station info (rendezvous)
-  if (level.station) {
-    const sp = stationPos(level, s.time)!;
-    const dx = s.x - sp.x, dy = s.y - sp.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
-    const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-    const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
-    const distCol = dist < level.station.captureRadius ? COL_OK : COL_HUD;
-    label(ctx, lx, ly, 'TGT', distStr, distCol); ly += lh;
-
-    const relCol = relSpd < level.station.captureMaxSpeed ? COL_OK : COL_HUD;
-    if (relSpd < 200 && dist < level.station.captureRadius * 3) {
-      const stAngle = Math.atan2(sp.y, sp.x);
-      const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
-      const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
-      const pRel = rvx * progX + rvy * progY;
-      const rRel = rvx * radX + rvy * radY;
-      const pDir = pRel >= 0 ? '\u2192' : '\u2190';  // → ←
-      const rDir = rRel >= 0 ? '\u2191' : '\u2193';  // ↑ ↓
-      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)}m/s (${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir})`, relCol); ly += lh;
-    } else {
-      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relCol); ly += lh;
-    }
-  } else if (level.targetBodyId) {
-    const body = getTransferBody(level, level.targetBodyId);
-    const pos = body ? transferBodyState(level, body.id, s.time) : null;
-    const pred = getCachedPrediction(s, level);
-    if (body && pos) {
-      const dx = s.x - pos.x, dy = s.y - pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const rvx = s.vx - pos.vx, rvy = s.vy - pos.vy;
-      const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-      if (pred.targetBodyApproach) {
-        const ca = pred.targetBodyApproach;
-        const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? (ca.dist - body.radius)) : ca.dist;
-        const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
-        label(ctx, lx, ly, 'FBY', `${Math.round(flybyMetric / 1000)} km ${flybySense}`, ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_OK : COL_WARN)); ly += lh;
-        const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
-        if (arrivalLevel) {
-          const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
-          const targetAltKm = (Math.sqrt(arrivalLevel.startX * arrivalLevel.startX + arrivalLevel.startY * arrivalLevel.startY) - arrivalLevel.planetRadius) / 1000;
-          label(ctx, lx, ly, 'TGT ORB', `${targetAltKm.toFixed(0)} km ${targetSense}`, COL_HUD_DIM); ly += lh;
-        }
-        label(ctx, lx, ly, 'ARR', `${ca.relSpeed.toFixed(0)} m/s`, ca.withinArrival ? COL_OK : COL_WARN); ly += lh;
-      } else {
-        const targetCol = dist <= body.patchRadius ? COL_OK : COL_HUD;
-        label(ctx, lx, ly, body.name.slice(0, 3).toUpperCase(), `${(dist / 1000).toFixed(0)} km`, targetCol); ly += lh;
-      }
-      label(ctx, lx, ly, 'REL', `${relSpd.toFixed(0)} m/s`, relSpd < 220 ? COL_OK : COL_HUD); ly += lh;
-    }
+  drawHudLabel(ctx, lx, ly, 'ApA', apStr, apCol); ly += lh;
+  if (level.atmoHeight > 0) {
+    drawHudLabel(ctx, lx, ly, 'ATM', `${(rhoFracStd * 100).toFixed(1)}%`, rhoCol); ly += lh;
+    drawHudLabel(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
   }
-
-  if (level.escapeSOIRadius) {
-    const target = escapeTargetForLevel(level, s.time);
-    if (target) {
-      label(ctx, lx, ly, 'ESC', `${target.speed.toFixed(0)} m/s`, '#66bbff'); ly += lh;
-    } else {
-      label(ctx, lx, ly, 'SOI', `${(level.escapeSOIRadius / 1000).toFixed(0)} km`, '#66bbff'); ly += lh;
-    }
-    const current = currentEscapeVector(s, level);
-    if (current) {
-      label(ctx, lx, ly, 'VESC', `${current.speed.toFixed(0)} m/s`, COL_WARN); ly += lh;
-      if (target) {
-        let err = current.angle - target.angle;
-        while (err > Math.PI) err -= 2 * Math.PI;
-        while (err < -Math.PI) err += 2 * Math.PI;
-        label(ctx, lx, ly, 'E-ERR', `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, Math.abs(err) < 0.12 ? COL_OK : COL_WARN); ly += lh;
-      }
-    }
-  }
-
-  label(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
-
-  label(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-  label(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-
-  // Thrust mode
-  const thrLabel = s.highThrust ? 'HIGH' : 'LOW';
-  const thrCol = s.highThrust ? COL_WARN : COL_HUD_DIM;
-  label(ctx, lx, ly, 'THR', thrLabel, thrCol); ly += lh;
-
-  // Time warp
-  const warpCol = s.timeWarp > 1 ? COL_WARN : COL_HUD_DIM;
-  const currentWarpCap = s.inAtmo ? (alt < level.transitionAltitude / 1000 ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP) : 999;
-  const warpDisplay = s.timeWarp > currentWarpCap ? `${currentWarpCap}x (capped)` : `${s.timeWarp}x`;
-  label(ctx, lx, ly, 'WARP', warpDisplay, warpCol); ly += lh;
-
-  // Temperature (when nonzero)
-  if (s.temperature > 0.01) {
-    const tempCol = s.temperature > 0.7 ? COL_DANGER : s.temperature > 0.3 ? COL_WARN : COL_HUD;
-    label(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
-  }
-
-  // AoA (when in atmosphere)
   if (s.inAtmo) {
-    label(ctx, lx, ly, 'AoA', `${(s.targetAoA * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
+    drawHudLabel(ctx, lx, ly, 'AoA', `${(s.targetAoA * 180 / Math.PI).toFixed(1)}°`, COL_HUD); ly += lh;
   }
+  drawHudLabel(ctx, lx, ly, 'ECC', elem.e.toFixed(4), COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'THR', s.highThrust ? 'HIGH' : 'LOW', s.highThrust ? COL_WARNING : COL_HUD_DIM); ly += lh;
+  const currentWarpCap = s.inAtmo ? (altKm < level.transitionAltitude / 1000 ? ATMO_LOW_WARP_CAP : ATMO_WARP_CAP) : 999;
+  const warpDisplay = s.timeWarp > currentWarpCap ? `${currentWarpCap}x (capped)` : `${s.timeWarp}x`;
+  drawHudLabel(ctx, lx, ly, 'WARP', warpDisplay, s.timeWarp > 1 ? COL_WARNING : COL_HUD_DIM); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  const pred = getCachedPrediction(s, level);
-  const predictedImpact = pred.impact !== null;
+  const targetPanel = orbitalTargetPanel(s, level, pred);
+  drawHudInfoPanel(ctx, canvas, {
+    title: 'TARGET',
+    name: targetPanel.name,
+    rows: targetPanel.rows,
+    guidance: targetPanel.guidance,
+  });
 
-  // Entry parameters — show as soon as orbit enters atmosphere
   if (peInAtmo && state === 'orbiting') {
-    // Use approach start point if available, otherwise atmo entry
     const entryPt = pred.approachStart || pred.atmoEntry;
     if (entryPt) {
       const entrySpeed = Math.sqrt(entryPt.vx * entryPt.vx + entryPt.vy * entryPt.vy);
@@ -3413,33 +3439,27 @@ export function drawOrbitalHUD(
       const vh = Math.sqrt(Math.max(0, entrySpeed * entrySpeed - vr * vr));
       const entryAngle = Math.abs(Math.atan2(-vr, vh)) * 180 / Math.PI;
       ly += 4;
-      const entryCol = '#ff8844';
       ctx.font = '13px "Courier New", monospace';
       ctx.fillStyle = '#885544';
       ctx.fillText('ENTRY', lx, ly);
-      ctx.fillStyle = entryCol;
-      ctx.fillText(`${entrySpeed.toFixed(0)} m/s  ${entryAngle.toFixed(1)}\u00b0`, lx + 56, ly);
+      ctx.fillStyle = '#ff8844';
+      ctx.fillText(`${entrySpeed.toFixed(0)} m/s  ${entryAngle.toFixed(1)}°`, lx + 56, ly);
       ly += lh;
     }
   }
 
-  // --- Warnings ---
   let warnY = 30;
   if (predictedImpact && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_DANGER;
-    if (Math.sin(Date.now() * 0.012) > -0.3) {
-      ctx.fillText('⚠ IMPACT TRAJECTORY', W / 2, warnY);
-    }
+    if (Math.sin(Date.now() * 0.012) > -0.3) ctx.fillText('⚠ IMPACT TRAJECTORY', W / 2, warnY);
     warnY += 22;
   } else if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = COL_WARN;
-    if (Math.sin(Date.now() * 0.008) > -0.3) {
-      ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
-    }
+    ctx.fillStyle = COL_WARNING;
+    if (Math.sin(Date.now() * 0.008) > -0.3) ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
     warnY += 22;
   }
 
@@ -3451,7 +3471,6 @@ export function drawOrbitalHUD(
     warnY += 22;
   }
 
-  // MATCH SPEED warning when in rendezvous proximity
   if (level.station && state === 'orbiting') {
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
@@ -3461,29 +3480,26 @@ export function drawOrbitalHUD(
     if (dist < level.station.captureRadius && relSpd > level.station.captureMaxSpeed) {
       ctx.font = 'bold 18px monospace';
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#00ffcc';
-      if (Math.sin(Date.now() * 0.01) > -0.3) {
-        ctx.fillText('◇ MATCH SPEED ◇', W / 2, warnY);
-      }
+      ctx.fillStyle = COL_SUCCESS;
+      if (Math.sin(Date.now() * 0.01) > -0.3) ctx.fillText('◇ MATCH SPEED ◇', W / 2, warnY);
       warnY += 22;
     }
   }
 
-  // --- State overlays ---
   if (!suppressStateOverlays && state === 'enteredAtmo') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
-    ctx.strokeStyle = COL_OK;
+    ctx.strokeStyle = COL_SUCCESS;
     ctx.lineWidth = 2;
     ctx.strokeRect(W / 2 - 200, H / 2 - 80, 400, 160);
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = COL_OK;
+    ctx.fillStyle = COL_SUCCESS;
     ctx.font = 'bold 24px monospace';
     ctx.fillText('ENTERING ATMOSPHERE', W / 2, H / 2 - 35);
     ctx.font = '14px monospace';
     ctx.fillText(`Speed: ${speed.toFixed(0)} m/s`, W / 2, H / 2 - 5);
-    ctx.fillText(`Altitude: ${alt.toFixed(1)} km`, W / 2, H / 2 + 15);
+    ctx.fillText(`Altitude: ${altKm.toFixed(1)} km`, W / 2, H / 2 + 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 55);
@@ -3492,12 +3508,12 @@ export function drawOrbitalHUD(
   if (!suppressStateOverlays && state === 'docked') {
     ctx.fillStyle = 'rgba(0, 20, 0, 0.6)';
     ctx.fillRect(W / 2 - 200, H / 2 - 80, 400, 160);
-    ctx.strokeStyle = COL_OK;
+    ctx.strokeStyle = COL_SUCCESS;
     ctx.lineWidth = 2;
     ctx.strokeRect(W / 2 - 200, H / 2 - 80, 400, 160);
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = COL_OK;
+    ctx.fillStyle = COL_SUCCESS;
     ctx.font = 'bold 28px monospace';
     ctx.fillText('RENDEZVOUS', W / 2, H / 2 - 35);
     ctx.font = '16px monospace';
@@ -3523,7 +3539,6 @@ export function drawOrbitalHUD(
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
   }
 
-  // Controls hint
   if (state === 'orbiting') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
@@ -3532,11 +3547,4 @@ export function drawOrbitalHUD(
   }
 
   ctx.restore();
-}
-
-function label(ctx: CanvasRenderingContext2D, x: number, y: number, lbl: string, val: string, col: string): void {
-  ctx.fillStyle = '#558855';
-  ctx.fillText(lbl, x, y);
-  ctx.fillStyle = col;
-  ctx.fillText(val, x + 50, y);
 }
