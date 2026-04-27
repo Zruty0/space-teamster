@@ -1675,15 +1675,18 @@ function drawApproachHUD(
 
   const panelRows = departure
     ? (() => {
+        const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
+        const altReady = s.y >= departure.exitAltitude;
+        const apaReady = apa !== null && apa >= departure.thresholdApoapsisAltitude;
         return [
-          { label: 'ALT', value: `> ${(departure.exitAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
-          { label: 'ApA', value: `> ${(departure.thresholdApoapsisAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
+          { label: 'ALT', value: `${(s.y / 1000).toFixed(1)} km > ${(departure.exitAltitude / 1000).toFixed(1)} km`, color: altReady ? COL_SUCCESS : COL_HUD },
+          { label: 'ApA', value: `${apaText} > ${(departure.thresholdApoapsisAltitude / 1000).toFixed(0)} km`, color: apaReady ? COL_SUCCESS : COL_WARNING },
           { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ];
       })()
     : [
-        { label: 'DIST', value: `${(distGate / 1000).toFixed(1)} km`, color: COL_SUCCESS },
-        { label: 'SPD', value: `${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: COL_HUD_DIM },
+        { label: 'DIST', value: `${(distGate / 1000).toFixed(1)} km < ${(level.gateRadius / 1000).toFixed(1)} km`, color: distGate <= level.gateRadius ? COL_SUCCESS : COL_HUD },
+        { label: 'SPD', value: `${speed.toFixed(0)} m/s  ${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: speed >= level.gateMinSpeed && speed <= level.gateMaxSpeed ? COL_SUCCESS : COL_WARNING },
       ];
 
   drawHudInfoPanel(ctx, canvas, {

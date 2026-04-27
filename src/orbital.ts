@@ -3253,6 +3253,8 @@ function orbitalTargetPanel(
   s: OrbitalState,
   level: OrbitalLevel,
   pred: PredictionResult,
+  peAlt: number,
+  apAlt: number,
 ): { name: string; rows: { label: string; value: string; color?: string }[]; guidance: string } {
   if (level.station) {
     const station = stationPoiById(level.station.id);
@@ -3264,19 +3266,11 @@ function orbitalTargetPanel(
     const rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
     const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
-    const rows = [{ label: 'DIST', value: distStr, color: dist < level.station.captureRadius ? COL_SUCCESS : COL_HUD }];
-    if (relSpd < 200 && dist < level.station.captureRadius * 3) {
-      const stAngle = Math.atan2(sp.y, sp.x);
-      const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
-      const radX = Math.cos(stAngle), radY = Math.sin(stAngle);
-      const pRel = rvx * progX + rvy * progY;
-      const rRel = rvx * radX + rvy * radY;
-      const pDir = pRel >= 0 ? '→' : '←';
-      const rDir = rRel >= 0 ? '↑' : '↓';
-      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)}m/s (${Math.abs(pRel).toFixed(0)}${pDir} ${Math.abs(rRel).toFixed(0)}${rDir})`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
-    } else {
-      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
-    }
+    const capStr = level.station.captureRadius >= 1000 ? `${(level.station.captureRadius / 1000).toFixed(1)} km` : `${level.station.captureRadius.toFixed(0)} m`;
+    const rows = [
+      { label: 'DIST', value: `${distStr} < ${capStr}`, color: dist < level.station.captureRadius ? COL_SUCCESS : COL_HUD },
+      { label: 'REL', value: `${relSpd.toFixed(0)} m/s < ${level.station.captureMaxSpeed.toFixed(0)} m/s`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_WARNING },
+    ];
     const guidance = dist < level.station.captureRadius
       ? `Hold relative speed below ${level.station.captureMaxSpeed.toFixed(0)} m/s.`
       : 'Match speed and close for docking.';
@@ -3298,18 +3292,17 @@ function orbitalTargetPanel(
         const ca = pred.targetBodyApproach;
         const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? (ca.dist - body.radius)) : ca.dist;
         const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
-        rows.push({ label: 'FBY', value: `${Math.round(flybyMetric / 1000)} km ${flybySense}`, color: ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_SUCCESS : COL_WARNING) });
-        const arrivalLevel = body.arrivalOrbitalLevelId ? ORBITAL_LEVELS.find(l => l.id === body.arrivalOrbitalLevelId) : null;
-        if (arrivalLevel) {
-          const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
-          const targetAltKm = (Math.sqrt(arrivalLevel.startX * arrivalLevel.startX + arrivalLevel.startY * arrivalLevel.startY) - arrivalLevel.planetRadius) / 1000;
-          rows.push({ label: 'ORB', value: `${targetAltKm.toFixed(0)} km ${targetSense}`, color: COL_HUD_DIM });
+        const flybyText = `${Math.round(flybyMetric / 1000)} km ${flybySense}`;
+        const targetFlyby = body.arrivalAltitudeMin !== undefined && body.arrivalAltitudeMax !== undefined
+          ? `${Math.round(body.arrivalAltitudeMin / 1000)}-${Math.round(body.arrivalAltitudeMax / 1000)} km`
+          : `< ${Math.round(body.patchRadius / 1000)} km`;
+        rows.push({ label: 'FBY', value: `${flybyText}  ${targetFlyby}`, color: ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_SUCCESS : COL_WARNING) });
+        if (body.arrivalSpeedMarginMin !== undefined && body.arrivalSpeedMarginMax !== undefined) {
+          rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s  ${body.arrivalSpeedMarginMin.toFixed(0)}-${body.arrivalSpeedMarginMax.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
         }
-        rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
       } else {
-        rows.push({ label: 'DIST', value: `${(dist / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
+        rows.push({ label: 'DIST', value: `${(dist / 1000).toFixed(0)} km < ${(body.patchRadius / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
       }
-      rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < 220 ? COL_SUCCESS : COL_HUD });
       return {
         name: body.name,
         rows,
@@ -3321,19 +3314,16 @@ function orbitalTargetPanel(
   if (level.escapeSOIRadius && (level.escapeTargetBodyId || level.parentTransferPeriapsisAltitude !== undefined)) {
     const rows: { label: string; value: string; color?: string }[] = [];
     const target = escapeTargetForLevel(level, s.time);
-    if (target) {
-      rows.push({ label: 'ESC', value: `${target.speed.toFixed(0)} m/s`, color: '#66bbff' });
-    } else {
-      rows.push({ label: 'SOI', value: `${(level.escapeSOIRadius / 1000).toFixed(0)} km`, color: '#66bbff' });
-    }
+    const apText = apAlt === Infinity ? 'ESC' : `${apAlt.toFixed(0)} km`;
+    rows.push({ label: 'ApA', value: `${apText} > ${(level.escapeSOIRadius / 1000).toFixed(0)} km`, color: apAlt === Infinity || apAlt * 1000 >= level.escapeSOIRadius - level.planetRadius ? COL_SUCCESS : COL_HUD });
     const current = currentEscapeVector(s, level);
     if (current) {
-      rows.push({ label: 'VESC', value: `${current.speed.toFixed(0)} m/s`, color: COL_WARNING });
+      rows.push({ label: 'VESC', value: target ? `${current.speed.toFixed(0)} m/s  ${target.speed.toFixed(0)} m/s` : `${current.speed.toFixed(0)} m/s`, color: COL_WARNING });
       if (target) {
         let err = current.angle - target.angle;
         while (err > Math.PI) err -= 2 * Math.PI;
         while (err < -Math.PI) err += 2 * Math.PI;
-        rows.push({ label: 'E-ERR', value: `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}°`, color: Math.abs(err) < 0.12 ? COL_SUCCESS : COL_WARNING });
+        rows.push({ label: 'ERR', value: `${(Math.abs(err) * 180 / Math.PI).toFixed(1)}° → 0.0°`, color: Math.abs(err) < 0.12 ? COL_SUCCESS : COL_WARNING });
       }
     }
     const name = level.escapeTargetBodyId
@@ -3352,7 +3342,7 @@ function orbitalTargetPanel(
   const approachLevel = level.reentryApproachLevelId !== undefined ? approachLevelById(level.reentryApproachLevelId) : undefined;
   return {
     name: approachLevel?.poi.name ?? bodyById(level.bodyId).name,
-    rows: [{ label: 'BODY', value: bodyById(level.bodyId).name, color: COL_HUD }],
+    rows: [{ label: 'PeA', value: `${peAlt.toFixed(1)} km < ${(level.transitionAltitude / 1000).toFixed(1)} km`, color: peAlt * 1000 <= level.transitionAltitude ? COL_SUCCESS : COL_WARNING }],
     guidance: level.atmoHeight > 0 ? 'Deorbit and land near the LZ.' : 'Descend and enter approach near the target site.',
   };
 }
@@ -3423,7 +3413,7 @@ export function drawOrbitalHUD(
   drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
   drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
-  const targetPanel = orbitalTargetPanel(s, level, pred);
+  const targetPanel = orbitalTargetPanel(s, level, pred, peAlt, apAlt);
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? targetPanel.name,

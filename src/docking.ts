@@ -1245,14 +1245,19 @@ export function drawDockingHUD(
   const target = level.bays.find(b => b.isTarget);
   const panelRows: { label: string; value: string; color?: string }[] = [];
   let guidance = level.exitMode
-    ? `NEXT: clear the station to at least ${level.exitDistance.toFixed(0)} m.`
-    : 'NEXT: close on the target bay and align the container.';
+    ? `Clear the station to at least ${level.exitDistance.toFixed(0)} m.`
+    : 'Close on the target bay and align the container.';
 
   if (target && !level.exitMode) {
     const bp = bayWorldPos(target, level.stationX, level.stationY);
     const dx = s.x - bp.x, dy = s.y - bp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    panelRows.push({ label: 'DIST', value: `${dist.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
+    const targetAngle = bp.angle + Math.PI;
+    let angleDiff = s.angle - targetAngle;
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    panelRows.push({ label: 'DIST', value: `${dist.toFixed(1)} m < ${level.beamRange.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
+    panelRows.push({ label: 'ALIGN', value: `${(Math.abs(angleDiff) * 180 / Math.PI).toFixed(1)}° < 10.3°`, color: Math.abs(angleDiff) < 0.18 ? COL_SUCCESS : COL_WARNING });
     guidance = s.beamActive
       ? 'Hold alignment and let the tractor beam pull you in.'
       : dist < level.beamRange
@@ -1263,7 +1268,7 @@ export function drawDockingHUD(
   if (level.exitMode) {
     const edx = s.x - level.stationX, edy = s.y - level.stationY;
     const eDist = Math.sqrt(edx * edx + edy * edy);
-    panelRows.push({ label: 'STN', value: `${eDist.toFixed(0)} m`, color: eDist >= level.exitDistance ? COL_SUCCESS : COL_HUD });
+    panelRows.push({ label: 'STN', value: `${eDist.toFixed(0)} m > ${level.exitDistance.toFixed(0)} m`, color: eDist >= level.exitDistance ? COL_SUCCESS : COL_HUD });
   }
 
   drawHudInfoPanel(ctx, canvas, {
