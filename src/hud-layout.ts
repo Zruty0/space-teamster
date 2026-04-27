@@ -78,9 +78,13 @@ export function drawHudInfoPanel(
     : [];
   const headerH = 16;
   const nameH = 22;
+  const nextLabelH = guidanceLines.length > 0 ? 14 : 0;
+  const guidanceTextH = guidanceLines.length * 14;
   const rowH = 20;
-  const guidanceH = guidanceLines.length > 0 ? 12 + guidanceLines.length * 14 : 0;
-  const height = 14 + headerH + 4 + nameH + 8 + rows.length * rowH + guidanceH + 12;
+  const valuesLabelH = rows.length > 0 ? 14 : 0;
+  const sepCount = (guidanceLines.length > 0 ? 1 : 0) + (rows.length > 0 ? 1 : 0);
+  const sepH = sepCount * 14;
+  const height = 14 + headerH + 4 + nameH + 8 + nextLabelH + guidanceTextH + sepH + valuesLabelH + rows.length * rowH + 10;
 
   ctx.fillStyle = PANEL_FILL;
   ctx.fillRect(x, y, width, height);
@@ -99,14 +103,26 @@ export function drawHudInfoPanel(
   ctx.font = 'bold 16px monospace';
   ctx.fillText(panel.name, x + 12, cy);
 
-  cy += 18;
-  ctx.font = '14px "Courier New", monospace';
-  for (const row of rows) {
-    drawHudLabel(ctx, x + 12, cy, row.label, row.value, row.color ?? COL_HUD);
-    cy += rowH;
+  if (guidanceLines.length > 0) {
+    cy += 10;
+    ctx.strokeStyle = PANEL_STROKE;
+    ctx.beginPath();
+    ctx.moveTo(x + 12, cy);
+    ctx.lineTo(x + width - 12, cy);
+    ctx.stroke();
+    cy += 14;
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '12px monospace';
+    ctx.fillText('NEXT', x + 12, cy);
+    cy += 14;
+    ctx.fillStyle = COL_SUCCESS;
+    for (const line of guidanceLines) {
+      ctx.fillText(line, x + 12, cy);
+      cy += 14;
+    }
   }
 
-  if (guidanceLines.length > 0) {
+  if (rows.length > 0) {
     cy += 2;
     ctx.strokeStyle = PANEL_STROKE;
     ctx.beginPath();
@@ -114,11 +130,14 @@ export function drawHudInfoPanel(
     ctx.lineTo(x + width - 12, cy);
     ctx.stroke();
     cy += 14;
-    ctx.fillStyle = COL_SUCCESS;
+    ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '12px monospace';
-    for (const line of guidanceLines) {
-      ctx.fillText(line, x + 12, cy);
-      cy += 14;
+    ctx.fillText('PHASE', x + 12, cy);
+    cy += 14;
+    ctx.font = '14px "Courier New", monospace';
+    for (const row of rows) {
+      drawHudLabel(ctx, x + 12, cy, row.label, row.value, row.color ?? COL_HUD);
+      cy += rowH;
     }
   }
 

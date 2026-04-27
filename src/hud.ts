@@ -87,6 +87,7 @@ export function drawHUD(
   landingScore: LandingScore | null,
   level: LevelDef,
   completionText: string = '',
+  destinationName: string | undefined,
   launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1 },
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
@@ -154,21 +155,19 @@ export function drawHUD(
 
   const landingGuidance = launchGuidance
     ? (altitude < launchGuidance.targetAltitude
-      ? `NEXT: climb above ${(launchGuidance.targetAltitude / 1000).toFixed(1)} km and build horizontal speed.`
-      : 'NEXT: build horizontal speed for orbital handoff.')
-    : 'NEXT: settle near the pad with low speed and low angle.';
+      ? `Climb above ${(launchGuidance.targetAltitude / 1000).toFixed(1)} km and build horizontal speed.`
+      : 'Build horizontal speed for orbital handoff.')
+    : 'Settle near the pad with low speed and low angle.';
 
   drawHudInfoPanel(ctx, canvas, {
-    title: launchGuidance ? 'TARGET' : 'LANDING SITE',
-    name: launchGuidance ? `${level.body.name} Orbit` : level.name,
+    title: 'DESTINATION',
+    name: destinationName ?? (launchGuidance ? `${level.body.name} Orbit` : level.name),
     rows: launchGuidance
       ? [
-          { label: 'TGT ALT', value: `${(launchGuidance.targetAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
-          { label: 'DIR', value: launchGuidance.orbitDir > 0 ? '→ RIGHT' : '← LEFT', color: COL_SUCCESS },
+          { label: 'ALT', value: `${(launchGuidance.targetAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+          { label: 'DIR', value: launchGuidance.orbitDir > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ]
-      : [
-          { label: 'BODY', value: level.body.name, color: COL_HUD },
-        ],
+      : [],
     guidance: landingGuidance,
   });
 

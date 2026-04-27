@@ -1210,6 +1210,7 @@ export function drawDockingHUD(
   s: DockingState, level: DockingLevel,
   state: 'docking' | 'delivered' | 'crashed',
   completionText: string = '',
+  destinationName: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -1246,18 +1247,16 @@ export function drawDockingHUD(
     ? `NEXT: clear the station to at least ${level.exitDistance.toFixed(0)} m.`
     : 'NEXT: close on the target bay and align the container.';
 
-  if (target) {
+  if (target && !level.exitMode) {
     const bp = bayWorldPos(target, level.stationX, level.stationY);
     const dx = s.x - bp.x, dy = s.y - bp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    panelRows.push({ label: 'TGT', value: `${dist.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
-    if (!level.exitMode) {
-      guidance = s.beamActive
-        ? 'NEXT: hold alignment and let the tractor beam pull you in.'
-        : dist < level.beamRange
-          ? 'NEXT: align the container to activate the tractor beam.'
-          : 'NEXT: close on the target bay and align the container.';
-    }
+    panelRows.push({ label: 'DIST', value: `${dist.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
+    guidance = s.beamActive
+      ? 'Hold alignment and let the tractor beam pull you in.'
+      : dist < level.beamRange
+        ? 'Align the container to activate the tractor beam.'
+        : 'Close on the target bay and align the container.';
   }
 
   if (level.exitMode) {
@@ -1267,8 +1266,8 @@ export function drawDockingHUD(
   }
 
   drawHudInfoPanel(ctx, canvas, {
-    title: 'TARGET',
-    name: level.name,
+    title: 'DESTINATION',
+    name: destinationName ?? level.name,
     rows: panelRows,
     guidance,
   });

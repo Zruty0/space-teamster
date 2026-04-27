@@ -1607,6 +1607,7 @@ function drawApproachHUD(
   s: ApproachState, level: ApproachLevel,
   state: 'approaching' | 'approachSuccess' | 'approachFailed',
   time: number,
+  destinationName: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -1671,23 +1672,23 @@ function drawApproachHUD(
           : apa >= departure.thresholdApoapsisAltitude ? COL_WARNING
           : COL_HUD;
         return [
-          { label: 'TGT ALT', value: `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
-          { label: 'ApA', value: apaText, color: apaCol },
-          { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? '→ RIGHT' : '← LEFT', color: COL_SUCCESS },
+          { label: 'ALT', value: `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
+          { label: 'ApA', value: `> ${(departure.targetOrbitAltitude / 1000).toFixed(0)} km  NOW ${apaText}`, color: apaCol },
+          { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ];
       })()
     : [
-        { label: 'TGT', value: `${(distGate / 1000).toFixed(1)} km`, color: COL_SUCCESS },
-        { label: 'SPD WIN', value: `${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: COL_HUD_DIM },
+        { label: 'DIST', value: `${(distGate / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+        { label: 'SPD', value: `${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: COL_HUD_DIM },
       ];
 
   drawHudInfoPanel(ctx, canvas, {
-    title: 'TARGET',
-    name: departure ? approachDepartureTargetName(level) : level.poi.name,
+    title: 'DESTINATION',
+    name: destinationName ?? (departure ? approachDepartureTargetName(level) : level.poi.name),
     rows: panelRows,
     guidance: departure
-      ? 'NEXT: climb and raise apoapsis to the target orbit for handoff.'
-      : 'NEXT: arrive at target area and match speed.',
+      ? 'Climb and raise apoapsis to the target orbit for handoff.'
+      : 'Arrive at target area and match speed.',
   });
 
   // --- Temperature bar (left side) ---

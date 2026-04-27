@@ -3264,7 +3264,7 @@ function orbitalTargetPanel(
     const rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
     const distStr = dist > 1000 ? `${(dist / 1000).toFixed(1)} km` : `${dist.toFixed(0)} m`;
-    const rows = [{ label: 'TGT', value: distStr, color: dist < level.station.captureRadius ? COL_SUCCESS : COL_HUD }];
+    const rows = [{ label: 'DIST', value: distStr, color: dist < level.station.captureRadius ? COL_SUCCESS : COL_HUD }];
     if (relSpd < 200 && dist < level.station.captureRadius * 3) {
       const stAngle = Math.atan2(sp.y, sp.x);
       const progX = Math.sin(stAngle), progY = -Math.cos(stAngle);
@@ -3278,8 +3278,8 @@ function orbitalTargetPanel(
       rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < level.station.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
     }
     const guidance = dist < level.station.captureRadius
-      ? `NEXT: hold relative speed below ${level.station.captureMaxSpeed.toFixed(0)} m/s.`
-      : 'NEXT: match speed and close for docking.';
+      ? `Hold relative speed below ${level.station.captureMaxSpeed.toFixed(0)} m/s.`
+      : 'Match speed and close for docking.';
     return { name: station.name, rows, guidance };
   }
 
@@ -3303,17 +3303,17 @@ function orbitalTargetPanel(
         if (arrivalLevel) {
           const targetSense = senseLabel(orbitSense(arrivalLevel.startX, arrivalLevel.startY, arrivalLevel.startVX, arrivalLevel.startVY));
           const targetAltKm = (Math.sqrt(arrivalLevel.startX * arrivalLevel.startX + arrivalLevel.startY * arrivalLevel.startY) - arrivalLevel.planetRadius) / 1000;
-          rows.push({ label: 'TGT ORB', value: `${targetAltKm.toFixed(0)} km ${targetSense}`, color: COL_HUD_DIM });
+          rows.push({ label: 'ORB', value: `${targetAltKm.toFixed(0)} km ${targetSense}`, color: COL_HUD_DIM });
         }
         rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
       } else {
-        rows.push({ label: 'TGT', value: `${(dist / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
+        rows.push({ label: 'DIST', value: `${(dist / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
       }
       rows.push({ label: 'REL', value: `${relSpd.toFixed(0)} m/s`, color: relSpd < 220 ? COL_SUCCESS : COL_HUD });
       return {
         name: body.name,
         rows,
-        guidance: 'NEXT: shape the intercept and arrive inside the target circle.',
+        guidance: 'Shape the intercept and arrive inside the target circle.',
       };
     }
   }
@@ -3345,7 +3345,7 @@ function orbitalTargetPanel(
     return {
       name,
       rows,
-      guidance: 'NEXT: line up the escape vector and exit the local SOI.',
+      guidance: 'Line up the escape vector and exit the local SOI.',
     };
   }
 
@@ -3353,7 +3353,7 @@ function orbitalTargetPanel(
   return {
     name: approachLevel?.poi.name ?? bodyById(level.bodyId).name,
     rows: [{ label: 'BODY', value: bodyById(level.bodyId).name, color: COL_HUD }],
-    guidance: level.atmoHeight > 0 ? 'NEXT: deorbit and land near the LZ.' : 'NEXT: descend and enter approach near the target site.',
+    guidance: level.atmoHeight > 0 ? 'Deorbit and land near the LZ.' : 'Descend and enter approach near the target site.',
   };
 }
 
@@ -3361,6 +3361,7 @@ export function drawOrbitalHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: OrbitalState, level: OrbitalLevel,
   state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked',
+  destinationName: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -3423,8 +3424,8 @@ export function drawOrbitalHUD(
 
   const targetPanel = orbitalTargetPanel(s, level, pred);
   drawHudInfoPanel(ctx, canvas, {
-    title: 'TARGET',
-    name: targetPanel.name,
+    title: 'DESTINATION',
+    name: destinationName ?? targetPanel.name,
     rows: targetPanel.rows,
     guidance: targetPanel.guidance,
   });
