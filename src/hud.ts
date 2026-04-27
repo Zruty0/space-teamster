@@ -88,6 +88,7 @@ export function drawHUD(
   level: LevelDef,
   completionText: string = '',
   destinationName: string | undefined,
+  destinationLocation: string | undefined,
   launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1 },
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
@@ -162,9 +163,10 @@ export function drawHUD(
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? (launchGuidance ? `${level.body.name} Orbit` : level.name),
+    subtitle: destinationLocation,
     rows: launchGuidance
       ? [
-          { label: 'ALT', value: `${(launchGuidance.targetAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+          { label: 'ALT', value: `> ${(launchGuidance.targetAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
           { label: 'DIR', value: launchGuidance.orbitDir > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ]
       : [],

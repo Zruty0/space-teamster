@@ -313,6 +313,11 @@ export class Game {
     return mission?.destinationName;
   }
 
+  private currentMissionDestinationLocation(): string | undefined {
+    const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
+    return mission?.destinationLocation;
+  }
+
   private isOrbitalDeorbitObjective(level: OrbitalLevel): boolean {
     return !level.station && !level.targetBodyId && level.showLandingSite !== false;
   }
@@ -908,22 +913,23 @@ export class Game {
     const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
     const completionText = mission?.completionText ?? '';
     const destinationName = mission?.destinationName;
+    const destinationLocation = mission?.destinationLocation;
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'levelSelect') {
       drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
     } else if (p.kind === 'landing') {
       render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time);
-      drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
-      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
       renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time);
-      drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'docking') {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
-      drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {

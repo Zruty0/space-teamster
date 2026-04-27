@@ -18,6 +18,7 @@ export interface HudRow {
 export interface HudInfoPanel {
   title: string;
   name: string;
+  subtitle?: string;
   rows?: HudRow[];
   guidance?: string;
   accentColor?: string;
@@ -78,13 +79,14 @@ export function drawHudInfoPanel(
     : [];
   const headerH = 16;
   const nameH = 22;
+  const subtitleH = panel.subtitle ? 16 : 0;
   const nextLabelH = guidanceLines.length > 0 ? 14 : 0;
   const guidanceTextH = guidanceLines.length * 14;
   const rowH = 20;
   const valuesLabelH = rows.length > 0 ? 14 : 0;
   const sepCount = (guidanceLines.length > 0 ? 1 : 0) + (rows.length > 0 ? 1 : 0);
   const sepH = sepCount * 14;
-  const height = 14 + headerH + 4 + nameH + 8 + nextLabelH + guidanceTextH + sepH + valuesLabelH + rows.length * rowH + 10;
+  const height = 14 + headerH + 4 + nameH + subtitleH + 8 + nextLabelH + guidanceTextH + sepH + valuesLabelH + rows.length * rowH + 10;
 
   ctx.fillStyle = PANEL_FILL;
   ctx.fillRect(x, y, width, height);
@@ -102,6 +104,13 @@ export function drawHudInfoPanel(
   ctx.fillStyle = accent;
   ctx.font = 'bold 16px monospace';
   ctx.fillText(panel.name, x + 12, cy);
+
+  if (panel.subtitle) {
+    cy += 16;
+    ctx.fillStyle = COL_HUD;
+    ctx.font = '12px monospace';
+    ctx.fillText(panel.subtitle, x + 12, cy);
+  }
 
   if (guidanceLines.length > 0) {
     cy += 10;

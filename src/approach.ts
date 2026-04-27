@@ -1608,6 +1608,7 @@ function drawApproachHUD(
   state: 'approaching' | 'approachSuccess' | 'approachFailed',
   time: number,
   destinationName: string | undefined,
+  destinationLocation: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -1646,6 +1647,14 @@ function drawApproachHUD(
     : (speed > level.gateMaxSpeed ? COL_WARNING : speed < level.gateMinSpeed ? COL_HUD_DIM : COL_SUCCESS);
   drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, spdCol); ly += lh;
 
+  if (departure) {
+    const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
+    const apaCol = apa === null ? COL_HUD_DIM
+      : apa >= departure.thresholdApoapsisAltitude ? COL_SUCCESS
+      : COL_WARNING;
+    drawHudLabel(ctx, lx, ly, 'ApA', apaText, apaCol); ly += lh;
+  }
+
   const velAngle = Math.atan2(s.vx, s.vy);
   let aoa = velAngle - s.angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
@@ -1666,14 +1675,9 @@ function drawApproachHUD(
 
   const panelRows = departure
     ? (() => {
-        const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
-        const apaCol = apa === null ? COL_HUD_DIM
-          : apa >= departure.targetOrbitAltitude ? COL_SUCCESS
-          : apa >= departure.thresholdApoapsisAltitude ? COL_WARNING
-          : COL_HUD;
         return [
-          { label: 'ALT', value: `${(departure.targetOrbitAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
-          { label: 'ApA', value: `> ${(departure.targetOrbitAltitude / 1000).toFixed(0)} km  NOW ${apaText}`, color: apaCol },
+          { label: 'ALT', value: `> ${(departure.exitAltitude / 1000).toFixed(1)} km`, color: COL_SUCCESS },
+          { label: 'ApA', value: `> ${(departure.thresholdApoapsisAltitude / 1000).toFixed(0)} km`, color: COL_SUCCESS },
           { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ];
       })()
@@ -1685,6 +1689,7 @@ function drawApproachHUD(
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? (departure ? approachDepartureTargetName(level) : level.poi.name),
+    subtitle: destinationLocation,
     rows: panelRows,
     guidance: departure
       ? 'Climb and raise apoapsis to the target orbit for handoff.'

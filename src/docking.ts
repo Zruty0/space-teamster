@@ -1211,6 +1211,7 @@ export function drawDockingHUD(
   state: 'docking' | 'delivered' | 'crashed',
   completionText: string = '',
   destinationName: string | undefined,
+  destinationLocation: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -1268,6 +1269,7 @@ export function drawDockingHUD(
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? level.name,
+    subtitle: destinationLocation,
     rows: panelRows,
     guidance,
   });

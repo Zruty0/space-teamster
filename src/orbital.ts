@@ -3362,6 +3362,7 @@ export function drawOrbitalHUD(
   s: OrbitalState, level: OrbitalLevel,
   state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked',
   destinationName: string | undefined,
+  destinationLocation: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
   suppressStateOverlays = false,
@@ -3426,6 +3427,7 @@ export function drawOrbitalHUD(
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? targetPanel.name,
+    subtitle: destinationLocation,
     rows: targetPanel.rows,
     guidance: targetPanel.guidance,
   });
