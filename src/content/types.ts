@@ -13,17 +13,35 @@ export type WorldNodeKind =
   | 'cluster'
   | 'poi';
 
+export type OrbitUsage = 'stellar' | 'planetary' | 'moon' | 'low' | 'high' | 'very-inner' | 'eccentric' | 'co-orbital' | 'outer' | 'swarm';
+
+export type OrbitDef =
+  | {
+      kind: 'circular';
+      radius: number;
+      epochAngle: number;
+      epochTime: number;
+      orbitSense: 1 | -1;
+      period?: number;
+      altitude?: number;
+    }
+  | {
+      kind: 'keplerian';
+      semiMajorAxis: number;
+      eccentricity: number;
+      argumentOfPeriapsis: number;
+      meanAnomalyAtEpoch: number;
+      epochTime: number;
+      orbitSense: 1 | -1;
+      period?: number;
+    };
+
 export type Placement =
   | {
       kind: 'orbit';
       parentId: string;
-      orbitClass?: 'stellar' | 'planetary' | 'moon' | 'low' | 'high' | 'very-inner' | 'eccentric' | 'co-orbital' | 'outer' | 'swarm';
-      radius?: number;
-      period?: number;
-      epochAngle?: number;
-      epochTime?: number;
-      orbitSense?: 1 | -1;
-      altitude?: number;
+      usage?: OrbitUsage;
+      orbit?: OrbitDef;
       notes?: string;
     }
   | {
@@ -169,6 +187,13 @@ export function validateWorldTree(nodes: readonly WorldNode[]): WorldValidationI
   for (const node of nodes) {
     if (node.placement && !byId.has(node.placement.parentId)) {
       issues.push({ severity: 'error', message: `Missing parent ${node.placement.parentId}`, nodeId: node.id });
+    }
+
+    if (node.placement?.kind === 'orbit' && node.placement.orbit?.kind === 'keplerian') {
+      const e = node.placement.orbit.eccentricity;
+      if (e < 0 || e >= 1) {
+        issues.push({ severity: 'error', message: `Invalid bound-orbit eccentricity ${e}`, nodeId: node.id });
+      }
     }
 
     for (const ap of node.accessPoints ?? []) {
