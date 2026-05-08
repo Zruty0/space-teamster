@@ -3,8 +3,6 @@ import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './flight-profiles';
 import { type BodyDef, type StationPoiDef, type SurfacePoiDef } from '../../world';
 import { type Placement, type WorldNode } from '../types';
 
-const ESTELLA_VIII_ID = 'estella-viii';
-
 function node(id: string): WorldNode {
   const n = ESTELLA_NODES_BY_ID.get(id);
   if (!n) throw new Error(`Missing Estella node: ${id}`);
@@ -70,7 +68,7 @@ function createSurfacePoi(id: string): SurfacePoiDef {
     id,
     name: nodeName(id),
     subtitle: profile.subtitle,
-    bodyId: ESTELLA_VIII_ID,
+    bodyId: p.parentId,
     surfaceAngle: p.angle ?? 0,
     padCenterX: profile.padCenterX,
     padHalfWidth: profile.padHalfWidth,
@@ -91,9 +89,9 @@ function createStationPoi(stationNodeId: string): StationPoiDef {
     id: stationNodeId,
     name: stationNode.name,
     subtitle: childPoi?.summary ?? 'Generated Estella station',
-    bodyId: ESTELLA_VIII_ID,
+    bodyId: orbitPlacement(stationNodeId).parentId,
     orbit: {
-      parentBodyId: ESTELLA_VIII_ID,
+      parentBodyId: orbitPlacement(stationNodeId).parentId,
       radius: orbit.radius,
       epochAngle: orbit.epochAngle,
       epochTime: orbit.epochTime,
@@ -141,8 +139,20 @@ function playableStationIds(bodyId: string): string[] {
     .sort();
 }
 
-export const ESTELLA_BODIES: BodyDef[] = [createEstellaBody(ESTELLA_VIII_ID)];
+function playableBodyIds(): string[] {
+  return Object.keys(ESTELLA_BODY_FLIGHT_PROFILES)
+    .filter(id => ESTELLA_BODY_PHYSICS[id] !== undefined && ESTELLA_NODES_BY_ID.has(id))
+    .sort();
+}
 
-export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = playableSurfacePoiIds(ESTELLA_VIII_ID).map(createSurfacePoi);
+const PLAYABLE_BODY_IDS = playableBodyIds();
 
-export const ESTELLA_STATION_POIS: StationPoiDef[] = playableStationIds(ESTELLA_VIII_ID).map(createStationPoi);
+export const ESTELLA_BODIES: BodyDef[] = PLAYABLE_BODY_IDS.map(createEstellaBody);
+
+export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = PLAYABLE_BODY_IDS.flatMap(bodyId =>
+  playableSurfacePoiIds(bodyId).map(createSurfacePoi),
+);
+
+export const ESTELLA_STATION_POIS: StationPoiDef[] = PLAYABLE_BODY_IDS.flatMap(bodyId =>
+  playableStationIds(bodyId).map(createStationPoi),
+);
