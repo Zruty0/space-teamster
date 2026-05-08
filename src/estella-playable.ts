@@ -3,6 +3,7 @@ import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
 import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
+import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
 import { STATION_POIS, SURFACE_POIS, bodyById, stationPoiById, surfacePoiById } from './world';
 
@@ -26,7 +27,7 @@ function nextId(): number {
 
 function nodeName(node: WorldNode | undefined): string {
   if (!node) return 'Estella site';
-  return node.catalogId && node.catalogId !== node.name ? `${node.catalogId} ${node.name}` : node.name;
+  return node.name;
 }
 
 function body() {
@@ -36,7 +37,7 @@ function body() {
 function surfaceMarkersForBody(bodyId: string): NonNullable<OrbitalLevel['surfaceMarkers']> {
   return SURFACE_POIS
     .filter(poi => poi.bodyId === bodyId)
-    .map(poi => ({ id: poi.id, name: poi.name, angle: poi.surfaceAngle }));
+    .map(poi => ({ id: poi.id, name: poi.name, angle: poi.surfaceAngle, labelVisibility: ESTELLA_SURFACE_FLIGHT_PROFILES[poi.id]?.labelVisibility }));
 }
 
 function orbitMarkersForBody(bodyId: string): NonNullable<OrbitalLevel['orbitMarkers']> {

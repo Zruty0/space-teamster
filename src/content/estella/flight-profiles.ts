@@ -2,6 +2,7 @@ import { type TerrainFeature } from '../../world';
 
 export interface EstellaSurfaceFlightProfile {
   subtitle: string;
+  labelVisibility?: 'always' | 'target';
   padCenterX: number;
   padHalfWidth: number;
   padY: number;
@@ -82,5 +83,8 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
 export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurfaceFlightProfile>> = {
   'estella-viii-settlement': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-mining-site': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
-  'estella-viii-abandoned-site': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
+  'estella-viii-abandoned-site': {
+    ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
+    labelVisibility: 'target',
+  },
 };

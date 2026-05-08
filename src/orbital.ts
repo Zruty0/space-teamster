@@ -85,6 +85,7 @@ export interface OrbitalLevel {
     id: string;
     name: string;
     angle: number;
+    labelVisibility?: 'always' | 'target';
   }[];
   orbitMarkers?: {
     id: string;
@@ -2562,10 +2563,13 @@ function drawOrbitingPoiMarkers(
     ctx.strokeStyle = isTarget ? '#ffffff' : 'rgba(220, 220, 220, 0.3)';
     ctx.stroke();
 
+    const outwardX = mx - cx;
+    const outwardY = my - cy;
+    const outLen = Math.max(1, Math.hypot(outwardX, outwardY));
     ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = col;
-    ctx.fillText(marker.name.toUpperCase(), mx, my - 10);
+    ctx.fillText(marker.name.toUpperCase(), mx + outwardX / outLen * 10, my + outwardY / outLen * 10);
   }
 }
 
@@ -2579,7 +2583,8 @@ function drawSurfacePoiMarkers(
     const isTarget = Math.abs(normalizeAngle(marker.angle - level.landingSiteAngle)) < 1e-5 && level.showLandingSite !== false && !level.station;
     const col = isTarget ? '#00ffcc' : 'rgba(160, 170, 180, 0.75)';
     const surfR = level.planetRadius;
-    const labelR = (level.planetRadius + Math.max(level.atmoHeight, 8_000)) * 1.16;
+    const showLabel = isTarget || marker.labelVisibility !== 'target';
+    const labelR = Math.max(level.planetRadius * 0.72, level.planetRadius - Math.max(8_000, level.planetRadius * 0.12));
     const sx = surfR * Math.cos(marker.angle);
     const sy = surfR * Math.sin(marker.angle);
     const lx = labelR * Math.cos(marker.angle);
@@ -2601,10 +2606,12 @@ function drawSurfacePoiMarkers(
     ctx.fillStyle = col;
     ctx.fill();
 
-    ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
-    ctx.fillStyle = col;
-    ctx.textAlign = 'center';
-    ctx.fillText(marker.name.toUpperCase(), lsx, lsy + 4);
+    if (showLabel) {
+      ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
+      ctx.fillStyle = col;
+      ctx.textAlign = 'center';
+      ctx.fillText(marker.name.toUpperCase(), lsx, lsy + 4);
+    }
   }
 }
 

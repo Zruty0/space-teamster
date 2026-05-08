@@ -10,8 +10,7 @@ function node(id: string): WorldNode {
 }
 
 function nodeName(id: string): string {
-  const n = node(id);
-  return n.catalogId && n.catalogId !== n.name ? `${n.catalogId} ${n.name}` : n.name;
+  return node(id).name;
 }
 
 function placement(id: string): Placement {

@@ -76,7 +76,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
       altitude: 240_000,
       epochAngle: -1.2,
       epochTime: 0,
-      orbitSense: -1,
+      orbitSense: 1,
       period: 14_400,
     },
   },
