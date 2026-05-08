@@ -175,7 +175,16 @@ export class Game {
     const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time: worldTimeStart };
     const os = createOrbitalState(level, effectiveInit);
     const cam = createOrbitalCamera(level);
-    if (initOverride) { cam.x = os.x; cam.y = os.y; }
+    if (initOverride) {
+      if (level.systemBodies) {
+        // Escapes into a parent/system transfer frame should start in the transfer map view,
+        // not briefly inherit a ship-centered local camera from the child SOI.
+        updateOrbitalCamera(cam, os, level, 10, this.canvas.width, this.canvas.height);
+      } else {
+        cam.x = os.x;
+        cam.y = os.y;
+      }
+    }
     this.phaseCompletion = null;
     this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed };
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
