@@ -92,4 +92,15 @@ export const MISSIONS: Mission[] = [
     startWorldTime: 0,
     start: { kind: 'docking', dockingLevelId: 16 },
   },
+  {
+    id: 8,
+    name: 'Estella Transfer',
+    subtitle: 'Prototype navigation browser for exact-authored Estella locations.',
+    destinationName: 'Estella Navigation',
+    destinationLocation: 'authored system map',
+    completionText: 'Navigation route set.',
+    stub: false,
+    startWorldTime: 0,
+    start: { kind: 'estellaNav' },
+  },
 ];

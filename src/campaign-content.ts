@@ -310,4 +310,5 @@ export const ORBITAL_PHASES: OrbitalPhaseDef[] = [
 
 export type MissionStartDef =
   | { kind: 'docking'; dockingLevelId: number }
-  | { kind: 'landing'; poiId: string; departureApproachLevelId: number };
+  | { kind: 'landing'; poiId: string; departureApproachLevelId: number }
+  | { kind: 'estellaNav' };

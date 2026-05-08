@@ -29,6 +29,8 @@ import {
 } from './docking';
 import { MISSIONS } from './missions';
 import { bodyById, bodyStateRelativeToParent } from './world';
+import { createEstellaNavState, drawEstellaNavigation, moveEstellaSelection, toggleEstellaPanel, type EstellaNavPhaseState } from './estella-nav';
+import { estellaSelectableNavTargets } from './content/estella/navigation';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -38,7 +40,10 @@ type Phase =
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number; facingSign?: 1 | -1 }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number; missionDvStart: number }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
-  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number };
+  | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number }
+  | { kind: 'estellaNav'; nav: EstellaNavPhaseState };
+
+type GameplayPhase = Exclude<Phase, { kind: 'levelSelect' } | { kind: 'estellaNav' }>;
 
 interface PhaseCompletion {
   title: string;
@@ -156,6 +161,15 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private loadEstellaNavigation(): void {
+    const targets = estellaSelectableNavTargets();
+    this.phaseCompletion = null;
+    this.phase = { kind: 'estellaNav', nav: createEstellaNavState(targets.length) };
+    this.showGuidance('SELECT ESTELLA SOURCE AND DESTINATION');
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
     const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time: worldTimeStart };
     const os = createOrbitalState(level, effectiveInit);
@@ -222,6 +236,8 @@ export class Game {
       this.handleOrbital(input, frameTime);
     } else if (p.kind === 'docking') {
       this.handleDocking(input, frameTime);
+    } else if (p.kind === 'estellaNav') {
+      this.handleEstellaNavigation(input);
     }
 
     this.renderFrame();
@@ -275,6 +291,11 @@ export class Game {
       );
       return;
     }
+
+    if (start.kind === 'estellaNav') {
+      this.loadEstellaNavigation();
+      return;
+    }
   }
 
   private launchLevel(index: number): void {
@@ -283,7 +304,7 @@ export class Game {
     this.startMission(mission.id);
   }
 
-  private phaseDvUsed(p: Exclude<Phase, { kind: 'levelSelect' }>): number {
+  private phaseDvUsed(p: GameplayPhase): number {
     switch (p.kind) {
       case 'landing': return p.ship.dvUsed;
       case 'approach': return p.as.dvUsed;
@@ -292,11 +313,11 @@ export class Game {
     }
   }
 
-  private missionDvForPhase(p: Exclude<Phase, { kind: 'levelSelect' }>): number {
+  private missionDvForPhase(p: GameplayPhase): number {
     return p.missionDvStart + this.phaseDvUsed(p);
   }
 
-  private phaseTitle(p: Exclude<Phase, { kind: 'levelSelect' }>): string {
+  private phaseTitle(p: GameplayPhase): string {
     if (p.kind === 'landing') {
       return p.launchGuidance ? `Launch from ${p.level.name}` : (p.level.subtitle || p.level.name);
     }
@@ -322,7 +343,7 @@ export class Game {
     return !level.station && !level.targetBodyId && level.showLandingSite !== false;
   }
 
-  private reloadPhase(p: Exclude<Phase, { kind: 'levelSelect' }>): void {
+  private reloadPhase(p: GameplayPhase): void {
     this.phaseCompletion = null;
     this.missionDvUsed = p.missionDvStart;
     if (p.kind === 'landing') this.loadLanding(p.level, p.initOverride, p.launchGuidance, p.worldTimeStart);
@@ -332,7 +353,7 @@ export class Game {
   }
 
   private completePhase(
-    p: Exclude<Phase, { kind: 'levelSelect' }>,
+    p: GameplayPhase,
     onContinue: () => void,
     completionText: string = '',
     extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {},
@@ -906,6 +927,24 @@ export class Game {
     updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
   }
 
+  // --- Estella navigation prototype ---
+
+  private handleEstellaNavigation(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'estellaNav' }>;
+    const targets = estellaSelectableNavTargets();
+
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+    if (input.reset) { p.nav.routeText = ''; return; }
+    if (input.menuLeft || input.menuRight) toggleEstellaPanel(p.nav);
+    if (input.menuUp) moveEstellaSelection(p.nav, -1, targets.length);
+    if (input.menuDown) moveEstellaSelection(p.nav, 1, targets.length);
+    if (input.menuConfirm && targets.length > 0) {
+      const src = targets[p.nav.sourceIndex];
+      const dst = targets[p.nav.destinationIndex];
+      if (src && dst) p.nav.routeText = `NAV SET: ${src.name} → ${dst.name}`;
+    }
+  }
+
   // --- Render ---
 
   private renderFrame(): void {
@@ -930,6 +969,8 @@ export class Game {
     } else if (p.kind === 'docking') {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
       drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+    } else if (p.kind === 'estellaNav') {
+      drawEstellaNavigation(this.ctx, this.canvas, p.nav, estellaSelectableNavTargets());
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {

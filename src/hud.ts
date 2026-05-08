@@ -74,7 +74,7 @@ export function drawLevelSelect(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('↑↓: Select  Enter: Launch  (or press 1-7)', W / 2, mStartY + MISSIONS.length * mLineH + 30);
+  ctx.fillText(`↑↓: Select  Enter: Launch  (or press 1-${MISSIONS.length})`, W / 2, mStartY + MISSIONS.length * mLineH + 30);
 }
 
 // --- In-game HUD ---

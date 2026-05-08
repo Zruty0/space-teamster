@@ -23,6 +23,8 @@ export interface InputState {
   // Menu navigation
   menuUp: boolean;         // edge-triggered
   menuDown: boolean;       // edge-triggered
+  menuLeft: boolean;       // edge-triggered
+  menuRight: boolean;      // edge-triggered
   menuConfirm: boolean;    // edge-triggered (Enter/Space)
   continueAction: boolean; // edge-triggered (Enter)
   // Approach controls
@@ -98,6 +100,8 @@ export function readInput(): InputState {
   // Menu navigation
   const menuUp = justPressed.has('ArrowUp') || justPressed.has('KeyW');
   const menuDown = justPressed.has('ArrowDown') || justPressed.has('KeyS');
+  const menuLeft = justPressed.has('ArrowLeft') || justPressed.has('KeyA');
+  const menuRight = justPressed.has('ArrowRight') || justPressed.has('KeyD');
   const menuConfirm = justPressed.has('Enter') || justPressed.has('Space');
   const continueAction = justPressed.has('Enter');
 
@@ -139,6 +143,8 @@ export function readInput(): InputState {
     levelPick,
     menuUp,
     menuDown,
+    menuLeft,
+    menuRight,
     menuConfirm,
     continueAction,
     toggleWings,
