@@ -220,7 +220,7 @@ export function generatedEstellaDepartureTarget(destinationId: string): Generate
   // and require RIGHTward launch guidance, so these signs intentionally invert.
   const orbitDir = target.orbit.orbitSense === -1 ? 1 : -1;
   return {
-    thresholdApoapsisAltitude: Math.max(b.orbitalDefaults.transitionAltitude + 5_000, targetAltitude * 0.85),
+    thresholdApoapsisAltitude: Math.max((b.atmosphere?.height ?? 0) + 10_000, Math.min(targetAltitude * 0.5, 20_000)),
     targetOrbitAltitude: targetAltitude,
     orbitDir,
   };
