@@ -286,9 +286,9 @@ export function transferBodyState(
   };
 }
 
-let _cachedEscapeTarget: { levelId: number; timeBin: number; angle: number } | null = null;
+let _cachedEscapeTarget: { levelId: number; timeBin: number; angle: number; vInf: number } | null = null;
 
-function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: number): number | null {
+function optimizedEscapeTarget(level: OrbitalLevel, time: number, nominalVInf: number): { angle: number; vInf: number } | null {
   if (!level.escapeToOrbitalLevelId) return null;
   const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
   const originState = nextLevel ? transferBodyState(nextLevel, level.bodyId, time) : null;
@@ -299,21 +299,22 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
 
   const timeBin = Math.floor(time / 20);
   if (_cachedEscapeTarget && _cachedEscapeTarget.levelId === level.id && _cachedEscapeTarget.timeBin === timeBin) {
-    return _cachedEscapeTarget.angle;
+    return { angle: _cachedEscapeTarget.angle, vInf: _cachedEscapeTarget.vInf };
   }
 
-  const vInfMag = Math.abs(vInf);
-  const baseAngle = Math.atan2(originState.vy, originState.vx) + (vInf < 0 ? Math.PI : 0);
+  const nominalMag = Math.max(1, Math.abs(nominalVInf));
+  const baseAngle = Math.atan2(originState.vy, originState.vx) + (nominalVInf < 0 ? Math.PI : 0);
   const transferA = (originBody.orbit.radius + targetBodyDef.orbit.radius) * 0.5;
   const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
   const nearCoOrbital = Math.abs(originBody.orbit.radius - targetBodyDef.orbit.radius) / originBody.orbit.radius < 0.05;
   const horizon = nearCoOrbital ? Math.min(hohmannTime * 4.0, 4_000_000) : hohmannTime * 1.35;
-  const stepSize = Math.max(120, horizon / 480);
+  const stepSize = Math.max(120, horizon / (nearCoOrbital ? 300 : 480));
   let bestAngle = baseAngle;
+  let bestVInf = nominalMag;
   let bestDist = Infinity;
   let bestRelSpeed = Infinity;
 
-  const evalAngle = (angle: number) => {
+  const evalTarget = (angle: number, vInfMag: number) => {
     const trial: OrbitalState = {
       x: originState.x,
       y: originState.y,
@@ -364,25 +365,39 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
       bestDist = minDist;
       bestRelSpeed = relSpeedAtMin;
       bestAngle = angle;
+      bestVInf = vInfMag;
     }
   };
 
   const coarseRange = nearCoOrbital ? Math.PI : Math.PI * 0.45;
-  for (let i = 0; i <= 24; i++) {
-    const f = i / 24;
-    evalAngle(baseAngle - coarseRange + f * coarseRange * 2);
+  const vInfCandidates = nearCoOrbital
+    ? [20, nominalMag, 50, 75, 110, 150]
+    : [nominalMag];
+  for (const vInfMag of vInfCandidates) {
+    const steps = nearCoOrbital ? 36 : 24;
+    for (let i = 0; i <= steps; i++) {
+      const f = i / steps;
+      evalTarget(baseAngle - coarseRange + f * coarseRange * 2, vInfMag);
+    }
   }
   for (let pass = 0; pass < 2; pass++) {
     const refineRange = pass === 0 ? Math.PI * 0.08 : Math.PI * 0.025;
-    const center = bestAngle;
-    for (let i = 0; i <= 10; i++) {
-      const f = i / 10;
-      evalAngle(center - refineRange + f * refineRange * 2);
+    const speedRange = pass === 0 ? 20 : 8;
+    const centerAngle = bestAngle;
+    const centerVInf = bestVInf;
+    for (let ai = 0; ai <= 8; ai++) {
+      const af = ai / 8;
+      const angle = centerAngle - refineRange + af * refineRange * 2;
+      for (let vi = 0; vi <= 4; vi++) {
+        const vf = vi / 4;
+        const vInfMag = Math.max(1, centerVInf - speedRange + vf * speedRange * 2);
+        evalTarget(angle, vInfMag);
+      }
     }
   }
 
-  _cachedEscapeTarget = { levelId: level.id, timeBin, angle: bestAngle };
-  return bestAngle;
+  _cachedEscapeTarget = { levelId: level.id, timeBin, angle: bestAngle, vInf: bestVInf };
+  return { angle: bestAngle, vInf: bestVInf };
 }
 
 function parentTransferTargetForLevel(
@@ -427,13 +442,16 @@ function escapeTargetForLevel(
   if (parentTarget) return { angle: parentTarget.angle, speed: parentTarget.speed };
 
   let angle: number | null = null;
-  const vInf = level.escapeVectorSpeed ?? 0;
+  let vInf = level.escapeVectorSpeed ?? 0;
   if (level.escapeToOrbitalLevelId) {
     const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
     const retargetsSameBody = nextLevel?.targetBodyId === level.bodyId;
     if (!retargetsSameBody) {
-      angle = optimizedEscapeTargetAngle(level, time, vInf);
-      if (angle === null) {
+      const optimized = optimizedEscapeTarget(level, time, vInf);
+      if (optimized) {
+        angle = optimized.angle;
+        vInf = optimized.vInf;
+      } else {
         const fallbackState = nextLevel ? transferBodyState(nextLevel, level.bodyId, time) : null;
         if (fallbackState) angle = Math.atan2(fallbackState.vy, fallbackState.vx);
       }
@@ -443,7 +461,7 @@ function escapeTargetForLevel(
   if (angle === null) return null;
 
   const patchR = level.escapeSOIRadius ?? level.conicRadius ?? 0;
-  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : vInf;
+  const speed = patchR > 0 ? Math.sqrt(vInf * vInf + 2 * level.planetGM / patchR) : Math.abs(vInf);
   return { angle, speed };
 }
 
