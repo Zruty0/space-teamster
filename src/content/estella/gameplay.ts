@@ -81,17 +81,18 @@ function createSurfacePoi(id: string): SurfacePoiDef {
   };
 }
 
-function createStationPoi(stationNodeId: string): StationPoiDef {
-  const orbit = circularOrbit(stationNodeId);
-  const stationNode = node(stationNodeId);
-  const childPoi = [...ESTELLA_NODES_BY_ID.values()].find(n => n.placement?.kind === 'aboard' && n.placement.parentId === stationNodeId);
+function createStationPoi(dockNodeId: string): StationPoiDef {
+  const orbit = circularOrbit(dockNodeId);
+  const dockNode = node(dockNodeId);
+  const orbitPlacementDef = orbitPlacement(dockNodeId);
+  const childPoi = [...ESTELLA_NODES_BY_ID.values()].find(n => n.placement?.kind === 'aboard' && n.placement.parentId === dockNodeId);
   return {
-    id: stationNodeId,
-    name: stationNode.name,
-    subtitle: childPoi?.summary ?? 'Generated Estella station',
-    bodyId: orbitPlacement(stationNodeId).parentId,
+    id: dockNodeId,
+    name: dockNode.name,
+    subtitle: childPoi?.summary ?? 'Generated Estella docking site',
+    bodyId: orbitPlacementDef.parentId,
     orbit: {
-      parentBodyId: orbitPlacement(stationNodeId).parentId,
+      parentBodyId: orbitPlacementDef.parentId,
       radius: orbit.radius,
       epochAngle: orbit.epochAngle,
       epochTime: orbit.epochTime,
@@ -126,11 +127,14 @@ function playableSurfacePoiIds(bodyId: string): string[] {
     .sort();
 }
 
-function playableStationIds(bodyId: string): string[] {
+function playableDockNodeIds(bodyId: string): string[] {
   return [...ESTELLA_NODES_BY_ID.values()]
     .filter(n => {
       const p = ESTELLA_PLACEMENTS[n.id] ?? n.placement;
-      return n.kind === 'station'
+      const hasAboardPoi = [...ESTELLA_NODES_BY_ID.values()].some(child =>
+        child.kind === 'poi' && child.placement?.kind === 'aboard' && child.placement.parentId === n.id,
+      );
+      return hasAboardPoi
         && p?.kind === 'orbit'
         && p.parentId === bodyId
         && p.orbit?.kind === 'circular';
@@ -154,5 +158,5 @@ export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = PLAYABLE_BODY_IDS.flatMap(b
 );
 
 export const ESTELLA_STATION_POIS: StationPoiDef[] = PLAYABLE_BODY_IDS.flatMap(bodyId =>
-  playableStationIds(bodyId).map(createStationPoi),
+  playableDockNodeIds(bodyId).map(createStationPoi),
 );
