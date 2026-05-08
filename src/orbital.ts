@@ -2371,11 +2371,12 @@ function drawCentralBodyLabel(
   level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  const centerBodyR = Math.max(8, level.planetRadius * cam.zoom);
   ctx.font = '11px monospace';
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.fillStyle = 'rgba(120, 180, 255, 0.9)';
-  ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, cy - centerBodyR - 8);
+  ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, cy);
+  ctx.textBaseline = 'alphabetic';
 }
 
 function drawSystemBodies(
