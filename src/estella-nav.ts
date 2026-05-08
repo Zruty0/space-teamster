@@ -92,7 +92,7 @@ function estellaDisplayName(targetId: string | undefined): string {
 }
 
 function targetSummary(id: string | undefined): string {
-  if (!id) return 'not selected';
+  if (!id) return '';
   return estellaDisplayPath(id);
 }
 
