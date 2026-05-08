@@ -17,7 +17,6 @@ interface GeneratedDepartureTarget {
   orbitDir: 1 | -1;
 }
 
-const BODY_ID = 'estella-viii';
 const BASE_ID = 80_000;
 let seq = 0;
 
@@ -34,9 +33,6 @@ function nodeName(node: WorldNode | undefined): string {
   return parent?.name && node.name.startsWith(`${parent.name} `) ? node.name.slice(parent.name.length + 1) : node.name;
 }
 
-function body() {
-  return bodyById(BODY_ID);
-}
 
 function surfaceMarkersForBody(bodyId: string): NonNullable<OrbitalLevel['surfaceMarkers']> {
   return SURFACE_POIS
@@ -57,8 +53,8 @@ function orbitMarkersForBody(bodyId: string): NonNullable<OrbitalLevel['orbitMar
     }));
 }
 
-function circularStart(radius: number, angle: number, sense: 1 | -1): { x: number; y: number; vx: number; vy: number } {
-  const b = body();
+function circularStart(bodyId: string, radius: number, angle: number, sense: 1 | -1): { x: number; y: number; vx: number; vy: number } {
+  const b = bodyById(bodyId);
   const speed = Math.sqrt(b.gm / radius);
   return {
     x: Math.cos(angle) * radius,
@@ -150,6 +146,7 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
 
 function createOrbitalLevel(opts: {
   id: number;
+  bodyId: string;
   name: string;
   reentryApproachLevelId?: number;
   landingSiteAngle?: number;
@@ -157,14 +154,14 @@ function createOrbitalLevel(opts: {
   station?: OrbitalLevel['station'];
   startOrbit?: { radius: number; epochAngle: number; orbitSense: 1 | -1 };
 }): OrbitalLevel {
-  const b = body();
+  const b = bodyById(opts.bodyId);
   const r = opts.startOrbit?.radius ?? (b.radius + 100_000);
   const startAngle = opts.startOrbit ? opts.startOrbit.epochAngle + 0.06 * opts.startOrbit.orbitSense : (opts.landingSiteAngle ?? 0) + Math.PI * 0.85;
   const startSense = opts.startOrbit?.orbitSense ?? -1;
-  const start = circularStart(r, startAngle, startSense);
+  const start = circularStart(opts.bodyId, r, startAngle, startSense);
   return {
     id: opts.id,
-    bodyId: BODY_ID,
+    bodyId: opts.bodyId,
     name: opts.name,
     subtitle: opts.station ? `Generated rendezvous around ${b.name}` : `Generated ${b.name} orbit`,
     planetRadius: b.radius,
@@ -193,8 +190,8 @@ function createOrbitalLevel(opts: {
     heatDissipation: 0,
     transitionAltitude: b.orbitalDefaults.transitionAltitude,
     landingSiteAngle: opts.landingSiteAngle ?? 0,
-    surfaceMarkers: surfaceMarkersForBody(BODY_ID),
-    orbitMarkers: orbitMarkersForBody(BODY_ID),
+    surfaceMarkers: surfaceMarkersForBody(opts.bodyId),
+    orbitMarkers: orbitMarkersForBody(opts.bodyId),
     approachLevelIdx: 0,
     approachGravity: b.gm / (b.radius * b.radius),
     reentryApproachLevelId: opts.reentryApproachLevelId,
@@ -219,6 +216,11 @@ function stationTargetForPoi(poiId: string): NonNullable<OrbitalLevel['station']
   };
 }
 
+function centralBodyIdForPoi(poiId: string): string {
+  if (playableKind(poiId) === 'surface') return surfacePoiById(poiId).bodyId;
+  return stationPoiById(parentNode(poiId)!.id).bodyId;
+}
+
 function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: number; orbitSense: 1 | -1 } | undefined {
   if (playableKind(sourceId) !== 'dock') return undefined;
   const station = stationPoiById(parentNode(sourceId)!.id);
@@ -238,8 +240,8 @@ export function generatedEstellaDepartureTarget(destinationId: string): Generate
     };
   }
 
-  const b = body();
   const target = stationPoiById(parentNode(destinationId)!.id);
+  const b = bodyById(target.bodyId);
   const targetAltitude = Math.max(0, target.orbit.radius - b.radius);
   // Existing launch UI convention is screen/local direction, while station orbitSense
   // uses orbital math sign. In current campaign data, CW station targets use orbitSense=-1
@@ -266,6 +268,11 @@ function register<T extends { id: number }>(arr: T[], item: T): T {
 export function createPlayableEstellaMission(sourceId: string, destinationId: string): EstellaPlayableMission {
   const sourceKind = playableKind(sourceId);
   const destKind = playableKind(destinationId);
+  const sourceBodyId = centralBodyIdForPoi(sourceId);
+  const destBodyId = centralBodyIdForPoi(destinationId);
+  if (sourceBodyId !== destBodyId) {
+    throw new Error(`Generated inter-body Estella missions are not implemented yet: ${sourceBodyId} -> ${destBodyId}`);
+  }
   const destSurface = destKind === 'surface';
   const departureTarget = generatedEstellaDepartureTarget(destinationId);
   const destLandingId = destSurface ? nextId() : 0;
@@ -292,6 +299,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
 
   const orbital = register(ORBITAL_LEVELS, createOrbitalLevel({
     id: orbitalId,
+    bodyId: destBodyId,
     name: destSurface ? `${nodeName(ESTELLA_NODES_BY_ID.get(destinationId))} Deorbit` : `${nodeName(parentNode(destinationId))} Rendezvous`,
     reentryApproachLevelId: destSurface ? destApproachId : undefined,
     landingSiteAngle: destSurface ? surfacePlacement(destinationId).angle ?? 0 : 0,

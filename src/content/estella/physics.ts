@@ -41,6 +41,12 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     rotationPeriod: 48_000,
     notes: 'Initial authored dwarf-planet test body for Estella navigation prototyping.',
   },
+  'estella-ix': {
+    radius: 165_000,
+    gm: 1.45 * 165_000 * 165_000,
+    rotationPeriod: 52_000,
+    notes: 'Icy sibling dwarf planet near Estella VIII for same-belt transfer prototyping.',
+  },
 };
 
 /** Flight/rendering profile data needed to adapt Estella bodies into current gameplay phases. */
@@ -52,6 +58,21 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     terrainFillColor: '#101820',
     terrainStrokeColor: '#607080',
     terrainBrightColor: '#8da0ad',
+    orbitalDefaults: {
+      baseTimeScale: 50,
+      thrustAccel: 0.05,
+      thrustAccelMax: 1.0,
+      fuelDeltaV: 900,
+      transitionAltitude: 8_000,
+    },
+  },
+  'estella-ix': {
+    color: [150, 180, 205],
+    planetFillColor: '#0d1720',
+    planetStrokeColor: '#6c8fa8',
+    terrainFillColor: '#0d1720',
+    terrainStrokeColor: '#6c8fa8',
+    terrainBrightColor: '#a8c5d8',
     orbitalDefaults: {
       baseTimeScale: 50,
       thrustAccel: 0.05,

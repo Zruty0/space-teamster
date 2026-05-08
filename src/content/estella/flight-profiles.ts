@@ -80,11 +80,26 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   },
 };
 
+const ESTELLA_IX_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
+  subtitle: 'Generated Estella IX icy surface site',
+  features: [
+    { xStart: 880, xEnd: 905, height: 38 },
+    { xStart: 1110, xEnd: 1135, height: 46 },
+  ],
+};
+
 export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurfaceFlightProfile>> = {
   'estella-viii-settlement': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-mining-site': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-abandoned-site': {
     ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
+    labelVisibility: 'target',
+  },
+  'estella-ix-research-base': ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
+  'estella-ix-ice-mine': ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
+  'estella-ix-geological-feature': {
+    ...ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
     labelVisibility: 'target',
   },
 };
