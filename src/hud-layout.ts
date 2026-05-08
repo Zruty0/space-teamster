@@ -79,7 +79,10 @@ export function drawHudInfoPanel(
     : [];
   const headerH = 16;
   const nameH = 22;
-  const subtitleH = panel.subtitle ? 16 : 0;
+  const subtitleLines = panel.subtitle
+    ? wrapHudText(ctx, panel.subtitle, width - 24)
+    : [];
+  const subtitleH = subtitleLines.length * 14;
   const nextLabelH = guidanceLines.length > 0 ? 14 : 0;
   const guidanceTextH = guidanceLines.length * 14;
   const rowH = 20;
@@ -105,11 +108,15 @@ export function drawHudInfoPanel(
   ctx.font = 'bold 16px monospace';
   ctx.fillText(panel.name, x + 12, cy);
 
-  if (panel.subtitle) {
-    cy += 16;
+  if (subtitleLines.length > 0) {
+    cy += 14;
     ctx.fillStyle = COL_HUD;
     ctx.font = '12px monospace';
-    ctx.fillText(panel.subtitle, x + 12, cy);
+    for (const line of subtitleLines) {
+      ctx.fillText(line, x + 12, cy);
+      cy += 14;
+    }
+    cy -= 14;
   }
 
   if (guidanceLines.length > 0) {
