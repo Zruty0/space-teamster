@@ -29,8 +29,7 @@ import {
 } from './docking';
 import { MISSIONS } from './missions';
 import { bodyById, bodyStateRelativeToParent } from './world';
-import { createEstellaNavState, drawEstellaNavigation, moveEstellaSelection, toggleEstellaPanel, type EstellaNavPhaseState } from './estella-nav';
-import { estellaSelectableNavTargets } from './content/estella/navigation';
+import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -162,9 +161,8 @@ export class Game {
   }
 
   private loadEstellaNavigation(): void {
-    const targets = estellaSelectableNavTargets();
     this.phaseCompletion = null;
-    this.phase = { kind: 'estellaNav', nav: createEstellaNavState(targets.length) };
+    this.phase = { kind: 'estellaNav', nav: createEstellaNavState() };
     this.showGuidance('SELECT ESTELLA SOURCE AND DESTINATION');
     this.time = 0;
     this.accumulator = 0;
@@ -931,18 +929,14 @@ export class Game {
 
   private handleEstellaNavigation(input: InputState): void {
     const p = this.phase as Extract<Phase, { kind: 'estellaNav' }>;
-    const targets = estellaSelectableNavTargets();
 
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
-    if (input.reset) { p.nav.routeText = ''; return; }
-    if (input.menuLeft || input.menuRight) toggleEstellaPanel(p.nav);
-    if (input.menuUp) moveEstellaSelection(p.nav, -1, targets.length);
-    if (input.menuDown) moveEstellaSelection(p.nav, 1, targets.length);
-    if (input.menuConfirm && targets.length > 0) {
-      const src = targets[p.nav.sourceIndex];
-      const dst = targets[p.nav.destinationIndex];
-      if (src && dst) p.nav.routeText = `NAV SET: ${src.name} → ${dst.name}`;
-    }
+    if (input.reset) { resetEstellaNavSelection(p.nav); return; }
+    if (input.menuUp) moveEstellaCursor(p.nav, -1);
+    if (input.menuDown) moveEstellaCursor(p.nav, 1);
+    if (input.menuLeft) estellaNavBack(p.nav);
+    if (input.menuRight) estellaNavForward(p.nav);
+    if (input.menuConfirm) estellaNavActivate(p.nav);
   }
 
   // --- Render ---
@@ -970,7 +964,7 @@ export class Game {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
       drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'estellaNav') {
-      drawEstellaNavigation(this.ctx, this.canvas, p.nav, estellaSelectableNavTargets());
+      drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {
