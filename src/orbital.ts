@@ -288,6 +288,95 @@ export function transferBodyState(
 
 let _cachedEscapeTarget: { levelId: number; timeBin: number; angle: number; vInf: number } | null = null;
 
+function optimizedCoOrbitalPhasingTarget(
+  level: OrbitalLevel,
+  nextLevel: OrbitalLevel,
+  originState: { x: number; y: number; vx: number; vy: number },
+  targetBody: OrbitalTransferBody,
+  time: number,
+): { angle: number; vInf: number } | null {
+  const tangentAngle = Math.atan2(originState.vy, originState.vx);
+  const horizon = 30_000_000;
+  const stepSize = 20_000;
+  let best: { signedVInf: number; dist: number; relSpeed: number; score: number } = { signedVInf: 1, dist: Infinity, relSpeed: Infinity, score: Infinity };
+
+  const evalSignedVInf = (signedVInf: number) => {
+    const angle = tangentAngle + (signedVInf < 0 ? Math.PI : 0);
+    const vInfMag = Math.abs(signedVInf);
+    const trial: OrbitalState = {
+      x: originState.x,
+      y: originState.y,
+      vx: originState.vx + Math.cos(angle) * vInfMag,
+      vy: originState.vy + Math.sin(angle) * vInfMag,
+      fuel: 0,
+      dvUsed: 0,
+      alive: true,
+      enteredAtmo: false,
+      temperature: 0,
+      trail: [],
+      trailIdx: 0,
+      time,
+      realTime: 0,
+      timeWarp: 1,
+      timeWarpLevel: 0,
+      thrustPro: false,
+      thrustRetro: false,
+      thrustLeft: false,
+      thrustRight: false,
+      thrusting: 'none',
+      highThrust: false,
+      inAtmo: false,
+      angle: 0,
+      renderAngle: 0,
+      targetAoA: nextLevel.highAtmoAoA,
+      docked: false,
+      inRendezvousZoom: false,
+      pacingModeId: currentPacingProfile(nextLevel, Math.sqrt(originState.x * originState.x + originState.y * originState.y) - nextLevel.planetRadius).orbitModeId,
+    };
+    const points = predictOrbit(trial, nextLevel, horizon, stepSize, nextLevel.highAtmoAoA);
+    let minDist = Infinity;
+    let relSpeedAtMin = Infinity;
+    let tAtMin = horizon;
+    for (const pt of points) {
+      const bodyPos = transferBodyState(nextLevel, targetBody.id, pt.t);
+      if (!bodyPos) continue;
+      const dx = pt.x - bodyPos.x;
+      const dy = pt.y - bodyPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        tAtMin = pt.t - time;
+        const rvx = pt.vx - bodyPos.vx;
+        const rvy = pt.vy - bodyPos.vy;
+        relSpeedAtMin = Math.sqrt(rvx * rvx + rvy * rvy);
+      }
+    }
+    const hitsPatch = minDist <= targetBody.patchRadius;
+    const score = hitsPatch
+      ? vInfMag + (minDist / targetBody.patchRadius) * 0.05 + (tAtMin / horizon) * 0.02
+      : 1_000 + (minDist / targetBody.patchRadius) + vInfMag * 0.1;
+    if (score < best.score) best = { signedVInf, dist: minDist, relSpeed: relSpeedAtMin, score };
+  };
+
+  for (const mag of [0.5, 1, 2, 3, 5, 8, 13, 20]) {
+    evalSignedVInf(-mag);
+    evalSignedVInf(mag);
+  }
+
+  const center = best.signedVInf;
+  const range = Math.max(0.5, Math.abs(center) * 0.35);
+  for (let i = 0; i <= 10; i++) {
+    const f = i / 10;
+    const signedVInf = center - range + f * range * 2;
+    if (Math.abs(signedVInf) >= 0.1) evalSignedVInf(signedVInf);
+  }
+
+  return {
+    angle: normalizeAngle(tangentAngle + (best.signedVInf < 0 ? Math.PI : 0)),
+    vInf: Math.abs(best.signedVInf),
+  };
+}
+
 function optimizedEscapeTarget(level: OrbitalLevel, time: number, nominalVInf: number): { angle: number; vInf: number } | null {
   if (!level.escapeToOrbitalLevelId) return null;
   const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
@@ -302,13 +391,21 @@ function optimizedEscapeTarget(level: OrbitalLevel, time: number, nominalVInf: n
     return { angle: _cachedEscapeTarget.angle, vInf: _cachedEscapeTarget.vInf };
   }
 
+  const nearCoOrbital = Math.abs(originBody.orbit.radius - targetBodyDef.orbit.radius) / originBody.orbit.radius < 0.05;
+  if (nearCoOrbital) {
+    const phasing = optimizedCoOrbitalPhasingTarget(level, nextLevel, originState, targetBody, time);
+    if (phasing) {
+      _cachedEscapeTarget = { levelId: level.id, timeBin, angle: phasing.angle, vInf: phasing.vInf };
+      return phasing;
+    }
+  }
+
   const nominalMag = Math.max(1, Math.abs(nominalVInf));
   const baseAngle = Math.atan2(originState.vy, originState.vx) + (nominalVInf < 0 ? Math.PI : 0);
   const transferA = (originBody.orbit.radius + targetBodyDef.orbit.radius) * 0.5;
   const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
-  const nearCoOrbital = Math.abs(originBody.orbit.radius - targetBodyDef.orbit.radius) / originBody.orbit.radius < 0.05;
-  const horizon = nearCoOrbital ? Math.min(hohmannTime * 4.0, 4_000_000) : hohmannTime * 1.35;
-  const stepSize = Math.max(120, horizon / (nearCoOrbital ? 300 : 480));
+  const horizon = hohmannTime * 1.35;
+  const stepSize = Math.max(120, horizon / 480);
   let bestAngle = baseAngle;
   let bestVInf = nominalMag;
   let bestDist = Infinity;
@@ -369,12 +466,10 @@ function optimizedEscapeTarget(level: OrbitalLevel, time: number, nominalVInf: n
     }
   };
 
-  const coarseRange = nearCoOrbital ? Math.PI : Math.PI * 0.45;
-  const vInfCandidates = nearCoOrbital
-    ? [20, nominalMag, 50, 75, 110, 150]
-    : [nominalMag];
+  const coarseRange = Math.PI * 0.45;
+  const vInfCandidates = [nominalMag];
   for (const vInfMag of vInfCandidates) {
-    const steps = nearCoOrbital ? 36 : 24;
+    const steps = 24;
     for (let i = 0; i <= steps; i++) {
       const f = i / steps;
       evalTarget(baseAngle - coarseRange + f * coarseRange * 2, vInfMag);

@@ -94,14 +94,7 @@ function hohmannDepartureVInf(sourceBodyId: string, destinationBodyId: string): 
   const a = (source.orbit.radius + destination.orbit.radius) * 0.5;
   const vCirc = Math.sqrt(parent.gm / source.orbit.radius);
   const vTransfer = Math.sqrt(parent.gm * (2 / source.orbit.radius - 1 / a));
-  const raw = vTransfer - vCirc;
-  // VIII/IX are close co-orbitals; a pure Hohmann between nearly equal radii gives
-  // near-zero v∞ and just rides the source body's orbit instead of creating useful
-  // phase drift. Use a minimum phasing v∞ while preserving the Hohmann sign as a hint.
-  if (Math.abs(source.orbit.radius - destination.orbit.radius) / source.orbit.radius < 0.05) {
-    return (raw < 0 ? -1 : 1) * Math.max(Math.abs(raw), 35);
-  }
-  return raw;
+  return vTransfer - vCirc;
 }
 
 function bodyParentId(bodyId: string): string | undefined {
