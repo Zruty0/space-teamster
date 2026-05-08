@@ -7,6 +7,7 @@ import { ESTELLA_PLACEMENTS } from './placements';
 import { ESTELLA_ATMOSPHERE_PHYSICS, ESTELLA_BODY_FLIGHT_PROFILES, ESTELLA_BODY_PHYSICS } from './physics';
 
 export { ESTELLA_ECONOMY } from './economy';
+export { ESTELLA_SURFACE_FLIGHT_PROFILES } from './flight-profiles';
 export { ESTELLA_HIGHLINER_SEEDS, ESTELLA_INSTITUTIONS } from './institutions';
 export { ESTELLA_LAYOUTS } from './layouts';
 export { ESTELLA_NODE_BLUEPRINTS, ESTELLA_REGION_NAMES } from './nodes';

@@ -1,4 +1,5 @@
 import { ESTELLA_BODY_FLIGHT_PROFILES, ESTELLA_BODY_PHYSICS, ESTELLA_NODES_BY_ID, ESTELLA_PLACEMENTS } from './index';
+import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './flight-profiles';
 import { type BodyDef, type StationPoiDef, type SurfacePoiDef } from '../../world';
 import { type Placement, type WorldNode } from '../types';
 
@@ -72,50 +73,22 @@ function createEstellaBody(id: string): BodyDef {
 
 function createSurfacePoi(id: string): SurfacePoiDef {
   const p = surfacePlacement(id);
-  const name = nodeName(id);
+  const profile = ESTELLA_SURFACE_FLIGHT_PROFILES[id];
+  if (!profile) throw new Error(`Missing Estella surface flight profile: ${id}`);
   return {
     id,
-    name,
-    subtitle: 'Generated Estella surface site',
+    name: nodeName(id),
+    subtitle: profile.subtitle,
     bodyId: ESTELLA_VIII_ID,
     surfaceAngle: p.angle ?? 0,
-    padCenterX: 1000,
-    padHalfWidth: 28,
-    padY: 30,
-    roughness: 0.6,
-    features: [
-      { xStart: 900, xEnd: 920, height: 44 },
-      { xStart: 1080, xEnd: 1100, height: 50 },
-    ],
-    landingStart: {
-      x: 1000,
-      y: 260,
-      vx: 0,
-      vy: -3,
-      landingMaxVSpeed: 4.0,
-      landingMaxHSpeed: 3.0,
-      landingMaxAngle: 0.26,
-    },
-    descentProfile: {
-      startX: -90_000,
-      startY: 9_000,
-      startVX: 480,
-      startVY: -24,
-      startAngle: 1.5,
-      gateY: 1500,
-      gateRadius: 1800,
-      gateMaxSpeed: 150,
-      gateMinSpeed: 15,
-    },
-    departureProfile: {
-      startY: 260,
-      startVY: 0,
-      exitAltitude: 8_000,
-      thresholdApoapsisAltitude: 85_000,
-      targetOrbitAltitude: 100_000,
-      orbitDir: -1,
-      fuelSeconds: 180,
-    },
+    padCenterX: profile.padCenterX,
+    padHalfWidth: profile.padHalfWidth,
+    padY: profile.padY,
+    roughness: profile.roughness,
+    features: profile.features,
+    landingStart: profile.landingStart,
+    descentProfile: profile.descentProfile,
+    departureProfile: profile.departureProfile,
   };
 }
 
