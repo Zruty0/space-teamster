@@ -1609,32 +1609,27 @@ export function normalizeArrivalState(
   const rHatX0 = rx / Math.max(dist, 1);
   const rHatY0 = ry / Math.max(dist, 1);
   const radialSpeed0 = rvx * rHatX0 + rvy * rHatY0;
-  const minR = body.radius + (body.arrivalAltitudeMin ?? 0);
-  const maxR = body.radius + (body.arrivalAltitudeMax ?? 0);
-  const targetR = Math.max(minR, Math.min(maxR, dist));
-  const vEsc = Math.sqrt(2 * body.gm / targetR);
-  const minSpeed = Math.max(vEsc * 1.002, vEsc + (body.arrivalSpeedMarginMin ?? 2));
-  const maxSpeed = Math.max(minSpeed + 1, vEsc + (body.arrivalSpeedMarginMax ?? 100));
-  const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
+  const tangentSpeed0 = rvx * -rHatY0 + rvy * rHatX0;
 
-  // If we enter the patch after periapsis (already moving outward), rewind the local
-  // arrival state to the inbound side of the same capture ring. That gives the player
-  // time before periapsis instead of dropping them into an already-past flyby.
+  // Enter the child-body local frame at the transfer patch/SOI edge, not at a low
+  // preselected arrival altitude. If the crossing was detected after periapsis, mirror
+  // to the opposite side of the SOI and make the local radial velocity inbound.
+  const targetR = Math.max(body.patchRadius, body.radius + 1);
   const rHatSign = radialSpeed0 > 0 ? -1 : 1;
   const rHatX = rHatX0 * rHatSign;
   const rHatY = rHatY0 * rHatSign;
   const tanX = -rHatY;
   const tanY = rHatX;
-  const tangentialSpeed0 = rvx * (-rHatY0) + rvy * rHatX0;
-  const targetVR = -Math.abs(radialSpeed0 / Math.max(speed, 1)) * targetSpeed;
-  const targetVT = Math.sign(tangentialSpeed0 || 1) * Math.sqrt(Math.max(0, targetSpeed * targetSpeed - targetVR * targetVR));
+  const radialSpeed = -Math.abs(radialSpeed0);
+  const tangentSpeed = tangentSpeed0 * rHatSign;
+
   return {
     x: rHatX * targetR,
     y: rHatY * targetR,
-    vx: rHatX * targetVR + tanX * targetVT,
-    vy: rHatY * targetVR + tanY * targetVT,
+    vx: rHatX * radialSpeed + tanX * tangentSpeed,
+    vy: rHatY * radialSpeed + tanY * tangentSpeed,
     dist: targetR,
-    speed: targetSpeed,
+    speed,
   };
 }
 

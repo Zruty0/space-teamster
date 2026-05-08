@@ -716,16 +716,14 @@ export class Game {
       if (!arrivalLevel) return null;
 
       const normalized = normalizeArrivalState(body, captureRX, captureRY, captureRVX, captureRVY);
-      const localRadial = (normalized.x * normalized.vx + normalized.y * normalized.vy) / Math.max(normalized.dist, 1);
-      const arrivalTime = localRadial < 0 ? captureTime : Math.max(0, captureTime - 60);
       const initOverride: OrbitalInitOverride = {
         x: normalized.x,
         y: normalized.y,
         vx: normalized.vx,
         vy: normalized.vy,
-        time: arrivalTime,
+        time: captureTime,
       };
-      return () => this.loadOrbital(arrivalLevel, initOverride, arrivalTime);
+      return () => this.loadOrbital(arrivalLevel, initOverride, captureTime);
     }
 
     return null;
