@@ -3,6 +3,7 @@ import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
 import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
+import { estellaDisplayPath } from './content/estella/navigation';
 import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
 import { STATION_POIS, SURFACE_POIS, bodyById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
@@ -33,6 +34,25 @@ function nodeName(node: WorldNode | undefined): string {
   }
   const parent = node.placement?.parentId ? ESTELLA_NODES_BY_ID.get(node.placement.parentId) : undefined;
   return parent?.name && node.name.startsWith(`${parent.name} `) ? node.name.slice(parent.name.length + 1) : node.name;
+}
+
+function estellaHudPath(nodeId: string): string {
+  return estellaDisplayPath(nodeId)
+    .split(' -> ')
+    .map(part => {
+      const node = [...ESTELLA_NODES_BY_ID.values()].find(n => n.catalogId === part || `${n.catalogId} ${n.name}` === part || n.name === part);
+      return node ? nodeName(node) : part;
+    })
+    .join(' -> ');
+}
+
+function senseLabel(sense: 1 | -1): string {
+  return sense === 1 ? 'CCW' : 'CW';
+}
+
+function orbitalStationNameForHud(stationId: string): string {
+  try { return stationPoiById(stationId).name; }
+  catch { return nodeName(ESTELLA_NODES_BY_ID.get(stationId)); }
 }
 
 
@@ -180,10 +200,28 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
   };
 }
 
+function applyDestinationHud(level: OrbitalLevel, finalDestinationId: string | undefined): void {
+  if (finalDestinationId) {
+    const finalNode = ESTELLA_NODES_BY_ID.get(finalDestinationId);
+    level.finalDestinationName = finalNode ? nodeName(finalNode) : finalDestinationId;
+    level.finalDestinationLocation = estellaHudPath(finalDestinationId);
+  }
+  if (level.station) {
+    level.nextObjectiveName = orbitalStationNameForHud(level.station.id);
+    level.nextObjectiveDetail = `Rendezvous with ${level.nextObjectiveName} (${senseLabel(level.station.orbitSense)} orbit).`;
+  } else if (level.reentryApproachLevelId !== undefined && level.showLandingSite !== false) {
+    const finalNode = finalDestinationId ? ESTELLA_NODES_BY_ID.get(finalDestinationId) : undefined;
+    level.nextObjectiveName = finalNode ? nodeName(finalNode) : 'Surface site';
+    level.nextObjectiveDetail = `Deorbit and descend to ${level.nextObjectiveName}.`;
+  }
+  if (bodyById(level.bodyId).transferGameplay) level.conicRadius = bodyById(level.bodyId).transferGameplay?.patchRadius;
+}
+
 function createOrbitalLevel(opts: {
   id: number;
   bodyId: string;
   name: string;
+  finalDestinationId?: string;
   reentryApproachLevelId?: number;
   landingSiteAngle?: number;
   dockingLevelId?: number;
@@ -238,7 +276,7 @@ function createOrbitalLevel(opts: {
     station: opts.station,
     dockingLevelId: opts.dockingLevelId,
   };
-  if (b.transferGameplay) level.conicRadius = b.transferGameplay.patchRadius;
+  applyDestinationHud(level, opts.finalDestinationId);
   if (opts.escapeToOrbitalLevelId) {
     level.escapeToOrbitalLevelId = opts.escapeToOrbitalLevelId;
     level.escapeSOIRadius = b.transferGameplay?.patchRadius ?? TRANSFER_PATCH_RADIUS;
@@ -255,13 +293,14 @@ function createSystemTransferLevel(opts: {
   sourceBodyId: string;
   destinationBodyId: string;
   arrivalOrbitalLevelId: number;
+  finalDestinationId: string;
 }): OrbitalLevel {
   const parent = bodyById(ESTELLA_SYSTEM_BODY_ID);
   const seed = bodyStateRelativeToParent(opts.sourceBodyId, 0);
   const source = bodyById(opts.sourceBodyId);
   const destination = bodyById(opts.destinationBodyId);
   if (!source.orbit || !destination.orbit) throw new Error('Generated Estella transfer requires orbiting bodies');
-  return {
+  const level: OrbitalLevel = {
     id: opts.id,
     bodyId: ESTELLA_SYSTEM_BODY_ID,
     bodyName: parent.name,
@@ -305,6 +344,17 @@ function createSystemTransferLevel(opts: {
     targetBodyId: opts.destinationBodyId,
     conicRadius: destination.orbit.radius * 1.2,
   };
+  applyDestinationHud(level, opts.finalDestinationId);
+  level.nextObjectiveName = destination.name;
+  const finalKind = playableKind(opts.finalDestinationId);
+  if (finalKind === 'dock') {
+    const targetStation = stationPoiById(parentNode(opts.finalDestinationId)!.id);
+    level.transferArrivalOrbitSense = targetStation.orbit.orbitSense;
+    level.nextObjectiveDetail = `Intercept ${destination.name}; target dock orbit is ${senseLabel(targetStation.orbit.orbitSense)}.`;
+  } else {
+    level.nextObjectiveDetail = `Intercept ${destination.name}; then deorbit to the target surface site.`;
+  }
+  return level;
 }
 
 function stationTargetForPoi(poiId: string): NonNullable<OrbitalLevel['station']> {
@@ -407,6 +457,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     id: destinationOrbitalId,
     bodyId: destBodyId,
     name: destSurface ? `${nodeName(ESTELLA_NODES_BY_ID.get(destinationId))} Deorbit` : `${nodeName(parentNode(destinationId))} Rendezvous`,
+    finalDestinationId: destinationId,
     reentryApproachLevelId: destSurface ? destApproachId : undefined,
     landingSiteAngle: destSurface ? surfacePlacement(destinationId).angle ?? 0 : 0,
     dockingLevelId: destSurface ? undefined : destDockingId,
@@ -421,11 +472,13 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       sourceBodyId,
       destinationBodyId: destBodyId,
       arrivalOrbitalLevelId: destinationOrbital.id,
+      finalDestinationId: destinationId,
     }));
     startOrbital = register(ORBITAL_LEVELS, createOrbitalLevel({
       id: sourceOrbitalId,
       bodyId: sourceBodyId,
       name: `${nodeName(ESTELLA_NODES_BY_ID.get(sourceBodyId))} Escape`,
+      finalDestinationId: destinationId,
       showLandingSite: false,
       startOrbit: sourceStartOrbit(sourceId),
       escapeToOrbitalLevelId: transferOrbital.id,

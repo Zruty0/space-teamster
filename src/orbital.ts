@@ -118,6 +118,11 @@ export interface OrbitalLevel {
   // Optional transfer-system bodies (for moon-to-moon transfers)
   systemBodies?: OrbitalTransferBody[];
   targetBodyId?: string;
+  finalDestinationName?: string;
+  finalDestinationLocation?: string;
+  nextObjectiveName?: string;
+  nextObjectiveDetail?: string;
+  transferArrivalOrbitSense?: 1 | -1;
   escapeSOIRadius?: number;
   escapeToOrbitalLevelId?: number;
   escapeTargetBodyId?: string;
@@ -3446,10 +3451,13 @@ function orbitalTargetPanel(
       } else {
         rows.push({ label: 'DIST', value: `${(dist / 1000).toFixed(0)} km < ${(body.patchRadius / 1000).toFixed(0)} km`, color: dist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
       }
+      const arrivalSense = level.transferArrivalOrbitSense !== undefined
+        ? ` Target orbit: ${senseLabel(level.transferArrivalOrbitSense)}.`
+        : '';
       return {
-        name: body.name,
+        name: level.nextObjectiveName ?? body.name,
         rows,
-        guidance: 'Shape the intercept and arrive inside the target circle.',
+        guidance: level.nextObjectiveDetail ?? `Intercept ${body.name}.${arrivalSense}`,
       };
     }
   }
@@ -3559,8 +3567,8 @@ export function drawOrbitalHUD(
   const targetPanel = orbitalTargetPanel(s, level, pred, peAlt, apAlt);
   drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
-    name: destinationName ?? targetPanel.name,
-    subtitle: destinationLocation,
+    name: level.finalDestinationName ?? destinationName ?? targetPanel.name,
+    subtitle: level.finalDestinationLocation ?? destinationLocation,
     rows: targetPanel.rows,
     guidance: targetPanel.guidance,
   });
