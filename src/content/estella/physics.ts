@@ -67,12 +67,12 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     },
   },
   'estella-ix': {
-    color: [150, 180, 205],
-    planetFillColor: '#0d1720',
-    planetStrokeColor: '#6c8fa8',
-    terrainFillColor: '#0d1720',
-    terrainStrokeColor: '#6c8fa8',
-    terrainBrightColor: '#a8c5d8',
+    color: [190, 145, 220],
+    planetFillColor: '#1b1026',
+    planetStrokeColor: '#a06ec0',
+    terrainFillColor: '#1b1026',
+    terrainStrokeColor: '#a06ec0',
+    terrainBrightColor: '#d2a8e8',
     orbitalDefaults: {
       baseTimeScale: 50,
       thrustAccel: 0.05,
