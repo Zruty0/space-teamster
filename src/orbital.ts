@@ -456,6 +456,14 @@ function escapeTargetForLevel(
         if (fallbackState) angle = Math.atan2(fallbackState.vy, fallbackState.vx);
       }
     }
+    if (angle === null && nextLevel) {
+      const parentBodyId = bodyById(level.bodyId).orbit?.parentBodyId;
+      if (parentBodyId && nextLevel.bodyId === parentBodyId) {
+        const parentState = bodyStateRelativeToParent(level.bodyId, time);
+        angle = Math.atan2(parentState.vy, parentState.vx);
+        vInf = 0;
+      }
+    }
   }
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
   if (angle === null) return null;
@@ -3481,7 +3489,7 @@ function orbitalTargetPanel(
     }
   }
 
-  if (level.escapeSOIRadius && (level.escapeTargetBodyId || level.parentTransferPeriapsisAltitude !== undefined)) {
+  if (level.escapeSOIRadius && (level.escapeToOrbitalLevelId || level.escapeTargetBodyId || level.parentTransferPeriapsisAltitude !== undefined)) {
     const rows: { label: string; value: string; color?: string }[] = [];
     const target = escapeTargetForLevel(level, s.time);
     const apText = apAlt === Infinity ? 'ESC' : `${apAlt.toFixed(0)} km`;
@@ -3505,7 +3513,9 @@ function orbitalTargetPanel(
     return {
       name,
       rows,
-      guidance: 'Line up the escape vector and exit the local SOI.',
+      guidance: level.escapeTargetBodyId
+        ? 'Line up the escape vector and exit the local SOI.'
+        : 'Exit the local SOI into the parent frame.',
     };
   }
 
