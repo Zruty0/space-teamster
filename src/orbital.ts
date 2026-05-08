@@ -306,7 +306,8 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
   const baseAngle = Math.atan2(originState.vy, originState.vx) + (vInf < 0 ? Math.PI : 0);
   const transferA = (originBody.orbit.radius + targetBodyDef.orbit.radius) * 0.5;
   const hohmannTime = Math.PI * Math.sqrt((transferA * transferA * transferA) / nextLevel.planetGM);
-  const horizon = hohmannTime * 1.35;
+  const nearCoOrbital = Math.abs(originBody.orbit.radius - targetBodyDef.orbit.radius) / originBody.orbit.radius < 0.05;
+  const horizon = nearCoOrbital ? Math.min(hohmannTime * 4.0, 4_000_000) : hohmannTime * 1.35;
   const stepSize = Math.max(120, horizon / 480);
   let bestAngle = baseAngle;
   let bestDist = Infinity;
@@ -366,7 +367,7 @@ function optimizedEscapeTargetAngle(level: OrbitalLevel, time: number, vInf: num
     }
   };
 
-  const coarseRange = Math.PI * 0.45;
+  const coarseRange = nearCoOrbital ? Math.PI : Math.PI * 0.45;
   for (let i = 0; i <= 24; i++) {
     const f = i / 24;
     evalAngle(baseAngle - coarseRange + f * coarseRange * 2);
@@ -1857,7 +1858,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   if (level.systemBodies) {
     const targetOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
     const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
-    maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 1.5, period * 1.02), 800000));
+    maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 4.0, period * 1.02), 4_000_000));
   } else if (!pacing.lowPass) {
     const fallbackHalfOrbitTime = Math.PI * Math.sqrt(Math.max(rNow, level.planetRadius + level.transitionAltitude) ** 3 / level.planetGM);
     const vacuumHorizon = hasClosedOrbit
