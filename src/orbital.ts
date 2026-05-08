@@ -1606,24 +1606,28 @@ export function normalizeArrivalState(
 ): { x: number; y: number; vx: number; vy: number; dist: number; speed: number } {
   const dist = Math.sqrt(rx * rx + ry * ry);
   const speed = Math.sqrt(rvx * rvx + rvy * rvy);
+  const rHatX0 = rx / Math.max(dist, 1);
+  const rHatY0 = ry / Math.max(dist, 1);
+  const radialSpeed0 = rvx * rHatX0 + rvy * rHatY0;
   const minR = body.radius + (body.arrivalAltitudeMin ?? 0);
   const maxR = body.radius + (body.arrivalAltitudeMax ?? 0);
   const targetR = Math.max(minR, Math.min(maxR, dist));
   const vEsc = Math.sqrt(2 * body.gm / targetR);
   const minSpeed = Math.max(vEsc * 1.002, vEsc + (body.arrivalSpeedMarginMin ?? 2));
   const maxSpeed = Math.max(minSpeed + 1, vEsc + (body.arrivalSpeedMarginMax ?? 100));
-  const rHatX = rx / Math.max(dist, 1);
-  const rHatY = ry / Math.max(dist, 1);
-  const radialSpeed = rvx * rHatX + rvy * rHatY;
+  const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
+
+  // If we enter the patch after periapsis (already moving outward), rewind the local
+  // arrival state to the inbound side of the same capture ring. That gives the player
+  // time before periapsis instead of dropping them into an already-past flyby.
+  const rHatSign = radialSpeed0 > 0 ? -1 : 1;
+  const rHatX = rHatX0 * rHatSign;
+  const rHatY = rHatY0 * rHatSign;
   const tanX = -rHatY;
   const tanY = rHatX;
-  const tangentialSpeed = rvx * tanX + rvy * tanY;
-  const speedMag = Math.max(speed, 1);
-  const dirRad = radialSpeed / speedMag;
-  const dirTan = tangentialSpeed / speedMag;
-  const targetSpeed = Math.max(minSpeed, Math.min(maxSpeed, speed));
-  const targetVR = dirRad * targetSpeed;
-  const targetVT = dirTan * targetSpeed;
+  const tangentialSpeed0 = rvx * (-rHatY0) + rvy * rHatX0;
+  const targetVR = -Math.abs(radialSpeed0 / Math.max(speed, 1)) * targetSpeed;
+  const targetVT = Math.sign(tangentialSpeed0 || 1) * Math.sqrt(Math.max(0, targetSpeed * targetSpeed - targetVR * targetVR));
   return {
     x: rHatX * targetR,
     y: rHatY * targetR,
