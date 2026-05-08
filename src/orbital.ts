@@ -192,7 +192,7 @@ const WARP_SPEEDS = [1, 2, 5, 10, 25, 50, 100];
 const TRAIL_MAX = 800;
 const TRAIL_DURATION = 12; // wall-clock seconds
 const PHYSICS_SUBSTEP = 1 / 120;
-const SYSTEM_TRANSFER_SUBSTEP = 0.5;
+const SYSTEM_TRANSFER_SUBSTEP = 20;
 const THRUST_EPS = 1e-6;
 const ATMO_WARP_CAP = 5; // max displayed warp in upper atmosphere
 const ATMO_LOW_WARP_CAP = 1; // max displayed warp in lower atmosphere (below transition alt)
@@ -1110,9 +1110,9 @@ export function updateOrbital(
   const totalScale = effectiveBaseScale * effectiveWarp;
   const effectiveDt = dt * totalScale;
 
-  // Substeps
-  // High-transfer pacing used to jump from fine local integration to ~20s physics steps,
-  // which visibly changed the orbit right at the low->high regime boundary.
+  // Substeps. System-transfer phases cover long time spans; using local-orbit subsecond
+  // limits here creates huge frame stalls at transfer time scales. The transfer patch
+  // crossing code interpolates between substeps, so coarse transfer steps are acceptable.
   const stepLimit = (!s.inAtmo && level.systemBodies && effectiveBaseScale > 200)
     ? SYSTEM_TRANSFER_SUBSTEP
     : PHYSICS_SUBSTEP;
@@ -1860,9 +1860,11 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
       : Math.max(fallbackHalfOrbitTime * 1.5, 120000);
     maxTime = Math.min(vacuumHorizon, 800000);
   }
-  const stepSize = !pacing.lowPass
-    ? Math.min(20, Math.max(1, maxTime / 2200))
-    : Math.max(1, maxTime / 2200);
+  const stepSize = level.systemBodies
+    ? Math.max(20, maxTime / 1200) // keep transfer prediction to ~1200 points, not tens of thousands
+    : !pacing.lowPass
+      ? Math.min(20, Math.max(1, maxTime / 2200))
+      : Math.max(1, maxTime / 2200);
   // Use current AoA if in atmo, otherwise standard high-atmo AoA
   const predAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
   const points = predictOrbit(s, level, maxTime, stepSize, predAoA);
