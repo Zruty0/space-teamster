@@ -435,6 +435,35 @@ function parentTransferTargetForLevel(
   };
 }
 
+function parentFrameEscapeTargetRadius(nextLevel: OrbitalLevel, parentBodyId: string): number | null {
+  if (nextLevel.bodyId !== parentBodyId) return null;
+  if (nextLevel.station) return nextLevel.station.orbitRadius;
+  if (nextLevel.targetBodyId) {
+    const transferTarget = getTransferBody(nextLevel, nextLevel.targetBodyId);
+    if (transferTarget) return transferTarget.orbitRadius;
+    const body = bodyById(nextLevel.targetBodyId);
+    if (body.orbit?.parentBodyId === parentBodyId) return body.orbit.radius;
+  }
+  if (nextLevel.reentryApproachLevelId !== undefined && nextLevel.showLandingSite !== false) {
+    return bodyById(parentBodyId).radius;
+  }
+  if (nextLevel.escapeSOIRadius) return nextLevel.escapeSOIRadius;
+  if (nextLevel.conicRadius) return nextLevel.conicRadius;
+  return null;
+}
+
+function parentFrameEscapeAngle(level: OrbitalLevel, nextLevel: OrbitalLevel, time: number): number | null {
+  const body = bodyById(level.bodyId);
+  const orbit = body.orbit;
+  const parentBodyId = orbit?.parentBodyId;
+  if (!orbit || !parentBodyId || nextLevel.bodyId !== parentBodyId) return null;
+  const parentState = bodyStateRelativeToParent(level.bodyId, time);
+  const progradeAngle = Math.atan2(parentState.vy, parentState.vx);
+  const targetRadius = parentFrameEscapeTargetRadius(nextLevel, parentBodyId);
+  const escapePrograde = targetRadius === null || targetRadius >= orbit.radius;
+  return normalizeAngle(progradeAngle + (escapePrograde ? 0 : Math.PI));
+}
+
 function escapeTargetForLevel(
   level: OrbitalLevel, time: number,
 ): { angle: number; speed: number } | null {
@@ -457,12 +486,8 @@ function escapeTargetForLevel(
       }
     }
     if (angle === null && nextLevel) {
-      const parentBodyId = bodyById(level.bodyId).orbit?.parentBodyId;
-      if (parentBodyId && nextLevel.bodyId === parentBodyId) {
-        const parentState = bodyStateRelativeToParent(level.bodyId, time);
-        angle = Math.atan2(parentState.vy, parentState.vx);
-        vInf = 0;
-      }
+      angle = parentFrameEscapeAngle(level, nextLevel, time);
+      if (angle !== null) vInf = 0;
     }
   }
   if (angle === null && level.escapeVectorAngle !== undefined) angle = level.escapeVectorAngle;
