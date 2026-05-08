@@ -4,15 +4,6 @@ import { type BodyDef, type StationPoiDef, type SurfacePoiDef } from '../../worl
 import { type Placement, type WorldNode } from '../types';
 
 const ESTELLA_VIII_ID = 'estella-viii';
-const ESTELLA_VIII_SURFACE_POI_IDS = [
-  'estella-viii-settlement',
-  'estella-viii-mining-site',
-  'estella-viii-abandoned-site',
-] as const;
-const ESTELLA_VIII_STATION_NODE_IDS = [
-  'estella-viii-friendly-station',
-  'estella-viii-high-station',
-] as const;
 
 function node(id: string): WorldNode {
   const n = ESTELLA_NODES_BY_ID.get(id);
@@ -124,8 +115,34 @@ function createStationPoi(stationNodeId: string): StationPoiDef {
   };
 }
 
+function playableSurfacePoiIds(bodyId: string): string[] {
+  return [...ESTELLA_NODES_BY_ID.values()]
+    .filter(n => {
+      const p = ESTELLA_PLACEMENTS[n.id] ?? n.placement;
+      return n.kind === 'poi'
+        && p?.kind === 'surface'
+        && p.parentId === bodyId
+        && ESTELLA_SURFACE_FLIGHT_PROFILES[n.id] !== undefined;
+    })
+    .map(n => n.id)
+    .sort();
+}
+
+function playableStationIds(bodyId: string): string[] {
+  return [...ESTELLA_NODES_BY_ID.values()]
+    .filter(n => {
+      const p = ESTELLA_PLACEMENTS[n.id] ?? n.placement;
+      return n.kind === 'station'
+        && p?.kind === 'orbit'
+        && p.parentId === bodyId
+        && p.orbit?.kind === 'circular';
+    })
+    .map(n => n.id)
+    .sort();
+}
+
 export const ESTELLA_BODIES: BodyDef[] = [createEstellaBody(ESTELLA_VIII_ID)];
 
-export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = ESTELLA_VIII_SURFACE_POI_IDS.map(createSurfacePoi);
+export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = playableSurfacePoiIds(ESTELLA_VIII_ID).map(createSurfacePoi);
 
-export const ESTELLA_STATION_POIS: StationPoiDef[] = ESTELLA_VIII_STATION_NODE_IDS.map(createStationPoi);
+export const ESTELLA_STATION_POIS: StationPoiDef[] = playableStationIds(ESTELLA_VIII_ID).map(createStationPoi);
