@@ -2548,13 +2548,15 @@ function drawOrbitingPoiMarkers(
     const isTarget = level.station?.id === marker.id;
     const col = isTarget ? '#00ffcc' : 'rgba(160, 170, 180, 0.75)';
 
-    ctx.beginPath();
-    ctx.arc(cx, cy, marker.orbitRadius * cam.zoom, 0, Math.PI * 2);
-    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 204, 0.35)' : 'rgba(160, 170, 180, 0.16)';
-    ctx.lineWidth = isTarget ? 1.4 : 1;
-    ctx.setLineDash([5, 7]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    if (!isTarget) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, marker.orbitRadius * cam.zoom, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(160, 170, 180, 0.16)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 7]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     ctx.beginPath();
     ctx.arc(mx, my, isTarget ? 5 : 3.5, 0, Math.PI * 2);
