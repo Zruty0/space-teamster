@@ -10,7 +10,11 @@ function node(id: string): WorldNode {
 }
 
 function nodeName(id: string): string {
-  return node(id).name;
+  const n = node(id);
+  if (n.kind === 'planet' || n.kind === 'moon' || n.kind === 'dwarf-planet' || n.kind === 'gas-giant') {
+    return n.catalogId && n.catalogId !== n.name ? `${n.catalogId} ${n.name}` : n.name;
+  }
+  return n.name;
 }
 
 function placement(id: string): Placement {

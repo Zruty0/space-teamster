@@ -27,6 +27,9 @@ function nextId(): number {
 
 function nodeName(node: WorldNode | undefined): string {
   if (!node) return 'Estella site';
+  if (node.kind === 'planet' || node.kind === 'moon' || node.kind === 'dwarf-planet' || node.kind === 'gas-giant') {
+    return node.catalogId && node.catalogId !== node.name ? `${node.catalogId} ${node.name}` : node.name;
+  }
   return node.name;
 }
 

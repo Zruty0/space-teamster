@@ -2568,10 +2568,20 @@ function drawOrbitingPoiMarkers(
     const outwardX = mx - cx;
     const outwardY = my - cy;
     const outLen = Math.max(1, Math.hypot(outwardX, outwardY));
+    const labelX = mx + outwardX / outLen * 26;
+    const labelY = my + outwardY / outLen * 26;
+    ctx.beginPath();
+    ctx.moveTo(mx + outwardX / outLen * 7, my + outwardY / outLen * 7);
+    ctx.lineTo(labelX - outwardX / outLen * 4, labelY - outwardY / outLen * 4);
+    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 204, 0.35)' : 'rgba(160, 170, 180, 0.24)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
     ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
-    ctx.textAlign = 'center';
+    ctx.textAlign = outwardX >= 0 ? 'left' : 'right';
+    ctx.textBaseline = outwardY >= 0 ? 'top' : 'bottom';
     ctx.fillStyle = col;
-    ctx.fillText(marker.name.toUpperCase(), mx + outwardX / outLen * 10, my + outwardY / outLen * 10);
+    ctx.fillText(marker.name.toUpperCase(), labelX, labelY);
+    ctx.textBaseline = 'alphabetic';
   }
 }
 
@@ -2609,10 +2619,13 @@ function drawSurfacePoiMarkers(
     ctx.fill();
 
     if (showLabel) {
+      const outwardX = lsx - W / 2;
       ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
       ctx.fillStyle = col;
-      ctx.textAlign = 'center';
-      ctx.fillText(marker.name.toUpperCase(), lsx, lsy + 4);
+      ctx.textAlign = outwardX >= 0 ? 'right' : 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(marker.name.toUpperCase(), lsx, lsy);
+      ctx.textBaseline = 'alphabetic';
     }
   }
 }
