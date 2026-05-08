@@ -64,6 +64,12 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     rotationPeriod: 58_000,
     notes: 'Large airless moon of Estella III; gameplay-scaled.',
   },
+  'estella-iv': {
+    radius: 345_000,
+    gm: 2.8 * 345_000 * 345_000,
+    rotationPeriod: 70_000,
+    notes: 'Earth-like sister/rival world; gameplay-scaled.',
+  },
   'estella-viii': {
     radius: 180_000,
     gm: 1.7 * 180_000 * 180_000,
@@ -130,6 +136,15 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     terrainStrokeColor: '#8d897c',
     terrainBrightColor: '#c8c0aa',
     orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.05, thrustAccelMax: 1.0, fuelDeltaV: 850, transitionAltitude: 7_000 },
+  },
+  'estella-iv': {
+    color: [95, 190, 165],
+    planetFillColor: '#071f1a',
+    planetStrokeColor: '#43b59d',
+    terrainFillColor: '#10250f',
+    terrainStrokeColor: '#73b84f',
+    terrainBrightColor: '#b7d77a',
+    orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.05, thrustAccelMax: 1.0, fuelDeltaV: 1_050, transitionAltitude: 12_000 },
   },
   'estella-viii': {
     color: [135, 155, 170],

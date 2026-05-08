@@ -119,6 +119,23 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-iiia-science-settlement': { kind: 'surface', parentId: 'estella-iiia', angle: 1.6, side: 'equatorial' },
   'estella-iiia-heritage-site': { kind: 'surface', parentId: 'estella-iiia', angle: 2.8, side: 'equatorial' },
 
+  'estella-iv': {
+    kind: 'orbit',
+    parentId: 'estella',
+    usage: 'stellar',
+    orbit: { kind: 'circular', radius: 36_000_000, epochAngle: -2.25, epochTime: 0, orbitSense: 1, period: 1_330_000 },
+  },
+  'estella-iv-main-station': {
+    kind: 'orbit',
+    parentId: 'estella-iv',
+    usage: 'low',
+    orbit: { kind: 'circular', radius: 485_000, altitude: 140_000, epochAngle: 0.9, epochTime: 0, orbitSense: 1, period: 9_300 },
+  },
+  'estella-iv-primary-city': { kind: 'surface', parentId: 'estella-iv', angle: -0.1, side: 'equatorial' },
+  'estella-iv-climate-poi-1': { kind: 'surface', parentId: 'estella-iv', angle: 1.15, side: 'equatorial' },
+  'estella-iv-climate-poi-2': { kind: 'surface', parentId: 'estella-iv', angle: 2.45, side: 'equatorial' },
+  'estella-iv-climate-poi-3': { kind: 'surface', parentId: 'estella-iv', angle: -2.0, side: 'equatorial' },
+
   'estella-viii': {
     kind: 'orbit',
     parentId: 'estella',

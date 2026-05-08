@@ -115,6 +115,10 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-iiia-helium-mining': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-iiia-science-settlement': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-iiia-heritage-site': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  'estella-iv-primary-city': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  'estella-iv-climate-poi-1': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  'estella-iv-climate-poi-2': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  'estella-iv-climate-poi-3': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-viii-settlement': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-mining-site': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-abandoned-site': {
