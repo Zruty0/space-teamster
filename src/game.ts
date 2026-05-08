@@ -31,6 +31,7 @@ import { MISSIONS } from './missions';
 import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState } from './estella-mission';
+import { createPlayableEstellaMission } from './estella-playable';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -949,8 +950,26 @@ export class Game {
   }
 
   private handleEstellaGeneratedMission(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'estellaMission' }>;
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
-    if (input.menuConfirm) this.loadEstellaNavigation();
+    if (input.menuConfirm) this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId);
+  }
+
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string): void {
+    const generated = createPlayableEstellaMission(sourceId, destinationId);
+    this.currentMissionId = 8;
+    this.phaseCompletion = null;
+    this.missionDvUsed = 0;
+    this.worldTime = 0;
+    if (generated.start.kind === 'landing') {
+      this.loadLanding(
+        generated.start.level,
+        { x: generated.start.level.padCenterX, y: generated.start.level.padY + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 },
+        { targetAltitude: generated.start.level.startY, orbitDir: -1, nextApproachLevelId: generated.start.nextApproachLevelId },
+      );
+    } else {
+      this.loadDocking(generated.start.level);
+    }
   }
 
   // --- Render ---

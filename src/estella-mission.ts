@@ -159,5 +159,5 @@ export function drawEstellaGeneratedMission(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText('Enter: back to Estella nav   L: missions', W / 2, H - 24);
+  ctx.fillText('Enter: start flying generated mission   L: missions', W / 2, H - 24);
 }

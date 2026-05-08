@@ -381,6 +381,58 @@ const MISSION7_DOCKING: DockingLevel = {
   MISSION7_DOCKING.startAngle = bp.angle + Math.PI;
 })();
 
+export function createGenericDockingLevel(opts: {
+  id: number;
+  name: string;
+  subtitle: string;
+  exitMode: boolean;
+  orbitalLevelId?: number;
+  targetSpoke?: number;
+  targetSide?: number;
+  targetSlot?: number;
+  fillPct?: number;
+  exitDistance?: number;
+}): DockingLevel {
+  const targetSpoke = opts.targetSpoke ?? 0;
+  const targetSide = opts.targetSide ?? 1;
+  const targetSlot = opts.targetSlot ?? 2;
+  const level: DockingLevel = {
+    id: opts.id,
+    name: opts.name,
+    subtitle: opts.subtitle,
+    hasContainer: true,
+    exitMode: opts.exitMode,
+    exitDistance: opts.exitDistance ?? 140,
+    orbitalLevelId: opts.orbitalLevelId,
+    stationX: 0, stationY: 0,
+    bays: generateBays(targetSpoke, targetSide, targetSlot, opts.fillPct ?? 0.55),
+    beamRange: 12,
+    beamStrength: 0.5,
+    thrustForce: 3200,
+    rotTorque: 1200,
+    tugMass: 500,
+    containerMass: 2000,
+    dampingAssist: false,
+    startX: opts.exitMode ? 0 : -120,
+    startY: 0,
+    startVX: 0,
+    startVY: 0,
+    startAngle: 0,
+  };
+  if (opts.exitMode) {
+    const bay = level.bays.find(b => b.spokeIdx === targetSpoke && b.side === targetSide && b.slot === targetSlot)!;
+    bay.filled = false;
+    bay.isTarget = false;
+    bay.isPlayerBay = true;
+    for (const b of level.bays) b.isTarget = false;
+    const bp = bayWorldPos(bay, level.stationX, level.stationY);
+    level.startX = bp.x;
+    level.startY = bp.y;
+    level.startAngle = bp.angle + Math.PI;
+  }
+  return level;
+}
+
 export const DOCKING_LEVELS: DockingLevel[] = [
   MISSION1_DOCKING,
   MISSION2_DOCKING,
