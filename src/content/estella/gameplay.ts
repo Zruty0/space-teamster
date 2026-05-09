@@ -68,9 +68,8 @@ function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
   const windProfiles: Partial<Record<string, { windLayers: WindLayerDef[]; turbulence: TurbulenceZoneDef[] }>> = {
     'estella-iii': {
       windLayers: [
-        { altitudeCenter: 55_000, altitudeWidth: 7_000, strength: 18 },
-        { altitudeCenter: 26_000, altitudeWidth: 4_500, strength: -24 },
-        { altitudeCenter: 9_000, altitudeWidth: 2_000, strength: 12 },
+        { altitudeCenter: 16_000, altitudeWidth: 3_500, strength: -10 },
+        { altitudeCenter: 6_000, altitudeWidth: 2_000, strength: 8 },
       ],
       turbulence: [],
     },
