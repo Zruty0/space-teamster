@@ -1003,10 +1003,8 @@ function drawAtmoBackground(
 function drawApproachTerrain(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera, level: ApproachLevel, W: number, H: number,
 ): void {
-  // Check if ground/platform could be visible (conservative: highest terrain ~1500m)
-  const baseY = level.poi.altitude || 0;
-  const screenBottomWorldY = cam.y - H / (2 * cam.zoom);
-  if (screenBottomWorldY > baseY + 2000) return; // too high, no terrain visible
+  // Always draw the planetary ground. Elevated targets (e.g. Cloud City) are handled by
+  // target/gate overlays, not by moving the terrain itself.
 
   // One sample every ~4 screen pixels
   const pixelsPerSample = 4;
