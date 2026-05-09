@@ -201,7 +201,7 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
     liftWingPerRad: b.atmosphere ? 0.00085 : 0,
     heatCoeff: b.atmosphere ? 1e-5 : 0,
     dissipation: b.atmosphere ? 0.08 : 0,
-    heatCapacity: b.atmosphere ? 4 : 1,
+    heatCapacity: b.atmosphere ? 3 : 1,
     wingsMaxTemp: b.atmosphere ? 0.50 : 1,
     maxWingAngle: b.atmosphere ? 1.0 : 0,
     wingAngleRate: b.atmosphere ? 1.0 : 0,
