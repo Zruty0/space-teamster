@@ -140,7 +140,7 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
     deckY: CLOUD_CITY_ALTITUDE,
     deckThickness: 18,
     supportXs: [760, 1240],
-    supportWidth: 22,
+    supportWidth: 12,
     supportHeight: 240,
     domes: [
       { x: 820, radius: 62, height: 42 },

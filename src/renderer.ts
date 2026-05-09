@@ -247,17 +247,30 @@ function drawCustomLandingLayout(
   for (const sx of layout.supportXs) {
     const [x0, y0] = worldToScreen(sx - layout.supportWidth * 0.5, layout.deckY, cam, W, H);
     const [x1, y1] = worldToScreen(sx + layout.supportWidth * 0.5, layout.deckY - layout.supportHeight, cam, W, H);
-    ctx.fillStyle = 'rgba(40, 100, 110, 0.55)';
+    ctx.fillStyle = 'rgba(40, 100, 110, 0.38)';
     ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
     ctx.strokeStyle = dimCol;
     ctx.lineWidth = 1;
     ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+
+    const braceStep = 36 * cam.zoom;
+    ctx.beginPath();
+    for (let y = y0; y < y1; y += braceStep) {
+      const yNext = Math.min(y + braceStep, y1);
+      ctx.moveTo(x0, y);
+      ctx.lineTo(x1, yNext);
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x0, yNext);
+    }
+    ctx.strokeStyle = 'rgba(120, 220, 220, 0.65)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
   }
 
   for (const dome of layout.domes) {
     const [cx, cy] = worldToScreen(dome.x, layout.deckY, cam, W, H);
     ctx.beginPath();
-    ctx.ellipse(cx, cy, dome.radius * cam.zoom, dome.height * cam.zoom, 0, Math.PI, 0, true);
+    ctx.ellipse(cx, cy, dome.radius * cam.zoom, dome.height * cam.zoom, 0, Math.PI, 0, false);
     ctx.closePath();
     ctx.fillStyle = 'rgba(80, 190, 255, 0.22)';
     ctx.fill();
