@@ -220,7 +220,7 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
     ...(kind === 'departure'
       ? {
           departure: {
-            exitAltitude: departure.exitAltitude,
+            exitAltitude: b.atmosphere ? b.orbitalDefaults.transitionAltitude : departure.exitAltitude,
             thresholdApoapsisAltitude: departureTarget?.thresholdApoapsisAltitude ?? departure.thresholdApoapsisAltitude,
             targetOrbitAltitude: departureTarget?.targetOrbitAltitude ?? departure.targetOrbitAltitude,
             orbitalLevelId,
