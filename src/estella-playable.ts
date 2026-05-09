@@ -272,12 +272,31 @@ function generatedApproachIndex(reentryApproachLevelId: number | undefined): num
   return idx >= 0 ? idx : 0;
 }
 
+function fallbackSurfacePoiIdForBody(bodyId: string): string | undefined {
+  return SURFACE_POIS.find(poi => poi.bodyId === bodyId && ESTELLA_NODES_BY_ID.has(poi.id))?.id;
+}
+
+function createFallbackReentryApproach(bodyId: string, orbitalLevelId: number, preferredPoiId?: string): { approachId: number; landingSiteAngle: number } | null {
+  const b = bodyById(bodyId);
+  if (!b.atmosphere) return null;
+  const poiId = preferredPoiId && surfacePoiById(preferredPoiId).bodyId === bodyId
+    ? preferredPoiId
+    : fallbackSurfacePoiIdForBody(bodyId);
+  if (!poiId) return null;
+  const landingId = nextId();
+  const approachId = nextId();
+  register(LEVELS, createGeneratedLandingLevel(poiId, landingId));
+  register(APPROACH_LEVELS, createApproachLevel('descent', poiId, approachId, landingId, orbitalLevelId));
+  return { approachId, landingSiteAngle: surfacePlacement(poiId).angle ?? 0 };
+}
+
 function createOrbitalLevel(opts: {
   id: number;
   bodyId: string;
   name: string;
   finalDestinationId?: string;
   reentryApproachLevelId?: number;
+  fallbackReentryPoiId?: string;
   landingSiteAngle?: number;
   dockingLevelId?: number;
   station?: OrbitalLevel['station'];
@@ -287,8 +306,13 @@ function createOrbitalLevel(opts: {
   escapeTargetBodyId?: string;
 }): OrbitalLevel {
   const b = bodyById(opts.bodyId);
+  const fallbackReentry = opts.reentryApproachLevelId === undefined
+    ? createFallbackReentryApproach(opts.bodyId, opts.id, opts.fallbackReentryPoiId)
+    : null;
+  const reentryApproachLevelId = opts.reentryApproachLevelId ?? fallbackReentry?.approachId;
+  const landingSiteAngle = opts.landingSiteAngle ?? fallbackReentry?.landingSiteAngle ?? 0;
   const r = opts.startOrbit?.radius ?? (b.radius + lowOrbitAltitude(opts.bodyId));
-  const startAngle = opts.startOrbit ? opts.startOrbit.epochAngle + 0.06 * opts.startOrbit.orbitSense : (opts.landingSiteAngle ?? 0) + Math.PI * 0.85;
+  const startAngle = opts.startOrbit ? opts.startOrbit.epochAngle + 0.06 * opts.startOrbit.orbitSense : landingSiteAngle + Math.PI * 0.85;
   const startSense = opts.startOrbit?.orbitSense ?? -1;
   const start = circularStart(opts.bodyId, r, startAngle, startSense);
   const level: OrbitalLevel = {
@@ -321,12 +345,12 @@ function createOrbitalLevel(opts: {
     heatCoeff: b.atmosphere ? 1e-5 : 0,
     heatDissipation: b.atmosphere ? 0.08 : 0,
     transitionAltitude: b.orbitalDefaults.transitionAltitude,
-    landingSiteAngle: opts.landingSiteAngle ?? 0,
+    landingSiteAngle,
     surfaceMarkers: surfaceMarkersForBody(opts.bodyId),
     orbitMarkers: orbitMarkersForBody(opts.bodyId),
-    approachLevelIdx: generatedApproachIndex(opts.reentryApproachLevelId),
+    approachLevelIdx: generatedApproachIndex(reentryApproachLevelId),
     approachGravity: b.gm / (b.radius * b.radius),
-    reentryApproachLevelId: opts.reentryApproachLevelId,
+    reentryApproachLevelId,
     showLandingSite: opts.showLandingSite ?? !opts.station,
     station: opts.station,
     dockingLevelId: opts.dockingLevelId,
@@ -519,6 +543,7 @@ function buildRouteObjective(opts: {
     finalDestinationId: opts.destinationId,
     showLandingSite: false,
     startOrbit,
+    fallbackReentryPoiId: playableKind(opts.initialSourceId) === 'surface' && opts.currentBodyId === centralBodyIdForPoi(opts.initialSourceId) ? opts.initialSourceId : undefined,
     escapeToOrbitalLevelId: parentObjective.id,
     escapeTargetBodyId: targetIsTransferInParent ? parentObjective.targetBodyId : undefined,
   }));
@@ -564,6 +589,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     name: destSurface ? `${nodeName(ESTELLA_NODES_BY_ID.get(destinationId))} Deorbit` : `${nodeName(parentNode(destinationId))} Rendezvous`,
     finalDestinationId: destinationId,
     reentryApproachLevelId: destSurface ? destApproachId : undefined,
+    fallbackReentryPoiId: !destSurface && sourceKind === 'surface' && sourceBodyId === destBodyId ? sourceId : undefined,
     landingSiteAngle: destSurface ? surfacePlacement(destinationId).angle ?? 0 : 0,
     dockingLevelId: destSurface ? undefined : destDockingId,
     station: destSurface ? undefined : stationTargetForPoi(destinationId),

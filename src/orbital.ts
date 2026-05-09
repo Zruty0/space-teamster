@@ -1890,8 +1890,10 @@ function hybridizeApproachPrediction(
   pred: PredictionResult, level: OrbitalLevel,
 ): PredictionResult {
   if (!pred.approachStart || level.atmoHeight <= 0) return pred;
-  const approachLevel = APPROACH_LEVELS[level.approachLevelIdx];
-  if (!approachLevel || approachLevel.departure) return pred;
+  const approachLevel = level.reentryApproachLevelId !== undefined
+    ? approachLevelById(level.reentryApproachLevelId)
+    : APPROACH_LEVELS[level.approachLevelIdx];
+  if (!approachLevel || approachLevel.departure || approachLevel.body.id !== level.bodyId) return pred;
 
   const init = orbitalToApproachParams({
     x: pred.approachStart.x,

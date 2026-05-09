@@ -802,8 +802,8 @@ export class Game {
     const approachLevel = explicitId
       ? approachLevelById(explicitId)
       : APPROACH_LEVELS[p.level.approachLevelIdx];
-    if (!approachLevel) {
-      p.state = 'enteredAtmo';
+    if (!approachLevel || approachLevel.body.id !== p.level.bodyId) {
+      p.state = 'crashed';
       return;
     }
     const params = orbitalToApproachParams(p.os, p.level);
