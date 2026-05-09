@@ -847,46 +847,55 @@ export function updateApproachCamera(
     return;
   }
 
-  // Fit both ship and gate horizontally in ~80% of screen
-  const hDist = Math.abs(level.gateX - s.x) + level.gateRadius;
-  const zoomForH = (W * 0.8) / Math.max(hDist, 100);
-
-  // Fit ship, elevated target gate, and actual ground vertically in ~80% of screen.
   const targetBaseY = getApproachTargetHeight(level.gateX, level);
-  const terrainY = getApproachTerrainHeight(level.gateX, level);
-  const highY = Math.max(s.y, targetBaseY + level.gateY);
-  const lowY = Math.min(s.y, terrainY);
-  const vDist = highY - lowY + 1000;
-  const zoomForV = (H * 0.8) / Math.max(vDist, 100);
+  const gateMinX = level.gateX - level.gateRadius;
+  const gateMaxX = level.gateX + level.gateRadius;
+  const gateMinY = targetBaseY;
+  const gateMaxY = targetBaseY + level.gateY;
+  const marginFrac = 0.10;
 
+  // Zoom is controlled by craft + approach box only. Terrain is handled later by panning.
+  const minX = Math.min(s.x, gateMinX);
+  const maxX = Math.max(s.x, gateMaxX);
+  const minY = Math.min(s.y, gateMinY);
+  const maxY = Math.max(s.y, gateMaxY);
+  const zoomForH = (W * (1 - marginFrac * 2)) / Math.max(maxX - minX, 100);
+  const zoomForV = (H * (1 - marginFrac * 2)) / Math.max(maxY - minY, 100);
   const targetZoom = clamp(Math.min(zoomForH, zoomForV), minZoom, maxZoom);
   cam.zoom += (targetZoom - cam.zoom) * smooth;
 
   const z = cam.zoom;
   const viewW = W / z;
   const viewH = H / z;
+  const marginX = viewW * marginFrac;
+  const marginY = viewH * marginFrac;
 
+  // Start centered on craft, then pan just enough to fit the approach box while keeping
+  // craft inside the 10% safe margin.
   let cx = s.x;
   let cy = s.y;
+  const clampCenterForBox = (center: number, boxMin: number, boxMax: number, craft: number, view: number, margin: number): number => {
+    let out = center;
+    const visibleMin = () => out - view * 0.5 + margin;
+    const visibleMax = () => out + view * 0.5 - margin;
+    if (boxMin < visibleMin()) out = boxMin - margin + view * 0.5;
+    if (boxMax > visibleMax()) out = boxMax + margin - view * 0.5;
+    const craftMinCenter = craft + margin - view * 0.5;
+    const craftMaxCenter = craft - margin + view * 0.5;
+    return clamp(out, craftMinCenter, craftMaxCenter);
+  };
+  cx = clampCenterForBox(cx, gateMinX, gateMaxX, s.x, viewW, marginX);
+  cy = clampCenterForBox(cy, gateMinY, gateMaxY, s.y, viewH, marginY);
 
-  const gateX = level.gateX;
-  if (gateX > s.x) {
-    const gateCx = gateX - viewW * 0.4;
-    const shipLimitCx = s.x + viewW * 0.4;
-    cx = Math.min(gateCx, shipLimitCx);
-    cx = Math.max(cx, s.x);
-  } else {
-    const gateCx = gateX + viewW * 0.4;
-    const shipLimitCx = s.x - viewW * 0.4;
-    cx = Math.max(gateCx, shipLimitCx);
-    cx = Math.min(cx, s.x);
+  // Best-effort terrain visibility by panning only; never zoom out further for terrain.
+  const terrainY = getApproachTerrainHeight(s.x, level);
+  const terrainVisibleMin = cy - viewH * 0.5 + marginY;
+  if (terrainY < terrainVisibleMin) {
+    const desiredCy = terrainY - marginY + viewH * 0.5;
+    const craftMinCenter = s.y + marginY - viewH * 0.5;
+    const craftMaxCenter = s.y - marginY + viewH * 0.5;
+    cy = clamp(desiredCy, craftMinCenter, craftMaxCenter);
   }
-
-  const terrainH = getApproachTerrainHeight(s.x, level);
-  const targetH = getApproachTargetHeight(level.gateX, level);
-  const lowVisibleCy = terrainH + 0.46 * viewH;
-  const highVisibleCy = Math.max(s.y, targetH + level.gateY) - 0.46 * viewH;
-  cy = Math.max(highVisibleCy, Math.min(s.y, lowVisibleCy));
 
   cam.x += (cx - cam.x) * smooth;
   cam.y += (cy - cam.y) * smooth;
