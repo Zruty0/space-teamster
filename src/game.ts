@@ -1009,15 +1009,22 @@ export class Game {
   private handleEstellaGeneratedMission(input: InputState): void {
     const p = this.phase as Extract<Phase, { kind: 'estellaMission' }>;
     if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
-    if (input.menuConfirm) this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId);
+    if (p.mission.transferOptions.length) {
+      if (input.menuLeft) p.mission.selectedTransferOption = (p.mission.selectedTransferOption - 1 + p.mission.transferOptions.length) % p.mission.transferOptions.length;
+      if (input.menuRight) p.mission.selectedTransferOption = (p.mission.selectedTransferOption + 1) % p.mission.transferOptions.length;
+    }
+    if (input.menuConfirm) {
+      const startWorldTime = p.mission.transferOptions[p.mission.selectedTransferOption]?.waitTime ?? 0;
+      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime);
+    }
   }
 
-  private launchPlayableEstellaMission(sourceId: string, destinationId: string): void {
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0): void {
     const generated = createPlayableEstellaMission(sourceId, destinationId);
     this.currentMissionId = 8;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;
-    this.worldTime = 0;
+    this.worldTime = startWorldTime;
     if (generated.start.kind === 'landing') {
       this.loadLanding(
         generated.start.level,
