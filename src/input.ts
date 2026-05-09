@@ -31,7 +31,6 @@ export interface InputState {
   toggleWings: boolean;    // G edge-triggered (deploy/retract wings)
   wingAngleUp: boolean;    // E held (increase wing angle)
   wingAngleDown: boolean;  // Q held (decrease wing angle)
-  toggleHeatShield: boolean; // H edge-triggered
   toggleSAS: boolean;        // T edge-triggered (docking)
   // Orbital controls
   warpUp: boolean;           // ] edge-triggered
@@ -109,7 +108,6 @@ export function readInput(): InputState {
   const toggleWings = justPressed.has('KeyG');
   const wingAngleUp = keys.has('KeyE');
   const wingAngleDown = keys.has('KeyQ');
-  const toggleHeatShield = justPressed.has('KeyH');
   const toggleSAS = justPressed.has('KeyT');
 
   // Orbital controls
@@ -150,7 +148,6 @@ export function readInput(): InputState {
     toggleWings,
     wingAngleUp,
     wingAngleDown,
-    toggleHeatShield,
     toggleSAS,
     warpUp,
     warpDown,

@@ -965,7 +965,7 @@ export class Game {
         updateApproach(p.as, input, p.level, PHYSICS_DT, this.time);
         // Clear edge triggers after first physics step
         if (!edgeConsumed) { edgeConsumed = true; }
-        else { input.toggleHeatShield = false; input.toggleWings = false; }
+        else { input.toggleWings = false; }
 
         if (!p.as.alive) p.state = 'approachFailed';
         if (p.as.gateReached) {

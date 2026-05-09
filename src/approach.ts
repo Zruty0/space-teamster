@@ -35,13 +35,12 @@ export interface ApproachLevel {
   scaleHeight: number;
   dragNose: number;
   dragBroadside: number;
-  dragShield: number;
   dragWingPerRad: number;
   liftBody: number;
   liftWingPerRad: number;
   heatCoeff: number;
   dissipation: number;
-  shieldHeatMult: number;
+  heatCapacity: number;
   wingsMaxTemp: number;
   maxWingAngle: number;
   wingAngleRate: number;
@@ -104,7 +103,6 @@ export interface ApproachState {
   throttle: number;
   fuel: number;
   dvUsed: number;
-  heatShield: boolean;
   wingsDeployed: boolean;
   wingAngle: number;
   temperature: number;
@@ -176,13 +174,12 @@ function createDescentApproach(def: ApproachPhaseDef): ApproachLevel {
     scaleHeight: atmo?.scaleHeight ?? 1,
     dragNose: atmo ? 0.000020 : 0,
     dragBroadside: atmo ? 0.00040 : 0,
-    dragShield: atmo ? 0.00035 : 0,
     dragWingPerRad: atmo ? 0.00015 : 0,
     liftBody: atmo ? 0.00012 : 0,
     liftWingPerRad: atmo ? 0.00085 : 0,
     heatCoeff: atmo ? 1e-5 : 0,
     dissipation: atmo ? 0.08 : 0,
-    shieldHeatMult: atmo ? 0.12 : 0,
+    heatCapacity: atmo ? 4 : 1,
     wingsMaxTemp: atmo ? 0.50 : 1,
     maxWingAngle: atmo ? 1.0 : 0,
     wingAngleRate: atmo ? 1.0 : 0,
@@ -227,13 +224,12 @@ function createDepartureApproach(def: ApproachPhaseDef): ApproachLevel {
     scaleHeight: atmo?.scaleHeight ?? 1,
     dragNose: atmo ? 0.000020 : 0,
     dragBroadside: atmo ? 0.00040 : 0,
-    dragShield: atmo ? 0.00035 : 0,
     dragWingPerRad: atmo ? 0.00015 : 0,
     liftBody: atmo ? 0.00012 : 0,
     liftWingPerRad: atmo ? 0.00085 : 0,
     heatCoeff: atmo ? 1e-5 : 0,
     dissipation: atmo ? 0.08 : 0,
-    shieldHeatMult: atmo ? 0.12 : 0,
+    heatCapacity: atmo ? 4 : 1,
     wingsMaxTemp: atmo ? 0.50 : 1,
     maxWingAngle: atmo ? 1.0 : 0,
     wingAngleRate: atmo ? 1.0 : 0,
@@ -323,7 +319,7 @@ export function createApproachState(
     angle: init.angle, angularVel: 0,
     worldX, worldY, worldVX, worldVY, localDir,
     throttle: 0, fuel: 0, dvUsed: 0,
-    heatShield: false, wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
+    wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
     timeWarp: 1, timeWarpLevel: 0,
     _foldTimer: 0, _deployTimer: 0,
@@ -492,7 +488,7 @@ function inTurbulence(y: number, level: ApproachLevel): boolean {
 /** Compute aero accelerations and heat rate for a given state snapshot. */
 function aeroForces(
   x: number, y: number, vx: number, vy: number,
-  angle: number, heatShield: boolean, wingAngle: number,
+  angle: number, wingAngle: number,
   level: ApproachLevel,
 ): { ax: number; ay: number; heatRate: number; aoa: number } {
   const speed = Math.sqrt(vx * vx + vy * vy);
@@ -511,9 +507,6 @@ function aeroForces(
   const sinA = Math.sin(aoa);
   const cosA = Math.cos(aoa);
   let Cd = level.dragNose * cosA * cosA + level.dragBroadside * sinA * sinA;
-
-  // Heat shield override
-  if (heatShield) Cd = Math.max(Cd, level.dragShield);
 
   // Wing drag (additive)
   Cd += wingAngle * level.dragWingPerRad;
@@ -562,9 +555,6 @@ export function updateApproach(
   const effThrust = s.highThrust ? level.thrustAccelMax : level.thrustAccel;
 
   // --- Deployables ---
-  if (input.toggleHeatShield && level.shieldHeatMult > 0) {
-    s.heatShield = !s.heatShield;
-  }
   if (input.toggleWings && !s.wingsDeployed) {
     s.wingsDeployed = true;
     s.wingAngle = MIN_WING_ANGLE;
@@ -658,7 +648,7 @@ export function updateApproach(
   } else {
     const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
-      s.x, s.y, s.vx, s.vy, s.angle, s.heatShield, effectiveWing, level,
+      s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level,
     );
     let ax = aeroAx;
     let ay = -level.gravity + aeroAy;
@@ -681,8 +671,7 @@ export function updateApproach(
       s.retroFiring = true;
     }
 
-    const hm = s.heatShield ? level.shieldHeatMult : 1.0;
-    s.temperature += (heatRate * hm - level.dissipation * s.temperature) * dt;
+    s.temperature += (heatRate / level.heatCapacity - level.dissipation * s.temperature) * dt;
     s.temperature = clamp(s.temperature, 0, 1.5);
     if (s.temperature >= 1.0) { s.alive = false; return; }
 
@@ -730,7 +719,6 @@ export function predictTrajectory(
   let wingFoldIdx = -1;
   let temp = s.temperature;
   const angle = s.angle;
-  const shield = s.heatShield;
   const wing = s.wingsDeployed ? s.wingAngle : 0;
   let dead = false;
   let prevTooHot = temp >= level.wingsMaxTemp;
@@ -776,12 +764,11 @@ export function predictTrajectory(
   let prevX = x, prevY = y;
 
   for (let t = 0; t < maxTime; t += step) {
-    const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, shield, wing, level);
+    const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level);
     let ax = aax + (includeWind ? getWind(y, level, predTime) : 0);
     const ay = -level.gravity + aay;
 
-    const hm = shield ? level.shieldHeatMult : 1.0;
-    temp += (heatRate * hm - level.dissipation * temp) * step;
+    temp += (heatRate / level.heatCapacity - level.dissipation * temp) * step;
     const tooHotForWings = temp >= level.wingsMaxTemp;
     if (wingFoldIdx < 0) {
       if (points.length === 0) {
@@ -1666,12 +1653,7 @@ function drawApproachHUD(
 
   let cfgStr = 'CLEAN';
   let cfgCol = COL_HUD;
-  if (s.heatShield) { cfgStr = 'SHIELD'; cfgCol = COL_WARNING; }
-  if (s.wingsDeployed) {
-    const wingText = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`;
-    cfgStr = s.heatShield ? `SHIELD+${wingText}` : wingText;
-    cfgCol = s.heatShield ? COL_WARNING : '#00ccff';
-  }
+  if (s.wingsDeployed) { cfgStr = `WINGS ${(s.wingAngle * 180 / Math.PI).toFixed(0)}°`; cfgCol = '#00ccff'; }
   drawHudLabel(ctx, lx, ly, 'CFG', cfgStr, cfgCol); ly += lh;
   drawHudLabel(ctx, lx, ly, 'ATM', `${(rhoFracStd * 100).toFixed(1)}%`, rhoCol); ly += lh;
   drawHudLabel(ctx, lx, ly, 'TEMP', `${(s.temperature * 100).toFixed(0)}%`, tempCol); ly += lh;
