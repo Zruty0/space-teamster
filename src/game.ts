@@ -680,8 +680,7 @@ export class Game {
         if (!escape && localSpeed < 0.01) return null;
         const escapeAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
         const vInf = escape?.vInf ?? 0;
-        const preservePatchOffset = nextLevel.targetBodyId === p.level.bodyId && localR > 0.01;
-        const scale = preservePatchOffset ? (patchR / localR) : 0;
+        const scale = localR > 0.01 ? (patchR / localR) : 0;
         const initOverride: OrbitalInitOverride = {
           x: originState.x + p.os.x * scale,
           y: originState.y + p.os.y * scale,
