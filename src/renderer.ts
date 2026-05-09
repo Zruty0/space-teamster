@@ -38,7 +38,7 @@ export function createCamera(): Camera {
 
 export function updateCamera(cam: Camera, ship: ShipState, terrainHeight: number, dt: number): void {
   const c = config;
-  const t = 1 - Math.exp(-c.cameraSmoothing * dt);
+  const t = dt <= 0 ? 1 : 1 - Math.exp(-c.cameraSmoothing * dt);
 
   // Dynamic zoom based on altitude above terrain
   const altitude = ship.y - terrainHeight;

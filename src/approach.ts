@@ -821,7 +821,7 @@ export function updateApproachCamera(
   cam: ApproachCamera, s: ApproachState, level: ApproachLevel,
   dt: number, W: number, H: number,
 ): void {
-  const smooth = 1 - Math.exp(-2.0 * dt);
+  const smooth = dt <= 0 ? 1 : 1 - Math.exp(-2.0 * dt);
 
   const baseZoom = 0.04;
   const maxZoom = baseZoom * 2;

@@ -130,8 +130,7 @@ export class Game {
       ship.throttle = 0;
     }
     const camera = createCamera();
-    camera.x = ship.x;
-    camera.y = ship.y;
+    updateCamera(camera, ship, landingReferenceHeight(level, terrain, ship.x), 0);
     this.phaseCompletion = null;
     this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed };
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
@@ -145,7 +144,7 @@ export class Game {
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
     const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
-    if (initOverride) { cam.x = as.x; cam.y = as.y; }
+    updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
     this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
     if (level.departure) {
@@ -163,7 +162,7 @@ export class Game {
   private loadDocking(level: DockingLevel, initOverride?: DockingInitOverride, worldTimeStart: number = this.worldTime): void {
     const ds = createDockingState(level, initOverride);
     const cam = createDockingCamera();
-    if (initOverride) { cam.x = ds.x; cam.y = ds.y; }
+    updateDockingCamera(cam, ds, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
     this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');

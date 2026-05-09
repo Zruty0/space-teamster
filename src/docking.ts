@@ -737,7 +737,7 @@ export function createDockingCamera(): DockingCamera {
 export function updateDockingCamera(
   cam: DockingCamera, s: DockingState, level: DockingLevel, dt: number, W: number, H: number,
 ): void {
-  const smooth = 1 - Math.exp(-3.0 * dt);
+  const smooth = dt <= 0 ? 1 : 1 - Math.exp(-3.0 * dt);
 
   let targetX = s.x;
   let targetY = s.y;
