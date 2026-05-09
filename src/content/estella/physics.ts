@@ -37,8 +37,8 @@ export interface BodyFlightProfileDef {
 export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
   estella: {
     radius: 450_000,
-    gm: 3.5 * 450_000 * 450_000,
-    notes: 'Gameplay-scale Estella primary used as the parent gravity well for dwarf-planet transfers.',
+    gm: 3.5 * 450_000 * 450_000 * 8_000,
+    notes: 'Gameplay-scale Estella primary; GM is boosted with stellar orbit radii scaled 20x so transfer speeds are high enough for playable patched-conic flybys while periods remain similar.',
   },
   'estella-i': {
     radius: 150_000,

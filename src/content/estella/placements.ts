@@ -43,7 +43,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella',
     usage: 'stellar',
-    orbit: { kind: 'circular', radius: 12_000_000, epochAngle: -0.7, epochTime: 0, orbitSense: 1, period: 310_200 },
+    orbit: { kind: 'circular', radius: 240_000_000, epochAngle: -0.7, epochTime: 0, orbitSense: 1, period: 310_200 },
   },
   'estella-i-low-orbit-station': {
     kind: 'orbit',
@@ -60,7 +60,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella',
     usage: 'stellar',
-    orbit: { kind: 'circular', radius: 22_000_000, epochAngle: 0.65, epochTime: 0, orbitSense: 1, period: 770_100 },
+    orbit: { kind: 'circular', radius: 440_000_000, epochAngle: 0.65, epochTime: 0, orbitSense: 1, period: 770_100 },
   },
   'estella-ii-cloud-city-platform': {
     kind: 'orbit',
@@ -80,7 +80,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella',
     usage: 'stellar',
-    orbit: { kind: 'circular', radius: 34_000_000, epochAngle: 1.45, epochTime: 0, orbitSense: 1, period: 1_479_600 },
+    orbit: { kind: 'circular', radius: 680_000_000, epochAngle: 1.45, epochTime: 0, orbitSense: 1, period: 1_479_600 },
   },
   'estella-iii-main-customs-station': {
     kind: 'orbit',
@@ -123,7 +123,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella',
     usage: 'stellar',
-    orbit: { kind: 'circular', radius: 48_000_000, epochAngle: -2.25, epochTime: 0, orbitSense: 1, period: 2_482_000 },
+    orbit: { kind: 'circular', radius: 960_000_000, epochAngle: -2.25, epochTime: 0, orbitSense: 1, period: 2_482_000 },
   },
   'estella-iv-main-station': {
     kind: 'orbit',
@@ -142,7 +142,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: {
       kind: 'circular',
-      radius: 72_000_000,
+      radius: 1_440_000_000,
       epochAngle: 2.1,
       epochTime: 0,
       orbitSense: 1,
@@ -215,7 +215,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: {
       kind: 'circular',
-      radius: 72_600_000,
+      radius: 1_452_000_000,
       epochAngle: 2.95,
       epochTime: 0,
       orbitSense: 1,

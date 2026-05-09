@@ -60,7 +60,7 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
   if (!n.capabilities?.hasSOI) return undefined;
   if (n.kind === 'moon') return { patchRadius: 320_000, displayPatchRadius: 320_000 };
   if (n.kind === 'dwarf-planet') return { patchRadius: 1_500_000, displayPatchRadius: 1_500_000 };
-  if (n.kind === 'planet') return { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 };
+  if (n.kind === 'planet') return { patchRadius: 8_000_000, displayPatchRadius: 8_000_000 };
   return undefined;
 }
 
