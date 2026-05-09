@@ -688,7 +688,7 @@ export function updateApproach(
 
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const inGateX = s.x >= level.gateX - level.gateRadius && s.x <= level.gateX + level.gateRadius;
-  const terrainAtGate = getApproachTerrainHeight(s.x, level);
+  const terrainAtGate = getApproachTargetHeight(s.x, level);
   const inGateY = s.y >= terrainAtGate && s.y <= level.gateY + terrainAtGate;
   if (inGateX && inGateY && speed <= level.gateMaxSpeed && speed >= level.gateMinSpeed) {
     s.gateReached = true;
@@ -744,7 +744,7 @@ export function predictTrajectory(
 
       if (!reachedGate) {
         const inGX = local.x >= level.gateX - level.gateRadius && local.x <= level.gateX + level.gateRadius;
-        const tAtGate = getApproachTerrainHeight(local.x, level);
+        const tAtGate = getApproachTargetHeight(local.x, level);
         const inGY = local.y >= tAtGate && local.y <= level.gateY + tAtGate;
         if (inGX && inGY) reachedGate = true;
       }
@@ -794,7 +794,7 @@ export function predictTrajectory(
 
     if (!dead && !reachedGate) {
       const inGX = x >= level.gateX - level.gateRadius && x <= level.gateX + level.gateRadius;
-      const tAtGate = getApproachTerrainHeight(x, level);
+      const tAtGate = getApproachTargetHeight(x, level);
       const inGY = y >= tAtGate && y <= level.gateY + tAtGate;
       if (inGX && inGY) reachedGate = true;
     }
@@ -836,7 +836,7 @@ export function updateApproachCamera(
 
     const viewW = W / cam.zoom;
     const viewH = H / cam.zoom;
-    const groundH = getApproachTerrainHeight(s.x, level);
+    const groundH = getApproachTargetHeight(s.x, level);
     const shipTopCy = s.y - 0.33 * viewH;
     const groundCy = groundH + 0.38 * viewH;
     const cx = s.x + clamp(s.vx * 2.5, -viewW * 0.2, viewW * 0.2);
@@ -852,7 +852,8 @@ export function updateApproachCamera(
   const zoomForH = (W * 0.8) / Math.max(hDist, 100);
 
   // Fit both ship and ground+gate vertically in ~80% of screen
-  const vDist = Math.max(s.y, level.gateY) + 500;
+  const targetBaseY = getApproachTargetHeight(level.gateX, level);
+  const vDist = Math.max(s.y, targetBaseY + level.gateY) - Math.min(s.y, targetBaseY) + 500;
   const zoomForV = (H * 0.8) / Math.max(vDist, 100);
 
   const targetZoom = clamp(Math.min(zoomForH, zoomForV), minZoom, maxZoom);
@@ -878,7 +879,7 @@ export function updateApproachCamera(
     cx = Math.min(cx, s.x);
   }
 
-  const groundH = getApproachTerrainHeight(s.x, level);
+  const groundH = getApproachTargetHeight(s.x, level);
   const groundCy = groundH + 0.4 * viewH;
   const shipTopCy = s.y - 0.4 * viewH;
   cy = Math.max(shipTopCy, Math.min(s.y, groundCy));
@@ -923,12 +924,15 @@ function perlin1D(x: number, freq: number, seed: number): number {
 
 /** Get approach terrain height at world x. Two octaves of Perlin noise. */
 function getApproachTerrainHeight(x: number, level?: ApproachLevel): number {
-  if (level?.poi.altitude) return level.poi.altitude;
   // Large rolling hills
   const h1 = perlin1D(x, 0.00008, 42.0) * 1200;
   // Medium detail
   const h2 = perlin1D(x, 0.0003, 97.0) * 400;
   return Math.max(0, h1 + h2 + 300); // offset so average is ~300m, min 0
+}
+
+function getApproachTargetHeight(x: number, level: ApproachLevel): number {
+  return level.poi.altitude || getApproachTerrainHeight(x, level);
 }
 
 function tempColor(t: number): string {
@@ -1295,7 +1299,7 @@ function drawGate(
   s: ApproachState, level: ApproachLevel, W: number, H: number,
 ): void {
   // Gate rectangle sits on terrain
-  const terrainAtGate = getApproachTerrainHeight(level.gateX, level);
+  const terrainAtGate = getApproachTargetHeight(level.gateX, level);
   const [leftX, topY] = ws(level.gateX - level.gateRadius, level.gateY + terrainAtGate, cam, W, H);
   const [rightX, botY] = ws(level.gateX + level.gateRadius, terrainAtGate, cam, W, H);
   const [centerX] = ws(level.gateX, (level.gateY + terrainAtGate * 2) * 0.5, cam, W, H);
@@ -1325,7 +1329,7 @@ function drawGate(
 
   // Off-screen indicator
   if (!onScreen) {
-    const [gcx, gcy] = ws(level.gateX, level.gateY * 0.5, cam, W, H);
+    const [gcx, gcy] = ws(level.gateX, terrainAtGate + level.gateY * 0.5, cam, W, H);
     const margin = 40;
     const cx = clamp(gcx, margin, W - margin);
     const cy = clamp(gcy, margin, H - margin);
@@ -1607,7 +1611,8 @@ function drawApproachHUD(
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const altKm = (s.y / 1000);
-  const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - level.gateY) ** 2);
+  const targetBaseY = getApproachTargetHeight(level.gateX, level);
+  const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - (targetBaseY + level.gateY)) ** 2);
   const departure = level.departure;
   const apa = departure ? getApproachApoapsisAltitude(s, level) : null;
   const rho = density(s.y, level);
