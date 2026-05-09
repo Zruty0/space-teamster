@@ -869,23 +869,35 @@ export function updateApproachCamera(
   const viewH = H / z;
   const marginX = viewW * marginFrac;
   const marginY = viewH * marginFrac;
+  const craftLeftMarginX = marginX;
+  const craftRightMarginX = viewW * 0.28; // keep craft clear of the right-side target HUD
 
   // Start centered on craft, then pan just enough to fit the approach box while keeping
-  // craft inside the 10% safe margin.
+  // craft inside the safe margin. Horizontal craft margin is asymmetric because the
+  // target/objective HUD lives on the right side of the screen.
   let cx = s.x;
   let cy = s.y;
-  const clampCenterForBox = (center: number, boxMin: number, boxMax: number, craft: number, view: number, margin: number): number => {
+  const clampCenterForBox = (
+    center: number,
+    boxMin: number,
+    boxMax: number,
+    craft: number,
+    view: number,
+    boxMargin: number,
+    craftMinSideMargin: number,
+    craftMaxSideMargin: number,
+  ): number => {
     let out = center;
-    const visibleMin = () => out - view * 0.5 + margin;
-    const visibleMax = () => out + view * 0.5 - margin;
-    if (boxMin < visibleMin()) out = boxMin - margin + view * 0.5;
-    if (boxMax > visibleMax()) out = boxMax + margin - view * 0.5;
-    const craftMinCenter = craft + margin - view * 0.5;
-    const craftMaxCenter = craft - margin + view * 0.5;
+    const visibleMin = () => out - view * 0.5 + boxMargin;
+    const visibleMax = () => out + view * 0.5 - boxMargin;
+    if (boxMin < visibleMin()) out = boxMin - boxMargin + view * 0.5;
+    if (boxMax > visibleMax()) out = boxMax + boxMargin - view * 0.5;
+    const craftMinCenter = craft + craftMaxSideMargin - view * 0.5;
+    const craftMaxCenter = craft - craftMinSideMargin + view * 0.5;
     return clamp(out, craftMinCenter, craftMaxCenter);
   };
-  cx = clampCenterForBox(cx, gateMinX, gateMaxX, s.x, viewW, marginX);
-  cy = clampCenterForBox(cy, gateMinY, gateMaxY, s.y, viewH, marginY);
+  cx = clampCenterForBox(cx, gateMinX, gateMaxX, s.x, viewW, marginX, craftLeftMarginX, craftRightMarginX);
+  cy = clampCenterForBox(cy, gateMinY, gateMaxY, s.y, viewH, marginY, marginY, marginY);
 
   // Best-effort terrain visibility by panning only; never zoom out further for terrain.
   const terrainY = getApproachTerrainHeight(s.x, level);
