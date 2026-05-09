@@ -266,6 +266,12 @@ function departureThresholdForLowOrbit(bodyId: string): number {
   return Math.max(30_000, (b.atmosphere?.height ?? 0) + 10_000);
 }
 
+function generatedApproachIndex(reentryApproachLevelId: number | undefined): number {
+  if (reentryApproachLevelId === undefined) return 0;
+  const idx = APPROACH_LEVELS.findIndex(level => level.id === reentryApproachLevelId);
+  return idx >= 0 ? idx : 0;
+}
+
 function createOrbitalLevel(opts: {
   id: number;
   bodyId: string;
@@ -318,7 +324,7 @@ function createOrbitalLevel(opts: {
     landingSiteAngle: opts.landingSiteAngle ?? 0,
     surfaceMarkers: surfaceMarkersForBody(opts.bodyId),
     orbitMarkers: orbitMarkersForBody(opts.bodyId),
-    approachLevelIdx: 0,
+    approachLevelIdx: generatedApproachIndex(opts.reentryApproachLevelId),
     approachGravity: b.gm / (b.radius * b.radius),
     reentryApproachLevelId: opts.reentryApproachLevelId,
     showLandingSite: opts.showLandingSite ?? !opts.station,
