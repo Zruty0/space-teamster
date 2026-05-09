@@ -2612,7 +2612,8 @@ function drawCentralBodyLabel(
   ctx.font = '11px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = 'rgba(120, 180, 255, 0.9)';
+  const isStar = bodyById(level.bodyId).id === 'estella';
+  ctx.fillStyle = isStar ? 'rgba(255, 210, 80, 0.95)' : 'rgba(120, 180, 255, 0.9)';
   ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, cy);
   ctx.textBaseline = 'alphabetic';
 }
@@ -2622,11 +2623,14 @@ function drawSystemBodies(
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
+  drawPlanet(ctx, cam, level, W, H);
   drawCentralBodyLabel(ctx, cam, level, W, H);
 
   let offscreenTargetLabel: { x: number; y: number; color: string; name: string } | null = null;
 
   for (const body of level.systemBodies ?? []) {
+    const isTargetBody = body.id === level.targetBodyId;
+    if ((body.id === 'estella-viii' || body.id === 'estella-ix') && !isTargetBody) continue;
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
     const [bx, by] = ws(pos.x, pos.y, cam, W, H);
@@ -2650,7 +2654,7 @@ function drawSystemBodies(
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    if (body.id === level.targetBodyId) {
+    if (isTargetBody) {
       const patchR = (body.displayPatchRadius ?? body.patchRadius) * cam.zoom;
       ctx.beginPath();
       ctx.arc(bx, by, patchR, 0, Math.PI * 2);
@@ -2667,7 +2671,7 @@ function drawSystemBodies(
       ctx.textAlign = 'center';
       ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
       ctx.fillText(body.name.toUpperCase(), bx, by - br - 6);
-    } else if (body.id === level.targetBodyId) {
+    } else if (isTargetBody) {
       const dx = bx - W / 2;
       const dy = by - H / 2;
       const edgeInset = 18;
