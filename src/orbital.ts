@@ -1585,6 +1585,7 @@ interface PredEvent {
   vx: number; vy: number;
   alt: number;
   idx: number;
+  targetAltitude?: number;
 }
 
 interface ClosestApproach {
@@ -1755,11 +1756,34 @@ function simulateTargetBodyEncounter(
   };
 }
 
+function targetImpactAltitude(level: OrbitalLevel): number {
+  const approachLevel = level.reentryApproachLevelId !== undefined
+    ? approachLevelById(level.reentryApproachLevelId)
+    : APPROACH_LEVELS[level.approachLevelIdx];
+  return (!level.station && approachLevel?.body.id === level.bodyId) ? (approachLevel.poi.altitude ?? 0) : 0;
+}
+
+function pointAtAltitudeCrossing(prev: PredPoint, pt: PredPoint, altitude: number, idx: number): PredEvent {
+  const denom = pt.alt - prev.alt;
+  const frac = Math.max(0, Math.min(1, (altitude - prev.alt) / (Math.abs(denom) > 1e-6 ? denom : -1e-6)));
+  return {
+    x: prev.x + (pt.x - prev.x) * frac,
+    y: prev.y + (pt.y - prev.y) * frac,
+    vx: prev.vx + (pt.vx - prev.vx) * frac,
+    vy: prev.vy + (pt.vy - prev.vy) * frac,
+    alt: altitude,
+    idx,
+    targetAltitude: altitude,
+  };
+}
+
 function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
   let atmoEntry: PredEvent | null = null;
   let atmoExit: PredEvent | null = null;
   let approachStart: PredEvent | null = null;
   let impact: PredEvent | null = null;
+
+  const impactAltitude = targetImpactAltitude(level);
 
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
@@ -1780,9 +1804,9 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       approachStart = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: pt.alt, idx: i };
     }
 
-    // Impact: altitude <= 0
-    if (!impact && pt.alt <= 0) {
-      impact = { x: pt.x, y: pt.y, vx: pt.vx, vy: pt.vy, alt: 0, idx: i };
+    // Impact/target crossing: for elevated POIs, presume impact at POI elevation.
+    if (!impact && prev.alt > impactAltitude && pt.alt <= impactAltitude) {
+      impact = pointAtAltitudeCrossing(prev, pt, impactAltitude, i);
       break;
     }
   }
@@ -2020,16 +2044,17 @@ function hybridizeApproachPrediction(
     prevX = pt.x; prevY = pt.y; prevVX = lvx; prevVY = lvy;
   }
 
-  // Orbital estimate ignores terrain and uses the notional surface at y=0.
-  // Add an explicit surface-impact endpoint so the red X / label are preserved.
+  // Orbital estimate ignores terrain and uses the notional target plane.
+  // Add an explicit target-impact endpoint so the red X / label are preserved.
   if (traj.impactX !== null) {
-    const w = localToWorld(traj.impactX, 0, prevVX, prevVY);
+    const targetY = approachLevel.poi.altitude ?? 0;
+    const w = localToWorld(traj.impactX, targetY, prevVX, prevVY);
     hybridTail.push({
       x: w.x,
       y: w.y,
       vx: w.vx,
       vy: w.vy,
-      alt: 0,
+      alt: targetY,
       t: pred.points[pred.approachStart.idx].t + (traj.points.length + 1) * trajStep,
       inAtmo: true,
       belowCritical: true,
