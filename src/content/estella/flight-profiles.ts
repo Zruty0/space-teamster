@@ -179,6 +179,91 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
   },
 };
 
+const ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  subtitle: 'Generated Camps thin-atmosphere industrial site',
+  features: [
+    { xStart: 820, xEnd: 860, height: 26 },
+    { xStart: 1140, xEnd: 1190, height: 32 },
+  ],
+  descentProfile: {
+    startX: -80_000,
+    startY: 24_000,
+    startVX: 850,
+    startVY: -55,
+    startAngle: 1.5,
+    gateY: 1600,
+    gateRadius: 1600,
+    gateMaxSpeed: 160,
+    gateMinSpeed: 20,
+  },
+  departureProfile: {
+    ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE.departureProfile,
+    startY: 300,
+    startVY: 5,
+    exitAltitude: 28_000,
+    thresholdApoapsisAltitude: 75_000,
+    targetOrbitAltitude: 85_000,
+    fuelSeconds: 170,
+  },
+};
+
+const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
+  subtitle: 'Generated Camps thick-atmosphere industrial site',
+  features: [
+    { xStart: 780, xEnd: 835, height: 38 },
+    { xStart: 1180, xEnd: 1240, height: 46 },
+  ],
+  descentProfile: {
+    startX: -95_000,
+    startY: 55_000,
+    startVX: 1_150,
+    startVY: -65,
+    startAngle: 1.5,
+    gateY: 2000,
+    gateRadius: 1800,
+    gateMaxSpeed: 155,
+    gateMinSpeed: 20,
+  },
+  departureProfile: {
+    ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE.departureProfile,
+    startY: 330,
+    startVY: 5,
+    exitAltitude: 55_000,
+    thresholdApoapsisAltitude: 115_000,
+    targetOrbitAltitude: 130_000,
+    fuelSeconds: 190,
+  },
+};
+
+const ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
+  subtitle: 'Generated Camps airless industrial site',
+  features: [
+    { xStart: 840, xEnd: 875, height: 32 },
+    { xStart: 1130, xEnd: 1175, height: 40 },
+  ],
+  descentProfile: {
+    startX: -55_000,
+    startY: 7_000,
+    startVX: 360,
+    startVY: -18,
+    startAngle: 1.5,
+    gateY: 1200,
+    gateRadius: 1400,
+    gateMaxSpeed: 120,
+    gateMinSpeed: 10,
+  },
+  departureProfile: {
+    ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE.departureProfile,
+    exitAltitude: 5_500,
+    thresholdApoapsisAltitude: 45_000,
+    targetOrbitAltitude: 60_000,
+    fuelSeconds: 160,
+  },
+};
+
 export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurfaceFlightProfile>> = {
   'estella-i-worker-hab': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-refractory-mine': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
@@ -201,6 +286,28 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-iv-climate-poi-1': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-iv-climate-poi-2': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-iv-climate-poi-3': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
+  'estella-v-capital-settlement': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-v-open-cast-mine': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-v-atmo-refinery': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-v-storm-research': { ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-v-abandoned-colony': { ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-va-strip-mine': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-va-miner-hab': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vi-industrial-city': ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE,
+  'estella-vi-foundry-complex': ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE,
+  'estella-vi-spaceport': ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE,
+  'estella-vi-agricultural-lowlands': ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE,
+  'estella-vi-polar-weather-research': { ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-vi-mountain-mining': { ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-via-surface-anchor': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-via-rare-alloy-extraction': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vib-vat-protein': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vib-pharma-horticulture': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vib-aquaculture': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vii-high-vacuum-factory': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vii-feedstock-mine': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vii-worker-hab': ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  'estella-vii-black-project-outpost': { ...ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-viii-settlement': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-mining-site': ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
   'estella-viii-abandoned-site': {

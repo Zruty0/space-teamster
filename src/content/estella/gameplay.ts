@@ -66,12 +66,32 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
 
 function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
   const windProfiles: Partial<Record<string, { windLayers: WindLayerDef[]; turbulence: TurbulenceZoneDef[] }>> = {
+    'estella-v': {
+      windLayers: [
+        { altitudeCenter: 18_000, altitudeWidth: 5_000, strength: 12 },
+        { altitudeCenter: 6_000, altitudeWidth: 2_200, strength: -8 },
+      ],
+      turbulence: [
+        { altitudeMin: 5_000, altitudeMax: 8_000, strength: 1.5 },
+      ],
+    },
     'estella-iii': {
       windLayers: [
         { altitudeCenter: 16_000, altitudeWidth: 3_500, strength: -10 },
         { altitudeCenter: 6_000, altitudeWidth: 2_000, strength: 8 },
       ],
       turbulence: [],
+    },
+    'estella-vi': {
+      windLayers: [
+        { altitudeCenter: 46_000, altitudeWidth: 7_000, strength: 20 },
+        { altitudeCenter: 24_000, altitudeWidth: 4_500, strength: -18 },
+        { altitudeCenter: 9_000, altitudeWidth: 2_400, strength: 12 },
+      ],
+      turbulence: [
+        { altitudeMin: 12_000, altitudeMax: 16_000, strength: 3 },
+        { altitudeMin: 34_000, altitudeMax: 38_000, strength: 2 },
+      ],
     },
     'estella-iv': {
       windLayers: [
