@@ -1,6 +1,6 @@
 import { ESTELLA_ATMOSPHERE_PHYSICS, ESTELLA_BODY_FLIGHT_PROFILES, ESTELLA_BODY_PHYSICS, ESTELLA_NODES_BY_ID, ESTELLA_PLACEMENTS } from './index';
 import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './flight-profiles';
-import { type BodyDef, type StationPoiDef, type SurfacePoiDef } from '../../world';
+import { type BodyDef, type StationPoiDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef } from '../../world';
 import { type Placement, type WorldNode } from '../types';
 
 function node(id: string): WorldNode {
@@ -64,6 +64,36 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
   return undefined;
 }
 
+function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
+  const windProfiles: Partial<Record<string, { windLayers: WindLayerDef[]; turbulence: TurbulenceZoneDef[] }>> = {
+    'estella-iii': {
+      windLayers: [
+        { altitudeCenter: 55_000, altitudeWidth: 7_000, strength: 18 },
+        { altitudeCenter: 26_000, altitudeWidth: 4_500, strength: -24 },
+        { altitudeCenter: 9_000, altitudeWidth: 2_000, strength: 12 },
+      ],
+      turbulence: [
+        { altitudeMin: 8_000, altitudeMax: 20_000, strength: 4 },
+        { altitudeMin: 28_000, altitudeMax: 42_000, strength: 2 },
+      ],
+    },
+    'estella-iv': {
+      windLayers: [
+        { altitudeCenter: 58_000, altitudeWidth: 8_000, strength: -28 },
+        { altitudeCenter: 34_000, altitudeWidth: 5_500, strength: 35 },
+        { altitudeCenter: 15_000, altitudeWidth: 3_000, strength: -22 },
+        { altitudeCenter: 5_500, altitudeWidth: 1_600, strength: 16 },
+      ],
+      turbulence: [
+        { altitudeMin: 6_000, altitudeMax: 18_000, strength: 6 },
+        { altitudeMin: 22_000, altitudeMax: 44_000, strength: 4 },
+        { altitudeMin: 48_000, altitudeMax: 64_000, strength: 2 },
+      ],
+    },
+  };
+  return windProfiles[id];
+}
+
 function createEstellaBody(id: string): BodyDef {
   const n = node(id);
   const physics = ESTELLA_BODY_PHYSICS[id];
@@ -90,6 +120,7 @@ function createEstellaBody(id: string): BodyDef {
     } : null,
     orbit: bodyOrbit(id),
     orbitalDefaults: flight.orbitalDefaults,
+    approachEnvironment: approachEnvironment(id),
     transferGameplay: transferGameplay(id),
   };
 }

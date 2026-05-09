@@ -178,6 +178,7 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
   const poi = surfacePoiById(poiId);
   const b = bodyById(poi.bodyId);
   const departure = poi.departureProfile;
+  const env = b.approachEnvironment ?? { windLayers: [], turbulence: [] };
   return {
     id,
     name: `${poi.name} ${kind === 'departure' ? 'Departure' : 'Descent'}`,
@@ -213,8 +214,8 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
     gateRadius: kind === 'departure' ? 0 : poi.descentProfile.gateRadius,
     gateMaxSpeed: kind === 'departure' ? 0 : poi.descentProfile.gateMaxSpeed,
     gateMinSpeed: kind === 'departure' ? 0 : poi.descentProfile.gateMinSpeed,
-    windLayers: [],
-    turbulence: [],
+    windLayers: env.windLayers,
+    turbulence: env.turbulence,
     landingLevelId,
     ...(kind === 'departure'
       ? {
