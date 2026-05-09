@@ -10,7 +10,7 @@ import { TerrainData, generateTerrain, getTerrainHeight, isOnPad } from './terra
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect, drawPhaseCompleteOverlay } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
-import { LEVELS, LevelDef, landingLevelById, landingLevelByPoiId } from './levels';
+import { LevelDef, landingLevelById, landingLevelByPoiId } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
@@ -58,6 +58,15 @@ interface PhaseCompletion {
   detailText?: string;
   onContinue: () => void;
   onRetry: () => void;
+}
+
+type TransitionRole = 'success' | 'contingency';
+
+interface PhaseTransition {
+  role: TransitionRole;
+  title?: string;
+  detailText?: string;
+  run: () => void;
 }
 
 const TOTAL_LEVELS = MISSIONS.length;
@@ -390,6 +399,24 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private makeTransition(role: TransitionRole, run: () => void, title?: string, detailText?: string): PhaseTransition {
+    return { role, run, title, detailText };
+  }
+
+  private completeTransition(
+    p: GameplayPhase,
+    transition: PhaseTransition,
+    completionText: string = '',
+    extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {},
+  ): void {
+    const transitionExtra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {
+      tone: transition.role === 'contingency' ? 'transition' : 'success',
+    };
+    if (transition.role === 'contingency') transitionExtra.title = transition.title ?? this.phaseTitle(p);
+    if (transition.detailText !== undefined) transitionExtra.detailText = transition.detailText;
+    this.completePhase(p, transition.run, completionText, { ...transitionExtra, ...extra });
+  }
+
   // --- Landing phase ---
 
   private handleLanding(input: InputState, frameTime: number): void {
@@ -441,7 +468,9 @@ export class Game {
         if (p.launchGuidance && p.state === 'flying') {
           const alt = p.ship.y - getTerrainHeight(p.terrain, p.ship.x);
           if (alt >= p.launchGuidance.targetAltitude && p.ship.vy >= 0) {
-            this.completePhase(p, () => this.transitionLandingToApproach(p));
+            const transition = this.transitionLandingToApproach(p);
+            if (transition) this.completeTransition(p, transition);
+            else p.state = 'crashed';
             return;
           }
         }
@@ -533,17 +562,20 @@ export class Game {
         if (p.ds.delivered) {
           p.state = 'delivered';
           const isFinal = !p.level.orbitalLevelId;
-          this.completePhase(p, () => {
-            if (p.level.orbitalLevelId) this.transitionDockingToOrbital(p);
-            else {
-              this.currentMissionId = null;
-              this.phase = { kind: 'levelSelect' };
-            }
-          }, isFinal ? this.currentMissionCompletionText() : '');
+          const transition = p.level.orbitalLevelId
+            ? this.transitionDockingToOrbital(p)
+            : this.makeTransition('success', () => {
+                this.currentMissionId = null;
+                this.phase = { kind: 'levelSelect' };
+              });
+          if (transition) this.completeTransition(p, transition, isFinal ? this.currentMissionCompletionText() : '');
+          else p.state = 'crashed';
           return;
         }
         if (p.ds.exitComplete) {
-          this.completePhase(p, () => this.transitionDockingToOrbital(p));
+          const transition = this.transitionDockingToOrbital(p);
+          if (transition) this.completeTransition(p, transition);
+          else p.state = 'crashed';
           return;
         }
       }
@@ -555,10 +587,11 @@ export class Game {
     updateDockingCamera(p.cam, p.ds, p.level, frameTime, this.canvas.width, this.canvas.height);
   }
 
-  private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): void {
-    if (!p.level.orbitalLevelId) return;
+  private transitionDockingToOrbital(p: Extract<Phase, { kind: 'docking' }>): PhaseTransition | null {
+    if (!p.level.orbitalLevelId) return null;
     const orbLevel = orbitalLevelById(p.level.orbitalLevelId);
-    if (orbLevel) this.loadOrbital(orbLevel, undefined, this.worldTime);
+    if (!orbLevel) return null;
+    return this.makeTransition('success', () => this.loadOrbital(orbLevel, undefined, this.worldTime));
   }
 
   // --- Orbital phase ---
@@ -590,25 +623,23 @@ export class Game {
         if (!p.os.alive) p.state = 'crashed';
         if (p.os.docked) {
           if (p.level.dockingLevelId) {
-            this.completePhase(p, () => this.transitionOrbitalToDocking(p));
+            const transition = this.transitionOrbitalToDocking(p);
+            if (transition) this.completeTransition(p, transition);
+            else p.state = 'crashed';
             return;
           }
           p.state = 'docked';
         }
         const orbitalContinue = this.handleOrbitalTransitions(p, prevOrbitalState);
         if (orbitalContinue) {
-          this.completePhase(p, orbitalContinue);
+          this.completeTransition(p, orbitalContinue);
           return;
         }
         if (p.os.enteredAtmo) {
-          if (this.isOrbitalDeorbitObjective(p.level)) {
-            this.completePhase(p, () => this.transitionOrbitalToApproach(p));
-          } else {
-            this.completePhase(p, () => this.transitionOrbitalToApproach(p), '', {
-              tone: 'transition',
-              title: p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach',
-            });
-          }
+          const role: TransitionRole = this.isOrbitalDeorbitObjective(p.level) ? 'success' : 'contingency';
+          const transition = this.transitionOrbitalToApproach(p, role);
+          if (transition) this.completeTransition(p, transition);
+          else p.state = 'crashed';
           return;
         }
       }
@@ -623,11 +654,11 @@ export class Game {
   private handleOrbitalTransitions(
     p: Extract<Phase, { kind: 'orbital' }>,
     prev?: { x: number; y: number; vx: number; vy: number; time: number },
-  ): (() => void) | null {
+  ): PhaseTransition | null {
     const rFromCenter = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
     const escapeBoundary = p.level.escapeSOIRadius ?? p.level.conicRadius;
     if (!p.level.systemBodies && escapeBoundary && !p.level.escapeToOrbitalLevelId && rFromCenter >= escapeBoundary) {
-      return () => this.phase = { kind: 'levelSelect' };
+      return this.makeTransition('contingency', () => this.phase = { kind: 'levelSelect' }, 'Left flight region', 'No configured transition exists beyond this conic.');
     }
 
     if (p.level.escapeSOIRadius && p.level.escapeToOrbitalLevelId) {
@@ -636,8 +667,11 @@ export class Game {
         const nextLevel = orbitalLevelById(p.level.escapeToOrbitalLevelId);
         if (!nextLevel) return null;
         const parentBodyId = bodyById(p.level.bodyId).orbit?.parentBodyId;
+        const nextContainsEscapingBody = !!getTransferBody(nextLevel, p.level.bodyId);
+        const nextIsParentFrame = !!parentBodyId && nextLevel.bodyId === parentBodyId;
+        if (!nextContainsEscapingBody && !nextIsParentFrame) return null;
         const originState = transferBodyState(nextLevel, p.level.bodyId, p.os.time)
-          ?? ((parentBodyId && nextLevel.bodyId === parentBodyId) ? bodyStateRelativeToParent(p.level.bodyId, p.os.time) : null);
+          ?? (nextIsParentFrame ? bodyStateRelativeToParent(p.level.bodyId, p.os.time) : null);
         if (!originState) return null;
         const localR = Math.sqrt(p.os.x * p.os.x + p.os.y * p.os.y);
         const patchR = p.level.escapeSOIRadius ?? localR;
@@ -655,7 +689,7 @@ export class Game {
           vy: originState.vy + Math.sin(escapeAngle) * vInf,
           time: p.os.time,
         };
-        return () => this.loadOrbital(nextLevel, initOverride, p.os.time);
+        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time));
       }
     }
 
@@ -713,7 +747,7 @@ export class Game {
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
       const arrivalLevel = arrivalLevelId ? orbitalLevelById(arrivalLevelId) : null;
-      if (!arrivalLevel) return null;
+      if (!arrivalLevel || arrivalLevel.bodyId !== body.id) return null;
 
       const normalized = normalizeArrivalState(body, captureRX, captureRY, captureRVX, captureRVY);
       const initOverride: OrbitalInitOverride = {
@@ -723,16 +757,16 @@ export class Game {
         vy: normalized.vy,
         time: captureTime,
       };
-      return () => this.loadOrbital(arrivalLevel, initOverride, captureTime);
+      return this.makeTransition('success', () => this.loadOrbital(arrivalLevel, initOverride, captureTime));
     }
 
     return null;
   }
 
-  private transitionLandingToApproach(p: Extract<Phase, { kind: 'landing' }>): void {
+  private transitionLandingToApproach(p: Extract<Phase, { kind: 'landing' }>): PhaseTransition | null {
     const nextId = p.launchGuidance?.nextApproachLevelId;
     const approachLevel = nextId ? approachLevelById(nextId) : undefined;
-    if (!approachLevel) return;
+    if (!approachLevel || !approachLevel.departure || approachLevel.body.id !== p.level.body.id) return null;
 
     const terrainH = getTerrainHeight(p.terrain, p.ship.x);
     const speed = Math.hypot(p.ship.vx, p.ship.vy);
@@ -744,11 +778,12 @@ export class Game {
       vy: p.ship.vy,
       angle: progradeAngle,
     };
-    this.loadApproach(approachLevel, initOverride);
+    return this.makeTransition('success', () => this.loadApproach(approachLevel, initOverride));
   }
 
-  private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): void {
-    const landingLevel = landingLevelById(p.level.landingLevelId) ?? LEVELS[0];
+  private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): PhaseTransition | null {
+    const landingLevel = landingLevelById(p.level.landingLevelId);
+    if (!landingLevel || landingLevel.body.id !== p.level.body.id) return null;
 
     if (p.level.gateRadius > 0) {
       const gateLeft = p.level.gateX - p.level.gateRadius;
@@ -768,8 +803,7 @@ export class Game {
         vy: Math.max(-5, Math.min(20, p.as.vy)),
         facingSign,
       };
-      this.loadLanding(landingLevel, initOverride);
-      return;
+      return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride));
     }
 
     const speed = Math.sqrt(p.as.vx * p.as.vx + p.as.vy * p.as.vy);
@@ -794,20 +828,22 @@ export class Game {
       vy: vy,
       facingSign,
     };
-    this.loadLanding(landingLevel, initOverride);
+    return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride));
   }
 
-  private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>): void {
+  private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>, role: TransitionRole = 'success'): PhaseTransition | null {
     const explicitId = p.level.reentryApproachLevelId;
     const approachLevel = explicitId
       ? approachLevelById(explicitId)
       : APPROACH_LEVELS[p.level.approachLevelIdx];
-    if (!approachLevel || approachLevel.body.id !== p.level.bodyId) {
-      p.state = 'crashed';
-      return;
-    }
+    if (!approachLevel || approachLevel.departure || approachLevel.body.id !== p.level.bodyId) return null;
     const params = orbitalToApproachParams(p.os, p.level);
-    this.loadApproach(approachLevel, params, p.os.time);
+    return this.makeTransition(
+      role,
+      () => this.loadApproach(approachLevel, params, p.os.time),
+      role === 'contingency' ? (p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach') : undefined,
+      role === 'contingency' ? 'This is not the primary objective for the current orbital phase.' : undefined,
+    );
   }
 
   private approachToOrbitalInit(level: ApproachLevel, as: ApproachState, orbitalLevel: OrbitalLevel): OrbitalInitOverride {
@@ -834,19 +870,26 @@ export class Game {
     };
   }
 
-  private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>): void {
+  private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>, role: TransitionRole = 'success'): PhaseTransition | null {
     const orbitalLevelId = p.level.departure?.orbitalLevelId ?? p.level.returnToOrbital?.orbitalLevelId;
-    if (!orbitalLevelId) return;
-    const orbitalLevel = orbitalLevelId ? orbitalLevelById(orbitalLevelId) : undefined;
-    if (!orbitalLevel) return;
-    this.loadOrbital(orbitalLevel, this.approachToOrbitalInit(p.level, p.as, orbitalLevel), p.worldTimeStart + this.time);
+    if (!orbitalLevelId) return null;
+    const orbitalLevel = orbitalLevelById(orbitalLevelId);
+    if (!orbitalLevel || orbitalLevel.bodyId !== p.level.body.id) return null;
+    const init = this.approachToOrbitalInit(p.level, p.as, orbitalLevel);
+    const worldTime = p.worldTimeStart + this.time;
+    return this.makeTransition(
+      role,
+      () => this.loadOrbital(orbitalLevel, init, worldTime),
+      role === 'contingency' ? 'Returning to orbit' : undefined,
+      role === 'contingency' ? 'You climbed out of the descent corridor.' : undefined,
+    );
   }
 
-  private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): void {
+  private transitionOrbitalToDocking(p: Extract<Phase, { kind: 'orbital' }>): PhaseTransition | null {
     const dockingLevelId = p.level.dockingLevelId;
     const dockingLevel = dockingLevelId ? DOCKING_LEVELS.find(l => l.id === dockingLevelId) : null;
     const station = p.level.station;
-    if (!dockingLevel || !station) return;
+    if (!dockingLevel || !station) return null;
 
     const sense = station.orbitSense;
     const stOmega = sense * Math.sqrt(p.level.planetGM / (station.orbitRadius ** 3));
@@ -885,7 +928,7 @@ export class Game {
       vy: relVY,
       angle: Math.atan2(-uy, -ux),
     };
-    this.loadDocking(dockingLevel, initOverride, p.os.time);
+    return this.makeTransition('success', () => this.loadDocking(dockingLevel, initOverride, p.os.time));
   }
 
   // --- Approach phase ---
@@ -926,14 +969,17 @@ export class Game {
 
         if (!p.as.alive) p.state = 'approachFailed';
         if (p.as.gateReached) {
-          this.completePhase(p, () => {
-            if (p.level.departure) this.transitionApproachToOrbital(p);
-            else this.transitionApproachToLanding(p);
-          });
+          const transition = p.level.departure
+            ? this.transitionApproachToOrbital(p, 'success')
+            : this.transitionApproachToLanding(p);
+          if (transition) this.completeTransition(p, transition);
+          else p.state = 'approachFailed';
           return;
         }
         if (p.level.returnToOrbital && p.as.vy > 0 && p.as.y > p.level.returnToOrbital.exitAltitude + 50) {
-          this.transitionApproachToOrbital(p);
+          const transition = this.transitionApproachToOrbital(p, 'contingency');
+          if (transition) this.completeTransition(p, transition);
+          else p.state = 'approachFailed';
           return;
         }
       }
