@@ -593,29 +593,55 @@ function escapeTargetForLevel(
   return { angle, speed };
 }
 
+function hyperbolicExcessFromLocalState(
+  x: number, y: number, vx: number, vy: number, gm: number,
+): { angle: number; vInf: number } | null {
+  const r = Math.sqrt(x * x + y * y);
+  const v2 = vx * vx + vy * vy;
+  const energy = v2 / 2 - gm / Math.max(r, 1);
+  if (energy <= 0) return null;
+  const h = x * vy - y * vx;
+  if (Math.abs(h) < 1e-9) {
+    const speed = Math.sqrt(v2);
+    return speed > 0.01 ? { angle: Math.atan2(vy, vx), vInf: Math.sqrt(2 * energy) } : null;
+  }
+  const ex = (vy * h) / gm - x / r;
+  const ey = (-vx * h) / gm - y / r;
+  const e = Math.sqrt(ex * ex + ey * ey);
+  if (e <= 1) return null;
+  const periapsisAngle = Math.atan2(ey, ex);
+  const trueAnomalyAtInfinity = Math.acos(Math.max(-1, Math.min(1, -1 / e)));
+  const radialSpeed = (x * vx + y * vy) / Math.max(r, 1);
+  const branchSign = (h >= 0 ? 1 : -1) * (radialSpeed >= 0 ? 1 : -1);
+  return {
+    angle: normalizeAngle(periapsisAngle + branchSign * trueAnomalyAtInfinity),
+    vInf: Math.sqrt(2 * energy),
+  };
+}
+
 export function currentEscapeVector(
   s: OrbitalState, level: OrbitalLevel,
 ): { angle: number; speed: number; x: number; y: number; vInf: number } | null {
   if (!level.escapeSOIRadius) return null;
   const patchR = level.escapeSOIRadius;
-  const effSpeed = (vx: number, vy: number, radius: number) => {
-    const v2 = vx * vx + vy * vy;
-    return Math.sqrt(Math.max(0, v2 - 2 * level.planetGM / Math.max(radius, 1)));
+  const vectorFromState = (x: number, y: number, vx: number, vy: number, radius: number) => {
+    const speed = Math.sqrt(vx * vx + vy * vy);
+    const asymptote = hyperbolicExcessFromLocalState(x, y, vx, vy, level.planetGM);
+    if (!asymptote || speed <= 0.01) return null;
+    const scale = patchR / Math.max(radius, 1);
+    return {
+      angle: asymptote.angle,
+      speed,
+      x: x * scale,
+      y: y * scale,
+      vInf: asymptote.vInf,
+    };
   };
 
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
   if (r >= patchR) {
-    const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-    if (speed > 0.01) {
-      const scale = patchR / Math.max(r, 1);
-      return {
-        angle: Math.atan2(s.vy, s.vx),
-        speed,
-        x: s.x * scale,
-        y: s.y * scale,
-        vInf: effSpeed(s.vx, s.vy, r),
-      };
-    }
+    const current = vectorFromState(s.x, s.y, s.vx, s.vy, r);
+    if (current) return current;
   }
 
   const pred = getCachedPrediction(s, level);
@@ -630,12 +656,7 @@ export function currentEscapeVector(
       const y = prev.y + (pt.y - prev.y) * frac;
       const vx = prev.vx + (pt.vx - prev.vx) * frac;
       const vy = prev.vy + (pt.vy - prev.vy) * frac;
-      return {
-        angle: Math.atan2(vy, vx),
-        speed: Math.sqrt(vx * vx + vy * vy),
-        x, y,
-        vInf: effSpeed(vx, vy, patchR),
-      };
+      return vectorFromState(x, y, vx, vy, patchR);
     }
   }
   return null;
