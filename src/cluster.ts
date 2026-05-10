@@ -278,7 +278,7 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     timeWarpLevel: 0,
     timeWarp: level.timeWarpLevels[0] ?? 1,
     rocks: [],
-    rockSeed: 24681357,
+    rockSeed: 1 + Math.floor(Math.random() * 2147483646),
   };
   for (let i = 0; i < level.rockCount; i++) state.rocks.push(createClusterRock(state, level, false));
   return state;
