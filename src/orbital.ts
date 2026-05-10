@@ -2617,7 +2617,8 @@ function drawPlanet(
   level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  const r = level.planetRadius * cam.zoom;
+  const isStar = bodyById(level.bodyId).id === 'estella';
+  const r = isStar ? Math.max(level.planetRadius * cam.zoom, 8) : level.planetRadius * cam.zoom;
 
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -2667,7 +2668,7 @@ function drawCentralBodyLabel(
   ctx.textBaseline = 'middle';
   const isStar = bodyById(level.bodyId).id === 'estella';
   ctx.fillStyle = isStar ? 'rgba(255, 210, 80, 0.95)' : 'rgba(120, 180, 255, 0.9)';
-  ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, cy);
+  ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, isStar ? cy - Math.max(14, level.planetRadius * cam.zoom + 10) : cy);
   ctx.textBaseline = 'alphabetic';
 }
 
