@@ -301,6 +301,13 @@ function nextRockRandom(s: ClusterState): number {
   return s.rockSeed / 2147483647;
 }
 
+function gaussianRockRandom(s: ClusterState, mean: number, stdDev: number, min: number): number {
+  const u1 = Math.max(1e-6, nextRockRandom(s));
+  const u2 = nextRockRandom(s);
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(Math.PI * 2 * u2);
+  return Math.max(min, mean + z * stdDev);
+}
+
 function pointOnClusterEdge(s: ClusterState, level: ClusterLevel): { x: number; y: number; nx: number; ny: number } {
   const a = nextRockRandom(s) * Math.PI * 2;
   const x = Math.cos(a) * level.rx;
@@ -310,13 +317,15 @@ function pointOnClusterEdge(s: ClusterState, level: ClusterLevel): { x: number; 
 }
 
 function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean): ClusterRock {
-  const radius = 3 + nextRockRandom(s) * 9;
+  const shipR = CLUSTER_SHIP_HIT_RADIUS;
+  const radius = shipR * (0.25 + nextRockRandom(s) * 0.75);
   const mode: ClusterRock['mode'] = nextRockRandom(s) < 0.65 ? 'linear' : 'elliptic';
   const edge = pointOnClusterEdge(s, level);
   const x = atEdge ? edge.x : (nextRockRandom(s) * 2 - 1) * level.rx * 0.9;
   const y = atEdge ? edge.y : (nextRockRandom(s) * 2 - 1) * level.ry * 0.9;
   const inward = Math.atan2(-edge.y, -edge.x) + (nextRockRandom(s) - 0.5) * 0.9;
-  const speed = 6 + nextRockRandom(s) * 24;
+  const speed = gaussianRockRandom(s, 30, 10, 8);
+  const orbitalSpeed = gaussianRockRandom(s, 28, 9, 8);
   const rx = 8_000 + nextRockRandom(s) * 28_000;
   const ry = 5_000 + nextRockRandom(s) * 20_000;
   return {
@@ -333,7 +342,7 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
     rx,
     ry,
     phase: nextRockRandom(s) * Math.PI * 2,
-    omega: (nextRockRandom(s) < 0.5 ? -1 : 1) * (0.018 + nextRockRandom(s) * 0.05),
+    omega: (nextRockRandom(s) < 0.5 ? -1 : 1) * (orbitalSpeed / Math.max(rx, ry)),
   };
 }
 
@@ -465,8 +474,10 @@ function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): v
   }
 }
 
+const CLUSTER_SHIP_HIT_RADIUS = 24;
+
 function clusterRockCollision(s: ClusterState): boolean {
-  const shipR = 12;
+  const shipR = CLUSTER_SHIP_HIT_RADIUS;
   for (const rock of s.rocks) {
     const minDist = shipR + rock.radius;
     if ((s.x - rock.x) ** 2 + (s.y - rock.y) ** 2 <= minDist * minDist) return true;
