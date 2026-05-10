@@ -2602,12 +2602,52 @@ export function renderOrbital(
   if (!level.surfaceMarkers && !level.station && level.showLandingSite !== false) drawLandingSite(ctx, cam, level, W, H);
   if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
+    drawCurrentConicOrbit(ctx, cam, s, level, W, H);
     drawOrbitPrediction(ctx, cam, s, level, W, H);
     drawTrail(ctx, cam, s, W, H);
     drawOrbitalMarkers(ctx, cam, s, level, W, H);
   }
   if (!rendezvousZoomed && _maneuverCache) drawManeuverMarker(ctx, cam, _maneuverCache, W, H);
   drawShip(ctx, cam, s, level, W, H, time);
+}
+
+function drawCurrentConicOrbit(
+  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+): void {
+  const rNow = Math.hypot(s.x, s.y);
+  const alt = rNow - level.planetRadius;
+  if (s.inAtmo || alt < level.atmoHeight) return;
+
+  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+  if (!(elem.a > 0) || !Number.isFinite(elem.a) || !(elem.e >= 0) || elem.e >= 1) return;
+  if (!Number.isFinite(elem.periapsis) || elem.periapsis <= level.planetRadius * 0.98) return;
+
+  ctx.save();
+  ctx.beginPath();
+  const steps = 360;
+  let started = false;
+  for (let i = 0; i <= steps; i++) {
+    const nu = -Math.PI + (Math.PI * 2 * i) / steps;
+    const p = orbitPosition(elem, nu);
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
+    const [sx, sy] = ws(p.x, p.y, cam, W, H);
+    if (!Number.isFinite(sx) || !Number.isFinite(sy)) continue;
+    if (!started) {
+      ctx.moveTo(sx, sy);
+      started = true;
+    } else {
+      ctx.lineTo(sx, sy);
+    }
+  }
+  if (started) {
+    ctx.strokeStyle = 'rgba(95, 255, 190, 0.16)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 9]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
 }
 
 // --- Stars ---
