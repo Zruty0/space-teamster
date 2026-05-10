@@ -703,7 +703,7 @@ export class Game {
       y: memberY + uy * departRadius,
       vx: p.ds.vx,
       vy: p.ds.vy,
-      angle: p.ds.angle,
+      angle: Math.PI / 2 - p.ds.angle,
     };
   }
 
@@ -728,7 +728,7 @@ export class Game {
       y: dockingLevel.stationY + uy * arrivalRingR,
       vx: relSpeed > 0 ? safeVx : 0,
       vy: relSpeed > 0 ? safeVy : 0,
-      angle: p.cs.angle,
+      angle: Math.PI / 2 - p.cs.angle,
     };
   }
 
