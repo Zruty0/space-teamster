@@ -274,6 +274,10 @@ export function getTransferBody(level: OrbitalLevel, bodyId: string): OrbitalTra
   return level.systemBodies?.find(b => b.id === bodyId) ?? null;
 }
 
+function activeTransferTarget(level: OrbitalLevel): OrbitalTransferBody | null {
+  return level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
+}
+
 export function transferBodyState(
   level: OrbitalLevel, bodyId: string, time: number,
 ): { x: number; y: number; vx: number; vy: number } | null {
@@ -1290,7 +1294,7 @@ export function updateOrbital(
   // Substeps. System-transfer phases cover long time spans; using local-orbit subsecond
   // limits here creates huge frame stalls at transfer time scales. The transfer patch
   // crossing code interpolates between substeps, so coarse transfer steps are acceptable.
-  const stepLimit = (!s.inAtmo && level.systemBodies && effectiveBaseScale > 200)
+  const stepLimit = (!s.inAtmo && activeTransferTarget(level) && effectiveBaseScale > 200)
     ? SYSTEM_TRANSFER_SUBSTEP
     : PHYSICS_SUBSTEP;
   const substeps = Math.max(1, Math.ceil(effectiveDt / stepLimit));
@@ -2119,11 +2123,13 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   const rNow = Math.sqrt(s.x * s.x + s.y * s.y);
   const alt = rNow - level.planetRadius;
   const pacing = currentPacingProfile(level, alt, s.pacingModeId);
+  const transferTarget = activeTransferTarget(level);
   let maxTime = Math.min(period * 0.95, 20000); // atmosphere / low-pass fallback
-  if (level.systemBodies) {
-    const targetOrbit = level.systemBodies.reduce((m, b) => Math.max(m, b.orbitRadius), 0);
-    const transferTime = targetOrbit > 0 ? Math.PI * Math.sqrt(targetOrbit ** 3 / level.planetGM) : 0;
-    maxTime = Math.max(period * 1.02, Math.min(Math.max(transferTime * 4.0, period * 1.02), 4_000_000));
+  if (transferTarget && !pacing.lowPass) {
+    const transferTime = Math.PI * Math.sqrt(transferTarget.orbitRadius ** 3 / level.planetGM);
+    maxTime = hasClosedOrbit
+      ? Math.min(period * 1.02, 4_000_000)
+      : Math.min(Math.max(transferTime * 4.0, 120_000), 4_000_000);
   } else if (!pacing.lowPass) {
     const fallbackHalfOrbitTime = Math.PI * Math.sqrt(Math.max(rNow, level.planetRadius + level.transitionAltitude) ** 3 / level.planetGM);
     const vacuumHorizon = hasClosedOrbit
@@ -2131,8 +2137,8 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
       : Math.max(fallbackHalfOrbitTime * 1.5, 120000);
     maxTime = Math.min(vacuumHorizon, 800000);
   }
-  const stepSize = level.systemBodies
-    ? Math.max(20, maxTime / 1200) // keep transfer prediction to ~1200 points, not tens of thousands
+  const stepSize = transferTarget
+    ? Math.max(20, maxTime / 1200) // keep active transfer prediction to ~1200 points, not tens of thousands
     : !pacing.lowPass
       ? Math.min(20, Math.max(1, maxTime / 2200))
       : Math.max(1, maxTime / 2200);
@@ -2160,6 +2166,7 @@ function predictOrbit(
     heatRate: 0,
   }];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
+  const transferTarget = activeTransferTarget(level);
   let prevTheta = Math.atan2(y, x);
   let angleAccum = 0;
   // Substeps per prediction step for accuracy when atmosphere is involved
@@ -2225,7 +2232,7 @@ function predictOrbit(
     while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
     angleAccum += Math.abs(dTheta);
     prevTheta = theta;
-    if (!level.systemBodies && level.conicRadius && r >= level.conicRadius) return points;
+    if (!transferTarget && level.conicRadius && r >= level.conicRadius) return points;
     if (angleAccum >= Math.PI * 2) return points;
   }
   return points;
