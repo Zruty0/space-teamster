@@ -8,7 +8,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath } from './content/estella/navigation';
 import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
-import { BODIES, STATION_POIS, SURFACE_POIS, bodyById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
+import { BODIES, STATION_POIS, SURFACE_POIS, bodyById, bodyStateRelativeToParent, stationPoiById, surfacePoiById, type BodyDef } from './world';
 
 export interface EstellaPlayableMission {
   start: { kind: 'landing'; level: LevelDef; nextApproachLevelId: number } | { kind: 'docking'; level: DockingLevel } | { kind: 'cluster'; level: ClusterLevel };
@@ -23,6 +23,10 @@ interface GeneratedDepartureTarget {
 const ESTELLA_SYSTEM_BODY_ID = 'estella';
 const NEAR_BELT_CLUSTER_BODY_ID = 'belt-cluster-near';
 const TRANSFER_PATCH_RADIUS = 1_500_000;
+const TRANSFER_TARGET_WALL_ORBIT_SECONDS = 5 * 60;
+const TRANSFER_MIN_BASE_TIME_SCALE = 100;
+const TRANSFER_MAX_BASE_TIME_SCALE = 3_000;
+const TRANSFER_BASE_TIME_SCALE_STEP = 50;
 const BASE_ID = 80_000;
 let seq = 0;
 
@@ -98,6 +102,20 @@ function hohmannDepartureVInf(sourceBodyId: string, destinationBodyId: string): 
   const vCirc = Math.sqrt(parent.gm / source.orbit.radius);
   const vTransfer = Math.sqrt(parent.gm * (2 / source.orbit.radius - 1 / a));
   return vTransfer - vCirc;
+}
+
+function clampTransferBaseTimeScale(scale: number): number {
+  const rounded = Math.round(scale / TRANSFER_BASE_TIME_SCALE_STEP) * TRANSFER_BASE_TIME_SCALE_STEP;
+  return Math.max(TRANSFER_MIN_BASE_TIME_SCALE, Math.min(TRANSFER_MAX_BASE_TIME_SCALE, rounded));
+}
+
+function transferObjectiveBaseTimeScale(parent: BodyDef, destination: BodyDef, source?: BodyDef): number {
+  if (!destination.orbit || destination.orbit.parentBodyId !== parent.id) return parent.orbitalDefaults.baseTimeScale;
+  const sourceOrbitRadius = source?.orbit?.parentBodyId === parent.id ? source.orbit.radius : 0;
+  const relevantOrbitRadius = Math.max(destination.orbit.radius, sourceOrbitRadius);
+  const period = Math.PI * 2 * Math.sqrt((relevantOrbitRadius ** 3) / parent.gm);
+  if (!Number.isFinite(period) || period <= 0) return parent.orbitalDefaults.baseTimeScale;
+  return clampTransferBaseTimeScale(period / TRANSFER_TARGET_WALL_ORBIT_SECONDS);
 }
 
 function bodyParentId(bodyId: string): string | undefined {
@@ -417,7 +435,7 @@ function createSystemTransferLevel(opts: {
     atmoColor: [0, 0, 0],
     planetFillColor: parent.planetFillColor,
     planetStrokeColor: parent.planetStrokeColor,
-    baseTimeScale: parent.orbitalDefaults.baseTimeScale,
+    baseTimeScale: transferObjectiveBaseTimeScale(parent, destination, opts.sourceBodyId ? source : undefined),
     startX: seed.x,
     startY: seed.y,
     startVX: seed.vx,

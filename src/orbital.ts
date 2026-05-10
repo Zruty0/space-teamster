@@ -892,8 +892,8 @@ function currentPacingProfile(level: OrbitalLevel, alt: number, lockedOrbitModeI
     baseTimeScale: lowPass ? ATMO_TIME_SCALE : (orbitMode ? resolvedModeBaseTimeScale(level, orbitMode.id) : level.baseTimeScale),
     thrustAccel: orbitMode?.thrustAccel ?? level.thrustAccel,
     thrustAccelMax: orbitMode?.thrustAccelMax ?? level.thrustAccelMax,
-    thrustWallDvPerSec: !lowPass && orbitMode?.id === level.orbitModeId ? level.thrustWallDvPerSec : undefined,
-    thrustWallDvPerSecMax: !lowPass && orbitMode?.id === level.orbitModeId ? level.thrustWallDvPerSecMax : undefined,
+    thrustWallDvPerSec: !lowPass && (!orbitMode || orbitMode.id === level.orbitModeId) ? level.thrustWallDvPerSec : undefined,
+    thrustWallDvPerSecMax: !lowPass && (!orbitMode || orbitMode.id === level.orbitModeId) ? level.thrustWallDvPerSecMax : undefined,
   };
 }
 
