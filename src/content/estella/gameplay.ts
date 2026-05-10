@@ -268,7 +268,7 @@ const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
       fuelDeltaV: 1_200,
       transitionAltitude: 0,
     },
-    transferGameplay: { patchRadius: 1_000_000, displayPatchRadius: 1_000_000 },
+    transferGameplay: { patchRadius: 10_000_000, displayPatchRadius: 10_000_000 },
   },
 ];
 

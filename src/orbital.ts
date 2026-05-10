@@ -1781,6 +1781,29 @@ function pointAtAltitudeCrossing(prev: PredPoint, pt: PredPoint, altitude: numbe
   };
 }
 
+function isClusterTransferBody(body: OrbitalTransferBody | null | undefined): boolean {
+  return !!body && (body.arrivalClusterLevelId !== undefined || body.id.startsWith('belt-cluster-'));
+}
+
+function clusterTargetRendezvousState(level: OrbitalLevel, s: OrbitalState): { body: OrbitalTransferBody; x: number; y: number; vx: number; vy: number; dist: number; relSpeed: number } | null {
+  const body = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
+  if (!body || !isClusterTransferBody(body)) return null;
+  const pos = transferBodyState(level, body.id, s.time);
+  if (!pos) return null;
+  const dx = s.x - pos.x;
+  const dy = s.y - pos.y;
+  const rvx = s.vx - pos.vx;
+  const rvy = s.vy - pos.vy;
+  return { body, x: pos.x, y: pos.y, vx: pos.vx, vy: pos.vy, dist: Math.hypot(dx, dy), relSpeed: Math.hypot(rvx, rvy) };
+}
+
+function clusterTargetZoomed(level: OrbitalLevel, s: OrbitalState): boolean {
+  const rz = clusterTargetRendezvousState(level, s);
+  if (!rz || s.inAtmo) return false;
+  const captureMax = rz.body.captureMaxSpeed ?? 250;
+  return rz.dist < rz.body.patchRadius * 10 && rz.relSpeed < captureMax * 10;
+}
+
 function analyzePrediction(points: PredPoint[], level: OrbitalLevel): PredictionResult {
   let atmoEntry: PredEvent | null = null;
   let atmoExit: PredEvent | null = null;
@@ -1875,6 +1898,8 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
   if (targetBody) {
     let bestOutside: TargetBodyApproach | null = null;
     let bestOutsideDist = Infinity;
+    let bestWithinRelSpeed = Infinity;
+    let hasWithinCapture = false;
     for (let i = 0; i < points.length; i++) {
       const pt = points[i];
       const bodyPos = transferBodyState(level, targetBody.id, pt.t);
@@ -1882,29 +1907,39 @@ function analyzePrediction(points: PredPoint[], level: OrbitalLevel): Prediction
       const dx = pt.x - bodyPos.x;
       const dy = pt.y - bodyPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < bestOutsideDist) {
-        const relVx = pt.vx - bodyPos.vx;
-        const relVy = pt.vy - bodyPos.vy;
+      const relVx = pt.vx - bodyPos.vx;
+      const relVy = pt.vy - bodyPos.vy;
+      const relSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
+      const withinCapture = isClusterTransferBody(targetBody) && dist <= targetBody.patchRadius;
+      const candidate = {
+        bodyId: targetBody.id,
+        dist,
+        relSpeed,
+        shipX: pt.x,
+        shipY: pt.y,
+        bodyX: bodyPos.x,
+        bodyY: bodyPos.y,
+        relX: dx,
+        relY: dy,
+        relVX: relVx,
+        relVY: relVy,
+        idx: i,
+        withinArrival: withinCapture,
+      };
+      if (withinCapture) {
+        if (!hasWithinCapture || relSpeed < bestWithinRelSpeed) {
+          bestWithinRelSpeed = relSpeed;
+          hasWithinCapture = true;
+          bestOutside = candidate;
+        }
+      } else if (!hasWithinCapture && dist < bestOutsideDist) {
         bestOutsideDist = dist;
-        bestOutside = {
-          bodyId: targetBody.id,
-          dist,
-          relSpeed: Math.sqrt(relVx * relVx + relVy * relVy),
-          shipX: pt.x,
-          shipY: pt.y,
-          bodyX: bodyPos.x,
-          bodyY: bodyPos.y,
-          relX: dx,
-          relY: dy,
-          relVX: relVx,
-          relVY: relVy,
-          idx: i,
-          withinArrival: false,
-        };
+        bestOutside = candidate;
       }
     }
 
     targetBodyApproach = bestOutside;
+    if (isClusterTransferBody(targetBody)) return { points, atmoEntry, atmoExit, approachStart, impact, closestApproach, targetBodyApproach };
     for (let i = 1; i < points.length; i++) {
       const prev = points[i - 1];
       const pt = points[i];
@@ -2534,7 +2569,7 @@ export function renderOrbital(
   else drawCentralBodyLabel(ctx, cam, level, W, H);
   drawOrbitingPoiMarkers(ctx, cam, s, level, W, H);
   drawSurfacePoiMarkers(ctx, cam, level, W, H);
-  let rendezvousZoomed = false;
+  let rendezvousZoomed = clusterTargetZoomed(level, s);
   if (level.station) {
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
@@ -2701,13 +2736,20 @@ function drawSystemBodies(
 
     if (isTargetBody) {
       const patchR = (body.displayPatchRadius ?? body.patchRadius) * cam.zoom;
+      const clusterTarget = isClusterTransferBody(body);
       ctx.beginPath();
       ctx.arc(bx, by, patchR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.45)`;
+      ctx.strokeStyle = clusterTarget ? '#00ffcc' : `rgba(${cr}, ${cg}, ${cb}, 0.45)`;
       ctx.lineWidth = 1.5;
       ctx.setLineDash([5, 6]);
       ctx.stroke();
       ctx.setLineDash([]);
+      if (clusterTarget && clusterTargetZoomed(level, s)) {
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#00ffcc';
+        ctx.textAlign = 'left';
+        ctx.fillText(`<${Math.round(body.patchRadius / 1000)}km  <${(body.captureMaxSpeed ?? 250).toFixed(0)}m/s`, bx + patchR + 4, by + 3);
+      }
     }
 
     const visible = bx >= 24 && bx <= W - 24 && by >= 24 && by <= H - 24;
@@ -2775,11 +2817,14 @@ function drawSystemBodies(
     }
 
     if (ca.withinArrival && targetBody) {
-      const flybyAlt = ca.flybyAltitude ?? (ca.dist - targetBody.radius);
-      const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
       const accent = ca.impactsBody ? '#ff6666' : '#00ffcc';
-      const signedAltKm = `${Math.round(flybyAlt / 1000)}km`;
-      const labelText = `FBY ${signedAltKm} ${flybySense}`;
+      const labelText = isClusterTransferBody(targetBody)
+        ? `<${Math.round(targetBody.patchRadius / 1000)}km  ${ca.relSpeed.toFixed(0)}m/s`
+        : (() => {
+            const flybyAlt = ca.flybyAltitude ?? (ca.dist - targetBody.radius);
+            const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
+            return `FBY ${Math.round(flybyAlt / 1000)}km ${flybySense}`;
+          })();
 
       ctx.beginPath();
       ctx.arc(ssx, ssy, 6, 0, Math.PI * 2);
@@ -3603,69 +3648,69 @@ function drawShip(
     ctx.stroke();
   }
 
-  // Relative velocity vector to station (when in rendezvous proximity)
+  // Relative velocity vector to rendezvous/intercept target.
+  let relVector: { rvx: number; rvy: number; relSpd: number; maxSpeed: number } | null = null;
   if (level.station) {
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const rvx = s.vx - sp.vx, rvy = s.vy - sp.vy;
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
-    if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
-      const maxSpeed = level.station.captureMaxSpeed;
-      const allCyan = relSpd <= maxSpeed;
-      // Proportional: 40 m/s = 60px
-      const scale = 60 / 40; // 1.5 px per m/s
-      const ndx = rvx / Math.max(relSpd, 0.1);
-      const ndy = rvy / Math.max(relSpd, 0.1);
-      // Screen direction (flip Y)
-      const sdx = ndx, sdy = -ndy;
-      const totalLen = relSpd * scale;
+    if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) relVector = { rvx, rvy, relSpd, maxSpeed: level.station.captureMaxSpeed };
+  } else {
+    const rz = clusterTargetRendezvousState(level, s);
+    if (rz && clusterTargetZoomed(level, s)) relVector = { rvx: s.vx - rz.vx, rvy: s.vy - rz.vy, relSpd: rz.relSpeed, maxSpeed: rz.body.captureMaxSpeed ?? 250 };
+  }
 
-      if (allCyan) {
-        // All cyan
-        const rvsx = sx + sdx * totalLen;
-        const rvsy = sy + sdy * totalLen;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(rvsx, rvsy);
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      } else {
-        // First 20m/s cyan, rest orange
-        const cyanLen = maxSpeed * scale;
-        const cyanX = sx + sdx * cyanLen;
-        const cyanY = sy + sdy * cyanLen;
-        const rvsx = sx + sdx * totalLen;
-        const rvsy = sy + sdy * totalLen;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(cyanX, cyanY);
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(cyanX, cyanY);
-        ctx.lineTo(rvsx, rvsy);
-        ctx.strokeStyle = '#ff6644';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+  if (relVector) {
+    const { rvx, rvy, relSpd, maxSpeed } = relVector;
+    const allCyan = relSpd <= maxSpeed;
+    const scale = 60 / Math.max(40, maxSpeed);
+    const ndx = rvx / Math.max(relSpd, 0.1);
+    const ndy = rvy / Math.max(relSpd, 0.1);
+    const sdx = ndx, sdy = -ndy;
+    const totalLen = relSpd * scale;
 
-      // Arrowhead (color matches tip)
+    if (allCyan) {
       const rvsx = sx + sdx * totalLen;
       const rvsy = sy + sdy * totalLen;
-      const aLen = totalLen;
-      if (aLen > 5) {
-        const px = -sdy, py = sdx;
-        ctx.strokeStyle = allCyan ? '#00ffcc' : '#ff6644';
-        ctx.beginPath();
-        ctx.moveTo(rvsx, rvsy);
-        ctx.lineTo(rvsx - sdx * 6 + px * 3, rvsy - sdy * 6 + py * 3);
-        ctx.moveTo(rvsx, rvsy);
-        ctx.lineTo(rvsx - sdx * 6 - px * 3, rvsy - sdy * 6 - py * 3);
-        ctx.stroke();
-      }
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(rvsx, rvsy);
+      ctx.strokeStyle = '#00ffcc';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else {
+      const cyanLen = maxSpeed * scale;
+      const cyanX = sx + sdx * cyanLen;
+      const cyanY = sy + sdy * cyanLen;
+      const rvsx = sx + sdx * totalLen;
+      const rvsy = sy + sdy * totalLen;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(cyanX, cyanY);
+      ctx.strokeStyle = '#00ffcc';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cyanX, cyanY);
+      ctx.lineTo(rvsx, rvsy);
+      ctx.strokeStyle = '#ff6644';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    const rvsx = sx + sdx * totalLen;
+    const rvsy = sy + sdy * totalLen;
+    if (totalLen > 5) {
+      const px = -sdy, py = sdx;
+      ctx.strokeStyle = allCyan ? '#00ffcc' : '#ff6644';
+      ctx.beginPath();
+      ctx.moveTo(rvsx, rvsy);
+      ctx.lineTo(rvsx - sdx * 6 + px * 3, rvsy - sdy * 6 + py * 3);
+      ctx.moveTo(rvsx, rvsy);
+      ctx.lineTo(rvsx - sdx * 6 - px * 3, rvsy - sdy * 6 - py * 3);
+      ctx.stroke();
     }
   }
 }
@@ -3713,7 +3758,13 @@ function orbitalTargetPanel(
       const rvy = s.vy - pos.vy;
       const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
       const rows: { label: string; value: string; color?: string }[] = [];
-      if (pred.targetBodyApproach) {
+      if (isClusterTransferBody(body)) {
+        const ca = pred.targetBodyApproach;
+        const approachDist = ca?.dist ?? dist;
+        const approachRel = ca?.relSpeed ?? relSpd;
+        rows.push({ label: 'DIST', value: `${(approachDist / 1000).toFixed(0)} km < ${(body.patchRadius / 1000).toFixed(0)} km`, color: approachDist <= body.patchRadius ? COL_SUCCESS : COL_HUD });
+        rows.push({ label: 'REL', value: `${approachRel.toFixed(0)} m/s < ${(body.captureMaxSpeed ?? 250).toFixed(0)} m/s`, color: approachRel <= (body.captureMaxSpeed ?? 250) ? COL_SUCCESS : COL_WARNING });
+      } else if (pred.targetBodyApproach) {
         const ca = pred.targetBodyApproach;
         const flybyMetric = ca.withinArrival ? (ca.flybyAltitude ?? (ca.dist - body.radius)) : ca.dist;
         const flybySense = senseLabel(orbitSense(ca.relX, ca.relY, ca.relVX, ca.relVY));
@@ -3722,9 +3773,7 @@ function orbitalTargetPanel(
           ? `${Math.round(body.arrivalAltitudeMin / 1000)}-${Math.round(body.arrivalAltitudeMax / 1000)} km`
           : `< ${Math.round(body.patchRadius / 1000)} km`;
         rows.push({ label: 'FBY', value: `${flybyText}  ${targetFlyby}`, color: ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_SUCCESS : COL_WARNING) });
-        if (body.captureMaxSpeed !== undefined) {
-          rows.push({ label: 'REL', value: `${ca.relSpeed.toFixed(0)} m/s < ${body.captureMaxSpeed.toFixed(0)} m/s`, color: ca.relSpeed <= body.captureMaxSpeed ? COL_SUCCESS : COL_WARNING });
-        } else if (body.arrivalSpeedMarginMin !== undefined && body.arrivalSpeedMarginMax !== undefined) {
+        if (body.arrivalSpeedMarginMin !== undefined && body.arrivalSpeedMarginMax !== undefined) {
           rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s  ${body.arrivalSpeedMarginMin.toFixed(0)}-${body.arrivalSpeedMarginMax.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
         }
       } else {
