@@ -112,7 +112,13 @@ function clampTransferBaseTimeScale(scale: number): number {
 function transferObjectiveBaseTimeScale(parent: BodyDef, destination: BodyDef, source?: BodyDef): number {
   if (!destination.orbit || destination.orbit.parentBodyId !== parent.id) return parent.orbitalDefaults.baseTimeScale;
   const sourceOrbitRadius = source?.orbit?.parentBodyId === parent.id ? source.orbit.radius : 0;
-  const relevantOrbitRadius = Math.max(destination.orbit.radius, sourceOrbitRadius);
+
+  // Departures from a surface/station/low orbit around the central frame need local-orbit
+  // pacing. Only scale up sibling/body-to-body transfer pacing once both endpoints are
+  // authored orbiting transfer bodies in this frame.
+  if (sourceOrbitRadius <= 0) return parent.orbitalDefaults.baseTimeScale;
+
+  const relevantOrbitRadius = Math.min(destination.orbit.radius, sourceOrbitRadius);
   const period = Math.PI * 2 * Math.sqrt((relevantOrbitRadius ** 3) / parent.gm);
   if (!Number.isFinite(period) || period <= 0) return parent.orbitalDefaults.baseTimeScale;
   return clampTransferBaseTimeScale(period / TRANSFER_TARGET_WALL_ORBIT_SECONDS);
