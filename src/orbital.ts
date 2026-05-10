@@ -26,6 +26,8 @@ export interface OrbitalTransferBody {
   arrivalSpeedMarginMin?: number;
   arrivalSpeedMarginMax?: number;
   arrivalOrbitalLevelId?: number;
+  arrivalClusterLevelId?: number;
+  captureMaxSpeed?: number;
 }
 
 export interface OrbitalLevel {
@@ -560,7 +562,7 @@ function parentFrameEscapeAngle(level: OrbitalLevel, nextLevel: OrbitalLevel, ti
   return normalizeAngle(progradeAngle + (escapePrograde ? 0 : Math.PI));
 }
 
-function escapeTargetForLevel(
+export function escapeTargetForLevel(
   level: OrbitalLevel, time: number,
 ): { angle: number; speed: number } | null {
   const parentTarget = parentTransferTargetForLevel(level, time);
@@ -2618,6 +2620,32 @@ function drawCentralBodyLabel(
   ctx.textBaseline = 'alphabetic';
 }
 
+function drawAsteroidBelt(ctx: CanvasRenderingContext2D, cam: OrbitalCamera, level: OrbitalLevel, W: number, H: number): void {
+  if (level.bodyId !== 'estella') return;
+  const [cx, cy] = ws(0, 0, cam, W, H);
+  const inner = 1_380_000_000 * cam.zoom;
+  const outer = 1_470_000_000 * cam.zoom;
+  if (outer < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, outer, 0, Math.PI * 2);
+  ctx.arc(cx, cy, inner, 0, Math.PI * 2, true);
+  ctx.fillStyle = 'rgba(150, 130, 95, 0.055)';
+  ctx.fill('evenodd');
+  ctx.strokeStyle = 'rgba(170, 150, 110, 0.16)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 10]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, (inner + outer) * 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(170, 150, 110, 0.55)';
+  ctx.fillText('THE BELT', cx, cy - outer - 8);
+  ctx.restore();
+}
+
 function drawSystemBodies(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
@@ -2625,12 +2653,13 @@ function drawSystemBodies(
   const [cx, cy] = ws(0, 0, cam, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawCentralBodyLabel(ctx, cam, level, W, H);
+  drawAsteroidBelt(ctx, cam, level, W, H);
 
   let offscreenTargetLabel: { x: number; y: number; color: string; name: string } | null = null;
 
   for (const body of level.systemBodies ?? []) {
     const isTargetBody = body.id === level.targetBodyId;
-    if ((body.id === 'estella-viii' || body.id === 'estella-ix') && !isTargetBody) continue;
+    if ((body.id === 'estella-viii' || body.id === 'estella-ix' || body.id.startsWith('belt-cluster-')) && !isTargetBody) continue;
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
     const [bx, by] = ws(pos.x, pos.y, cam, W, H);
@@ -3677,7 +3706,9 @@ function orbitalTargetPanel(
           ? `${Math.round(body.arrivalAltitudeMin / 1000)}-${Math.round(body.arrivalAltitudeMax / 1000)} km`
           : `< ${Math.round(body.patchRadius / 1000)} km`;
         rows.push({ label: 'FBY', value: `${flybyText}  ${targetFlyby}`, color: ca.impactsBody ? COL_DANGER : (ca.withinArrival ? COL_SUCCESS : COL_WARNING) });
-        if (body.arrivalSpeedMarginMin !== undefined && body.arrivalSpeedMarginMax !== undefined) {
+        if (body.captureMaxSpeed !== undefined) {
+          rows.push({ label: 'REL', value: `${ca.relSpeed.toFixed(0)} m/s < ${body.captureMaxSpeed.toFixed(0)} m/s`, color: ca.relSpeed <= body.captureMaxSpeed ? COL_SUCCESS : COL_WARNING });
+        } else if (body.arrivalSpeedMarginMin !== undefined && body.arrivalSpeedMarginMax !== undefined) {
           rows.push({ label: 'ARR', value: `${ca.relSpeed.toFixed(0)} m/s  ${body.arrivalSpeedMarginMin.toFixed(0)}-${body.arrivalSpeedMarginMax.toFixed(0)} m/s`, color: ca.withinArrival ? COL_SUCCESS : COL_WARNING });
         }
       } else {

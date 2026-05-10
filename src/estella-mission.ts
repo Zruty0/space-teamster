@@ -105,6 +105,7 @@ function bodyNodeIdForLocation(nodeId: string): string | undefined {
   const seen = new Set<string>();
   while (current && !seen.has(current.id)) {
     seen.add(current.id);
+    if (current.kind === 'cluster') return current.id;
     if (current.kind === 'planet' || current.kind === 'moon' || current.kind === 'dwarf-planet' || current.kind === 'gas-giant') return current.id;
     current = current.placement?.parentId ? ESTELLA_NODES_BY_ID.get(current.placement.parentId) : undefined;
   }

@@ -250,7 +250,29 @@ function playableBodyIds(): string[] {
 
 const PLAYABLE_BODY_IDS = playableBodyIds();
 
-export const ESTELLA_BODIES: BodyDef[] = PLAYABLE_BODY_IDS.map(createEstellaBody);
+const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
+  {
+    id: 'belt-cluster-near',
+    name: 'Near Belt Cluster',
+    radius: 6_000,
+    gm: 0,
+    color: [170, 150, 120],
+    planetFillColor: '#2a241b',
+    planetStrokeColor: '#8a7650',
+    atmosphere: null,
+    orbit: bodyOrbit('belt-cluster-near'),
+    orbitalDefaults: {
+      baseTimeScale: 100,
+      thrustAccel: 0.2,
+      thrustAccelMax: 2,
+      fuelDeltaV: 1_200,
+      transitionAltitude: 0,
+    },
+    transferGameplay: { patchRadius: 40_000, displayPatchRadius: 40_000 },
+  },
+];
+
+export const ESTELLA_BODIES: BodyDef[] = [...PLAYABLE_BODY_IDS.map(createEstellaBody), ...ESTELLA_CLUSTER_BODIES];
 
 export const ESTELLA_SURFACE_POIS: SurfacePoiDef[] = PLAYABLE_BODY_IDS.flatMap(bodyId =>
   playableSurfacePoiIds(bodyId).map(createSurfacePoi),

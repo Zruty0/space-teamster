@@ -2,6 +2,8 @@
 
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
+import { bodyById } from './world';
+import { escapeTargetForLevel, orbitalLevelById, type OrbitalLevel } from './orbital';
 
 export interface ClusterPortDef {
   id: string;
@@ -43,6 +45,8 @@ export interface ClusterLevel {
   members: ClusterMemberDef[];
   targetPortId: string;
   dockingLevelId?: number;
+  escapeToOrbitalLevelId?: number;
+  clusterBodyId?: string;
   startX: number;
   startY: number;
   startVX: number;
@@ -85,6 +89,7 @@ export interface ClusterState {
   sas: boolean;
   alive: boolean;
   arrived: boolean;
+  escaped: boolean;
   highThrust: boolean;
   thrustForward: number;
   thrustBackward: number;
@@ -261,6 +266,7 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     sas: false,
     alive: true,
     arrived: false,
+    escaped: false,
     highThrust: false,
     thrustForward: 0,
     thrustBackward: 0,
@@ -447,7 +453,7 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
   }
 
   const target = targetPort(level);
-  if (target) {
+  if (target && level.dockingLevelId) {
     const dx = target.member.x - s.x;
     const dy = target.member.y - s.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -455,7 +461,8 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
     if (dist <= level.captureRadius && speed <= level.captureMaxSpeed) s.arrived = true;
   }
 
-  if (ellipseValue(s.x, s.y, level) > 1.25) s.alive = false;
+  if (level.escapeToOrbitalLevelId && ellipseValue(s.x, s.y, level) >= 1) s.escaped = true;
+  else if (ellipseValue(s.x, s.y, level) > 1.25) s.alive = false;
 }
 
 function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): void {
@@ -549,6 +556,7 @@ export function renderCluster(
   drawClusterStars(ctx, W, H);
   drawTrafficVolume(ctx, cam, level, W, H);
   drawClusterRocks(ctx, cam, s, level, time, W, H);
+  drawClusterEscapeGuide(ctx, cam, s, level, time, W, H);
   for (const member of level.members) drawClusterMember(ctx, cam, level, member, W, H);
   drawClusterTargetIndicator(ctx, cam, s, level, W, H);
   drawClusterShip(ctx, cam, s, W, H, time);
@@ -619,6 +627,82 @@ function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: 
       ctx.stroke();
     }
   }
+}
+
+function clusterEscapeGuide(s: ClusterState, level: ClusterLevel, time: number): { angle: number; speed: number; errorDeg: number } | null {
+  if (!level.escapeToOrbitalLevelId || !level.clusterBodyId) return null;
+  const nextLevel = orbitalLevelById(level.escapeToOrbitalLevelId);
+  if (!nextLevel) return null;
+  const clusterBody = bodyById(level.clusterBodyId);
+  const patchR = Math.max(level.rx, level.ry);
+  const guideLevel: OrbitalLevel = {
+    id: -10_000 - level.id,
+    bodyId: level.clusterBodyId,
+    bodyName: clusterBody.name,
+    name: `${level.name} Escape Guide`,
+    subtitle: level.subtitle,
+    planetRadius: 1,
+    planetGM: clusterBody.gm,
+    atmoHeight: 0,
+    atmoColor: [0, 0, 0],
+    baseTimeScale: 1,
+    startX: 0,
+    startY: 0,
+    startVX: 0,
+    startVY: 0,
+    thrustAccel: 0,
+    thrustAccelMax: 0,
+    fuelDeltaV: 0,
+    surfaceDensity: 0,
+    scaleHeight: 1,
+    aeroNoseDrag: 0,
+    aeroBroadsideDrag: 0,
+    aeroLiftCoeff: 0,
+    highAtmoAoA: 0,
+    lowAtmoAoA: 0,
+    rcsAngularAccel: 0,
+    heatCoeff: 0,
+    heatDissipation: 0,
+    transitionAltitude: 0,
+    landingSiteAngle: 0,
+    approachLevelIdx: 0,
+    approachGravity: 0,
+    showLandingSite: false,
+    escapeSOIRadius: patchR,
+    escapeToOrbitalLevelId: level.escapeToOrbitalLevelId,
+  };
+  const target = escapeTargetForLevel(guideLevel, time);
+  if (!target) return null;
+  const velAngle = Math.hypot(s.vx, s.vy) > 0.1 ? Math.atan2(s.vy, s.vx) : target.angle;
+  const errorDeg = normalizeAngle(target.angle - velAngle) * 180 / Math.PI;
+  return { angle: target.angle, speed: target.speed, errorDeg };
+}
+
+function drawClusterEscapeGuide(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number, W: number, H: number): void {
+  const guide = clusterEscapeGuide(s, level, time);
+  if (!guide) return;
+  const [cx, cy] = cws(0, 0, cam, W, H);
+  const len = 34;
+  const dx = Math.cos(guide.angle);
+  const dy = -Math.sin(guide.angle);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 221, 102, 0.9)';
+  ctx.fillStyle = 'rgba(255, 221, 102, 0.9)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + dx * len, cy + dy * len);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + dx * (len + 10), cy + dy * (len + 10));
+  ctx.lineTo(cx + dx * len - dy * 6, cy + dy * len + dx * 6);
+  ctx.lineTo(cx + dx * len + dy * 6, cy + dy * len - dx * 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('ESCAPE VECTOR', cx, cy - 16);
+  ctx.restore();
 }
 
 function drawTrafficVolume(ctx: CanvasRenderingContext2D, cam: ClusterCamera, level: ClusterLevel, W: number, H: number): void {
@@ -719,6 +803,7 @@ function drawClusterTargetIndicator(
   ctx: CanvasRenderingContext2D, cam: ClusterCamera,
   s: ClusterState, level: ClusterLevel, W: number, H: number,
 ): void {
+  if (level.escapeToOrbitalLevelId) return;
   const target = targetPort(level);
   if (!target) return;
   const [tx, ty] = cws(target.x, target.y, cam, W, H);
@@ -908,7 +993,11 @@ export function drawClusterHUD(
   drawHudLabel(ctx, 20, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
 
   const rows: { label: string; value: string; color?: string }[] = [];
-  if (target) {
+  const escapeGuide = clusterEscapeGuide(s, level, time);
+  if (level.escapeToOrbitalLevelId) {
+    rows.push({ label: 'ESC SPD', value: escapeGuide ? `${speed.toFixed(1)} / ${escapeGuide.speed.toFixed(1)} m/s` : `${speed.toFixed(1)} m/s`, color: escapeGuide && Math.abs(speed - escapeGuide.speed) < 25 ? COL_SUCCESS : COL_HUD });
+    rows.push({ label: 'ERR', value: escapeGuide ? `${escapeGuide.errorDeg.toFixed(1)}°` : '—', color: escapeGuide && Math.abs(escapeGuide.errorDeg) < 10 ? COL_SUCCESS : COL_HUD });
+  } else if (target) {
     const dist = Math.sqrt((target.member.x - s.x) ** 2 + (target.member.y - s.y) ** 2);
     rows.push({ label: 'RANGE', value: `${(dist / 1000).toFixed(2)} km < ${(level.captureRadius / 1000).toFixed(2)} km`, color: dist <= level.captureRadius ? COL_SUCCESS : COL_HUD });
     rows.push({ label: 'REL V', value: `${speed.toFixed(1)} m/s < ${level.captureMaxSpeed.toFixed(0)} m/s`, color: speed <= level.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
@@ -916,10 +1005,10 @@ export function drawClusterHUD(
 
   drawHudInfoPanel(ctx, canvas, {
     title: 'LOCAL TRAFFIC',
-    name: target ? `${target.member.name} / ${target.port.name}` : level.name,
+    name: target && !level.escapeToOrbitalLevelId ? `${target.member.name} / ${target.port.name}` : level.name,
     subtitle: level.subtitle,
     rows,
-    guidance: 'Enter the destination intercept circle below 18 m/s for docking handoff.'
+    guidance: level.escapeToOrbitalLevelId ? 'Follow the escape vector; crossing the traffic-volume boundary exits the cluster.' : 'Enter the destination intercept circle below 18 m/s for docking handoff.'
   });
 
   if (!suppressStateOverlays && state === 'arrived') {

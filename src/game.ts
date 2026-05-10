@@ -183,7 +183,7 @@ export class Game {
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
     this.phase = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
-    this.showGuidance('LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
+    this.showGuidance(level.escapeToOrbitalLevelId ? 'LOCAL TRAFFIC: EXIT VOLUME ON ESCAPE VECTOR' : 'LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
@@ -661,6 +661,12 @@ export class Game {
         updateCluster(p.cs, input, p.level, PHYSICS_DT);
         input.toggleSAS = false;
         if (!p.cs.alive) p.state = 'crashed';
+        if (p.cs.escaped) {
+          const transition = this.transitionClusterToOrbital(p);
+          if (transition) this.completeTransition(p, transition, '', { title: 'Near Belt Local Traffic', detailText: 'Exited cluster traffic volume.' });
+          else p.state = 'crashed';
+          return;
+        }
         if (p.cs.arrived) {
           p.state = 'arrived';
           const transition = p.level.dockingLevelId
@@ -680,6 +686,21 @@ export class Game {
     }
 
     updateClusterCamera(p.cam, p.cs, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
+  }
+
+  private transitionClusterToOrbital(p: Extract<Phase, { kind: 'cluster' }>): PhaseTransition | null {
+    if (!p.level.escapeToOrbitalLevelId || !p.level.clusterBodyId) return null;
+    const nextLevel = orbitalLevelById(p.level.escapeToOrbitalLevelId);
+    if (!nextLevel) return null;
+    const clusterState = bodyStateRelativeToParent(p.level.clusterBodyId, this.worldTime);
+    const init: OrbitalInitOverride = {
+      x: clusterState.x,
+      y: clusterState.y,
+      vx: clusterState.vx + p.cs.vx,
+      vy: clusterState.vy + p.cs.vy,
+      time: this.worldTime,
+    };
+    return this.makeTransition('success', () => this.loadOrbital(nextLevel, init, this.worldTime));
   }
 
   private transitionClusterToDocking(p: Extract<Phase, { kind: 'cluster' }>): PhaseTransition | null {
@@ -878,6 +899,21 @@ export class Game {
       }
 
       if (!arrivalReady) return null;
+      const captureRelSpeed = Math.hypot(captureRVX, captureRVY);
+      if (body.captureMaxSpeed !== undefined && captureRelSpeed > body.captureMaxSpeed) return null;
+
+      if (body.arrivalClusterLevelId) {
+        const clusterLevel = clusterLevelById(body.arrivalClusterLevelId);
+        if (!clusterLevel) return null;
+        const initOverride: ClusterInitOverride = {
+          x: captureRX,
+          y: captureRY,
+          vx: captureRVX,
+          vy: captureRVY,
+          angle: Math.atan2(Math.cos(p.os.renderAngle), Math.sin(p.os.renderAngle)),
+        };
+        return this.makeTransition('success', () => this.loadCluster(clusterLevel, initOverride, captureTime));
+      }
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
       const arrivalLevel = arrivalLevelId ? orbitalLevelById(arrivalLevelId) : null;
@@ -1201,8 +1237,8 @@ export class Game {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
       drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'cluster') {
-      renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.time);
-      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.time, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime);
+      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'estellaNav') {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {
