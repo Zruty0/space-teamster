@@ -2533,9 +2533,10 @@ export function updateOrbitalCamera(
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
     if (level.conicRadius) {
-      // Do not zoom beyond the active transfer SOI/conic limit; Tycho transfers rely on
-      // this clamp, and generated Estella transfers should behave the same way.
+      // Do not zoom beyond the active transfer SOI/conic limit while inside it, but never
+      // let the ship disappear if a coarse transfer step or handoff places it outside.
       maxR = Math.min(maxR, level.conicRadius * 1.05);
+      maxR = Math.max(maxR, r * 1.12);
     }
     const targetZoom = halfScreen / Math.max(maxR, level.planetRadius * 1.5);
     cam.zoom += (targetZoom - cam.zoom) * smooth;
