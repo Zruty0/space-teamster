@@ -19,7 +19,6 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   //     epochAngle: 0,
   //     epochTime: 0,
   //     orbitSense: 1,
-  //     period: 31_557_600,
   //   },
   // },
 
