@@ -99,9 +99,9 @@ Internal supply chains are dense and largely uninteresting to the outsider. The 
 |---|---|---|
 | **Estella I** | Mercury-like rocky planet, airless, hot | Innermost. Heavy refractory mining + stellar antimatter skim staging. Worker hab on dark side. |
 | **Estella II** | Venus-like, thick toxic atmosphere | Surface uninhabitable. Habitable cloud city in upper atmosphere. Iconic. Decadent. Possibly mysterious. |
-| **Estella III** | Earth-like, breathable atmosphere, weather | The civilization. Capital, government, the old money. Most-named place in the system. |
-| **Estella IIIa** | Large airless moon of Estella III | Heritage and helium-3. Where the first off-world colony was. |
-| **Estella IV** | Earth-like, breathable, climatically distinct from Estella III | The rival or the relief, depending on who you ask. Where Estella III's children move when they want to feel like pioneers. |
+| **Estella III / Gaia** | Earth-like, breathable atmosphere, weather | The civilization. Capital, government, the old money. Most-named place in the system. |
+| **Estella IIIa** | Large airless moon of Gaia | Heritage and helium-3. Where the first off-world colony was. |
+| **Estella IV / Dahai** | Breathable water planet, humid marine climate | The rival or the relief, depending on who you ask. An ocean world where Gaia's children move when they want to feel like pioneers. |
 
 In addition, between Estella I and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
 
@@ -124,7 +124,7 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella II.3 | Surface | **Pandemonium.** Deep-pressure penal mining city. One-way for most ships. Endgame work. |
 | Estella II.4 | Station, orbit | **Acheron Commercial Hub.** Orbital commercial, customs, and transfer hub over Acheron. |
 
-### Estella III (Earth-like primary)
+### Estella III / Gaia (Earth-like primary)
 | ID | Type | Description |
 |---|---|---|
 | Estella III.1 | Station, low orbit | Main customs and arrival hub |
@@ -146,16 +146,16 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella IIIa.3 | Surface | Lunar science settlement and observatory |
 | Estella IIIa.4 | Surface | Heritage / historic site (the first off-world colony) |
 
-### Estella IV (Earth-like sister)
+### Estella IV / Dahai (breathable water planet)
 | ID | Type | Description |
 |---|---|---|
 | Estella IV.1 | Station, low orbit | Main orbital station |
-| Estella IV.2 | Surface | Primary city / port |
-| Estella IV.3 | Surface | Climate-defining surface POI |
-| Estella IV.4 | Surface | Climate-defining surface POI |
-| Estella IV.5 | Surface | Climate-defining surface POI |
+| Estella IV.2 | Surface | Primary island city / port |
+| Estella IV.3 | Surface | Archipelago weather station |
+| Estella IV.4 | Surface | Floating mariculture platform |
+| Estella IV.5 | Surface | Pelagic research atoll |
 
-> The biome and culture of Estella IV are deliberately under-specified. The writer chooses whether it is hotter, drier, wetter, colder, or differently inhabited than Estella III. Suggested seeds: a radically different agricultural base, a politically distinct colonial wave, a religious schism, a rival capital — any of which can produce centuries of usable lore.
+> Dahai is a humid marine world: most settlement is coastal, floating, or island-based, and weather/ocean operations define its local economy and culture.
 
 ### Inner-system Skim Infrastructure
 | ID | Type | Description |
@@ -532,7 +532,7 @@ This document is a *backbone*. It is intended to be sufficient to write against,
 
 The following are explicitly **writer territory**:
 - All proper names not already locked. Catalogue IDs (`Estella IIIa`, `ES-C-0001`, `ES-M-0001`) are canonical. Vernacular names (*The Caravanserai*, *The Still*, *Olympos*) are locked. Everything else — every settlement, district, bar, faction subdivision, ship, character, Highliner, ritual, accent, and historical event — is yours.
-- The cultural and biome distinction between Estella III and Estella IV. Make them rivals, kin, complements, or whatever serves.
+- The cultural and biome distinction between Gaia (Estella III) and Dahai (Estella IV). Make them rivals, kin, complements, or whatever serves.
 - The history and reception of the star's name (was the marriage public? was Estella herself ever invited? did she refuse? did she eventually visit?).
 - The faction roster beyond the Teamsters' Guild.
 - The Highliner roster, history, and politics.

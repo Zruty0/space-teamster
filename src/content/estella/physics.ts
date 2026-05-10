@@ -56,19 +56,19 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 360_000,
     gm: 9.6 * 360_000 * 360_000,
     rotationPeriod: 64_000,
-    notes: 'Earth-like capital world; near-Earth surface gravity, gameplay-scaled.',
+    notes: 'Gaia, the Earth-like capital world; near-Earth surface gravity, gameplay-scaled.'
   },
   'estella-iiia': {
     radius: 140_000,
     gm: 1.62 * 140_000 * 140_000,
     rotationPeriod: 58_000,
-    notes: 'Large airless moon of Estella III; Luna-like surface gravity, gameplay-scaled.',
+    notes: 'Large airless moon of Gaia; Luna-like surface gravity, gameplay-scaled.'
   },
   'estella-iv': {
     radius: 345_000,
     gm: 9.2 * 345_000 * 345_000,
     rotationPeriod: 70_000,
-    notes: 'Earth-like sister/rival world; near-Earth surface gravity, gameplay-scaled.',
+    notes: 'Dahai, a breathable ocean world; near-Earth surface gravity, gameplay-scaled.'
   },
   'estella-v': {
     radius: 280_000,
@@ -174,12 +174,12 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.05, thrustAccelMax: 1.0, fuelDeltaV: 850, transitionAltitude: 7_000 },
   },
   'estella-iv': {
-    color: [95, 190, 165],
-    planetFillColor: '#071f1a',
-    planetStrokeColor: '#43b59d',
-    terrainFillColor: '#10250f',
-    terrainStrokeColor: '#73b84f',
-    terrainBrightColor: '#b7d77a',
+    color: [65, 170, 225],
+    planetFillColor: '#031724',
+    planetStrokeColor: '#2f9fd8',
+    terrainFillColor: '#062431',
+    terrainStrokeColor: '#38b7cf',
+    terrainBrightColor: '#8be8ff',
     orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.08, thrustAccelMax: 1.8, fuelDeltaV: 1_500, transitionAltitude: 40_000 },
   },
   'estella-v': {
@@ -303,6 +303,6 @@ export const ESTELLA_ATMOSPHERE_PHYSICS: Partial<Record<string, AtmospherePhysic
     height: 75_000,
     surfaceDensity: 1.0,
     scaleHeight: 8_500,
-    notes: 'Slightly thinner green-tinted Earth-like atmosphere for the sister world.',
+    notes: 'Humid marine breathable atmosphere for Dahai, a water world.'
   },
 };
