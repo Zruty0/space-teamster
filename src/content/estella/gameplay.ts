@@ -64,12 +64,26 @@ const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['t
   'estella-ix': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
 };
 
+function derivedMoonTransferGameplay(id: string): NonNullable<BodyDef['transferGameplay']> {
+  const orbit = bodyOrbit(id);
+  const body = ESTELLA_BODY_PHYSICS[id];
+  const parent = orbit?.parentBodyId ? ESTELLA_BODY_PHYSICS[orbit.parentBodyId] : undefined;
+  if (!orbit || !body || !parent) return { patchRadius: 320_000, displayPatchRadius: 320_000 };
+
+  // Classical patched-conic SOI estimate. Moon orbits are gameplay-scaled, so derive
+  // this from the authored radius/GM/orbit instead of using one stale global moon size.
+  const laplaceSoi = orbit.radius * ((body.gm / parent.gm) ** (2 / 5));
+  const minPlayableSoi = body.radius * 3;
+  const patchRadius = Math.max(320_000, Math.round(Math.max(laplaceSoi, minPlayableSoi) / 10_000) * 10_000);
+  return { patchRadius, displayPatchRadius: patchRadius };
+}
+
 function transferGameplay(id: string): BodyDef['transferGameplay'] {
   const n = node(id);
   if (!n.capabilities?.hasSOI) return undefined;
   const override = TRANSFER_GAMEPLAY_OVERRIDES[id];
   if (override) return override;
-  if (n.kind === 'moon') return { patchRadius: 320_000, displayPatchRadius: 320_000 };
+  if (n.kind === 'moon') return derivedMoonTransferGameplay(id);
   if (n.kind === 'dwarf-planet') return { patchRadius: 1_500_000, displayPatchRadius: 1_500_000 };
   if (n.kind === 'gas-giant') return { patchRadius: 120_000_000, displayPatchRadius: 120_000_000 };
   if (n.kind === 'planet') return { patchRadius: 8_000_000, displayPatchRadius: 8_000_000 };
