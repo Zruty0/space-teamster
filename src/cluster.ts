@@ -62,6 +62,7 @@ export interface ClusterState {
   vx: number;
   vy: number;
   angle: number;
+  renderAngle: number;
   angVel: number;
   sas: boolean;
   alive: boolean;
@@ -234,6 +235,7 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     vx: override?.vx ?? level.startVX,
     vy: override?.vy ?? level.startVY,
     angle: override?.angle ?? level.startAngle,
+    renderAngle: override?.angle ?? level.startAngle,
     angVel: 0,
     sas: false,
     alive: true,
@@ -274,6 +276,18 @@ function ellipseValue(x: number, y: number, level: ClusterLevel): number {
   const lx = x * ca + y * sa;
   const ly = -x * sa + y * ca;
   return (lx * lx) / (level.rx * level.rx) + (ly * ly) / (level.ry * level.ry);
+}
+
+function normalizeAngle(angle: number): number {
+  while (angle > Math.PI) angle -= Math.PI * 2;
+  while (angle < -Math.PI) angle += Math.PI * 2;
+  return angle;
+}
+
+function moveAngleToward(current: number, target: number, maxDelta: number): number {
+  const delta = normalizeAngle(target - current);
+  if (Math.abs(delta) <= maxDelta) return target;
+  return normalizeAngle(current + Math.sign(delta) * maxDelta);
 }
 
 export function updateCluster(s: ClusterState, input: InputState, level: ClusterLevel, dt: number): void {
@@ -318,6 +332,7 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
     const speed = Math.hypot(s.vx, s.vy);
     s.angle = speed > 0.05 ? Math.atan2(s.vx, s.vy) : 0;
   }
+  s.renderAngle = moveAngleToward(s.renderAngle, s.angle, (Math.PI * 0.5 / 0.1) * dt);
 
   const fwdX = Math.sin(s.angle);
   const fwdY = Math.cos(s.angle);
@@ -560,7 +575,7 @@ function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: C
   const size = 13;
   ctx.save();
   ctx.translate(sx, sy);
-  ctx.rotate(s.angle);
+  ctx.rotate(s.renderAngle);
 
   const cabFrontY = -size * 0.82;
   const cabBackY = -size * 0.32;
