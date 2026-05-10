@@ -568,7 +568,9 @@ function buildRouteObjective(opts: {
   if (!parentId) return opts.destinationOrbital;
   const parentObjective = buildRouteObjective({ ...opts, currentBodyId: parentId });
   const targetIsTransferInParent = parentObjective.bodyId === parentId && !!parentObjective.targetBodyId;
-  const useSelectedEscape = opts.selectedTransfer?.sourceBodyId === opts.currentBodyId && opts.selectedTransfer?.destinationBodyId === opts.targetBodyId;
+  const escapeTargetBodyId = targetIsTransferInParent ? parentObjective.targetBodyId : undefined;
+  const selectedEscapeTargetBodyId = escapeTargetBodyId ?? opts.targetBodyId;
+  const useSelectedEscape = opts.selectedTransfer?.sourceBodyId === opts.currentBodyId && opts.selectedTransfer?.destinationBodyId === selectedEscapeTargetBodyId;
   return register(ORBITAL_LEVELS, createOrbitalLevel({
     id: nextId(),
     bodyId: opts.currentBodyId,
@@ -578,7 +580,7 @@ function buildRouteObjective(opts: {
     startOrbit,
     fallbackReentryPoiId: playableKind(opts.initialSourceId) === 'surface' && opts.currentBodyId === centralBodyIdForPoi(opts.initialSourceId) ? opts.initialSourceId : undefined,
     escapeToOrbitalLevelId: parentObjective.id,
-    escapeTargetBodyId: targetIsTransferInParent ? parentObjective.targetBodyId : undefined,
+    escapeTargetBodyId,
     escapeVectorAngle: useSelectedEscape ? opts.selectedTransfer?.departureVInfAngle : undefined,
     escapeVectorSpeed: useSelectedEscape ? opts.selectedTransfer?.departureVInf : undefined,
     escapeTransferTime: useSelectedEscape ? opts.selectedTransfer?.transferTime : undefined,
