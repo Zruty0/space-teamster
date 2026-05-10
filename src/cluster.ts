@@ -324,8 +324,8 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
   const x = atEdge ? edge.x : (nextRockRandom(s) * 2 - 1) * level.rx * 0.9;
   const y = atEdge ? edge.y : (nextRockRandom(s) * 2 - 1) * level.ry * 0.9;
   const inward = Math.atan2(-edge.y, -edge.x) + (nextRockRandom(s) - 0.5) * 0.9;
-  const speed = gaussianRockRandom(s, 30, 10, 8);
-  const orbitalSpeed = gaussianRockRandom(s, 28, 9, 8);
+  const speed = gaussianRockRandom(s, 180, 70, 50);
+  const orbitalSpeed = gaussianRockRandom(s, 160, 60, 45);
   const rx = 8_000 + nextRockRandom(s) * 28_000;
   const ry = 5_000 + nextRockRandom(s) * 20_000;
   return {
@@ -474,7 +474,7 @@ function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): v
   }
 }
 
-const CLUSTER_SHIP_HIT_RADIUS = 24;
+const CLUSTER_SHIP_HIT_RADIUS = 1_600;
 
 function clusterRockCollision(s: ClusterState): boolean {
   const shipR = CLUSTER_SHIP_HIT_RADIUS;
