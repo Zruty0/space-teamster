@@ -805,7 +805,8 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     if (!clusterLevel) throw new Error(`Cannot build Near Belt escape for ${sourceId}`);
     clusterLevel.clusterBodyId = NEAR_BELT_CLUSTER_BODY_ID;
     clusterLevel.escapeToOrbitalLevelId = startOrbital.id;
-    if (selectedTransfer?.sourceBodyId === NEAR_BELT_CLUSTER_BODY_ID && selectedTransfer.destinationBodyId === destBodyId) {
+    const clusterEscapeTargetBodyId = startOrbital.targetBodyId ?? destBodyId;
+    if (selectedTransfer?.sourceBodyId === NEAR_BELT_CLUSTER_BODY_ID && selectedTransfer.destinationBodyId === clusterEscapeTargetBodyId) {
       clusterLevel.escapeVectorAngle = selectedTransfer.departureVInfAngle;
       clusterLevel.escapeVectorSpeed = selectedTransfer.departureVInf;
     }
