@@ -490,12 +490,21 @@ function clusterRockCollision(s: ClusterState, level: ClusterLevel): boolean {
   return false;
 }
 
+function rockVelocity(rock: ClusterRock): { vx: number; vy: number } {
+  if (rock.mode === 'linear') return { vx: rock.vx, vy: rock.vy };
+  return {
+    vx: -Math.sin(rock.phase) * rock.rx * rock.omega,
+    vy: Math.cos(rock.phase) * rock.ry * rock.omega,
+  };
+}
+
 function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLevel, horizon = 10): number | null {
   if (rockInSafeCircle(rock, level)) return null;
   const rx = rock.x - s.x;
   const ry = rock.y - s.y;
-  const rvx = rock.vx - s.vx;
-  const rvy = rock.vy - s.vy;
+  const rv = rockVelocity(rock);
+  const rvx = rv.vx - s.vx;
+  const rvy = rv.vy - s.vy;
   const hitR = CLUSTER_SHIP_HIT_RADIUS + rock.radius;
   const a = rvx * rvx + rvy * rvy;
   const b = 2 * (rx * rvx + ry * rvy);
@@ -804,13 +813,6 @@ function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: C
   drawClusterFlames(ctx, s, size, time);
   ctx.restore();
 
-  ctx.beginPath();
-  ctx.arc(sx, sy, CLUSTER_SHIP_HIT_RADIUS * cam.zoom, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255, 80, 80, 0.75)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([4, 4]);
-  ctx.stroke();
-  ctx.setLineDash([]);
 }
 
 function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size: number, time: number): void {
