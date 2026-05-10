@@ -56,9 +56,12 @@ function bodyOrbit(id: string): BodyDef['orbit'] {
 }
 
 const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['transferGameplay']>>> = {
-  'estella-v': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
-  'estella-vi': { patchRadius: 4_500_000, displayPatchRadius: 4_500_000 },
+  'estella-iii': { patchRadius: 24_000_000, displayPatchRadius: 24_000_000 },
+  'estella-v': { patchRadius: 10_000_000, displayPatchRadius: 10_000_000 },
+  'estella-vi': { patchRadius: 14_000_000, displayPatchRadius: 14_000_000 },
   'estella-vii': { patchRadius: 2_500_000, displayPatchRadius: 2_500_000 },
+  'estella-viii': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
+  'estella-ix': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
 };
 
 function transferGameplay(id: string): BodyDef['transferGameplay'] {
