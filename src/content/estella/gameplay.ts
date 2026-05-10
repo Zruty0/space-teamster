@@ -117,6 +117,12 @@ function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
   return windProfiles[id];
 }
 
+function atmosphereColor(id: string, fallback: [number, number, number]): [number, number, number] {
+  if (id === 'estella-iii') return [95, 230, 140];
+  if (id === 'estella-iv') return [80, 180, 255];
+  return fallback;
+}
+
 function createEstellaBody(id: string): BodyDef {
   const n = node(id);
   const physics = ESTELLA_BODY_PHYSICS[id];
@@ -139,7 +145,7 @@ function createEstellaBody(id: string): BodyDef {
       height: atmosphere.height,
       surfaceDensity: atmosphere.surfaceDensity,
       scaleHeight: atmosphere.scaleHeight,
-      color: flight.color,
+      color: atmosphereColor(id, flight.color),
     } : null,
     orbit: bodyOrbit(id),
     orbitalDefaults: flight.orbitalDefaults,
