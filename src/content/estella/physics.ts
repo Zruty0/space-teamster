@@ -143,6 +143,10 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
   'estella-xiib': { radius: 70_000, gm: 0.34 * 70_000 * 70_000, rotationPeriod: 36_000, notes: 'Small airless rocky moon of Estella XII.' },
   'estella-xiic': { radius: 95_000, gm: 0.30 * 95_000 * 95_000, rotationPeriod: 62_000, notes: 'Captured comet/KBO-like airless moon of Estella XII.' },
   'estella-xiid': { radius: 68_000, gm: 0.28 * 68_000 * 68_000, rotationPeriod: 34_000, notes: 'Small airless restricted moon of Estella XII.' },
+
+  'estella-xiii': { radius: 145_000, gm: 0.75 * 145_000 * 145_000, rotationPeriod: 60_000, notes: 'Primary Reach ice dwarf and de facto outer capital.' },
+  'estella-xiv': { radius: 107_000, gm: 0.45 * 107_000 * 107_000, rotationPeriod: 54_000, notes: 'Smaller Reach ice dwarf / rogue planetoid with sparse settlement.' },
+  'reach-rogue-kbo-fragment': { radius: 92_000, gm: 0.30 * 92_000 * 92_000, rotationPeriod: 70_000, notes: 'Lonely eccentric KBO fragment in the far Reach.' },
 };
 
 /** Flight/rendering profile data needed to adapt Estella bodies into current gameplay phases. */
@@ -311,6 +315,10 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
   'estella-xiib': { color: [135, 130, 125], planetFillColor: '#141311', planetStrokeColor: '#716d68', terrainFillColor: '#141311', terrainStrokeColor: '#716d68', terrainBrightColor: '#aaa39b', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.82, fuelDeltaV: 740, transitionAltitude: 4_500 } },
   'estella-xiic': { color: [125, 150, 165], planetFillColor: '#10171a', planetStrokeColor: '#6a828d', terrainFillColor: '#10171a', terrainStrokeColor: '#6a828d', terrainBrightColor: '#9fb9c6', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.8, fuelDeltaV: 720, transitionAltitude: 4_500 } },
   'estella-xiid': { color: [125, 120, 130], planetFillColor: '#131216', planetStrokeColor: '#6b6672', terrainFillColor: '#131216', terrainStrokeColor: '#6b6672', terrainBrightColor: '#9f98aa', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.8, fuelDeltaV: 720, transitionAltitude: 4_500 } },
+
+  'estella-xiii': { color: [145, 175, 210], planetFillColor: '#0e1620', planetStrokeColor: '#7895b8', terrainFillColor: '#101820', terrainStrokeColor: '#7895b8', terrainBrightColor: '#b5c7dc', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.045, thrustAccelMax: 0.95, fuelDeltaV: 850, transitionAltitude: 5_000 } },
+  'estella-xiv': { color: [135, 150, 170], planetFillColor: '#10141a', planetStrokeColor: '#6f8095', terrainFillColor: '#11151b', terrainStrokeColor: '#6f8095', terrainBrightColor: '#a8b6c8', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.85, fuelDeltaV: 780, transitionAltitude: 4_500 } },
+  'reach-rogue-kbo-fragment': { color: [125, 145, 165], planetFillColor: '#0f1318', planetStrokeColor: '#66788a', terrainFillColor: '#101419', terrainStrokeColor: '#66788a', terrainBrightColor: '#9fb0c0', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.82, fuelDeltaV: 740, transitionAltitude: 4_500 } },
 };
 
 /** Exact atmosphere simulation params by stable node id. */

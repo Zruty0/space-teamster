@@ -470,4 +470,33 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xiic-isotope-mining': { kind: 'surface', parentId: 'estella-xiic', angle: -0.9, side: 'equatorial' },
   'estella-xiic-comet-research': { kind: 'surface', parentId: 'estella-xiic', angle: 1.9, side: 'equatorial' },
   'estella-xiid-black-project-exile': { kind: 'surface', parentId: 'estella-xiid', angle: -1.75, side: 'unspecified' },
+
+  // The Reach
+  'estella-xiii': { kind: 'orbit', parentId: 'estella', usage: 'stellar', orbit: { kind: 'circular', radius: 4_800_000_000, epochAngle: 0.35, epochTime: 0, orbitSense: 1 } },
+  'estella-xiii-main-port-station': { kind: 'orbit', parentId: 'estella-xiii', usage: 'low', orbit: { kind: 'circular', radius: 225_000, altitude: 80_000, epochAngle: -0.55, epochTime: 0, orbitSense: 1 } },
+  'estella-xiii-governors-outpost': { kind: 'surface', parentId: 'estella-xiii', angle: 0.25, side: 'equatorial' },
+  'estella-xiii-deep-ice-mining': { kind: 'surface', parentId: 'estella-xiii', angle: 1.35, side: 'equatorial' },
+  'estella-xiii-long-range-observatory': { kind: 'surface', parentId: 'estella-xiii', angle: 2.55, side: 'unspecified' },
+  'estella-xiii-prison-exile-colony': { kind: 'surface', parentId: 'estella-xiii', angle: -2.25, side: 'unspecified' },
+  'estella-xiii-classified-research': { kind: 'surface', parentId: 'estella-xiii', angle: -0.95, side: 'unspecified' },
+
+  'estella-xiv': { kind: 'orbit', parentId: 'estella', usage: 'stellar', orbit: { kind: 'circular', radius: 6_150_000_000, epochAngle: -1.8, epochTime: 0, orbitSense: 1 } },
+  'estella-xiv-transit-dock-station': { kind: 'orbit', parentId: 'estella-xiv', usage: 'low', orbit: { kind: 'circular', radius: 162_000, altitude: 55_000, epochAngle: 0.85, epochTime: 0, orbitSense: 1 } },
+  'estella-xiv-religious-retreat': { kind: 'surface', parentId: 'estella-xiv', angle: -0.35, side: 'equatorial' },
+  'estella-xiv-smuggler-haven': { kind: 'surface', parentId: 'estella-xiv', angle: 1.75, side: 'unspecified' },
+  'estella-xiv-abandoned-active-site': { kind: 'surface', parentId: 'estella-xiv', angle: -2.45, side: 'unspecified' },
+
+  'reach-comet-swarm': { kind: 'orbit', parentId: 'estella', usage: 'swarm', orbit: { kind: 'circular', radius: 7_250_000_000, epochAngle: 2.35, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-1': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_250_000_000, epochAngle: 2.35, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-2': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_285_000_000, epochAngle: 2.42, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-3': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_315_000_000, epochAngle: 2.27, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-4': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_360_000_000, epochAngle: 2.52, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-5': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_405_000_000, epochAngle: 2.17, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-6': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_455_000_000, epochAngle: 2.61, epochTime: 0, orbitSense: 1 } },
+
+  'reach-rogue-kbo-fragment': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 8_450_000_000, epochAngle: -0.55, epochTime: 0, orbitSense: 1 } },
+  'reach-rogue-isotope-mine': { kind: 'surface', parentId: 'reach-rogue-kbo-fragment', angle: 0.65, side: 'equatorial' },
+  'reach-rogue-lonely-beacon': { kind: 'surface', parentId: 'reach-rogue-kbo-fragment', angle: -2.05, side: 'unspecified' },
+
+  'deepest-dock-body': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 9_700_000_000, epochAngle: 1.85, epochTime: 0, orbitSense: 1 } },
 };

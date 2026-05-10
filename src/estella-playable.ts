@@ -590,7 +590,7 @@ function buildRouteObjective(opts: {
 
   const parentId = bodyParentId(opts.currentBodyId);
   if (!parentId) return opts.destinationOrbital;
-  const parentObjective = buildRouteObjective({ ...opts, currentBodyId: parentId });
+  const parentObjective = buildRouteObjective({ ...opts, currentBodyId: parentId, transferSourceBodyId: opts.currentBodyId });
   const targetIsTransferInParent = parentObjective.bodyId === parentId && !!parentObjective.targetBodyId;
   const escapeTargetBodyId = targetIsTransferInParent ? parentObjective.targetBodyId : undefined;
   const selectedEscapeTargetBodyId = escapeTargetBodyId ?? opts.targetBodyId;
