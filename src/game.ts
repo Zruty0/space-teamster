@@ -693,9 +693,14 @@ export class Game {
   private clusterInitFromDocking(p: Extract<Phase, { kind: 'docking' }>, memberX: number, memberY: number): ClusterInitOverride {
     const dx = p.ds.x - p.level.stationX;
     const dy = p.ds.y - p.level.stationY;
+    const dist = Math.hypot(dx, dy);
+    const ux = dist > 1 ? dx / dist : Math.sin(p.ds.angle);
+    const uy = dist > 1 ? dy / dist : Math.cos(p.ds.angle);
+    const clusterLevel = p.level.clusterLevelId ? clusterLevelById(p.level.clusterLevelId) : undefined;
+    const departRadius = clusterLevel?.captureRadius ?? Math.max(dist, 1);
     return {
-      x: memberX + dx,
-      y: memberY + dy,
+      x: memberX + ux * departRadius,
+      y: memberY + uy * departRadius,
       vx: p.ds.vx,
       vy: p.ds.vy,
       angle: p.ds.angle,
