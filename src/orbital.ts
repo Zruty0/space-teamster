@@ -3582,8 +3582,8 @@ function drawOrbitalMarkers(
   if (!Number.isFinite(elem.periapsis) || !Number.isFinite(elem.apoapsis)) return;
 
   const markers = [
-    { label: 'PE', r: elem.periapsis, angle: elem.omega },
-    { label: 'AP', r: elem.apoapsis, angle: elem.omega + Math.PI },
+    { kind: 'pe' as const, r: elem.periapsis, angle: elem.omega },
+    { kind: 'ap' as const, r: elem.apoapsis, angle: elem.omega + Math.PI },
   ];
 
   ctx.save();
@@ -3595,16 +3595,15 @@ function drawOrbitalMarkers(
     if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
 
     ctx.beginPath();
-    ctx.arc(sx, sy, 3.2, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(150, 255, 210, 0.32)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.font = '9px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillStyle = 'rgba(150, 255, 210, 0.34)';
-    ctx.fillText(marker.label, sx, sy - 5);
+    ctx.arc(sx, sy, 2.4, 0, Math.PI * 2);
+    if (marker.kind === 'pe') {
+      ctx.fillStyle = 'rgba(150, 255, 210, 0.58)';
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = 'rgba(150, 255, 210, 0.62)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }
