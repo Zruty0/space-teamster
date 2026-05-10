@@ -2674,8 +2674,8 @@ function drawCentralBodyLabel(
 function drawAsteroidBelt(ctx: CanvasRenderingContext2D, cam: OrbitalCamera, level: OrbitalLevel, W: number, H: number): void {
   if (level.bodyId !== 'estella') return;
   const [cx, cy] = ws(0, 0, cam, W, H);
-  const inner = 1_380_000_000 * cam.zoom;
-  const outer = 1_470_000_000 * cam.zoom;
+  const inner = 1_500_000_000 * cam.zoom;
+  const outer = 1_620_000_000 * cam.zoom;
   if (outer < 2) return;
   ctx.save();
   ctx.beginPath();

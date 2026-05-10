@@ -256,7 +256,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella',
     usage: 'co-orbital',
-    orbit: { kind: 'circular', radius: 1_400_000_000, epochAngle: 0.2, epochTime: 0, orbitSense: 1, period: 4_370_000 },
+    orbit: { kind: 'circular', radius: 1_520_000_000, epochAngle: 0.2, epochTime: 0, orbitSense: 1, period: 4_370_000 },
   },
   'caravanserai': { kind: 'cluster-member', parentId: 'belt-cluster-near', x: 0, y: 0 },
   'the-still': { kind: 'cluster-member', parentId: 'belt-cluster-near', x: 42_000, y: -18_000 },
@@ -269,7 +269,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: {
       kind: 'circular',
-      radius: 1_440_000_000,
+      radius: 1_570_000_000,
       epochAngle: 2.1,
       epochTime: 0,
       orbitSense: 1,
@@ -342,7 +342,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: {
       kind: 'circular',
-      radius: 1_452_000_000,
+      radius: 1_585_000_000,
       epochAngle: 2.95,
       epochTime: 0,
       orbitSense: 1,
