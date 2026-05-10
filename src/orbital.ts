@@ -2785,7 +2785,7 @@ function drawSystemBodies(
   }
 
   const pred = getCachedPrediction(s, level);
-  if (pred.targetBodyApproach) {
+  if (pred.targetBodyApproach && !clusterTargetZoomed(level, s)) {
     const ca = pred.targetBodyApproach;
     const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
     const [ssx, ssy] = ws(ca.shipX, ca.shipY, cam, W, H);

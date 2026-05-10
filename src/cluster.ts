@@ -288,7 +288,7 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     rocks: [],
     rockSeed: 1 + Math.floor(Math.random() * 2147483646),
   };
-  for (let i = 0; i < level.rockCount; i++) state.rocks.push(createClusterRock(state, level, false));
+  for (let i = 0; i < level.rockCount; i++) state.rocks.push(createSafeClusterRock(state, level, false));
   return state;
 }
 
@@ -479,7 +479,7 @@ function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): v
       rock.x = rock.cx + Math.cos(rock.phase) * rock.rx;
       rock.y = rock.cy + Math.sin(rock.phase) * rock.ry;
     }
-    if (ellipseValue(rock.x, rock.y, level) > 1.12) s.rocks[i] = createClusterRock(s, level, true);
+    if (ellipseValue(rock.x, rock.y, level) > 1.12) s.rocks[i] = createSafeClusterRock(s, level, true);
   }
 }
 
@@ -524,6 +524,16 @@ function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLev
   if (disc < 0) return null;
   const t = (-b - Math.sqrt(disc)) / (2 * a);
   return t >= 0 && t <= horizon ? t : null;
+}
+
+function createSafeClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean): ClusterRock {
+  let fallback = createClusterRock(s, level, atEdge);
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const rock = attempt === 0 ? fallback : createClusterRock(s, level, atEdge);
+    if (rockCollisionTime(s, rock, level, 10) === null) return rock;
+    fallback = rock;
+  }
+  return fallback;
 }
 
 function clusterCollisionThreat(s: ClusterState, level: ClusterLevel): { level: 'warning' | 'alert'; ttc: number } | null {
