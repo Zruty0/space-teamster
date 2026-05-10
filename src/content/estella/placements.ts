@@ -421,7 +421,6 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
 
   'estella-xi': { kind: 'orbit', parentId: 'estella', usage: 'stellar', orbit: { kind: 'circular', radius: 2_650_000_000, epochAngle: 1.1, epochTime: 0, orbitSense: 1 } },
   'estella-xi-industrial-skim-hub': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 1_450_000, altitude: 300_000, epochAngle: -0.2, epochTime: 0, orbitSense: 1 } },
-  'estella-xi-observation-transit-nexus': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 1_900_000, altitude: 750_000, epochAngle: 1.45, epochTime: 0, orbitSense: 1 } },
   'estella-xia': { kind: 'orbit', parentId: 'estella-xi', usage: 'moon', orbit: { kind: 'circular', radius: 8_000_000, epochAngle: -0.7, epochTime: 0, orbitSense: 1 } },
   'estella-xib': { kind: 'orbit', parentId: 'estella-xi', usage: 'moon', orbit: { kind: 'circular', radius: 13_000_000, epochAngle: 0.95, epochTime: 0, orbitSense: 1 } },
   'estella-xic': { kind: 'orbit', parentId: 'estella-xi', usage: 'moon', orbit: { kind: 'circular', radius: 20_000_000, epochAngle: 2.3, epochTime: 0, orbitSense: 1 } },

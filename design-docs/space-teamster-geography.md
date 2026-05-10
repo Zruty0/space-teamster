@@ -405,7 +405,7 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 
 | Body | Type | POIs |
 |---|---|---|
-| **Estella XI** (gas giant) | upper-atmosphere skim possible | XI.1 orbital skim hub (industrial gas) · XI.2 observation / transit nexus |
+| **Estella XI** (gas giant) | upper-atmosphere skim possible | XI.1 orbital skim hub (industrial gas) |
 | **Estella XIa** | Sulfur volcanic moon, thin SO₂ atmo, hostile | XIa.1 sulfur mine · XIa.2 orbital chem station · XIa.3 sealed worker hab · XIa.4 specialty rare-element extraction |
 | **Estella XIb** | Methane / nitrogen moon (thick cold methane atmosphere) | XIb.1 cryo transit · XIb.2 methane refinery · XIb.3 organic chemistry plant · XIb.4 hydrocarbon extraction · XIb.5 science settlement |
 | **Estella XIc** | Ice moon, subsurface ocean, airless | XIc.1 research station · XIc.2 sealed deep-ice exobiology · XIc.3 ice mining |
