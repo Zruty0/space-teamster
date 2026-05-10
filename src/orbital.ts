@@ -2128,7 +2128,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   let maxTime = Math.min(period * 0.95, 20000); // atmosphere / low-pass fallback
   if (transferTarget && !pacing.lowPass) {
     const transferTime = Math.PI * Math.sqrt(transferTarget.orbitRadius ** 3 / level.planetGM);
-    const transferCap = level.bodyId === 'estella' ? 12_000_000 : 4_000_000;
+    const transferCap = level.bodyId === 'estella' ? 24_000_000 : 4_000_000;
     maxTime = hasClosedOrbit
       ? Math.min(period * 1.02, transferCap)
       : Math.min(Math.max(transferTime * 4.0, 120_000), transferCap);
@@ -2140,7 +2140,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
     maxTime = Math.min(vacuumHorizon, 800000);
   }
   const stepSize = transferTarget
-    ? Math.max(20, maxTime / 1200) // keep active transfer prediction to ~1200 points, not tens of thousands
+    ? Math.max(20, Math.min(maxTime, level.bodyId === 'estella' ? 4_000_000 : maxTime) / 1200) // keep first 4Ms at old density; later Estella points are coarser
     : !pacing.lowPass
       ? Math.min(20, Math.max(1, maxTime / 2200))
       : Math.max(1, maxTime / 2200);
@@ -2169,18 +2169,18 @@ function predictOrbit(
   }];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   const transferTarget = activeTransferTarget(level);
-  const adaptiveVacuumSteps = level.bodyId === 'estella' && !!transferTarget;
+  const stagedEstellaTransfer = level.bodyId === 'estella' && !!transferTarget;
   let prevTheta = Math.atan2(y, x);
   let angleAccum = 0;
   let elapsed = 0;
-  let dynamicStep = stepSize;
-  const minStep = Math.max(1, stepSize / 10);
-  const maxStep = Math.max(stepSize, stepSize * 4);
-  const maxAngularStep = 0.035;
-  const minAngularStep = 0.008;
+  // Substeps per prediction step for accuracy when atmosphere is involved
   const subs = 4;
 
   while (elapsed < maxPhysTime) {
+    const dt = Math.min(
+      stagedEstellaTransfer && elapsed >= 4_000_000 ? stepSize * 10 : stepSize,
+      maxPhysTime - elapsed,
+    );
     const r0 = Math.sqrt(x * x + y * y);
     if (r0 < level.planetRadius) {
       points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
@@ -2188,29 +2188,19 @@ function predictOrbit(
     }
     const alt0 = r0 - level.planetRadius;
     const vacuumCoast = atmoDensity(alt0, level) < 1e-10;
-    const dt = Math.min(vacuumCoast && adaptiveVacuumSteps ? dynamicStep : stepSize, maxPhysTime - elapsed);
 
-    let nx = x, ny = y, nvx = vx, nvy = vy;
     if (vacuumCoast) {
       const next = propagateTwoBodyState(x, y, vx, vy, level.planetGM, dt);
-      nx = next.x;
-      ny = next.y;
-      nvx = next.vx;
-      nvy = next.vy;
-      if (adaptiveVacuumSteps) {
-        const nextTheta = Math.atan2(ny, nx);
-        const trialDTheta = Math.abs(normalizeAngle(nextTheta - prevTheta));
-        if (trialDTheta > maxAngularStep && dt > minStep + 1e-6) {
-          dynamicStep = Math.max(minStep, dt / 10);
-          continue;
-        }
-      }
+      x = next.x;
+      y = next.y;
+      vx = next.vx;
+      vy = next.vy;
     } else {
       const subDt = dt / subs;
       for (let si = 0; si < subs; si++) {
-        const r = Math.sqrt(nx * nx + ny * ny);
+        const r = Math.sqrt(x * x + y * y);
         if (r < level.planetRadius) {
-          points.push({ x: nx, y: ny, vx: nvx, vy: nvy, alt: r - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
+          points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
           return points;
         }
         const alt = r - level.planetRadius;
@@ -2219,25 +2209,23 @@ function predictOrbit(
         // Gravity: always orbital GM/r² radial toward center
         // (consistent physics for the entire orbital prediction)
         const gAccel = level.planetGM / (r * r);
-        let ax = -gAccel * (nx / r);
-        let ay = -gAccel * (ny / r);
+        let ax = -gAccel * (x / r);
+        let ay = -gAccel * (y / r);
 
         // Aero: use lowAtmoAoA below transition, predAoA above.
         const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
-        const useAoA = aoaDisplayToPhysical(displayAoA, nx, ny, nvx, nvy);
-        const aero = aeroForces(nx, ny, nvx, nvy, useAoA, level);
+        const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
+        const aero = aeroForces(x, y, vx, vy, useAoA, level);
         ax += aero.ax;
         ay += aero.ay;
-        nvx += ax * subDt;
-        nvy += ay * subDt;
-        nx += nvx * subDt;
-        ny += nvy * subDt;
+        vx += ax * subDt;
+        vy += ay * subDt;
+        x += vx * subDt;
+        y += vy * subDt;
       }
     }
 
-    x = nx; y = ny; vx = nvx; vy = nvy;
     elapsed += dt;
-
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
     const aero = aeroForces(x, y, vx, vy, aoaDisplayToPhysical(predAoA, x, y, vx, vy), level);
@@ -2249,13 +2237,8 @@ function predictOrbit(
     });
     const theta = Math.atan2(y, x);
     const dTheta = normalizeAngle(theta - prevTheta);
-    const absDTheta = Math.abs(dTheta);
-    angleAccum += absDTheta;
+    angleAccum += Math.abs(dTheta);
     prevTheta = theta;
-    if (vacuumCoast && adaptiveVacuumSteps) {
-      if (absDTheta < minAngularStep) dynamicStep = Math.min(maxStep, dt * 2);
-      else dynamicStep = dt;
-    }
     if (!transferTarget && level.conicRadius && r >= level.conicRadius) return points;
     if (angleAccum >= Math.PI * 2) return points;
   }
