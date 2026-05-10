@@ -15,6 +15,7 @@ export interface EstellaTransferOption {
   waitTime: number;
   transferTime: number;
   departureVInf: number;
+  departureVInfAngle: number;
   arrivalVInf: number;
   totalDeltaV: number;
   sourceBodyId: string;
@@ -253,11 +254,14 @@ function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef
   if (!s0 || !d1) return null;
   const lambert = lambertVelocity(s0, d1, tof, parent.gm);
   if (!lambert) return null;
-  const departureVInf = Math.hypot(lambert.v1x - s0.vx, lambert.v1y - s0.vy);
+  const depVx = lambert.v1x - s0.vx;
+  const depVy = lambert.v1y - s0.vy;
+  const departureVInf = Math.hypot(depVx, depVy);
+  const departureVInfAngle = Math.atan2(depVy, depVx);
   const arrivalVInf = Math.hypot(lambert.v2x - d1.vx, lambert.v2y - d1.vy);
   const totalDeltaV = departureVInf + arrivalVInf;
   if (!Number.isFinite(totalDeltaV)) return null;
-  return { id: 'now', label: 'Depart now', waitTime, transferTime: tof, departureVInf, arrivalVInf, totalDeltaV, sourceBodyId: source.id, destinationBodyId: destination.id };
+  return { id: 'now', label: 'Depart now', waitTime, transferTime: tof, departureVInf, departureVInfAngle, arrivalVInf, totalDeltaV, sourceBodyId: source.id, destinationBodyId: destination.id };
 }
 
 function computeTransferOptions(sourceId: string, destinationId: string): EstellaTransferOption[] {
@@ -307,17 +311,25 @@ function computeTransferOptions(sourceId: string, destinationId: string): Estell
   }
 
   const withMeta = (option: EstellaTransferOption, id: EstellaTransferOption['id'], label: string): EstellaTransferOption => ({ ...option, id, label });
-  const raw = [
-    now ? withMeta(now, 'now', 'Depart now') : null,
-    withMeta(soon, 'soon', 'Earliest <2x best'),
-    withMeta(best, 'best', 'Lowest ΔV'),
-  ].filter((option): option is EstellaTransferOption => !!option);
-  const deduped: EstellaTransferOption[] = [];
-  for (const option of raw) {
-    if (deduped.some(existing => Math.abs(existing.waitTime - option.waitTime) < 60 && Math.abs(existing.totalDeltaV - option.totalDeltaV) < 1)) continue;
-    deduped.push(option);
+  const distinct: EstellaTransferOption[] = [];
+  const addDistinct = (option: EstellaTransferOption | null, id: EstellaTransferOption['id'], label: string) => {
+    if (!option) return;
+    if (distinct.some(existing => Math.abs(existing.waitTime - option.waitTime) < Math.max(600, maxWait * 0.03))) return;
+    distinct.push(withMeta(option, id, label));
+  };
+  addDistinct(now, 'now', 'Depart now');
+  addDistinct(soon, 'soon', 'Earliest <2x best');
+  addDistinct(best, 'best', 'Lowest ΔV');
+  if (distinct.length < 3) {
+    const ranked = samples
+      .filter(sample => !distinct.some(existing => Math.abs(existing.waitTime - sample.waitTime) < Math.max(600, maxWait * 0.03)))
+      .sort((a, b) => a.totalDeltaV - b.totalDeltaV);
+    for (const sample of ranked) {
+      addDistinct(sample, distinct.length === 0 ? 'now' : distinct.length === 1 ? 'soon' : 'best', distinct.length === 1 ? 'Alternate window' : 'Later low ΔV');
+      if (distinct.length >= 3) break;
+    }
   }
-  return deduped;
+  return distinct.slice(0, 3);
 }
 
 export function generateEstellaMission(sourceId: string, destinationId: string): EstellaGeneratedMissionState {

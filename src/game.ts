@@ -35,7 +35,7 @@ import {
 import { MISSIONS } from './missions';
 import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
-import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState } from './estella-mission';
+import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 
 const PHYSICS_DT = 1 / 120;
@@ -1192,13 +1192,14 @@ export class Game {
       if (input.menuRight) p.mission.selectedTransferOption = (p.mission.selectedTransferOption + 1) % p.mission.transferOptions.length;
     }
     if (input.menuConfirm) {
-      const startWorldTime = p.mission.transferOptions[p.mission.selectedTransferOption]?.waitTime ?? 0;
-      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime);
+      const selectedTransfer = p.mission.transferOptions[p.mission.selectedTransferOption];
+      const startWorldTime = selectedTransfer?.waitTime ?? 0;
+      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);
     }
   }
 
-  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0): void {
-    const generated = createPlayableEstellaMission(sourceId, destinationId);
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
+    const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.currentMissionId = 8;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;

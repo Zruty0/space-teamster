@@ -46,6 +46,8 @@ export interface ClusterLevel {
   targetPortId: string;
   dockingLevelId?: number;
   escapeToOrbitalLevelId?: number;
+  escapeVectorAngle?: number;
+  escapeVectorSpeed?: number;
   clusterBodyId?: string;
   startX: number;
   startY: number;
@@ -670,6 +672,8 @@ function clusterEscapeGuide(s: ClusterState, level: ClusterLevel, time: number):
     showLandingSite: false,
     escapeSOIRadius: patchR,
     escapeToOrbitalLevelId: level.escapeToOrbitalLevelId,
+    escapeVectorAngle: level.escapeVectorAngle,
+    escapeVectorSpeed: level.escapeVectorSpeed,
   };
   const target = escapeTargetForLevel(guideLevel, time);
   if (!target) return null;

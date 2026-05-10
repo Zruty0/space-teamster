@@ -131,6 +131,7 @@ export interface OrbitalLevel {
   escapeTargetBodyId?: string;
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
+  escapeTransferTime?: number;
   parentTransferPeriapsisAltitude?: number;
   conicRadius?: number;
   orbitModeId?: string;
@@ -568,9 +569,9 @@ export function escapeTargetForLevel(
   const parentTarget = parentTransferTargetForLevel(level, time);
   if (parentTarget) return { angle: parentTarget.angle, speed: parentTarget.speed };
 
-  let angle: number | null = null;
+  let angle: number | null = level.escapeVectorAngle ?? null;
   let vInf = level.escapeVectorSpeed ?? 0;
-  if (level.escapeToOrbitalLevelId) {
+  if (level.escapeToOrbitalLevelId && angle === null) {
     const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
     const retargetsSameBody = nextLevel?.targetBodyId === level.bodyId;
     if (!retargetsSameBody) {
