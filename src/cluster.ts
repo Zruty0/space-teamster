@@ -324,8 +324,8 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
   const x = atEdge ? edge.x : (nextRockRandom(s) * 2 - 1) * level.rx * 0.9;
   const y = atEdge ? edge.y : (nextRockRandom(s) * 2 - 1) * level.ry * 0.9;
   const inward = Math.atan2(-edge.y, -edge.x) + (nextRockRandom(s) - 0.5) * 0.9;
-  const speed = gaussianRockRandom(s, 180, 70, 50);
-  const orbitalSpeed = gaussianRockRandom(s, 160, 60, 45);
+  const speed = gaussianRockRandom(s, 180, 130, 35);
+  const orbitalSpeed = gaussianRockRandom(s, 160, 115, 30);
   const rx = 8_000 + nextRockRandom(s) * 28_000;
   const ry = 5_000 + nextRockRandom(s) * 20_000;
   return {
@@ -335,7 +335,7 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
     vy: Math.sin(inward) * speed,
     radius,
     angle: nextRockRandom(s) * Math.PI * 2,
-    spin: (nextRockRandom(s) * 2 - 1) * 1.8,
+    spin: (nextRockRandom(s) * 2 - 1) * 0.45,
     mode,
     cx: x,
     cy: y,
@@ -474,7 +474,7 @@ function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): v
   }
 }
 
-const CLUSTER_SHIP_HIT_RADIUS = 1_600;
+const CLUSTER_SHIP_HIT_RADIUS = 900;
 
 function clusterRockCollision(s: ClusterState): boolean {
   const shipR = CLUSTER_SHIP_HIT_RADIUS;
@@ -761,6 +761,14 @@ function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: C
 
   drawClusterFlames(ctx, s, size, time);
   ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(sx, sy, CLUSTER_SHIP_HIT_RADIUS * cam.zoom, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255, 80, 80, 0.75)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size: number, time: number): void {
