@@ -68,7 +68,7 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
   if (override) return override;
   if (n.kind === 'moon') return { patchRadius: 320_000, displayPatchRadius: 320_000 };
   if (n.kind === 'dwarf-planet') return { patchRadius: 1_500_000, displayPatchRadius: 1_500_000 };
-  if (n.kind === 'gas-giant') return { patchRadius: 40_000_000, displayPatchRadius: 40_000_000 };
+  if (n.kind === 'gas-giant') return { patchRadius: 120_000_000, displayPatchRadius: 120_000_000 };
   if (n.kind === 'planet') return { patchRadius: 8_000_000, displayPatchRadius: 8_000_000 };
   return undefined;
 }
