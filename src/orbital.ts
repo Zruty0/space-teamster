@@ -2931,6 +2931,7 @@ function drawOrbitingPoiMarkers(
     const y = marker.orbitRadius * Math.sin(angle);
     const [mx, my] = ws(x, y, cam, W, H);
     const isTarget = level.station?.id === marker.id;
+    if (isGasGiantBodyId(level.bodyId) && !isTarget) continue;
     const col = isTarget ? '#00ffcc' : 'rgba(160, 170, 180, 0.75)';
 
     if (!isTarget) {
