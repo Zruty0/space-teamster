@@ -452,7 +452,13 @@ function createSystemTransferLevel(opts: {
     level.transferArrivalOrbitSense = targetStation.orbit.orbitSense;
     level.nextObjectiveDetail = `Intercept ${destination.name}; target dock orbit is ${senseLabel(targetStation.orbit.orbitSense)}.`;
   } else {
-    level.nextObjectiveDetail = `Intercept ${destination.name}; then deorbit to the target surface site.`;
+    const surfaceBody = bodyById(centralBodyIdForPoi(opts.finalDestinationId));
+    if (surfaceBody.id === destination.id && surfaceBody.orbit?.parentBodyId === opts.frameBodyId) {
+      level.transferArrivalOrbitSense = surfaceBody.orbit.orbitSense;
+      level.nextObjectiveDetail = `Intercept ${destination.name}; moon orbit is ${senseLabel(surfaceBody.orbit.orbitSense)}, then deorbit to the target surface site.`;
+    } else {
+      level.nextObjectiveDetail = `Intercept ${destination.name}; then deorbit to the target surface site.`;
+    }
   }
   return level;
 }
