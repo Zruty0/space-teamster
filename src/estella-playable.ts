@@ -1,7 +1,7 @@
 import { APPROACH_LEVELS, type ApproachLevel } from './approach';
 import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './docking';
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
-import { CLUSTER_LEVELS, createNearBeltClusterLevel, nearBeltClusterMemberNameForPoi, nearBeltDockingSlotForPoi, type ClusterLevel } from './cluster';
+import { CLUSTER_LEVELS, createNearBeltClusterLevel, nearBeltClusterMemberIdForPoi, nearBeltClusterMemberNameForPoi, nearBeltDockingSlotForPoi, type ClusterLevel } from './cluster';
 import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath } from './content/estella/navigation';
@@ -567,6 +567,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
+      clusterMemberId: nearBeltClusterMemberIdForPoi(destinationId),
       nextObjectiveDetail: 'Complete docking at the assigned Belt berth.',
       targetSpoke: clusterDestSlot.targetSpoke,
       targetSide: clusterDestSlot.targetSide,
@@ -584,6 +585,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
         clusterLevelId: clusterLevel.id,
         finalDestinationName: final.name,
         finalDestinationLocation: final.location,
+        clusterMemberId: nearBeltClusterMemberIdForPoi(sourceId),
         nextObjectiveDetail: `Clear the berth; next: ${clusterLevel.name}.`,
         targetSpoke: clusterSourceSlot.targetSpoke,
         targetSide: clusterSourceSlot.targetSide,

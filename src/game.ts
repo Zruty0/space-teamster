@@ -24,12 +24,12 @@ import {
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
-  createDockingState, createDockingCamera, updateDocking,
+  bayWorldPos, createDockingState, createDockingCamera, updateDocking,
   updateDockingCamera, renderDocking, drawDockingHUD,
 } from './docking';
 import {
-  ClusterLevel, ClusterState, ClusterCamera,
-  clusterLevelById, createClusterState, createClusterCamera,
+  ClusterLevel, ClusterState, ClusterCamera, ClusterInitOverride,
+  clusterLevelById, clusterMemberById, createClusterState, createClusterCamera, targetPort,
   updateCluster, updateClusterCamera, renderCluster, drawClusterHUD,
 } from './cluster';
 import { MISSIONS } from './missions';
@@ -47,7 +47,7 @@ type Phase =
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number }
-  | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; worldTimeStart: number; missionDvStart: number }
+  | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
   | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState };
 
@@ -177,12 +177,12 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private loadCluster(level: ClusterLevel, worldTimeStart: number = this.worldTime): void {
-    const cs = createClusterState(level);
+  private loadCluster(level: ClusterLevel, initOverride?: ClusterInitOverride, worldTimeStart: number = this.worldTime): void {
+    const cs = createClusterState(level, initOverride);
     const cam = createClusterCamera(level);
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    this.phase = { kind: 'cluster', level, cs, cam, state: 'flying', worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
     this.showGuidance('LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
     this.worldTime = worldTimeStart;
@@ -397,7 +397,7 @@ export class Game {
     else if (p.kind === 'approach') this.loadApproach(p.level, p.initOverride, p.worldTimeStart);
     else if (p.kind === 'orbital') this.loadOrbital(p.level, p.initOverride, p.worldTimeStart);
     else if (p.kind === 'docking') this.loadDocking(p.level, p.initOverride, p.worldTimeStart);
-    else this.loadCluster(p.level, p.worldTimeStart);
+    else this.loadCluster(p.level, p.initOverride, p.worldTimeStart);
   }
 
   private completePhase(
@@ -628,7 +628,9 @@ export class Game {
     if (!p.level.clusterLevelId) return null;
     const clusterLevel = clusterLevelById(p.level.clusterLevelId);
     if (!clusterLevel) return null;
-    return this.makeTransition('success', () => this.loadCluster(clusterLevel, this.worldTime));
+    const member = clusterMemberById(clusterLevel, p.level.clusterMemberId);
+    const init = member ? this.clusterInitFromDocking(p, member.x, member.y) : undefined;
+    return this.makeTransition('success', () => this.loadCluster(clusterLevel, init, this.worldTime));
   }
 
   // --- Cluster phase ---
@@ -684,7 +686,42 @@ export class Game {
     if (!p.level.dockingLevelId) return null;
     const dockingLevel = DOCKING_LEVELS.find(level => level.id === p.level.dockingLevelId);
     if (!dockingLevel) return null;
-    return this.makeTransition('success', () => this.loadDocking(dockingLevel, undefined, this.worldTime));
+    const init = this.dockingInitFromCluster(p, dockingLevel);
+    return this.makeTransition('success', () => this.loadDocking(dockingLevel, init, this.worldTime));
+  }
+
+  private clusterInitFromDocking(p: Extract<Phase, { kind: 'docking' }>, memberX: number, memberY: number): ClusterInitOverride {
+    const dx = p.ds.x - p.level.stationX;
+    const dy = p.ds.y - p.level.stationY;
+    return {
+      x: memberX + dx,
+      y: memberY + dy,
+      vx: p.ds.vx,
+      vy: p.ds.vy,
+      angle: p.ds.angle,
+    };
+  }
+
+  private dockingInitFromCluster(p: Extract<Phase, { kind: 'cluster' }>, dockingLevel: DockingLevel): DockingInitOverride | undefined {
+    const target = targetPort(p.level);
+    if (!target) return undefined;
+    const bay = dockingLevel.bays.find(b => b.isTarget);
+    if (!bay) return undefined;
+    const bp = bayWorldPos(bay, dockingLevel.stationX, dockingLevel.stationY);
+    const relX = p.cs.x - target.member.x;
+    const relY = p.cs.y - target.member.y;
+    const relDist = Math.hypot(relX, relY);
+    const ux = relDist > 1 ? relX / relDist : Math.cos(bp.angle);
+    const uy = relDist > 1 ? relY / relDist : Math.sin(bp.angle);
+    const minDist = 34;
+    const desiredDist = Math.max(minDist, Math.min(90, relDist));
+    return {
+      x: bp.x + ux * desiredDist,
+      y: bp.y + uy * desiredDist,
+      vx: p.cs.vx,
+      vy: p.cs.vy,
+      angle: p.cs.angle,
+    };
   }
 
   // --- Orbital phase ---

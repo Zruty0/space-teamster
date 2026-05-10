@@ -35,6 +35,7 @@ export interface DockingLevel {
   exitDistance: number;      // meters to clear for exit completion
   orbitalLevelId?: number;
   clusterLevelId?: number;
+  clusterMemberId?: string;
   finalDestinationName?: string;
   finalDestinationLocation?: string;
   nextObjectiveDetail?: string;
@@ -119,7 +120,7 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
 
 /** Get world-space center and open direction of a bay.
  *  Bay is perpendicular to spoke. Opens toward the spoke (inward). */
-function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; y: number; angle: number } {
+export function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; y: number; angle: number } {
   const spokeAngle = bay.spokeIdx * Math.PI / 2;
   // Position along spoke
   const alongDist = HUB_RADIUS + WALL_THICK + bay.slot * BAY_PITCH + BAY_SLOT_W / 2;
@@ -392,6 +393,7 @@ export function createGenericDockingLevel(opts: {
   exitMode: boolean;
   orbitalLevelId?: number;
   clusterLevelId?: number;
+  clusterMemberId?: string;
   targetSpoke?: number;
   targetSide?: number;
   targetSlot?: number;
@@ -413,6 +415,7 @@ export function createGenericDockingLevel(opts: {
     exitDistance: opts.exitDistance ?? 140,
     orbitalLevelId: opts.orbitalLevelId,
     clusterLevelId: opts.clusterLevelId,
+    clusterMemberId: opts.clusterMemberId,
     finalDestinationName: opts.finalDestinationName,
     finalDestinationLocation: opts.finalDestinationLocation,
     nextObjectiveDetail: opts.nextObjectiveDetail,

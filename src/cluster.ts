@@ -25,6 +25,14 @@ export interface ClusterMemberDef {
   ports: ClusterPortDef[];
 }
 
+export interface ClusterInitOverride {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+}
+
 export interface ClusterLevel {
   id: number;
   name: string;
@@ -167,9 +175,18 @@ export function nearBeltClusterMemberNameForPoi(poiId: string): string | undefin
   return memberForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId)?.name;
 }
 
+export function nearBeltClusterMemberIdForPoi(poiId: string): string | undefined {
+  return memberForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId)?.id;
+}
+
 export function nearBeltDockingSlotForPoi(poiId: string): { targetSpoke: number; targetSide: number; targetSlot: number } | undefined {
   const port = portForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId);
   return port ? { targetSpoke: port.targetSpoke, targetSide: port.targetSide, targetSlot: port.targetSlot } : undefined;
+}
+
+export function clusterMemberById(level: ClusterLevel, memberId: string | undefined): ClusterMemberDef | undefined {
+  if (!memberId) return undefined;
+  return level.members.find(member => member.id === memberId);
 }
 
 function memberForPoi(level: ClusterLevel, poiId: string): ClusterMemberDef | undefined {
@@ -210,13 +227,13 @@ export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId
   };
 }
 
-export function createClusterState(level: ClusterLevel): ClusterState {
+export function createClusterState(level: ClusterLevel, override?: ClusterInitOverride): ClusterState {
   return {
-    x: level.startX,
-    y: level.startY,
-    vx: level.startVX,
-    vy: level.startVY,
-    angle: level.startAngle,
+    x: override?.x ?? level.startX,
+    y: override?.y ?? level.startY,
+    vx: override?.vx ?? level.startVX,
+    vy: override?.vy ?? level.startVY,
+    angle: override?.angle ?? level.startAngle,
     angVel: 0,
     sas: false,
     alive: true,
@@ -244,7 +261,7 @@ export function createClusterCamera(level: ClusterLevel): ClusterCamera {
   return { x: level.startX, y: level.startY, zoom: 0.006 };
 }
 
-function targetPort(level: ClusterLevel): { member: ClusterMemberDef; port: ClusterPortDef; x: number; y: number } | null {
+export function targetPort(level: ClusterLevel): { member: ClusterMemberDef; port: ClusterPortDef; x: number; y: number } | null {
   for (const member of level.members) {
     const port = member.ports.find(p => p.id === level.targetPortId);
     if (port) return { member, port, x: member.x + port.x, y: member.y + port.y };
