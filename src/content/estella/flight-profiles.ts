@@ -308,6 +308,49 @@ const ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   },
 };
 
+const ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_CAMPS_AIRLESS_SURFACE_PROFILE,
+  subtitle: 'Generated Wells airless moon site',
+  features: [
+    { xStart: 820, xEnd: 870, height: 30 },
+    { xStart: 1140, xEnd: 1195, height: 44 },
+  ],
+};
+
+const ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
+  subtitle: 'Generated Wells thin-atmosphere moon site',
+  descentProfile: {
+    ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE.descentProfile,
+    startY: 22_000,
+    startVX: 760,
+    gateMaxSpeed: 145,
+  },
+  departureProfile: {
+    ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE.departureProfile,
+    exitAltitude: 22_000,
+    thresholdApoapsisAltitude: 65_000,
+    targetOrbitAltitude: 75_000,
+  },
+};
+
+const ESTELLA_WELLS_METHANE_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE,
+  subtitle: 'Generated Wells thick methane-atmosphere moon site',
+  descentProfile: {
+    ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE.descentProfile,
+    startY: 62_000,
+    startVX: 950,
+    gateMaxSpeed: 135,
+  },
+  departureProfile: {
+    ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE.departureProfile,
+    exitAltitude: 45_000,
+    thresholdApoapsisAltitude: 95_000,
+    targetOrbitAltitude: 115_000,
+  },
+};
+
 export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurfaceFlightProfile>> = {
   'estella-i-worker-hab': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-refractory-mine': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
@@ -365,4 +408,39 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
     ...ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
     labelVisibility: 'target',
   },
+
+  'estella-xa-volatiles-transit': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xa-deep-ice-mine': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xa-exobiology-research': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xb-rare-element-mine': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xb-smelting-processing': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xb-worker-hab': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xc-main-outpost': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xd-geothermal-extraction': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xia-sulfur-mine': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-xia-sealed-worker-hab': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-xia-rare-element-extraction': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-xib-cryo-transit': ESTELLA_WELLS_METHANE_SURFACE_PROFILE,
+  'estella-xib-methane-refinery': ESTELLA_WELLS_METHANE_SURFACE_PROFILE,
+  'estella-xib-organic-chemistry': ESTELLA_WELLS_METHANE_SURFACE_PROFILE,
+  'estella-xib-hydrocarbon-extraction': ESTELLA_WELLS_METHANE_SURFACE_PROFILE,
+  'estella-xib-science-settlement': { ...ESTELLA_WELLS_METHANE_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xic-deep-ice-exobiology': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xic-ice-mining': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xid-services-outfitter-hangar': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xid-customs-transit': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xid-specialty-cargo': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xie-outer-spec-drydock': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xie-component-fabrication': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xie-rare-alloy-extraction': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xif-observatory': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xif-deep-listening-array': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xif-sealed-research-outpost': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xiia-deep-ice-mine': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-xiia-volatiles-transit': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-xiia-isolated-settlement': { ...ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xiib-outpost': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xiic-isotope-mining': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xiic-comet-research': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xiid-black-project-exile': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
 };

@@ -2612,6 +2612,34 @@ function drawStars(ctx: CanvasRenderingContext2D, W: number, H: number): void {
 }
 
 // --- Planet ---
+function isGasGiantBodyId(bodyId: string): boolean {
+  return bodyId === 'estella-x' || bodyId === 'estella-xi' || bodyId === 'estella-xii';
+}
+
+function drawGasGiantBands(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: [number, number, number]): void {
+  if (r < 4) return;
+  const [cr, cg, cb] = color;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+  const bands = 9;
+  for (let i = 0; i < bands; i++) {
+    const y0 = cy - r + (2 * r * i) / bands;
+    const h = (2 * r) / bands + 1;
+    const alpha = i % 2 === 0 ? 0.22 : 0.10;
+    ctx.fillStyle = `rgba(${Math.min(255, cr + 45)}, ${Math.min(255, cg + 35)}, ${Math.min(255, cb + 25)}, ${alpha})`;
+    ctx.fillRect(cx - r, y0, 2 * r, h);
+  }
+  if (r > 10) {
+    ctx.beginPath();
+    ctx.ellipse(cx + r * 0.28, cy + r * 0.18, r * 0.18, r * 0.07, -0.25, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${Math.min(255, cr + 70)}, ${Math.min(255, cg + 45)}, ${Math.min(255, cb + 35)}, 0.28)`;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawPlanet(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   level: OrbitalLevel, W: number, H: number,
@@ -2624,6 +2652,7 @@ function drawPlanet(
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = level.planetFillColor ?? '#0a0f0a';
   ctx.fill();
+  if (isGasGiantBodyId(level.bodyId)) drawGasGiantBands(ctx, cx, cy, r, bodyById(level.bodyId).color);
 
   ctx.beginPath();
   const segments = 120;
@@ -2726,11 +2755,12 @@ function drawSystemBodies(
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const br = Math.max(3, body.radius * cam.zoom);
+    const br = isGasGiantBodyId(body.id) ? Math.max(8, body.radius * cam.zoom) : Math.max(3, body.radius * cam.zoom);
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, Math.PI * 2);
     ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
     ctx.fill();
+    if (isGasGiantBodyId(body.id)) drawGasGiantBands(ctx, bx, by, br, body.color);
     ctx.strokeStyle = `rgba(255,255,255,0.35)`;
     ctx.lineWidth = 1;
     ctx.stroke();

@@ -68,6 +68,7 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
   if (override) return override;
   if (n.kind === 'moon') return { patchRadius: 320_000, displayPatchRadius: 320_000 };
   if (n.kind === 'dwarf-planet') return { patchRadius: 1_500_000, displayPatchRadius: 1_500_000 };
+  if (n.kind === 'gas-giant') return { patchRadius: 40_000_000, displayPatchRadius: 40_000_000 };
   if (n.kind === 'planet') return { patchRadius: 8_000_000, displayPatchRadius: 8_000_000 };
   return undefined;
 }
@@ -120,6 +121,10 @@ function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
 function atmosphereColor(id: string, fallback: [number, number, number]): [number, number, number] {
   if (id === 'estella-iii') return [95, 230, 140];
   if (id === 'estella-iv') return [80, 180, 255];
+  if (id === 'estella-x') return [230, 180, 100];
+  if (id === 'estella-xi') return [230, 145, 100];
+  if (id === 'estella-xii') return [100, 160, 240];
+  if (id === 'estella-xib') return [130, 190, 210];
   return fallback;
 }
 

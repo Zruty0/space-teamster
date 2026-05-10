@@ -123,6 +123,26 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     rotationPeriod: 52_000,
     notes: 'Icy sibling dwarf planet near Estella VIII for same-belt transfer prototyping.',
   },
+
+  'estella-x': { radius: 800_000, gm: 22 * 800_000 * 800_000, rotationPeriod: 36_000, notes: 'Warm inner gas giant of the Wells; not landable.' },
+  'estella-xa': { radius: 170_000, gm: 1.1 * 170_000 * 170_000, rotationPeriod: 66_000, notes: 'Airless icy moon of Estella X.' },
+  'estella-xb': { radius: 135_000, gm: 0.85 * 135_000 * 135_000, rotationPeriod: 52_000, notes: 'Rocky airless rare-element moon of Estella X.' },
+  'estella-xc': { radius: 76_000, gm: 0.36 * 76_000 * 76_000, rotationPeriod: 40_000, notes: 'Small airless service moon of Estella X.' },
+  'estella-xd': { radius: 100_000, gm: 0.55 * 100_000 * 100_000, rotationPeriod: 43_000, notes: 'Tidally heated rocky airless moon of Estella X.' },
+
+  'estella-xi': { radius: 1_150_000, gm: 34 * 1_150_000 * 1_150_000, rotationPeriod: 32_000, notes: 'Large busy gas giant of the Wells; not landable.' },
+  'estella-xia': { radius: 140_000, gm: 1.35 * 140_000 * 140_000, rotationPeriod: 42_000, notes: 'Sulfur volcanic moon with thin SO2 atmosphere.' },
+  'estella-xib': { radius: 240_000, gm: 1.9 * 240_000 * 240_000, rotationPeriod: 92_000, notes: 'Methane/nitrogen moon with thick cold atmosphere.' },
+  'estella-xic': { radius: 110_000, gm: 0.62 * 110_000 * 110_000, rotationPeriod: 48_000, notes: 'Airless icy research moon of Estella XI.' },
+  'estella-xid': { radius: 200_000, gm: 1.25 * 200_000 * 200_000, rotationPeriod: 57_000, notes: 'Rocky airless Wells hub moon of Estella XI.' },
+  'estella-xie': { radius: 88_000, gm: 0.45 * 88_000 * 88_000, rotationPeriod: 39_000, notes: 'Small airless drydock moon of Estella XI.' },
+  'estella-xif': { radius: 72_000, gm: 0.32 * 72_000 * 72_000, rotationPeriod: 37_000, notes: 'Small airless observatory moon of Estella XI.' },
+
+  'estella-xii': { radius: 720_000, gm: 15 * 720_000 * 720_000, rotationPeriod: 44_000, notes: 'Cold outer gas giant of the Wells; not landable.' },
+  'estella-xiia': { radius: 190_000, gm: 0.95 * 190_000 * 190_000, rotationPeriod: 72_000, notes: 'Large icy moon with thin nitrogen atmosphere.' },
+  'estella-xiib': { radius: 70_000, gm: 0.34 * 70_000 * 70_000, rotationPeriod: 36_000, notes: 'Small airless rocky moon of Estella XII.' },
+  'estella-xiic': { radius: 95_000, gm: 0.30 * 95_000 * 95_000, rotationPeriod: 62_000, notes: 'Captured comet/KBO-like airless moon of Estella XII.' },
+  'estella-xiid': { radius: 68_000, gm: 0.28 * 68_000 * 68_000, rotationPeriod: 34_000, notes: 'Small airless restricted moon of Estella XII.' },
 };
 
 /** Flight/rendering profile data needed to adapt Estella bodies into current gameplay phases. */
@@ -271,6 +291,26 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
       transitionAltitude: 8_000,
     },
   },
+
+  'estella-x': { color: [220, 180, 105], planetFillColor: '#2a1d0a', planetStrokeColor: '#d6a45b', terrainFillColor: '#2a1d0a', terrainStrokeColor: '#d6a45b', terrainBrightColor: '#f0c982', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.06, thrustAccelMax: 1.5, fuelDeltaV: 1_700, transitionAltitude: 120_000 } },
+  'estella-xa': { color: [150, 185, 210], planetFillColor: '#101922', planetStrokeColor: '#6d94ad', terrainFillColor: '#101922', terrainStrokeColor: '#6d94ad', terrainBrightColor: '#a9c7d8', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.05, thrustAccelMax: 1.0, fuelDeltaV: 900, transitionAltitude: 6_000 } },
+  'estella-xb': { color: [170, 135, 105], planetFillColor: '#1d140d', planetStrokeColor: '#8f6d52', terrainFillColor: '#1d140d', terrainStrokeColor: '#8f6d52', terrainBrightColor: '#c89d78', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.045, thrustAccelMax: 0.95, fuelDeltaV: 850, transitionAltitude: 5_500 } },
+  'estella-xc': { color: [135, 135, 125], planetFillColor: '#141412', planetStrokeColor: '#73736a', terrainFillColor: '#141412', terrainStrokeColor: '#73736a', terrainBrightColor: '#aaa89d', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.85, fuelDeltaV: 760, transitionAltitude: 4_500 } },
+  'estella-xd': { color: [180, 110, 80], planetFillColor: '#21100b', planetStrokeColor: '#a15b3e', terrainFillColor: '#21100b', terrainStrokeColor: '#a15b3e', terrainBrightColor: '#d68a62', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.9, fuelDeltaV: 800, transitionAltitude: 5_000 } },
+
+  'estella-xi': { color: [210, 145, 105], planetFillColor: '#251108', planetStrokeColor: '#c27a52', terrainFillColor: '#251108', terrainStrokeColor: '#c27a52', terrainBrightColor: '#e8a878', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.06, thrustAccelMax: 1.5, fuelDeltaV: 1_900, transitionAltitude: 160_000 } },
+  'estella-xia': { color: [215, 160, 70], planetFillColor: '#241506', planetStrokeColor: '#c89437', terrainFillColor: '#241506', terrainStrokeColor: '#c89437', terrainBrightColor: '#f0c25f', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.055, thrustAccelMax: 1.1, fuelDeltaV: 950, transitionAltitude: 18_000 } },
+  'estella-xib': { color: [125, 170, 205], planetFillColor: '#0c1720', planetStrokeColor: '#6096b8', terrainFillColor: '#0e1820', terrainStrokeColor: '#6096b8', terrainBrightColor: '#a5c9df', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.07, thrustAccelMax: 1.5, fuelDeltaV: 1_250, transitionAltitude: 45_000 } },
+  'estella-xic': { color: [155, 185, 205], planetFillColor: '#101a20', planetStrokeColor: '#789bab', terrainFillColor: '#101a20', terrainStrokeColor: '#789bab', terrainBrightColor: '#b3cad6', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.85, fuelDeltaV: 800, transitionAltitude: 5_000 } },
+  'estella-xid': { color: [150, 145, 135], planetFillColor: '#151412', planetStrokeColor: '#7c7770', terrainFillColor: '#151412', terrainStrokeColor: '#7c7770', terrainBrightColor: '#b2aaa0', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.05, thrustAccelMax: 1.0, fuelDeltaV: 900, transitionAltitude: 6_000 } },
+  'estella-xie': { color: [135, 130, 140], planetFillColor: '#141318', planetStrokeColor: '#726e7b', terrainFillColor: '#141318', terrainStrokeColor: '#726e7b', terrainBrightColor: '#aaa4b5', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.85, fuelDeltaV: 760, transitionAltitude: 4_500 } },
+  'estella-xif': { color: [130, 140, 150], planetFillColor: '#12161a', planetStrokeColor: '#6d7882', terrainFillColor: '#12161a', terrainStrokeColor: '#6d7882', terrainBrightColor: '#a4b2bd', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.82, fuelDeltaV: 740, transitionAltitude: 4_500 } },
+
+  'estella-xii': { color: [100, 150, 220], planetFillColor: '#081326', planetStrokeColor: '#5b89d0', terrainFillColor: '#081326', terrainStrokeColor: '#5b89d0', terrainBrightColor: '#91b6ee', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.06, thrustAccelMax: 1.4, fuelDeltaV: 1_600, transitionAltitude: 120_000 } },
+  'estella-xiia': { color: [150, 185, 220], planetFillColor: '#0e1724', planetStrokeColor: '#789dc5', terrainFillColor: '#0e1724', terrainStrokeColor: '#789dc5', terrainBrightColor: '#b5cdec', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.055, thrustAccelMax: 1.1, fuelDeltaV: 950, transitionAltitude: 16_000 } },
+  'estella-xiib': { color: [135, 130, 125], planetFillColor: '#141311', planetStrokeColor: '#716d68', terrainFillColor: '#141311', terrainStrokeColor: '#716d68', terrainBrightColor: '#aaa39b', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.82, fuelDeltaV: 740, transitionAltitude: 4_500 } },
+  'estella-xiic': { color: [125, 150, 165], planetFillColor: '#10171a', planetStrokeColor: '#6a828d', terrainFillColor: '#10171a', terrainStrokeColor: '#6a828d', terrainBrightColor: '#9fb9c6', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.8, fuelDeltaV: 720, transitionAltitude: 4_500 } },
+  'estella-xiid': { color: [125, 120, 130], planetFillColor: '#131216', planetStrokeColor: '#6b6672', terrainFillColor: '#131216', terrainStrokeColor: '#6b6672', terrainBrightColor: '#9f98aa', orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.8, fuelDeltaV: 720, transitionAltitude: 4_500 } },
 };
 
 /** Exact atmosphere simulation params by stable node id. */
@@ -309,5 +349,47 @@ export const ESTELLA_ATMOSPHERE_PHYSICS: Partial<Record<string, AtmospherePhysic
     surfaceDensity: 1.0,
     scaleHeight: 8_500,
     notes: 'Humid marine breathable atmosphere for Dahai, a water world.'
+  },
+  'estella-x': {
+    kind: 'gas-giant',
+    height: 220_000,
+    surfaceDensity: 8.0,
+    scaleHeight: 42_000,
+    notes: 'Warm gas-giant upper atmosphere; low-atmosphere entry is fatal rather than an approach phase.',
+  },
+  'estella-xi': {
+    kind: 'gas-giant',
+    height: 300_000,
+    surfaceDensity: 11.0,
+    scaleHeight: 55_000,
+    notes: 'Large gas-giant upper atmosphere; low-atmosphere entry is fatal rather than an approach phase.',
+  },
+  'estella-xii': {
+    kind: 'gas-giant',
+    height: 210_000,
+    surfaceDensity: 6.5,
+    scaleHeight: 44_000,
+    notes: 'Cold gas-giant upper atmosphere; low-atmosphere entry is fatal rather than an approach phase.',
+  },
+  'estella-xia': {
+    kind: 'thin-so2',
+    height: 38_000,
+    surfaceDensity: 0.22,
+    scaleHeight: 8_000,
+    notes: 'Thin hostile SO2 atmosphere over volcanic sulfur terrain.',
+  },
+  'estella-xib': {
+    kind: 'methane-nitrogen',
+    height: 85_000,
+    surfaceDensity: 1.6,
+    scaleHeight: 13_000,
+    notes: 'Thick cold methane/nitrogen atmosphere.',
+  },
+  'estella-xiia': {
+    kind: 'thin-nitrogen',
+    height: 34_000,
+    surfaceDensity: 0.12,
+    scaleHeight: 9_000,
+    notes: 'Thin nitrogen atmosphere on an icy outer moon.',
   },
 };
