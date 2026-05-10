@@ -1373,10 +1373,10 @@ export function updateOrbital(
               const leftX = -pdy, leftY = pdx;
               const prog = thrustX * pdx + thrustY * pdy;
               const lat = thrustX * leftX + thrustY * leftY;
-              if (prog > 0.01) s.thrustPro = true;
-              if (prog < -0.01) s.thrustRetro = true;
-              if (lat > 0.01) s.thrustLeft = true;
-              if (lat < -0.01) s.thrustRight = true;
+              if (prog > THRUST_EPS) s.thrustPro = true;
+              if (prog < -THRUST_EPS) s.thrustRetro = true;
+              if (lat > THRUST_EPS) s.thrustLeft = true;
+              if (lat < -THRUST_EPS) s.thrustRight = true;
               s.thrusting = 'prograde'; // mark as thrusting for prediction dirty
             }
           } else if (s.inAtmo) {
