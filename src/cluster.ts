@@ -538,17 +538,17 @@ function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size:
   const hi = s.highThrust ? 2.2 : 1;
   const main = 14 * hi * flicker;
   const side = main;
-  const rot = 7 * hi * flicker;
+  const rot = 1.75 * flicker;
   const w = s.highThrust ? 3 : 2;
 
-  function flare(x: number, y: number, dx: number, dy: number, len: number, width: number): void {
+  function flare(x: number, y: number, dx: number, dy: number, len: number, width: number, color?: string, lineWidth = w): void {
     const px = -dy, py = dx;
     ctx.beginPath();
     ctx.moveTo(x - px * width, y - py * width);
     ctx.lineTo(x + dx * len, y + dy * len);
     ctx.lineTo(x + px * width, y + py * width);
-    ctx.strokeStyle = s.highThrust ? '#ffdd66' : '#ffaa00';
-    ctx.lineWidth = w;
+    ctx.strokeStyle = color ?? (s.highThrust ? '#ffdd66' : '#ffaa00');
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
   }
 
@@ -562,12 +562,12 @@ function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size:
   if (s.thrustLeft || s.sasLeft) flare(size * 0.45, sideY, 1, 0, side * Math.max(s.thrustLeft, s.sasLeft), 1.1);
   if (s.thrustRight || s.sasRight) flare(-size * 0.45, sideY, -1, 0, side * Math.max(s.thrustRight, s.sasRight), 1.1);
   if (s.rotCCW || s.sasCCW) {
-    flare(-size * 0.45, -size * 0.35, -1, 0, rot, 0.8);
-    flare(size * 0.45, size * 0.65, 1, 0, rot, 0.8);
+    flare(-size * 0.45, -size * 0.35, -1, 0, rot, 0.45, '#ff3333', 1.2);
+    flare(size * 0.45, size * 0.65, 1, 0, rot, 0.45, '#ff3333', 1.2);
   }
   if (s.rotCW || s.sasCW) {
-    flare(size * 0.45, -size * 0.35, 1, 0, rot, 0.8);
-    flare(-size * 0.45, size * 0.65, -1, 0, rot, 0.8);
+    flare(size * 0.45, -size * 0.35, 1, 0, rot, 0.45, '#ff3333', 1.2);
+    flare(-size * 0.45, size * 0.65, -1, 0, rot, 0.45, '#ff3333', 1.2);
   }
 }
 
