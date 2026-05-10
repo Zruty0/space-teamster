@@ -1786,7 +1786,7 @@ function pointAtAltitudeCrossing(prev: PredPoint, pt: PredPoint, altitude: numbe
 }
 
 function isClusterTransferBody(body: OrbitalTransferBody | null | undefined): boolean {
-  return !!body && (body.arrivalClusterLevelId !== undefined || body.id.startsWith('belt-cluster-'));
+  return !!body && (body.arrivalClusterLevelId !== undefined || body.gm === 0);
 }
 
 function clusterTargetRendezvousState(level: OrbitalLevel, s: OrbitalState): { body: OrbitalTransferBody; x: number; y: number; vx: number; vy: number; dist: number; relSpeed: number } | null {
@@ -2480,9 +2480,9 @@ export function updateOrbitalCamera(
       inRendezvousZoom = true;
       rendezvousZoomTarget = { x: sp.x, y: sp.y, minRadius: 50_000 };
     }
-  } else if (level.targetBodyId?.startsWith('belt-cluster-') && !s.inAtmo) {
+  } else if (level.targetBodyId && !s.inAtmo) {
     const body = getTransferBody(level, level.targetBodyId);
-    const bp = body ? transferBodyState(level, body.id, s.time) : null;
+    const bp = isClusterTransferBody(body) ? transferBodyState(level, body!.id, s.time) : null;
     if (body && bp) {
       const dx = s.x - bp.x, dy = s.y - bp.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -2759,7 +2759,7 @@ function drawSystemBodies(
 
   for (const body of level.systemBodies ?? []) {
     const isTargetBody = body.id === level.targetBodyId;
-    if ((body.id === 'estella-viii' || body.id === 'estella-ix' || body.id.startsWith('belt-cluster-')) && !isTargetBody) continue;
+    if ((body.id === 'estella-viii' || body.id === 'estella-ix' || body.gm === 0) && !isTargetBody) continue;
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
     const [bx, by] = ws(pos.x, pos.y, cam, W, H);

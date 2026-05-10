@@ -487,12 +487,12 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xiv-abandoned-active-site': { kind: 'surface', parentId: 'estella-xiv', angle: -2.45, side: 'unspecified' },
 
   'reach-comet-swarm': { kind: 'orbit', parentId: 'estella', usage: 'swarm', orbit: { kind: 'circular', radius: 7_250_000_000, epochAngle: 2.35, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-1': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_250_000_000, epochAngle: 2.35, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-2': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_285_000_000, epochAngle: 2.42, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-3': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_315_000_000, epochAngle: 2.27, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-4': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_360_000_000, epochAngle: 2.52, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-5': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_405_000_000, epochAngle: 2.17, epochTime: 0, orbitSense: 1 } },
-  'reach-comet-fragment-6': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 7_455_000_000, epochAngle: 2.61, epochTime: 0, orbitSense: 1 } },
+  'reach-comet-fragment-1': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: 0, y: 0 },
+  'reach-comet-fragment-2': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: 14_000, y: 8_000 },
+  'reach-comet-fragment-3': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: -12_000, y: 18_000 },
+  'reach-comet-fragment-4': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: 28_000, y: -6_000 },
+  'reach-comet-fragment-5': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: -27_000, y: -18_000 },
+  'reach-comet-fragment-6': { kind: 'cluster-member', parentId: 'reach-comet-swarm', x: 9_000, y: -31_000 },
 
   'reach-rogue-kbo-fragment': { kind: 'orbit', parentId: 'estella', usage: 'outer', orbit: { kind: 'circular', radius: 8_450_000_000, epochAngle: -0.55, epochTime: 0, orbitSense: 1 } },
   'reach-rogue-isotope-mine': { kind: 'surface', parentId: 'reach-rogue-kbo-fragment', angle: 0.65, side: 'equatorial' },

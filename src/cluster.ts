@@ -166,6 +166,30 @@ const SURVEY_ROCK_PORTS = makePorts('survey-rock-es-s-0101', [
   { id: 'survey-rock-beacon-dock-port', name: 'Beacon Dock', poiId: 'survey-rock-beacon-dock' },
 ]);
 
+const REACH_COMET_FRAGMENT_1_PORTS = makePorts('reach-comet-fragment-1', [
+  { id: 'reach-comet-fragment-1-dock-port', name: 'Ice Mining Dock', poiId: 'reach-comet-fragment-1-poi' },
+], 2800);
+
+const REACH_COMET_FRAGMENT_2_PORTS = makePorts('reach-comet-fragment-2', [
+  { id: 'reach-comet-fragment-2-dock-port', name: 'Prospector Cache', poiId: 'reach-comet-fragment-2-poi' },
+], 2600);
+
+const REACH_COMET_FRAGMENT_3_PORTS = makePorts('reach-comet-fragment-3', [
+  { id: 'reach-comet-fragment-3-dock-port', name: 'Dead-Drop', poiId: 'reach-comet-fragment-3-poi' },
+], 2400);
+
+const REACH_COMET_FRAGMENT_4_PORTS = makePorts('reach-comet-fragment-4', [
+  { id: 'reach-comet-fragment-4-dock-port', name: 'Science Cell', poiId: 'reach-comet-fragment-4-poi' },
+], 2600);
+
+const REACH_COMET_FRAGMENT_5_PORTS = makePorts('reach-comet-fragment-5', [
+  { id: 'reach-comet-fragment-5-dock-port', name: 'Secondary Ice Dock', poiId: 'reach-comet-fragment-5-poi' },
+], 2500);
+
+const REACH_COMET_FRAGMENT_6_PORTS = makePorts('reach-comet-fragment-6', [
+  { id: 'reach-comet-fragment-6-dock-port', name: 'Outer Science Cell', poiId: 'reach-comet-fragment-6-poi' },
+], 2400);
+
 export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
   id: 90,
   name: 'Near Belt Traffic Volume',
@@ -194,10 +218,65 @@ export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
   timeWarpLevels: [1, 2, 5, 10],
 };
 
-export const CLUSTER_LEVELS: ClusterLevel[] = [NEAR_BELT_CLUSTER_LEVEL];
+export const REACH_COMET_SWARM_CLUSTER_LEVEL: ClusterLevel = {
+  id: 91,
+  name: 'Reach Comet Swarm Traffic Volume',
+  subtitle: 'Local flight: captured comet fragments',
+  rx: 85_000,
+  ry: 58_000,
+  orbitAngle: -0.15,
+  members: [
+    { id: 'reach-comet-fragment-1', name: 'Comet Fragment 1', x: 0, y: 0, radius: 2600, ports: REACH_COMET_FRAGMENT_1_PORTS },
+    { id: 'reach-comet-fragment-2', name: 'Comet Fragment 2', x: 14_000, y: 8_000, radius: 2300, ports: REACH_COMET_FRAGMENT_2_PORTS },
+    { id: 'reach-comet-fragment-3', name: 'Comet Fragment 3', x: -12_000, y: 18_000, radius: 2100, ports: REACH_COMET_FRAGMENT_3_PORTS },
+    { id: 'reach-comet-fragment-4', name: 'Comet Fragment 4', x: 28_000, y: -6_000, radius: 2300, ports: REACH_COMET_FRAGMENT_4_PORTS },
+    { id: 'reach-comet-fragment-5', name: 'Comet Fragment 5', x: -27_000, y: -18_000, radius: 2200, ports: REACH_COMET_FRAGMENT_5_PORTS },
+    { id: 'reach-comet-fragment-6', name: 'Comet Fragment 6', x: 9_000, y: -31_000, radius: 2000, ports: REACH_COMET_FRAGMENT_6_PORTS },
+  ],
+  targetPortId: 'reach-comet-fragment-1-dock-port',
+  startX: -9_000,
+  startY: 2_500,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 2.05,
+  forwardAccel: 9.375,
+  rotAccel: 2.8,
+  baseTimeScale: 4,
+  rockCount: 130,
+  captureRadius: 8_000,
+  captureMaxSpeed: 18,
+  timeWarpLevels: [1, 2, 5, 10],
+};
+
+const CLUSTER_TEMPLATES = [NEAR_BELT_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL];
+
+export const CLUSTER_LEVELS: ClusterLevel[] = [...CLUSTER_TEMPLATES];
 
 export function clusterLevelById(id: number): ClusterLevel | undefined {
   return CLUSTER_LEVELS.find(l => l.id === id);
+}
+
+export function clusterBodyIdForPoi(poiId: string): string | undefined {
+  const template = clusterTemplateForPoi(poiId);
+  if (template === NEAR_BELT_CLUSTER_LEVEL) return 'belt-cluster-near';
+  if (template === REACH_COMET_SWARM_CLUSTER_LEVEL) return 'reach-comet-swarm';
+  return undefined;
+}
+
+export function clusterMemberNameForPoi(poiId: string): string | undefined {
+  const template = clusterTemplateForPoi(poiId);
+  return template ? memberForPoi(template, poiId)?.name : undefined;
+}
+
+export function clusterMemberIdForPoi(poiId: string): string | undefined {
+  const template = clusterTemplateForPoi(poiId);
+  return template ? memberForPoi(template, poiId)?.id : undefined;
+}
+
+export function clusterDockingSlotForPoi(poiId: string): { targetSpoke: number; targetSide: number; targetSlot: number } | undefined {
+  const template = clusterTemplateForPoi(poiId);
+  const port = template ? portForPoi(template, poiId) : undefined;
+  return port ? { targetSpoke: port.targetSpoke, targetSide: port.targetSide, targetSlot: port.targetSlot } : undefined;
 }
 
 export function nearBeltClusterMemberNameForPoi(poiId: string): string | undefined {
@@ -230,10 +309,14 @@ function portForPoi(level: ClusterLevel, poiId: string): ClusterPortDef | undefi
   return undefined;
 }
 
-export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
-  const sourceMember = memberForPoi(NEAR_BELT_CLUSTER_LEVEL, sourcePoiId);
-  const destPort = portForPoi(NEAR_BELT_CLUSTER_LEVEL, destinationPoiId);
-  const destMember = destPort ? memberForPoi(NEAR_BELT_CLUSTER_LEVEL, destinationPoiId) : undefined;
+function clusterTemplateForPoi(poiId: string): ClusterLevel | undefined {
+  return CLUSTER_TEMPLATES.find(level => !!portForPoi(level, poiId));
+}
+
+function createClusterLevelFromTemplate(template: ClusterLevel, sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
+  const sourceMember = memberForPoi(template, sourcePoiId);
+  const destPort = portForPoi(template, destinationPoiId);
+  const destMember = destPort ? memberForPoi(template, destinationPoiId) : undefined;
   if (!sourceMember || !destPort || !destMember) return null;
 
   const dx = destMember.x - sourceMember.x;
@@ -241,9 +324,9 @@ export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId
   const dist = Math.max(1, Math.hypot(dx, dy));
   const ux = dx / dist;
   const uy = dy / dist;
-  const startDist = NEAR_BELT_CLUSTER_LEVEL.captureRadius + 3_000;
+  const startDist = template.captureRadius + 3_000;
   return {
-    ...NEAR_BELT_CLUSTER_LEVEL,
+    ...template,
     id,
     subtitle: `Local flight: ${sourceMember.name} to ${destMember.name}`,
     targetPortId: destPort.id,
@@ -254,6 +337,15 @@ export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId
     startVY: 0,
     startAngle: Math.atan2(ux, uy),
   };
+}
+
+export function createPoiClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
+  const template = clusterTemplateForPoi(sourcePoiId) ?? clusterTemplateForPoi(destinationPoiId);
+  return template ? createClusterLevelFromTemplate(template, sourcePoiId, destinationPoiId, id, dockingLevelId) : null;
+}
+
+export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
+  return createClusterLevelFromTemplate(NEAR_BELT_CLUSTER_LEVEL, sourcePoiId, destinationPoiId, id, dockingLevelId);
 }
 
 export function createClusterState(level: ClusterLevel, override?: ClusterInitOverride): ClusterState {

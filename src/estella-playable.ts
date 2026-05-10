@@ -1,7 +1,7 @@
 import { APPROACH_LEVELS, type ApproachLevel } from './approach';
 import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './docking';
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
-import { CLUSTER_LEVELS, createNearBeltClusterLevel, nearBeltClusterMemberIdForPoi, nearBeltClusterMemberNameForPoi, nearBeltDockingSlotForPoi, type ClusterLevel } from './cluster';
+import { CLUSTER_LEVELS, clusterBodyIdForPoi, clusterDockingSlotForPoi, clusterMemberIdForPoi, clusterMemberNameForPoi, createPoiClusterLevel, type ClusterLevel } from './cluster';
 import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { type EstellaTransferOption } from './estella-mission';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
@@ -21,7 +21,6 @@ interface GeneratedDepartureTarget {
 }
 
 const ESTELLA_SYSTEM_BODY_ID = 'estella';
-const NEAR_BELT_CLUSTER_BODY_ID = 'belt-cluster-near';
 const TRANSFER_PATCH_RADIUS = 1_500_000;
 const TRANSFER_TARGET_WALL_ORBIT_SECONDS = 5 * 60;
 const TRANSFER_MIN_BASE_TIME_SCALE = 100;
@@ -175,7 +174,7 @@ function transferBodyMarker(bodyId: string, arrivalOrbitalLevelId?: number, arri
     arrivalSpeedMarginMax: 90,
     arrivalOrbitalLevelId,
     arrivalClusterLevelId,
-    captureMaxSpeed: bodyId.startsWith('belt-cluster-') ? 250 : undefined,
+    captureMaxSpeed: arrivalClusterLevelId !== undefined ? 250 : undefined,
   };
 }
 
@@ -473,8 +472,8 @@ function createSystemTransferLevel(opts: {
   applyDestinationHud(level, opts.finalDestinationId);
   level.nextObjectiveName = destination.name;
   const finalKind = playableKind(opts.finalDestinationId);
-  if (nearBeltDockingSlotForPoi(opts.finalDestinationId)) {
-    level.nextObjectiveDetail = `Rendezvous with ${destination.name}; then enter Near Belt local traffic.`;
+  if (clusterDockingSlotForPoi(opts.finalDestinationId)) {
+    level.nextObjectiveDetail = `Rendezvous with ${destination.name}; then enter local cluster traffic.`;
   } else if (finalKind === 'dock') {
     const targetStation = stationPoiById(parentNode(opts.finalDestinationId)!.id);
     level.transferArrivalOrbitSense = targetStation.orbit.orbitSense;
@@ -507,13 +506,14 @@ function stationTargetForPoi(poiId: string): NonNullable<OrbitalLevel['station']
 }
 
 function centralBodyIdForPoi(poiId: string): string {
-  if (nearBeltDockingSlotForPoi(poiId)) return NEAR_BELT_CLUSTER_BODY_ID;
+  const clusterBodyId = clusterBodyIdForPoi(poiId);
+  if (clusterBodyId) return clusterBodyId;
   if (playableKind(poiId) === 'surface') return surfacePoiById(poiId).bodyId;
   return stationPoiById(parentNode(poiId)!.id).bodyId;
 }
 
 function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: number; orbitSense: 1 | -1 } | undefined {
-  if (nearBeltDockingSlotForPoi(sourceId)) return undefined;
+  if (clusterDockingSlotForPoi(sourceId)) return undefined;
   if (playableKind(sourceId) !== 'dock') return undefined;
   const station = stationPoiById(parentNode(sourceId)!.id);
   return {
@@ -613,14 +613,15 @@ function buildRouteObjective(opts: {
 
 function buildRouteObjectiveToCluster(opts: {
   currentBodyId: string;
+  targetClusterBodyId: string;
   clusterLevel: ClusterLevel;
   destinationId: string;
   initialSourceId: string;
   selectedTransfer?: EstellaTransferOption;
 }): OrbitalLevel {
-  if (bodyIsDescendantOf(NEAR_BELT_CLUSTER_BODY_ID, opts.currentBodyId)) {
-    const childId = childBodyOnPath(opts.currentBodyId, NEAR_BELT_CLUSTER_BODY_ID);
-    if (childId !== NEAR_BELT_CLUSTER_BODY_ID) throw new Error('Nested cluster routes are not supported yet');
+  if (bodyIsDescendantOf(opts.targetClusterBodyId, opts.currentBodyId)) {
+    const childId = childBodyOnPath(opts.currentBodyId, opts.targetClusterBodyId);
+    if (childId !== opts.targetClusterBodyId) throw new Error('Nested cluster routes are not supported yet');
     const startOrbit = opts.currentBodyId === centralBodyIdForPoi(opts.initialSourceId)
       ? sourceStartOrbit(opts.initialSourceId)
       : undefined;
@@ -628,17 +629,17 @@ function buildRouteObjectiveToCluster(opts: {
       id: nextId(),
       frameBodyId: opts.currentBodyId,
       startOrbit,
-      destinationBodyId: NEAR_BELT_CLUSTER_BODY_ID,
+      destinationBodyId: opts.targetClusterBodyId,
       arrivalClusterLevelId: opts.clusterLevel.id,
       finalDestinationId: opts.destinationId,
     }));
   }
 
   const parentId = bodyParentId(opts.currentBodyId);
-  if (!parentId) throw new Error(`Cannot route ${opts.currentBodyId} to Near Belt cluster`);
+  if (!parentId) throw new Error(`Cannot route ${opts.currentBodyId} to cluster ${opts.targetClusterBodyId}`);
   const parentObjective = buildRouteObjectiveToCluster({ ...opts, currentBodyId: parentId });
   const targetIsTransferInParent = parentObjective.bodyId === parentId && !!parentObjective.targetBodyId;
-  const useSelectedEscape = opts.selectedTransfer?.sourceBodyId === opts.currentBodyId && opts.selectedTransfer?.destinationBodyId === NEAR_BELT_CLUSTER_BODY_ID;
+  const useSelectedEscape = opts.selectedTransfer?.sourceBodyId === opts.currentBodyId && opts.selectedTransfer?.destinationBodyId === opts.targetClusterBodyId;
   const startOrbit = opts.currentBodyId === centralBodyIdForPoi(opts.initialSourceId)
     ? sourceStartOrbit(opts.initialSourceId)
     : undefined;
@@ -661,14 +662,17 @@ function buildRouteObjectiveToCluster(opts: {
 export function createPlayableEstellaMission(sourceId: string, destinationId: string, selectedTransfer?: EstellaTransferOption): EstellaPlayableMission {
   const sourceKind = playableKind(sourceId);
   const destKind = playableKind(destinationId);
-  const clusterSourceSlot = nearBeltDockingSlotForPoi(sourceId);
-  const clusterDestSlot = nearBeltDockingSlotForPoi(destinationId);
-  if (clusterSourceSlot && clusterDestSlot) {
+  const sourceClusterBodyId = clusterBodyIdForPoi(sourceId);
+  const destClusterBodyId = clusterBodyIdForPoi(destinationId);
+  const clusterSourceSlot = clusterDockingSlotForPoi(sourceId);
+  const clusterDestSlot = clusterDockingSlotForPoi(destinationId);
+  const sameClusterRoute = !!sourceClusterBodyId && sourceClusterBodyId === destClusterBodyId && !!clusterSourceSlot && !!clusterDestSlot;
+  if (sameClusterRoute) {
     const final = finalDestinationHud(destinationId);
     const destDockingId = nextId();
     const clusterId = nextId();
-    const destMemberName = nearBeltClusterMemberNameForPoi(destinationId) ?? 'Near Belt destination';
-    const sourceMemberName = nearBeltClusterMemberNameForPoi(sourceId) ?? 'Near Belt source';
+    const destMemberName = clusterMemberNameForPoi(destinationId) ?? 'Cluster destination';
+    const sourceMemberName = clusterMemberNameForPoi(sourceId) ?? 'Cluster source';
     const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: destMemberName,
@@ -676,25 +680,25 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
-      clusterMemberId: nearBeltClusterMemberIdForPoi(destinationId),
-      nextObjectiveDetail: 'Complete docking at the assigned Belt berth.',
+      clusterMemberId: clusterMemberIdForPoi(destinationId),
+      nextObjectiveDetail: 'Complete docking at the assigned cluster berth.',
       targetSpoke: clusterDestSlot.targetSpoke,
       targetSide: clusterDestSlot.targetSide,
       targetSlot: clusterDestSlot.targetSlot,
       fillPct: 0.55,
     }));
-    const clusterLevel = createNearBeltClusterLevel(sourceId, destinationId, clusterId, destDocking.id);
+    const clusterLevel = createPoiClusterLevel(sourceId, destinationId, clusterId, destDocking.id);
     if (clusterLevel) {
       register(CLUSTER_LEVELS, clusterLevel);
       const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
         id: nextId(),
         name: sourceMemberName,
-        subtitle: 'Undock and enter Near Belt local traffic',
+        subtitle: 'Undock and enter local cluster traffic',
         exitMode: true,
         clusterLevelId: clusterLevel.id,
         finalDestinationName: final.name,
         finalDestinationLocation: final.location,
-        clusterMemberId: nearBeltClusterMemberIdForPoi(sourceId),
+        clusterMemberId: clusterMemberIdForPoi(sourceId),
         nextObjectiveDetail: `Clear the berth; next: ${clusterLevel.name}.`,
         targetSpoke: clusterSourceSlot.targetSpoke,
         targetSide: clusterSourceSlot.targetSide,
@@ -706,15 +710,12 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     }
   }
 
-  const sourceBodyId = centralBodyIdForPoi(sourceId);
-  const destBodyId = centralBodyIdForPoi(destinationId);
-  const sameBody = sourceBodyId === destBodyId;
-
-  if (!clusterSourceSlot && clusterDestSlot) {
+  if (clusterSourceSlot && clusterDestSlot && sourceClusterBodyId && destClusterBodyId && sourceClusterBodyId !== destClusterBodyId) {
     const final = finalDestinationHud(destinationId);
     const destDockingId = nextId();
-    const clusterId = nextId();
-    const destMemberName = nearBeltClusterMemberNameForPoi(destinationId) ?? 'Near Belt destination';
+    const destClusterId = nextId();
+    const destMemberName = clusterMemberNameForPoi(destinationId) ?? 'Cluster destination';
+    const sourceMemberName = clusterMemberNameForPoi(sourceId) ?? 'Cluster source';
     const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: destMemberName,
@@ -722,18 +723,84 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
-      clusterMemberId: nearBeltClusterMemberIdForPoi(destinationId),
-      nextObjectiveDetail: 'Complete docking at the assigned Belt berth.',
+      clusterMemberId: clusterMemberIdForPoi(destinationId),
+      nextObjectiveDetail: 'Complete docking at the assigned cluster berth.',
       targetSpoke: clusterDestSlot.targetSpoke,
       targetSide: clusterDestSlot.targetSide,
       targetSlot: clusterDestSlot.targetSlot,
       fillPct: 0.55,
     }));
-    const clusterLevel = createNearBeltClusterLevel(destinationId, destinationId, clusterId, destDocking.id);
-    if (!clusterLevel) throw new Error(`Cannot build Near Belt arrival for ${destinationId}`);
-    clusterLevel.clusterBodyId = NEAR_BELT_CLUSTER_BODY_ID;
+    const destClusterLevel = createPoiClusterLevel(destinationId, destinationId, destClusterId, destDocking.id);
+    if (!destClusterLevel) throw new Error(`Cannot build cluster arrival for ${destinationId}`);
+    destClusterLevel.clusterBodyId = destClusterBodyId;
+    register(CLUSTER_LEVELS, destClusterLevel);
+    const startOrbital = buildRouteObjectiveToCluster({
+      currentBodyId: ESTELLA_SYSTEM_BODY_ID,
+      targetClusterBodyId: destClusterBodyId,
+      clusterLevel: destClusterLevel,
+      destinationId,
+      initialSourceId: sourceId,
+      selectedTransfer,
+    });
+    const sourceClusterId = nextId();
+    const sourceClusterLevel = createPoiClusterLevel(sourceId, sourceId, sourceClusterId);
+    if (!sourceClusterLevel) throw new Error(`Cannot build cluster escape for ${sourceId}`);
+    sourceClusterLevel.clusterBodyId = sourceClusterBodyId;
+    sourceClusterLevel.escapeToOrbitalLevelId = startOrbital.id;
+    const clusterEscapeTargetBodyId = startOrbital.targetBodyId ?? destClusterBodyId;
+    if (selectedTransfer?.sourceBodyId === sourceClusterBodyId && selectedTransfer.destinationBodyId === clusterEscapeTargetBodyId) {
+      sourceClusterLevel.escapeVectorAngle = selectedTransfer.departureVInfAngle;
+      sourceClusterLevel.escapeVectorSpeed = selectedTransfer.departureVInf;
+    }
+    sourceClusterLevel.subtitle = `Local flight: ${sourceMemberName} to outbound transfer`;
+    register(CLUSTER_LEVELS, sourceClusterLevel);
+    const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
+      id: nextId(),
+      name: sourceMemberName,
+      subtitle: 'Undock and exit local cluster traffic',
+      exitMode: true,
+      clusterLevelId: sourceClusterLevel.id,
+      finalDestinationName: final.name,
+      finalDestinationLocation: final.location,
+      clusterMemberId: clusterMemberIdForPoi(sourceId),
+      nextObjectiveDetail: `Clear the berth; next: ${sourceClusterLevel.name}.`,
+      targetSpoke: clusterSourceSlot.targetSpoke,
+      targetSide: clusterSourceSlot.targetSide,
+      targetSlot: clusterSourceSlot.targetSlot,
+      fillPct: 0.55,
+      exitDistance: 140,
+    }));
+    return { start: { kind: 'docking', level: sourceDocking } };
+  }
+
+  const sourceBodyId = centralBodyIdForPoi(sourceId);
+  const destBodyId = centralBodyIdForPoi(destinationId);
+  const sameBody = sourceBodyId === destBodyId;
+
+  if (!clusterSourceSlot && clusterDestSlot && destClusterBodyId) {
+    const final = finalDestinationHud(destinationId);
+    const destDockingId = nextId();
+    const clusterId = nextId();
+    const destMemberName = clusterMemberNameForPoi(destinationId) ?? 'Cluster destination';
+    const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
+      id: destDockingId,
+      name: destMemberName,
+      subtitle: 'Deliver generated Estella cargo',
+      exitMode: false,
+      finalDestinationName: final.name,
+      finalDestinationLocation: final.location,
+      clusterMemberId: clusterMemberIdForPoi(destinationId),
+      nextObjectiveDetail: 'Complete docking at the assigned cluster berth.',
+      targetSpoke: clusterDestSlot.targetSpoke,
+      targetSide: clusterDestSlot.targetSide,
+      targetSlot: clusterDestSlot.targetSlot,
+      fillPct: 0.55,
+    }));
+    const clusterLevel = createPoiClusterLevel(destinationId, destinationId, clusterId, destDocking.id);
+    if (!clusterLevel) throw new Error(`Cannot build cluster arrival for ${destinationId}`);
+    clusterLevel.clusterBodyId = destClusterBodyId;
     register(CLUSTER_LEVELS, clusterLevel);
-    const startOrbital = buildRouteObjectiveToCluster({ currentBodyId: sourceBodyId, clusterLevel, destinationId, initialSourceId: sourceId, selectedTransfer });
+    const startOrbital = buildRouteObjectiveToCluster({ currentBodyId: sourceBodyId, targetClusterBodyId: destClusterBodyId, clusterLevel, destinationId, initialSourceId: sourceId, selectedTransfer });
     const departureTarget = generatedEstellaDepartureTarget(destinationId, sourceId);
     if (sourceKind === 'surface') {
       const launchLandingId = nextId();
@@ -802,14 +869,14 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     startOrbit: sameBody ? sourceStartOrbit(sourceId) : undefined,
   }));
 
-  const startOrbital = clusterSourceSlot && !clusterDestSlot
+  const startOrbital = clusterSourceSlot && !clusterDestSlot && sourceClusterBodyId
     ? buildRouteObjective({
         currentBodyId: ESTELLA_SYSTEM_BODY_ID,
         targetBodyId: destBodyId,
         destinationOrbital,
         destinationId,
         initialSourceId: sourceId,
-        transferSourceBodyId: NEAR_BELT_CLUSTER_BODY_ID,
+        transferSourceBodyId: sourceClusterBodyId,
         selectedTransfer,
       })
     : sameBody
@@ -823,16 +890,16 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
           selectedTransfer,
         });
 
-  if (clusterSourceSlot && !clusterDestSlot) {
+  if (clusterSourceSlot && !clusterDestSlot && sourceClusterBodyId) {
     const final = finalDestinationHud(destinationId);
-    const sourceMemberName = nearBeltClusterMemberNameForPoi(sourceId) ?? 'Near Belt source';
+    const sourceMemberName = clusterMemberNameForPoi(sourceId) ?? 'Cluster source';
     const clusterId = nextId();
-    const clusterLevel = createNearBeltClusterLevel(sourceId, sourceId, clusterId);
-    if (!clusterLevel) throw new Error(`Cannot build Near Belt escape for ${sourceId}`);
-    clusterLevel.clusterBodyId = NEAR_BELT_CLUSTER_BODY_ID;
+    const clusterLevel = createPoiClusterLevel(sourceId, sourceId, clusterId);
+    if (!clusterLevel) throw new Error(`Cannot build cluster escape for ${sourceId}`);
+    clusterLevel.clusterBodyId = sourceClusterBodyId;
     clusterLevel.escapeToOrbitalLevelId = startOrbital.id;
     const clusterEscapeTargetBodyId = startOrbital.targetBodyId ?? destBodyId;
-    if (selectedTransfer?.sourceBodyId === NEAR_BELT_CLUSTER_BODY_ID && selectedTransfer.destinationBodyId === clusterEscapeTargetBodyId) {
+    if (selectedTransfer?.sourceBodyId === sourceClusterBodyId && selectedTransfer.destinationBodyId === clusterEscapeTargetBodyId) {
       clusterLevel.escapeVectorAngle = selectedTransfer.departureVInfAngle;
       clusterLevel.escapeVectorSpeed = selectedTransfer.departureVInf;
     }
@@ -841,12 +908,12 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: nextId(),
       name: sourceMemberName,
-      subtitle: 'Undock and exit Near Belt local traffic',
+      subtitle: 'Undock and exit local cluster traffic',
       exitMode: true,
       clusterLevelId: clusterLevel.id,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
-      clusterMemberId: nearBeltClusterMemberIdForPoi(sourceId),
+      clusterMemberId: clusterMemberIdForPoi(sourceId),
       nextObjectiveDetail: `Clear the berth; next: ${clusterLevel.name}.`,
       targetSpoke: clusterSourceSlot.targetSpoke,
       targetSide: clusterSourceSlot.targetSide,

@@ -298,6 +298,25 @@ const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
     },
     transferGameplay: { patchRadius: 10_000_000, displayPatchRadius: 10_000_000 },
   },
+  {
+    id: 'reach-comet-swarm',
+    name: 'Reach Comet Swarm',
+    radius: 7_000,
+    gm: 0,
+    color: [150, 190, 220],
+    planetFillColor: '#101822',
+    planetStrokeColor: '#7fa6bf',
+    atmosphere: null,
+    orbit: bodyOrbit('reach-comet-swarm'),
+    orbitalDefaults: {
+      baseTimeScale: 100,
+      thrustAccel: 0.2,
+      thrustAccelMax: 2,
+      fuelDeltaV: 1_200,
+      transitionAltitude: 0,
+    },
+    transferGameplay: { patchRadius: 10_000_000, displayPatchRadius: 10_000_000 },
+  },
 ];
 
 export const ESTELLA_BODIES: BodyDef[] = [...PLAYABLE_BODY_IDS.map(createEstellaBody), ...ESTELLA_CLUSTER_BODIES];
