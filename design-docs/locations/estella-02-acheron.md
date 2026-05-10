@@ -24,7 +24,7 @@ The cloud city of Olympos has no rival as being the most decadent places in the 
 
 3. **Paradiso**: The resort and vacation district, and a retirement place for the very wealthy. Few citizens of even modest means in the Estella system consider their lives complete unless they've gone here at least once. The perfect 'tropical' temperature, dramatic clouds, and beautiful sunrises and sunsets one can find make this world into what is, to visit for a short time, a paradise. Under the great carbon-fiber enhanced silica glass dome of Paradiso, one can either gaze at the sky, or go below to view the lower observation deck into the stormy atmosphere of the planet below.
 
-4. **Weathervane**: Silas Vane's own private district for himself, his family, and his servants. A perfect paradise at least for one man, though he graciously allows general visitors to tour through his district and witness -- though not partake -- in its absurdly lavish delights -- once every Estellan year. While the nominal political center of Olympos lies elsewhere, if you one really wants to see which way the wind is blowing -- check the Weathervane.
+4. **Weathervane**: Silas Vane's own private district for himself, his family, and his servants. A perfect paradise at least for one man, though he graciously allows general visitors to tour through his district and witness -- though not partake -- in its absurdly lavish delights -- once every Acheronean year. While the nominal political center of Olympos lies elsewhere, if you one really wants to see which way the wind is blowing -- check the Weathervane.
 
 5. **Embassy**: The ambassadorial district.
 
@@ -50,7 +50,7 @@ The graphene-crystal chain that connects Olympos to Pandemonium works according 
 
 Pandemonium has no ability to produce hydrogen of its own. The only conceivable source comes from the sulfuric-acid rain, but even when rains do come that evaporates long that evaporates long before it hits the surface. No hydrogen, no water. No water, no life.
 
-This may seem unfair. That is the point. In this way, Olympos is able to maintain a profit margin on precious metal extraction that makes even astroid-extraction companies blush, and all simply at the cost of matter that makes up nearly three-quarters of all matter in the universe -- except on Acheron of course.
+This may seem unfair. That is the point. In this way, Olympos is able to maintain a profit margin on precious metal extraction that makes even asteroid-extraction companies blush, and all simply at the cost of matter that makes up nearly three-quarters of all matter in the universe -- except on Acheron of course.
 
 All transport to and from Pandemonium is done by this chain. Due to the adverse conditions, any starship traversals are nearly impossible -- except for the most skilled pilots. The CHR's control over access to Pandemonium is in this way almost absolute.
 
@@ -88,7 +88,7 @@ And so he has. Once unified, production quotas Olympos were fulfilled by Pandemo
 
 ### Elias Vane
 
-The grandson of Silas Vane. Elias was a sensitive boy. When he was twelve though he made a fatal mistake. A prisoner bound for transport to Pandemonium saw his face, and, recognizing that this was in fact at least a relative of the great Silas, ran to him, begging for mercy. Silas, distressed, ran to his grandfather, explaining in his childish way, that the man did not wish to go to Pandemonium -- Silas laughed, explained bluntly that obviously no one wanted to go to Pandemonium, and said that he dismissed Elias as a worthy successor, being guilty of the sin of empathy.
+The grandson of Silas Vane. Elias was a sensitive boy. When he was twelve though he made a fatal mistake. A prisoner bound for transport to Pandemonium saw his face, and, recognizing that this was in fact at least a relative of the great Silas, ran to him, begging for mercy. Elias, distressed, ran to his grandfather, explaining in his childish way, that the man did not wish to go to Pandemonium -- Silas laughed, explained bluntly that obviously no one wanted to go to Pandemonium, and said that he dismissed Elias as a worthy successor, being guilty of the sin of empathy.
 
 Since then Elias has striven to prove he is a person no less merciless than his grandfather, rather quite against his own nature. Each effort has only served to disappoint his grandfather further. At each "effort" he betrays himself as either lacking subtlety in his cruelty -- Silas dismisses these efforts as "performative cruelty" meant rather to shock than to impress -- or too gentle, in which case Silas calls him a weakling.
 
