@@ -905,9 +905,13 @@ export class Game {
       if (body.arrivalClusterLevelId) {
         const clusterLevel = clusterLevelById(body.arrivalClusterLevelId);
         if (!clusterLevel) return null;
+        const nx = captureRX / Math.max(body.patchRadius, 1);
+        const ny = captureRY / Math.max(body.patchRadius, 1);
+        const norm = Math.hypot(nx, ny);
+        const scale = norm > 0.92 ? 0.92 / norm : 1;
         const initOverride: ClusterInitOverride = {
-          x: captureRX,
-          y: captureRY,
+          x: nx * scale * clusterLevel.rx,
+          y: ny * scale * clusterLevel.ry,
           vx: captureRVX,
           vy: captureRVY,
           angle: Math.atan2(Math.cos(p.os.renderAngle), Math.sin(p.os.renderAngle)),

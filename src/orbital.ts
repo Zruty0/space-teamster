@@ -2424,8 +2424,9 @@ export function updateOrbitalCamera(
   const smooth = 1 - Math.exp(-1.5 * dt);
   const halfScreen = Math.min(W, H) * 0.45;
 
-  // Check rendezvous proximity
+  // Check rendezvous/intercept proximity
   let inRendezvousZoom = false;
+  let rendezvousZoomTarget: { x: number; y: number; minRadius: number } | null = null;
   if (level.station && !s.inAtmo) {
     const sp = stationPos(level, s.time)!;
     const dx = s.x - sp.x, dy = s.y - sp.y;
@@ -2434,6 +2435,21 @@ export function updateOrbitalCamera(
     const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
     if (dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10) {
       inRendezvousZoom = true;
+      rendezvousZoomTarget = { x: sp.x, y: sp.y, minRadius: 50_000 };
+    }
+  } else if (level.targetBodyId?.startsWith('belt-cluster-') && !s.inAtmo) {
+    const body = getTransferBody(level, level.targetBodyId);
+    const bp = body ? transferBodyState(level, body.id, s.time) : null;
+    if (body && bp) {
+      const dx = s.x - bp.x, dy = s.y - bp.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const rvx = s.vx - bp.vx, rvy = s.vy - bp.vy;
+      const relSpd = Math.sqrt(rvx * rvx + rvy * rvy);
+      const captureMax = body.captureMaxSpeed ?? 250;
+      if (dist < body.patchRadius * 10 && relSpd < captureMax * 10) {
+        inRendezvousZoom = true;
+        rendezvousZoomTarget = { x: bp.x, y: bp.y, minRadius: body.patchRadius * 1.2 };
+      }
     }
   }
   // Reset warp on rendezvous zoom entry
@@ -2458,12 +2474,11 @@ export function updateOrbitalCamera(
     cam.zoom += (targetZoom - cam.zoom) * smooth;
     cam.x += (s.x - cam.x) * smooth;
     cam.y += (s.y - cam.y) * smooth;
-  } else if (inRendezvousZoom) {
-    // Rendezvous proximity: zoom in, center on ship (hard track)
-    const sp = stationPos(level, s.time)!;
-    const dx = s.x - sp.x, dy = s.y - sp.y;
+  } else if (inRendezvousZoom && rendezvousZoomTarget) {
+    // Rendezvous/intercept proximity: zoom in, center on ship (hard track)
+    const dx = s.x - rendezvousZoomTarget.x, dy = s.y - rendezvousZoomTarget.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const viewRadius = Math.max(dist * 1.5, 50_000);
+    const viewRadius = Math.max(dist * 1.5, rendezvousZoomTarget.minRadius);
     const targetZoom = halfScreen / viewRadius;
     const fastSmooth = 1 - Math.exp(-5.0 * dt);
     cam.zoom += (targetZoom - cam.zoom) * fastSmooth;
