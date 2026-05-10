@@ -8,7 +8,7 @@ In this document we first outline the three primary locations of interest on -- 
 
 ## Places
 
-There are three key places in Acheron. The cloud-city of Olympos, its "sister" surface penal colony of Pandemonium, and the nominally independent Union station of Nimbus Crucible.
+There are three key places in Acheron. The cloud-city of Olympos, its "sister" surface penal colony of Pandemonium, and the nominally independent Union station of Nimbus Crucible. Above them, the Acheron Commercial Hub handles routine orbital customs, transfers, and offworld commercial traffic.
 
 ### Olympos
 

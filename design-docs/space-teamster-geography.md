@@ -122,6 +122,7 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella II.1 | Atmospheric station, ~50 km altitude | **Olympos.** The system's most iconic cloud city. Habitable upper-atmosphere layer (~1 atm, ~30 °C). Decadent. Premium passenger and luxury cargo. |
 | Estella II.2 | Atmospheric station, acid-cloud altitude | **Nimbus Crucible.** Acid-cloud aerostat processing hydrogen sulfide and hosting Union terraforming research. |
 | Estella II.3 | Surface | **Pandemonium.** Deep-pressure penal mining city. One-way for most ships. Endgame work. |
+| Estella II.4 | Station, orbit | **Acheron Commercial Hub.** Orbital commercial, customs, and transfer hub over Acheron. |
 
 ### Estella III (Earth-like primary)
 | ID | Type | Description |
