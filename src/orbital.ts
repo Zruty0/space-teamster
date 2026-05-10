@@ -3576,9 +3576,37 @@ function drawOrbitalMarkers(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
+  if (s.inAtmo) return;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
+  if (!(elem.a > 0) || !Number.isFinite(elem.a) || elem.e < 0.03 || elem.e >= 1) return;
+  if (!Number.isFinite(elem.periapsis) || !Number.isFinite(elem.apoapsis)) return;
 
-  // (Pe/Ap diamond markers removed)
+  const markers = [
+    { label: 'PE', r: elem.periapsis, angle: elem.omega },
+    { label: 'AP', r: elem.apoapsis, angle: elem.omega + Math.PI },
+  ];
+
+  ctx.save();
+  for (const marker of markers) {
+    if (marker.r <= level.planetRadius * 0.98) continue;
+    const x = Math.cos(marker.angle) * marker.r;
+    const y = Math.sin(marker.angle) * marker.r;
+    const [sx, sy] = ws(x, y, cam, W, H);
+    if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, 3.2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(150, 255, 210, 0.32)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(150, 255, 210, 0.34)';
+    ctx.fillText(marker.label, sx, sy - 5);
+  }
+  ctx.restore();
 }
 
 // --- Ship ---
