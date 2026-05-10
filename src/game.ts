@@ -718,11 +718,10 @@ export class Game {
     const relDist = Math.hypot(relX, relY);
     const ux = relDist > 1 ? relX / relDist : Math.cos(bp.angle);
     const uy = relDist > 1 ? relY / relDist : Math.sin(bp.angle);
-    const minDist = 34;
-    const desiredDist = Math.max(minDist, Math.min(90, relDist));
+    const arrivalRingR = 95;
     return {
-      x: bp.x + ux * desiredDist,
-      y: bp.y + uy * desiredDist,
+      x: bp.x + ux * arrivalRingR,
+      y: bp.y + uy * arrivalRingR,
       vx: p.cs.vx,
       vy: p.cs.vy,
       angle: p.cs.angle,
