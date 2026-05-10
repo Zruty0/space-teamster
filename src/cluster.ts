@@ -51,9 +51,27 @@ export interface ClusterLevel {
   forwardAccel: number;
   rotAccel: number;
   baseTimeScale: number;
+  rockCount: number;
   captureRadius: number;
   captureMaxSpeed: number;
   timeWarpLevels: number[];
+}
+
+interface ClusterRock {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  angle: number;
+  spin: number;
+  mode: 'linear' | 'elliptic';
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  phase: number;
+  omega: number;
 }
 
 export interface ClusterState {
@@ -83,6 +101,8 @@ export interface ClusterState {
   dvUsed: number;
   timeWarpLevel: number;
   timeWarp: number;
+  rocks: ClusterRock[];
+  rockSeed: number;
 }
 
 export interface ClusterCamera {
@@ -161,6 +181,7 @@ export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
   forwardAccel: 9.375,
   rotAccel: 2.8,
   baseTimeScale: 4,
+  rockCount: 90,
   captureRadius: 8_000,
   captureMaxSpeed: 18,
   timeWarpLevels: [1, 2, 5, 10],
@@ -229,7 +250,7 @@ export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId
 }
 
 export function createClusterState(level: ClusterLevel, override?: ClusterInitOverride): ClusterState {
-  return {
+  const state: ClusterState = {
     x: override?.x ?? level.startX,
     y: override?.y ?? level.startY,
     vx: override?.vx ?? level.startVX,
@@ -256,7 +277,11 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     dvUsed: 0,
     timeWarpLevel: 0,
     timeWarp: level.timeWarpLevels[0] ?? 1,
+    rocks: [],
+    rockSeed: 24681357,
   };
+  for (let i = 0; i < level.rockCount; i++) state.rocks.push(createClusterRock(state, level, false));
+  return state;
 }
 
 export function createClusterCamera(level: ClusterLevel): ClusterCamera {
@@ -269,6 +294,47 @@ export function targetPort(level: ClusterLevel): { member: ClusterMemberDef; por
     if (port) return { member, port, x: member.x + port.x, y: member.y + port.y };
   }
   return null;
+}
+
+function nextRockRandom(s: ClusterState): number {
+  s.rockSeed = (s.rockSeed * 16807) % 2147483647;
+  return s.rockSeed / 2147483647;
+}
+
+function pointOnClusterEdge(s: ClusterState, level: ClusterLevel): { x: number; y: number; nx: number; ny: number } {
+  const a = nextRockRandom(s) * Math.PI * 2;
+  const x = Math.cos(a) * level.rx;
+  const y = Math.sin(a) * level.ry;
+  const len = Math.max(1, Math.hypot(x, y));
+  return { x, y, nx: x / len, ny: y / len };
+}
+
+function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean): ClusterRock {
+  const radius = 3 + nextRockRandom(s) * 9;
+  const mode: ClusterRock['mode'] = nextRockRandom(s) < 0.65 ? 'linear' : 'elliptic';
+  const edge = pointOnClusterEdge(s, level);
+  const x = atEdge ? edge.x : (nextRockRandom(s) * 2 - 1) * level.rx * 0.9;
+  const y = atEdge ? edge.y : (nextRockRandom(s) * 2 - 1) * level.ry * 0.9;
+  const inward = Math.atan2(-edge.y, -edge.x) + (nextRockRandom(s) - 0.5) * 0.9;
+  const speed = 6 + nextRockRandom(s) * 24;
+  const rx = 8_000 + nextRockRandom(s) * 28_000;
+  const ry = 5_000 + nextRockRandom(s) * 20_000;
+  return {
+    x,
+    y,
+    vx: Math.cos(inward) * speed,
+    vy: Math.sin(inward) * speed,
+    radius,
+    angle: nextRockRandom(s) * Math.PI * 2,
+    spin: (nextRockRandom(s) * 2 - 1) * 1.8,
+    mode,
+    cx: x,
+    cy: y,
+    rx,
+    ry,
+    phase: nextRockRandom(s) * Math.PI * 2,
+    omega: (nextRockRandom(s) < 0.5 ? -1 : 1) * (0.018 + nextRockRandom(s) * 0.05),
+  };
 }
 
 function ellipseValue(x: number, y: number, level: ClusterLevel): number {
@@ -365,6 +431,12 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
   s.y += s.vy * dt;
   s.dvUsed += Math.sqrt(ax * ax + ay * ay) * dt;
 
+  updateClusterRocks(s, level, dt);
+  if (clusterRockCollision(s)) {
+    s.alive = false;
+    return;
+  }
+
   const target = targetPort(level);
   if (target) {
     const dx = target.member.x - s.x;
@@ -375,6 +447,31 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
   }
 
   if (ellipseValue(s.x, s.y, level) > 1.25) s.alive = false;
+}
+
+function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): void {
+  for (let i = 0; i < s.rocks.length; i++) {
+    const rock = s.rocks[i];
+    rock.angle += rock.spin * dt;
+    if (rock.mode === 'linear') {
+      rock.x += rock.vx * dt;
+      rock.y += rock.vy * dt;
+    } else {
+      rock.phase += rock.omega * dt;
+      rock.x = rock.cx + Math.cos(rock.phase) * rock.rx;
+      rock.y = rock.cy + Math.sin(rock.phase) * rock.ry;
+    }
+    if (ellipseValue(rock.x, rock.y, level) > 1.12) s.rocks[i] = createClusterRock(s, level, true);
+  }
+}
+
+function clusterRockCollision(s: ClusterState): boolean {
+  const shipR = 12;
+  for (const rock of s.rocks) {
+    const minDist = shipR + rock.radius;
+    if ((s.x - rock.x) ** 2 + (s.y - rock.y) ** 2 <= minDist * minDist) return true;
+  }
+  return false;
 }
 
 export function updateClusterCamera(cam: ClusterCamera, s: ClusterState, level: ClusterLevel, dt: number, W: number, H: number): void {
@@ -398,6 +495,7 @@ export function renderCluster(
   ctx.fillRect(0, 0, W, H);
   drawClusterStars(ctx, W, H);
   drawTrafficVolume(ctx, cam, level, W, H);
+  drawClusterRocks(ctx, cam, s, W, H);
   for (const member of level.members) drawClusterMember(ctx, cam, level, member, W, H);
   drawClusterTargetIndicator(ctx, cam, s, level, W, H);
   drawClusterShip(ctx, cam, s, W, H, time);
@@ -421,6 +519,33 @@ function drawClusterStars(ctx: CanvasRenderingContext2D, W: number, H: number): 
   for (const star of CLUSTER_STARS) {
     ctx.fillStyle = `rgba(180, 190, 210, ${star.b})`;
     ctx.fillRect(star.x * W, star.y * H, 1.5, 1.5);
+  }
+}
+
+function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, W: number, H: number): void {
+  for (const rock of s.rocks) {
+    const [rx, ry] = cws(rock.x, rock.y, cam, W, H);
+    const r = Math.max(1.5, rock.radius * cam.zoom);
+    if (rx < -r || rx > W + r || ry < -r || ry > H + r) continue;
+    ctx.save();
+    ctx.translate(rx, ry);
+    ctx.rotate(rock.angle);
+    ctx.beginPath();
+    const verts = 9;
+    for (let i = 0; i <= verts; i++) {
+      const a = (i / verts) * Math.PI * 2;
+      const rr = r * (0.78 + 0.22 * Math.sin(i * 2.31 + rock.radius));
+      const x = Math.cos(a) * rr;
+      const y = Math.sin(a) * rr;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#111614';
+    ctx.fill();
+    ctx.strokeStyle = '#6f7f79';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
   }
 }
 
@@ -728,7 +853,7 @@ export function drawClusterHUD(
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ff3333';
     ctx.font = 'bold 22px monospace';
-    ctx.fillText('LEFT TRAFFIC VOLUME', W / 2, H / 2 - 15);
+    ctx.fillText('CRASHED', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
