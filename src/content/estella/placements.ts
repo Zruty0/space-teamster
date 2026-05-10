@@ -62,15 +62,11 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: { kind: 'circular', radius: 440_000_000, epochAngle: 0.65, epochTime: 0, orbitSense: 1, period: 770_100 },
   },
-  'estella-ii-cloud-city-platform': { kind: 'surface', parentId: 'estella-ii', angle: -0.8, altitude: 55_000, side: 'unspecified' },
-  'estella-ii-cloud-city': { kind: 'surface', parentId: 'estella-ii', angle: -0.8, altitude: 55_000, side: 'unspecified' },
-  'estella-ii-science-platform': {
-    kind: 'orbit',
-    parentId: 'estella-ii',
-    usage: 'low',
-    orbit: { kind: 'circular', radius: 560_000, altitude: 240_000, epochAngle: 1.2, epochTime: 0, orbitSense: 1, period: 2_800 },
-  },
-  'estella-ii-deep-pressure-ops': { kind: 'surface', parentId: 'estella-ii', angle: -1.35, side: 'unspecified' },
+  'estella-ii-olympos-platform': { kind: 'surface', parentId: 'estella-ii', angle: -0.8, altitude: 55_000, side: 'unspecified' },
+  'estella-ii-olympos': { kind: 'surface', parentId: 'estella-ii', angle: -0.8, altitude: 55_000, side: 'unspecified' },
+  'estella-ii-nimbus-crucible-platform': { kind: 'surface', parentId: 'estella-ii', angle: 0.35, altitude: 34_000, side: 'unspecified' },
+  'estella-ii-nimbus-crucible': { kind: 'surface', parentId: 'estella-ii', angle: 0.35, altitude: 34_000, side: 'unspecified' },
+  'estella-ii-pandemonium': { kind: 'surface', parentId: 'estella-ii', angle: -1.35, side: 'unspecified' },
 
   'estella-iii': {
     kind: 'orbit',

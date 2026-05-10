@@ -119,9 +119,9 @@ In addition, between Estella I and the star itself sit three free-floating stati
 ### Estella II (Venus-like, cloud city)
 | ID | Type | Description |
 |---|---|---|
-| Estella II.1 | Atmospheric station, ~50 km altitude | **The Cloud City.** The system's most iconic single POI. Habitable upper-atmosphere layer (~1 atm, ~30 °C). Decadent. Premium passenger and luxury cargo. Names of districts, factions, and entertainments are entirely the writer's. |
-| Estella II.2 | Atmospheric station, mid altitude | Atmospheric science platform |
-| Estella II.3 | Surface | Specialty deep-pressure operations. One-way for most ships. Endgame work. |
+| Estella II.1 | Atmospheric station, ~50 km altitude | **Olympos.** The system's most iconic cloud city. Habitable upper-atmosphere layer (~1 atm, ~30 °C). Decadent. Premium passenger and luxury cargo. |
+| Estella II.2 | Atmospheric station, acid-cloud altitude | **Nimbus Crucible.** Acid-cloud aerostat processing hydrogen sulfide and hosting Union terraforming research. |
+| Estella II.3 | Surface | **Pandemonium.** Deep-pressure penal mining city. One-way for most ships. Endgame work. |
 
 ### Estella III (Earth-like primary)
 | ID | Type | Description |
@@ -530,7 +530,7 @@ Each Highliner is a named, distinct event with its own captain, origin system, d
 This document is a *backbone*. It is intended to be sufficient to write against, but not so detailed that there is no canvas left.
 
 The following are explicitly **writer territory**:
-- All proper names not already locked. Catalogue IDs (`Estella IIIa`, `ES-C-0001`, `ES-M-0001`) are canonical. Vernacular names (*The Caravanserai*, *The Still*, *The Cloud City*) are locked. Everything else — every settlement, district, bar, faction subdivision, ship, character, Highliner, ritual, accent, and historical event — is yours.
+- All proper names not already locked. Catalogue IDs (`Estella IIIa`, `ES-C-0001`, `ES-M-0001`) are canonical. Vernacular names (*The Caravanserai*, *The Still*, *Olympos*) are locked. Everything else — every settlement, district, bar, faction subdivision, ship, character, Highliner, ritual, accent, and historical event — is yours.
 - The cultural and biome distinction between Estella III and Estella IV. Make them rivals, kin, complements, or whatever serves.
 - The history and reception of the star's name (was the marriage public? was Estella herself ever invited? did she refuse? did she eventually visit?).
 - The faction roster beyond the Teamsters' Guild.

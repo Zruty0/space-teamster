@@ -124,20 +124,21 @@ const ESTELLA_HEARTH_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   },
 };
 
-const CLOUD_CITY_ALTITUDE = 55_000;
+const OLYMPOS_ALTITUDE = 55_000;
+const NIMBUS_CRUCIBLE_ALTITUDE = 34_000;
 
-const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
-  subtitle: 'Atmospheric platform landing deck in Estella II\'s upper cloud layer',
+const ESTELLA_II_OLYMPOS_PROFILE: EstellaSurfaceFlightProfile = {
+  subtitle: 'Atmospheric platform landing deck at Olympos in Acheron\'s upper cloud layer',
   padCenterX: 1000,
   padHalfWidth: 70,
-  padY: CLOUD_CITY_ALTITUDE,
+  padY: OLYMPOS_ALTITUDE,
   roughness: 0,
   features: [],
   landingLayout: {
     kind: 'cloud-city',
     deckLeft: 620,
     deckRight: 1380,
-    deckY: CLOUD_CITY_ALTITUDE,
+    deckY: OLYMPOS_ALTITUDE,
     deckThickness: 18,
     supportXs: [760, 1240],
     supportWidth: 12,
@@ -150,7 +151,7 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
   },
   landingStart: {
     x: 1000,
-    y: CLOUD_CITY_ALTITUDE + 260,
+    y: OLYMPOS_ALTITUDE + 260,
     vx: 0,
     vy: -3,
     landingMaxVSpeed: 3.5,
@@ -159,7 +160,7 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
   },
   descentProfile: {
     startX: -85_000,
-    startY: CLOUD_CITY_ALTITUDE + 24_000,
+    startY: OLYMPOS_ALTITUDE + 24_000,
     startVX: 1_050,
     startVY: -45,
     startAngle: 1.5,
@@ -169,7 +170,7 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
     gateMinSpeed: 20,
   },
   departureProfile: {
-    startY: CLOUD_CITY_ALTITUDE + 260,
+    startY: OLYMPOS_ALTITUDE + 260,
     startVY: 4,
     exitAltitude: 75_000,
     thresholdApoapsisAltitude: 130_000,
@@ -177,6 +178,49 @@ const ESTELLA_II_CLOUD_CITY_PROFILE: EstellaSurfaceFlightProfile = {
     orbitDir: -1,
     fuelSeconds: 150,
   },
+};
+
+const ESTELLA_II_NIMBUS_CRUCIBLE_PROFILE: EstellaSurfaceFlightProfile = {
+  ...ESTELLA_II_OLYMPOS_PROFILE,
+  subtitle: 'Acid-cloud aerostat landing deck at Nimbus Crucible',
+  padCenterX: 1000,
+  padHalfWidth: 52,
+  padY: NIMBUS_CRUCIBLE_ALTITUDE,
+  landingLayout: {
+    kind: 'cloud-city',
+    deckLeft: 720,
+    deckRight: 1280,
+    deckY: NIMBUS_CRUCIBLE_ALTITUDE,
+    deckThickness: 16,
+    supportXs: [850, 1150],
+    supportWidth: 10,
+    supportHeight: 180,
+    domes: [
+      { x: 910, radius: 46, height: 34 },
+      { x: 1105, radius: 58, height: 42 },
+    ],
+  },
+  landingStart: {
+    ...ESTELLA_II_OLYMPOS_PROFILE.landingStart,
+    y: NIMBUS_CRUCIBLE_ALTITUDE + 250,
+    landingMaxVSpeed: 3.2,
+    landingMaxHSpeed: 2.2,
+  },
+  descentProfile: {
+    ...ESTELLA_II_OLYMPOS_PROFILE.descentProfile,
+    startY: NIMBUS_CRUCIBLE_ALTITUDE + 26_000,
+    gateRadius: 1_700,
+    gateMaxSpeed: 135,
+  },
+  departureProfile: {
+    ...ESTELLA_II_OLYMPOS_PROFILE.departureProfile,
+    startY: NIMBUS_CRUCIBLE_ALTITUDE + 250,
+    exitAltitude: 75_000,
+    thresholdApoapsisAltitude: 125_000,
+    targetOrbitAltitude: 155_000,
+    fuelSeconds: 165,
+  },
+  labelVisibility: 'target',
 };
 
 const ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
@@ -269,8 +313,9 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-i-refractory-mine': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-hot-processing': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-deep-listening': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
-  'estella-ii-cloud-city': ESTELLA_II_CLOUD_CITY_PROFILE,
-  'estella-ii-deep-pressure-ops': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-ii-olympos': ESTELLA_II_OLYMPOS_PROFILE,
+  'estella-ii-nimbus-crucible': ESTELLA_II_NIMBUS_CRUCIBLE_PROFILE,
+  'estella-ii-pandemonium': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Deep-pressure surface approach to Pandemonium', labelVisibility: 'target' },
   'estella-iii-capital-city': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-iii-finance-city': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-iii-high-tech-city': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
