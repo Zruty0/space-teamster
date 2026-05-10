@@ -467,6 +467,7 @@ function createSystemTransferLevel(opts: {
     showLandingSite: false,
     systemBodies,
     targetBodyId: opts.destinationBodyId,
+    transferSourceBodyId: opts.sourceBodyId,
     conicRadius: destination.orbit.radius * 1.2,
   };
   applyDestinationHud(level, opts.finalDestinationId);

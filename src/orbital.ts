@@ -121,6 +121,7 @@ export interface OrbitalLevel {
   // Optional transfer-system bodies (for moon-to-moon transfers)
   systemBodies?: OrbitalTransferBody[];
   targetBodyId?: string;
+  transferSourceBodyId?: string;
   finalDestinationName?: string;
   finalDestinationLocation?: string;
   nextObjectiveName?: string;
@@ -2746,6 +2747,25 @@ function drawAsteroidBelt(ctx: CanvasRenderingContext2D, cam: OrbitalCamera, lev
   ctx.restore();
 }
 
+function farSystemView(level: OrbitalLevel): boolean {
+  if (level.bodyId !== 'estella' || !level.targetBodyId) return false;
+  const target = getTransferBody(level, level.targetBodyId);
+  const wellsInner = bodyById('estella-x').orbit?.radius ?? Infinity;
+  return !!target && target.orbitRadius >= wellsInner;
+}
+
+function shouldDrawSystemBody(body: OrbitalTransferBody, level: OrbitalLevel): boolean {
+  const isTargetBody = body.id === level.targetBodyId;
+  const isSourceBody = body.id === level.transferSourceBodyId;
+  if (isTargetBody || isSourceBody) return true;
+  if ((body.id === 'estella-viii' || body.id === 'estella-ix' || body.gm === 0)) return false;
+  if (farSystemView(level)) {
+    const wellsInner = bodyById('estella-x').orbit?.radius ?? Infinity;
+    if (body.orbitRadius < wellsInner) return false;
+  }
+  return true;
+}
+
 function drawSystemBodies(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
@@ -2759,7 +2779,7 @@ function drawSystemBodies(
 
   for (const body of level.systemBodies ?? []) {
     const isTargetBody = body.id === level.targetBodyId;
-    if ((body.id === 'estella-viii' || body.id === 'estella-ix' || body.gm === 0) && !isTargetBody) continue;
+    if (!shouldDrawSystemBody(body, level)) continue;
     const pos = transferBodyState(level, body.id, s.time);
     if (!pos) continue;
     const [bx, by] = ws(pos.x, pos.y, cam, W, H);
