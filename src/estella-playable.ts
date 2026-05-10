@@ -362,13 +362,10 @@ function createOrbitalLevel(opts: {
     station: opts.station,
     dockingLevelId: opts.dockingLevelId,
   };
-  const bodyNode = ESTELLA_NODES_BY_ID.get(opts.bodyId);
-  if (bodyNode?.kind === 'gas-giant') {
-    const moonMarkers = BODIES
-      .filter(body => body.orbit?.parentBodyId === opts.bodyId && body.transferGameplay)
-      .map(body => transferBodyMarker(body.id));
-    if (moonMarkers.length) level.systemBodies = moonMarkers;
-  }
+  const childBodyMarkers = BODIES
+    .filter(body => body.orbit?.parentBodyId === opts.bodyId && body.transferGameplay)
+    .map(body => transferBodyMarker(body.id));
+  if (childBodyMarkers.length) level.systemBodies = childBodyMarkers;
   applyDestinationHud(level, opts.finalDestinationId);
   if (opts.escapeToOrbitalLevelId) {
     level.escapeToOrbitalLevelId = opts.escapeToOrbitalLevelId;
