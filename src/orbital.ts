@@ -2128,9 +2128,10 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   let maxTime = Math.min(period * 0.95, 20000); // atmosphere / low-pass fallback
   if (transferTarget && !pacing.lowPass) {
     const transferTime = Math.PI * Math.sqrt(transferTarget.orbitRadius ** 3 / level.planetGM);
+    const transferCap = level.bodyId === 'estella' ? 12_000_000 : 4_000_000;
     maxTime = hasClosedOrbit
-      ? Math.min(period * 1.02, 4_000_000)
-      : Math.min(Math.max(transferTime * 4.0, 120_000), 4_000_000);
+      ? Math.min(period * 1.02, transferCap)
+      : Math.min(Math.max(transferTime * 4.0, 120_000), transferCap);
   } else if (!pacing.lowPass) {
     const fallbackHalfOrbitTime = Math.PI * Math.sqrt(Math.max(rNow, level.planetRadius + level.transitionAltitude) ** 3 / level.planetGM);
     const vacuumHorizon = hasClosedOrbit
