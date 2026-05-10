@@ -2168,32 +2168,48 @@ function predictOrbit(
   }];
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   const transferTarget = activeTransferTarget(level);
+  const adaptiveVacuumSteps = level.bodyId === 'estella' && !!transferTarget;
   let prevTheta = Math.atan2(y, x);
   let angleAccum = 0;
-  // Substeps per prediction step for accuracy when atmosphere is involved
+  let elapsed = 0;
+  let dynamicStep = stepSize;
+  const minStep = Math.max(1, stepSize / 10);
+  const maxStep = Math.max(stepSize, stepSize * 4);
+  const maxAngularStep = 0.035;
+  const minAngularStep = 0.008;
   const subs = 4;
-  const subDt = stepSize / subs;
 
-  for (let t = 0; t < maxPhysTime; t += stepSize) {
+  while (elapsed < maxPhysTime) {
     const r0 = Math.sqrt(x * x + y * y);
     if (r0 < level.planetRadius) {
-      points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
+      points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
       return points;
     }
     const alt0 = r0 - level.planetRadius;
     const vacuumCoast = atmoDensity(alt0, level) < 1e-10;
+    const dt = Math.min(vacuumCoast && adaptiveVacuumSteps ? dynamicStep : stepSize, maxPhysTime - elapsed);
 
+    let nx = x, ny = y, nvx = vx, nvy = vy;
     if (vacuumCoast) {
-      const next = propagateTwoBodyState(x, y, vx, vy, level.planetGM, stepSize);
-      x = next.x;
-      y = next.y;
-      vx = next.vx;
-      vy = next.vy;
+      const next = propagateTwoBodyState(x, y, vx, vy, level.planetGM, dt);
+      nx = next.x;
+      ny = next.y;
+      nvx = next.vx;
+      nvy = next.vy;
+      if (adaptiveVacuumSteps) {
+        const nextTheta = Math.atan2(ny, nx);
+        const trialDTheta = Math.abs(normalizeAngle(nextTheta - prevTheta));
+        if (trialDTheta > maxAngularStep && dt > minStep + 1e-6) {
+          dynamicStep = Math.max(minStep, dt / 10);
+          continue;
+        }
+      }
     } else {
+      const subDt = dt / subs;
       for (let si = 0; si < subs; si++) {
-        const r = Math.sqrt(x * x + y * y);
+        const r = Math.sqrt(nx * nx + ny * ny);
         if (r < level.planetRadius) {
-          points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + t, inAtmo: true, belowCritical: true, heatRate: 0 });
+          points.push({ x: nx, y: ny, vx: nvx, vy: nvy, alt: r - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
           return points;
         }
         const alt = r - level.planetRadius;
@@ -2202,37 +2218,43 @@ function predictOrbit(
         // Gravity: always orbital GM/r² radial toward center
         // (consistent physics for the entire orbital prediction)
         const gAccel = level.planetGM / (r * r);
-        let ax = -gAccel * (x / r);
-        let ay = -gAccel * (y / r);
+        let ax = -gAccel * (nx / r);
+        let ay = -gAccel * (ny / r);
 
         // Aero: use lowAtmoAoA below transition, predAoA above.
         const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
-        const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
-        const aero = aeroForces(x, y, vx, vy, useAoA, level);
+        const useAoA = aoaDisplayToPhysical(displayAoA, nx, ny, nvx, nvy);
+        const aero = aeroForces(nx, ny, nvx, nvy, useAoA, level);
         ax += aero.ax;
         ay += aero.ay;
-        vx += ax * subDt;
-        vy += ay * subDt;
-        x += vx * subDt;
-        y += vy * subDt;
+        nvx += ax * subDt;
+        nvy += ay * subDt;
+        nx += nvx * subDt;
+        ny += nvy * subDt;
       }
     }
+
+    x = nx; y = ny; vx = nvx; vy = nvy;
+    elapsed += dt;
 
     const r = Math.sqrt(x * x + y * y);
     const alt = r - level.planetRadius;
     const aero = aeroForces(x, y, vx, vy, aoaDisplayToPhysical(predAoA, x, y, vx, vy), level);
     points.push({
-      x, y, vx, vy, alt, t: s.time + t + stepSize,
+      x, y, vx, vy, alt, t: s.time + elapsed,
       inAtmo: alt < level.atmoHeight,
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
     });
     const theta = Math.atan2(y, x);
-    let dTheta = theta - prevTheta;
-    while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
-    while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
-    angleAccum += Math.abs(dTheta);
+    const dTheta = normalizeAngle(theta - prevTheta);
+    const absDTheta = Math.abs(dTheta);
+    angleAccum += absDTheta;
     prevTheta = theta;
+    if (vacuumCoast && adaptiveVacuumSteps) {
+      if (absDTheta < minAngularStep) dynamicStep = Math.min(maxStep, dt * 2);
+      else dynamicStep = dt;
+    }
     if (!transferTarget && level.conicRadius && r >= level.conicRadius) return points;
     if (angleAccum >= Math.PI * 2) return points;
   }
@@ -2602,52 +2624,12 @@ export function renderOrbital(
   if (!level.surfaceMarkers && !level.station && level.showLandingSite !== false) drawLandingSite(ctx, cam, level, W, H);
   if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
-    drawCurrentConicOrbit(ctx, cam, s, level, W, H);
     drawOrbitPrediction(ctx, cam, s, level, W, H);
     drawTrail(ctx, cam, s, W, H);
     drawOrbitalMarkers(ctx, cam, s, level, W, H);
   }
   if (!rendezvousZoomed && _maneuverCache) drawManeuverMarker(ctx, cam, _maneuverCache, W, H);
   drawShip(ctx, cam, s, level, W, H, time);
-}
-
-function drawCurrentConicOrbit(
-  ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
-): void {
-  const rNow = Math.hypot(s.x, s.y);
-  const alt = rNow - level.planetRadius;
-  if (s.inAtmo || alt < level.atmoHeight) return;
-
-  const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-  if (!(elem.a > 0) || !Number.isFinite(elem.a) || !(elem.e >= 0) || elem.e >= 1) return;
-  if (!Number.isFinite(elem.periapsis) || elem.periapsis <= level.planetRadius * 0.98) return;
-
-  ctx.save();
-  ctx.beginPath();
-  const steps = 360;
-  let started = false;
-  for (let i = 0; i <= steps; i++) {
-    const nu = -Math.PI + (Math.PI * 2 * i) / steps;
-    const p = orbitPosition(elem, nu);
-    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
-    const [sx, sy] = ws(p.x, p.y, cam, W, H);
-    if (!Number.isFinite(sx) || !Number.isFinite(sy)) continue;
-    if (!started) {
-      ctx.moveTo(sx, sy);
-      started = true;
-    } else {
-      ctx.lineTo(sx, sy);
-    }
-  }
-  if (started) {
-    ctx.strokeStyle = 'rgba(95, 255, 190, 0.16)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 9]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  ctx.restore();
 }
 
 // --- Stars ---
