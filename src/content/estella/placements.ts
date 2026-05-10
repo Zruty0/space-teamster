@@ -104,7 +104,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     kind: 'orbit',
     parentId: 'estella-iii',
     usage: 'moon',
-    orbit: { kind: 'circular', radius: 2_200_000, epochAngle: 2.4, epochTime: 0, orbitSense: 1 },
+    orbit: { kind: 'circular', radius: 12_000_000, epochAngle: 2.4, epochTime: 0, orbitSense: 1 },
   },
   'estella-iiia-main-port': {
     kind: 'orbit',
