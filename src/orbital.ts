@@ -2543,6 +2543,17 @@ export function updateOrbitalCamera(
     cam.x += (0 - cam.x) * smooth;
     cam.y += (0 - cam.y) * smooth;
   }
+
+  // Last-resort visibility clamp: in Estella-centered transfer views the ship can be
+  // far from the frame origin, especially just after escaping a giant. Keep the craft
+  // on screen even if the nominal orbit/conic framing would otherwise leave it outside.
+  const margin = 42;
+  const dx = Math.abs(s.x - cam.x);
+  const dy = Math.abs(s.y - cam.y);
+  const maxZoomX = dx > 1 ? (W / 2 - margin) / dx : Infinity;
+  const maxZoomY = dy > 1 ? (H / 2 - margin) / dy : Infinity;
+  const maxVisibleZoom = Math.max(1e-12, Math.min(maxZoomX, maxZoomY));
+  if (cam.zoom > maxVisibleZoom) cam.zoom = maxVisibleZoom;
 }
 
 // ===================== Rendering =====================
