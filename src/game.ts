@@ -1202,7 +1202,7 @@ export class Game {
       drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'cluster') {
       renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.time);
-      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.time, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
     } else if (p.kind === 'estellaNav') {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {

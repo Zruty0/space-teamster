@@ -498,7 +498,7 @@ function rockVelocity(rock: ClusterRock): { vx: number; vy: number } {
   };
 }
 
-function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLevel, horizon = 10): number | null {
+function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLevel, horizon = 30): number | null {
   if (rockInSafeCircle(rock, level)) return null;
   const rx = rock.x - s.x;
   const ry = rock.y - s.y;
@@ -515,6 +515,16 @@ function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLev
   if (disc < 0) return null;
   const t = (-b - Math.sqrt(disc)) / (2 * a);
   return t >= 0 && t <= horizon ? t : null;
+}
+
+function clusterCollisionThreat(s: ClusterState, level: ClusterLevel): { level: 'warning' | 'alert'; ttc: number } | null {
+  let minTtc = Infinity;
+  for (const rock of s.rocks) {
+    const ttc = rockCollisionTime(s, rock, level, 30);
+    if (ttc !== null && ttc < minTtc) minTtc = ttc;
+  }
+  if (!Number.isFinite(minTtc)) return null;
+  return { level: minTtc <= 10 ? 'alert' : 'warning', ttc: minTtc };
 }
 
 export function updateClusterCamera(cam: ClusterCamera, s: ClusterState, level: ClusterLevel, dt: number, W: number, H: number): void {
@@ -590,12 +600,12 @@ function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: 
     ctx.stroke();
     ctx.restore();
 
-    const ttc = rockCollisionTime(s, rock, level);
-    if (ttc !== null && Math.sin(time * 16) > -0.2) {
-      const rr = r + 8;
+    const ttc = rockCollisionTime(s, rock, level, 30);
+    if (ttc !== null && Math.sin(time * (ttc <= 10 ? 16 : 8)) > -0.2) {
+      const rr = r + (ttc <= 10 ? 10 : 7);
       const gap = 4;
-      const arm = 8;
-      ctx.strokeStyle = '#ff3333';
+      const arm = ttc <= 10 ? 10 : 8;
+      ctx.strokeStyle = ttc <= 10 ? '#ff3333' : '#ffdd66';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(rx - rr - arm, ry);
@@ -855,7 +865,7 @@ function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size:
 
 export function drawClusterHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
-  s: ClusterState, level: ClusterLevel, state: 'flying' | 'arrived' | 'crashed',
+  s: ClusterState, level: ClusterLevel, state: 'flying' | 'arrived' | 'crashed', time = 0,
   phaseDvUsed = 0, missionDvUsed = 0, suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
@@ -867,6 +877,25 @@ export function drawClusterHUD(
   ctx.textAlign = 'right';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.fillText(level.name, W - 20, 24);
+
+  const threat = state === 'flying' ? clusterCollisionThreat(s, level) : null;
+  if (threat && Math.sin(time * (threat.level === 'alert' ? 12 : 6)) > -0.35) {
+    const isAlert = threat.level === 'alert';
+    const label = isAlert ? 'COLLISION ALERT' : 'COLLISION WARNING';
+    const color = isAlert ? '#ff3333' : '#ffdd66';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px monospace';
+    const text = `${label}  ${threat.ttc.toFixed(0)}s`;
+    const w = ctx.measureText(text).width + 36;
+    ctx.fillStyle = isAlert ? 'rgba(80, 0, 0, 0.72)' : 'rgba(80, 55, 0, 0.68)';
+    ctx.fillRect(W / 2 - w / 2, 12, w, 30);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(W / 2 - w / 2, 12, w, 30);
+    ctx.fillStyle = color;
+    ctx.fillText(text, W / 2, 33);
+  }
+
   ctx.textAlign = 'left';
 
   let ly = 30;
