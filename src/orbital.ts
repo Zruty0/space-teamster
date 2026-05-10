@@ -2843,7 +2843,11 @@ function drawSystemBodies(
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const br = isGasGiantBodyId(body.id) ? Math.max(8, body.radius * cam.zoom) : Math.max(3, body.radius * cam.zoom);
+    const br = isGasGiantBodyId(body.id)
+      ? Math.min(18, Math.max(8, body.radius * cam.zoom))
+      : body.gm === 0
+        ? Math.min(8, Math.max(4, body.radius * cam.zoom))
+        : Math.min(10, Math.max(3, body.radius * cam.zoom));
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, Math.PI * 2);
     ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
