@@ -2766,6 +2766,48 @@ function shouldDrawSystemBody(body: OrbitalTransferBody, level: OrbitalLevel): b
   return true;
 }
 
+function drawFarSystemBands(ctx: CanvasRenderingContext2D, cam: OrbitalCamera, W: number, H: number): void {
+  const [cx, cy] = ws(0, 0, cam, W, H);
+  const bands = [
+    { label: 'HEARTH', inner: 240_000_000, outer: 960_000_000, color: '80, 210, 140' },
+    { label: 'CAMPS', inner: 1_140_000_000, outer: 1_350_000_000, color: '210, 150, 100' },
+    { label: 'BELT', inner: 1_500_000_000, outer: 1_620_000_000, color: '150, 170, 190' },
+  ];
+
+  ctx.save();
+  for (const band of bands) {
+    const rMid = (band.inner + band.outer) * 0.5;
+    const rInner = band.inner * cam.zoom;
+    const rOuter = band.outer * cam.zoom;
+    if (rOuter < 2 || rInner > Math.max(W, H) * 4) continue;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
+    ctx.arc(cx, cy, rInner, 0, Math.PI * 2, true);
+    ctx.fillStyle = `rgba(${band.color}, 0.035)`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, rMid * cam.zoom, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${band.color}, 0.11)`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([10, 14]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const labelAngle = -Math.PI * 0.32;
+    const [lx, ly] = ws(Math.cos(labelAngle) * rMid, Math.sin(labelAngle) * rMid, cam, W, H);
+    if (lx > -80 && lx < W + 80 && ly > -30 && ly < H + 30) {
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(${band.color}, 0.35)`;
+      ctx.fillText(band.label, lx, ly);
+    }
+  }
+  ctx.restore();
+}
+
 function drawSystemBodies(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
@@ -2773,7 +2815,8 @@ function drawSystemBodies(
   const [cx, cy] = ws(0, 0, cam, W, H);
   drawPlanet(ctx, cam, level, W, H);
   drawCentralBodyLabel(ctx, cam, level, W, H);
-  drawAsteroidBelt(ctx, cam, level, W, H);
+  if (farSystemView(level)) drawFarSystemBands(ctx, cam, W, H);
+  else drawAsteroidBelt(ctx, cam, level, W, H);
 
   let offscreenTargetLabel: { x: number; y: number; color: string; name: string } | null = null;
 
