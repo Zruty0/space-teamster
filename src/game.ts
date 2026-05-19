@@ -37,6 +37,7 @@ import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
+import { estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -72,6 +73,8 @@ interface PhaseTransition {
   role: TransitionRole;
   title?: string;
   detailText?: string;
+  billableDvAdjustment?: number;
+  adjustmentLabel?: string;
   run: () => void;
 }
 
@@ -90,6 +93,7 @@ export class Game {
   private guidanceText = '';
   private guidanceUntil = 0;
   private missionDvUsed = 0;
+  private activeMissionQuote: MissionCostQuote | null = null;
   private phaseCompletion: PhaseCompletion | null = null;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
@@ -308,6 +312,7 @@ export class Game {
     const mission = MISSIONS.find(m => m.id === missionId);
     if (!mission) return;
     this.currentMissionId = missionId;
+    this.activeMissionQuote = null;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;
     this.worldTime = mission.startWorldTime;
@@ -404,11 +409,20 @@ export class Game {
     p: GameplayPhase,
     onContinue: () => void,
     completionText: string = '',
-    extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {},
+    extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> & Pick<PhaseTransition, 'billableDvAdjustment' | 'adjustmentLabel'> = {},
   ): void {
-    const phaseDvUsed = this.phaseDvUsed(p);
-    const missionDvUsed = this.missionDvForPhase(p);
+    const phaseDvUsed = this.phaseDvUsed(p) + (extra.billableDvAdjustment ?? 0);
+    const missionDvUsed = p.missionDvStart + phaseDvUsed;
     this.missionDvUsed = missionDvUsed;
+    const detailLines: string[] = [];
+    if (extra.detailText) detailLines.push(extra.detailText);
+    if (extra.billableDvAdjustment && extra.billableDvAdjustment > 0) {
+      detailLines.push(`${extra.adjustmentLabel ?? 'Billable correction'}: +${extra.billableDvAdjustment.toFixed(0)} m/s`);
+    }
+    if (completionText && this.activeMissionQuote) {
+      detailLines.push(formatMissionResultLine(this.activeMissionQuote, missionDvUsed));
+    }
+    const detailText = detailLines.join('\n');
     this.guidanceText = '';
     this.phaseCompletion = {
       title: extra.title ?? this.phaseTitle(p),
@@ -417,6 +431,7 @@ export class Game {
       missionDvUsed,
       completionText,
       ...extra,
+      detailText,
       onContinue: () => {
         this.phaseCompletion = null;
         onContinue();
@@ -426,8 +441,8 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private makeTransition(role: TransitionRole, run: () => void, title?: string, detailText?: string): PhaseTransition {
-    return { role, run, title, detailText };
+  private makeTransition(role: TransitionRole, run: () => void, title?: string, detailText?: string, billableDvAdjustment?: number, adjustmentLabel?: string): PhaseTransition {
+    return { role, run, title, detailText, billableDvAdjustment, adjustmentLabel };
   }
 
   private completeTransition(
@@ -436,8 +451,10 @@ export class Game {
     completionText: string = '',
     extra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {},
   ): void {
-    const transitionExtra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> = {
+    const transitionExtra: Partial<Pick<PhaseCompletion, 'ratingText' | 'ratingColor' | 'detailText' | 'tone' | 'title'>> & Pick<PhaseTransition, 'billableDvAdjustment' | 'adjustmentLabel'> = {
       tone: transition.role === 'contingency' ? 'transition' : 'success',
+      billableDvAdjustment: transition.billableDvAdjustment,
+      adjustmentLabel: transition.adjustmentLabel,
     };
     if (transition.role === 'contingency') transitionExtra.title = transition.title ?? this.phaseTitle(p);
     if (transition.detailText !== undefined) transitionExtra.detailText = transition.detailText;
@@ -481,6 +498,7 @@ export class Game {
             p,
             () => {
               this.currentMissionId = null;
+              this.activeMissionQuote = null;
               this.phase = { kind: 'levelSelect' };
             },
             this.currentMissionCompletionText(),
@@ -596,6 +614,7 @@ export class Game {
               ? this.transitionDockingToOrbital(p)
               : this.makeTransition('success', () => {
                   this.currentMissionId = null;
+                  this.activeMissionQuote = null;
                   this.phase = { kind: 'levelSelect' };
                 });
           if (transition) this.completeTransition(p, transition, isFinal ? this.currentMissionCompletionText() : '');
@@ -673,6 +692,7 @@ export class Game {
             ? this.transitionClusterToDocking(p)
             : this.makeTransition('success', () => {
                 this.currentMissionId = null;
+                this.activeMissionQuote = null;
                 this.phase = { kind: 'levelSelect' };
               });
           if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText(), { title: 'Near Belt Local Traffic', detailText: 'Berth approach complete.' });
@@ -835,16 +855,28 @@ export class Game {
         const escape = currentEscapeVector(p.os, p.level);
         const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
         if (!escape && localSpeed < 0.01) return null;
-        const escapeAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
-        const vInf = escape?.vInf ?? 0;
+        const actualEscapeAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
+        const actualVInf = escape?.vInf ?? 0;
+        let handoffAngle = actualEscapeAngle;
+        let handoffVInf = actualVInf;
+        let correctionDv = 0;
+        if (p.level.escapeVectorAngle !== undefined && p.level.escapeVectorSpeed !== undefined) {
+          handoffAngle = p.level.escapeVectorAngle;
+          handoffVInf = p.level.escapeVectorSpeed;
+          const targetVx = Math.cos(handoffAngle) * handoffVInf;
+          const targetVy = Math.sin(handoffAngle) * handoffVInf;
+          const actualVx = Math.cos(actualEscapeAngle) * actualVInf;
+          const actualVy = Math.sin(actualEscapeAngle) * actualVInf;
+          correctionDv = Math.hypot(targetVx - actualVx, targetVy - actualVy);
+        }
         const initOverride: OrbitalInitOverride = {
           x: originState.x,
           y: originState.y,
-          vx: originState.vx + Math.cos(escapeAngle) * vInf,
-          vy: originState.vy + Math.sin(escapeAngle) * vInf,
+          vx: originState.vx + Math.cos(handoffAngle) * handoffVInf,
+          vy: originState.vy + Math.sin(handoffAngle) * handoffVInf,
           time: p.os.time,
         };
-        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time));
+        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), undefined, undefined, correctionDv, 'Insertion correction');
       }
     }
 
@@ -1194,6 +1226,7 @@ export class Game {
     if (input.menuConfirm) {
       const selectedTransfer = p.mission.transferOptions[p.mission.selectedTransferOption];
       const startWorldTime = selectedTransfer?.waitTime ?? 0;
+      this.activeMissionQuote = estimateEstellaMissionCost(p.mission.sourceId, p.mission.destinationId, selectedTransfer);
       this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);
     }
   }

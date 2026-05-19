@@ -373,7 +373,9 @@ export function drawPhaseCompleteOverlay(
 ): void {
   const W = canvas.width;
   const H = canvas.height;
-  const boxH = ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170);
+  const detailLines = detailText ? detailText.split('\n').length : 0;
+  const extraDetailH = Math.max(0, detailLines - 1) * 18;
+  const boxH = (ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170)) + extraDetailH;
   const top = H / 2 - boxH / 2;
 
   const accent = tone === 'transition' ? COL_WARNING : COL_SUCCESS;
@@ -406,8 +408,11 @@ export function drawPhaseCompleteOverlay(
   if (detailText) {
     ctx.fillStyle = COL_HUD;
     ctx.font = '13px monospace';
-    ctx.fillText(detailText, W / 2, y);
-    y += 22;
+    for (const line of detailText.split('\n')) {
+      ctx.fillText(line, W / 2, y);
+      y += 18;
+    }
+    y += 4;
   }
 
   if (completionText) {
