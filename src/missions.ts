@@ -98,7 +98,7 @@ export const MISSIONS: Mission[] = [
     subtitle: 'Prototype navigation browser for exact-authored Estella locations.',
     destinationName: 'Estella Navigation',
     destinationLocation: 'authored system map',
-    completionText: 'Navigation route set.',
+    completionText: 'Delivery complete. Dispatch closes the manifest and posts the run to your log.',
     stub: false,
     startWorldTime: 0,
     start: { kind: 'estellaNav' },
