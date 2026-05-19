@@ -394,7 +394,7 @@ export function drawEstellaGeneratedMission(
   const quote = estimateEstellaMissionCost(mission.sourceId, mission.destinationId, selectedTransfer);
   const optionBlockH = mission.transferOptions.length ? 112 : 0;
   const quoteY = y + 46;
-  const quoteBlockH = 92;
+  const quoteBlockH = 68;
   ctx.fillStyle = 'rgba(0, 255, 170, 0.06)';
   ctx.fillRect(x + 18, quoteY - 14, w - 36, quoteBlockH);
   ctx.strokeStyle = COL_SUCCESS;
@@ -406,14 +406,26 @@ export function drawEstellaGeneratedMission(
   ctx.font = '12px monospace';
   ctx.fillText(`Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s`, x + 28, quoteY + 24);
   ctx.fillText(`Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}`, x + 28, quoteY + 44);
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '11px monospace';
-  const breakdown = quote.breakdown.slice(0, 5).map(item => `${item.label} ${item.dv.toFixed(0)}m/s`).join('  |  ');
-  ctx.fillText(breakdown.length > 132 ? `${breakdown.slice(0, 129)}...` : breakdown, x + 28, quoteY + 64);
-  ctx.fillText('Fuel is charged from actual mission ΔV at delivery; this quote is par for a competent run.', x + 28, quoteY + 80);
 
-  const rowH = 44;
-  const rowStartY = quoteY + quoteBlockH + 22;
+  const transferCostLabels = new Set(['Cluster escape vector', 'SOI escape insertion', 'Midcourse correction reserve', 'Atmospheric entry targeting', 'Arrival/capture reserve', 'Transfer reserve']);
+  const transferItems = quote.breakdown.filter(item => transferCostLabels.has(item.label));
+  const localItems = quote.breakdown.filter(item => !transferCostLabels.has(item.label));
+  const transferLegIndex = mission.legs.findIndex(leg => leg.title.startsWith('Transfer context:'));
+  const legCostLines = new Map<number, string[]>();
+  const stageLegIndices = mission.legs
+    .map((leg, index) => ({ leg, index }))
+    .filter(({ leg, index }) => index !== 0 && index !== mission.legs.length - 1 && index !== transferLegIndex)
+    .map(({ index }) => index);
+  for (let i = 0; i < Math.min(localItems.length, stageLegIndices.length); i++) {
+    const item = localItems[i];
+    legCostLines.set(stageLegIndices[i], [`Par cost: ${item.dv.toFixed(0)} m/s — ${item.label}`]);
+  }
+  if (transferLegIndex >= 0 && transferItems.length) {
+    legCostLines.set(transferLegIndex, transferItems.map(item => `${item.label} ${item.dv.toFixed(0)}m/s`));
+  }
+
+  const rowH = 60;
+  const rowStartY = quoteY + quoteBlockH + 24;
   const maxRows = Math.floor((y + h - optionBlockH - 16 - rowStartY) / rowH);
   for (let i = 0; i < Math.min(maxRows, mission.legs.length); i++) {
     const leg = mission.legs[i];
@@ -425,6 +437,12 @@ export function drawEstellaGeneratedMission(
     ctx.font = '11px monospace';
     const detail = leg.detail.length > 118 ? `${leg.detail.slice(0, 115)}...` : leg.detail;
     ctx.fillText(detail, x + 54, rowY + 16);
+    const costLines = legCostLines.get(i);
+    if (costLines?.length) {
+      ctx.fillStyle = COL_SUCCESS;
+      const costText = costLines.join('  |  ');
+      ctx.fillText(costText.length > 118 ? `${costText.slice(0, 115)}...` : costText, x + 54, rowY + 34);
+    }
   }
 
   if (mission.transferOptions.length) {
