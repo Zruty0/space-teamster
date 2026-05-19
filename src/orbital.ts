@@ -2148,7 +2148,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   let maxTime = Math.min(period * 0.95, 20000); // atmosphere / low-pass fallback
   if (transferTarget && !pacing.lowPass) {
     const transferTime = Math.PI * Math.sqrt(transferTarget.orbitRadius ** 3 / level.planetGM);
-    const transferCap = level.bodyId === 'estella' ? 24_000_000 : 4_000_000;
+    const transferCap = level.bodyId === 'estella' ? 24_000_000 : (level.atmoHeight > 0 ? 600_000 : 4_000_000);
     maxTime = hasClosedOrbit
       ? Math.min(period * 1.02, transferCap)
       : Math.min(Math.max(transferTime * 4.0, 120_000), transferCap);
@@ -2159,8 +2159,11 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
       : Math.max(fallbackHalfOrbitTime * 1.5, 120000);
     maxTime = Math.min(vacuumHorizon, 800000);
   }
+  const predictsAtmoPass = level.atmoHeight > 0 && elem.periapsis < level.planetRadius + level.atmoHeight * 1.5;
   const stepSize = transferTarget
-    ? Math.max(20, Math.min(maxTime, level.bodyId === 'estella' ? 4_000_000 : maxTime) / 1200) // keep first 4Ms at old density; later Estella points are coarser
+    ? predictsAtmoPass
+      ? Math.min(20, Math.max(2, maxTime / 12_000))
+      : Math.max(20, Math.min(maxTime, level.bodyId === 'estella' ? 4_000_000 : maxTime) / 1200) // keep first 4Ms at old density; later Estella points are coarser
     : !pacing.lowPass
       ? Math.min(20, Math.max(1, maxTime / 2200))
       : Math.max(1, maxTime / 2200);

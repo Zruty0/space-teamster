@@ -596,6 +596,7 @@ function buildRouteObjective(opts: {
         name: `${nodeName(ESTELLA_NODES_BY_ID.get(opts.currentBodyId))} Capture`,
         finalDestinationId: opts.destinationId,
         startOrbit,
+        showLandingSite: false,
         targetBodyId: childId,
         targetArrivalOrbitalLevelId: childArrival.id,
       }));
