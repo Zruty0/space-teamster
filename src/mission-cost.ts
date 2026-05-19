@@ -33,6 +33,8 @@ const CLUSTER_TRANSFER_SPEED = 200;
 const CLUSTER_SHIP_HIT_RADIUS = 900;
 const CLUSTER_AVOIDANCE_DV = 50;
 const CLUSTER_SLOPPINESS_FACTOR = 1.2;
+const ORBIT_TRANSFER_SLOP = 1.4;
+const ESCAPE_CAPTURE_SLOP = 1.1;
 
 const CARGO_CLASSES = [
   { label: 'Light sealed freight', minMass: 8, maxMass: 15 },
@@ -165,12 +167,54 @@ function defaultDepartureParProfile(body: BodyDef | undefined): EstellaSurfaceFl
   return { speedMultiplier: 1.05, fixedAllowanceDv: 90 };
 }
 
+function surfaceProfileForBody(bodyId: string): { nodeId: string; profile: EstellaSurfaceFlightProfile } | undefined {
+  for (const [nodeId, profile] of Object.entries(ESTELLA_SURFACE_FLIGHT_PROFILES)) {
+    const node = ESTELLA_NODES_BY_ID.get(nodeId);
+    if (node?.placement?.kind === 'surface' && node.placement.parentId === bodyId && profile) return { nodeId, profile };
+  }
+  return undefined;
+}
+
+function parkingOrbitAltitude(body: BodyDef): number {
+  const profile = surfaceProfileForBody(body.id)?.profile;
+  const altitude = profile?.departurePar.targetOrbitAltitude ?? profile?.departureProfile.targetOrbitAltitude;
+  if (altitude !== undefined) return altitude;
+  if (body.atmosphere) return Math.max(body.atmosphere.height + 10_000, body.orbitalDefaults.transitionAltitude * 2);
+  return Math.max(body.orbitalDefaults.transitionAltitude * 2, body.radius * 0.15, 10_000);
+}
+
+function parkingOrbitRadius(body: BodyDef): number {
+  return body.radius + parkingOrbitAltitude(body);
+}
+
+function circularOrbitSpeed(body: BodyDef, radius: number): number {
+  return Math.sqrt(body.gm / Math.max(1, radius));
+}
+
+function hohmannOrbitTransferDv(body: BodyDef, r1: number, r2: number): number {
+  if (!Number.isFinite(r1) || !Number.isFinite(r2) || r1 <= 0 || r2 <= 0) return 0;
+  if (Math.abs(r1 - r2) < 1) return 0;
+  const a = (r1 + r2) * 0.5;
+  const v1 = circularOrbitSpeed(body, r1);
+  const v2 = circularOrbitSpeed(body, r2);
+  const vt1 = Math.sqrt(body.gm * (2 / r1 - 1 / a));
+  const vt2 = Math.sqrt(body.gm * (2 / r2 - 1 / a));
+  return (Math.abs(vt1 - v1) + Math.abs(v2 - vt2)) * ORBIT_TRANSFER_SLOP;
+}
+
+function parkingEscapeOrCaptureDv(body: BodyDef, vInf: number): number {
+  const rp = parkingOrbitRadius(body);
+  const vCirc = circularOrbitSpeed(body, rp);
+  const vHyp = Math.sqrt(vInf * vInf + 2 * body.gm / rp);
+  return Math.max(0, vHyp - vCirc) * ESCAPE_CAPTURE_SLOP;
+}
+
 function departureToOrbitParDv(nodeId: string, body: BodyDef | undefined, surfaceAltitude = 0): number {
   if (!body) return 0;
   const surfaceProfile = ESTELLA_SURFACE_FLIGHT_PROFILES[nodeId];
   const departureProfile = surfaceProfile?.departureProfile;
   const parProfile = surfaceProfile?.departurePar ?? defaultDepartureParProfile(body);
-  const targetOrbitAltitude = parProfile.targetOrbitAltitude ?? departureProfile?.targetOrbitAltitude ?? body.orbitalDefaults.transitionAltitude * 2;
+  const targetOrbitAltitude = parProfile.targetOrbitAltitude ?? departureProfile?.targetOrbitAltitude ?? parkingOrbitAltitude(body);
   const r0 = body.radius + Math.max(0, surfaceAltitude);
   const ra = body.radius + Math.max(surfaceAltitude + 1, targetOrbitAltitude);
   const verticalBurn = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / ra)));
@@ -223,6 +267,44 @@ function destinationIsSurface(destinationId: string): boolean {
   return node?.placement?.kind === 'surface';
 }
 
+function directPlacement(nodeId: string): Placement | undefined {
+  return ESTELLA_NODES_BY_ID.get(nodeId)?.placement;
+}
+
+function locationSurface(nodeId: string): { nodeId: string; bodyId: string; altitude: number } | null {
+  const node = ESTELLA_NODES_BY_ID.get(nodeId);
+  if (node?.placement?.kind === 'surface') return { nodeId, bodyId: node.placement.parentId, altitude: node.placement.altitude ?? 0 };
+  return null;
+}
+
+function locationOrbit(nodeId: string): { nodeId: string; bodyId: string; radius: number } | null {
+  let current = ESTELLA_NODES_BY_ID.get(nodeId);
+  const seen = new Set<string>();
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id);
+    const placement = current.placement;
+    if (placement?.kind === 'orbit' && placement.orbit?.kind === 'circular') {
+      return { nodeId: current.id, bodyId: placement.parentId, radius: placement.orbit.radius };
+    }
+    current = placement?.parentId ? ESTELLA_NODES_BY_ID.get(placement.parentId) : undefined;
+  }
+  return null;
+}
+
+function isAboardLocation(nodeId: string): boolean {
+  return directPlacement(nodeId)?.kind === 'aboard';
+}
+
+function descentLandingParDv(destinationId: string): number {
+  const surface = locationSurface(destinationId);
+  const body = safeBody(surface?.bodyId);
+  if (!surface || !body) return 0;
+  const base = body.orbitalDefaults.fuelDeltaV ?? 900;
+  const atmoFactor = body.atmosphere ? 0.20 : 0.50;
+  const landingReserve = body.atmosphere ? 70 : 45;
+  return base * atmoFactor + landingReserve;
+}
+
 export function estimateEstellaMissionCost(
   sourceId: string,
   destinationId: string,
@@ -233,48 +315,70 @@ export function estimateEstellaMissionCost(
   const loadedMassTons = SHIP_DRY_MASS_TONS + CONTAINER_TARE_TONS + cargo.mass;
   const breakdown: MissionCostBreakdownItem[] = [];
   const sameClusterTravel = clusterTravelDistanceForPois(sourceId, destinationId);
+  const sourceSurface = locationSurface(sourceId);
+  const destSurface = locationSurface(destinationId);
+  const sourceOrbit = locationOrbit(sourceId);
+  const destOrbit = locationOrbit(destinationId);
 
-  const srcChain = chainToRoot(sourceId);
-  const dstChain = chainToRoot(destinationId);
-  const lca = lowestCommonAncestor(srcChain, dstChain);
-  const lcaId = lca?.id;
-  const up = lcaId ? srcChain.slice(0, srcChain.findIndex(node => node.id === lcaId)) : srcChain;
-  const down = lcaId ? dstChain.slice(0, dstChain.findIndex(node => node.id === lcaId)).reverse() : dstChain.slice().reverse();
-
-  for (const node of up) {
-    const leg = sourceLegParDv(node, node.placement);
-    if (leg) addBreakdown(breakdown, leg.label, leg.dv);
-  }
+  if (isAboardLocation(sourceId)) addBreakdown(breakdown, `Undock: ${nodeName(sourceId)}`, 15);
 
   if (sameClusterTravel) {
     addBreakdown(breakdown, 'Cluster local transfer', clusterTravelParDv(sameClusterTravel.level, sameClusterTravel.distance));
-  }
-
-  if (selectedTransfer) {
+  } else if (selectedTransfer) {
     const transferSourceCluster = sourceIsCluster(sourceId);
     const clusterSourceLevel = transferSourceCluster ? clusterTemplateForPoiId(sourceId) : undefined;
-    const depDv = transferSourceCluster && clusterSourceLevel
-      ? clusterEscapeParDv(clusterSourceLevel, selectedTransfer.departureVInf)
-      : selectedTransfer.departureVInf * 1.18 + 45;
-    addBreakdown(breakdown, transferSourceCluster ? 'Cluster exit + escape vector' : 'SOI escape insertion', depDv);
+    if (transferSourceCluster && clusterSourceLevel) {
+      addBreakdown(breakdown, 'Cluster exit + escape vector', clusterEscapeParDv(clusterSourceLevel, selectedTransfer.departureVInf));
+    } else {
+      const sourceBody = safeBody(selectedTransfer.sourceBodyId);
+      if (sourceBody) {
+        const sourceParkingR = parkingOrbitRadius(sourceBody);
+        if (sourceSurface?.bodyId === selectedTransfer.sourceBodyId) {
+          addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, sourceBody, sourceSurface.altitude));
+        } else if (sourceOrbit?.bodyId === selectedTransfer.sourceBodyId) {
+          addBreakdown(breakdown, 'Orbit transfer to parking', hohmannOrbitTransferDv(sourceBody, sourceOrbit.radius, sourceParkingR));
+        }
+        addBreakdown(breakdown, 'Escape from parking orbit', parkingEscapeOrCaptureDv(sourceBody, selectedTransfer.departureVInf));
+      } else {
+        addBreakdown(breakdown, 'SOI escape insertion', selectedTransfer.departureVInf * 1.18 + 45);
+      }
+    }
+
     addBreakdown(breakdown, 'Midcourse correction reserve', Math.max(8, selectedTransfer.totalDeltaV * 0.03));
 
-    const atmoArrival = destinationUsesAtmosphere(destinationId) && destinationIsSurface(destinationId);
-    const clusterDestLevel = !sameClusterTravel ? clusterTemplateForPoiId(destinationId) : undefined;
-    const arrDv = clusterDestLevel
-      ? clusterEntryParDv(clusterDestLevel, selectedTransfer.arrivalVInf)
-      : atmoArrival
-        ? 12 + selectedTransfer.arrivalVInf * 0.06
-        : 35 + selectedTransfer.arrivalVInf * 0.55;
-    addBreakdown(breakdown, clusterDestLevel ? 'Cluster entry + local approach' : atmoArrival ? 'Atmospheric entry targeting' : 'Arrival/capture reserve', arrDv);
-  } else if (bodyNodeIdForLocation(sourceId) !== bodyNodeIdForLocation(destinationId)) {
-    addBreakdown(breakdown, 'Transfer reserve', 120);
+    const clusterDestLevel = clusterTemplateForPoiId(destinationId);
+    if (clusterDestLevel) {
+      addBreakdown(breakdown, 'Cluster entry + local approach', clusterEntryParDv(clusterDestLevel, selectedTransfer.arrivalVInf));
+    } else {
+      const destBody = safeBody(selectedTransfer.destinationBodyId);
+      if (destBody) {
+        const destParkingR = parkingOrbitRadius(destBody);
+        addBreakdown(breakdown, 'Capture to parking orbit', parkingEscapeOrCaptureDv(destBody, selectedTransfer.arrivalVInf));
+        if (destOrbit?.bodyId === selectedTransfer.destinationBodyId) {
+          addBreakdown(breakdown, 'Orbit transfer to destination', hohmannOrbitTransferDv(destBody, destParkingR, destOrbit.radius));
+        } else if (destSurface?.bodyId === selectedTransfer.destinationBodyId) {
+          addBreakdown(breakdown, `Descent/landing: ${nodeName(destinationId)}`, descentLandingParDv(destinationId));
+        }
+      } else {
+        addBreakdown(breakdown, 'Arrival/capture reserve', 35 + selectedTransfer.arrivalVInf * 0.55);
+      }
+    }
+  } else {
+    const sourceBodyId = sourceSurface?.bodyId ?? sourceOrbit?.bodyId;
+    const destBodyId = destSurface?.bodyId ?? destOrbit?.bodyId;
+    const body = sourceBodyId && sourceBodyId === destBodyId ? safeBody(sourceBodyId) : undefined;
+    if (body) {
+      const parkR = parkingOrbitRadius(body);
+      if (sourceSurface) addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, body, sourceSurface.altitude));
+      if (sourceOrbit) addBreakdown(breakdown, 'Orbit transfer to parking', hohmannOrbitTransferDv(body, sourceOrbit.radius, parkR));
+      if (destOrbit) addBreakdown(breakdown, 'Orbit transfer to destination', hohmannOrbitTransferDv(body, parkR, destOrbit.radius));
+      if (destSurface) addBreakdown(breakdown, `Descent/landing: ${nodeName(destinationId)}`, descentLandingParDv(destinationId));
+    } else if (bodyNodeIdForLocation(sourceId) !== bodyNodeIdForLocation(destinationId)) {
+      addBreakdown(breakdown, 'Transfer reserve', 120);
+    }
   }
 
-  for (const node of down) {
-    const leg = destinationLegParDv(node, node.placement);
-    if (leg) addBreakdown(breakdown, leg.label, leg.dv);
-  }
+  if (isAboardLocation(destinationId)) addBreakdown(breakdown, `Dock: ${nodeName(destinationId)}`, 18);
 
   const parDv = Math.round(breakdown.reduce((sum, item) => sum + item.dv, 0));
   const parFuelCost = Math.round(parDv * loadedMassTons * FUEL_PRICE_PER_TON_MPS);

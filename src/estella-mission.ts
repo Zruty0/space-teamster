@@ -407,7 +407,7 @@ export function drawEstellaGeneratedMission(
   ctx.fillText(`Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s`, x + 28, quoteY + 24);
   ctx.fillText(`Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}`, x + 28, quoteY + 44);
 
-  const transferCostLabels = new Set(['Cluster exit + escape vector', 'Cluster entry + local approach', 'SOI escape insertion', 'Midcourse correction reserve', 'Atmospheric entry targeting', 'Arrival/capture reserve', 'Transfer reserve']);
+  const transferCostLabels = new Set(['Cluster exit + escape vector', 'Cluster entry + local approach', 'SOI escape insertion', 'Escape from parking orbit', 'Capture to parking orbit', 'Midcourse correction reserve', 'Atmospheric entry targeting', 'Arrival/capture reserve', 'Transfer reserve']);
   const transferItems = quote.breakdown.filter(item => transferCostLabels.has(item.label));
   const localItems = quote.breakdown.filter(item => !transferCostLabels.has(item.label));
   const transferLegIndex = mission.legs.findIndex(leg => leg.title.startsWith('Transfer context:'));
