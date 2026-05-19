@@ -38,6 +38,11 @@ export interface EstellaSurfaceFlightProfile {
     orbitDir: 1 | -1;
     fuelSeconds: number;
   };
+  departurePar: {
+    targetOrbitAltitude?: number;
+    speedMultiplier: number;
+    fixedAllowanceDv: number;
+  };
 }
 
 const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
@@ -78,6 +83,10 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     targetOrbitAltitude: 100_000,
     orbitDir: -1,
     fuelSeconds: 180,
+  },
+  departurePar: {
+    speedMultiplier: 1.15,
+    fixedAllowanceDv: 30,
   },
 };
 
@@ -121,6 +130,10 @@ const ESTELLA_HEARTH_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     thresholdApoapsisAltitude: 90_000,
     targetOrbitAltitude: 140_000,
     fuelSeconds: 180,
+  },
+  departurePar: {
+    speedMultiplier: 1.35,
+    fixedAllowanceDv: 180,
   },
 };
 
@@ -177,6 +190,10 @@ const ESTELLA_II_OLYMPOS_PROFILE: EstellaSurfaceFlightProfile = {
     targetOrbitAltitude: 160_000,
     orbitDir: -1,
     fuelSeconds: 150,
+  },
+  departurePar: {
+    speedMultiplier: 1.45,
+    fixedAllowanceDv: 300,
   },
 };
 
@@ -250,6 +267,10 @@ const ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     targetOrbitAltitude: 85_000,
     fuelSeconds: 170,
   },
+  departurePar: {
+    speedMultiplier: 1.25,
+    fixedAllowanceDv: 90,
+  },
 };
 
 const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
@@ -278,6 +299,10 @@ const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     thresholdApoapsisAltitude: 115_000,
     targetOrbitAltitude: 130_000,
     fuelSeconds: 190,
+  },
+  departurePar: {
+    speedMultiplier: 1.45,
+    fixedAllowanceDv: 250,
   },
 };
 

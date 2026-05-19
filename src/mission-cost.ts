@@ -1,5 +1,6 @@
 import { clusterMemberForPoi, clusterTemplateForPoiId, type ClusterLevel } from './cluster';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
+import { ESTELLA_SURFACE_FLIGHT_PROFILES, type EstellaSurfaceFlightProfile } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
 import { type EstellaTransferOption } from './estella-mission';
 import { bodyById, type BodyDef } from './world';
@@ -157,6 +158,24 @@ function clusterTravelDistanceForPois(sourceId: string, destinationId: string): 
   return { level, distance: Math.hypot(destMember.x - sourceMember.x, destMember.y - sourceMember.y) };
 }
 
+function defaultDepartureParProfile(body: BodyDef | undefined): EstellaSurfaceFlightProfile['departurePar'] {
+  if (!body?.atmosphere) return { speedMultiplier: 1.15, fixedAllowanceDv: 30 };
+  if (body.atmosphere.surfaceDensity > 1.2) return { speedMultiplier: 1.45, fixedAllowanceDv: 250 };
+  if (body.atmosphere.surfaceDensity > 0.25) return { speedMultiplier: 1.35, fixedAllowanceDv: 180 };
+  return { speedMultiplier: 1.25, fixedAllowanceDv: 90 };
+}
+
+function departureToOrbitParDv(nodeId: string, body: BodyDef | undefined): number {
+  if (!body) return 0;
+  const surfaceProfile = ESTELLA_SURFACE_FLIGHT_PROFILES[nodeId];
+  const departureProfile = surfaceProfile?.departureProfile;
+  const parProfile = surfaceProfile?.departurePar ?? defaultDepartureParProfile(body);
+  const targetOrbitAltitude = parProfile.targetOrbitAltitude ?? departureProfile?.targetOrbitAltitude ?? body.orbitalDefaults.transitionAltitude * 2;
+  const targetOrbitRadius = body.radius + Math.max(1, targetOrbitAltitude);
+  const targetOrbitSpeed = Math.sqrt(body.gm / targetOrbitRadius);
+  return targetOrbitSpeed * parProfile.speedMultiplier + parProfile.fixedAllowanceDv;
+}
+
 function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { label: string; dv: number } | null {
   if (!placement) return null;
   if (placement.kind === 'aboard') return { label: `Undock: ${nodeName(node.id)}`, dv: 15 };
@@ -164,9 +183,7 @@ function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { la
   if (placement.kind === 'orbit') return { label: `Clear local orbit: ${nodeName(node.id)}`, dv: 45 };
   if (placement.kind === 'surface') {
     const body = safeBody(placement.parentId);
-    const base = body?.orbitalDefaults.fuelDeltaV ?? 900;
-    const atmoFactor = body?.atmosphere ? 0.42 : 0.72;
-    return { label: `Launch: ${nodeName(node.id)}`, dv: base * atmoFactor };
+    return { label: `Launch: ${nodeName(node.id)}`, dv: departureToOrbitParDv(node.id, body) };
   }
   return null;
 }
