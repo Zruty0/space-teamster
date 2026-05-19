@@ -139,6 +139,11 @@ function clusterEscapeParDv(level: ClusterLevel, escapeSpeed: number): number {
   return roundToNearest((escapeSpeed + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
 }
 
+function clusterEntryParDv(level: ClusterLevel, arrivalVInf: number): number {
+  const avoidanceDv = clusterAvoidanceDv(level, clusterExitEntryTravelLength(level));
+  return roundToNearest((arrivalVInf + CLUSTER_TRANSFER_SPEED + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
+}
+
 function clusterExitEntryTravelLength(level: ClusterLevel): number {
   return (level.rx + level.ry) * 0.5;
 }
@@ -235,10 +240,13 @@ export function estimateEstellaMissionCost(
     addBreakdown(breakdown, 'Midcourse correction reserve', Math.max(8, selectedTransfer.totalDeltaV * 0.03));
 
     const atmoArrival = destinationUsesAtmosphere(destinationId) && destinationIsSurface(destinationId);
-    const arrDv = atmoArrival
-      ? 12 + selectedTransfer.arrivalVInf * 0.06
-      : 35 + selectedTransfer.arrivalVInf * 0.55;
-    addBreakdown(breakdown, atmoArrival ? 'Atmospheric entry targeting' : 'Arrival/capture reserve', arrDv);
+    const clusterDestLevel = !sameClusterTravel ? clusterTemplateForPoiId(destinationId) : undefined;
+    const arrDv = clusterDestLevel
+      ? clusterEntryParDv(clusterDestLevel, selectedTransfer.arrivalVInf)
+      : atmoArrival
+        ? 12 + selectedTransfer.arrivalVInf * 0.06
+        : 35 + selectedTransfer.arrivalVInf * 0.55;
+    addBreakdown(breakdown, clusterDestLevel ? 'Cluster entry + local approach' : atmoArrival ? 'Atmospheric entry targeting' : 'Arrival/capture reserve', arrDv);
   } else if (bodyNodeIdForLocation(sourceId) !== bodyNodeIdForLocation(destinationId)) {
     addBreakdown(breakdown, 'Transfer reserve', 120);
   }
