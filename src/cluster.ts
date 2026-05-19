@@ -1070,7 +1070,7 @@ function drawClusterFlames(ctx: CanvasRenderingContext2D, s: ClusterState, size:
 export function drawClusterHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: ClusterState, level: ClusterLevel, state: 'flying' | 'arrived' | 'crashed', time = 0,
-  phaseDvUsed = 0, missionDvUsed = 0, suppressStateOverlays = false,
+  phaseDvUsed = 0, missionDvUsed = 0, missionParDv = 0, suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -1110,6 +1110,7 @@ export function drawClusterHUD(
   drawHudLabel(ctx, 20, ly, 'WARP', `${s.timeWarp}x`, s.timeWarp > 1 ? COL_WARNING : COL_HUD_DIM); ly += lh;
   drawHudLabel(ctx, 20, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
   drawHudLabel(ctx, 20, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  if (missionParDv > 0) drawHudLabel(ctx, 20, ly, 'PAR ΔV', `${missionParDv.toFixed(0)} m/s`, missionDvUsed <= missionParDv ? COL_SUCCESS : COL_WARNING), ly += lh;
 
   const rows: { label: string; value: string; color?: string }[] = [];
   const escapeGuide = clusterEscapeGuide(s, level, time);

@@ -92,6 +92,7 @@ export function drawHUD(
   launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1 },
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
+  missionParDv: number = 0,
   suppressStateOverlays = false,
 ): void {
   const W = canvas.width;
@@ -154,6 +155,10 @@ export function drawHUD(
   ly += lineH;
   drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD);
   ly += lineH;
+  if (missionParDv > 0) {
+    drawHudLabel(ctx, lx, ly, 'PAR ΔV', `${missionParDv.toFixed(0)} m/s`, missionDvUsed <= missionParDv ? COL_SUCCESS : COL_WARNING);
+    ly += lineH;
+  }
 
   const landingGuidance = launchGuidance
     ? (altitude < launchGuidance.targetAltitude

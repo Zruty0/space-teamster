@@ -1629,6 +1629,7 @@ function drawApproachHUD(
   destinationLocation: string | undefined,
   phaseDvUsed: number = 0,
   missionDvUsed: number = 0,
+  missionParDv: number = 0,
   suppressStateOverlays = false,
 ): void {
   const W = canvas.width, H = canvas.height;
@@ -1691,6 +1692,7 @@ function drawApproachHUD(
   drawHudLabel(ctx, lx, ly, 'WARP', `${s.timeWarp}x`, s.timeWarp > 1 ? COL_WARNING : COL_HUD_DIM); ly += lh;
   drawHudLabel(ctx, lx, ly, 'PH ΔV', `${phaseDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
   drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
+  if (missionParDv > 0) drawHudLabel(ctx, lx, ly, 'PAR ΔV', `${missionParDv.toFixed(0)} m/s`, missionDvUsed <= missionParDv ? COL_SUCCESS : COL_WARNING), ly += lh;
 
   const panelRows = departure
     ? (() => {

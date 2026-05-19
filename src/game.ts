@@ -391,6 +391,10 @@ export class Game {
     return mission?.destinationLocation;
   }
 
+  private currentMissionParDv(): number {
+    return this.activeMissionQuote?.parDv ?? 0;
+  }
+
   private isOrbitalDeorbitObjective(level: OrbitalLevel): boolean {
     return !level.station && !level.targetBodyId && level.showLandingSite !== false;
   }
@@ -1264,19 +1268,19 @@ export class Game {
       drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
     } else if (p.kind === 'landing') {
       render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time);
-      drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
-      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
       renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time);
-      drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'docking') {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
-      drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'cluster') {
       renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime);
-      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), suppressStateOverlays);
+      drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'estellaNav') {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {
