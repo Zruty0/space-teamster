@@ -392,13 +392,32 @@ export function drawEstellaGeneratedMission(
 
   const selectedTransfer = mission.transferOptions[mission.selectedTransferOption];
   const quote = estimateEstellaMissionCost(mission.sourceId, mission.destinationId, selectedTransfer);
-  const quoteBlockH = 108;
   const optionBlockH = mission.transferOptions.length ? 112 : 0;
+  const quoteY = y + 46;
+  const quoteBlockH = 92;
+  ctx.fillStyle = 'rgba(0, 255, 170, 0.06)';
+  ctx.fillRect(x + 18, quoteY - 14, w - 36, quoteBlockH);
+  ctx.strokeStyle = COL_SUCCESS;
+  ctx.strokeRect(x + 18, quoteY - 14, w - 36, quoteBlockH);
+  ctx.fillStyle = COL_SUCCESS;
+  ctx.font = 'bold 13px monospace';
+  ctx.fillText('CONTRACT COST ESTIMATE', x + 28, quoteY + 2);
+  ctx.fillStyle = COL_HUD;
+  ctx.font = '12px monospace';
+  ctx.fillText(`Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s`, x + 28, quoteY + 24);
+  ctx.fillText(`Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}`, x + 28, quoteY + 44);
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '11px monospace';
+  const breakdown = quote.breakdown.slice(0, 5).map(item => `${item.label} ${item.dv.toFixed(0)}m/s`).join('  |  ');
+  ctx.fillText(breakdown.length > 132 ? `${breakdown.slice(0, 129)}...` : breakdown, x + 28, quoteY + 64);
+  ctx.fillText('Fuel is charged from actual mission ΔV at delivery; this quote is par for a competent run.', x + 28, quoteY + 80);
+
   const rowH = 44;
-  const maxRows = Math.floor((h - 70 - quoteBlockH - optionBlockH) / rowH);
+  const rowStartY = quoteY + quoteBlockH + 22;
+  const maxRows = Math.floor((y + h - optionBlockH - 16 - rowStartY) / rowH);
   for (let i = 0; i < Math.min(maxRows, mission.legs.length); i++) {
     const leg = mission.legs[i];
-    const rowY = y + 68 + i * rowH;
+    const rowY = rowStartY + i * rowH;
     ctx.fillStyle = i === 0 || i === mission.legs.length - 1 ? COL_WARNING : COL_HUD;
     ctx.font = 'bold 13px monospace';
     ctx.fillText(`${(i + 1).toString().padStart(2, '0')}. ${leg.title}`, x + 24, rowY);
@@ -407,20 +426,6 @@ export function drawEstellaGeneratedMission(
     const detail = leg.detail.length > 118 ? `${leg.detail.slice(0, 115)}...` : leg.detail;
     ctx.fillText(detail, x + 54, rowY + 16);
   }
-
-  const quoteY = y + h - optionBlockH - quoteBlockH + 14;
-  ctx.fillStyle = COL_SUCCESS;
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('CONTRACT COST ESTIMATE', x + 24, quoteY);
-  ctx.fillStyle = COL_HUD;
-  ctx.font = '12px monospace';
-  ctx.fillText(`Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s`, x + 24, quoteY + 22);
-  ctx.fillText(`Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}`, x + 24, quoteY + 42);
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '11px monospace';
-  const breakdown = quote.breakdown.slice(0, 5).map(item => `${item.label} ${item.dv.toFixed(0)}m/s`).join('  |  ');
-  ctx.fillText(breakdown.length > 132 ? `${breakdown.slice(0, 129)}...` : breakdown, x + 24, quoteY + 64);
-  ctx.fillText('Fuel is charged from actual mission ΔV at delivery; this quote is par for a competent run.', x + 24, quoteY + 84);
 
   if (mission.transferOptions.length) {
     const optY = y + h - optionBlockH + 16;
