@@ -124,10 +124,19 @@ function clusterExpectedAvoidances(level: ClusterLevel, travelLength: number): n
   return level.rockCount * travelLength * corridorWidth / clusterArea;
 }
 
+function clusterAvoidanceDv(level: ClusterLevel, travelLength: number): number {
+  return clusterExpectedAvoidances(level, travelLength) * CLUSTER_AVOIDANCE_DV;
+}
+
 function clusterTravelParDv(level: ClusterLevel, travelLength: number): number {
   const baseDv = CLUSTER_TRANSFER_SPEED * 2;
-  const avoidanceDv = clusterExpectedAvoidances(level, travelLength) * CLUSTER_AVOIDANCE_DV;
+  const avoidanceDv = clusterAvoidanceDv(level, travelLength);
   return roundToNearest((baseDv + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
+}
+
+function clusterEscapeParDv(level: ClusterLevel, escapeSpeed: number): number {
+  const avoidanceDv = clusterAvoidanceDv(level, clusterExitEntryTravelLength(level));
+  return roundToNearest((escapeSpeed + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
 }
 
 function clusterExitEntryTravelLength(level: ClusterLevel): number {
@@ -220,7 +229,7 @@ export function estimateEstellaMissionCost(
     const transferSourceCluster = sourceIsCluster(sourceId);
     const clusterSourceLevel = transferSourceCluster ? clusterTemplateForPoiId(sourceId) : undefined;
     const depDv = transferSourceCluster && clusterSourceLevel
-      ? clusterTravelParDv(clusterSourceLevel, clusterExitEntryTravelLength(clusterSourceLevel)) + selectedTransfer.departureVInf
+      ? clusterEscapeParDv(clusterSourceLevel, selectedTransfer.departureVInf)
       : selectedTransfer.departureVInf * 1.18 + 45;
     addBreakdown(breakdown, transferSourceCluster ? 'Cluster exit + escape vector' : 'SOI escape insertion', depDv);
     addBreakdown(breakdown, 'Midcourse correction reserve', Math.max(8, selectedTransfer.totalDeltaV * 0.03));
