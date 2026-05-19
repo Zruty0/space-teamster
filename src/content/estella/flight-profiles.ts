@@ -43,6 +43,10 @@ export interface EstellaSurfaceFlightProfile {
     speedMultiplier: number;
     fixedAllowanceDv: number;
   };
+  landingPar?: {
+    finalLandingSeconds?: number;
+    fixedAllowanceDv?: number;
+  };
 }
 
 const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {

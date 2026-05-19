@@ -299,10 +299,15 @@ function descentLandingParDv(destinationId: string): number {
   const surface = locationSurface(destinationId);
   const body = safeBody(surface?.bodyId);
   if (!surface || !body) return 0;
-  const base = body.orbitalDefaults.fuelDeltaV ?? 900;
-  const atmoFactor = body.atmosphere ? 0.20 : 0.50;
-  const landingReserve = body.atmosphere ? 70 : 45;
-  return base * atmoFactor + landingReserve;
+  const surfaceProfile = ESTELLA_SURFACE_FLIGHT_PROFILES[destinationId];
+  const r0 = body.radius + Math.max(0, surface.altitude);
+  const rp = parkingOrbitRadius(body);
+  const circularSpeed = circularOrbitSpeed(body, rp);
+  const fallSpeed = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / rp)));
+  const surfaceGravity = body.gm / (r0 * r0);
+  const finalLandingSeconds = surfaceProfile?.landingPar?.finalLandingSeconds ?? 12;
+  const fixedAllowanceDv = surfaceProfile?.landingPar?.fixedAllowanceDv ?? 0;
+  return circularSpeed + fallSpeed + surfaceGravity * finalLandingSeconds + fixedAllowanceDv;
 }
 
 export function estimateEstellaMissionCost(
