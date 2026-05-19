@@ -139,6 +139,7 @@ export interface OrbitalLevel {
     destinationBodyId: string;
     parentBodyId: string;
     transferTime: number;
+    arrivalTime?: number;
   };
   parentTransferPeriapsisAltitude?: number;
   conicRadius?: number;
@@ -581,13 +582,16 @@ export function escapeTargetForLevel(
   const parentTarget = parentTransferTargetForLevel(level, time);
   if (parentTarget) return { angle: parentTarget.angle, speed: parentTarget.speed };
 
-  const dynamic = level.dynamicEscapeTransfer
+  const dynamicTransferTime = level.dynamicEscapeTransfer?.arrivalTime !== undefined
+    ? level.dynamicEscapeTransfer.arrivalTime - time
+    : level.dynamicEscapeTransfer?.transferTime;
+  const dynamic = level.dynamicEscapeTransfer && dynamicTransferTime !== undefined && dynamicTransferTime > 3_600
     ? dynamicLambertDepartureVInf(
         level.dynamicEscapeTransfer.sourceBodyId,
         level.dynamicEscapeTransfer.destinationBodyId,
         level.dynamicEscapeTransfer.parentBodyId,
         time,
-        level.dynamicEscapeTransfer.transferTime,
+        dynamicTransferTime,
       )
     : null;
   let angle: number | null = dynamic?.angle ?? level.escapeVectorAngle ?? null;

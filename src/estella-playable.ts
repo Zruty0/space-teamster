@@ -616,6 +616,7 @@ function buildRouteObjective(opts: {
       destinationBodyId: opts.selectedTransfer.destinationBodyId,
       parentBodyId: parentId,
       transferTime: opts.selectedTransfer.transferTime,
+      arrivalTime: opts.selectedTransfer.waitTime + opts.selectedTransfer.transferTime,
     } : undefined,
   }));
 }
@@ -670,6 +671,7 @@ function buildRouteObjectiveToCluster(opts: {
       destinationBodyId: opts.selectedTransfer.destinationBodyId,
       parentBodyId: parentId,
       transferTime: opts.selectedTransfer.transferTime,
+      arrivalTime: opts.selectedTransfer.waitTime + opts.selectedTransfer.transferTime,
     } : undefined,
   }));
 }
