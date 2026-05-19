@@ -4,6 +4,7 @@
 import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
+import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 import { bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
 
@@ -133,6 +134,12 @@ export interface OrbitalLevel {
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
   escapeTransferTime?: number;
+  dynamicEscapeTransfer?: {
+    sourceBodyId: string;
+    destinationBodyId: string;
+    parentBodyId: string;
+    transferTime: number;
+  };
   parentTransferPeriapsisAltitude?: number;
   conicRadius?: number;
   orbitModeId?: string;
@@ -574,8 +581,17 @@ export function escapeTargetForLevel(
   const parentTarget = parentTransferTargetForLevel(level, time);
   if (parentTarget) return { angle: parentTarget.angle, speed: parentTarget.speed };
 
-  let angle: number | null = level.escapeVectorAngle ?? null;
-  let vInf = level.escapeVectorSpeed ?? 0;
+  const dynamic = level.dynamicEscapeTransfer
+    ? dynamicLambertDepartureVInf(
+        level.dynamicEscapeTransfer.sourceBodyId,
+        level.dynamicEscapeTransfer.destinationBodyId,
+        level.dynamicEscapeTransfer.parentBodyId,
+        time,
+        level.dynamicEscapeTransfer.transferTime,
+      )
+    : null;
+  let angle: number | null = dynamic?.angle ?? level.escapeVectorAngle ?? null;
+  let vInf = dynamic?.vInf ?? level.escapeVectorSpeed ?? 0;
   if (level.escapeToOrbitalLevelId && angle === null) {
     const nextLevel = ORBITAL_LEVELS.find(l => l.id === level.escapeToOrbitalLevelId);
     const retargetsSameBody = nextLevel?.targetBodyId === level.bodyId;

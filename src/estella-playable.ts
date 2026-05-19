@@ -334,6 +334,7 @@ function createOrbitalLevel(opts: {
   escapeVectorAngle?: number;
   escapeVectorSpeed?: number;
   escapeTransferTime?: number;
+  dynamicEscapeTransfer?: OrbitalLevel['dynamicEscapeTransfer'];
 }): OrbitalLevel {
   const b = bodyById(opts.bodyId);
   const fallbackReentry = opts.reentryApproachLevelId === undefined
@@ -401,6 +402,7 @@ function createOrbitalLevel(opts: {
   if (opts.escapeVectorAngle !== undefined) level.escapeVectorAngle = opts.escapeVectorAngle;
   if (opts.escapeVectorSpeed !== undefined) level.escapeVectorSpeed = opts.escapeVectorSpeed;
   if (opts.escapeTransferTime !== undefined) level.escapeTransferTime = opts.escapeTransferTime;
+  if (opts.dynamicEscapeTransfer) level.dynamicEscapeTransfer = opts.dynamicEscapeTransfer;
   return level;
 }
 
@@ -609,6 +611,12 @@ function buildRouteObjective(opts: {
     escapeVectorAngle: useSelectedEscape ? opts.selectedTransfer?.departureVInfAngle : undefined,
     escapeVectorSpeed: useSelectedEscape ? opts.selectedTransfer?.departureVInf : undefined,
     escapeTransferTime: useSelectedEscape ? opts.selectedTransfer?.transferTime : undefined,
+    dynamicEscapeTransfer: useSelectedEscape && opts.selectedTransfer ? {
+      sourceBodyId: opts.selectedTransfer.sourceBodyId,
+      destinationBodyId: opts.selectedTransfer.destinationBodyId,
+      parentBodyId: parentId,
+      transferTime: opts.selectedTransfer.transferTime,
+    } : undefined,
   }));
 }
 
@@ -657,6 +665,12 @@ function buildRouteObjectiveToCluster(opts: {
     escapeVectorAngle: useSelectedEscape ? opts.selectedTransfer?.departureVInfAngle : undefined,
     escapeVectorSpeed: useSelectedEscape ? opts.selectedTransfer?.departureVInf : undefined,
     escapeTransferTime: useSelectedEscape ? opts.selectedTransfer?.transferTime : undefined,
+    dynamicEscapeTransfer: useSelectedEscape && opts.selectedTransfer ? {
+      sourceBodyId: opts.selectedTransfer.sourceBodyId,
+      destinationBodyId: opts.selectedTransfer.destinationBodyId,
+      parentBodyId: parentId,
+      transferTime: opts.selectedTransfer.transferTime,
+    } : undefined,
   }));
 }
 

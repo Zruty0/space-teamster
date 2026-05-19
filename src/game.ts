@@ -20,7 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, fuzzyArrivalStateFromEntry,
+  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, escapeTargetForLevel, fuzzyArrivalStateFromEntry,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -864,9 +864,10 @@ export class Game {
         let handoffAngle = actualEscapeAngle;
         let handoffVInf = actualVInf;
         let correctionDv = 0;
-        if (p.level.escapeVectorAngle !== undefined && p.level.escapeVectorSpeed !== undefined) {
-          handoffAngle = p.level.escapeVectorAngle;
-          handoffVInf = p.level.escapeVectorSpeed;
+        const targetEscape = escapeTargetForLevel(p.level, p.os.time);
+        if (targetEscape && p.level.escapeSOIRadius) {
+          handoffAngle = targetEscape.angle;
+          handoffVInf = Math.sqrt(Math.max(0, targetEscape.speed * targetEscape.speed - 2 * p.level.planetGM / p.level.escapeSOIRadius));
           const targetVx = Math.cos(handoffAngle) * handoffVInf;
           const targetVy = Math.sin(handoffAngle) * handoffVInf;
           const actualVx = Math.cos(actualEscapeAngle) * actualVInf;
