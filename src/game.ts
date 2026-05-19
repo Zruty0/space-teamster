@@ -20,7 +20,7 @@ import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
   updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
-  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, escapeTargetForLevel, fuzzyArrivalStateFromEntry,
+  orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, fuzzyArrivalStateFromEntry,
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
@@ -859,21 +859,12 @@ export class Game {
         const escape = currentEscapeVector(p.os, p.level);
         const localSpeed = Math.sqrt(p.os.vx * p.os.vx + p.os.vy * p.os.vy);
         if (!escape && localSpeed < 0.01) return null;
-        const actualEscapeAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
-        const actualVInf = escape?.vInf ?? 0;
-        let handoffAngle = actualEscapeAngle;
-        let handoffVInf = actualVInf;
-        let correctionDv = 0;
-        const targetEscape = escapeTargetForLevel(p.level, p.os.time);
-        if (targetEscape && p.level.escapeSOIRadius) {
-          handoffAngle = targetEscape.angle;
-          handoffVInf = Math.sqrt(Math.max(0, targetEscape.speed * targetEscape.speed - 2 * p.level.planetGM / p.level.escapeSOIRadius));
-          const targetVx = Math.cos(handoffAngle) * handoffVInf;
-          const targetVy = Math.sin(handoffAngle) * handoffVInf;
-          const actualVx = Math.cos(actualEscapeAngle) * actualVInf;
-          const actualVy = Math.sin(actualEscapeAngle) * actualVInf;
-          correctionDv = Math.hypot(targetVx - actualVx, targetVy - actualVy);
-        }
+        const handoffAngle = escape?.angle ?? Math.atan2(p.os.vy, p.os.vx);
+        const handoffVInf = escape?.vInf ?? 0;
+        const minEscapeSpeed = p.level.escapeSOIRadius
+          ? Math.sqrt(2 * p.level.planetGM / p.level.escapeSOIRadius)
+          : 0;
+        const minimumEscapeBoostDv = escape ? 0 : Math.max(0, minEscapeSpeed - localSpeed);
         const initOverride: OrbitalInitOverride = {
           x: originState.x,
           y: originState.y,
@@ -881,7 +872,7 @@ export class Game {
           vy: originState.vy + Math.sin(handoffAngle) * handoffVInf,
           time: p.os.time,
         };
-        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), undefined, undefined, correctionDv, 'Insertion correction');
+        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), undefined, undefined, minimumEscapeBoostDv, 'Minimum escape boost');
       }
     }
 
