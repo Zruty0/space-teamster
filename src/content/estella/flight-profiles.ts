@@ -85,8 +85,8 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     fuelSeconds: 180,
   },
   departurePar: {
-    speedMultiplier: 1.15,
-    fixedAllowanceDv: 30,
+    speedMultiplier: 1.03,
+    fixedAllowanceDv: 10,
   },
 };
 
@@ -132,7 +132,7 @@ const ESTELLA_HEARTH_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     fuelSeconds: 180,
   },
   departurePar: {
-    speedMultiplier: 1.35,
+    speedMultiplier: 1.05,
     fixedAllowanceDv: 180,
   },
 };
@@ -192,7 +192,7 @@ const ESTELLA_II_OLYMPOS_PROFILE: EstellaSurfaceFlightProfile = {
     fuelSeconds: 150,
   },
   departurePar: {
-    speedMultiplier: 1.45,
+    speedMultiplier: 1.05,
     fixedAllowanceDv: 300,
   },
 };
@@ -268,7 +268,7 @@ const ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     fuelSeconds: 170,
   },
   departurePar: {
-    speedMultiplier: 1.25,
+    speedMultiplier: 1.05,
     fixedAllowanceDv: 90,
   },
 };
@@ -301,7 +301,7 @@ const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     fuelSeconds: 190,
   },
   departurePar: {
-    speedMultiplier: 1.45,
+    speedMultiplier: 1.05,
     fixedAllowanceDv: 250,
   },
 };

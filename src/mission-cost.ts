@@ -159,21 +159,24 @@ function clusterTravelDistanceForPois(sourceId: string, destinationId: string): 
 }
 
 function defaultDepartureParProfile(body: BodyDef | undefined): EstellaSurfaceFlightProfile['departurePar'] {
-  if (!body?.atmosphere) return { speedMultiplier: 1.15, fixedAllowanceDv: 30 };
-  if (body.atmosphere.surfaceDensity > 1.2) return { speedMultiplier: 1.45, fixedAllowanceDv: 250 };
-  if (body.atmosphere.surfaceDensity > 0.25) return { speedMultiplier: 1.35, fixedAllowanceDv: 180 };
-  return { speedMultiplier: 1.25, fixedAllowanceDv: 90 };
+  if (!body?.atmosphere) return { speedMultiplier: 1.03, fixedAllowanceDv: 10 };
+  if (body.atmosphere.surfaceDensity > 1.2) return { speedMultiplier: 1.05, fixedAllowanceDv: 250 };
+  if (body.atmosphere.surfaceDensity > 0.25) return { speedMultiplier: 1.05, fixedAllowanceDv: 180 };
+  return { speedMultiplier: 1.05, fixedAllowanceDv: 90 };
 }
 
-function departureToOrbitParDv(nodeId: string, body: BodyDef | undefined): number {
+function departureToOrbitParDv(nodeId: string, body: BodyDef | undefined, surfaceAltitude = 0): number {
   if (!body) return 0;
   const surfaceProfile = ESTELLA_SURFACE_FLIGHT_PROFILES[nodeId];
   const departureProfile = surfaceProfile?.departureProfile;
   const parProfile = surfaceProfile?.departurePar ?? defaultDepartureParProfile(body);
   const targetOrbitAltitude = parProfile.targetOrbitAltitude ?? departureProfile?.targetOrbitAltitude ?? body.orbitalDefaults.transitionAltitude * 2;
-  const targetOrbitRadius = body.radius + Math.max(1, targetOrbitAltitude);
-  const targetOrbitSpeed = Math.sqrt(body.gm / targetOrbitRadius);
-  return targetOrbitSpeed * parProfile.speedMultiplier + parProfile.fixedAllowanceDv;
+  const r0 = body.radius + Math.max(0, surfaceAltitude);
+  const ra = body.radius + Math.max(surfaceAltitude + 1, targetOrbitAltitude);
+  const verticalBurn = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / ra)));
+  const circularSpeed = Math.sqrt(body.gm / ra);
+  const vacuumClimbAndCircularizeDv = verticalBurn + circularSpeed;
+  return vacuumClimbAndCircularizeDv * parProfile.speedMultiplier + parProfile.fixedAllowanceDv;
 }
 
 function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { label: string; dv: number } | null {
@@ -183,7 +186,7 @@ function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { la
   if (placement.kind === 'orbit') return { label: `Clear local orbit: ${nodeName(node.id)}`, dv: 45 };
   if (placement.kind === 'surface') {
     const body = safeBody(placement.parentId);
-    return { label: `Launch: ${nodeName(node.id)}`, dv: departureToOrbitParDv(node.id, body) };
+    return { label: `Launch: ${nodeName(node.id)}`, dv: departureToOrbitParDv(node.id, body, placement.altitude ?? 0) };
   }
   return null;
 }
