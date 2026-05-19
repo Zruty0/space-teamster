@@ -305,7 +305,7 @@ function descentLandingParDv(destinationId: string): number {
   const circularSpeed = circularOrbitSpeed(body, rp);
   const fallSpeed = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / rp)));
   const surfaceGravity = body.gm / (r0 * r0);
-  const finalLandingSeconds = surfaceProfile?.landingPar?.finalLandingSeconds ?? 12;
+  const finalLandingSeconds = surfaceProfile?.landingPar?.finalLandingSeconds ?? 30;
   const fixedAllowanceDv = surfaceProfile?.landingPar?.fixedAllowanceDv ?? 0;
   return circularSpeed + fallSpeed + surfaceGravity * finalLandingSeconds + fixedAllowanceDv;
 }
