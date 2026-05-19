@@ -335,6 +335,9 @@ function createOrbitalLevel(opts: {
   escapeVectorSpeed?: number;
   escapeTransferTime?: number;
   dynamicEscapeTransfer?: OrbitalLevel['dynamicEscapeTransfer'];
+  targetBodyId?: string;
+  targetArrivalOrbitalLevelId?: number;
+  targetArrivalClusterLevelId?: number;
 }): OrbitalLevel {
   const b = bodyById(opts.bodyId);
   const fallbackReentry = opts.reentryApproachLevelId === undefined
@@ -388,8 +391,13 @@ function createOrbitalLevel(opts: {
   };
   const childBodyMarkers = BODIES
     .filter(body => body.orbit?.parentBodyId === opts.bodyId && body.transferGameplay)
-    .map(body => transferBodyMarker(body.id));
+    .map(body => transferBodyMarker(
+      body.id,
+      body.id === opts.targetBodyId ? opts.targetArrivalOrbitalLevelId : undefined,
+      body.id === opts.targetBodyId ? opts.targetArrivalClusterLevelId : undefined,
+    ));
   if (childBodyMarkers.length) level.systemBodies = childBodyMarkers;
+  if (opts.targetBodyId) level.targetBodyId = opts.targetBodyId;
   applyDestinationHud(level, opts.finalDestinationId);
   if (opts.escapeToOrbitalLevelId) {
     level.escapeToOrbitalLevelId = opts.escapeToOrbitalLevelId;
@@ -580,6 +588,18 @@ function buildRouteObjective(opts: {
     const childId = childBodyOnPath(opts.currentBodyId, opts.targetBodyId);
     if (!childId) return opts.destinationOrbital;
     const childArrival = buildRouteObjective({ ...opts, currentBodyId: childId });
+    const frameBody = bodyById(opts.currentBodyId);
+    if (frameBody.atmosphere) {
+      return register(ORBITAL_LEVELS, createOrbitalLevel({
+        id: nextId(),
+        bodyId: opts.currentBodyId,
+        name: `${nodeName(ESTELLA_NODES_BY_ID.get(opts.currentBodyId))} Capture`,
+        finalDestinationId: opts.destinationId,
+        startOrbit,
+        targetBodyId: childId,
+        targetArrivalOrbitalLevelId: childArrival.id,
+      }));
+    }
     return register(ORBITAL_LEVELS, createSystemTransferLevel({
       id: nextId(),
       frameBodyId: opts.currentBodyId,
