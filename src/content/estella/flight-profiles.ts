@@ -46,6 +46,7 @@ export interface EstellaSurfaceFlightProfile {
   landingPar?: {
     finalLandingSeconds?: number;
     fixedAllowanceDv?: number;
+    atmosphericFallSpeedCap?: number;
   };
 }
 
@@ -139,6 +140,9 @@ const ESTELLA_HEARTH_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     speedMultiplier: 1.05,
     fixedAllowanceDv: 180,
   },
+  landingPar: {
+    atmosphericFallSpeedCap: 350,
+  },
 };
 
 const OLYMPOS_ALTITUDE = 55_000;
@@ -198,6 +202,9 @@ const ESTELLA_II_OLYMPOS_PROFILE: EstellaSurfaceFlightProfile = {
   departurePar: {
     speedMultiplier: 1.05,
     fixedAllowanceDv: 300,
+  },
+  landingPar: {
+    atmosphericFallSpeedCap: 300,
   },
 };
 
@@ -275,6 +282,9 @@ const ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     speedMultiplier: 1.05,
     fixedAllowanceDv: 90,
   },
+  landingPar: {
+    atmosphericFallSpeedCap: 750,
+  },
 };
 
 const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
@@ -307,6 +317,9 @@ const ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   departurePar: {
     speedMultiplier: 1.05,
     fixedAllowanceDv: 250,
+  },
+  landingPar: {
+    atmosphericFallSpeedCap: 300,
   },
 };
 

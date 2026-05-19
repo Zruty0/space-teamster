@@ -303,7 +303,9 @@ function descentLandingParDv(destinationId: string): number {
   const r0 = body.radius + Math.max(0, surface.altitude);
   const rp = parkingOrbitRadius(body);
   const circularSpeed = circularOrbitSpeed(body, rp);
-  const fallSpeed = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / rp)));
+  const vacuumFallSpeed = Math.sqrt(Math.max(0, 2 * body.gm * (1 / r0 - 1 / rp)));
+  const atmosphericFallSpeedCap = body.atmosphere ? surfaceProfile?.landingPar?.atmosphericFallSpeedCap : undefined;
+  const fallSpeed = atmosphericFallSpeedCap !== undefined ? Math.min(vacuumFallSpeed, atmosphericFallSpeedCap) : vacuumFallSpeed;
   const surfaceGravity = body.gm / (r0 * r0);
   const finalLandingSeconds = surfaceProfile?.landingPar?.finalLandingSeconds ?? 30;
   const fixedAllowanceDv = surfaceProfile?.landingPar?.fixedAllowanceDv ?? 0;
