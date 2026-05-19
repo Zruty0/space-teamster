@@ -297,8 +297,12 @@ export function clusterMemberById(level: ClusterLevel, memberId: string | undefi
   return level.members.find(member => member.id === memberId);
 }
 
-function memberForPoi(level: ClusterLevel, poiId: string): ClusterMemberDef | undefined {
+export function clusterMemberForPoi(level: ClusterLevel, poiId: string): ClusterMemberDef | undefined {
   return level.members.find(member => member.ports.some(port => port.poiId === poiId));
+}
+
+function memberForPoi(level: ClusterLevel, poiId: string): ClusterMemberDef | undefined {
+  return clusterMemberForPoi(level, poiId);
 }
 
 function portForPoi(level: ClusterLevel, poiId: string): ClusterPortDef | undefined {
@@ -346,6 +350,10 @@ export function createPoiClusterLevel(sourcePoiId: string, destinationPoiId: str
 
 export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
   return createClusterLevelFromTemplate(NEAR_BELT_CLUSTER_LEVEL, sourcePoiId, destinationPoiId, id, dockingLevelId);
+}
+
+export function clusterTemplateForPoiId(poiId: string): ClusterLevel | undefined {
+  return clusterTemplateForPoi(poiId);
 }
 
 export function createClusterState(level: ClusterLevel, override?: ClusterInitOverride): ClusterState {

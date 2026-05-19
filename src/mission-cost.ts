@@ -1,3 +1,4 @@
+import { clusterMemberForPoi, clusterTemplateForPoiId, type ClusterLevel } from './cluster';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { type Placement, type WorldNode } from './content/types';
 import { type EstellaTransferOption } from './estella-mission';
@@ -27,6 +28,10 @@ const SHIP_DRY_MASS_TONS = 120;
 const CONTAINER_TARE_TONS = 8;
 const FUEL_PRICE_PER_TON_MPS = 1;
 const DEFAULT_GENEROSITY = 1.5;
+const CLUSTER_TRANSFER_SPEED = 200;
+const CLUSTER_SHIP_HIT_RADIUS = 900;
+const CLUSTER_AVOIDANCE_DV = 50;
+const CLUSTER_SLOPPINESS_FACTOR = 1.2;
 
 const CARGO_CLASSES = [
   { label: 'Light sealed freight', minMass: 8, maxMass: 15 },
@@ -108,10 +113,40 @@ function addBreakdown(out: MissionCostBreakdownItem[], label: string, dv: number
   out.push({ label, dv: Math.round(dv) });
 }
 
+function roundToNearest(value: number, step: number): number {
+  return Math.round(value / step) * step;
+}
+
+function clusterExpectedAvoidances(level: ClusterLevel, travelLength: number): number {
+  const corridorWidth = CLUSTER_SHIP_HIT_RADIUS * 4;
+  const clusterArea = Math.PI * level.rx * level.ry;
+  if (clusterArea <= 0) return 0;
+  return level.rockCount * travelLength * corridorWidth / clusterArea;
+}
+
+function clusterTravelParDv(level: ClusterLevel, travelLength: number): number {
+  const baseDv = CLUSTER_TRANSFER_SPEED * 2;
+  const avoidanceDv = clusterExpectedAvoidances(level, travelLength) * CLUSTER_AVOIDANCE_DV;
+  return roundToNearest((baseDv + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
+}
+
+function clusterExitEntryTravelLength(level: ClusterLevel): number {
+  return (level.rx + level.ry) * 0.5;
+}
+
+function clusterTravelDistanceForPois(sourceId: string, destinationId: string): { level: ClusterLevel; distance: number } | null {
+  const level = clusterTemplateForPoiId(sourceId) ?? clusterTemplateForPoiId(destinationId);
+  if (!level) return null;
+  const sourceMember = clusterMemberForPoi(level, sourceId);
+  const destMember = clusterMemberForPoi(level, destinationId);
+  if (!sourceMember || !destMember) return null;
+  return { level, distance: Math.hypot(destMember.x - sourceMember.x, destMember.y - sourceMember.y) };
+}
+
 function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { label: string; dv: number } | null {
   if (!placement) return null;
   if (placement.kind === 'aboard') return { label: `Undock: ${nodeName(node.id)}`, dv: 15 };
-  if (placement.kind === 'cluster-member') return { label: `Local cluster departure: ${nodeName(node.id)}`, dv: 55 };
+  if (placement.kind === 'cluster-member') return null;
   if (placement.kind === 'orbit') return { label: `Clear local orbit: ${nodeName(node.id)}`, dv: 45 };
   if (placement.kind === 'surface') {
     const body = safeBody(placement.parentId);
@@ -125,7 +160,7 @@ function sourceLegParDv(node: WorldNode, placement: Placement | undefined): { la
 function destinationLegParDv(node: WorldNode, placement: Placement | undefined): { label: string; dv: number } | null {
   if (!placement) return null;
   if (placement.kind === 'aboard') return { label: `Dock: ${nodeName(node.id)}`, dv: 18 };
-  if (placement.kind === 'cluster-member') return { label: `Local cluster arrival: ${nodeName(node.id)}`, dv: 65 };
+  if (placement.kind === 'cluster-member') return null;
   if (placement.kind === 'orbit') return { label: `Rendezvous: ${nodeName(node.id)}`, dv: 55 };
   if (placement.kind === 'surface') {
     const body = safeBody(placement.parentId);
@@ -163,6 +198,7 @@ export function estimateEstellaMissionCost(
   const cargo = cargoForRoute(sourceId, destinationId);
   const loadedMassTons = SHIP_DRY_MASS_TONS + CONTAINER_TARE_TONS + cargo.mass;
   const breakdown: MissionCostBreakdownItem[] = [];
+  const sameClusterTravel = clusterTravelDistanceForPois(sourceId, destinationId);
 
   const srcChain = chainToRoot(sourceId);
   const dstChain = chainToRoot(destinationId);
@@ -176,10 +212,17 @@ export function estimateEstellaMissionCost(
     if (leg) addBreakdown(breakdown, leg.label, leg.dv);
   }
 
+  if (sameClusterTravel) {
+    addBreakdown(breakdown, 'Cluster local transfer', clusterTravelParDv(sameClusterTravel.level, sameClusterTravel.distance));
+  }
+
   if (selectedTransfer) {
     const transferSourceCluster = sourceIsCluster(sourceId);
-    const depDv = selectedTransfer.departureVInf * (transferSourceCluster ? 1.08 : 1.18) + (transferSourceCluster ? 35 : 45);
-    addBreakdown(breakdown, transferSourceCluster ? 'Cluster escape vector' : 'SOI escape insertion', depDv);
+    const clusterSourceLevel = transferSourceCluster ? clusterTemplateForPoiId(sourceId) : undefined;
+    const depDv = transferSourceCluster && clusterSourceLevel
+      ? clusterTravelParDv(clusterSourceLevel, clusterExitEntryTravelLength(clusterSourceLevel)) + selectedTransfer.departureVInf
+      : selectedTransfer.departureVInf * 1.18 + 45;
+    addBreakdown(breakdown, transferSourceCluster ? 'Cluster exit + escape vector' : 'SOI escape insertion', depDv);
     addBreakdown(breakdown, 'Midcourse correction reserve', Math.max(8, selectedTransfer.totalDeltaV * 0.03));
 
     const atmoArrival = destinationUsesAtmosphere(destinationId) && destinationIsSurface(destinationId);
