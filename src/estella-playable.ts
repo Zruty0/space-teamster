@@ -6,7 +6,7 @@ import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { type EstellaTransferOption } from './estella-mission';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath } from './content/estella/navigation';
-import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './content/estella/flight-profiles';
+import { ESTELLA_SURFACE_FLIGHT_PROFILES, type EstellaSurfaceFlightProfile } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
 import { BODIES, STATION_POIS, SURFACE_POIS, bodyById, bodyStateRelativeToParent, stationPoiById, surfacePoiById, type BodyDef } from './world';
 
@@ -283,14 +283,19 @@ function applyDestinationHud(level: OrbitalLevel, finalDestinationId: string | u
   if (bodyById(level.bodyId).transferGameplay) level.conicRadius = bodyById(level.bodyId).transferGameplay?.patchRadius;
 }
 
+function surfaceDepartureProfileForBody(bodyId: string): EstellaSurfaceFlightProfile['departureProfile'] | undefined {
+  const poi = SURFACE_POIS.find(surface => surface.bodyId === bodyId && ESTELLA_SURFACE_FLIGHT_PROFILES[surface.id]?.departureProfile);
+  return poi ? ESTELLA_SURFACE_FLIGHT_PROFILES[poi.id]?.departureProfile : undefined;
+}
+
 function lowOrbitAltitude(bodyId: string): number {
   const b = bodyById(bodyId);
-  return Math.max(35_000, (b.atmosphere?.height ?? 0) + 20_000);
+  return surfaceDepartureProfileForBody(bodyId)?.targetOrbitAltitude ?? Math.max(35_000, (b.atmosphere?.height ?? 0) + 20_000);
 }
 
 function departureThresholdForLowOrbit(bodyId: string): number {
   const b = bodyById(bodyId);
-  return Math.max(30_000, (b.atmosphere?.height ?? 0) + 10_000);
+  return surfaceDepartureProfileForBody(bodyId)?.thresholdApoapsisAltitude ?? Math.max(30_000, (b.atmosphere?.height ?? 0) + 10_000);
 }
 
 function generatedApproachIndex(reentryApproachLevelId: number | undefined): number {

@@ -388,8 +388,8 @@ const ESTELLA_WELLS_METHANE_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   departureProfile: {
     ...ESTELLA_CAMPS_THICK_ATMO_SURFACE_PROFILE.departureProfile,
     exitAltitude: 45_000,
-    thresholdApoapsisAltitude: 95_000,
-    targetOrbitAltitude: 115_000,
+    thresholdApoapsisAltitude: 160_000,
+    targetOrbitAltitude: 160_000,
   },
 };
 
