@@ -283,6 +283,11 @@ function applyDestinationHud(level: OrbitalLevel, finalDestinationId: string | u
   if (bodyById(level.bodyId).transferGameplay) level.conicRadius = bodyById(level.bodyId).transferGameplay?.patchRadius;
 }
 
+function surfaceDepartureProfileForPoi(poiId: string | undefined): EstellaSurfaceFlightProfile['departureProfile'] | undefined {
+  if (!poiId || playableKind(poiId) !== 'surface') return undefined;
+  return ESTELLA_SURFACE_FLIGHT_PROFILES[poiId]?.departureProfile;
+}
+
 function surfaceDepartureProfileForBody(bodyId: string): EstellaSurfaceFlightProfile['departureProfile'] | undefined {
   const poi = SURFACE_POIS.find(surface => surface.bodyId === bodyId && ESTELLA_SURFACE_FLIGHT_PROFILES[surface.id]?.departureProfile);
   return poi ? ESTELLA_SURFACE_FLIGHT_PROFILES[poi.id]?.departureProfile : undefined;
@@ -549,9 +554,11 @@ function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: numbe
 export function generatedEstellaDepartureTarget(destinationId: string, sourceId?: string): GeneratedDepartureTarget {
   if ((sourceId && centralBodyIdForPoi(sourceId) !== centralBodyIdForPoi(destinationId)) || playableKind(destinationId) !== 'dock') {
     const bodyId = sourceId ? centralBodyIdForPoi(sourceId) : centralBodyIdForPoi(destinationId);
+    const profile = surfaceDepartureProfileForPoi(sourceId);
+    const targetOrbitAltitude = profile?.targetOrbitAltitude ?? lowOrbitAltitude(bodyId);
     return {
-      thresholdApoapsisAltitude: departureThresholdForLowOrbit(bodyId),
-      targetOrbitAltitude: lowOrbitAltitude(bodyId),
+      thresholdApoapsisAltitude: apoapsisThresholdForTarget(bodyId, targetOrbitAltitude),
+      targetOrbitAltitude,
       orbitDir: -1,
     };
   }
