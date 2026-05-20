@@ -293,9 +293,16 @@ function lowOrbitAltitude(bodyId: string): number {
   return surfaceDepartureProfileForBody(bodyId)?.targetOrbitAltitude ?? Math.max(35_000, (b.atmosphere?.height ?? 0) + 20_000);
 }
 
-function departureThresholdForLowOrbit(bodyId: string): number {
+function apoapsisThresholdForTarget(bodyId: string, targetOrbitAltitude: number): number {
   const b = bodyById(bodyId);
+  if (b.atmosphere && targetOrbitAltitude > b.atmosphere.height) {
+    return (b.atmosphere.height + targetOrbitAltitude) * 0.5;
+  }
   return surfaceDepartureProfileForBody(bodyId)?.thresholdApoapsisAltitude ?? Math.max(30_000, (b.atmosphere?.height ?? 0) + 10_000);
+}
+
+function departureThresholdForLowOrbit(bodyId: string): number {
+  return apoapsisThresholdForTarget(bodyId, lowOrbitAltitude(bodyId));
 }
 
 function generatedApproachIndex(reentryApproachLevelId: number | undefined): number {
@@ -557,7 +564,7 @@ export function generatedEstellaDepartureTarget(destinationId: string, sourceId?
   // and require RIGHTward launch guidance, so these signs intentionally invert.
   const orbitDir = target.orbit.orbitSense === -1 ? 1 : -1;
   return {
-    thresholdApoapsisAltitude: Math.max((b.atmosphere?.height ?? 0) + 10_000, Math.min(targetAltitude * 0.5, 20_000)),
+    thresholdApoapsisAltitude: apoapsisThresholdForTarget(target.bodyId, targetAltitude),
     targetOrbitAltitude: targetAltitude,
     orbitDir,
   };
