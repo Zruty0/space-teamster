@@ -360,7 +360,7 @@ export function applyLocalClusterTransferEconomyScale(level: ClusterLevel): Clus
     ...level,
     forwardAccel: level.forwardAccel * k * k,
     baseTimeScale: level.baseTimeScale / k,
-    captureMaxSpeed: level.captureMaxSpeed * k,
+    captureMaxSpeed: level.captureMaxSpeed,
     localTransferKinematicScale: k,
   };
 }
