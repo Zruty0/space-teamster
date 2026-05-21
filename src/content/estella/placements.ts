@@ -268,8 +268,8 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'stellar',
     orbit: {
       kind: 'circular',
-      radius: 1_570_000_000,
-      epochAngle: 2.1,
+      radius: 1_536_000_000,
+      epochAngle: 0.205,
       epochTime: 0,
       orbitSense: 1,
     },
