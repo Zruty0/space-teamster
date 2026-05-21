@@ -228,8 +228,29 @@ export class Game {
     this.loadCareerBoard();
   }
 
+  private dynamicOrbitalStart(level: OrbitalLevel, time: number): OrbitalInitOverride {
+    if (level.dynamicStartBodyId) {
+      const state = bodyStateRelativeToParent(level.dynamicStartBodyId, time);
+      return { x: state.x, y: state.y, vx: state.vx, vy: state.vy, time };
+    }
+    if (level.dynamicStartOrbit) {
+      const orbit = level.dynamicStartOrbit;
+      const omega = Math.sqrt(level.planetGM / Math.max(1, orbit.radius ** 3));
+      const angle = orbit.epochAngle + orbit.orbitSense * omega * (time - orbit.epochTime) + (orbit.angleOffset ?? 0);
+      const speed = Math.sqrt(level.planetGM / Math.max(1, orbit.radius));
+      return {
+        x: Math.cos(angle) * orbit.radius,
+        y: Math.sin(angle) * orbit.radius,
+        vx: -orbit.orbitSense * Math.sin(angle) * speed,
+        vy: orbit.orbitSense * Math.cos(angle) * speed,
+        time,
+      };
+    }
+    return { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time };
+  }
+
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
-    const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time: worldTimeStart };
+    const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : this.dynamicOrbitalStart(level, worldTimeStart);
     const os = createOrbitalState(level, effectiveInit);
     const cam = createOrbitalCamera(level);
     if (initOverride) {

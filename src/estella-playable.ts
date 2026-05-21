@@ -344,7 +344,7 @@ function createOrbitalLevel(opts: {
   landingSiteAngle?: number;
   dockingLevelId?: number;
   station?: OrbitalLevel['station'];
-  startOrbit?: { radius: number; epochAngle: number; orbitSense: 1 | -1 };
+  startOrbit?: { radius: number; epochAngle: number; epochTime: number; orbitSense: 1 | -1 };
   showLandingSite?: boolean;
   escapeToOrbitalLevelId?: number;
   escapeTargetBodyId?: string;
@@ -363,7 +363,8 @@ function createOrbitalLevel(opts: {
   const reentryApproachLevelId = opts.reentryApproachLevelId ?? fallbackReentry?.approachId;
   const landingSiteAngle = opts.landingSiteAngle ?? fallbackReentry?.landingSiteAngle ?? 0;
   const r = opts.startOrbit?.radius ?? (b.radius + lowOrbitAltitude(opts.bodyId));
-  const startAngle = opts.startOrbit ? opts.startOrbit.epochAngle + 0.06 * opts.startOrbit.orbitSense : landingSiteAngle + Math.PI * 0.85;
+  const startAngleOffset = opts.startOrbit ? 0.06 * opts.startOrbit.orbitSense : 0;
+  const startAngle = opts.startOrbit ? opts.startOrbit.epochAngle + startAngleOffset : landingSiteAngle + Math.PI * 0.85;
   const startSense = opts.startOrbit?.orbitSense ?? -1;
   const start = circularStart(opts.bodyId, r, startAngle, startSense);
   const level: OrbitalLevel = {
@@ -382,6 +383,7 @@ function createOrbitalLevel(opts: {
     startY: start.y,
     startVX: start.vx,
     startVY: start.vy,
+    dynamicStartOrbit: opts.startOrbit ? { ...opts.startOrbit, angleOffset: startAngleOffset } : undefined,
     thrustAccel: b.orbitalDefaults.thrustAccel,
     thrustAccelMax: b.orbitalDefaults.thrustAccelMax,
     fuelDeltaV: 1800,
@@ -439,7 +441,7 @@ function createSystemTransferLevel(opts: {
   arrivalClusterLevelId?: number;
   finalDestinationId: string;
   sourceBodyId?: string;
-  startOrbit?: { radius: number; epochAngle: number; orbitSense: 1 | -1 };
+  startOrbit?: { radius: number; epochAngle: number; epochTime: number; orbitSense: 1 | -1 };
 }): OrbitalLevel {
   const parent = bodyById(opts.frameBodyId);
   const seed = opts.sourceBodyId
@@ -472,6 +474,8 @@ function createSystemTransferLevel(opts: {
     startY: seed.y,
     startVX: seed.vx,
     startVY: seed.vy,
+    dynamicStartOrbit: opts.sourceBodyId || !opts.startOrbit ? undefined : opts.startOrbit,
+    dynamicStartBodyId: opts.sourceBodyId,
     thrustAccel: parent.orbitalDefaults.thrustAccel,
     thrustAccelMax: parent.orbitalDefaults.thrustAccelMax,
     thrustWallDvPerSec: 1.5,
@@ -540,13 +544,14 @@ function centralBodyIdForPoi(poiId: string): string {
   return stationPoiById(parentNode(poiId)!.id).bodyId;
 }
 
-function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: number; orbitSense: 1 | -1 } | undefined {
+function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: number; epochTime: number; orbitSense: 1 | -1 } | undefined {
   if (clusterDockingSlotForPoi(sourceId)) return undefined;
   if (playableKind(sourceId) !== 'dock') return undefined;
   const station = stationPoiById(parentNode(sourceId)!.id);
   return {
     radius: station.orbit.radius,
     epochAngle: station.orbit.epochAngle,
+    epochTime: station.orbit.epochTime,
     orbitSense: station.orbit.orbitSense,
   };
 }

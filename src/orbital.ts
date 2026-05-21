@@ -55,6 +55,14 @@ export interface OrbitalLevel {
   startY: number;
   startVX: number;
   startVY: number;
+  dynamicStartOrbit?: {
+    radius: number;
+    epochAngle: number;
+    epochTime: number;
+    orbitSense: 1 | -1;
+    angleOffset?: number;
+  };
+  dynamicStartBodyId?: string;
 
   // Ship
   thrustAccel: number;      // m/s² (low/precision thrust)
