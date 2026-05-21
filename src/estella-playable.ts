@@ -1,7 +1,7 @@
 import { APPROACH_LEVELS, type ApproachLevel } from './approach';
 import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './docking';
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
-import { CLUSTER_LEVELS, clusterBodyIdForPoi, clusterDockingSlotForPoi, clusterMemberIdForPoi, clusterMemberNameForPoi, createPoiClusterLevel, type ClusterLevel } from './cluster';
+import { CLUSTER_LEVELS, applyLocalClusterTransferEconomyScale, clusterBodyIdForPoi, clusterDockingSlotForPoi, clusterMemberIdForPoi, clusterMemberNameForPoi, createPoiClusterLevel, type ClusterLevel } from './cluster';
 import { ORBITAL_LEVELS, type OrbitalLevel } from './orbital';
 import { type EstellaTransferOption } from './estella-mission';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
@@ -746,17 +746,18 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     }));
     const clusterLevel = createPoiClusterLevel(sourceId, destinationId, clusterId, destDocking.id);
     if (clusterLevel) {
-      register(CLUSTER_LEVELS, clusterLevel);
+      const scaledClusterLevel = applyLocalClusterTransferEconomyScale(clusterLevel);
+      register(CLUSTER_LEVELS, scaledClusterLevel);
       const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
         id: nextId(),
         name: sourceMemberName,
         subtitle: 'Undock and enter local cluster traffic',
         exitMode: true,
-        clusterLevelId: clusterLevel.id,
+        clusterLevelId: scaledClusterLevel.id,
         finalDestinationName: final.name,
         finalDestinationLocation: final.location,
         clusterMemberId: clusterMemberIdForPoi(sourceId),
-        nextObjectiveDetail: `Clear the berth; next: ${clusterLevel.name}.`,
+        nextObjectiveDetail: `Clear the berth; next: ${scaledClusterLevel.name}.`,
         targetSpoke: clusterSourceSlot.targetSpoke,
         targetSide: clusterSourceSlot.targetSide,
         targetSlot: clusterSourceSlot.targetSlot,

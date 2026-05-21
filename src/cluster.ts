@@ -61,6 +61,7 @@ export interface ClusterLevel {
   captureRadius: number;
   captureMaxSpeed: number;
   timeWarpLevels: number[];
+  localTransferKinematicScale?: number;
 }
 
 interface ClusterRock {
@@ -249,6 +250,7 @@ export const REACH_COMET_SWARM_CLUSTER_LEVEL: ClusterLevel = {
 };
 
 const CLUSTER_TEMPLATES = [NEAR_BELT_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL];
+const LOCAL_CLUSTER_TRANSFER_KINEMATIC_SCALE = 0.1;
 
 export const CLUSTER_LEVELS: ClusterLevel[] = [...CLUSTER_TEMPLATES];
 
@@ -352,16 +354,28 @@ export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId
   return createClusterLevelFromTemplate(NEAR_BELT_CLUSTER_LEVEL, sourcePoiId, destinationPoiId, id, dockingLevelId);
 }
 
+export function applyLocalClusterTransferEconomyScale(level: ClusterLevel): ClusterLevel {
+  const k = LOCAL_CLUSTER_TRANSFER_KINEMATIC_SCALE;
+  return {
+    ...level,
+    forwardAccel: level.forwardAccel * k * k,
+    baseTimeScale: level.baseTimeScale / k,
+    captureMaxSpeed: level.captureMaxSpeed * k,
+    localTransferKinematicScale: k,
+  };
+}
+
 export function clusterTemplateForPoiId(poiId: string): ClusterLevel | undefined {
   return clusterTemplateForPoi(poiId);
 }
 
 export function createClusterState(level: ClusterLevel, override?: ClusterInitOverride): ClusterState {
+  const k = level.localTransferKinematicScale ?? 1;
   const state: ClusterState = {
     x: override?.x ?? level.startX,
     y: override?.y ?? level.startY,
-    vx: override?.vx ?? level.startVX,
-    vy: override?.vy ?? level.startVY,
+    vx: (override?.vx ?? level.startVX) * k,
+    vy: (override?.vy ?? level.startVY) * k,
     angle: override?.angle ?? level.startAngle,
     renderAngle: override?.angle ?? level.startAngle,
     angVel: 0,
@@ -432,8 +446,9 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
   const x = atEdge ? edge.x : (nextRockRandom(s) * 2 - 1) * level.rx * 0.9;
   const y = atEdge ? edge.y : (nextRockRandom(s) * 2 - 1) * level.ry * 0.9;
   const inward = Math.atan2(-edge.y, -edge.x) + (nextRockRandom(s) - 0.5) * 0.9;
-  const speed = gaussianRockRandom(s, 180, 130, 35);
-  const orbitalSpeed = gaussianRockRandom(s, 160, 115, 30);
+  const k = level.localTransferKinematicScale ?? 1;
+  const speed = gaussianRockRandom(s, 180, 130, 35) * k;
+  const orbitalSpeed = gaussianRockRandom(s, 160, 115, 30) * k;
   const rx = 8_000 + nextRockRandom(s) * 28_000;
   const ry = 5_000 + nextRockRandom(s) * 20_000;
   return {
@@ -443,7 +458,7 @@ function createClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boolean
     vy: Math.sin(inward) * speed,
     radius,
     angle: nextRockRandom(s) * Math.PI * 2,
-    spin: (nextRockRandom(s) * 2 - 1) * 0.45,
+    spin: (nextRockRandom(s) * 2 - 1) * 0.45 * k,
     mode,
     cx: x,
     cy: y,
@@ -515,7 +530,8 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
     const speed = Math.hypot(s.vx, s.vy);
     s.angle = speed > 0.05 ? Math.atan2(s.vx, s.vy) : 0;
   }
-  s.renderAngle = moveAngleToward(s.renderAngle, s.angle, (Math.PI * 0.5 / 0.1) * dt);
+  const kinematicScale = level.localTransferKinematicScale ?? 1;
+  s.renderAngle = moveAngleToward(s.renderAngle, s.angle, (Math.PI * 0.5 / 0.1) * dt * kinematicScale);
 
   const fwdX = Math.sin(s.angle);
   const fwdY = Math.cos(s.angle);
@@ -525,7 +541,7 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
   if (s.sas && !anyThrust) {
     const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
     if (speed > 0.02) {
-      const dampAccel = Math.min(level.forwardAccel, speed * 0.9);
+      const dampAccel = Math.min(level.forwardAccel, speed * 0.9 * kinematicScale);
       const dax = -(s.vx / speed) * dampAccel;
       const day = -(s.vy / speed) * dampAccel;
       ax += dax;
@@ -663,15 +679,16 @@ export function renderCluster(
   cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number,
 ): void {
   const W = canvas.width, H = canvas.height;
+  const visualTime = time * (level.localTransferKinematicScale ?? 1);
   ctx.fillStyle = '#030308';
   ctx.fillRect(0, 0, W, H);
   drawClusterStars(ctx, W, H);
   drawTrafficVolume(ctx, cam, level, W, H);
-  drawClusterRocks(ctx, cam, s, level, time, W, H);
+  drawClusterRocks(ctx, cam, s, level, visualTime, W, H);
   drawClusterEscapeGuide(ctx, cam, s, level, time, W, H);
   for (const member of level.members) drawClusterMember(ctx, cam, level, member, W, H);
   drawClusterTargetIndicator(ctx, cam, s, level, W, H);
-  drawClusterShip(ctx, cam, s, W, H, time);
+  drawClusterShip(ctx, cam, s, W, H, visualTime);
   drawSpeedVectorDot(ctx, cam, s, W, H);
 }
 
@@ -1075,6 +1092,7 @@ export function drawClusterHUD(
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const target = targetPort(level);
+  const visualTime = time * (level.localTransferKinematicScale ?? 1);
 
   ctx.save();
   ctx.font = '13px monospace';
@@ -1083,7 +1101,7 @@ export function drawClusterHUD(
   ctx.fillText(level.name, W - 20, 24);
 
   const threat = state === 'flying' ? clusterCollisionThreat(s, level) : null;
-  if (threat && Math.sin(time * (threat.level === 'alert' ? 12 : 6)) > -0.35) {
+  if (threat && Math.sin(visualTime * (threat.level === 'alert' ? 12 : 6)) > -0.35) {
     const isAlert = threat.level === 'alert';
     const label = isAlert ? 'COLLISION ALERT' : 'COLLISION WARNING';
     const color = isAlert ? '#ff3333' : '#ffdd66';
@@ -1128,7 +1146,7 @@ export function drawClusterHUD(
     name: target && !level.escapeToOrbitalLevelId ? `${target.member.name} / ${target.port.name}` : level.name,
     subtitle: level.subtitle,
     rows,
-    guidance: level.escapeToOrbitalLevelId ? 'Follow the escape vector; crossing the traffic-volume boundary exits the cluster.' : 'Enter the destination intercept circle below 18 m/s for docking handoff.'
+    guidance: level.escapeToOrbitalLevelId ? 'Follow the escape vector; crossing the traffic-volume boundary exits the cluster.' : `Enter the destination intercept circle below ${level.captureMaxSpeed.toFixed(level.captureMaxSpeed < 10 ? 1 : 0)} m/s for docking handoff.`
   });
 
   if (!suppressStateOverlays && state === 'arrived') {

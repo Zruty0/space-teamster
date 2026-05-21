@@ -30,6 +30,7 @@ const CONTAINER_TARE_TONS = 8;
 const FUEL_PRICE_PER_TON_MPS = 1;
 const DEFAULT_GENEROSITY = 1.5;
 const CLUSTER_TRANSFER_SPEED = 200;
+const LOCAL_CLUSTER_TRANSFER_ECONOMY_SCALE = 0.1;
 const CLUSTER_SHIP_HIT_RADIUS = 900;
 const CLUSTER_AVOIDANCE_DV = 50;
 const CLUSTER_SLOPPINESS_FACTOR = 1.2;
@@ -134,7 +135,7 @@ function clusterAvoidanceDv(level: ClusterLevel, travelLength: number): number {
 function clusterTravelParDv(level: ClusterLevel, travelLength: number): number {
   const baseDv = CLUSTER_TRANSFER_SPEED * 2;
   const avoidanceDv = clusterAvoidanceDv(level, travelLength);
-  return roundToNearest((baseDv + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR, 10);
+  return roundToNearest((baseDv + avoidanceDv) * CLUSTER_SLOPPINESS_FACTOR * LOCAL_CLUSTER_TRANSFER_ECONOMY_SCALE, 10);
 }
 
 function clusterEscapeParDv(level: ClusterLevel, escapeSpeed: number): number {
