@@ -37,6 +37,7 @@ import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
+import { generateCareerContracts, drawCareerContractBoard, type CareerContract } from './career-contracts';
 import { estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
 
 const PHYSICS_DT = 1 / 120;
@@ -50,9 +51,11 @@ type Phase =
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
-  | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState };
+  | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState }
+  | { kind: 'careerSource'; nav: EstellaNavPhaseState }
+  | { kind: 'careerBoard'; sourceId: string; contracts: CareerContract[]; selectedIndex: number };
 
-type GameplayPhase = Exclude<Phase, { kind: 'levelSelect' } | { kind: 'estellaNav' } | { kind: 'estellaMission' }>;
+type GameplayPhase = Exclude<Phase, { kind: 'levelSelect' } | { kind: 'estellaNav' } | { kind: 'estellaMission' } | { kind: 'careerSource' } | { kind: 'careerBoard' }>;
 
 interface PhaseCompletion {
   title: string;
@@ -201,6 +204,14 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private loadCareerSourceSelection(): void {
+    this.phaseCompletion = null;
+    this.phase = { kind: 'careerSource', nav: createEstellaNavState() };
+    this.showGuidance('SELECT STARTING POI FOR CONTRACT BOARD');
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
     const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY, time: worldTimeStart };
     const os = createOrbitalState(level, effectiveInit);
@@ -282,6 +293,10 @@ export class Game {
       this.handleEstellaNavigation(input);
     } else if (p.kind === 'estellaMission') {
       this.handleEstellaGeneratedMission(input);
+    } else if (p.kind === 'careerSource') {
+      this.handleCareerSource(input);
+    } else if (p.kind === 'careerBoard') {
+      this.handleCareerBoard(input);
     }
 
     this.renderFrame();
@@ -345,6 +360,11 @@ export class Game {
 
     if (start.kind === 'estellaNav') {
       this.loadEstellaNavigation();
+      return;
+    }
+
+    if (start.kind === 'careerBoard') {
+      this.loadCareerSourceSelection();
       return;
     }
   }
@@ -1223,13 +1243,46 @@ export class Game {
       const selectedTransfer = p.mission.transferOptions[p.mission.selectedTransferOption];
       const startWorldTime = selectedTransfer?.waitTime ?? 0;
       this.activeMissionQuote = estimateEstellaMissionCost(p.mission.sourceId, p.mission.destinationId, selectedTransfer);
-      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);
+      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer, 8);
     }
   }
 
-  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
+  private handleCareerSource(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'careerSource' }>;
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+    if (input.reset) { resetEstellaNavSelection(p.nav); return; }
+    if (input.menuUp) moveEstellaCursor(p.nav, -1);
+    if (input.menuDown) moveEstellaCursor(p.nav, 1);
+    if (input.menuLeft) estellaNavBack(p.nav);
+    if (input.menuRight) estellaNavForward(p.nav);
+    if (input.menuConfirm) {
+      estellaNavActivate(p.nav);
+      if (p.nav.sourceId) {
+        this.phase = { kind: 'careerBoard', sourceId: p.nav.sourceId, contracts: generateCareerContracts(p.nav.sourceId), selectedIndex: 0 };
+        this.showGuidance('SELECT CONTRACT FROM BBS');
+      }
+    }
+  }
+
+  private handleCareerBoard(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'careerBoard' }>;
+    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
+    if (input.menuUp) p.selectedIndex = (p.selectedIndex - 1 + p.contracts.length) % p.contracts.length;
+    if (input.menuDown) p.selectedIndex = (p.selectedIndex + 1) % p.contracts.length;
+    if (input.menuLeft || input.reset) { this.loadCareerSourceSelection(); return; }
+    if (input.menuRight || input.menuConfirm) {
+      const contract = p.contracts[p.selectedIndex];
+      if (!contract) return;
+      const selectedTransfer = contract.selectedTransfer;
+      const startWorldTime = selectedTransfer?.waitTime ?? 0;
+      this.activeMissionQuote = contract.quote;
+      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer, 9);
+    }
+  }
+
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption, missionId: number = 8): void {
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
-    this.currentMissionId = 8;
+    this.currentMissionId = missionId;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;
     this.worldTime = startWorldTime;
@@ -1277,6 +1330,10 @@ export class Game {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {
       drawEstellaGeneratedMission(this.ctx, this.canvas, p.mission);
+    } else if (p.kind === 'careerSource') {
+      drawEstellaNavigation(this.ctx, this.canvas, p.nav);
+    } else if (p.kind === 'careerBoard') {
+      drawCareerContractBoard(this.ctx, this.canvas, p.sourceId, p.contracts, p.selectedIndex);
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {
