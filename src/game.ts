@@ -38,10 +38,16 @@ import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estel
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { generateCareerContracts, drawCareerContractBoard, type CareerContract } from './career-contracts';
-import { estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
+const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
+
+interface CareerProfile {
+  locationId: string;
+  money: number;
+}
 
 type Phase =
   | { kind: 'levelSelect' }
@@ -52,10 +58,9 @@ type Phase =
   | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
   | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState }
-  | { kind: 'careerSource'; nav: EstellaNavPhaseState }
-  | { kind: 'careerBoard'; sourceId: string; contracts: CareerContract[]; selectedIndex: number };
+  | { kind: 'careerBoard'; contracts: CareerContract[]; selectedIndex: number };
 
-type GameplayPhase = Exclude<Phase, { kind: 'levelSelect' } | { kind: 'estellaNav' } | { kind: 'estellaMission' } | { kind: 'careerSource' } | { kind: 'careerBoard' }>;
+type GameplayPhase = Exclude<Phase, { kind: 'levelSelect' } | { kind: 'estellaNav' } | { kind: 'estellaMission' } | { kind: 'careerBoard' }>;
 
 interface PhaseCompletion {
   title: string;
@@ -81,7 +86,7 @@ interface PhaseTransition {
   run: () => void;
 }
 
-const TOTAL_LEVELS = MISSIONS.length;
+const TOTAL_LEVELS = MISSIONS.length + 1;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -97,6 +102,8 @@ export class Game {
   private guidanceUntil = 0;
   private missionDvUsed = 0;
   private activeMissionQuote: MissionCostQuote | null = null;
+  private activeCareerContract: CareerContract | null = null;
+  private career: CareerProfile = { locationId: CAREER_START_LOCATION_ID, money: 0 };
   private phaseCompletion: PhaseCompletion | null = null;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
@@ -204,12 +211,20 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private loadCareerSourceSelection(): void {
+  private loadCareerBoard(): void {
     this.phaseCompletion = null;
-    this.phase = { kind: 'careerSource', nav: createEstellaNavState() };
-    this.showGuidance('SELECT STARTING POI FOR CONTRACT BOARD');
+    this.activeMissionQuote = null;
+    this.activeCareerContract = null;
+    this.currentMissionId = null;
+    this.phase = { kind: 'careerBoard', contracts: generateCareerContracts(this.career.locationId), selectedIndex: 0 };
+    this.showGuidance('SELECT CONTRACT FROM BBS');
     this.time = 0;
     this.accumulator = 0;
+  }
+
+  private resetCareer(): void {
+    this.career = { locationId: CAREER_START_LOCATION_ID, money: 0 };
+    this.loadCareerBoard();
   }
 
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
@@ -293,8 +308,6 @@ export class Game {
       this.handleEstellaNavigation(input);
     } else if (p.kind === 'estellaMission') {
       this.handleEstellaGeneratedMission(input);
-    } else if (p.kind === 'careerSource') {
-      this.handleCareerSource(input);
     } else if (p.kind === 'careerBoard') {
       this.handleCareerBoard(input);
     }
@@ -328,6 +341,7 @@ export class Game {
     if (!mission) return;
     this.currentMissionId = missionId;
     this.activeMissionQuote = null;
+    this.activeCareerContract = null;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;
     this.worldTime = mission.startWorldTime;
@@ -362,14 +376,13 @@ export class Game {
       this.loadEstellaNavigation();
       return;
     }
-
-    if (start.kind === 'careerBoard') {
-      this.loadCareerSourceSelection();
-      return;
-    }
   }
 
   private launchLevel(index: number): void {
+    if (index === MISSIONS.length) {
+      this.loadCareerBoard();
+      return;
+    }
     const mission = MISSIONS[index];
     if (!mission || mission.stub) return;
     this.startMission(mission.id);
@@ -397,16 +410,19 @@ export class Game {
   }
 
   private currentMissionCompletionText(): string {
+    if (this.activeCareerContract) return 'Delivery complete. The BBS closes the contract and posts the run to your log.';
     const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
     return mission?.completionText ?? '';
   }
 
   private currentMissionDestinationName(): string | undefined {
+    if (this.activeCareerContract) return this.activeCareerContract.destinationName;
     const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
     return mission?.destinationName;
   }
 
   private currentMissionDestinationLocation(): string | undefined {
+    if (this.activeCareerContract) return this.activeCareerContract.destinationPath;
     const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
     return mission?.destinationLocation;
   }
@@ -469,6 +485,27 @@ export class Game {
     return { role, run, title, detailText, billableDvAdjustment, adjustmentLabel };
   }
 
+  private finishCareerDelivery(): void {
+    const contract = this.activeCareerContract;
+    const quote = this.activeMissionQuote;
+    if (!contract || !quote) return;
+    this.career.money += quote.grossPay - actualFuelCostForQuote(quote, this.missionDvUsed);
+    this.career.locationId = contract.destinationId;
+    this.loadCareerBoard();
+  }
+
+  private finishRunTransition(): PhaseTransition {
+    return this.makeTransition('success', () => {
+      if (this.activeCareerContract) {
+        this.finishCareerDelivery();
+        return;
+      }
+      this.currentMissionId = null;
+      this.activeMissionQuote = null;
+      this.phase = { kind: 'levelSelect' };
+    });
+  }
+
   private completeTransition(
     p: GameplayPhase,
     transition: PhaseTransition,
@@ -520,11 +557,7 @@ export class Game {
           const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
           this.completePhase(
             p,
-            () => {
-              this.currentMissionId = null;
-              this.activeMissionQuote = null;
-              this.phase = { kind: 'levelSelect' };
-            },
+            this.finishRunTransition().run,
             this.currentMissionCompletionText(),
             {
               ratingText: score.rating,
@@ -636,11 +669,7 @@ export class Game {
             ? this.transitionDockingToCluster(p)
             : p.level.orbitalLevelId
               ? this.transitionDockingToOrbital(p)
-              : this.makeTransition('success', () => {
-                  this.currentMissionId = null;
-                  this.activeMissionQuote = null;
-                  this.phase = { kind: 'levelSelect' };
-                });
+              : this.finishRunTransition();
           if (transition) this.completeTransition(p, transition, isFinal ? this.currentMissionCompletionText() : '');
           else p.state = 'crashed';
           return;
@@ -714,11 +743,7 @@ export class Game {
           p.state = 'arrived';
           const transition = p.level.dockingLevelId
             ? this.transitionClusterToDocking(p)
-            : this.makeTransition('success', () => {
-                this.currentMissionId = null;
-                this.activeMissionQuote = null;
-                this.phase = { kind: 'levelSelect' };
-              });
+            : this.finishRunTransition();
           if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText(), { title: 'Near Belt Local Traffic', detailText: 'Berth approach complete.' });
           else p.state = 'crashed';
           return;
@@ -1247,40 +1272,28 @@ export class Game {
     }
   }
 
-  private handleCareerSource(input: InputState): void {
-    const p = this.phase as Extract<Phase, { kind: 'careerSource' }>;
-    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
-    if (input.reset) { resetEstellaNavSelection(p.nav); return; }
-    if (input.menuUp) moveEstellaCursor(p.nav, -1);
-    if (input.menuDown) moveEstellaCursor(p.nav, 1);
-    if (input.menuLeft) estellaNavBack(p.nav);
-    if (input.menuRight) estellaNavForward(p.nav);
-    if (input.menuConfirm) {
-      estellaNavActivate(p.nav);
-      if (p.nav.sourceId) {
-        this.phase = { kind: 'careerBoard', sourceId: p.nav.sourceId, contracts: generateCareerContracts(p.nav.sourceId), selectedIndex: 0 };
-        this.showGuidance('SELECT CONTRACT FROM BBS');
-      }
-    }
-  }
-
   private handleCareerBoard(input: InputState): void {
     const p = this.phase as Extract<Phase, { kind: 'careerBoard' }>;
-    if (input.levelSelect) { this.phase = { kind: 'levelSelect' }; return; }
-    if (input.menuUp) p.selectedIndex = (p.selectedIndex - 1 + p.contracts.length) % p.contracts.length;
-    if (input.menuDown) p.selectedIndex = (p.selectedIndex + 1) % p.contracts.length;
-    if (input.menuLeft || input.reset) { this.loadCareerSourceSelection(); return; }
+    if (input.levelSelect || input.menuLeft || input.reset) { this.phase = { kind: 'levelSelect' }; return; }
+    const itemCount = p.contracts.length + 1;
+    if (input.menuUp) p.selectedIndex = (p.selectedIndex - 1 + itemCount) % itemCount;
+    if (input.menuDown) p.selectedIndex = (p.selectedIndex + 1) % itemCount;
     if (input.continueAction) {
+      if (p.selectedIndex === p.contracts.length) {
+        this.resetCareer();
+        return;
+      }
       const contract = p.contracts[p.selectedIndex];
       if (!contract) return;
       const selectedTransfer = contract.selectedTransfer;
       const startWorldTime = selectedTransfer?.waitTime ?? 0;
+      this.activeCareerContract = contract;
       this.activeMissionQuote = contract.quote;
-      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer, 9);
+      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer, null);
     }
   }
 
-  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption, missionId: number = 8): void {
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption, missionId: number | null = 8): void {
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.currentMissionId = missionId;
     this.phaseCompletion = null;
@@ -1303,10 +1316,9 @@ export class Game {
 
   private renderFrame(): void {
     const p = this.phase;
-    const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
-    const completionText = mission?.completionText ?? '';
-    const destinationName = mission?.destinationName;
-    const destinationLocation = mission?.destinationLocation;
+    const completionText = this.currentMissionCompletionText();
+    const destinationName = this.currentMissionDestinationName();
+    const destinationLocation = this.currentMissionDestinationLocation();
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'levelSelect') {
@@ -1330,10 +1342,8 @@ export class Game {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {
       drawEstellaGeneratedMission(this.ctx, this.canvas, p.mission);
-    } else if (p.kind === 'careerSource') {
-      drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'careerBoard') {
-      drawCareerContractBoard(this.ctx, this.canvas, p.sourceId, p.contracts, p.selectedIndex);
+      drawCareerContractBoard(this.ctx, this.canvas, this.career.locationId, p.contracts, p.selectedIndex, this.career.money);
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {

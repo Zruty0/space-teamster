@@ -316,5 +316,4 @@ export type MissionStartDef =
   | { kind: 'docking'; dockingLevelId: number }
   | { kind: 'landing'; poiId: string; departureApproachLevelId: number }
   | { kind: 'cluster'; clusterLevelId: number }
-  | { kind: 'estellaNav' }
-  | { kind: 'careerBoard' };
+  | { kind: 'estellaNav' };

@@ -164,11 +164,13 @@ export function drawCareerContractBoard(
   sourceId: string,
   contracts: CareerContract[],
   selectedIndex: number,
+  money: number = 0,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
   const sourcePath = estellaDisplayPath(sourceId);
   const selected = contracts[selectedIndex];
+  const resetSelected = selectedIndex === contracts.length;
 
   ctx.fillStyle = '#030611';
   ctx.fillRect(0, 0, W, H);
@@ -179,7 +181,7 @@ export function drawCareerContractBoard(
   ctx.fillText('TEAMSTERS\' GUILD CONTRACT BBS', W / 2, 42);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText(`LOCAL BOARD: ${truncate(sourcePath, 110)}`, W / 2, 66);
+  ctx.fillText(`LOCAL BOARD: ${truncate(sourcePath, 84)}   CASH: ${formatCredits(money)}`, W / 2, 66);
 
   const margin = 28;
   const listW = Math.min(650, Math.max(470, W * 0.55));
@@ -193,7 +195,7 @@ export function drawCareerContractBoard(
   ctx.fillRect(margin, panelY, listW, panelH);
   ctx.strokeRect(margin, panelY, listW, panelH);
 
-  const rowH = Math.min(58, Math.max(48, Math.floor((panelH - 24) / Math.max(1, contracts.length))));
+  const rowH = Math.min(58, Math.max(48, Math.floor((panelH - 24) / Math.max(1, contracts.length + 1))));
   ctx.textAlign = 'left';
   for (let i = 0; i < contracts.length; i++) {
     const contract = contracts[i];
@@ -217,6 +219,20 @@ export function drawCareerContractBoard(
     ctx.fillText(`  PAY: ${formatCredits(quote.grossPay)}   PAR: ${quote.parDv} m/s   NET: ~${formatCredits(quote.expectedMargin)}`, margin + 18, y + 32);
   }
 
+  const resetY = panelY + 24 + contracts.length * rowH;
+  if (resetSelected) {
+    ctx.fillStyle = 'rgba(255, 170, 0, 0.12)';
+    ctx.fillRect(margin + 8, resetY - 17, listW - 16, rowH - 4);
+    ctx.strokeStyle = COL_WARNING;
+    ctx.strokeRect(margin + 8, resetY - 17, listW - 16, rowH - 4);
+  }
+  ctx.fillStyle = resetSelected ? COL_WARNING : COL_HUD_DIM;
+  ctx.font = resetSelected ? 'bold 13px monospace' : '13px monospace';
+  ctx.fillText(`${resetSelected ? '▶' : ' '} RESET CAREER PROFILE`, margin + 18, resetY);
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '11px monospace';
+  ctx.fillText('  Return to Caravanserai and clear money to 0 cr.', margin + 18, resetY + 16);
+
   ctx.fillStyle = 'rgba(0, 255, 170, 0.05)';
   ctx.strokeStyle = '#1b4a4a';
   ctx.fillRect(detailX, panelY, detailW, panelH);
@@ -226,7 +242,18 @@ export function drawCareerContractBoard(
   ctx.font = 'bold 15px monospace';
   ctx.fillText('CONTRACT DETAIL', detailX + 18, panelY + 30);
 
-  if (selected) {
+  if (resetSelected) {
+    ctx.fillStyle = COL_WARNING;
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText('RESET CAREER', detailX + 18, panelY + 72);
+    ctx.fillStyle = COL_HUD;
+    ctx.font = '13px monospace';
+    ctx.fillText('Press Enter to reset location and money.', detailX + 18, panelY + 102);
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '12px monospace';
+    ctx.fillText('Location: Caravanserai Main Commercial Dock', detailX + 18, panelY + 130);
+    ctx.fillText('Money: 0 cr', detailX + 18, panelY + 148);
+  } else if (selected) {
     const q = selected.quote;
     const lines = [
       ['Origin', truncate(sourcePath, 54)],
@@ -254,5 +281,5 @@ export function drawCareerContractBoard(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText('W/S: select contract   Enter: accept   A or Backspace: choose another starting POI   L: missions', W / 2, H - 24);
+  ctx.fillText('W/S: select   Enter: accept/reset   A or Backspace: main menu   L: missions', W / 2, H - 24);
 }

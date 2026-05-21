@@ -103,15 +103,4 @@ export const MISSIONS: Mission[] = [
     startWorldTime: 0,
     start: { kind: 'estellaNav' },
   },
-  {
-    id: 9,
-    name: 'Contract Board',
-    subtitle: 'Prototype Teamsters BBS: pick a starting port, then choose from generated delivery contracts.',
-    destinationName: 'Contract Delivery',
-    destinationLocation: 'Estella system',
-    completionText: 'Delivery complete. The BBS closes the contract and posts the run to your log.',
-    stub: false,
-    startWorldTime: 0,
-    start: { kind: 'careerBoard' },
-  },
 ];

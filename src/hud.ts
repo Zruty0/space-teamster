@@ -33,8 +33,7 @@ export function drawLevelSelect(
   ctx.font = '16px monospace';
   ctx.fillText('Select Mission', W / 2, 80);
 
-  for (let i = 0; i < MISSIONS.length; i++) {
-    const m = MISSIONS[i];
+  const drawRow = (i: number, idLabel: string, name: string, subtitle: string, stub = false): void => {
     const y = mStartY + i * mLineH;
     const sel = selectedIndex === i;
 
@@ -50,31 +49,37 @@ export function drawLevelSelect(
     ctx.fillStyle = sel ? COL_TITLE : COL_HUD_DIM;
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(`[${m.id}]`, W / 2 - 250, y);
+    ctx.fillText(`[${idLabel}]`, W / 2 - 250, y);
 
-    const nameCol = m.stub ? COL_HUD_DIM : (sel ? '#ffffff' : COL_HUD);
+    const nameCol = stub ? COL_HUD_DIM : (sel ? '#ffffff' : COL_HUD);
     ctx.fillStyle = nameCol;
     ctx.font = 'bold 18px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(m.name, W / 2 - 230, y);
+    ctx.fillText(name, W / 2 - 230, y);
 
-    if (m.stub) {
+    if (stub) {
       ctx.font = 'bold 18px monospace';
-      const nameW = ctx.measureText(m.name).width;
+      const nameW = ctx.measureText(name).width;
       ctx.fillStyle = '#444444';
       ctx.font = '11px monospace';
       ctx.fillText('[COMING SOON]', W / 2 - 230 + nameW + 14, y);
     }
 
-    ctx.fillStyle = m.stub ? '#333333' : COL_HUD_DIM;
+    ctx.fillStyle = stub ? '#333333' : COL_HUD_DIM;
     ctx.font = '12px monospace';
-    ctx.fillText(m.subtitle, W / 2 - 230, y + 18);
+    ctx.fillText(subtitle, W / 2 - 230, y + 18);
+  };
+
+  for (let i = 0; i < MISSIONS.length; i++) {
+    const m = MISSIONS[i];
+    drawRow(i, m.id.toString(), m.name, m.subtitle, m.stub);
   }
+  drawRow(MISSIONS.length, (MISSIONS.length + 1).toString(), 'Career Mode', 'Light career prototype: contract board, location, money, and free retries.');
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(`↑↓: Select  Enter: Launch  (or press 1-${MISSIONS.length})`, W / 2, mStartY + MISSIONS.length * mLineH + 30);
+  ctx.fillText(`↑↓: Select  Enter: Launch  (or press 1-${MISSIONS.length + 1})`, W / 2, mStartY + (MISSIONS.length + 1) * mLineH + 30);
 }
 
 // --- In-game HUD ---
