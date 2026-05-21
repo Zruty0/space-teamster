@@ -66,6 +66,15 @@ function parentBodyId(bodyId: string | undefined): string | undefined {
   return ESTELLA_NODES_BY_ID.get(bodyId)?.placement?.parentId;
 }
 
+function isDisallowedSameSiteDelivery(sourceId: string, destinationId: string): boolean {
+  const sourcePlacement = ESTELLA_NODES_BY_ID.get(sourceId)?.placement;
+  const destPlacement = ESTELLA_NODES_BY_ID.get(destinationId)?.placement;
+  if (!sourcePlacement || !destPlacement) return false;
+  if (sourcePlacement.kind === 'surface' && destPlacement.kind === 'surface' && sourcePlacement.parentId === destPlacement.parentId) return true;
+  if (sourcePlacement.kind === 'aboard' && destPlacement.kind === 'aboard' && sourcePlacement.parentId === destPlacement.parentId) return true;
+  return false;
+}
+
 function classifyRoute(sourceId: string, destinationId: string): CareerContractClass {
   const source = ESTELLA_NODES_BY_ID.get(sourceId);
   const dest = ESTELLA_NODES_BY_ID.get(destinationId);
@@ -108,7 +117,7 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
 
 export function generateCareerContracts(sourceId: string): CareerContract[] {
   const seed = hashString(`career-board:${sourceId}`);
-  const targets = estellaSelectableNavTargets().filter(target => target.id !== sourceId);
+  const targets = estellaSelectableNavTargets().filter(target => target.id !== sourceId && !isDisallowedSameSiteDelivery(sourceId, target.id));
   const byClass: Record<CareerContractClass, string[]> = { local: [], moderate: [], long: [] };
   for (const target of targets) byClass[classifyRoute(sourceId, target.id)].push(target.id);
 
