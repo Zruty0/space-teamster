@@ -1270,7 +1270,7 @@ export class Game {
     if (input.menuUp) p.selectedIndex = (p.selectedIndex - 1 + p.contracts.length) % p.contracts.length;
     if (input.menuDown) p.selectedIndex = (p.selectedIndex + 1) % p.contracts.length;
     if (input.menuLeft || input.reset) { this.loadCareerSourceSelection(); return; }
-    if (input.menuRight || input.menuConfirm) {
+    if (input.continueAction) {
       const contract = p.contracts[p.selectedIndex];
       if (!contract) return;
       const selectedTransfer = contract.selectedTransfer;

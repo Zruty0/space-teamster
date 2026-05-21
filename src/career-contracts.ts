@@ -245,5 +245,5 @@ export function drawCareerContractBoard(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText('W/S: select contract   D or Enter: accept   A or Backspace: choose another starting POI   L: missions', W / 2, H - 24);
+  ctx.fillText('W/S: select contract   Enter: accept   A or Backspace: choose another starting POI   L: missions', W / 2, H - 24);
 }
