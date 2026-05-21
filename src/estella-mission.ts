@@ -32,6 +32,7 @@ export interface EstellaGeneratedMissionState {
   legs: EstellaMissionLeg[];
   transferOptions: EstellaTransferOption[];
   selectedTransferOption: number;
+  startWorldTime: number;
 }
 
 function nodeName(id: string): string {
@@ -148,9 +149,9 @@ function transferBodyPair(sourceId: string, destinationId: string): { source: Bo
   return null;
 }
 
-function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef, waitTime: number, tof: number): EstellaTransferOption | null {
-  const s0 = circularBodyStateInFrame(source.id, parent.id, waitTime);
-  const d1 = circularBodyStateInFrame(destination.id, parent.id, waitTime + tof);
+function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef, departureTime: number, tof: number): EstellaTransferOption | null {
+  const s0 = circularBodyStateInFrame(source.id, parent.id, departureTime);
+  const d1 = circularBodyStateInFrame(destination.id, parent.id, departureTime + tof);
   if (!s0 || !d1) return null;
   const lambert = lambertVelocity(s0, d1, tof, parent.gm);
   if (!lambert) return null;
@@ -161,10 +162,10 @@ function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef
   const arrivalVInf = Math.hypot(lambert.v2x - d1.vx, lambert.v2y - d1.vy);
   const totalDeltaV = departureVInf + arrivalVInf;
   if (!Number.isFinite(totalDeltaV)) return null;
-  return { id: 'now', label: 'Depart now', waitTime, transferTime: tof, departureVInf, departureVInfAngle, arrivalVInf, totalDeltaV, sourceBodyId: source.id, destinationBodyId: destination.id };
+  return { id: 'now', label: 'Depart now', waitTime: departureTime, transferTime: tof, departureVInf, departureVInfAngle, arrivalVInf, totalDeltaV, sourceBodyId: source.id, destinationBodyId: destination.id };
 }
 
-function computeTransferOptions(sourceId: string, destinationId: string): EstellaTransferOption[] {
+function computeTransferOptions(sourceId: string, destinationId: string, startWorldTime: number): EstellaTransferOption[] {
   const pair = transferBodyPair(sourceId, destinationId);
   if (!pair || !pair.source.orbit || !pair.destination.orbit) return [];
   const { source, destination, parent } = pair;
@@ -180,11 +181,11 @@ function computeTransferOptions(sourceId: string, destinationId: string): Estell
   const minTof = Math.max(0.35 * hohmannTime, 12 * 3_600);
   const maxTof = Math.max(2.4 * hohmannTime, minTof * 1.5);
 
-  const bestForWait = (waitTime: number): EstellaTransferOption | null => {
+  const bestForWait = (waitDuration: number): EstellaTransferOption | null => {
     let best: EstellaTransferOption | null = null;
     for (let i = 0; i <= 40; i++) {
       const tof = minTof + (maxTof - minTof) * i / 40;
-      const est = transferEstimate(source, destination, parent, waitTime, tof);
+      const est = transferEstimate(source, destination, parent, startWorldTime + waitDuration, tof);
       if (est && (!best || est.totalDeltaV < best.totalDeltaV)) best = est;
     }
     return best;
@@ -224,7 +225,7 @@ function computeTransferOptions(sourceId: string, destinationId: string): Estell
   return deduped;
 }
 
-export function generateEstellaMission(sourceId: string, destinationId: string): EstellaGeneratedMissionState {
+export function generateEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0): EstellaGeneratedMissionState {
   const srcChain = chainToRoot(sourceId);
   const dstChain = chainToRoot(destinationId);
   const lca = lowestCommonAncestor(srcChain, dstChain);
@@ -246,8 +247,9 @@ export function generateEstellaMission(sourceId: string, destinationId: string):
     title: `Generated Mission: ${nodeName(sourceId)} → ${nodeName(destinationId)}`,
     subtitle: 'Prototype generated from Estella hierarchy and exact-authored placements.',
     legs: dedupeConsecutive(legs),
-    transferOptions: computeTransferOptions(sourceId, destinationId),
+    transferOptions: computeTransferOptions(sourceId, destinationId, startWorldTime),
     selectedTransferOption: 0,
+    startWorldTime,
   };
 }
 
@@ -362,7 +364,8 @@ export function drawEstellaGeneratedMission(
       ctx.strokeRect(x + 18, rowY - 13, w - 36, 18);
       ctx.fillStyle = selected ? COL_SUCCESS : COL_HUD;
       ctx.font = selected ? 'bold 12px monospace' : '12px monospace';
-      const text = `${selected ? '▶' : ' '} ${opt.label.padEnd(18)} wait ${formatDuration(opt.waitTime).padStart(6)}  TOF ${formatDuration(opt.transferTime).padStart(6)}  ΔV ${(opt.totalDeltaV).toFixed(0)}m/s  dep ${(opt.departureVInf).toFixed(0)}  arr ${(opt.arrivalVInf).toFixed(0)}`;
+      const waitDuration = Math.max(0, opt.waitTime - mission.startWorldTime);
+      const text = `${selected ? '▶' : ' '} ${opt.label.padEnd(18)} wait ${formatDuration(waitDuration).padStart(6)}  TOF ${formatDuration(opt.transferTime).padStart(6)}  ΔV ${(opt.totalDeltaV).toFixed(0)}m/s  dep ${(opt.departureVInf).toFixed(0)}  arr ${(opt.arrivalVInf).toFixed(0)}`;
       ctx.fillText(text, x + 28, rowY);
     }
   }

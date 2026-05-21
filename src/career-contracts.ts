@@ -98,8 +98,8 @@ export function preferredContractTransfer(options: EstellaTransferOption[]): Est
   return options.find(option => option.id === 'soon') ?? options[1] ?? options[0];
 }
 
-function makeContract(sourceId: string, destinationId: string, routeClass: CareerContractClass, index: number): CareerContract {
-  const mission = generateEstellaMission(sourceId, destinationId);
+function makeContract(sourceId: string, destinationId: string, routeClass: CareerContractClass, index: number, startWorldTime: number): CareerContract {
+  const mission = generateEstellaMission(sourceId, destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
   const quote = estimateEstellaMissionCost(sourceId, destinationId, selectedTransfer);
   const target = estellaSelectableNavTargets().find(row => row.id === destinationId);
@@ -115,7 +115,7 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
   };
 }
 
-export function generateCareerContracts(sourceId: string): CareerContract[] {
+export function generateCareerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
   const seed = hashString(`career-board:${sourceId}`);
   const targets = estellaSelectableNavTargets().filter(target => target.id !== sourceId && !isDisallowedSameSiteDelivery(sourceId, target.id));
   const byClass: Record<CareerContractClass, string[]> = { local: [], moderate: [], long: [] };
@@ -127,7 +127,7 @@ export function generateCareerContracts(sourceId: string): CareerContract[] {
     for (const destinationId of shuffled(byClass[routeClass].filter(id => !picked.has(id)), seed ^ hashString(routeClass))) {
       if (contracts.length >= 10 || count <= 0) break;
       picked.add(destinationId);
-      contracts.push(makeContract(sourceId, destinationId, routeClass, contracts.length));
+      contracts.push(makeContract(sourceId, destinationId, routeClass, contracts.length, startWorldTime));
       count--;
     }
   };
@@ -141,7 +141,7 @@ export function generateCareerContracts(sourceId: string): CareerContract[] {
     for (const destinationId of leftovers) {
       if (contracts.length >= 10) break;
       picked.add(destinationId);
-      contracts.push(makeContract(sourceId, destinationId, classifyRoute(sourceId, destinationId), contracts.length));
+      contracts.push(makeContract(sourceId, destinationId, classifyRoute(sourceId, destinationId), contracts.length, startWorldTime));
     }
   }
 
@@ -165,6 +165,7 @@ export function drawCareerContractBoard(
   contracts: CareerContract[],
   selectedIndex: number,
   money: number = 0,
+  worldTime: number = 0,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -181,7 +182,7 @@ export function drawCareerContractBoard(
   ctx.fillText('TEAMSTERS\' GUILD CONTRACT BBS', W / 2, 42);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText(`LOCAL BOARD: ${truncate(sourcePath, 84)}   CASH: ${formatCredits(money)}`, W / 2, 66);
+  ctx.fillText(`LOCAL BOARD: ${truncate(sourcePath, 72)}   CASH: ${formatCredits(money)}   TIME: ${(worldTime / 86_400).toFixed(1)}d`, W / 2, 66);
 
   const margin = 28;
   const listW = Math.min(650, Math.max(470, W * 0.55));
