@@ -2569,10 +2569,6 @@ export function updateOrbitalCamera(
     if (showSystemView && systemOuterR > 0) {
       maxR = Math.max(maxR, systemOuterR * 1.05);
     }
-    const targetBody = level.targetBodyId ? getTransferBody(level, level.targetBodyId) : null;
-    if (targetBody && !isClusterTransferBody(targetBody)) {
-      maxR = Math.max(maxR, (targetBody.orbitRadius + (targetBody.displayPatchRadius ?? targetBody.patchRadius)) * 1.05);
-    }
     if (level.conicRadius) {
       // Do not zoom beyond the active transfer SOI/conic limit while inside it, but never
       // let the ship disappear if a coarse transfer step or handoff places it outside.
