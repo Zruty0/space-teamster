@@ -265,7 +265,7 @@ Three of the clusters share the Caravanserai's orbit and differ only by their ph
 
 | Cluster | Position | Gating | Flavor |
 |---|---|---|---|
-| **Cluster 1 — The Near** | Co-orbital with the Caravanserai (close phase) | Open | First-contract rocks: small mines, prospectors, beginner work. *Contains the Caravanserai itself.* |
+| **New Canaan Field** | Co-orbital with the Caravanserai (close phase) | Open | Old titanium-rush field: mined-out claim rocks, marginal Co-op operations, and downward-mobile washouts. *Contains the Caravanserai itself.* |
 | **Cluster 2 — The Working** | Co-orbital, mid phase | Open | Active industrial mid-Belt |
 | **Cluster 3 — The Outer Drift** | Co-orbital, far phase | Open | Sparser, more varied, longer transfers |
 | **Cluster 4 — The Wreckage Field** | Different orbit (eccentric) | **Salvage license required** | Dense field, navigation hazard, salvage flavor |
@@ -276,7 +276,7 @@ Each cluster contains roughly ten small asteroids, each one a single docking sit
 ## The Belt's named bodies
 
 ### ES-C-0001 — "The Caravanserai"
-A massive industrial-civic asteroid in Cluster 1. **Home base.** The system's primary Highliner port and the player's hangar of record. Multiple bays, multiple districts, the kind of place where a person can be born, live, work, and die without ever leaving.
+A massive industrial-civic asteroid in New Canaan Field. **Home base.** The system's primary Highliner port and the player's hangar of record. Multiple bays, multiple districts, the kind of place where a person can be born, live, work, and die without ever leaving.
 
 | ID | Type | Description |
 |---|---|---|
@@ -303,19 +303,19 @@ A major **metallic-class asteroid** given over almost entirely to the **Teamster
 | ES-M-0001.5 | Worker Hab / Foreign Quarter | Refiner workforce, rumor mill |
 | ES-M-0001.6 | Skim-Runner Berth | Where Hearth skim ships deliver precursor canisters |
 
-### ES-C-0101 — Prospect Rock
-Small carbonaceous first-contract prospecting rock in Cluster 1 / The Near.
+### ES-C-0101 — Mercer's Claim
+Old New Canaan claim rock: once a profitable titanium prospect, now a marginal Co-op member operation.
 
 | ID | Type | Description |
 |---|---|---|
-| ES-C-0101.1 | Dock | Prospector dock for claim crews and beginner Belt work |
+| ES-C-0101.1 | Mercer Dock | Dock for claim crews, tailings lots, and Co-op member resupply |
 
-### ES-S-0101 — Survey Rock
-Small stony survey and beacon-maintenance asteroid in Cluster 1 / The Near.
+### ES-S-0101 — Harlan's Station
+Old New Canaan station and informal New Canaan Miners Mutual headquarters, much of it cold and sealed behind pressure doors.
 
 | ID | Type | Description |
 |---|---|---|
-| ES-S-0101.1 | Dock | Beacon dock for survey crews and traffic-beacon maintenance |
+| ES-S-0101.1 | Harlan Dock | Co-op station dock for member business, beacon service, and bulk supply distribution |
 
 ### ES-M-0002 — industrial refinery asteroid
 Bulk processor on a metallic-class asteroid. The asteroid itself is a substantial part of the feedstock — the operation has been slowly eating its host for generations. Belt → Camps ore corridor originates here.

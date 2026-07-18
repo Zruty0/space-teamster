@@ -871,7 +871,7 @@ export class Game {
         if (!p.cs.alive) p.state = 'crashed';
         if (p.cs.escaped) {
           const transition = this.transitionClusterToOrbital(p);
-          if (transition) this.completeTransition(p, transition, '', { title: 'Near Belt Local Traffic', detailText: 'Exited cluster traffic volume.' });
+          if (transition) this.completeTransition(p, transition, '', { title: 'New Canaan Local Traffic', detailText: 'Exited cluster traffic volume.' });
           else p.state = 'crashed';
           return;
         }
@@ -880,7 +880,7 @@ export class Game {
           const transition = p.level.dockingLevelId
             ? this.transitionClusterToDocking(p)
             : this.finishRunTransition();
-          if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText(), { title: 'Near Belt Local Traffic', detailText: 'Berth approach complete.' });
+          if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText(), { title: 'New Canaan Local Traffic', detailText: 'Berth approach complete.' });
           else p.state = 'crashed';
           return;
         }

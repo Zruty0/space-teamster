@@ -281,7 +281,7 @@ const PLAYABLE_BODY_IDS = playableBodyIds();
 const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
   {
     id: 'belt-cluster-near',
-    name: 'Near Belt Cluster',
+    name: 'New Canaan Field',
     radius: 6_000,
     gm: 0,
     color: [170, 150, 120],

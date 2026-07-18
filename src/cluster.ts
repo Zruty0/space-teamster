@@ -159,12 +159,12 @@ const STILL_PORTS = makePorts('the-still', [
   { id: 'still-skim-runner-berth', name: 'Skim-Runner Berth', poiId: 'still-skim-runner-berth-poi' },
 ]);
 
-const PROSPECT_ROCK_PORTS = makePorts('prospect-rock-es-c-0101', [
-  { id: 'prospect-rock-main-dock-port', name: 'Prospector Dock', poiId: 'prospect-rock-main-dock' },
+const MERCER_CLAIM_PORTS = makePorts('prospect-rock-es-c-0101', [
+  { id: 'prospect-rock-main-dock-port', name: 'Mercer Dock', poiId: 'prospect-rock-main-dock' },
 ]);
 
-const SURVEY_ROCK_PORTS = makePorts('survey-rock-es-s-0101', [
-  { id: 'survey-rock-beacon-dock-port', name: 'Beacon Dock', poiId: 'survey-rock-beacon-dock' },
+const HARLAN_STATION_PORTS = makePorts('survey-rock-es-s-0101', [
+  { id: 'survey-rock-beacon-dock-port', name: 'Harlan Dock', poiId: 'survey-rock-beacon-dock' },
 ]);
 
 const REACH_COMET_FRAGMENT_1_PORTS = makePorts('reach-comet-fragment-1', [
@@ -193,16 +193,16 @@ const REACH_COMET_FRAGMENT_6_PORTS = makePorts('reach-comet-fragment-6', [
 
 export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
   id: 90,
-  name: 'Near Belt Traffic Volume',
-  subtitle: 'Local flight: Caravanserai to The Still',
+  name: 'New Canaan Traffic Volume',
+  subtitle: 'Local flight: Caravanserai, The Still, and old claim rocks',
   rx: 80_000,
   ry: 45_000,
   orbitAngle: 0,
   members: [
     { id: 'caravanserai', name: 'The Caravanserai', x: 0, y: 0, radius: 4200, ports: CARAVANSERAI_PORTS },
     { id: 'the-still', name: 'The Still', x: 42_000, y: -18_000, radius: 3200, ports: STILL_PORTS },
-    { id: 'prospect-rock-es-c-0101', name: 'Prospect Rock', x: -26_000, y: 22_000, radius: 1800, ports: PROSPECT_ROCK_PORTS },
-    { id: 'survey-rock-es-s-0101', name: 'Survey Rock', x: 24_000, y: 33_000, radius: 1600, ports: SURVEY_ROCK_PORTS },
+    { id: 'prospect-rock-es-c-0101', name: "Mercer's Claim", x: -26_000, y: 22_000, radius: 1800, ports: MERCER_CLAIM_PORTS },
+    { id: 'survey-rock-es-s-0101', name: "Harlan's Station", x: 24_000, y: 33_000, radius: 1600, ports: HARLAN_STATION_PORTS },
   ],
   targetPortId: 'still-public-berth-a',
   startX: -6_500,
