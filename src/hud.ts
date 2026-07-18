@@ -1,16 +1,15 @@
-// HUD overlay: speed, altitude, pitch, throttle, warnings, level select.
+// HUD overlay: speed, altitude, pitch, throttle, warnings, start menu.
 
 import { config } from './config';
 import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
 import { LevelDef } from './levels';
-import { MISSIONS } from './missions';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 
 export type GameState = 'flying' | 'landed' | 'crashed' | 'levelSelect';
 
-// --- Mission select screen ---
-export function drawLevelSelect(
+// --- Start menu ---
+export function drawStartMenu(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   selectedIndex: number,
@@ -21,65 +20,53 @@ export function drawLevelSelect(
   ctx.fillStyle = '#050510';
   ctx.fillRect(0, 0, W, H);
 
-  // MISSIONS menu
-  const mLineH = 52;
-  const mStartY = 120;
+  const lineH = 58;
+  const startY = 150;
 
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_TITLE;
   ctx.font = 'bold 36px monospace';
-  ctx.fillText('SPACE TEAMSTER', W / 2, 50);
+  ctx.fillText('SPACE TEAMSTER', W / 2, 58);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '16px monospace';
-  ctx.fillText('Select Mission', W / 2, 80);
+  ctx.fillText('Start Menu', W / 2, 88);
 
-  const drawRow = (i: number, idLabel: string, name: string, subtitle: string, stub = false): void => {
-    const y = mStartY + i * mLineH;
-    const sel = selectedIndex === i;
+  const rows = [
+    { label: 'Fly a custom mission', detail: 'Open the Estella navigation browser and choose exact-authored source and destination.' },
+    { label: 'Career Mode', detail: 'Open the current light-career contract board.' },
+  ];
 
-    if (sel) {
+  for (let i = 0; i < rows.length; i++) {
+    const y = startY + i * lineH;
+    const selected = selectedIndex === i;
+    if (selected) {
       ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
-      ctx.fillRect(W / 2 - 280, y - 16, 560, mLineH - 4);
+      ctx.fillRect(W / 2 - 310, y - 20, 620, lineH - 4);
       ctx.fillStyle = COL_HUD;
-      ctx.font = 'bold 20px monospace';
+      ctx.font = 'bold 22px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText('▸', W / 2 - 270, y);
+      ctx.fillText('▸', W / 2 - 295, y);
     }
 
-    ctx.fillStyle = sel ? COL_TITLE : COL_HUD_DIM;
+    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(`[${idLabel}]`, W / 2 - 250, y);
+    ctx.fillText(`[${i + 1}]`, W / 2 - 270, y);
 
-    const nameCol = stub ? COL_HUD_DIM : (sel ? '#ffffff' : COL_HUD);
-    ctx.fillStyle = nameCol;
-    ctx.font = 'bold 18px monospace';
+    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
+    ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(name, W / 2 - 230, y);
+    ctx.fillText(rows[i].label, W / 2 - 245, y);
 
-    if (stub) {
-      ctx.font = 'bold 18px monospace';
-      const nameW = ctx.measureText(name).width;
-      ctx.fillStyle = '#444444';
-      ctx.font = '11px monospace';
-      ctx.fillText('[COMING SOON]', W / 2 - 230 + nameW + 14, y);
-    }
-
-    ctx.fillStyle = stub ? '#333333' : COL_HUD_DIM;
+    ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '12px monospace';
-    ctx.fillText(subtitle, W / 2 - 230, y + 18);
-  };
-
-  for (let i = 0; i < MISSIONS.length; i++) {
-    const m = MISSIONS[i];
-    drawRow(i, m.id.toString(), m.name, m.subtitle, m.stub);
+    ctx.fillText(rows[i].detail, W / 2 - 245, y + 20);
   }
-  drawRow(MISSIONS.length, (MISSIONS.length + 1).toString(), 'Career Mode', 'Light career prototype: contract board, location, money, and free retries.');
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(`↑↓: Select  Enter: Launch  (or press 1-${MISSIONS.length + 1})`, W / 2, mStartY + (MISSIONS.length + 1) * mLineH + 30);
+  ctx.fillText('↑↓: Select  Enter: Select  |  1-2: Select', W / 2, startY + rows.length * lineH + 40);
 }
 
 // --- In-game HUD ---
@@ -366,7 +353,7 @@ function drawLandedOverlay(
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('BACKSPACE: Fly again  |  L: Missions', W / 2, H / 2 - 130 + boxH - 15);
+  ctx.fillText('BACKSPACE: Fly again  |  L: Start Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
 export function drawPhaseCompleteOverlay(

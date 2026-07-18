@@ -8,9 +8,9 @@ import {
 } from './ship';
 import { TerrainData, checkLandingCollision as checkTerrainCollision, generateTerrain, landingReferenceHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
-import { drawHUD, GameState, LandingScore, calculateLandingScore, drawLevelSelect, drawPhaseCompleteOverlay } from './hud';
+import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawPhaseCompleteOverlay } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
-import { LevelDef, landingLevelById, landingLevelByPoiId } from './levels';
+import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
@@ -32,7 +32,6 @@ import {
   clusterLevelById, clusterMemberById, createClusterState, createClusterCamera, targetPort,
   updateCluster, updateClusterCamera, renderCluster, drawClusterHUD,
 } from './cluster';
-import { MISSIONS } from './missions';
 import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
@@ -82,7 +81,7 @@ interface PhaseTransition {
   run: () => void;
 }
 
-const TOTAL_LEVELS = MISSIONS.length + 1;
+const START_MENU_ITEMS = 2;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -93,7 +92,6 @@ export class Game {
   private worldTime = 0;
   private lastFrameTime = 0;
   private menuSelection = 0;
-  private currentMissionId: number | null = null;
   private guidanceText = '';
   private guidanceUntil = 0;
   private missionDvUsed = 0;
@@ -215,7 +213,6 @@ export class Game {
     this.activeMissionQuote = null;
     this.activeMissionTransfer = undefined;
     this.activeCareerContract = null;
-    this.currentMissionId = null;
     this.worldTime = this.career.worldTime;
     this.phase = { kind: 'careerBoard', contracts: generateCareerContracts(this.career.locationId, this.career.worldTime), selectedIndex: 0 };
     this.showGuidance('SELECT CONTRACT FROM BBS');
@@ -338,78 +335,35 @@ export class Game {
     requestAnimationFrame(this.loop);
   };
 
-  // --- Level select ---
+  // --- Start menu ---
 
   private handleLevelSelect(input: InputState): void {
-    // Arrow/WASD navigation
-    if (input.menuUp) this.menuSelection = (this.menuSelection - 1 + TOTAL_LEVELS) % TOTAL_LEVELS;
-    if (input.menuDown) this.menuSelection = (this.menuSelection + 1) % TOTAL_LEVELS;
+    if (this.menuSelection < 0 || this.menuSelection >= START_MENU_ITEMS) this.menuSelection = 0;
+    if (input.menuUp) this.menuSelection = (this.menuSelection - 1 + START_MENU_ITEMS) % START_MENU_ITEMS;
+    if (input.menuDown) this.menuSelection = (this.menuSelection + 1) % START_MENU_ITEMS;
 
-    // Confirm with Enter/Space
     if (input.menuConfirm) {
-      this.launchLevel(this.menuSelection);
+      this.launchStartMenuItem(this.menuSelection);
       return;
     }
 
-    // Direct number key pick (still works)
-    if (input.levelPick >= 1 && input.levelPick <= TOTAL_LEVELS) {
+    if (input.levelPick >= 1 && input.levelPick <= START_MENU_ITEMS) {
       this.menuSelection = input.levelPick - 1;
-      this.launchLevel(this.menuSelection);
+      this.launchStartMenuItem(this.menuSelection);
     }
   }
 
-  private startMission(missionId: number): void {
-    const mission = MISSIONS.find(m => m.id === missionId);
-    if (!mission) return;
-    this.currentMissionId = missionId;
-    this.activeMissionQuote = null;
-    this.activeMissionTransfer = undefined;
-    this.activeMissionStartWorldTime = mission.startWorldTime;
-    this.activeCareerContract = null;
-    this.phaseCompletion = null;
-    this.missionDvUsed = 0;
-    this.worldTime = mission.startWorldTime;
-    const start = mission.start;
-
-    if (start.kind === 'docking') {
-      const dockingLevel = DOCKING_LEVELS.find(l => l.id === start.dockingLevelId);
-      if (dockingLevel) this.loadDocking(dockingLevel);
-      return;
-    }
-
-    if (start.kind === 'landing') {
-      const landingLevel = landingLevelByPoiId(start.poiId);
-      const departure = approachLevelById(start.departureApproachLevelId);
-      if (!landingLevel || !departure?.departure) return;
-      const orbitDir = departure.departure.orbitDir ?? 1;
-      this.loadLanding(
-        landingLevel,
-        { x: landingLevel.padCenterX, y: landingLevel.padY + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 },
-        { targetAltitude: landingLevel.startY, orbitDir, nextApproachLevelId: departure.id },
-      );
-      return;
-    }
-
-    if (start.kind === 'cluster') {
-      const clusterLevel = clusterLevelById(start.clusterLevelId);
-      if (clusterLevel) this.loadCluster(clusterLevel);
-      return;
-    }
-
-    if (start.kind === 'estellaNav') {
+  private launchStartMenuItem(index: number): void {
+    if (index === 0) {
+      this.activeMissionQuote = null;
+      this.activeMissionTransfer = undefined;
+      this.activeCareerContract = null;
+      this.phaseCompletion = null;
+      this.missionDvUsed = 0;
       this.loadEstellaNavigation();
       return;
     }
-  }
-
-  private launchLevel(index: number): void {
-    if (index === MISSIONS.length) {
-      this.loadCareerBoard();
-      return;
-    }
-    const mission = MISSIONS[index];
-    if (!mission || mission.stub) return;
-    this.startMission(mission.id);
+    if (index === 1) this.loadCareerBoard();
   }
 
   private phaseDvUsed(p: GameplayPhase): number {
@@ -435,20 +389,17 @@ export class Game {
 
   private currentMissionCompletionText(): string {
     if (this.activeCareerContract) return 'Delivery complete. The BBS closes the contract and posts the run to your log.';
-    const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
-    return mission?.completionText ?? '';
+    return 'Delivery complete. Dispatch closes the manifest and posts the run to your log.';
   }
 
   private currentMissionDestinationName(): string | undefined {
     if (this.activeCareerContract) return this.activeCareerContract.destinationName;
-    const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
-    return mission?.destinationName;
+    return undefined;
   }
 
   private currentMissionDestinationLocation(): string | undefined {
     if (this.activeCareerContract) return this.activeCareerContract.destinationPath;
-    const mission = this.currentMissionId ? MISSIONS.find(m => m.id === this.currentMissionId) : null;
-    return mission?.destinationLocation;
+    return undefined;
   }
 
   private currentMissionParDv(): number {
@@ -541,7 +492,6 @@ export class Game {
         this.finishCareerDelivery();
         return;
       }
-      this.currentMissionId = null;
       this.activeMissionQuote = null;
       this.activeMissionTransfer = undefined;
       this.phase = { kind: 'levelSelect' };
@@ -1312,7 +1262,7 @@ export class Game {
       this.activeMissionQuote = estimateEstellaMissionCost(p.mission.sourceId, p.mission.destinationId, selectedTransfer);
       this.activeMissionTransfer = selectedTransfer;
       this.activeMissionStartWorldTime = startWorldTime;
-      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer, 8);
+      this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);
     }
   }
 
@@ -1335,13 +1285,12 @@ export class Game {
       this.activeMissionQuote = contract.quote;
       this.activeMissionTransfer = selectedTransfer;
       this.activeMissionStartWorldTime = startWorldTime;
-      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer, null);
+      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer);
     }
   }
 
-  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption, missionId: number | null = 8): void {
+  private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
-    this.currentMissionId = missionId;
     this.phaseCompletion = null;
     this.missionDvUsed = 0;
     this.worldTime = startWorldTime;
@@ -1368,7 +1317,7 @@ export class Game {
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'levelSelect') {
-      drawLevelSelect(this.ctx, this.canvas, this.menuSelection);
+      drawStartMenu(this.ctx, this.canvas, this.menuSelection);
     } else if (p.kind === 'landing') {
       render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time);
       drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);

@@ -1399,7 +1399,7 @@ export function drawDockingHUD(
     }
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 - 80 + boxH - 15);
+    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 - 80 + boxH - 15);
   }
   if (!suppressStateOverlays && state === 'crashed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.6)';
@@ -1413,7 +1413,7 @@ export function drawDockingHUD(
     ctx.fillText('CRASHED', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Levels', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 25);
   }
 
   // Controls hint
@@ -1421,7 +1421,7 @@ export function drawDockingHUD(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  T: SAS  Shift: Hi Thrust  BACKSPACE: Restart  L: Levels', W / 2, H - 15);
+    ctx.fillText('W/S: Up/Down  A/D: Left/Right  Q/E: Rotate  T: SAS  Shift: Hi Thrust  BACKSPACE: Restart  L: Start Menu', W / 2, H - 15);
   }
 
   ctx.restore();
