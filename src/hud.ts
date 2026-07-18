@@ -15,6 +15,7 @@ export function drawStartMenu(
   selectedIndex: number,
   campaignActionLabel: string,
   confirmingNewTeamsterReset = false,
+  returnAvailable = false,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -70,7 +71,7 @@ export function drawStartMenu(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('↑↓: Select  Enter: Select  |  1-4: Select', W / 2, startY + rows.length * lineH + 40);
+  ctx.fillText(returnAvailable ? '↑↓: Select  Enter: Select  Esc: Return  |  1-4: Select' : '↑↓: Select  Enter: Select  |  1-4: Select', W / 2, startY + rows.length * lineH + 40);
 
   if (confirmingNewTeamsterReset) {
     const boxW = 620;

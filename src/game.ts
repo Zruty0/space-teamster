@@ -34,12 +34,14 @@ import {
 } from './cluster';
 import { bodyById, bodyStateRelativeToParent } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
+import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
-import { generateCareerContracts, drawCareerContractBoard, type CareerContract } from './career-contracts';
+import { careerContractClassLabel, generateCareerContracts, type CareerContract } from './career-contracts';
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
-import { actualFuelCostForQuote, estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
+import { drawInteractiveScene, type InteractiveScene } from './interactive-scene';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -57,7 +59,14 @@ type Phase =
   | { kind: 'flightMenu'; previous: GameplayPhase }
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
   | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState }
-  | { kind: 'careerBoard'; contracts: CareerContract[]; selectedIndex: number };
+  | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState };
+
+interface InteractiveScenePhaseState {
+  id: 'stationTerminal' | 'browseContracts' | 'contractPosting' | 'careerStatus' | 'shipStatus';
+  selectedIndex: number;
+  contracts?: CareerContract[];
+  contractIndex?: number;
+}
 
 interface PhaseCompletion {
   title: string;
@@ -99,6 +108,7 @@ export class Game {
   private menuSelection = 0;
   private flightMenuSelection = 0;
   private confirmingNewTeamsterReset = false;
+  private startMenuReturnPhase: Phase | null = null;
   private guidanceText = '';
   private guidanceUntil = 0;
   private missionDvUsed = 0;
@@ -217,19 +227,40 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private loadCareerBoard(): void {
+  private loadStationTerminal(selectedIndex = 0): void {
     this.phaseCompletion = null;
     this.clearActiveMission();
     this.worldTime = this.career.worldTime;
-    this.phase = { kind: 'careerBoard', contracts: generateCareerContracts(this.career.locationId, this.career.worldTime), selectedIndex: 0 };
-    this.showGuidance('SELECT CONTRACT FROM BBS');
+    this.phase = { kind: 'interactiveScene', scene: { id: 'stationTerminal', selectedIndex } };
+    this.showGuidance('STATION TERMINAL');
     this.time = 0;
     this.accumulator = 0;
   }
 
+  private loadBrowseContracts(selectedIndex = 0): void {
+    this.phaseCompletion = null;
+    this.clearActiveMission();
+    this.worldTime = this.career.worldTime;
+    this.phase = {
+      kind: 'interactiveScene',
+      scene: {
+        id: 'browseContracts',
+        selectedIndex,
+        contracts: generateCareerContracts(this.career.locationId, this.career.worldTime),
+      },
+    };
+    this.showGuidance('BROWSE CONTRACTS');
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
+  private openContractPosting(contracts: CareerContract[], contractIndex: number): void {
+    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex } };
+  }
+
   private resetCareer(): void {
     this.career = resetCareerProfile();
-    this.loadCareerBoard();
+    this.loadStationTerminal();
   }
 
   private dynamicOrbitalStart(level: OrbitalLevel, time: number): OrbitalInitOverride {
@@ -336,8 +367,8 @@ export class Game {
       this.handleEstellaNavigation(input);
     } else if (p.kind === 'estellaMission') {
       this.handleEstellaGeneratedMission(input);
-    } else if (p.kind === 'careerBoard') {
-      this.handleCareerBoard(input);
+    } else if (p.kind === 'interactiveScene') {
+      this.handleInteractiveScene(input);
     }
 
     this.renderFrame();
@@ -347,6 +378,13 @@ export class Game {
   // --- Start menu ---
 
   private handleStartMenu(input: InputState): void {
+    if (!this.confirmingNewTeamsterReset && input.levelSelect && this.startMenuReturnPhase) {
+      const returnPhase = this.startMenuReturnPhase;
+      this.startMenuReturnPhase = null;
+      this.phase = returnPhase;
+      return;
+    }
+
     if (this.confirmingNewTeamsterReset) {
       if (input.continueAction) {
         this.confirmingNewTeamsterReset = false;
@@ -373,12 +411,13 @@ export class Game {
   }
 
   private launchStartMenuItem(index: number): void {
+    this.startMenuReturnPhase = null;
     if (index === START_MENU_NEW_GAME_PLUS_INDEX) {
       this.showGuidance('NEW GAME+ IS NOT AVAILABLE YET');
       return;
     }
     if (index === 0) {
-      this.loadCareerBoard();
+      this.loadStationTerminal();
       return;
     }
     if (index === 1) {
@@ -445,6 +484,7 @@ export class Game {
 
   private quitToStartMenu(): void {
     this.phaseCompletion = null;
+    this.startMenuReturnPhase = null;
     this.clearActiveMission();
     this.missionDvUsed = 0;
     this.phase = { kind: 'startMenu' };
@@ -573,7 +613,7 @@ export class Game {
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
     saveCareerProfile(this.career);
-    this.loadCareerBoard();
+    this.loadStationTerminal();
   }
 
   private logSuccessfulGeneratedRun(): void {
@@ -1334,6 +1374,145 @@ export class Game {
     updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
   }
 
+  // --- Station terminal / BBS scenes ---
+
+  private buildInteractiveScene(state: InteractiveScenePhaseState): InteractiveScene {
+    const locationPath = estellaDisplayPath(this.career.locationId);
+    if (state.id === 'stationTerminal') {
+      return {
+        title: 'STATION TERMINAL',
+        subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
+        bodyLines: ['Teamster account authenticated.', 'Select a terminal function.'],
+        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        options: [
+          { label: 'Browse Contracts', detail: 'Open the local Teamsters\' Guild BBS postings.', action: 'browseContracts' },
+          { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
+          { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus' },
+          { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu' },
+        ],
+      };
+    }
+
+    if (state.id === 'browseContracts') {
+      const contracts = state.contracts ?? [];
+      return {
+        title: 'BROWSE CONTRACTS',
+        subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
+        bodyLines: ['Local public postings. Select a posting to inspect the route and terms.'],
+        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        options: [
+          ...contracts.map(contract => ({
+            label: `${careerContractClassLabel(contract.routeClass)}  ${contract.destinationName} — ${formatCredits(contract.quote.grossPay)}`,
+            detail: `${contract.quote.cargoLabel}, ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
+            action: `contract:${contract.id}`,
+          })),
+          { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' },
+        ],
+      };
+    }
+
+    if (state.id === 'contractPosting') {
+      const contract = state.contracts?.[state.contractIndex ?? -1];
+      if (!contract) return this.buildInteractiveScene({ id: 'browseContracts', selectedIndex: 0, contracts: state.contracts ?? [] });
+      const quote = contract.quote;
+      const transfer = contract.selectedTransfer;
+      const bodyLines = [
+        `Destination: ${contract.destinationName}`,
+        `Location: ${contract.destinationPath}`,
+        `Route class: ${careerContractClassLabel(contract.routeClass)}`,
+        `Cargo: ${quote.cargoLabel} (${quote.cargoMassTons} t cargo, ${quote.loadedMassTons} t loaded)`,
+        `Par ΔV: ${quote.parDv.toFixed(0)} m/s`,
+        `Par fuel cost: ${formatCredits(quote.parFuelCost)}`,
+        `Pay: ${formatCredits(quote.grossPay)}`,
+        `Expected margin: ${formatCredits(quote.expectedMargin)}`,
+        transfer ? `Transfer: ${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h` : 'Transfer: immediate/local routing',
+      ];
+      return {
+        title: 'CONTRACT POSTING',
+        subtitle: 'Review route and terms before accepting.',
+        bodyLines,
+        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        options: [
+          { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract' },
+          { label: 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: 'browseContracts' },
+        ],
+      };
+    }
+
+    if (state.id === 'careerStatus') {
+      return {
+        title: 'CAREER STATUS',
+        subtitle: 'Teamsters\' Guild account',
+        bodyLines: [
+          `Current location: ${locationPath}`,
+          `Cash: ${formatCredits(this.career.money)}`,
+          `World time: ${(this.career.worldTime / 86_400).toFixed(2)} days`,
+        ],
+        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' }],
+      };
+    }
+
+    return {
+      title: 'SHIP STATUS',
+      subtitle: 'Shipboard terminal placeholder',
+      bodyLines: ['Ship status terminal is not installed yet.', 'Future read-only rig inspection will live here.'],
+      footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+      options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' }],
+    };
+  }
+
+  private handleInteractiveScene(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'interactiveScene' }>;
+    const scene = this.buildInteractiveScene(p.scene);
+    const itemCount = Math.max(1, scene.options.length);
+
+    if (input.levelSelect) {
+      this.startMenuReturnPhase = p;
+      this.phase = { kind: 'startMenu' };
+      return;
+    }
+
+    if (p.scene.selectedIndex < 0 || p.scene.selectedIndex >= itemCount) p.scene.selectedIndex = 0;
+    if (input.menuUp) p.scene.selectedIndex = (p.scene.selectedIndex - 1 + itemCount) % itemCount;
+    if (input.menuDown) p.scene.selectedIndex = (p.scene.selectedIndex + 1) % itemCount;
+    if (!input.continueAction) return;
+
+    const option = scene.options[p.scene.selectedIndex];
+    if (!option || option.disabled) return;
+    this.activateInteractiveSceneOption(p.scene, option.action);
+  }
+
+  private activateInteractiveSceneOption(state: InteractiveScenePhaseState, action: string): void {
+    if (action === 'browseContracts') {
+      if (state.id === 'contractPosting') this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: state.contractIndex ?? 0, contracts: state.contracts ?? [] } };
+      else this.loadBrowseContracts();
+      return;
+    }
+    if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
+    if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }
+    if (action === 'shipStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'shipStatus', selectedIndex: 0 } }; return; }
+    if (action === 'startMenu') { this.startMenuReturnPhase = null; this.phase = { kind: 'startMenu' }; return; }
+    if (action.startsWith('contract:')) {
+      const contracts = state.contracts ?? [];
+      const idx = contracts.findIndex(contract => `contract:${contract.id}` === action);
+      if (idx >= 0) this.openContractPosting(contracts, idx);
+      return;
+    }
+    if (action === 'acceptContract') {
+      const contract = state.contracts?.[state.contractIndex ?? -1];
+      if (!contract) return;
+      const selectedTransfer = contract.selectedTransfer;
+      const startWorldTime = selectedTransfer?.waitTime ?? this.career.worldTime;
+      this.activeCareerContract = contract;
+      this.activeMissionQuote = contract.quote;
+      this.activeMissionTransfer = selectedTransfer;
+      this.activeMissionStartWorldTime = startWorldTime;
+      this.startMenuReturnPhase = null;
+      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer);
+    }
+  }
+
   // --- Estella navigation prototype ---
 
   private handleEstellaNavigation(input: InputState): void {
@@ -1367,29 +1546,6 @@ export class Game {
       this.activeMissionTransfer = selectedTransfer;
       this.activeMissionStartWorldTime = startWorldTime;
       this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);
-    }
-  }
-
-  private handleCareerBoard(input: InputState): void {
-    const p = this.phase as Extract<Phase, { kind: 'careerBoard' }>;
-    if (input.levelSelect || input.menuLeft || input.reset) { this.phase = { kind: 'startMenu' }; return; }
-    const itemCount = p.contracts.length + 1;
-    if (input.menuUp) p.selectedIndex = (p.selectedIndex - 1 + itemCount) % itemCount;
-    if (input.menuDown) p.selectedIndex = (p.selectedIndex + 1) % itemCount;
-    if (input.continueAction) {
-      if (p.selectedIndex === p.contracts.length) {
-        this.resetCareer();
-        return;
-      }
-      const contract = p.contracts[p.selectedIndex];
-      if (!contract) return;
-      const selectedTransfer = contract.selectedTransfer;
-      const startWorldTime = selectedTransfer?.waitTime ?? this.career.worldTime;
-      this.activeCareerContract = contract;
-      this.activeMissionQuote = contract.quote;
-      this.activeMissionTransfer = selectedTransfer;
-      this.activeMissionStartWorldTime = startWorldTime;
-      this.launchPlayableEstellaMission(contract.sourceId, contract.destinationId, startWorldTime, selectedTransfer);
     }
   }
 
@@ -1450,7 +1606,7 @@ export class Game {
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'startMenu') {
-      drawStartMenu(this.ctx, this.canvas, this.menuSelection, this.campaignActionLabel(), this.confirmingNewTeamsterReset);
+      drawStartMenu(this.ctx, this.canvas, this.menuSelection, this.campaignActionLabel(), this.confirmingNewTeamsterReset, !!this.startMenuReturnPhase);
     } else if (p.kind === 'flightMenu') {
       this.renderGameplayPhase(p.previous, completionText, destinationName, destinationLocation, true);
       drawFlightMenu(this.ctx, this.canvas, this.flightMenuSelection);
@@ -1460,8 +1616,8 @@ export class Game {
       drawEstellaNavigation(this.ctx, this.canvas, p.nav);
     } else if (p.kind === 'estellaMission') {
       drawEstellaGeneratedMission(this.ctx, this.canvas, p.mission);
-    } else if (p.kind === 'careerBoard') {
-      drawCareerContractBoard(this.ctx, this.canvas, this.career.locationId, p.contracts, p.selectedIndex, this.career.money, this.career.worldTime);
+    } else if (p.kind === 'interactiveScene') {
+      drawInteractiveScene(this.ctx, this.canvas, this.buildInteractiveScene(p.scene), p.scene.selectedIndex);
     }
     this.drawGuidanceBanner();
     if (this.phaseCompletion) {
