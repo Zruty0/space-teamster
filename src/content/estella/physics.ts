@@ -342,7 +342,7 @@ export const ESTELLA_ATMOSPHERE_PHYSICS: Partial<Record<string, AtmospherePhysic
     height: 80_000,
     surfaceDensity: 1.2,
     scaleHeight: 8_000,
-    notes: 'Earth-like breathable atmosphere; lower than Tycho but paired with near-Earth entry speeds.',
+    notes: 'Earth-like breathable atmosphere paired with near-Earth entry speeds.',
   },
   'estella-vi': {
     kind: 'thick-cold',

@@ -1,5 +1,4 @@
 import { ESTELLA_BODIES, ESTELLA_STATION_POIS, ESTELLA_SURFACE_POIS } from './content/estella/gameplay';
-import { TYCHO_BODIES, TYCHO_STATION_POIS, TYCHO_SURFACE_POIS } from './content/tycho/geography';
 
 export interface CircularOrbitDef {
   parentBodyId: string;
@@ -167,11 +166,11 @@ export interface StationPoiDef {
   };
 }
 
-export const BODIES: BodyDef[] = [...TYCHO_BODIES, ...ESTELLA_BODIES];
+export const BODIES: BodyDef[] = [...ESTELLA_BODIES];
 
-export const SURFACE_POIS: SurfacePoiDef[] = [...TYCHO_SURFACE_POIS, ...ESTELLA_SURFACE_POIS];
+export const SURFACE_POIS: SurfacePoiDef[] = [...ESTELLA_SURFACE_POIS];
 
-export const STATION_POIS: StationPoiDef[] = [...TYCHO_STATION_POIS, ...ESTELLA_STATION_POIS];
+export const STATION_POIS: StationPoiDef[] = [...ESTELLA_STATION_POIS];
 
 export function bodyById(bodyId: string): BodyDef {
   const body = BODIES.find(b => b.id === bodyId);
