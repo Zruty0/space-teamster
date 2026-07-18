@@ -14,6 +14,7 @@ export function drawStartMenu(
   canvas: HTMLCanvasElement,
   selectedIndex: number,
   campaignActionLabel: string,
+  confirmingNewTeamsterReset = false,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -70,6 +71,29 @@ export function drawStartMenu(
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
   ctx.fillText('↑↓: Select  Enter: Select  |  1-4: Select', W / 2, startY + rows.length * lineH + 40);
+
+  if (confirmingNewTeamsterReset) {
+    const boxW = 620;
+    const boxH = 190;
+    const x = W / 2 - boxW / 2;
+    const y = H / 2 - boxH / 2;
+    ctx.fillStyle = 'rgba(20, 6, 0, 0.94)';
+    ctx.fillRect(x, y, boxW, boxH);
+    ctx.strokeStyle = COL_WARNING;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, boxW, boxH);
+    ctx.fillStyle = COL_WARNING;
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('RESTART AS A NEW TEAMSTER?', W / 2, y + 42);
+    ctx.fillStyle = COL_HUD;
+    ctx.font = '14px monospace';
+    ctx.fillText('This resets career location, money, and world time.', W / 2, y + 82);
+    ctx.fillText('Current contracts and progress will be abandoned.', W / 2, y + 104);
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '14px monospace';
+    ctx.fillText('Enter: confirm    Esc / A / Backspace: cancel', W / 2, y + 150);
+  }
 }
 
 export function drawFlightMenu(

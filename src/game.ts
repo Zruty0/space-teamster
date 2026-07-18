@@ -98,6 +98,7 @@ export class Game {
   private lastFrameTime = 0;
   private menuSelection = 0;
   private flightMenuSelection = 0;
+  private confirmingNewTeamsterReset = false;
   private guidanceText = '';
   private guidanceUntil = 0;
   private missionDvUsed = 0;
@@ -346,6 +347,16 @@ export class Game {
   // --- Start menu ---
 
   private handleStartMenu(input: InputState): void {
+    if (this.confirmingNewTeamsterReset) {
+      if (input.continueAction) {
+        this.confirmingNewTeamsterReset = false;
+        this.resetCareer();
+        return;
+      }
+      if (input.levelSelect || input.menuLeft || input.reset) this.confirmingNewTeamsterReset = false;
+      return;
+    }
+
     if (this.menuSelection < 0 || this.menuSelection >= START_MENU_ITEMS) this.menuSelection = 0;
     if (input.menuUp) this.menuSelection = (this.menuSelection - 1 + START_MENU_ITEMS) % START_MENU_ITEMS;
     if (input.menuDown) this.menuSelection = (this.menuSelection + 1) % START_MENU_ITEMS;
@@ -371,7 +382,7 @@ export class Game {
       return;
     }
     if (index === 1) {
-      this.resetCareer();
+      this.confirmingNewTeamsterReset = true;
       return;
     }
     if (index === 3) {
@@ -1439,7 +1450,7 @@ export class Game {
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'startMenu') {
-      drawStartMenu(this.ctx, this.canvas, this.menuSelection, this.campaignActionLabel());
+      drawStartMenu(this.ctx, this.canvas, this.menuSelection, this.campaignActionLabel(), this.confirmingNewTeamsterReset);
     } else if (p.kind === 'flightMenu') {
       this.renderGameplayPhase(p.previous, completionText, destinationName, destinationLocation, true);
       drawFlightMenu(this.ctx, this.canvas, this.flightMenuSelection);
