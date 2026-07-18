@@ -8,6 +8,7 @@ export interface FactionContractContext {
 export interface FactionContractCandidate {
   factionId: string;
   factionName: string;
+  factionTag: string;
   templateId: string;
   sourceId: string;
   destinationId: string;
@@ -21,10 +22,7 @@ export interface FactionContractProvider {
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[];
 }
 
-const MINERS_MUTUAL_ID = 'new-canaan-miners-mutual';
-const MINERS_MUTUAL_NAME = 'New Canaan Miners Mutual';
-
-interface MinersMutualTemplate {
+interface FactionContractTemplate {
   templateId: string;
   sourceIds: string[];
   destinationIds: string[];
@@ -33,9 +31,35 @@ interface MinersMutualTemplate {
   likelihood: number;
 }
 
-const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
+const MINERS_MUTUAL_ID = 'new-canaan-miners-mutual';
+const MINERS_MUTUAL_NAME = 'New Canaan Miners Mutual';
+const MINERS_MUTUAL_TAG = 'CO-OP';
 
-const MINERS_MUTUAL_TEMPLATES: MinersMutualTemplate[] = [
+const CERBERUS_ID = 'cerberus-human-resources';
+const CERBERUS_NAME = 'Cerberus Human Resources';
+const CERBERUS_TAG = 'CHR';
+
+const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
+const ACHERON_CORPORATE_NODES = ['estella-ii-commercial-hub-dock', 'estella-ii-olympos'];
+const ACHERON_SURFACE_OPS_NODES = ['estella-ii-commercial-hub-dock', 'estella-ii-olympos', 'estella-ii-pandemonium'];
+const CHR_WORKFORCE_ORIGINS = [
+  'estella-iii-capital-city',
+  'estella-iii-finance-city',
+  'estella-iii-main-customs',
+  'estella-iv-primary-city',
+  'estella-iv-main-orbital-station',
+  'estella-v-capital-settlement',
+  'estella-vi-industrial-city',
+  'estella-vi-spaceport',
+  'estella-vi-main-transit-dispatch',
+  'caravanserai-main-commercial-dock',
+  'caravanserai-customs-inspection',
+  'caravanserai-free-trader-anchorage',
+  'estella-xid-main-port',
+  'estella-xid-customs-transit',
+];
+
+const MINERS_MUTUAL_TEMPLATES: FactionContractTemplate[] = [
   // Emergency purchases from expensive Caravanserai suppliers: uncommon, but visible at game start.
   { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35 },
   { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45 },
@@ -57,40 +81,91 @@ const MINERS_MUTUAL_TEMPLATES: MinersMutualTemplate[] = [
   { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45 },
 ];
 
-function cargoForTemplate(template: MinersMutualTemplate, sourceId: string, destinationId: string): MissionCargoSpec {
+const CERBERUS_TEMPLATES: FactionContractTemplate[] = [
+  // Custody and workforce intake from large population and legal/industrial hubs.
+  { templateId: 'workforce-transfer-to-hub', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-commercial-hub-dock'], cargoLabel: 'workforce transfer group', massClass: 'standard', likelihood: 1.05 },
+  { templateId: 'custody-transfer-to-olympos', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-olympos'], cargoLabel: 'custody transfer passengers', massClass: 'standard', likelihood: 0.85 },
+  { templateId: 'surface-labor-allocation', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-pandemonium'], cargoLabel: 'surface labor allocation', massClass: 'heavy', likelihood: 0.55 },
+
+  // Carbonvale and Olympos exports.
+  { templateId: 'carbon-fiber-to-camps', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-vi-industrial-city'], cargoLabel: 'carbon-fiber structural rolls', massClass: 'heavy', likelihood: 0.95 },
+  { templateId: 'graphene-to-drydock', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-via-drydock-station', 'caravanserai-outfitter-drydock'], cargoLabel: 'graphene cable stock', massClass: 'standard', likelihood: 0.8 },
+  { templateId: 'graphite-to-components', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-via-component-supply-station'], cargoLabel: 'graphite heat-sink blocks', massClass: 'heavy', likelihood: 0.7 },
+  { templateId: 'oxygen-industrial-bottles', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-xid-main-port', 'estella-vi-heavy-cargo-station'], cargoLabel: 'industrial oxygen bottles', massClass: 'standard', likelihood: 0.55 },
+
+  // High-value surface extraction exports.
+  { templateId: 'rare-metals-to-gaia-tech', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'platinum-group metal ingots', massClass: 'dense', likelihood: 1.0 },
+  { templateId: 'silica-to-precision-factory', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-vii-high-vacuum-factory'], cargoLabel: 'silica crystal stock', massClass: 'heavy', likelihood: 0.65 },
+  { templateId: 'rare-metals-to-foundry', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-vi-foundry-complex'], cargoLabel: 'pressure-mined rare metal pallets', massClass: 'dense', likelihood: 0.8 },
+
+  // Inputs for surface operations and chain maintenance.
+  { templateId: 'pressure-valves-to-acheron', sourceIds: ['estella-vi-foundry-complex', 'estella-vi-industrial-city'], destinationIds: ACHERON_SURFACE_OPS_NODES, cargoLabel: 'deep-pressure valve assemblies', massClass: 'heavy', likelihood: 0.9 },
+  { templateId: 'lift-bearings-to-olympos', sourceIds: ['estella-via-component-supply-station', 'estella-via-drydock-station'], destinationIds: ['estella-ii-olympos'], cargoLabel: 'acid-rated lift bearings', massClass: 'heavy', likelihood: 0.75 },
+  { templateId: 'medicine-to-olympos', sourceIds: ['estella-vib-cold-chain-station'], destinationIds: ['estella-ii-olympos', 'estella-ii-commercial-hub-dock'], cargoLabel: 'executive medicine lockers', massClass: 'light', likelihood: 0.55 },
+  { templateId: 'hydrogen-to-pandemonium', sourceIds: ['estella-ii-nimbus-crucible', 'estella-ii-commercial-hub-dock', 'estella-ii-olympos'], destinationIds: ['estella-ii-pandemonium'], cargoLabel: 'surface hydrogen ration tanks', massClass: 'standard', likelihood: 0.9 },
+
+  // Corporate governance, finance, and luxury consumption.
+  { templateId: 'shareholder-packets-to-finance', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-iii-finance-city'], cargoLabel: 'shareholder packets', massClass: 'light', likelihood: 0.75 },
+  { templateId: 'legal-archives-to-capital', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-iii-capital-city'], cargoLabel: 'sealed legal archives', massClass: 'light', likelihood: 0.65 },
+  { templateId: 'audit-records-to-acheron', sourceIds: ['estella-iii-finance-city', 'estella-iii-capital-city'], destinationIds: ACHERON_CORPORATE_NODES, cargoLabel: 'sealed audit records', massClass: 'light', likelihood: 0.6 },
+  { templateId: 'paradiso-hospitality-cargo', sourceIds: ['estella-iii-luxury-orbital-habitat', 'estella-iv-primary-city', 'caravanserai-highliner-bay-poi'], destinationIds: ['estella-ii-olympos'], cargoLabel: 'Paradiso hospitality cargo', massClass: 'standard', likelihood: 0.65 },
+  { templateId: 'executive-delegation', sourceIds: ['estella-iii-finance-city', 'estella-iii-capital-city', 'estella-ii-olympos'], destinationIds: ['estella-ii-olympos', 'estella-iii-finance-city'], cargoLabel: 'executive delegation', massClass: 'light', likelihood: 0.5 },
+];
+
+function cargoForTemplate(factionId: string, template: FactionContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {
   return {
     label: template.cargoLabel,
     massClass: template.massClass,
-    massTons: cargoMassForClass(template.massClass, `${MINERS_MUTUAL_ID}:${template.templateId}:${sourceId}->${destinationId}:${template.cargoLabel}`),
+    massTons: cargoMassForClass(template.massClass, `${factionId}:${template.templateId}:${sourceId}->${destinationId}:${template.cargoLabel}`),
   };
+}
+
+function candidatesFromTemplates(
+  factionId: string,
+  factionName: string,
+  factionTag: string,
+  templates: FactionContractTemplate[],
+  ctx: FactionContractContext,
+): FactionContractCandidate[] {
+  const out: FactionContractCandidate[] = [];
+  for (const template of templates) {
+    if (!template.sourceIds.includes(ctx.sourceId)) continue;
+    for (const destinationId of template.destinationIds) {
+      if (destinationId === ctx.sourceId) continue;
+      out.push({
+        factionId,
+        factionName,
+        factionTag,
+        templateId: template.templateId,
+        sourceId: ctx.sourceId,
+        destinationId,
+        cargo: cargoForTemplate(factionId, template, ctx.sourceId, destinationId),
+        likelihood: template.likelihood,
+      });
+    }
+  }
+  return out;
 }
 
 export const NEW_CANAAN_MINERS_MUTUAL_PROVIDER: FactionContractProvider = {
   id: MINERS_MUTUAL_ID,
   name: MINERS_MUTUAL_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    const out: FactionContractCandidate[] = [];
-    for (const template of MINERS_MUTUAL_TEMPLATES) {
-      if (!template.sourceIds.includes(ctx.sourceId)) continue;
-      for (const destinationId of template.destinationIds) {
-        if (destinationId === ctx.sourceId) continue;
-        out.push({
-          factionId: MINERS_MUTUAL_ID,
-          factionName: MINERS_MUTUAL_NAME,
-          templateId: template.templateId,
-          sourceId: ctx.sourceId,
-          destinationId,
-          cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
-          likelihood: template.likelihood,
-        });
-      }
-    }
-    return out;
+    return candidatesFromTemplates(MINERS_MUTUAL_ID, MINERS_MUTUAL_NAME, MINERS_MUTUAL_TAG, MINERS_MUTUAL_TEMPLATES, ctx);
+  },
+};
+
+export const CERBERUS_HUMAN_RESOURCES_PROVIDER: FactionContractProvider = {
+  id: CERBERUS_ID,
+  name: CERBERUS_NAME,
+  generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+    return candidatesFromTemplates(CERBERUS_ID, CERBERUS_NAME, CERBERUS_TAG, CERBERUS_TEMPLATES, ctx);
   },
 };
 
 export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   NEW_CANAAN_MINERS_MUTUAL_PROVIDER,
+  CERBERUS_HUMAN_RESOURCES_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {

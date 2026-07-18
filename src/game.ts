@@ -1412,7 +1412,7 @@ export class Game {
         options: [
           ...contracts.map(contract => ({
             label: contract.title,
-            tag: contract.issuerId ? 'CO-OP' : careerContractClassLabel(contract.routeClass),
+            tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
             rightText: formatCredits(contract.quote.grossPay),
             detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
             action: `contract:${contract.id}`,

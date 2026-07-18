@@ -16,6 +16,7 @@ export interface CareerContract {
   title: string;
   issuerId?: string;
   issuerName?: string;
+  issuerTag?: string;
   templateId?: string;
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
@@ -171,6 +172,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     title: `Deliver ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
     issuerId: candidate.factionId,
     issuerName: candidate.factionName,
+    issuerTag: candidate.factionTag,
     templateId: candidate.templateId,
     cargo: candidate.cargo,
     quote,
