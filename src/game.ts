@@ -1431,7 +1431,7 @@ export class Game {
         title: 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyLines,
-        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        footer: 'W/S or ↑↓: select   Enter: choose   Esc: back to contract board',
         options: [
           { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract' },
           { label: 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: 'browseContracts' },
@@ -1468,6 +1468,10 @@ export class Game {
     const itemCount = Math.max(1, scene.options.length);
 
     if (input.levelSelect) {
+      if (p.scene.id === 'contractPosting') {
+        this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: p.scene.contractIndex ?? 0, contracts: p.scene.contracts ?? [] } };
+        return;
+      }
       this.startMenuReturnPhase = p;
       this.phase = { kind: 'startMenu' };
       return;
