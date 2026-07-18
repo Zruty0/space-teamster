@@ -83,7 +83,7 @@ interface PhaseTransition {
   run: () => void;
 }
 
-const START_MENU_ITEMS = 5;
+const START_MENU_ITEMS = 4;
 const FLIGHT_MENU_ITEMS = 5;
 const START_MENU_NEW_GAME_PLUS_INDEX = 2;
 const FLIGHT_MENU_SHIPBOARD_TERMINAL_INDEX = 3;
@@ -381,7 +381,6 @@ export class Game {
       this.loadEstellaNavigation();
       return;
     }
-    if (index === 4) this.loadCareerBoard();
   }
 
   private handleFlightMenu(input: InputState): void {
