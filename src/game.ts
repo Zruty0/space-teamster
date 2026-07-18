@@ -1411,12 +1411,12 @@ export class Game {
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
         options: [
           ...contracts.map(contract => ({
-            label: contract.destinationName,
-            tag: careerContractClassLabel(contract.routeClass),
+            label: contract.title,
+            tag: contract.issuerId ? 'CO-OP' : careerContractClassLabel(contract.routeClass),
             rightText: formatCredits(contract.quote.grossPay),
-            detail: `${contract.quote.cargoLabel}, ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
+            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
             action: `contract:${contract.id}`,
-            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
+            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : contract.issuerId ? 'success' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
           })),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
@@ -1435,7 +1435,9 @@ export class Game {
         title: 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyRows: [
-          { kind: 'kv', label: 'Destination', value: contract.destinationName, tone: 'success' },
+          { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
+          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Open Market' },
+          { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
