@@ -37,7 +37,7 @@ import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estel
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { generateCareerContracts, drawCareerContractBoard, type CareerContract } from './career-contracts';
-import { loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
+import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, estimateEstellaMissionCost, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 
@@ -490,6 +490,14 @@ export class Game {
 
   private currentMissionParDv(): number {
     return this.activeMissionQuote?.parDv ?? 0;
+  }
+
+  private hasCareerProgress(): boolean {
+    return this.career.locationId !== CAREER_START_LOCATION_ID || this.career.money !== 0 || this.career.worldTime !== 0;
+  }
+
+  private campaignActionLabel(): string {
+    return this.hasCareerProgress() ? 'Continue Campaign' : 'Begin Campaign';
   }
 
   private isOrbitalDeorbitObjective(level: OrbitalLevel): boolean {
@@ -1431,7 +1439,7 @@ export class Game {
     const suppressStateOverlays = !!this.phaseCompletion;
 
     if (p.kind === 'startMenu') {
-      drawStartMenu(this.ctx, this.canvas, this.menuSelection);
+      drawStartMenu(this.ctx, this.canvas, this.menuSelection, this.campaignActionLabel());
     } else if (p.kind === 'flightMenu') {
       this.renderGameplayPhase(p.previous, completionText, destinationName, destinationLocation, true);
       drawFlightMenu(this.ctx, this.canvas, this.flightMenuSelection);

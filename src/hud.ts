@@ -13,6 +13,7 @@ export function drawStartMenu(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   selectedIndex: number,
+  campaignActionLabel: string,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -32,7 +33,7 @@ export function drawStartMenu(
   ctx.fillText('Start Menu', W / 2, 88);
 
   const rows = [
-    { label: 'Continue / Begin Campaign', detail: 'Open the current contract BBS at your saved career location.' },
+    { label: campaignActionLabel, detail: 'Open the current contract BBS at your saved career location.' },
     { label: 'Restart as a New Teamster', detail: 'Reset career location, money, and world time; then open the BBS.' },
     { label: 'New Game+', detail: 'Locked until a completed career exists.', disabled: true },
     { label: 'Fly a custom mission', detail: 'Open the Estella navigation browser and choose exact-authored source and destination.' },
