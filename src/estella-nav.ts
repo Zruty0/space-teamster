@@ -186,7 +186,7 @@ export function drawEstellaNavigation(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('W/S: move   D or Enter: open/select   A: back   Backspace: clear route   L: missions', W / 2, footerY);
+  ctx.fillText('W/S: move   D or Enter: open/select   A: back   Backspace: clear route   Esc: start menu', W / 2, footerY);
 
   if (state.routeText) {
     ctx.fillStyle = COL_SUCCESS;

@@ -131,7 +131,7 @@ export function drawFlightMenu(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('↑↓: Select  Enter: Select  A/← or L: Return', W / 2, y + boxH - 22);
+  ctx.fillText('↑↓: Select  Enter: Select  A/← or Esc: Return', W / 2, y + boxH - 22);
   ctx.restore();
 }
 
@@ -419,7 +419,7 @@ function drawLandedOverlay(
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('BACKSPACE: Fly again  |  L: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
+  ctx.fillText('BACKSPACE: Fly again  |  Esc: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
 export function drawPhaseCompleteOverlay(
@@ -517,5 +517,5 @@ function drawCrashedOverlay(ctx: CanvasRenderingContext2D, W: number, H: number)
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('BACKSPACE: Try again  |  L: Flight Menu', W / 2, H / 2 + 25);
+  ctx.fillText('BACKSPACE: Try again  |  Esc: Flight Menu', W / 2, H / 2 + 25);
 }

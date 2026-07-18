@@ -282,5 +282,5 @@ export function drawCareerContractBoard(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  ctx.fillText('W/S: select   Enter: accept/reset   A or Backspace: main menu   L: missions', W / 2, H - 24);
+  ctx.fillText('W/S: select   Enter: accept/reset   A, Backspace, or Esc: main menu', W / 2, H - 24);
 }

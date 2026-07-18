@@ -18,7 +18,7 @@ export interface InputState {
   toggleGear: boolean;     // edge-triggered (true only on press frame)
   reset: boolean;          // edge-triggered
   toggleDevPanel: boolean; // edge-triggered
-  levelSelect: boolean;    // edge-triggered (L key)
+  levelSelect: boolean;    // edge-triggered (Escape key)
   levelPick: number;       // 0 = none, 1-9 = level number (edge-triggered)
   // Menu navigation
   menuUp: boolean;         // edge-triggered
@@ -47,7 +47,7 @@ window.addEventListener('keydown', (e) => {
   }
   keys.add(e.code);
   // Prevent browser scroll/navigation on gameplay keys
-  if (['Space', 'Backspace', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+  if (['Space', 'Backspace', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
     e.preventDefault();
   }
 });
@@ -90,7 +90,7 @@ export function readInput(): InputState {
   const toggleGear = justPressed.has('KeyG');
   const reset = justPressed.has('Backspace');
   const toggleDevPanel = justPressed.has('F2') || justPressed.has('Backquote');
-  const levelSelect = justPressed.has('KeyL');
+  const levelSelect = justPressed.has('Escape');
   let levelPick = 0;
   for (let n = 1; n <= 9; n++) {
     if (justPressed.has(`Digit${n}`)) levelPick = n;
