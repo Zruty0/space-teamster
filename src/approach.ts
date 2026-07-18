@@ -392,7 +392,7 @@ function impactCrossX(prevX: number, prevY: number, x: number, y: number, level:
   return prevX + (x - prevX) * t;
 }
 
-function approachOrbitApsides(s: ApproachState, level: ApproachLevel): { periapsisAltitude: number; apoapsisAltitude: number } | null {
+export function getApproachApoapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
   const planetRadius = level.frame.planetRadius;
   const planetGM = level.frame.planetGM;
   let wx = s.worldX;
@@ -412,21 +412,10 @@ function approachOrbitApsides(s: ApproachState, level: ApproachLevel): { periaps
   const e2 = 1 + (2 * energy * h * h) / (planetGM * planetGM);
   const e = Math.sqrt(Math.max(0, e2));
 
-  if (energy >= 0 || e >= 1) return { periapsisAltitude: Infinity, apoapsisAltitude: Infinity };
+  if (energy >= 0 || e >= 1) return Infinity;
 
   const a = -planetGM / (2 * energy);
-  return {
-    periapsisAltitude: a * (1 - e) - planetRadius,
-    apoapsisAltitude: a * (1 + e) - planetRadius,
-  };
-}
-
-export function getApproachApoapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
-  return approachOrbitApsides(s, level)?.apoapsisAltitude ?? null;
-}
-
-export function getApproachPeriapsisAltitude(s: ApproachState, level: ApproachLevel): number | null {
-  return approachOrbitApsides(s, level)?.periapsisAltitude ?? null;
+  return a * (1 + e) - planetRadius;
 }
 
 function density(y: number, level: ApproachLevel): number {
@@ -708,9 +697,7 @@ export function updateApproach(
 
   if (level.departure) {
     const apa = getApproachApoapsisAltitude(s, level);
-    const pea = getApproachPeriapsisAltitude(s, level);
-    const safePeriapsis = level.body.atmosphere !== null || pea === Infinity || (pea !== null && pea >= 0);
-    if (s.y >= level.departure.exitAltitude && apa !== null && apa >= level.departure.thresholdApoapsisAltitude && safePeriapsis) {
+    if (s.y >= level.departure.exitAltitude && apa !== null && apa >= level.departure.thresholdApoapsisAltitude) {
       s.gateReached = true;
       s.gateSpeed = Math.abs(s.vx);
     }
@@ -1652,7 +1639,6 @@ function drawApproachHUD(
   const distGate = Math.sqrt((s.x - level.gateX) ** 2 + (s.y - (targetBaseY + level.gateY)) ** 2);
   const departure = level.departure;
   const apa = departure ? getApproachApoapsisAltitude(s, level) : null;
-  const pea = departure ? getApproachPeriapsisAltitude(s, level) : null;
   const rho = density(s.y, level);
   const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
   const rhoCol = rhoFracStd > 0.3 ? COL_WARNING : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
@@ -1687,11 +1673,6 @@ function drawApproachHUD(
       : apa >= departure.thresholdApoapsisAltitude ? COL_SUCCESS
       : COL_WARNING;
     drawHudLabel(ctx, lx, ly, 'ApA', apaText, apaCol); ly += lh;
-    if (level.body.atmosphere === null) {
-      const peaText = pea === null ? '--' : (pea === Infinity ? 'ESC' : `${(pea / 1000).toFixed(1)} km`);
-      const peaCol = pea === null ? COL_HUD_DIM : pea >= 0 ? COL_SUCCESS : COL_WARNING;
-      drawHudLabel(ctx, lx, ly, 'PeA', peaText, peaCol); ly += lh;
-    }
   }
 
   const velAngle = Math.atan2(s.vx, s.vy);
@@ -1716,14 +1697,11 @@ function drawApproachHUD(
   const panelRows = departure
     ? (() => {
         const apaText = apa === null ? '--' : (apa === Infinity ? 'ESC' : `${(apa / 1000).toFixed(1)} km`);
-        const peaText = pea === null ? '--' : (pea === Infinity ? 'ESC' : `${(pea / 1000).toFixed(1)} km`);
         const altReady = s.y >= departure.exitAltitude;
         const apaReady = apa !== null && apa >= departure.thresholdApoapsisAltitude;
-        const safePeriapsis = level.body.atmosphere !== null || pea === Infinity || (pea !== null && pea >= 0);
         return [
           { label: 'ALT', value: `${(s.y / 1000).toFixed(1)} km > ${(departure.exitAltitude / 1000).toFixed(1)} km`, color: altReady ? COL_SUCCESS : COL_HUD },
           { label: 'ApA', value: `${apaText} > ${(departure.thresholdApoapsisAltitude / 1000).toFixed(0)} km`, color: apaReady ? COL_SUCCESS : COL_WARNING },
-          ...(level.body.atmosphere === null ? [{ label: 'PeA', value: `${peaText} > 0.0 km`, color: safePeriapsis ? COL_SUCCESS : COL_WARNING }] : []),
           { label: 'DIR', value: (departure.orbitDir ?? level.poi.departureProfile.orbitDir) > 0 ? 'RIGHT' : 'LEFT', color: COL_SUCCESS },
         ];
       })()
