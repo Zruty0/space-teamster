@@ -6,7 +6,7 @@ import { TerrainData, getTerrainHeight } from './terrain';
 import { LevelDef } from './levels';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 
-export type GameState = 'flying' | 'landed' | 'crashed' | 'levelSelect';
+export type GameState = 'flying' | 'landed' | 'crashed';
 
 // --- Start menu ---
 export function drawStartMenu(
@@ -32,6 +32,9 @@ export function drawStartMenu(
   ctx.fillText('Start Menu', W / 2, 88);
 
   const rows = [
+    { label: 'Continue / Begin Campaign', detail: 'Open the current contract BBS at your saved career location.' },
+    { label: 'Restart as a New Teamster', detail: 'Reset career location, money, and world time; then open the BBS.' },
+    { label: 'New Game+', detail: 'Locked until a completed career exists.', disabled: true },
     { label: 'Fly a custom mission', detail: 'Open the Estella navigation browser and choose exact-authored source and destination.' },
     { label: 'Career Mode', detail: 'Open the current light-career contract board.' },
   ];
@@ -48,12 +51,12 @@ export function drawStartMenu(
       ctx.fillText('▸', W / 2 - 295, y);
     }
 
-    ctx.fillStyle = selected ? COL_TITLE : COL_HUD_DIM;
+    ctx.fillStyle = rows[i].disabled ? '#33504a' : (selected ? COL_TITLE : COL_HUD_DIM);
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'right';
     ctx.fillText(`[${i + 1}]`, W / 2 - 270, y);
 
-    ctx.fillStyle = selected ? '#ffffff' : COL_HUD;
+    ctx.fillStyle = rows[i].disabled ? '#446058' : (selected ? '#ffffff' : COL_HUD);
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(rows[i].label, W / 2 - 245, y);
@@ -66,7 +69,70 @@ export function drawStartMenu(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('↑↓: Select  Enter: Select  |  1-2: Select', W / 2, startY + rows.length * lineH + 40);
+  ctx.fillText('↑↓: Select  Enter: Select  |  1-5: Select', W / 2, startY + rows.length * lineH + 40);
+}
+
+export function drawFlightMenu(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  selectedIndex: number,
+): void {
+  const W = canvas.width;
+  const H = canvas.height;
+  const rows = [
+    { label: 'Return to Flying', detail: 'Close this menu and resume the current stage.' },
+    { label: 'Restart Current Stage', detail: 'Retry from the start of this phase; mission attempts are free.' },
+    { label: 'Restart Whole Mission', detail: 'Retry the accepted route from its initial departure.' },
+    { label: 'Shipboard Terminal', detail: 'Read-only ship status terminal. Not installed yet.', disabled: true },
+    { label: 'Quit to Start Menu', detail: 'Abandon this attempt without changing career money or location.' },
+  ];
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.68)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.45)';
+  ctx.lineWidth = 2;
+  const boxW = 700;
+  const boxH = 390;
+  const x = W / 2 - boxW / 2;
+  const y = H / 2 - boxH / 2;
+  ctx.fillStyle = 'rgba(5, 12, 20, 0.96)';
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeRect(x, y, boxW, boxH);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = COL_TITLE;
+  ctx.font = 'bold 28px monospace';
+  ctx.fillText('FLIGHT MENU', W / 2, y + 44);
+
+  const lineH = 55;
+  const startY = y + 92;
+  for (let i = 0; i < rows.length; i++) {
+    const rowY = startY + i * lineH;
+    const selected = selectedIndex === i;
+    if (selected) {
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
+      ctx.fillRect(x + 32, rowY - 21, boxW - 64, lineH - 5);
+      ctx.fillStyle = COL_HUD;
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('▸', x + 62, rowY);
+    }
+
+    ctx.fillStyle = rows[i].disabled ? '#446058' : (selected ? '#ffffff' : COL_HUD);
+    ctx.font = 'bold 19px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`[${i + 1}] ${rows[i].label}`, x + 82, rowY);
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.font = '12px monospace';
+    ctx.fillText(rows[i].detail, x + 82, rowY + 19);
+  }
+
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('↑↓: Select  Enter: Select  A/← or L: Return', W / 2, y + boxH - 22);
+  ctx.restore();
 }
 
 // --- In-game HUD ---
@@ -353,7 +419,7 @@ function drawLandedOverlay(
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('BACKSPACE: Fly again  |  L: Start Menu', W / 2, H / 2 - 130 + boxH - 15);
+  ctx.fillText('BACKSPACE: Fly again  |  L: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
 export function drawPhaseCompleteOverlay(
@@ -451,5 +517,5 @@ function drawCrashedOverlay(ctx: CanvasRenderingContext2D, W: number, H: number)
 
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText('BACKSPACE: Try again  |  L: Choose level', W / 2, H / 2 + 25);
+  ctx.fillText('BACKSPACE: Try again  |  L: Flight Menu', W / 2, H / 2 + 25);
 }

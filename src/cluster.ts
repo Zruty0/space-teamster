@@ -1161,7 +1161,7 @@ export function drawClusterHUD(
     ctx.fillText('BERTH APPROACH COMPLETE', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('ENTER: Continue  |  BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 25);
+    ctx.fillText('ENTER: Continue  |  BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 25);
   }
   if (!suppressStateOverlays && state === 'crashed') {
     ctx.fillStyle = 'rgba(20, 0, 0, 0.62)';
@@ -1175,14 +1175,14 @@ export function drawClusterHUD(
     ctx.fillText('CRASHED', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 25);
   }
 
   if (state === 'flying') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/A/S/D: Screen thrust  T: SAS  Shift: Hi Thrust  [/]: Warp  BACKSPACE: Restart  L: Start Menu', W / 2, H - 15);
+    ctx.fillText('W/A/S/D: Screen thrust  T: SAS  Shift: Hi Thrust  [/]: Warp  BACKSPACE: Restart  L: Flight Menu', W / 2, H - 15);
   }
   ctx.restore();
 }

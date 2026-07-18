@@ -1797,7 +1797,7 @@ function drawApproachHUD(
     ctx.fillText(`Speed: ${s.gateSpeed.toFixed(0)} m/s`, W / 2, H / 2);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 50);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 50);
   }
 
   if (!suppressStateOverlays && state === 'approachFailed') {
@@ -1814,14 +1814,14 @@ function drawApproachHUD(
     ctx.fillText(msg, W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 25);
   }
 
   if (state === 'approaching') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  [/]: Warp  BACKSPACE: Restart  L: Start Menu', W / 2, H - 15);
+    ctx.fillText('A/D: Pitch  W: Thrust  S: Retro  SHIFT: Hi/Lo  G: Wings  Q/E: Angle  [/]: Warp  BACKSPACE: Restart  L: Flight Menu', W / 2, H - 15);
   }
 
   ctx.restore();

@@ -4160,7 +4160,7 @@ export function drawOrbitalHUD(
     ctx.fillText(`Altitude: ${altKm.toFixed(1)} km`, W / 2, H / 2 + 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 55);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 55);
   }
 
   if (!suppressStateOverlays && state === 'docked') {
@@ -4178,7 +4178,7 @@ export function drawOrbitalHUD(
     ctx.fillText('Successful', W / 2, H / 2 - 5);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 55);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 55);
   }
 
   if (!suppressStateOverlays && state === 'crashed') {
@@ -4194,14 +4194,14 @@ export function drawOrbitalHUD(
     ctx.fillText('IMPACT', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
-    ctx.fillText('BACKSPACE: Retry  |  L: Start Menu', W / 2, H / 2 + 25);
+    ctx.fillText('BACKSPACE: Retry  |  L: Flight Menu', W / 2, H / 2 + 25);
   }
 
   if (state === 'orbiting') {
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SHIFT: Hi/Lo Thrust  [/]: Warp  BACKSPACE: Restart  L: Start Menu', W / 2, H - 15);
+    ctx.fillText('W/S: Pro/Retro  A/D: Left/Right  SHIFT: Hi/Lo Thrust  [/]: Warp  BACKSPACE: Restart  L: Flight Menu', W / 2, H - 15);
   }
 
   ctx.restore();
