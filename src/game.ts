@@ -1382,13 +1382,18 @@ export class Game {
       return {
         title: 'STATION TERMINAL',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
-        bodyLines: ['Teamster account authenticated.', 'Select a terminal function.'],
+        bodyRows: [
+          { kind: 'text', text: 'Teamster account authenticated.', tone: 'success' },
+          { kind: 'kv', label: 'Location', value: locationPath },
+          { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
+          { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
+        ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
         options: [
-          { label: 'Browse Contracts', detail: 'Open the local Teamsters\' Guild BBS postings.', action: 'browseContracts' },
+          { label: 'Browse Contracts', detail: 'Open the local Teamsters\' Guild BBS postings.', action: 'browseContracts', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
-          { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus' },
-          { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu' },
+          { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
+          { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
         ],
       };
     }
@@ -1398,15 +1403,22 @@ export class Game {
       return {
         title: 'BROWSE CONTRACTS',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
-        bodyLines: ['Local public postings. Select a posting to inspect the route and terms.'],
+        bodyRows: [
+          { kind: 'text', text: 'Local public postings. Select a posting to inspect the route and terms.' },
+          { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
+          { kind: 'kv', label: 'Sorting', value: 'Guild default: local work first, then longer hauls' },
+        ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
         options: [
           ...contracts.map(contract => ({
-            label: `${careerContractClassLabel(contract.routeClass)}  ${contract.destinationName} — ${formatCredits(contract.quote.grossPay)}`,
+            label: contract.destinationName,
+            tag: careerContractClassLabel(contract.routeClass),
+            rightText: formatCredits(contract.quote.grossPay),
             detail: `${contract.quote.cargoLabel}, ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
             action: `contract:${contract.id}`,
+            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
           })),
-          { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' },
+          { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
       };
     }
@@ -1416,25 +1428,28 @@ export class Game {
       if (!contract) return this.buildInteractiveScene({ id: 'browseContracts', selectedIndex: 0, contracts: state.contracts ?? [] });
       const quote = contract.quote;
       const transfer = contract.selectedTransfer;
-      const bodyLines = [
-        `Destination: ${contract.destinationName}`,
-        `Location: ${contract.destinationPath}`,
-        `Route class: ${careerContractClassLabel(contract.routeClass)}`,
-        `Cargo: ${quote.cargoLabel} (${quote.cargoMassTons} t cargo, ${quote.loadedMassTons} t loaded)`,
-        `Par ΔV: ${quote.parDv.toFixed(0)} m/s`,
-        `Par fuel cost: ${formatCredits(quote.parFuelCost)}`,
-        `Pay: ${formatCredits(quote.grossPay)}`,
-        `Expected margin: ${formatCredits(quote.expectedMargin)}`,
-        transfer ? `Transfer: ${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h` : 'Transfer: immediate/local routing',
-      ];
+      const transferSummary = transfer
+        ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
+        : 'immediate/local routing';
       return {
         title: 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
-        bodyLines,
+        bodyRows: [
+          { kind: 'kv', label: 'Destination', value: contract.destinationName, tone: 'success' },
+          { kind: 'kv', label: 'Location', value: contract.destinationPath },
+          { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
+          { kind: 'separator' },
+          { kind: 'kv', label: 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t cargo, ${quote.loadedMassTons} t loaded)` },
+          { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
+          { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
+          { kind: 'kv', label: 'Pay', value: formatCredits(quote.grossPay), tone: 'success' },
+          { kind: 'kv', label: 'Expected margin', value: formatCredits(quote.expectedMargin), tone: quote.expectedMargin < 0 ? 'danger' : 'success' },
+          { kind: 'kv', label: 'Transfer', value: transferSummary },
+        ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: back to contract board',
         options: [
-          { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract' },
-          { label: 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: 'browseContracts' },
+          { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
+          { label: 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: 'browseContracts', tone: 'back' },
         ],
       };
     }
@@ -1443,22 +1458,25 @@ export class Game {
       return {
         title: 'CAREER STATUS',
         subtitle: 'Teamsters\' Guild account',
-        bodyLines: [
-          `Current location: ${locationPath}`,
-          `Cash: ${formatCredits(this.career.money)}`,
-          `World time: ${(this.career.worldTime / 86_400).toFixed(2)} days`,
+        bodyRows: [
+          { kind: 'kv', label: 'Current location', value: locationPath },
+          { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
+          { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
         ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
-        options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' }],
+        options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
       };
     }
 
     return {
       title: 'SHIP STATUS',
       subtitle: 'Shipboard terminal placeholder',
-      bodyLines: ['Ship status terminal is not installed yet.', 'Future read-only rig inspection will live here.'],
+      bodyRows: [
+        { kind: 'text', text: 'Ship status terminal is not installed yet.', tone: 'warning' },
+        { kind: 'text', text: 'Future read-only rig inspection will live here.' },
+      ],
       footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
-      options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal' }],
+      options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
     };
   }
 
