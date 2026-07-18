@@ -3,7 +3,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath } from './content/estella/navigation';
 import { type Placement, type WorldNode } from './content/types';
 import { circularBodyStateInFrame, lambertVelocity } from './lambert';
-import { estimateEstellaMissionCost, formatCredits } from './mission-cost';
+import { estimateEstellaMissionCost, formatCredits, generateGenericCargoForRoute } from './mission-cost';
 import { bodyById, type BodyDef } from './world';
 
 export interface EstellaMissionLeg {
@@ -292,7 +292,8 @@ export function drawEstellaGeneratedMission(
   ctx.fillText(mission.title, x + 18, y + 28);
 
   const selectedTransfer = mission.transferOptions[mission.selectedTransferOption];
-  const quote = estimateEstellaMissionCost(mission.sourceId, mission.destinationId, selectedTransfer);
+  const cargo = generateGenericCargoForRoute(mission.sourceId, mission.destinationId);
+  const quote = estimateEstellaMissionCost(mission.sourceId, mission.destinationId, cargo, selectedTransfer);
   const optionBlockH = mission.transferOptions.length ? 112 : 0;
   const quoteY = y + 46;
   const quoteBlockH = 68;

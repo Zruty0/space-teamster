@@ -39,7 +39,7 @@ import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGenera
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateCareerContracts, type CareerContract } from './career-contracts';
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
-import { actualFuelCostForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene } from './interactive-scene';
 
@@ -1564,7 +1564,8 @@ export class Game {
     if (input.menuConfirm) {
       const selectedTransfer = p.mission.transferOptions[p.mission.selectedTransferOption];
       const startWorldTime = selectedTransfer?.waitTime ?? p.mission.startWorldTime;
-      this.activeMissionQuote = estimateEstellaMissionCost(p.mission.sourceId, p.mission.destinationId, selectedTransfer);
+      const cargo = generateGenericCargoForRoute(p.mission.sourceId, p.mission.destinationId);
+      this.activeMissionQuote = estimateEstellaMissionCost(p.mission.sourceId, p.mission.destinationId, cargo, selectedTransfer);
       this.activeMissionTransfer = selectedTransfer;
       this.activeMissionStartWorldTime = startWorldTime;
       this.launchPlayableEstellaMission(p.mission.sourceId, p.mission.destinationId, startWorldTime, selectedTransfer);

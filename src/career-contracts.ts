@@ -1,7 +1,7 @@
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
-import { estimateEstellaMissionCost, type MissionCostQuote } from './mission-cost';
+import { estimateEstellaMissionCost, generateGenericCargoForRoute, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -12,6 +12,7 @@ export interface CareerContract {
   destinationName: string;
   destinationPath: string;
   routeClass: CareerContractClass;
+  cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
 }
@@ -100,7 +101,8 @@ export function preferredContractTransfer(options: EstellaTransferOption[]): Est
 function makeContract(sourceId: string, destinationId: string, routeClass: CareerContractClass, index: number, startWorldTime: number): CareerContract {
   const mission = generateEstellaMission(sourceId, destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
-  const quote = estimateEstellaMissionCost(sourceId, destinationId, selectedTransfer);
+  const cargo = generateGenericCargoForRoute(sourceId, destinationId);
+  const quote = estimateEstellaMissionCost(sourceId, destinationId, cargo, selectedTransfer);
   const target = estellaSelectableNavTargets().find(row => row.id === destinationId);
   return {
     id: `${sourceId}->${destinationId}:${index}`,
@@ -109,6 +111,7 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
     destinationName: target?.name ?? ESTELLA_NODES_BY_ID.get(destinationId)?.name ?? destinationId,
     destinationPath: target?.path ?? estellaDisplayPath(destinationId),
     routeClass,
+    cargo,
     quote,
     selectedTransfer,
   };

@@ -37,12 +37,20 @@ const CLUSTER_SLOPPINESS_FACTOR = 1.2;
 const ORBIT_TRANSFER_SLOP = 1.4;
 const ESCAPE_CAPTURE_SLOP = 1.1;
 
-const CARGO_CLASSES = [
-  { label: 'Light sealed freight', minMass: 8, maxMass: 15 },
-  { label: 'Standard container freight', minMass: 18, maxMass: 32 },
-  { label: 'Dense machine parts', minMass: 35, maxMass: 55 },
-  { label: 'Shielded dense cargo', minMass: 55, maxMass: 70 },
-] as const;
+export type CargoMassClass = 'light' | 'standard' | 'heavy' | 'dense';
+
+export interface MissionCargoSpec {
+  label: string;
+  massTons: number;
+  massClass?: CargoMassClass;
+}
+
+const CARGO_CLASSES: Record<CargoMassClass, { label: string; minMass: number; maxMass: number }> = {
+  light: { label: 'Light sealed freight', minMass: 8, maxMass: 15 },
+  standard: { label: 'Standard container freight', minMass: 18, maxMass: 32 },
+  heavy: { label: 'Dense machine parts', minMass: 35, maxMass: 55 },
+  dense: { label: 'Shielded dense cargo', minMass: 55, maxMass: 70 },
+};
 
 function hashString(text: string): number {
   let hash = 2166136261;
@@ -61,15 +69,25 @@ function seededUnit(seed: number): number {
   return ((x >>> 0) % 10000) / 10000;
 }
 
-function cargoForRoute(sourceId: string, destinationId: string): { label: string; mass: number } {
+export function cargoMassForClass(massClass: CargoMassClass, seedText: string): number {
+  const cls = CARGO_CLASSES[massClass];
+  const massRoll = seededUnit(hashString(seedText) ^ 0x9e3779b9);
+  return Math.round(cls.minMass + (cls.maxMass - cls.minMass) * massRoll);
+}
+
+export function generateGenericCargoForRoute(sourceId: string, destinationId: string): MissionCargoSpec {
   const seed = hashString(`${sourceId}->${destinationId}`);
   const roll = seededUnit(seed);
-  const cls = roll < 0.18 ? CARGO_CLASSES[0]
-    : roll < 0.78 ? CARGO_CLASSES[1]
-      : roll < 0.95 ? CARGO_CLASSES[2]
-        : CARGO_CLASSES[3];
-  const massRoll = seededUnit(seed ^ 0x9e3779b9);
-  return { label: cls.label, mass: Math.round(cls.minMass + (cls.maxMass - cls.minMass) * massRoll) };
+  const massClass: CargoMassClass = roll < 0.18 ? 'light'
+    : roll < 0.78 ? 'standard'
+      : roll < 0.95 ? 'heavy'
+        : 'dense';
+  const cls = CARGO_CLASSES[massClass];
+  return {
+    label: cls.label,
+    massClass,
+    massTons: cargoMassForClass(massClass, `${sourceId}->${destinationId}:${cls.label}`),
+  };
 }
 
 function nodeName(id: string): string {
@@ -469,11 +487,11 @@ function addDestinationAfterSelectedCapture(
 export function estimateEstellaMissionCost(
   sourceId: string,
   destinationId: string,
+  cargo: MissionCargoSpec,
   selectedTransfer?: EstellaTransferOption,
   generosity: number = DEFAULT_GENEROSITY,
 ): MissionCostQuote {
-  const cargo = cargoForRoute(sourceId, destinationId);
-  const loadedMassTons = SHIP_DRY_MASS_TONS + CONTAINER_TARE_TONS + cargo.mass;
+  const loadedMassTons = SHIP_DRY_MASS_TONS + CONTAINER_TARE_TONS + cargo.massTons;
   const breakdown: MissionCostBreakdownItem[] = [];
   const sameClusterTravel = clusterTravelDistanceForPois(sourceId, destinationId);
   const sourceSurface = locationSurface(sourceId);
@@ -548,7 +566,7 @@ export function estimateEstellaMissionCost(
     sourceId,
     destinationId,
     cargoLabel: cargo.label,
-    cargoMassTons: cargo.mass,
+    cargoMassTons: cargo.massTons,
     loadedMassTons,
     parDv,
     fuelPricePerTonMps: FUEL_PRICE_PER_TON_MPS,
