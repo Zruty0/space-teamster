@@ -60,7 +60,7 @@ const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['t
   'estella-v': { patchRadius: 10_000_000, displayPatchRadius: 10_000_000 },
   'estella-vi': { patchRadius: 14_000_000, displayPatchRadius: 14_000_000 },
   'estella-vii': { patchRadius: 2_500_000, displayPatchRadius: 2_500_000 },
-  'estella-viii': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
+  'estella-viii': { patchRadius: 12_000_000, displayPatchRadius: 12_000_000 },
   'estella-ix': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
 };
 
