@@ -614,7 +614,7 @@ function buildRouteObjective(opts: {
     const childArrival = buildRouteObjective({ ...opts, currentBodyId: childId });
     const frameBody = bodyById(opts.currentBodyId);
     if (frameBody.atmosphere) {
-      return register(ORBITAL_LEVELS, createOrbitalLevel({
+      const level = register(ORBITAL_LEVELS, createOrbitalLevel({
         id: nextId(),
         bodyId: opts.currentBodyId,
         name: `${nodeName(ESTELLA_NODES_BY_ID.get(opts.currentBodyId))} Capture`,
@@ -624,6 +624,17 @@ function buildRouteObjective(opts: {
         targetBodyId: childId,
         targetArrivalOrbitalLevelId: childArrival.id,
       }));
+      level.nextObjectiveName = nodeName(ESTELLA_NODES_BY_ID.get(childId));
+      if (playableKind(opts.destinationId) === 'dock' && centralBodyIdForPoi(opts.destinationId) === childId) {
+        const targetStation = stationPoiById(parentNode(opts.destinationId)!.id);
+        level.transferArrivalOrbitSense = targetStation.orbit.orbitSense;
+        level.nextObjectiveDetail = `Intercept ${level.nextObjectiveName}; target dock orbit is ${senseLabel(targetStation.orbit.orbitSense)}.`;
+      } else if (centralBodyIdForPoi(opts.destinationId) === childId && bodyById(childId).orbit?.parentBodyId === opts.currentBodyId) {
+        const childBody = bodyById(childId);
+        level.transferArrivalOrbitSense = childBody.orbit?.orbitSense;
+        level.nextObjectiveDetail = `Intercept ${level.nextObjectiveName}; moon orbit is ${senseLabel(childBody.orbit?.orbitSense ?? 1)}, then continue to the destination.`;
+      }
+      return level;
     }
     return register(ORBITAL_LEVELS, createSystemTransferLevel({
       id: nextId(),
