@@ -159,12 +159,12 @@ const STILL_PORTS = makePorts('the-still', [
   { id: 'still-skim-runner-berth', name: 'Skim-Runner Berth', poiId: 'still-skim-runner-berth-poi' },
 ]);
 
-const MERCER_CLAIM_PORTS = makePorts('prospect-rock-es-c-0101', [
-  { id: 'prospect-rock-main-dock-port', name: 'Mercer Dock', poiId: 'prospect-rock-main-dock' },
+const MERCER_CLAIM_PORTS = makePorts('mercers-claim', [
+  { id: 'mercer-dock-port', name: 'Mercer Dock', poiId: 'mercer-dock' },
 ]);
 
-const HARLAN_STATION_PORTS = makePorts('survey-rock-es-s-0101', [
-  { id: 'survey-rock-beacon-dock-port', name: 'Harlan Dock', poiId: 'survey-rock-beacon-dock' },
+const HARLAN_STATION_PORTS = makePorts('harlans-station', [
+  { id: 'harlan-dock-port', name: 'Harlan Dock', poiId: 'harlan-dock' },
 ]);
 
 const REACH_COMET_FRAGMENT_1_PORTS = makePorts('reach-comet-fragment-1', [
@@ -191,7 +191,7 @@ const REACH_COMET_FRAGMENT_6_PORTS = makePorts('reach-comet-fragment-6', [
   { id: 'reach-comet-fragment-6-dock-port', name: 'Outer Science Cell', poiId: 'reach-comet-fragment-6-poi' },
 ], 2400);
 
-export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
+export const NEW_CANAAN_CLUSTER_LEVEL: ClusterLevel = {
   id: 90,
   name: 'New Canaan Traffic Volume',
   subtitle: 'Local flight: Caravanserai, The Still, and old claim rocks',
@@ -201,8 +201,8 @@ export const NEAR_BELT_CLUSTER_LEVEL: ClusterLevel = {
   members: [
     { id: 'caravanserai', name: 'The Caravanserai', x: 0, y: 0, radius: 4200, ports: CARAVANSERAI_PORTS },
     { id: 'the-still', name: 'The Still', x: 42_000, y: -18_000, radius: 3200, ports: STILL_PORTS },
-    { id: 'prospect-rock-es-c-0101', name: "Mercer's Claim", x: -26_000, y: 22_000, radius: 1800, ports: MERCER_CLAIM_PORTS },
-    { id: 'survey-rock-es-s-0101', name: "Harlan's Station", x: 24_000, y: 33_000, radius: 1600, ports: HARLAN_STATION_PORTS },
+    { id: 'mercers-claim', name: "Mercer's Claim", x: -26_000, y: 22_000, radius: 1800, ports: MERCER_CLAIM_PORTS },
+    { id: 'harlans-station', name: "Harlan's Station", x: 24_000, y: 33_000, radius: 1600, ports: HARLAN_STATION_PORTS },
   ],
   targetPortId: 'still-public-berth-a',
   startX: -6_500,
@@ -249,7 +249,7 @@ export const REACH_COMET_SWARM_CLUSTER_LEVEL: ClusterLevel = {
   timeWarpLevels: [1, 2, 5, 10],
 };
 
-const CLUSTER_TEMPLATES = [NEAR_BELT_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL];
+const CLUSTER_TEMPLATES = [NEW_CANAAN_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL];
 const LOCAL_CLUSTER_TRANSFER_KINEMATIC_SCALE = 0.1;
 
 export const CLUSTER_LEVELS: ClusterLevel[] = [...CLUSTER_TEMPLATES];
@@ -260,7 +260,7 @@ export function clusterLevelById(id: number): ClusterLevel | undefined {
 
 export function clusterBodyIdForPoi(poiId: string): string | undefined {
   const template = clusterTemplateForPoi(poiId);
-  if (template === NEAR_BELT_CLUSTER_LEVEL) return 'belt-cluster-near';
+  if (template === NEW_CANAAN_CLUSTER_LEVEL) return 'new-canaan-field';
   if (template === REACH_COMET_SWARM_CLUSTER_LEVEL) return 'reach-comet-swarm';
   return undefined;
 }
@@ -281,16 +281,16 @@ export function clusterDockingSlotForPoi(poiId: string): { targetSpoke: number; 
   return port ? { targetSpoke: port.targetSpoke, targetSide: port.targetSide, targetSlot: port.targetSlot } : undefined;
 }
 
-export function nearBeltClusterMemberNameForPoi(poiId: string): string | undefined {
-  return memberForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId)?.name;
+export function newCanaanClusterMemberNameForPoi(poiId: string): string | undefined {
+  return memberForPoi(NEW_CANAAN_CLUSTER_LEVEL, poiId)?.name;
 }
 
-export function nearBeltClusterMemberIdForPoi(poiId: string): string | undefined {
-  return memberForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId)?.id;
+export function newCanaanClusterMemberIdForPoi(poiId: string): string | undefined {
+  return memberForPoi(NEW_CANAAN_CLUSTER_LEVEL, poiId)?.id;
 }
 
-export function nearBeltDockingSlotForPoi(poiId: string): { targetSpoke: number; targetSide: number; targetSlot: number } | undefined {
-  const port = portForPoi(NEAR_BELT_CLUSTER_LEVEL, poiId);
+export function newCanaanDockingSlotForPoi(poiId: string): { targetSpoke: number; targetSide: number; targetSlot: number } | undefined {
+  const port = portForPoi(NEW_CANAAN_CLUSTER_LEVEL, poiId);
   return port ? { targetSpoke: port.targetSpoke, targetSide: port.targetSide, targetSlot: port.targetSlot } : undefined;
 }
 
@@ -350,8 +350,8 @@ export function createPoiClusterLevel(sourcePoiId: string, destinationPoiId: str
   return template ? createClusterLevelFromTemplate(template, sourcePoiId, destinationPoiId, id, dockingLevelId) : null;
 }
 
-export function createNearBeltClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
-  return createClusterLevelFromTemplate(NEAR_BELT_CLUSTER_LEVEL, sourcePoiId, destinationPoiId, id, dockingLevelId);
+export function createNewCanaanClusterLevel(sourcePoiId: string, destinationPoiId: string, id: number, dockingLevelId?: number): ClusterLevel | null {
+  return createClusterLevelFromTemplate(NEW_CANAAN_CLUSTER_LEVEL, sourcePoiId, destinationPoiId, id, dockingLevelId);
 }
 
 export function applyLocalClusterTransferEconomyScale(level: ClusterLevel): ClusterLevel {

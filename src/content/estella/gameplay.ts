@@ -280,7 +280,7 @@ const PLAYABLE_BODY_IDS = playableBodyIds();
 
 const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
   {
-    id: 'belt-cluster-near',
+    id: 'new-canaan-field',
     name: 'New Canaan Field',
     radius: 6_000,
     gm: 0,
@@ -288,7 +288,7 @@ const ESTELLA_CLUSTER_BODIES: BodyDef[] = [
     planetFillColor: '#2a241b',
     planetStrokeColor: '#8a7650',
     atmosphere: null,
-    orbit: bodyOrbit('belt-cluster-near'),
+    orbit: bodyOrbit('new-canaan-field'),
     orbitalDefaults: {
       baseTimeScale: 100,
       thrustAccel: 0.2,
