@@ -27,7 +27,8 @@ const CONTRACT_CLASS_COUNTS: Record<CareerContractClass, number> = {
   moderate: 3,
   long: 2,
 };
-const FACTION_CONTRACT_COUNT = 2;
+const MIN_FACTION_CONTRACTS = 2;
+const MAX_FACTION_CONTRACTS = 10;
 const MAX_CONTRACTS = 10;
 
 function hashString(text: string): number {
@@ -189,7 +190,11 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
 
   const factionCandidates = generateFactionContractCandidates({ sourceId, worldTime: startWorldTime })
     .filter(candidate => candidate.sourceId === sourceId && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(sourceId, candidate.destinationId));
-  for (const candidate of weightedPick(factionCandidates, FACTION_CONTRACT_COUNT, seed ^ 0x51f15eed)) {
+  const factionCount = Math.min(
+    MAX_FACTION_CONTRACTS,
+    Math.max(MIN_FACTION_CONTRACTS, factionCandidates.length),
+  );
+  for (const candidate of weightedPick(factionCandidates, factionCount, seed ^ 0x51f15eed)) {
     if (contracts.length >= MAX_CONTRACTS || picked.has(candidate.destinationId)) continue;
     picked.add(candidate.destinationId);
     contracts.push(makeFactionContract(candidate, contracts.length, startWorldTime));
