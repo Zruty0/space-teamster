@@ -64,18 +64,18 @@ Preferred inbound suppliers:
 
 - Kuznia Industrial City (`estella-vi-industrial-city`) -> New Canaan docks: pressure seals and valve blocks
 - Kuznia Foundry Complex (`estella-vi-foundry-complex`) -> New Canaan docks: recycler pump cartridges
-- Kuznia VIa Component Supply (`estella-via-component-supply-station`) -> `harlan-dock`: rotary bearing kits
-- Kuznia VIa Drydock (`estella-via-drydock-station`) -> New Canaan docks: airlock actuator assemblies
+- Svarog Component Supply (`estella-via-component-supply-station`) -> `harlan-dock`: rotary bearing kits
+- Svarog Drydock (`estella-via-drydock-station`) -> New Canaan docks: airlock actuator assemblies
 - Kuznia Agricultural Lowlands (`estella-vi-agricultural-lowlands`) -> New Canaan docks: bulk ration packs
-- Kuznia VIb Cold-Chain Transit (`estella-vib-cold-chain-station`) -> New Canaan docks: medical cold-chain lockers
+- Malyna Cold-Chain Transit (`estella-vib-cold-chain-station`) -> New Canaan docks: medical cold-chain lockers
 - `still-public-approach-dock` -> New Canaan docks: certified pressure gas cylinders
 
 Outbound brokerage:
 
 - New Canaan docks -> Kuznia Foundry Complex (`estella-vi-foundry-complex`): low-grade titanium tailings concentrate
 - New Canaan docks -> Kuznia Industrial City (`estella-vi-industrial-city`): basalt fiber feedstock
-- New Canaan docks -> Kuznia VIa Drydock (`estella-via-drydock-station`): scrap pressure alloy
-- New Canaan docks -> Kuznia VIa Component Supply (`estella-via-component-supply-station`): regolith shielding blocks
+- New Canaan docks -> Svarog Drydock (`estella-via-drydock-station`): scrap pressure alloy
+- New Canaan docks -> Svarog Component Supply (`estella-via-component-supply-station`): regolith shielding blocks
 - New Canaan docks -> `estella-iii-high-tech-city`: sealed assay cores
 
 ### Reputation hooks later
@@ -214,7 +214,7 @@ Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk mater
 - Subsidiary tag: `KIS-E`
 - Gaia corporate HQ for now: `estella-iii-finance-city`
 
-Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole yards: Caravanserai Outfitter/Drydock, Kuznia VIa Drydock, and Estella XIe Outer-Spec Drydock. The Kuznia VIa facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
+Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole yards: Caravanserai Outfitter/Drydock, Svarog Drydock, and Estella XIe Outer-Spec Drydock. The Svarog facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
 
 Kisaragi ship tiers:
 
@@ -359,7 +359,7 @@ Core nodes:
 - Import touchdown: `caravanserai-highliner-bay-poi`
 - Central hub: `estella-viii-harder-approach-station`
 - Hearth sub-hub: `estella-iii-main-customs`
-- Camps sub-hub: Kuznia VIa Component Supply (`estella-via-component-supply-station`)
+- Camps sub-hub: Svarog Component Supply (`estella-via-component-supply-station`)
 - Estella X sub-hub: `estella-xc-transit-refuel`
 - Estella XI sub-hub: `estella-xid-main-port`
 - Estella XII sub-hub: `estella-xiib-transit-station-poi`

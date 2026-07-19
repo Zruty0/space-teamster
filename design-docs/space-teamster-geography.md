@@ -197,14 +197,14 @@ Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmos
 | Estella V.6 | Surface | Abandoned colony (salvage) |
 | Estella V.7 | Hartwell Orbital Factory | High-orbit factory |
 
-### Estella Va — Hartwell Va
-Small airless moon of Hartwell used for ore handling and strip mining.
+### Estella Va — Pike
+Small airless moon of Hartwell used for ore handling, strip mining, and old frontier road work.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella Va.1 | Surface | Strip mine (heavy ore) |
-| Estella Va.2 | Surface | Miner hab |
-| Estella Va.3 | Hartwell Va Ore-Handling Depot | Ore-handling depot |
+| Estella Va.1 | Pike Strip Mine | Strip mine (heavy ore) |
+| Estella Va.2 | Pike Miner Hab | Miner hab |
+| Estella Va.3 | Pike Ore-Handling Depot | Ore-handling depot |
 
 ### Estella VI — Kuznia
 Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota culture, hard weather, and the system's primary atmospheric flight school.
@@ -220,25 +220,25 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 | Estella VI.7 | Surface | Polar weather research |
 | Estella VI.8 | Surface | Mountain mining (specialty ore, hard pad, altitude) |
 
-### Estella VIa — Kuznia VIa
-Small airless shipyard moon of Kuznia.
+### Estella VIa — Svarog
+Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIa.1 | Kuznia VIa Drydock | Drydock / shipyard |
-| Estella VIa.2 | Kuznia VIa Component Supply | Component supply |
-| Estella VIa.3 | Surface | Drydock surface anchor + staff hab |
-| Estella VIa.4 | Surface | Rare alloying extraction |
+| Estella VIa.1 | Svarog Drydock | Drydock / shipyard |
+| Estella VIa.2 | Svarog Component Supply | Component supply |
+| Estella VIa.3 | Svarog Surface Anchor | Drydock surface anchor + staff hab |
+| Estella VIa.4 | Svarog Rare Alloy Extraction | Rare alloying extraction |
 
-### Estella VIb — Kuznia VIb
-Small airless specialty / pharma moon of Kuznia.
+### Estella VIb — Malyna
+Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith gives Malyna a raspberry/rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIb.1 | Kuznia VIb Cold-Chain Transit | Cold-chain transit |
-| Estella VIb.2 | Surface | Biotech / vat-protein primary |
-| Estella VIb.3 | Surface | Pharmaceutical / specialty horticulture |
-| Estella VIb.4 | Surface | Aquaculture (boutique luxury) |
+| Estella VIb.1 | Malyna Cold-Chain Transit | Cold-chain transit |
+| Estella VIb.2 | Malyna Vat-Protein Primary | Biotech / vat-protein primary |
+| Estella VIb.3 | Malyna Pharmaceutical Horticulture | Pharmaceutical / specialty horticulture |
+| Estella VIb.4 | Malyna Boutique Aquaculture | Aquaculture (boutique luxury) |
 
 ### Estella VII — Tessera
 Small airless rocky precision-ops planet of rotational labor, high-vacuum work, metrology, and almost no rooted local culture.

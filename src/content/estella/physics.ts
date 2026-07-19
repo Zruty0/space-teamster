@@ -85,7 +85,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 85_000,
     gm: 0.42 * 85_000 * 85_000,
     rotationPeriod: 38_000,
-    notes: 'Small airless mining moon of Hartwell.',
+    notes: 'Small airless mining moon of Hartwell: Pike.'
   },
   'estella-vi': {
     radius: 330_000,
@@ -97,13 +97,13 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 95_000,
     gm: 0.55 * 95_000 * 95_000,
     rotationPeriod: 44_000,
-    notes: 'Small airless shipyard moon of Kuznia.',
+    notes: 'Small airless shipyard moon of Kuznia: Svarog.'
   },
   'estella-vib': {
     radius: 80_000,
     gm: 0.38 * 80_000 * 80_000,
     rotationPeriod: 41_000,
-    notes: 'Small airless specialty/pharma moon of Kuznia.',
+    notes: 'Bright red airless specialty/pharma moon of Kuznia: Malyna. Hematite-rich regolith gives it raspberry/rust coloration.'
   },
   'estella-vii': {
     radius: 170_000,
@@ -248,12 +248,12 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.9, fuelDeltaV: 750, transitionAltitude: 5_000 },
   },
   'estella-vib': {
-    color: [155, 150, 180],
-    planetFillColor: '#151420',
-    planetStrokeColor: '#827aa8',
-    terrainFillColor: '#151420',
-    terrainStrokeColor: '#827aa8',
-    terrainBrightColor: '#bbb2df',
+    color: [205, 70, 62],
+    planetFillColor: '#240b09',
+    planetStrokeColor: '#b33d35',
+    terrainFillColor: '#240b09',
+    terrainStrokeColor: '#b33d35',
+    terrainBrightColor: '#ee7768',
     orbitalDefaults: { baseTimeScale: 50, thrustAccel: 0.04, thrustAccelMax: 0.9, fuelDeltaV: 750, transitionAltitude: 5_000 },
   },
   'estella-vii': {
