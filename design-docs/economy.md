@@ -13,6 +13,7 @@ Current implementation:
 - Faction provider registry and shared types: `src/content/estella/faction-contracts/index.ts`
 - Miners Mutual generator: `src/content/estella/faction-contracts/miners-mutual-contracts.ts`
 - Cerberus generator: `src/content/estella/faction-contracts/cerberus-contracts.ts`
+- Bruckner Field Services generator: `src/content/estella/faction-contracts/bruckner-contracts.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
 
@@ -198,7 +199,7 @@ Corporate/governance/luxury:
 
 Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk materials. Higher reputation can unlock custody work, direct Olympos deliveries, surface labor allocations, Pandemonium-linked work, higher-value rare-metal lots, and private executive traffic. CHR reputation should eventually conflict with some factions and alter BBS/dialogue tone: corporate clients trust reliable CHR carriers, while labor/Union/Co-op actors may react badly to visible CHR association.
 
-## Planned interstellar shipbuilding actors
+## Interstellar shipbuilding actors
 
 ### Kisaragi Meridian Yards / Kisaragi Yards Estella
 
@@ -220,14 +221,15 @@ KIS-E likely cargo:
 - cabin liner panels
 - yard worker shuttle groups
 
-### Voss-Heinkel Metricwerke / Bruckner Field Services
+## Faction: Bruckner Field Services
 
-- Parent: Voss-Heinkel Metricwerke
-- Parent tag: `VHM`
+- ID: `bruckner-field-services`
+- Tag: `BFS`
 - Local partner/dealer: Bruckner Field Services
-- Local tag: `BFS`
+- Parent/supplier: Voss-Heinkel Metricwerke
+- Parent tag, later high-tier: `VHM`
 
-VHM is the German-engineering metric-drive side of the hulls/engines duo. It is centralized around interstellar imports rather than distributed local manufacturing. Bruckner Field Services is ostensibly independent, but it is an authorized service, parts, and maintenance bureau and exclusive Estella dealer for the full civilian VHM line. BFS sells, stores, certifies, refurbishes, dispatches technicians, and preserves warranty chain-of-custody; it does not manufacture VHM core systems.
+VHM is the metric-drive side of the hulls/engines duo. It is centralized around interstellar imports rather than distributed local manufacturing. Bruckner Field Services is ostensibly independent, but it is an authorized service, parts, and maintenance bureau and exclusive Estella dealer for the full civilian VHM line. BFS sells, stores, certifies, refurbishes, dispatches technicians, and preserves warranty chain-of-custody; it does not manufacture VHM core systems.
 
 BFS's central Estella logistics foothold is on Weymark, not Caravanserai. Caravanserai Highliner Bay remains the import touchdown and customs interface, but Bruckner Weymark Depot is the private distribution, certification, and service hub.
 
@@ -242,19 +244,48 @@ Weymark naming:
 - `estella-viii-moonlet-docking-site`: Lantern Dock
 - `estella-viii-abandoned-site`: Old Survey Camp
 
-BFS likely cargo:
+### Current BFS network model
 
-- VHM civilian equipment crates
-- certified field-bus reels
-- civilian coupling kits
-- metric sensor heads
-- calibration kits
-- dealer inventory lots
-- warranty replacement modules
-- failed coupling banks
-- warranty black boxes
-- sealed telemetry drives
+BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided.
+
+Core nodes:
+
+- Import touchdown: `caravanserai-highliner-bay-poi`
+- Central hub: `estella-viii-harder-approach-station`
+- Hearth sub-hub: `estella-iii-main-customs`
+- Camps sub-hub: `estella-via-component-supply-station`
+- Estella X sub-hub: `estella-xc-transit-refuel`
+- Estella XI sub-hub: `estella-xid-main-port`
+- Estella XII sub-hub: `estella-xiib-transit-station-poi`
+- Reach sub-hub: `estella-xiii-main-port`
+
+Current route families:
+
+- Highliner Bay -> Bruckner Weymark Depot: VHM civilian drive inventory, certified propulsion service stock, metric-drive dealer inventory, sealed warranty replacement lots
+- Bruckner Weymark Depot -> Highliner Bay: failed drive service returns, warranty black-box packages, sealed telemetry return lots
+- Bruckner Weymark Depot -> regional sub-hubs: main drive maintenance supplies, RCS installation kits, field calibration service kits, propulsion diagnostics kits, thermal-control maintenance kits, drive alignment certification kits
+- Regional sub-hubs -> leaves: main drive maintenance supplies, field calibration service kits, RCS maintenance supplies, warranty recertification packages, certified drive overhaul kits, vibration isolation service kits
+- Leaves -> sub-hub / Weymark: failed drive service returns, warranty black-box packages, sealed telemetry return lots, incident review evidence crates, quarantined controller returns
+- Any BFS network node -> any other BFS network node: direct relocation of Bruckner field technician teams, drive alignment crews, commissioning engineer teams, warranty inspector parties, incident review boards, and emergency propulsion service crews
+
+BFS cargo palette:
+
+- VHM civilian drive inventory
+- certified propulsion service stock
+- metric-drive dealer inventory
+- sealed warranty replacement lots
+- main drive maintenance supplies
+- RCS installation kits
+- field calibration service kits
+- propulsion diagnostics kits
+- thermal-control maintenance kits
+- drive alignment certification kits
+- certified drive overhaul kits
+- failed drive service returns
+- warranty black-box packages
+- sealed telemetry return lots
 - Bruckner field technician teams
+- drive alignment crews
 
 ## Known design questions
 
