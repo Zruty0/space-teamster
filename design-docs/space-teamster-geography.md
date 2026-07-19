@@ -344,17 +344,17 @@ A stony S-class rock. Quiet, structurally stable, scholarly, off-grid by inclina
 | ES-S-0001.2 | Listening array | Restricted |
 | ES-S-0001.3 | Sealed research outpost | Restricted |
 
-### Estella VIII — friendly settled dwarf planet
-Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification here.
+### Estella VIII — Weymark
+Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification at Nell's Rest. Weymark also hosts Bruckner Field Services' quiet high-orbit distribution foothold near Caravanserai.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIII.1 | Station, low orbit | Friendly first-rendezvous station |
-| Estella VIII.2 | Station, higher orbit | Harder approach, more cargo |
-| Estella VIII.3 | Surface | Settlement (small, civic) |
-| Estella VIII.4 | Surface | Mining site |
-| Estella VIII.5 | Captured moonlet | Single docking site |
-| Estella VIII.6 | Surface | Abandoned site (salvage) |
+| Estella VIII.1 | Nell's Rest | Guild-facing first-rendezvous station, maintenance yard, and mechanics hub |
+| Estella VIII.2 | Bruckner Weymark Depot | High-orbit BFS distribution and precision-service hub |
+| Estella VIII.3 | Weymark Town | Small civic settlement |
+| Estella VIII.4 | Low Gauge Mine | Airless dwarf mining site |
+| Estella VIII.5 | Nell's Lantern | Captured moonlet with Lantern Dock |
+| Estella VIII.6 | Old Survey Camp | Abandoned survey camp with salvage potential |
 
 ### Estella IX — icy / scientific dwarf planet
 Small SOI, icy, scientific in flavor. Less developed.

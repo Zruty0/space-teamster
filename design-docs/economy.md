@@ -198,6 +198,64 @@ Corporate/governance/luxury:
 
 Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk materials. Higher reputation can unlock custody work, direct Olympos deliveries, surface labor allocations, Pandemonium-linked work, higher-value rare-metal lots, and private executive traffic. CHR reputation should eventually conflict with some factions and alter BBS/dialogue tone: corporate clients trust reliable CHR carriers, while labor/Union/Co-op actors may react badly to visible CHR association.
 
+## Planned interstellar shipbuilding actors
+
+### Kisaragi Meridian Yards / Kisaragi Yards Estella
+
+- Parent: Kisaragi Meridian Yards
+- Parent tag: `KIS`
+- Estella subsidiary: Kisaragi Yards Estella
+- Subsidiary tag: `KIS-E`
+
+Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It is decentralized: the parent owns or controls several dockyards and yard offices throughout settled systems, while KIS-E handles in-system Estella logistics for ordinary yard movement. High-tier KIS work should be reputation-locked later; KIS-E can provide entry-level bulk work.
+
+KIS-E likely cargo:
+
+- hull plate blanks
+- radiator panel crates
+- docking clamp pallets
+- pressure-door frames
+- ceramic thermal tile lots
+- truss repair stock
+- cabin liner panels
+- yard worker shuttle groups
+
+### Voss-Heinkel Metricwerke / Bruckner Field Services
+
+- Parent: Voss-Heinkel Metricwerke
+- Parent tag: `VHM`
+- Local partner/dealer: Bruckner Field Services
+- Local tag: `BFS`
+
+VHM is the German-engineering metric-drive side of the hulls/engines duo. It is centralized around interstellar imports rather than distributed local manufacturing. Bruckner Field Services is ostensibly independent, but it is an authorized service, parts, and maintenance bureau and exclusive Estella dealer for the full civilian VHM line. BFS sells, stores, certifies, refurbishes, dispatches technicians, and preserves warranty chain-of-custody; it does not manufacture VHM core systems.
+
+BFS's central Estella logistics foothold is on Weymark, not Caravanserai. Caravanserai Highliner Bay remains the import touchdown and customs interface, but Bruckner Weymark Depot is the private distribution, certification, and service hub.
+
+Weymark naming:
+
+- `estella-viii`: Weymark
+- `estella-viii-first-rendezvous-station`: Nell's Rest, Guild-facing first-rendezvous station, maintenance yard, and mechanics hub
+- `estella-viii-harder-approach-station`: Bruckner Weymark Depot, BFS distribution and precision-service hub
+- `estella-viii-settlement`: Weymark Town
+- `estella-viii-mining-site`: Low Gauge Mine
+- `estella-viii-captured-moonlet`: Nell's Lantern
+- `estella-viii-moonlet-docking-site`: Lantern Dock
+- `estella-viii-abandoned-site`: Old Survey Camp
+
+BFS likely cargo:
+
+- VHM civilian equipment crates
+- certified field-bus reels
+- civilian coupling kits
+- metric sensor heads
+- calibration kits
+- dealer inventory lots
+- warranty replacement modules
+- failed coupling banks
+- warranty black boxes
+- sealed telemetry drives
+- Bruckner field technician teams
+
 ## Known design questions
 
 - Reputation should probably be faction-specific, with some faction-pair consequences later.

@@ -323,7 +323,7 @@ Old Nell example:
 Guild Orientation: The Nell Run
 - accept at Caravanserai
 - dock/ride Old Nell or time-skip first pass
-- arrive at VIII Friendly Station
+- arrive at Nell's Rest on Weymark
 - complete local orbital/landing certification work
 ```
 
