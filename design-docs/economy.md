@@ -15,6 +15,8 @@ Current implementation:
 - Cerberus generator: `src/content/estella/faction-contracts/cerberus-contracts.ts`
 - Bruckner Field Services generator: `src/content/estella/faction-contracts/bruckner-contracts.ts`
 - Voss-Heinkel Metricwerke generator: `src/content/estella/faction-contracts/vhm-contracts.ts`
+- Kisaragi Yards Estella generator: `src/content/estella/faction-contracts/kisaragi-estella-contracts.ts`
+- Kisaragi Harmony Yards generator: `src/content/estella/faction-contracts/kisaragi-contracts.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
 
@@ -202,25 +204,71 @@ Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk mater
 
 ## Interstellar shipbuilding actors
 
-### Kisaragi Meridian Yards / Kisaragi Yards Estella
+### Kisaragi Harmony Yards / Kisaragi Yards Estella
 
-- Parent: Kisaragi Meridian Yards
+- Parent: Kisaragi Harmony Yards
+- Parent ID: `kisaragi-harmony-yards`
 - Parent tag: `KIS`
 - Estella subsidiary: Kisaragi Yards Estella
+- Subsidiary ID: `kisaragi-yards-estella`
 - Subsidiary tag: `KIS-E`
+- Gaia corporate HQ for now: `estella-iii-finance-city`
 
-Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It is decentralized: the parent owns or controls several dockyards and yard offices throughout settled systems, while KIS-E handles in-system Estella logistics for ordinary yard movement. High-tier KIS work should be reputation-locked later; KIS-E can provide entry-level bulk work.
+Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole yards: Caravanserai Outfitter/Drydock, Estella VIa Drydock, and Estella XIe Outer-Spec Drydock. The VIa facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
 
-KIS-E likely cargo:
+Kisaragi product tiers:
 
-- hull plate blanks
-- radiator panel crates
-- docking clamp pallets
-- pressure-door frames
-- ceramic thermal tile lots
-- truss repair stock
-- cabin liner panels
-- yard worker shuttle groups
+- Silk-class: entry prestige finish, interiors, fit-out, acoustic treatment
+- Porcelain-class: higher-pressure structural finish, viewport frames, fairings, pressure-shell work
+- Celadon-class: pinnacle Kisaragi line, signature hull elements, pressure shells, luxury liner modules, highliner interface work
+
+KIS-E current route families:
+
+- Supplier -> Kisaragi facilities: Silk/Porcelain-class cargo only
+- Kisaragi facility -> Kisaragi facility: Silk/Porcelain-class balancing, unfinished sections, fit-out modules, tooling, rework lots
+- Kisaragi facility -> Highliner Bay / Gaia HQ: light documents and records only
+
+KIS-E cargo palette:
+
+- Silk-class cabin liner panels
+- Porcelain-class cabin liner panels
+- Silk-class acoustic isolation kits
+- Porcelain-class acoustic isolation kits
+- Silk-class promenade fit-out crates
+- Porcelain-class pressure-door frames
+- Porcelain-class panoramic viewport assemblies
+- Porcelain-class hull fairing panels
+- Porcelain-class pressure-shell sections
+- Porcelain-class refinery hull reinforcement lots
+- Porcelain-class gas-giant corrosion shielding panels
+- yard acceptance documents
+- client specification archives
+- hull warranty packets
+
+KIS proper current route families:
+
+- Kisaragi facilities -> other Kisaragi facilities / Highliner Bay / Gaia prestige destinations: Silk/Porcelain/Celadon-class prestige cargo
+- Gaia HQ -> Kisaragi facilities: parent-company shipwright, fitting, inspection, and recovery crews
+- Kisaragi facilities -> Gaia HQ: return legs to the Hearth for Kisaragi personnel, plus prestige records and warranty documents
+
+KIS proper cargo/passenger palette:
+
+- Silk/Porcelain/Celadon-class cabin liner panels
+- Silk/Porcelain/Celadon-class acoustic fit-out kits
+- Porcelain/Celadon-class panoramic viewport assemblies
+- Porcelain/Celadon-class docking collar assemblies
+- Celadon-class hull elements
+- Celadon-class luxury liner modules
+- Celadon-class signature pressure-shell sections
+- Celadon-class highliner frame interface rings
+- Kisaragi master shipwright delegation
+- hull acceptance board
+- interior finish inspectors
+- executive fitting delegation
+- owner representative party
+- Kisaragi recovery rotation crew
+
+Reputation hooks later: KIS-E should be the entry path for Kisaragi yard logistics and should never carry Celadon-class items. KIS proper should unlock after trust/reputation and should carry Celadon-class prestige work, shipwright delegations, client-facing acceptance work, and luxury/highliner hull contracts.
 
 ## Faction: Voss-Heinkel Metricwerke
 
