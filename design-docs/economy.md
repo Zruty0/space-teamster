@@ -216,13 +216,13 @@ Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk mater
 
 Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole yards: Caravanserai Outfitter/Drydock, Estella VIa Drydock, and Estella XIe Outer-Spec Drydock. The VIa facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
 
-Kisaragi product tiers:
+Kisaragi ship tiers:
 
-- Silk-class: superbly crafted Kisaragi work, already far above ordinary working ships; entry prestige finish, interiors, fit-out, acoustic treatment
-- Porcelain-class: true luxury; higher-pressure structural finish, viewport frames, fairings, pressure-shell work
-- Celadon-class: barely-affordable masterpieces and the pinnacle Kisaragi line; signature hull elements, pressure shells, luxury liner modules, highliner interface work
+- Silk-class: superbly crafted Kisaragi vessels, already far above ordinary working ships
+- Porcelain-class: true luxury vessels for clients who expect quiet perfection in every finish, fit, and pressure boundary
+- Celadon-class: barely-affordable masterpieces; Celadon personal yachts are numbered in the hundreds across the whole galaxy
 
-Finished Celadon-class components generally originate off-system through Highliner Bay or move between Kisaragi facilities after import, matching, or rework. Estella suppliers do not manufacture finished Celadon-class components; they provide Silk/Porcelain-class goods and non-classed premium inputs.
+Kisaragi sells finished ships, not loose components. Cargo labels such as `Porcelain-class viewport assemblies` or `Celadon-class hull elements` refer to internal Kisaragi-certified parts and modules moving through the yard chain for those vessels. A ship may use components of its own class or higher, so a Porcelain-class liner uses Porcelain-or-better parts, while a Celadon-class yacht requires Celadon-grade work throughout. Finished Celadon-class components generally originate off-system through Highliner Bay or move between Kisaragi facilities after import, matching, or rework. Estella suppliers do not manufacture finished Celadon-class components; they provide Silk/Porcelain-class goods and non-classed premium inputs.
 
 KIS-E current route families:
 
