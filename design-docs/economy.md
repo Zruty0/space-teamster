@@ -10,8 +10,9 @@ Mission pay is based on par fuel economics for the specified cargo. Contract gen
 
 Current implementation:
 
-- Faction provider registry and Miners Mutual generator: `src/content/estella/faction-contracts.ts`
-- Cerberus generator: `src/content/estella/cerberus-contracts.ts`
+- Faction provider registry and shared types: `src/content/estella/faction-contracts/index.ts`
+- Miners Mutual generator: `src/content/estella/faction-contracts/miners-mutual-contracts.ts`
+- Cerberus generator: `src/content/estella/faction-contracts/cerberus-contracts.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
 

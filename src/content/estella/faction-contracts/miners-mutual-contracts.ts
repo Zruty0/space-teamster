@@ -1,29 +1,7 @@
-import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../mission-cost';
-import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
+import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
-export interface FactionContractContext {
-  sourceId: string;
-  worldTime: number;
-}
-
-export interface FactionContractCandidate {
-  factionId: string;
-  factionName: string;
-  factionTag: string;
-  templateId: string;
-  sourceId: string;
-  destinationId: string;
-  cargo: MissionCargoSpec;
-  likelihood: number;
-}
-
-export interface FactionContractProvider {
-  id: string;
-  name: string;
-  generateContracts(ctx: FactionContractContext): FactionContractCandidate[];
-}
-
-interface FactionContractTemplate {
+interface MinersMutualContractTemplate {
   templateId: string;
   sourceIds: string[];
   destinationIds: string[];
@@ -38,7 +16,7 @@ const MINERS_MUTUAL_TAG = 'CO-OP';
 
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
 
-const MINERS_MUTUAL_TEMPLATES: FactionContractTemplate[] = [
+const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   // Emergency purchases from expensive Caravanserai suppliers: uncommon, but visible at game start.
   { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35 },
   { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45 },
@@ -60,34 +38,28 @@ const MINERS_MUTUAL_TEMPLATES: FactionContractTemplate[] = [
   { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45 },
 ];
 
-function cargoForTemplate(factionId: string, template: FactionContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {
+function cargoForTemplate(template: MinersMutualContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {
   return {
     label: template.cargoLabel,
     massClass: template.massClass,
-    massTons: cargoMassForClass(template.massClass, `${factionId}:${template.templateId}:${sourceId}->${destinationId}:${template.cargoLabel}`),
+    massTons: cargoMassForClass(template.massClass, `${MINERS_MUTUAL_ID}:${template.templateId}:${sourceId}->${destinationId}:${template.cargoLabel}`),
   };
 }
 
-function candidatesFromTemplates(
-  factionId: string,
-  factionName: string,
-  factionTag: string,
-  templates: FactionContractTemplate[],
-  ctx: FactionContractContext,
-): FactionContractCandidate[] {
+function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
-  for (const template of templates) {
+  for (const template of MINERS_MUTUAL_TEMPLATES) {
     if (!template.sourceIds.includes(ctx.sourceId)) continue;
     for (const destinationId of template.destinationIds) {
       if (destinationId === ctx.sourceId) continue;
       out.push({
-        factionId,
-        factionName,
-        factionTag,
+        factionId: MINERS_MUTUAL_ID,
+        factionName: MINERS_MUTUAL_NAME,
+        factionTag: MINERS_MUTUAL_TAG,
         templateId: template.templateId,
         sourceId: ctx.sourceId,
         destinationId,
-        cargo: cargoForTemplate(factionId, template, ctx.sourceId, destinationId),
+        cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood,
       });
     }
@@ -99,15 +71,6 @@ export const NEW_CANAAN_MINERS_MUTUAL_PROVIDER: FactionContractProvider = {
   id: MINERS_MUTUAL_ID,
   name: MINERS_MUTUAL_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return candidatesFromTemplates(MINERS_MUTUAL_ID, MINERS_MUTUAL_NAME, MINERS_MUTUAL_TAG, MINERS_MUTUAL_TEMPLATES, ctx);
+    return candidatesFromTemplates(ctx);
   },
 };
-
-export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
-  NEW_CANAAN_MINERS_MUTUAL_PROVIDER,
-  CERBERUS_HUMAN_RESOURCES_PROVIDER,
-];
-
-export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx));
-}

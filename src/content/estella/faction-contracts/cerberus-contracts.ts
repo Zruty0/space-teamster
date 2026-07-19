@@ -1,5 +1,5 @@
-import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../mission-cost';
-import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './faction-contracts';
+import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface CerberusContractTemplate {
   templateId: string;
