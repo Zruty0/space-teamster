@@ -27,7 +27,11 @@ const KIS_NAME = 'Kisaragi Harmony Yards';
 const KIS_TAG = 'KIS';
 
 const GAIA_HQ_ID = 'estella-iii-finance-city';
-const HIGH_TIER_CARGO_COUNT = 3;
+const HIGHLINER_BAY_ID = 'caravanserai-highliner-bay-poi';
+const IMPORT_DESTINATION_COUNT = 2;
+const IMPORT_CARGO_PER_DESTINATION = 2;
+const FACILITY_TRANSFER_DESTINATION_COUNT = 2;
+const FACILITY_TRANSFER_CARGO_PER_DESTINATION = 2;
 const OUTBOUND_PEOPLE_DESTINATION_COUNT = 2;
 
 const TIER_ORDER: Record<KisaragiTier, number> = { Silk: 0, Porcelain: 1, Celadon: 2 };
@@ -43,30 +47,39 @@ const KISARAGI_FACILITIES: WeightedNode[] = [
   node('estella-xie-outer-spec-drydock', 2.4),
 ];
 
-const PRESTIGE_DESTINATIONS: WeightedNode[] = [
-  node('caravanserai-highliner-bay-poi', 1.5),
+const PRESTIGE_RECORD_DESTINATIONS: WeightedNode[] = [
+  node(HIGHLINER_BAY_ID, 1.2),
   node('estella-iii-luxury-orbital-habitat', 0.8),
-  node('estella-iii-finance-city', 0.7),
+  node(GAIA_HQ_ID, 0.9),
 ];
 
-const PARENT_ITEMS: KisaragiItem[] = [
+const CELADON_IMPORTS: KisaragiCargoOption[] = [
+  { label: 'Celadon-class hull elements', tier: 'Celadon', massClass: 'heavy', likelihood: 1.0 },
+  { label: 'Celadon-class pressure-shell sections', tier: 'Celadon', massClass: 'heavy', likelihood: 0.95 },
+  { label: 'Celadon-class luxury liner modules', tier: 'Celadon', massClass: 'heavy', likelihood: 0.9 },
+  { label: 'Celadon-class highliner frame interface rings', tier: 'Celadon', massClass: 'dense', likelihood: 0.65 },
+  { label: 'Celadon-class signature shell modules', tier: 'Celadon', massClass: 'heavy', likelihood: 0.8 },
+  { label: 'Celadon-class docking collar assemblies', tier: 'Celadon', massClass: 'heavy', likelihood: 0.75 },
+];
+
+const FACILITY_TRANSFER_ITEMS: KisaragiItem[] = [
   { label: 'cabin liner panels', minTier: 'Silk', massClass: 'standard', likelihood: 0.85 },
   { label: 'acoustic fit-out kits', minTier: 'Silk', massClass: 'standard', likelihood: 0.8 },
   { label: 'promenade module lots', minTier: 'Silk', massClass: 'standard', likelihood: 0.75 },
-  { label: 'pressure-door frames', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.9 },
-  { label: 'panoramic viewport assemblies', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.9 },
-  { label: 'pressure-shell sections', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.85 },
-  { label: 'docking collar assemblies', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.8 },
-  { label: 'hull elements', minTier: 'Celadon', massClass: 'heavy', likelihood: 1.0 },
-  { label: 'luxury liner modules', minTier: 'Celadon', massClass: 'heavy', likelihood: 0.9 },
-  { label: 'signature pressure-shell sections', minTier: 'Celadon', massClass: 'heavy', likelihood: 0.9 },
-  { label: 'highliner frame interface rings', minTier: 'Celadon', massClass: 'dense', likelihood: 0.65 },
-  { label: 'client acceptance suite', minTier: 'Celadon', massClass: 'standard', likelihood: 0.55 },
+  { label: 'fit-out module crates', minTier: 'Silk', massClass: 'standard', likelihood: 0.75 },
+  { label: 'pressure-door rework frames', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.85 },
+  { label: 'panoramic viewport rework assemblies', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.8 },
+  { label: 'pressure-shell rework lots', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.8 },
+  { label: 'docking collar rework assemblies', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.7 },
+  { label: 'matching shell sections', minTier: 'Celadon', massClass: 'heavy', likelihood: 0.75 },
+  { label: 'acceptance mockup sections', minTier: 'Celadon', massClass: 'standard', likelihood: 0.6 },
+  { label: 'luxury liner module rework lots', minTier: 'Celadon', massClass: 'heavy', likelihood: 0.7 },
 ];
 
-const PARENT_RETURNS: KisaragiCargoOption[] = [
+const PRESTIGE_RECORDS: KisaragiCargoOption[] = [
   { label: 'Celadon-class acceptance records', tier: 'Celadon', massClass: 'light', likelihood: 0.8 },
   { label: 'Celadon-class registry vault', tier: 'Celadon', massClass: 'light', likelihood: 0.65 },
+  { label: 'Celadon-class client acceptance suite', tier: 'Celadon', massClass: 'standard', likelihood: 0.55 },
   { label: 'Porcelain-class warranty evidence crates', tier: 'Porcelain', massClass: 'light', likelihood: 0.7 },
   { label: 'client specification archive', tier: 'Silk', massClass: 'light', likelihood: 0.55 },
 ];
@@ -93,7 +106,7 @@ function expandItems(items: KisaragiItem[], tiers: KisaragiTier[]): KisaragiCarg
   })));
 }
 
-const PARENT_CARGO = expandItems(PARENT_ITEMS, KIS_TIERS);
+const FACILITY_TRANSFER_CARGO = expandItems(FACILITY_TRANSFER_ITEMS, KIS_TIERS);
 
 function hashString(text: string): number {
   let hash = 2166136261;
@@ -169,6 +182,14 @@ function generateKisContracts(ctx: FactionContractContext): FactionContractCandi
   const day = Math.floor(ctx.worldTime / 86_400);
   const seed = hashString(`${KIS_ID}:${sourceId}:${day}`);
 
+  if (sourceId === HIGHLINER_BAY_ID) {
+    const destinations = weightedPick(KISARAGI_FACILITIES, IMPORT_DESTINATION_COUNT, seed ^ 0xce1ad0, facility => facility.weight);
+    destinations.forEach((destination, destinationIndex) => {
+      const cargoLots = weightedPick(CELADON_IMPORTS, IMPORT_CARGO_PER_DESTINATION, seed ^ hashString(`${destination.id}:${destinationIndex}:import`), cargo => cargo.likelihood);
+      for (const cargo of cargoLots) pushCandidate(out, 'celadon-import', sourceId, destination.id, cargo, 0.5 * destination.weight);
+    });
+  }
+
   if (sourceId === GAIA_HQ_ID) {
     const destinations = weightedPick(KISARAGI_FACILITIES, OUTBOUND_PEOPLE_DESTINATION_COUNT, seed ^ 0x917ad1a, facility => facility.weight);
     destinations.forEach((destination, index) => {
@@ -178,17 +199,19 @@ function generateKisContracts(ctx: FactionContractContext): FactionContractCandi
   }
 
   if (isFacility(sourceId)) {
-    const cargoDestinations = weightedPick([...KISARAGI_FACILITIES.filter(facility => facility.id !== sourceId), ...PRESTIGE_DESTINATIONS], HIGH_TIER_CARGO_COUNT, seed ^ 0xce1ad0, destination => destination.weight);
-    cargoDestinations.forEach((destination, index) => {
-      const cargo = pickedCargo(PARENT_CARGO, seed ^ hashString(`${destination.id}:${index}:cargo`));
-      if (cargo) pushCandidate(out, 'prestige-cargo', sourceId, destination.id, cargo, 0.45 * destination.weight);
+    const transferDestinations = weightedPick(KISARAGI_FACILITIES.filter(facility => facility.id !== sourceId), FACILITY_TRANSFER_DESTINATION_COUNT, seed ^ 0xba1a9ce, facility => facility.weight);
+    transferDestinations.forEach((destination, index) => {
+      const cargoLots = weightedPick(FACILITY_TRANSFER_CARGO, FACILITY_TRANSFER_CARGO_PER_DESTINATION, seed ^ hashString(`${destination.id}:${index}:transfer`), cargo => cargo.likelihood);
+      for (const cargo of cargoLots) pushCandidate(out, 'facility-prestige-transfer', sourceId, destination.id, cargo, 0.45 * destination.weight);
     });
+
+    for (const destination of PRESTIGE_RECORD_DESTINATIONS) {
+      const records = pickedCargo(PRESTIGE_RECORDS, seed ^ hashString(`${destination.id}:records`));
+      if (records) pushCandidate(out, 'prestige-records', sourceId, destination.id, records, 0.32 * destination.weight);
+    }
 
     const returnPeople = pickedCargo(KIS_PEOPLE, seed ^ 0xacab1e);
     if (returnPeople) pushCandidate(out, 'people-return-hearth', sourceId, GAIA_HQ_ID, returnPeople, 0.55);
-
-    const returnDocs = pickedCargo(PARENT_RETURNS, seed ^ 0xd0c5afe);
-    if (returnDocs) pushCandidate(out, 'prestige-records-return', sourceId, GAIA_HQ_ID, returnDocs, 0.35);
   }
 
   return out;

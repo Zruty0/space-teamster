@@ -61,10 +61,21 @@ const SUPPLIER_ITEMS: KisaragiItem[] = [
   { label: 'thermal tile lots', minTier: 'Silk', massClass: 'heavy', likelihood: 0.75 },
   { label: 'pressure-door frames', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.95 },
   { label: 'panoramic viewport assemblies', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.9 },
-  { label: 'hull fairing panels', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.85 },
+  { label: 'exterior fairing panels', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.85 },
   { label: 'pressure-shell sections', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.8 },
-  { label: 'refinery hull reinforcement lots', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.7 },
+  { label: 'refinery frame reinforcement lots', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.7 },
   { label: 'gas-giant corrosion shielding panels', minTier: 'Porcelain', massClass: 'heavy', likelihood: 0.65 },
+];
+
+const SUPPLIER_INPUTS: KisaragiCargoOption[] = [
+  { label: 'prestige ceramic feedstock', tier: 'Silk', massClass: 'heavy', likelihood: 0.75 },
+  { label: 'high-finish pressure alloy lots', tier: 'Silk', massClass: 'heavy', likelihood: 0.8 },
+  { label: 'viewport crystal blanks', tier: 'Silk', massClass: 'standard', likelihood: 0.7 },
+  { label: 'acoustic metamaterial stock', tier: 'Silk', massClass: 'standard', likelihood: 0.65 },
+  { label: 'corrosion-shield laminate blanks', tier: 'Silk', massClass: 'heavy', likelihood: 0.65 },
+  { label: 'precision frame castings', tier: 'Silk', massClass: 'heavy', likelihood: 0.7 },
+  { label: 'cruise-liner fixture stock', tier: 'Silk', massClass: 'standard', likelihood: 0.6 },
+  { label: 'gas-giant shielding laminate blanks', tier: 'Silk', massClass: 'heavy', likelihood: 0.6 },
 ];
 
 const FACILITY_ITEMS: KisaragiItem[] = [
@@ -102,7 +113,7 @@ function expandItems(items: KisaragiItem[], tiers: KisaragiTier[]): KisaragiCarg
   })));
 }
 
-const SUPPLIER_CARGO = expandItems(SUPPLIER_ITEMS, KIS_E_TIERS);
+const SUPPLIER_CARGO = [...expandItems(SUPPLIER_ITEMS, KIS_E_TIERS), ...SUPPLIER_INPUTS];
 const FACILITY_CARGO = expandItems(FACILITY_ITEMS, KIS_E_TIERS);
 
 function hashString(text: string): number {

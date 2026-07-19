@@ -218,13 +218,15 @@ Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not 
 
 Kisaragi product tiers:
 
-- Silk-class: entry prestige finish, interiors, fit-out, acoustic treatment
-- Porcelain-class: higher-pressure structural finish, viewport frames, fairings, pressure-shell work
-- Celadon-class: pinnacle Kisaragi line, signature hull elements, pressure shells, luxury liner modules, highliner interface work
+- Silk-class: superbly crafted Kisaragi work, already far above ordinary working ships; entry prestige finish, interiors, fit-out, acoustic treatment
+- Porcelain-class: true luxury; higher-pressure structural finish, viewport frames, fairings, pressure-shell work
+- Celadon-class: barely-affordable masterpieces and the pinnacle Kisaragi line; signature hull elements, pressure shells, luxury liner modules, highliner interface work
+
+Finished Celadon-class components generally originate off-system through Highliner Bay or move between Kisaragi facilities after import, matching, or rework. Estella suppliers do not manufacture finished Celadon-class components; they provide Silk/Porcelain-class goods and non-classed premium inputs.
 
 KIS-E current route families:
 
-- Supplier -> Kisaragi facilities: Silk/Porcelain-class cargo only
+- Supplier -> Kisaragi facilities: Silk/Porcelain-class cargo and non-classed premium inputs only
 - Kisaragi facility -> Kisaragi facility: Silk/Porcelain-class balancing, unfinished sections, fit-out modules, tooling, rework lots
 - Kisaragi facility -> Highliner Bay / Gaia HQ: light documents and records only
 
@@ -237,19 +239,27 @@ KIS-E cargo palette:
 - Silk-class promenade fit-out crates
 - Porcelain-class pressure-door frames
 - Porcelain-class panoramic viewport assemblies
-- Porcelain-class hull fairing panels
+- Porcelain-class exterior fairing panels
 - Porcelain-class pressure-shell sections
-- Porcelain-class refinery hull reinforcement lots
+- Porcelain-class refinery frame reinforcement lots
 - Porcelain-class gas-giant corrosion shielding panels
+- prestige ceramic feedstock
+- high-finish pressure alloy lots
+- viewport crystal blanks
+- acoustic metamaterial stock
+- corrosion-shield laminate blanks
+- precision frame castings
 - yard acceptance documents
 - client specification archives
 - hull warranty packets
 
 KIS proper current route families:
 
-- Kisaragi facilities -> other Kisaragi facilities / Highliner Bay / Gaia prestige destinations: Silk/Porcelain/Celadon-class prestige cargo
+- Highliner Bay -> Kisaragi facilities: off-system Celadon-class imports
+- Kisaragi facility -> Kisaragi facility: Silk/Porcelain/Celadon-class prestige balancing, matching, and rework cargo
+- Kisaragi facility -> Highliner Bay / Gaia prestige destinations: acceptance records, registry vaults, warranty evidence, client suites, and archives
 - Gaia HQ -> Kisaragi facilities: parent-company shipwright, fitting, inspection, and recovery crews
-- Kisaragi facilities -> Gaia HQ: return legs to the Hearth for Kisaragi personnel, plus prestige records and warranty documents
+- Kisaragi facilities -> Gaia HQ: return legs to the Hearth for Kisaragi personnel
 
 KIS proper cargo/passenger palette:
 
@@ -257,10 +267,13 @@ KIS proper cargo/passenger palette:
 - Silk/Porcelain/Celadon-class acoustic fit-out kits
 - Porcelain/Celadon-class panoramic viewport assemblies
 - Porcelain/Celadon-class docking collar assemblies
-- Celadon-class hull elements
-- Celadon-class luxury liner modules
-- Celadon-class signature pressure-shell sections
-- Celadon-class highliner frame interface rings
+- Celadon-class hull elements, from Highliner Bay imports only
+- Celadon-class pressure-shell sections, from Highliner Bay imports only
+- Celadon-class luxury liner modules, from Highliner Bay imports or facility rework
+- Celadon-class signature shell modules, from Highliner Bay imports only
+- Celadon-class highliner frame interface rings, from Highliner Bay imports only
+- Celadon-class matching shell sections, facility-to-facility after import/rework
+- Celadon-class acceptance mockup sections, facility-to-facility after import/rework
 - Kisaragi master shipwright delegation
 - hull acceptance board
 - interior finish inspectors
