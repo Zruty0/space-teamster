@@ -14,6 +14,7 @@ Current implementation:
 - Miners Mutual generator: `src/content/estella/faction-contracts/miners-mutual-contracts.ts`
 - Cerberus generator: `src/content/estella/faction-contracts/cerberus-contracts.ts`
 - Bruckner Field Services generator: `src/content/estella/faction-contracts/bruckner-contracts.ts`
+- Voss-Heinkel Metricwerke generator: `src/content/estella/faction-contracts/vhm-contracts.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
 
@@ -220,6 +221,50 @@ KIS-E likely cargo:
 - truss repair stock
 - cabin liner panels
 - yard worker shuttle groups
+
+## Faction: Voss-Heinkel Metricwerke
+
+- ID: `voss-heinkel-metricwerke`
+- Tag: `VHM`
+- Public name: Voss-Heinkel Metricwerke
+- Local service/dealer arm: Bruckner Field Services
+- Primary Estella corporate home: `estella-iii-finance-city`
+- Primary hardware custody point: `estella-viii-harder-approach-station`
+
+VHM proper is the rare, high-value parent-company layer above BFS. BFS moves service packages through an aggregation lattice; VHM moves sealed parent hardware and corporate authority directly. Precision manufacturing/testing as a separate VHM in-system subsidiary is deferred.
+
+Current VHM route families:
+
+- Bruckner Weymark Depot -> weighted BFS service leaves: direct rare hardware, with dockyards, outfitter/service nodes, vacuum stations, and component/fabrication nodes weighted highest; surface precision-industry sites are low-weight exceptions
+- BFS service leaves -> Bruckner Weymark Depot: sealed evidence, warranty, and failed critical-system returns
+- Gaia corporate HQ -> Weymark Depot / weighted service leaves: VHM factory engineers, audit teams, commissioning crews, warranty boards, incident teams, executive inspectors, and dealer compliance auditors
+- Weymark Depot / service leaves -> Gaia corporate HQ: return legs home for VHM personnel after inspections, audits, and incident work
+
+Current VHM cargo palette:
+
+- VHM propulsion core assembly
+- factory-certified main drive module
+- metric field coil cartridge
+- phase-locked field regulator bank
+- field geometry control stack
+- sealed orbital maneuvering engine package
+- null-field stabilization crate
+- prototype field regulator package
+- restricted civilian driveware crate
+- sealed accident telemetry core
+- VHM warranty black-box vault
+- drive incident evidence locker
+- failed field regulator vault
+- quarantined propulsion control stack
+- VHM factory engineer delegation
+- metric-drive audit team
+- warranty arbitration board
+- senior commissioning crew
+- field geometry incident team
+- executive inspection party
+- dealer compliance auditors
+
+Reputation hooks later: VHM work should be locked behind proven BFS/VHEP-style trust, high reliability, and probably certification. VHM reputation should unlock parent-company hardware, warranty evidence, executive travel, and Highliner/Big Iron-adjacent work.
 
 ## Faction: Bruckner Field Services
 
