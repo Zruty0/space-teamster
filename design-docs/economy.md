@@ -147,7 +147,7 @@ Workforce and custody origins are system-wide population, legal, and industrial 
 - `estella-iii-main-customs`
 - `estella-iv-primary-city`
 - `estella-iv-main-orbital-station`
-- `estella-v-capital-settlement`
+- Concord (`estella-v-capital-settlement`)
 - `estella-vi-industrial-city`
 - `estella-vi-spaceport`
 - `estella-vi-main-transit-dispatch`

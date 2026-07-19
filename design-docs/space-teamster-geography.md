@@ -189,13 +189,13 @@ Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmos
 
 | ID | Type | Description |
 |---|---|---|
-| Estella V.1 | Hartwell Transit Station | Transit and customs |
-| Estella V.2 | Hartwell Capital Settlement | Capital settlement, regional offices, old gateway administration |
-| Estella V.3 | Surface | Open-cast ore mine |
-| Estella V.4 | Surface | Atmospheric refining + light-industrial complex |
-| Estella V.5 | Surface | Storm-prone research outpost |
-| Estella V.6 | Surface | Abandoned colony (salvage) |
-| Estella V.7 | Hartwell Orbital Factory | High-orbit factory |
+| Estella V.1 | Roadstead Station / Roadstead Customs | Transit and customs |
+| Estella V.2 | Concord | Capital settlement, regional offices, old gateway administration |
+| Estella V.3 | Dawes Cut | Open-cast ore mine |
+| Estella V.4 | Cinderhook Refinery | Atmospheric refining + light-industrial complex |
+| Estella V.5 | Gale Survey | Storm-prone research outpost |
+| Estella V.6 | First Landing | Abandoned first colony site (salvage) |
+| Estella V.7 | Ascension Scaffold | Historic first orbital factory, shipyard, and outward-colonization staging ground; locally, the Old Scaffold |
 
 ### Estella Va — Pike
 Small airless moon of Hartwell used for ore handling, strip mining, and old frontier road work.
