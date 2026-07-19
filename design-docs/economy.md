@@ -246,7 +246,7 @@ Weymark naming:
 
 ### Current BFS network model
 
-BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided.
+BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are mostly vacuum stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided. Surface work is deliberately rare and weighted low, limited to precision machinery support at factories, mines, and specialized industrial sites. Dockyards and ship-service nodes carry the highest leaf weights.
 
 Core nodes:
 
@@ -264,9 +264,9 @@ Current route families:
 - Highliner Bay -> Bruckner Weymark Depot: VHM civilian drive inventory, certified propulsion service stock, metric-drive dealer inventory, sealed warranty replacement lots
 - Bruckner Weymark Depot -> Highliner Bay: failed drive service returns, warranty black-box packages, sealed telemetry return lots
 - Bruckner Weymark Depot -> regional sub-hubs: main drive maintenance supplies, RCS installation kits, field calibration service kits, propulsion diagnostics kits, thermal-control maintenance kits, drive alignment certification kits
-- Regional sub-hubs -> leaves: main drive maintenance supplies, field calibration service kits, RCS maintenance supplies, warranty recertification packages, certified drive overhaul kits, vibration isolation service kits
+- Regional sub-hubs -> weighted service leaves: main drive maintenance supplies, field calibration service kits, RCS maintenance supplies, warranty recertification packages, certified drive overhaul kits, vibration isolation service kits
 - Leaves -> sub-hub / Weymark: failed drive service returns, warranty black-box packages, sealed telemetry return lots, incident review evidence crates, quarantined controller returns
-- Any BFS network node -> any other BFS network node: direct relocation of Bruckner field technician teams, drive alignment crews, commissioning engineer teams, warranty inspector parties, incident review boards, and emergency propulsion service crews
+- Sub-hub/leaf -> up to two weighted direct crew destinations per board: Bruckner field technician teams, drive alignment crews, commissioning engineer teams, warranty inspector parties, incident review boards, and emergency propulsion service crews
 
 BFS cargo palette:
 

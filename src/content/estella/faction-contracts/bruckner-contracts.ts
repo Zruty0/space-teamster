@@ -7,14 +7,22 @@ interface BrucknerCargoOption {
   likelihood: number;
 }
 
+interface WeightedNode {
+  id: string;
+  weight: number;
+}
+
 interface BrucknerNodeGroup {
-  subHubId: string;
-  leafIds: string[];
+  subHub: WeightedNode;
+  leaves: WeightedNode[];
 }
 
 const BRUCKNER_ID = 'bruckner-field-services';
 const BRUCKNER_NAME = 'Bruckner Field Services';
 const BRUCKNER_TAG = 'BFS';
+const DIRECT_CREW_RELOCATION_COUNT = 2;
+const SUB_HUB_LEAF_DISTRIBUTION_COUNT = 4;
+const CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT = 2;
 
 const IMPORT_TOUCHDOWN_ID = 'caravanserai-highliner-bay-poi';
 const CENTRAL_HUB_ID = 'estella-viii-harder-approach-station';
@@ -26,82 +34,86 @@ const ESTELLA_XI_SUB_HUB_ID = 'estella-xid-main-port';
 const ESTELLA_XII_SUB_HUB_ID = 'estella-xiib-transit-station-poi';
 const REACH_SUB_HUB_ID = 'estella-xiii-main-port';
 
-const LOCAL_SERVICE_LEAVES = [
-  'caravanserai-outfitter-drydock',
-  'estella-viii-first-rendezvous-station',
-  'still-public-approach-dock',
+function node(id: string, weight: number): WeightedNode {
+  return { id, weight };
+}
+
+const LOCAL_SERVICE_LEAVES: WeightedNode[] = [
+  node('caravanserai-outfitter-drydock', 2.6),
+  node('estella-viii-first-rendezvous-station', 1.5),
+  node('still-public-approach-dock', 0.8),
 ];
 
 const NODE_GROUPS: BrucknerNodeGroup[] = [
   {
-    subHubId: HEARTH_SUB_HUB_ID,
-    leafIds: [
-      'estella-i-transit-customs',
-      'estella-i-hot-processing',
-      'estella-ii-commercial-hub-dock',
-      'estella-iii-high-tech-city',
-      'estella-iiia-main-port-transit',
-      'skim-hub-alpha-precursor-dock',
-      'skim-hub-beta-precursor-dock',
+    subHub: node(HEARTH_SUB_HUB_ID, 1.3),
+    leaves: [
+      node('estella-i-transit-customs', 0.8),
+      node('estella-i-hot-processing', 0.25),
+      node('estella-ii-commercial-hub-dock', 1.2),
+      node('estella-iii-high-tech-city', 0.55),
+      node('estella-iiia-main-port-transit', 0.9),
+      node('skim-hub-alpha-precursor-dock', 1.0),
+      node('skim-hub-beta-precursor-dock', 0.7),
     ],
   },
   {
-    subHubId: CAMPS_SUB_HUB_ID,
-    leafIds: [
-      'estella-via-drydock-station',
-      'estella-vi-heavy-cargo-station',
-      'estella-vi-industrial-city',
-      'estella-vi-foundry-complex',
-      'estella-vii-transit-export',
-      'estella-vii-high-vacuum-factory',
+    subHub: node(CAMPS_SUB_HUB_ID, 1.8),
+    leaves: [
+      node('estella-via-drydock-station', 3.0),
+      node('estella-vi-heavy-cargo-station', 1.8),
+      node('estella-vi-industrial-city', 0.45),
+      node('estella-vi-foundry-complex', 0.55),
+      node('estella-vii-transit-export', 1.1),
+      node('estella-vii-high-vacuum-factory', 1.0),
     ],
   },
   {
-    subHubId: ESTELLA_X_SUB_HUB_ID,
-    leafIds: [
-      'estella-x-observation-skim-hub',
-      'estella-xc-main-outpost',
-      'estella-xd-chem-station',
-      'estella-x-captive-refuel-relay',
-      'estella-xb-smelting-processing',
+    subHub: node(ESTELLA_X_SUB_HUB_ID, 0.9),
+    leaves: [
+      node('estella-x-observation-skim-hub', 0.8),
+      node('estella-xc-main-outpost', 0.55),
+      node('estella-xd-chem-station', 0.9),
+      node('estella-x-captive-refuel-relay', 0.8),
+      node('estella-xb-smelting-processing', 0.35),
     ],
   },
   {
-    subHubId: ESTELLA_XI_SUB_HUB_ID,
-    leafIds: [
-      'estella-xid-services-outfitter-hangar',
-      'estella-xid-specialty-cargo',
-      'estella-xie-outer-spec-drydock',
-      'estella-xie-component-fabrication',
-      'estella-xi-skim-hub',
-      'estella-xia-chem-station',
-      'estella-xib-cryo-transit',
-      'estella-xib-organic-chemistry',
+    subHub: node(ESTELLA_XI_SUB_HUB_ID, 1.5),
+    leaves: [
+      node('estella-xid-services-outfitter-hangar', 0.9),
+      node('estella-xid-specialty-cargo', 0.9),
+      node('estella-xie-outer-spec-drydock', 2.6),
+      node('estella-xie-component-fabrication', 1.2),
+      node('estella-xi-skim-hub', 1.2),
+      node('estella-xia-chem-station', 1.0),
+      node('estella-xib-cryo-transit', 0.6),
+      node('estella-xib-organic-chemistry', 0.4),
     ],
   },
   {
-    subHubId: ESTELLA_XII_SUB_HUB_ID,
-    leafIds: [
-      'estella-xiia-volatiles-transit',
-      'estella-xiic-isotope-mining',
-      'estella-xii-comm-relay-poi',
+    subHub: node(ESTELLA_XII_SUB_HUB_ID, 0.9),
+    leaves: [
+      node('estella-xiia-volatiles-transit', 0.5),
+      node('estella-xiic-isotope-mining', 0.35),
+      node('estella-xii-comm-relay-poi', 0.8),
     ],
   },
   {
-    subHubId: REACH_SUB_HUB_ID,
-    leafIds: [
-      'estella-xiv-transit-dock',
-      'reach-rogue-isotope-mine',
-      'reach-rogue-lonely-beacon',
-      'reach-comet-fragment-2-poi',
-      'reach-comet-fragment-5-poi',
-      'deepest-dock-poi',
+    subHub: node(REACH_SUB_HUB_ID, 0.8),
+    leaves: [
+      node('estella-xiv-transit-dock', 0.8),
+      node('reach-rogue-isotope-mine', 0.35),
+      node('reach-rogue-lonely-beacon', 0.5),
+      node('reach-comet-fragment-2-poi', 0.5),
+      node('reach-comet-fragment-5-poi', 0.5),
+      node('deepest-dock-poi', 0.4),
     ],
   },
 ];
 
-const SUB_HUB_IDS = NODE_GROUPS.map(group => group.subHubId);
-const SERVICE_LEAF_IDS = [...LOCAL_SERVICE_LEAVES, ...NODE_GROUPS.flatMap(group => group.leafIds)];
+const SUB_HUBS = NODE_GROUPS.map(group => group.subHub);
+const SERVICE_LEAVES = [...LOCAL_SERVICE_LEAVES, ...NODE_GROUPS.flatMap(group => group.leaves)];
 
 const IMPORT_STOCK: BrucknerCargoOption[] = [
   { label: 'VHM civilian drive inventory', massClass: 'standard', likelihood: 1.1 },
@@ -146,6 +158,40 @@ const CREW_MOVES: BrucknerCargoOption[] = [
   { label: 'emergency propulsion service crew', massClass: 'standard', likelihood: 0.75 },
 ];
 
+function hashString(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function rand(seed: number): number {
+  let x = seed >>> 0;
+  x ^= x << 13;
+  x ^= x >>> 17;
+  x ^= x << 5;
+  return (x >>> 0) / 0xffffffff;
+}
+
+function weightedPick<T>(items: T[], count: number, seed: number, weightOf: (item: T) => number): T[] {
+  const pool = items.filter(item => weightOf(item) > 0);
+  const picked: T[] = [];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    const total = pool.reduce((sum, item) => sum + weightOf(item), 0);
+    let roll = rand(seed + i * 0x7f4a7c15) * total;
+    let idx = 0;
+    for (; idx < pool.length; idx++) {
+      roll -= weightOf(pool[idx]);
+      if (roll <= 0) break;
+    }
+    const [item] = pool.splice(Math.min(idx, pool.length - 1), 1);
+    picked.push(item);
+  }
+  return picked;
+}
+
 function cargoFor(label: string, massClass: CargoMassClass, templateId: string, sourceId: string, destinationId: string): MissionCargoSpec {
   return {
     label,
@@ -154,61 +200,99 @@ function cargoFor(label: string, massClass: CargoMassClass, templateId: string, 
   };
 }
 
-function pushCargoOptions(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, options: BrucknerCargoOption[], laneLikelihood: number): void {
-  for (const option of options) {
-    const templateId = `${templatePrefix}:${option.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '')}`;
-    out.push({
-      factionId: BRUCKNER_ID,
-      factionName: BRUCKNER_NAME,
-      factionTag: BRUCKNER_TAG,
-      templateId,
-      sourceId,
-      destinationId,
-      cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
-      likelihood: laneLikelihood * option.likelihood,
-    });
+function templateIdFor(prefix: string, option: BrucknerCargoOption): string {
+  return `${prefix}:${option.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '')}`;
+}
+
+function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: BrucknerCargoOption, laneLikelihood: number): void {
+  const templateId = templateIdFor(templatePrefix, option);
+  out.push({
+    factionId: BRUCKNER_ID,
+    factionName: BRUCKNER_NAME,
+    factionTag: BRUCKNER_TAG,
+    templateId,
+    sourceId,
+    destinationId,
+    cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
+    likelihood: laneLikelihood * option.likelihood,
+  });
+}
+
+function pushSampledCargoOptions(
+  out: FactionContractCandidate[],
+  templatePrefix: string,
+  sourceId: string,
+  destinationId: string,
+  options: BrucknerCargoOption[],
+  laneLikelihood: number,
+  count: number,
+  seedBase: number,
+): void {
+  for (const option of weightedPick(options, count, seedBase ^ hashString(`${templatePrefix}:${sourceId}->${destinationId}`), option => option.likelihood)) {
+    pushCargoOption(out, templatePrefix, sourceId, destinationId, option, laneLikelihood);
   }
 }
 
 function groupForSource(sourceId: string): BrucknerNodeGroup | undefined {
-  return NODE_GROUPS.find(group => group.subHubId === sourceId || group.leafIds.includes(sourceId));
+  return NODE_GROUPS.find(group => group.subHub.id === sourceId || group.leaves.some(leaf => leaf.id === sourceId));
 }
 
-function addCrewRelocations(out: FactionContractCandidate[], sourceId: string): void {
-  const crewNodes = [...SUB_HUB_IDS, ...SERVICE_LEAF_IDS];
-  if (!crewNodes.includes(sourceId)) return;
-  const directTargets = crewNodes.filter(id => id !== sourceId);
-  for (const destinationId of directTargets) pushCargoOptions(out, 'crew-direct', sourceId, destinationId, CREW_MOVES, 0.1);
+function isLocalServiceLeaf(sourceId: string): boolean {
+  return LOCAL_SERVICE_LEAVES.some(leaf => leaf.id === sourceId);
+}
+
+function addCrewRelocations(out: FactionContractCandidate[], ctx: FactionContractContext): void {
+  const crewNodes = [...SUB_HUBS, ...SERVICE_LEAVES];
+  if (!crewNodes.some(node => node.id === ctx.sourceId)) return;
+  const day = Math.floor(ctx.worldTime / 86_400);
+  const seed = hashString(`${BRUCKNER_ID}:crew:${ctx.sourceId}:${day}`);
+  const directTargets = weightedPick(
+    crewNodes.filter(node => node.id !== ctx.sourceId),
+    DIRECT_CREW_RELOCATION_COUNT,
+    seed,
+    node => node.weight,
+  );
+  directTargets.forEach((destination, index) => {
+    const [crew] = weightedPick(CREW_MOVES, 1, seed ^ hashString(`${destination.id}:${index}`), option => option.likelihood);
+    if (crew) pushCargoOption(out, 'crew-direct', ctx.sourceId, destination.id, crew, 0.55 * destination.weight);
+  });
 }
 
 function generateBrucknerContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   const sourceId = ctx.sourceId;
 
+  const day = Math.floor(ctx.worldTime / 86_400);
+  const seedBase = hashString(`${BRUCKNER_ID}:lanes:${sourceId}:${day}`);
+
   if (sourceId === IMPORT_TOUCHDOWN_ID) {
-    pushCargoOptions(out, 'import-feeder', sourceId, CENTRAL_HUB_ID, IMPORT_STOCK, 2.4);
+    pushSampledCargoOptions(out, 'import-feeder', sourceId, CENTRAL_HUB_ID, IMPORT_STOCK, 2.4, 3, seedBase);
   }
 
   if (sourceId === CENTRAL_HUB_ID) {
-    pushCargoOptions(out, 'export-return-to-highliner', sourceId, IMPORT_TOUCHDOWN_ID, RETURNS, 1.25);
-    for (const subHubId of SUB_HUB_IDS) pushCargoOptions(out, 'hub-to-subhub', sourceId, subHubId, HUB_DISTRIBUTION_STOCK, 0.95);
-    for (const leafId of LOCAL_SERVICE_LEAVES) pushCargoOptions(out, 'hub-to-local-leaf', sourceId, leafId, LEAF_SERVICE_STOCK, 0.85);
+    pushSampledCargoOptions(out, 'export-return-to-highliner', sourceId, IMPORT_TOUCHDOWN_ID, RETURNS, 1.25, 2, seedBase);
+    for (const subHub of SUB_HUBS) pushSampledCargoOptions(out, 'hub-to-subhub', sourceId, subHub.id, HUB_DISTRIBUTION_STOCK, 0.75 * subHub.weight, 1, seedBase);
+    for (const leaf of weightedPick(LOCAL_SERVICE_LEAVES, CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT, seedBase ^ 0x105ea1, leaf => leaf.weight)) {
+      pushSampledCargoOptions(out, 'hub-to-local-leaf', sourceId, leaf.id, LEAF_SERVICE_STOCK, 0.55 * leaf.weight, 1, seedBase);
+    }
   }
 
   const group = groupForSource(sourceId);
-  if (group?.subHubId === sourceId) {
-    pushCargoOptions(out, 'subhub-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05);
-    for (const leafId of group.leafIds) pushCargoOptions(out, 'subhub-to-leaf', sourceId, leafId, LEAF_SERVICE_STOCK, 0.95);
-  } else if (group?.leafIds.includes(sourceId)) {
-    pushCargoOptions(out, 'leaf-return-to-subhub', sourceId, group.subHubId, RETURNS, 1.05);
-    pushCargoOptions(out, 'leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 0.55);
+  if (group?.subHub.id === sourceId) {
+    pushSampledCargoOptions(out, 'subhub-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase);
+    for (const leaf of weightedPick(group.leaves, SUB_HUB_LEAF_DISTRIBUTION_COUNT, seedBase ^ 0x5e1f1eaf, leaf => leaf.weight)) {
+      pushSampledCargoOptions(out, 'subhub-to-leaf', sourceId, leaf.id, LEAF_SERVICE_STOCK, 0.65 * leaf.weight, 1, seedBase);
+    }
+  } else if (group?.leaves.some(leaf => leaf.id === sourceId)) {
+    pushSampledCargoOptions(out, 'leaf-return-to-subhub', sourceId, group.subHub.id, RETURNS, 1.05, 2, seedBase);
+    pushSampledCargoOptions(out, 'leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 0.55, 1, seedBase);
   }
 
-  if (LOCAL_SERVICE_LEAVES.includes(sourceId)) {
-    pushCargoOptions(out, 'local-leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05);
+  if (isLocalServiceLeaf(sourceId)) {
+    pushSampledCargoOptions(out, 'local-leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase);
   }
 
-  addCrewRelocations(out, sourceId);
+  addCrewRelocations(out, ctx);
   return out;
 }
 
