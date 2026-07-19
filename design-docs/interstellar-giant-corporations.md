@@ -1,0 +1,17 @@
+# Interstellar Giant Corporations
+
+## Kisaragi Harmony Yards
+
+Kisaragi Harmony Yards began as a prestige hull house, the kind of shipwright concern that sold silence, proportion, safety, and lineage as much as pressure shells. Its reputation grew among families, carriers, and hotel-line operators who wanted ships that looked inevitable rather than merely expensive. By the modern era Kisaragi had become an interstellar luxury-industrial marque: not the builder of ordinary working rigs, but the name attached to yachts, specialty ships, high-end cruise liners, and signature hull work.
+
+Kisaragi's product ladder is deliberately legible. Silk-class work covers entry prestige interiors and finish systems; Porcelain-class work moves into pressure structures, viewport assemblies, and refined exterior shell elements; Celadon-class work is the house pinnacle, reserved for signature hull elements, luxury liner modules, highliner interface work, and acceptance-sensitive prestige cargo. The parent company does not usually own whole yards in Estella. It rents substantial facilities inside massive existing shipyard stations and brings its own standards, tooling, inspectors, and client-facing rituals into those leased spaces.
+
+Kisaragi shipping is physical, visible, and decentralized. Supplier freight and facility balancing move through the local subsidiary, Kisaragi Yards Estella, while the parent posts rarer KIS work from its three Estella facilities at Caravanserai Outfitter/Drydock, Estella VIa Drydock, and Estella XIe Outer-Spec Drydock. KIS cargo tends to be high-value structural lots and prestige modules moving yard-to-yard or toward Highliner Bay; KIS personnel move between Gaia corporate offices and yard facilities for inspection, fitting, acceptance, and recovery rotations.
+
+## Voss-Heinkel Metricwerke
+
+Voss-Heinkel Metricwerke built its fortune by making ships move correctly. Where older industrial dynasties sold steel, cargo frames, or visible hullwork, VHM sold engines, metric-drive systems, field regulation, propulsion controls, and the certification discipline that made insurers and carriers trust those systems. Its culture is famously severe: tolerance sheets, audit seals, warranty chains, and liability boundaries are treated as products in their own right.
+
+VHM manufactures and controls the high-value parts of the propulsion ecosystem: factory-certified main drive modules, propulsion core assemblies, metric field coil cartridges, phase-locked regulator banks, field geometry control stacks, driveware, and incident telemetry systems. In Estella, VHM proper does not behave like a local bulk manufacturer. It is centralized around interstellar import, parent-company custody, and corporate authority, with Bruckner Field Services handling the lower-tier dealer, service, parts, maintenance, and certified distribution business.
+
+VHM shipping is rare, direct, sealed, and expensive. Parent hardware moves from Bruckner Weymark Depot straight to weighted service leaves rather than through the BFS sub-hub lattice, because the cargo is too valuable and too sparse to aggregate. Failed critical systems, accident telemetry, warranty black-box vaults, and drive incident evidence return directly to Weymark. VHM employees mostly originate from Gaia corporate offices, traveling as factory engineer delegations, audit teams, commissioning crews, warranty boards, incident teams, executive inspectors, and compliance parties, with explicit return legs home after site work.

@@ -1,0 +1,33 @@
+# System-Level Corporations and Institutions
+
+## New Canaan Miners Mutual
+
+New Canaan Miners Mutual formed during the first Belt claim rush, when the New Canaan Field still looked like a promised land of titanium-bearing stone, member-owned concentrators, sponge furnaces, billet presses, and family claims. Its charter mixed business compact and frontier ethic: pooled stores, shared lawyers, emergency tugs, relief funds, and arbitration before outside law. Gaia-backed money stripped the best claims and left the Field with low-margin leftovers, but the Co-op survived because its members still needed someone to keep the heat, air, and books balanced.
+
+Today the Co-op is less a mining empire than a mutual aid broker for a declining industrial backwater. It aggregates tailings concentrate, basalt feedstock, regolith shielding blocks, scrap pressure alloy, and small assay lots, then searches for buyers with better processors. In the other direction it bulk-sources pressure seals, pump cartridges, recycler parts, rotary bearings, actuator assemblies, ration packs, medical lockers, oxygen bottles, and certified pressure gas from cheaper suppliers rather than buying much at Caravanserai prices.
+
+Co-op shipping is low-margin, practical, and member-facing. Harlan Dock and Mercer Dock are the Field's working endpoints; Estella VI industry, VIa components, drydocks, the Still, and occasional Gaia high-tech buyers are the outside contacts. Emergency purchases from Caravanserai exist, but they are visible because they are painful. A Teamster hauling for the Co-op is usually moving what keeps old halls pressurized or what lets a member claim sell one more marginal lot.
+
+## Cerberus Human Resources
+
+Cerberus Human Resources began as a corporate solution to unwanted populations and hydrogen-poor extraction on Acheron. Governments and autocrats delivered people they wanted removed; CHR converted that custody into shares, labor, and surface extraction rights. Olympos became wealthy because Pandemonium could send rare metals upward while receiving rationed hydrogen downward, making human scarcity and planetary chemistry part of the same balance sheet.
+
+CHR's main operations are custody logistics, surface labor allocation, Acheron rare-metal extraction, Carbonvale/Olympos carbon materials, legal-financial paperwork, and luxury/corporate movement around the Olympos elite. The Acheron Commercial Hub is its routine orbital interface: customs, staging, inspection, and transshipment. Olympos is the headquarters and premium city node. Pandemonium is the brutal surface asset whose output makes the rest profitable.
+
+CHR shipping moves people and hydrogen down, metals and profit up, and paperwork everywhere. Workforce and custody transfers can originate from major population, legal, industrial, and transit hubs across Estella. Surface inputs include pressure equipment, hydrogen ration tanks, medicine lockers, bearings, and valve assemblies. Exports include platinum-group metal ingots, pressure-mined rare metal pallets, silica crystal stock, carbon-fiber rolls, graphite blocks, graphene cable stock, industrial oxygen bottles, shareholder packets, legal archives, audit records, and executive or hospitality cargo.
+
+## Bruckner Field Services
+
+Bruckner Field Services presents itself as an independent Estella company, but its business identity is inseparable from Voss-Heinkel Metricwerke. Bruckner is the authorized VHM service, parts, and maintenance bureau for Estella and the exclusive dealer for the full civilian VHM line. Its independence is useful: customers can talk to Bruckner about service and parts, while VHM preserves distance around patents, warranty authority, and parent-company liability.
+
+Bruckner does not manufacture VHM core systems. It sells, stores, certifies, refurbishes, dispatches technicians, preserves warranty chain-of-custody, and moves service packages through a controlled regional lattice. Its central foothold is Bruckner Weymark Depot, close to Caravanserai Highliner Bay but private enough for sealed inventory and certification discipline. From there BFS reaches one sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach.
+
+BFS shipping is mostly vacuum-oriented service logistics. Highliner Bay feeds Weymark; Weymark feeds sub-hubs; sub-hubs feed weighted service leaves such as drydocks, outfitter nodes, component stations, refuel/transit stations, and specialized industrial sites. Cargo is bundled into practical service lots: main drive maintenance supplies, RCS installation kits, field calibration service kits, propulsion diagnostics kits, warranty recertification packages, drive overhaul kits, black-box packages, and sealed telemetry returns. Direct crew and inspector relocations are rare and valuable, because technician time is more expensive than routing discipline.
+
+## Kisaragi Yards Estella
+
+Kisaragi Yards Estella is the local shipping and representation arm of Kisaragi Harmony Yards. It exists because the parent does not own whole Estella yards; it rents major facilities inside existing shipyard stations and needs a local company to keep those leased spaces supplied, documented, and balanced. KIS-E has very little crew of its own and does not post passenger contracts for now. Its people are shipping representatives, yard liaisons, and paperwork handlers rather than traveling master shipwrights.
+
+KIS-E supports three Kisaragi facilities: Caravanserai Outfitter/Drydock, Estella VIa Drydock, and Estella XIe Outer-Spec Drydock. The Caravanserai facility is the Belt-facing outfitter and prestige interface. The VIa facility handles luxury yachts, specialty ships, and high-end cruise liners. The XIe facility supports extra-large mobile refineries and gas-giant industrial hulls. KIS-E works below the parent prestige tier, so it can move Silk-class and Porcelain-class goods but not Celadon-class items.
+
+KIS-E shipping is decentralized yard freight. Suppliers such as Estella VI foundries and industry, VI Heavy-Cargo Dispatch, VIa Component Supply, XIe Component/Fabrication, VII High-Vacuum Precision Factory, and Belt finished-goods processors send Silk/Porcelain-class panels, fit-out crates, pressure-door frames, viewport assemblies, hull fairings, pressure-shell sections, and specialty shielding lots to Kisaragi facilities. The facilities also trade unfinished sections, fit-out modules, tooling pallets, rework lots, yard acceptance documents, client archives, hull warranty packets, and registry records among themselves and toward Highliner Bay or Gaia corporate offices.
