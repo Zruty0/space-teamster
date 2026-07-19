@@ -197,7 +197,7 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
     Math.max(MIN_FACTION_CONTRACTS, factionCandidates.length),
   );
   for (const candidate of weightedPick(factionCandidates, factionCount, seed ^ 0x51f15eed)) {
-    if (contracts.length >= MAX_CONTRACTS || picked.has(candidate.destinationId)) continue;
+    if (contracts.length >= MAX_CONTRACTS) continue;
     picked.add(candidate.destinationId);
     contracts.push(makeFactionContract(candidate, contracts.length, startWorldTime));
   }

@@ -40,8 +40,16 @@ const CERBERUS_NAME = 'Cerberus Human Resources';
 const CERBERUS_TAG = 'CHR';
 
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
-const ACHERON_CORPORATE_NODES = ['estella-ii-commercial-hub-dock', 'estella-ii-olympos'];
-const ACHERON_SURFACE_OPS_NODES = ['estella-ii-commercial-hub-dock', 'estella-ii-olympos', 'estella-ii-pandemonium'];
+const ACHERON_COMMERCIAL_HUB_ID = 'estella-ii-commercial-hub-dock';
+const ACHERON_OLYMPOS_ID = 'estella-ii-olympos';
+const ACHERON_PANDEMONIUM_ID = 'estella-ii-pandemonium';
+const ACHERON_CORPORATE_NODES = [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID];
+const ACHERON_SURFACE_OPS_NODES = [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID, ACHERON_PANDEMONIUM_ID];
+const CERBERUS_ACHERON_DESTINATION_WEIGHTS: Record<string, number> = {
+  [ACHERON_COMMERCIAL_HUB_ID]: 0.6,
+  [ACHERON_OLYMPOS_ID]: 0.3,
+  [ACHERON_PANDEMONIUM_ID]: 0.1,
+};
 const CHR_WORKFORCE_ORIGINS = [
   'estella-iii-capital-city',
   'estella-iii-finance-city',
@@ -83,9 +91,23 @@ const MINERS_MUTUAL_TEMPLATES: FactionContractTemplate[] = [
 
 const CERBERUS_TEMPLATES: FactionContractTemplate[] = [
   // Custody and workforce intake from large population and legal/industrial hubs.
-  { templateId: 'workforce-transfer-to-hub', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-commercial-hub-dock'], cargoLabel: 'workforce transfer group', massClass: 'standard', likelihood: 1.05 },
-  { templateId: 'custody-transfer-to-olympos', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-olympos'], cargoLabel: 'custody transfer passengers', massClass: 'standard', likelihood: 0.85 },
-  { templateId: 'surface-labor-allocation', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: ['estella-ii-pandemonium'], cargoLabel: 'surface labor allocation', massClass: 'heavy', likelihood: 0.55 },
+  { templateId: 'workforce-transfer-to-hub', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'workforce transfer group', massClass: 'standard', likelihood: 1.0 },
+  { templateId: 'custody-transfer-to-olympos', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'custody transfer passengers', massClass: 'standard', likelihood: 1.0 },
+  { templateId: 'surface-labor-allocation', sourceIds: CHR_WORKFORCE_ORIGINS, destinationIds: [ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface labor allocation', massClass: 'heavy', likelihood: 1.0 },
+
+  // Acheron-local transshipment between the orbital interface, Olympos, and the surface chain.
+  { templateId: 'local-custody-processing', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'custody processing passengers', massClass: 'standard', likelihood: 2.0 },
+  { templateId: 'local-workforce-manifests', sourceIds: [ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'workforce transfer manifests', massClass: 'light', likelihood: 1.55 },
+  { templateId: 'local-rare-metal-export-staging', sourceIds: [ACHERON_OLYMPOS_ID, ACHERON_PANDEMONIUM_ID], destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'rare-metal export staging pallets', massClass: 'dense', likelihood: 2.15 },
+  { templateId: 'local-carbonvale-export-staging', sourceIds: [ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'Carbonvale export lots', massClass: 'heavy', likelihood: 1.8 },
+  { templateId: 'local-shareholder-packets', sourceIds: [ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'shareholder packets', massClass: 'light', likelihood: 1.25 },
+  { templateId: 'local-legal-archives', sourceIds: [ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'sealed legal archives', massClass: 'light', likelihood: 1.15 },
+  { templateId: 'local-pressure-equipment-staging', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'pressure-chain equipment pallets', massClass: 'heavy', likelihood: 1.65 },
+  { templateId: 'local-paradiso-hospitality', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'Paradiso hospitality cargo', massClass: 'standard', likelihood: 1.45 },
+  { templateId: 'local-executive-medicine', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'executive medicine lockers', massClass: 'light', likelihood: 1.25 },
+  { templateId: 'local-audit-records', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'sealed audit records', massClass: 'light', likelihood: 1.1 },
+  { templateId: 'local-hydrogen-chain-staging', sourceIds: [ACHERON_COMMERCIAL_HUB_ID], destinationIds: [ACHERON_OLYMPOS_ID, ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface hydrogen ration tanks', massClass: 'standard', likelihood: 1.4 },
+  { templateId: 'local-surface-labor-processing', sourceIds: [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface labor allocation', massClass: 'heavy', likelihood: 1.2 },
 
   // Carbonvale and Olympos exports.
   { templateId: 'carbon-fiber-to-camps', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-vi-industrial-city'], cargoLabel: 'carbon-fiber structural rolls', massClass: 'heavy', likelihood: 0.95 },
@@ -102,7 +124,7 @@ const CERBERUS_TEMPLATES: FactionContractTemplate[] = [
   { templateId: 'pressure-valves-to-acheron', sourceIds: ['estella-vi-foundry-complex', 'estella-vi-industrial-city'], destinationIds: ACHERON_SURFACE_OPS_NODES, cargoLabel: 'deep-pressure valve assemblies', massClass: 'heavy', likelihood: 0.9 },
   { templateId: 'lift-bearings-to-olympos', sourceIds: ['estella-via-component-supply-station', 'estella-via-drydock-station'], destinationIds: ['estella-ii-olympos'], cargoLabel: 'acid-rated lift bearings', massClass: 'heavy', likelihood: 0.75 },
   { templateId: 'medicine-to-olympos', sourceIds: ['estella-vib-cold-chain-station'], destinationIds: ['estella-ii-olympos', 'estella-ii-commercial-hub-dock'], cargoLabel: 'executive medicine lockers', massClass: 'light', likelihood: 0.55 },
-  { templateId: 'hydrogen-to-pandemonium', sourceIds: ['estella-ii-nimbus-crucible', 'estella-ii-commercial-hub-dock', 'estella-ii-olympos'], destinationIds: ['estella-ii-pandemonium'], cargoLabel: 'surface hydrogen ration tanks', massClass: 'standard', likelihood: 0.9 },
+  { templateId: 'hydrogen-to-pandemonium', sourceIds: ['estella-ii-nimbus-crucible', ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface hydrogen ration tanks', massClass: 'standard', likelihood: 0.9 },
 
   // Corporate governance, finance, and luxury consumption.
   { templateId: 'shareholder-packets-to-finance', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-iii-finance-city'], cargoLabel: 'shareholder packets', massClass: 'light', likelihood: 0.75 },
@@ -120,12 +142,17 @@ function cargoForTemplate(factionId: string, template: FactionContractTemplate, 
   };
 }
 
+function cerberusDestinationLikelihood(destinationId: string): number {
+  return CERBERUS_ACHERON_DESTINATION_WEIGHTS[destinationId] ?? 1;
+}
+
 function candidatesFromTemplates(
   factionId: string,
   factionName: string,
   factionTag: string,
   templates: FactionContractTemplate[],
   ctx: FactionContractContext,
+  likelihoodForDestination: (destinationId: string) => number = () => 1,
 ): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   for (const template of templates) {
@@ -140,7 +167,7 @@ function candidatesFromTemplates(
         sourceId: ctx.sourceId,
         destinationId,
         cargo: cargoForTemplate(factionId, template, ctx.sourceId, destinationId),
-        likelihood: template.likelihood,
+        likelihood: template.likelihood * likelihoodForDestination(destinationId),
       });
     }
   }
@@ -159,7 +186,7 @@ export const CERBERUS_HUMAN_RESOURCES_PROVIDER: FactionContractProvider = {
   id: CERBERUS_ID,
   name: CERBERUS_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return candidatesFromTemplates(CERBERUS_ID, CERBERUS_NAME, CERBERUS_TAG, CERBERUS_TEMPLATES, ctx);
+    return candidatesFromTemplates(CERBERUS_ID, CERBERUS_NAME, CERBERUS_TAG, CERBERUS_TEMPLATES, ctx, cerberusDestinationLikelihood);
   },
 };
 

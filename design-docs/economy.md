@@ -86,7 +86,7 @@ Low-rep Co-op work should be ordinary freight and emergency errands. Higher repu
 
 Cerberus Human Resources is a vertically integrated extraction, custody, and labor-management corporation. Its business loop is: people and hydrogen go down; rare metals and profit go up; carbon materials, paperwork, and influence move everywhere.
 
-Acheron Commercial Hub and Olympos serve different business roles. The Commercial Hub is the offworld interface: customs, staging, brokerage, inspection, paperwork, and routine transshipment. Olympos is the city and headquarters: high-value direct delivery, CHR offices, Carbonvale production, Paradiso luxury demand, executive traffic, and the atmospheric interface to the Pandemonium chain.
+Acheron Commercial Hub and Olympos serve different business roles. The Commercial Hub is the offworld interface: customs, staging, brokerage, inspection, paperwork, and routine transshipment. Olympos is the city and headquarters: high-value direct delivery, CHR offices, Carbonvale production, Paradiso luxury demand, executive traffic, and the atmospheric interface to the Pandemonium chain. When CHR templates point at Acheron destinations, their intended destination mix is roughly 60% Commercial Hub, 30% Olympos, and 10% Pandemonium.
 
 ### Business needs
 
@@ -123,6 +123,15 @@ Corporate/luxury traffic:
 - Paradiso hospitality cargo
 - executive delegations
 
+Acheron-local transshipment:
+
+- custody processing passengers
+- workforce transfer manifests
+- rare-metal export staging pallets
+- Carbonvale export lots
+- pressure-chain equipment pallets
+- local hospitality, medicine, audit, hydrogen, and surface-labor staging
+
 ### Current route families
 
 Workforce and custody origins are system-wide population, legal, and industrial hubs:
@@ -147,6 +156,13 @@ Custody/workforce destinations:
 - origins -> `estella-ii-commercial-hub-dock`: workforce transfer group
 - origins -> `estella-ii-olympos`: custody transfer passengers
 - origins -> `estella-ii-pandemonium`: surface labor allocation
+
+Acheron-local traffic:
+
+- `estella-ii-commercial-hub-dock` -> `estella-ii-olympos`: custody processing passengers, pressure-chain equipment pallets, Paradiso hospitality cargo, executive medicine lockers, sealed audit records, surface hydrogen ration tanks
+- `estella-ii-olympos` -> `estella-ii-commercial-hub-dock`: workforce transfer manifests, rare-metal export staging pallets, Carbonvale export lots, shareholder packets, sealed legal archives
+- `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-ii-pandemonium`: surface labor allocation and surface hydrogen ration tanks
+- `estella-ii-pandemonium` -> `estella-ii-commercial-hub-dock`: rare-metal export staging pallets
 
 Carbonvale and Olympos exports:
 
