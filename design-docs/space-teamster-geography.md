@@ -211,34 +211,34 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VI.1 | Kuznia Main Dispatch Station | Main transit / dispatch |
-| Estella VI.2 | Kuznia Heavy-Cargo Dispatch | Heavy-cargo dispatch |
-| Estella VI.3 | Surface | Industrial city — machinery, finished goods |
-| Estella VI.4 | Surface | Foundry complex (smelting, heavy refining; the industrial hub) |
-| Estella VI.5 | Surface | Spaceport (passengers + bulk food dispatch; weather-gated) |
-| Estella VI.6 | Surface | Agricultural lowlands (bulk food) |
-| Estella VI.7 | Surface | Polar weather research |
-| Estella VI.8 | Surface | Mountain mining (specialty ore, hard pad, altitude) |
+| Estella VI.1 | Anvil Station | Low-orbit passengers, paperwork, small freight, customs, dispatch, and surface/weather coordination |
+| Estella VI.2 | Hammer Station | High-orbit bulk cargo, feedstock intake, machinery exports, and heavy-freight marshalling |
+| Estella VI.3 | Perun City | Industrial city — machinery and finished goods |
+| Estella VI.4 | Steel Combine | Smelting, heavy refining, and Kuznia's industrial hub |
+| Estella VI.5 | Port Stribog | Spaceport (passengers + bulk food dispatch; weather-gated) |
+| Estella VI.6 | Mokosh Lowlands | Agricultural lowlands (bulk food) |
+| Estella VI.7 | Morana Station | Polar weather research |
+| Estella VI.8 | Veles Mine | Mountain mining (specialty ore, hard pad, altitude) |
 
 ### Svarog
 Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIa.1 | Svarog Drydock | Drydock / shipyard |
-| Estella VIa.2 | Svarog Component Supply | Component supply |
-| Estella VIa.3 | Svarog Surface Anchor | Drydock surface anchor + staff hab |
-| Estella VIa.4 | Svarog Rare Alloy Extraction | Rare alloying extraction |
+| Estella VIa.1 | Svarog Shipyard | Estella's largest conventional shipyard and drydock complex |
+| Estella VIa.2 | Yardstock Terminal | Controlled logistics and materials hub for certified shipyard stock, feedstock, parts, and yard-chain routing |
+| Estella VIa.3 | Anchorhold | Surface ballast/anchor, buried power, radiators, mooring fields, worker shelters, and alignment infrastructure |
+| Estella VIa.4 | Black Vein Mine | High-spec rare alloy and refractory dopant extraction |
 
-### Malyna
-Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith gives Malyna a raspberry/rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding.
+### Kalyna
+Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith gives Kalyna a viburnum-red / rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIb.1 | Malyna Cold-Chain Transit | Cold-chain transit |
-| Estella VIb.2 | Malyna Vat-Protein Primary | Biotech / vat-protein primary |
-| Estella VIb.3 | Malyna Pharmaceutical Horticulture | Pharmaceutical / specialty horticulture |
-| Estella VIb.4 | Malyna Boutique Aquaculture | Aquaculture (boutique luxury) |
+| Estella VIb.1 | Kalyna Orbital | Single orbital cold-chain handling, pharma inspection, sealed cargo transfer, and worker interface station |
+| Estella VIb.2 | Teteriv Broiler Farm | Cultured poultry and vat-protein primary |
+| Estella VIb.3 | Zhitomir Hydroponics | Pharmaceutical / specialty horticulture |
+| Estella VIb.4 | Dnipro Pools | Aquaculture (boutique luxury) |
 
 ### Tessera
 Small airless rocky precision-ops planet of rotational labor, high-vacuum work, metrology, and almost no rooted local culture.

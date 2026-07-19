@@ -103,7 +103,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 80_000,
     gm: 0.38 * 80_000 * 80_000,
     rotationPeriod: 41_000,
-    notes: 'Bright red airless specialty/pharma moon of Kuznia: Malyna. Hematite-rich regolith gives it raspberry/rust coloration.'
+    notes: 'Bright red airless specialty/pharma moon of Kuznia: Kalyna. Hematite-rich regolith gives it raspberry/rust coloration.'
   },
   'estella-vii': {
     radius: 170_000,
