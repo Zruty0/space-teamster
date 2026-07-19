@@ -245,11 +245,11 @@ Small airless rocky precision-ops planet of rotational labor, high-vacuum work, 
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VII.1 | Tessera Transit / Export Station | Transit / export |
-| Estella VII.2 | Tessera High-Vacuum Precision Factory | High-vacuum precision factory |
-| Estella VII.3 | Surface | Specialty feedstock mine |
-| Estella VII.4 | Surface | Worker hab |
-| Estella VII.5 | Surface | Sealed research outpost / black-project rumor |
+| Estella VII.1 | Tessera Orbital | Transit / export |
+| Estella VII.2 | Mosaic Assembly Lab | High-vacuum precision assembly lab |
+| Estella VII.3 | White Ceramic Quarry | High-purity ceramic and optical feedstock quarry |
+| Estella VII.4 | Roster Hall | Administrative capital, medical center, assignment office, and necessary-services hab |
+| Estella VII.5 | Black Tile | Sealed research outpost / black-project rumor |
 
 > **Writer's note:** Kuznia is the system's primary atmospheric flight school and home of the most physically demanding civilian work. A great deal of the system's working-class self-image comes from people who have done time on Kuznia. There is room here for a culture as developed as the writer wants.
 

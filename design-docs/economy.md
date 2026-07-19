@@ -180,7 +180,7 @@ Carbonvale and Olympos exports:
 Rare-metal/surface exports:
 
 - Acheron surface-ops nodes -> `estella-iii-high-tech-city`: platinum-group metal ingots
-- Acheron surface-ops nodes -> `estella-vii-high-vacuum-factory`: silica crystal stock
+- Acheron surface-ops nodes -> Mosaic Assembly Lab (`estella-vii-high-vacuum-factory`): silica crystal stock
 - Acheron surface-ops nodes -> `estella-vi-foundry-complex`: pressure-mined rare metal pallets
 
 Surface operations inputs:
