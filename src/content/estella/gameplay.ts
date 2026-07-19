@@ -10,13 +10,7 @@ function node(id: string): WorldNode {
 }
 
 function nodeName(id: string): string {
-  const n = node(id);
-  if (n.kind === 'planet' || n.kind === 'moon' || n.kind === 'dwarf-planet' || n.kind === 'gas-giant') {
-    return n.catalogId && n.catalogId !== n.name ? `${n.catalogId} ${n.name}` : n.name;
-  }
-  const p = n.placement;
-  const parent = p?.parentId ? ESTELLA_NODES_BY_ID.get(p.parentId) : undefined;
-  return parent?.name && n.name.startsWith(`${parent.name} `) ? n.name.slice(parent.name.length + 1) : n.name;
+  return node(id).name;
 }
 
 function placement(id: string): Placement {

@@ -38,11 +38,10 @@ function hasExactPlacementChain(node: WorldNode): boolean {
 }
 
 function displayName(node: WorldNode): string {
-  return node.catalogId && node.catalogId !== node.name ? `${node.catalogId} ${node.name}` : node.name;
+  return node.name;
 }
 
 function pathName(node: WorldNode): string {
-  if (node.kind === 'poi' && node.catalogId) return node.catalogId;
   return displayName(node);
 }
 
@@ -59,9 +58,10 @@ export function estellaDisplayPath(nodeId: string): string {
   chain.reverse();
   const leaf = ESTELLA_NODES_BY_ID.get(nodeId);
   const region = leaf?.regionId ? ESTELLA_REGION_NAMES[leaf.regionId] : undefined;
-  const parts = chain
+  const rawParts = chain
     .filter(node => node.kind !== 'star')
     .map(pathName);
+  const parts = rawParts.filter((part, index) => index === 0 || part !== rawParts[index - 1]);
   return [region, ...parts].filter(Boolean).join(' -> ');
 }
 

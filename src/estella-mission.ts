@@ -37,8 +37,7 @@ export interface EstellaGeneratedMissionState {
 
 function nodeName(id: string): string {
   const node = ESTELLA_NODES_BY_ID.get(id);
-  if (!node) return id;
-  return node.catalogId && node.catalogId !== node.name ? `${node.catalogId} ${node.name}` : node.name;
+  return node?.name ?? id;
 }
 
 function chainToRoot(nodeId: string): WorldNode[] {

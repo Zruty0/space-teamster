@@ -69,7 +69,7 @@ Asteroids and other no-SOI bodies receive numeric catalogue entries of the form 
 
 Each class has its own sequential number, four digits, zero-padded: *ES-C-0001*, *ES-M-0001*, *ES-S-0001*, *ES-I-0001*, and so on.
 
-POIs *on* a body take a dot suffix: *Estella IIIa.3* or *ES-C-0001.4*. The catalogue is exact, comprehensive, and used mostly by surveyors and bureaucrats.
+POIs *on* a body take a dot suffix: *Estella IIIa.3* or *ES-C-0001.4*. The catalogue is exact, comprehensive, and used mostly by surveyors and bureaucrats. Display paths and spoken deep names use the vernacular name whenever one exists; catalogue identifiers are metadata, not part of the place name.
 
 **Colonist vernacular** — Working people don't talk like surveyors. Regions and the iconic places within them have ordinary names that ordinary people actually use. *The Hearth*, *The Caravanserai*, *The Still*. These names are working-class English — short, concrete, definite-article-prefixable, and immediate.
 
@@ -99,9 +99,9 @@ Internal supply chains are dense and largely uninteresting to the outsider. The 
 |---|---|---|
 | **Estella I** | Mercury-like rocky planet, airless, hot | Innermost. Heavy refractory mining + stellar antimatter skim staging. Worker hab on dark side. |
 | **Estella II** | Venus-like, thick toxic atmosphere | Surface uninhabitable. Habitable cloud city in upper atmosphere. Iconic. Decadent. Possibly mysterious. |
-| **Estella III / Gaia** | Earth-like, breathable atmosphere, weather | The civilization. Capital, government, the old money. Most-named place in the system. |
+| **Gaia** | Earth-like, breathable atmosphere, weather | Catalogue Estella III. The civilization. Capital, government, the old money. Most-named place in the system. |
 | **Estella IIIa** | Large airless moon of Gaia | Heritage and helium-3. Where the first off-world colony was. |
-| **Estella IV / Dahai** | Breathable water planet, humid marine climate | The rival or the relief, depending on who you ask. An ocean world where Gaia's children move when they want to feel like pioneers. |
+| **Dahai** | Breathable water planet, humid marine climate | Catalogue Estella IV. The rival or the relief, depending on who you ask. An ocean world where Gaia's children move when they want to feel like pioneers. |
 
 In addition, between Estella I and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
 
@@ -116,7 +116,7 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella I.4 | Surface (terminator) | Hot processing and refining |
 | Estella I.5 | Surface (dark side) | Observatory and deep-listening, star-shielded |
 
-### Estella II (Venus-like, cloud city)
+### Acheron
 | ID | Type | Description |
 |---|---|---|
 | Estella II.1 | Atmospheric station, ~50 km altitude | **Olympos.** The system's most iconic cloud city. Habitable upper-atmosphere layer (~1 atm, ~30 °C). Decadent. Premium passenger and luxury cargo. |
@@ -124,7 +124,7 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella II.3 | Surface | **Pandemonium.** Deep-pressure penal mining city. One-way for most ships. Endgame work. |
 | Estella II.4 | Station, orbit | **Acheron Commercial Hub.** Orbital commercial, customs, and transfer hub over Acheron. |
 
-### Estella III / Gaia (Earth-like primary)
+### Gaia
 | ID | Type | Description |
 |---|---|---|
 | Estella III.1 | Station, low orbit | Main customs and arrival hub |
@@ -146,7 +146,7 @@ In addition, between Estella I and the star itself sit three free-floating stati
 | Estella IIIa.3 | Surface | Lunar science settlement and observatory |
 | Estella IIIa.4 | Surface | Heritage / historic site (the first off-world colony) |
 
-### Estella IV / Dahai (breathable water planet)
+### Dahai
 | ID | Type | Description |
 |---|---|---|
 | Estella IV.1 | Station, low orbit | Main orbital station |
@@ -184,7 +184,7 @@ The Camps' planets (six bodies in three planetary systems) cover an unusually wi
 
 ## The Camps' bodies and POIs
 
-### Estella V — Hartwell
+### Hartwell
 Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmosphere, dust storms, dome farms, regional offices, and local production of necessities.
 
 | ID | Type | Description |
@@ -197,7 +197,7 @@ Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmos
 | Estella V.6 | First Landing | Abandoned first colony site (salvage) |
 | Estella V.7 | Ascension Scaffold | Historic first orbital factory, shipyard, and outward-colonization staging ground; locally, the Old Scaffold |
 
-### Estella Va — Pike
+### Pike
 Small airless moon of Hartwell used for ore handling, strip mining, and old frontier road work.
 
 | ID | Type | Description |
@@ -206,7 +206,7 @@ Small airless moon of Hartwell used for ore handling, strip mining, and old fron
 | Estella Va.2 | Pike Miner Hab | Miner hab |
 | Estella Va.3 | Pike Ore-Handling Depot | Ore-handling depot |
 
-### Estella VI — Kuznia
+### Kuznia
 Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota culture, hard weather, and the system's primary atmospheric flight school.
 
 | ID | Type | Description |
@@ -220,7 +220,7 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 | Estella VI.7 | Surface | Polar weather research |
 | Estella VI.8 | Surface | Mountain mining (specialty ore, hard pad, altitude) |
 
-### Estella VIa — Svarog
+### Svarog
 Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 
 | ID | Type | Description |
@@ -230,7 +230,7 @@ Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 | Estella VIa.3 | Svarog Surface Anchor | Drydock surface anchor + staff hab |
 | Estella VIa.4 | Svarog Rare Alloy Extraction | Rare alloying extraction |
 
-### Estella VIb — Malyna
+### Malyna
 Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith gives Malyna a raspberry/rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding.
 
 | ID | Type | Description |
@@ -240,7 +240,7 @@ Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith giv
 | Estella VIb.3 | Malyna Pharmaceutical Horticulture | Pharmaceutical / specialty horticulture |
 | Estella VIb.4 | Malyna Boutique Aquaculture | Aquaculture (boutique luxury) |
 
-### Estella VII — Tessera
+### Tessera
 Small airless rocky precision-ops planet of rotational labor, high-vacuum work, metrology, and almost no rooted local culture.
 
 | ID | Type | Description |
@@ -358,7 +358,7 @@ A stony S-class rock. Quiet, structurally stable, scholarly, off-grid by inclina
 | ES-S-0001.2 | Listening array | Restricted |
 | ES-S-0001.3 | Sealed research outpost | Restricted |
 
-### Estella VIII — Weymark
+### Weymark
 Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification at Nell's Rest. Weymark also hosts Bruckner Field Services' quiet high-orbit distribution foothold near Caravanserai.
 
 | ID | Type | Description |
