@@ -172,39 +172,47 @@ The Camps are the mid-system industrial planets, where things get *made*. They a
 
 The Camps' population at any given time is overwhelmingly transient. Crews come for tours of months or years, accumulate hazard pay, and leave. A small permanent population maintains the infrastructure and quietly outlives the people who pay them.
 
+Local shorthand: **Hartwell opened the road. Kuznia forged it. Tessera perfected it.**
+
 The food is functional. The pay is decent. The dust gets in everything. The beer is excellent, because there's nothing else to do.
 
 ## The Camps' economy
 
 This is where the system's *industrial backbone* lives. Foundries, shipyards, factories, agriculture (both bulk and specialty), high-vacuum precision manufacturing. The major cross-region corridor is **Belt → Camps → everywhere**: raw ore and Belt feedstocks enter the Camps, get processed into finished goods, and ship out across the system.
 
-The Camps' planets (six bodies in three planetary systems) cover an unusually wide spread of atmospheres and surface conditions, making it the system's flight school: thin CO₂ atmospheres on one planet, thick cold weather-driven atmospheres on another, and an airless industrial planet for vacuum operations. A pilot who has worked the Camps can fly more or less anywhere.
+The Camps' planets (six bodies in three planetary systems) cover an unusually wide spread of atmospheres and surface conditions, making it the system's flight school: Hartwell's thin CO₂ storms, Kuznia's thick cold weather, and Tessera's airless precision operations. A pilot who has worked the Camps can fly more or less anywhere.
 
 ## The Camps' bodies and POIs
 
-### Estella V — Mars-like, thin CO₂ atmo, dust storms
+### Estella V — Hartwell
+Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmosphere, dust storms, dome farms, regional offices, and local production of necessities.
+
 | ID | Type | Description |
 |---|---|---|
-| Estella V.1 | Station, low orbit | Transit and customs |
-| Estella V.2 | Surface | Capital settlement (passenger / admin) |
+| Estella V.1 | Hartwell Transit Station | Transit and customs |
+| Estella V.2 | Hartwell Capital Settlement | Capital settlement, regional offices, old gateway administration |
 | Estella V.3 | Surface | Open-cast ore mine |
 | Estella V.4 | Surface | Atmospheric refining + light-industrial complex |
 | Estella V.5 | Surface | Storm-prone research outpost |
 | Estella V.6 | Surface | Abandoned colony (salvage) |
-| Estella V.7 | Station, high orbit | Orbital factory |
+| Estella V.7 | Hartwell Orbital Factory | High-orbit factory |
 
-### Estella Va — small airless moon of Estella V
+### Estella Va — Hartwell Va
+Small airless moon of Hartwell used for ore handling and strip mining.
+
 | ID | Type | Description |
 |---|---|---|
 | Estella Va.1 | Surface | Strip mine (heavy ore) |
 | Estella Va.2 | Surface | Miner hab |
-| Estella Va.3 | Station, low orbit | Ore-handling depot |
+| Estella Va.3 | Hartwell Va Ore-Handling Depot | Ore-handling depot |
 
-### Estella VI — Mid rocky planet, thick cold N₂/CO₂ atmosphere
+### Estella VI — Kuznia
+Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota culture, hard weather, and the system's primary atmospheric flight school.
+
 | ID | Type | Description |
 |---|---|---|
-| Estella VI.1 | Station, low orbit | Main transit / dispatch |
-| Estella VI.2 | Station, high orbit | Heavy-cargo dispatch |
+| Estella VI.1 | Kuznia Main Dispatch Station | Main transit / dispatch |
+| Estella VI.2 | Kuznia Heavy-Cargo Dispatch | Heavy-cargo dispatch |
 | Estella VI.3 | Surface | Industrial city — machinery, finished goods |
 | Estella VI.4 | Surface | Foundry complex (smelting, heavy refining; the industrial hub) |
 | Estella VI.5 | Surface | Spaceport (passengers + bulk food dispatch; weather-gated) |
@@ -212,32 +220,38 @@ The Camps' planets (six bodies in three planetary systems) cover an unusually wi
 | Estella VI.7 | Surface | Polar weather research |
 | Estella VI.8 | Surface | Mountain mining (specialty ore, hard pad, altitude) |
 
-### Estella VIa — small airless shipyard moon
+### Estella VIa — Kuznia VIa
+Small airless shipyard moon of Kuznia.
+
 | ID | Type | Description |
 |---|---|---|
-| Estella VIa.1 | Station, low orbit | Drydock / shipyard |
-| Estella VIa.2 | Station, high orbit | Component supply |
+| Estella VIa.1 | Kuznia VIa Drydock | Drydock / shipyard |
+| Estella VIa.2 | Kuznia VIa Component Supply | Component supply |
 | Estella VIa.3 | Surface | Drydock surface anchor + staff hab |
 | Estella VIa.4 | Surface | Rare alloying extraction |
 
-### Estella VIb — small airless specialty / pharma moon
+### Estella VIb — Kuznia VIb
+Small airless specialty / pharma moon of Kuznia.
+
 | ID | Type | Description |
 |---|---|---|
-| Estella VIb.1 | Station, low orbit | Cold-chain transit |
+| Estella VIb.1 | Kuznia VIb Cold-Chain Transit | Cold-chain transit |
 | Estella VIb.2 | Surface | Biotech / vat-protein primary |
 | Estella VIb.3 | Surface | Pharmaceutical / specialty horticulture |
 | Estella VIb.4 | Surface | Aquaculture (boutique luxury) |
 
-### Estella VII — small airless rocky planet (precision ops)
+### Estella VII — Tessera
+Small airless rocky precision-ops planet of rotational labor, high-vacuum work, metrology, and almost no rooted local culture.
+
 | ID | Type | Description |
 |---|---|---|
-| Estella VII.1 | Station, low orbit | Transit / export |
-| Estella VII.2 | Surface | High-vacuum precision factory |
+| Estella VII.1 | Tessera Transit / Export Station | Transit / export |
+| Estella VII.2 | Tessera High-Vacuum Precision Factory | High-vacuum precision factory |
 | Estella VII.3 | Surface | Specialty feedstock mine |
 | Estella VII.4 | Surface | Worker hab |
 | Estella VII.5 | Surface | Sealed research outpost / black-project rumor |
 
-> **Writer's note:** The thick-atmospheric Estella VI is the system's primary atmospheric flight school and home of the most physically demanding civilian work. A great deal of the system's working-class self-image comes from people who have done time on Estella VI. There is room here for a culture as developed as the writer wants.
+> **Writer's note:** Kuznia is the system's primary atmospheric flight school and home of the most physically demanding civilian work. A great deal of the system's working-class self-image comes from people who have done time on Kuznia. There is room here for a culture as developed as the writer wants.
 
 ---
 

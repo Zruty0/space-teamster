@@ -85,7 +85,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 85_000,
     gm: 0.42 * 85_000 * 85_000,
     rotationPeriod: 38_000,
-    notes: 'Small airless mining moon of Estella V.',
+    notes: 'Small airless mining moon of Hartwell.',
   },
   'estella-vi': {
     radius: 330_000,
@@ -97,13 +97,13 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 95_000,
     gm: 0.55 * 95_000 * 95_000,
     rotationPeriod: 44_000,
-    notes: 'Small airless shipyard moon of Estella VI.',
+    notes: 'Small airless shipyard moon of Kuznia.',
   },
   'estella-vib': {
     radius: 80_000,
     gm: 0.38 * 80_000 * 80_000,
     rotationPeriod: 41_000,
-    notes: 'Small airless specialty/pharma moon of Estella VI.',
+    notes: 'Small airless specialty/pharma moon of Kuznia.',
   },
   'estella-vii': {
     radius: 170_000,
