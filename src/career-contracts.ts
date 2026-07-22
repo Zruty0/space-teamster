@@ -160,7 +160,7 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
   const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
-  const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer);
+  const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, candidate.generosity);
   const target = contractTarget(candidate.destinationId);
   return {
     id: `${candidate.factionId}:${candidate.templateId}:${candidate.sourceId}->${candidate.destinationId}:${index}`,

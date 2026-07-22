@@ -14,6 +14,45 @@ const CERBERUS_ID = 'cerberus-human-resources';
 const CERBERUS_NAME = 'Cerberus Human Resources';
 const CERBERUS_TAG = 'CHR';
 
+// Rich but exploitative: ordinary corporate freight pays okay, the morally/physically ugly
+// custody, labor, and Pandemonium work must overpay to get flown, and high-value rare-metal
+// and corporate/luxury runs carry a smaller premium.
+const CERBERUS_BASE_GENEROSITY = 1.3;
+const CERBERUS_UNSAVORY_GENEROSITY = 1.6;
+const CERBERUS_HIGH_VALUE_GENEROSITY = 1.45;
+
+const CERBERUS_UNSAVORY_TEMPLATES = new Set<string>([
+  'workforce-transfer-to-hub',
+  'custody-transfer-to-olympos',
+  'surface-labor-allocation',
+  'local-custody-processing',
+  'local-workforce-manifests',
+  'local-surface-labor-processing',
+  'hydrogen-to-pandemonium',
+]);
+
+const CERBERUS_HIGH_VALUE_TEMPLATES = new Set<string>([
+  'local-rare-metal-export-staging',
+  'local-carbonvale-export-staging',
+  'local-shareholder-packets',
+  'local-legal-archives',
+  'local-paradiso-hospitality',
+  'local-audit-records',
+  'rare-metals-to-gaia-tech',
+  'rare-metals-to-foundry',
+  'shareholder-packets-to-finance',
+  'legal-archives-to-capital',
+  'audit-records-to-acheron',
+  'paradiso-hospitality-cargo',
+  'executive-delegation',
+]);
+
+function generosityForTemplate(templateId: string): number {
+  if (CERBERUS_UNSAVORY_TEMPLATES.has(templateId)) return CERBERUS_UNSAVORY_GENEROSITY;
+  if (CERBERUS_HIGH_VALUE_TEMPLATES.has(templateId)) return CERBERUS_HIGH_VALUE_GENEROSITY;
+  return CERBERUS_BASE_GENEROSITY;
+}
+
 const ACHERON_COMMERCIAL_HUB_ID = 'estella-ii-commercial-hub-dock';
 const ACHERON_OLYMPOS_ID = 'estella-ii-olympos';
 const ACHERON_PANDEMONIUM_ID = 'estella-ii-pandemonium';
@@ -114,6 +153,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         destinationId,
         cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood * destinationLikelihood(destinationId),
+        generosity: generosityForTemplate(template.templateId),
       });
     }
   }
@@ -123,6 +163,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
 export const CERBERUS_HUMAN_RESOURCES_PROVIDER: FactionContractProvider = {
   id: CERBERUS_ID,
   name: CERBERUS_NAME,
+  generosity: CERBERUS_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return candidatesFromTemplates(ctx);
   },

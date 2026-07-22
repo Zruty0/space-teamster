@@ -8,18 +8,24 @@ interface MinersMutualContractTemplate {
   cargoLabel: string;
   massClass: CargoMassClass;
   likelihood: number;
+  generosity?: number;
 }
 
 const MINERS_MUTUAL_ID = 'new-canaan-miners-mutual';
 const MINERS_MUTUAL_NAME = 'New Canaan Miners Mutual';
 const MINERS_MUTUAL_TAG = 'CO-OP';
 
+// A broke mutual pays below open market for ordinary work — you fly for goodwill, not profit.
+// Genuine emergency relief is the exception: the Co-op will overpay when members are in trouble.
+const MINERS_MUTUAL_BASE_GENEROSITY = 1.1;
+const MINERS_MUTUAL_EMERGENCY_GENEROSITY = 1.4;
+
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
 
 const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   // Emergency purchases from expensive Caravanserai suppliers: uncommon, but visible at game start.
-  { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35 },
-  { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45 },
+  { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY },
+  { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY },
 
   // Preferred inbound bulk supply: cheaper industrial/life-support suppliers outside the Caravanserai.
   { templateId: 'industrial-pressure-seals', sourceIds: ['estella-vi-industrial-city'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'pressure seals and valve blocks', massClass: 'standard', likelihood: 1.1 },
@@ -61,6 +67,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         destinationId,
         cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood,
+        generosity: template.generosity ?? MINERS_MUTUAL_BASE_GENEROSITY,
       });
     }
   }
@@ -70,6 +77,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
 export const NEW_CANAAN_MINERS_MUTUAL_PROVIDER: FactionContractProvider = {
   id: MINERS_MUTUAL_ID,
   name: MINERS_MUTUAL_NAME,
+  generosity: MINERS_MUTUAL_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return candidatesFromTemplates(ctx);
   },

@@ -20,6 +20,13 @@ interface BrucknerNodeGroup {
 const BRUCKNER_ID = 'bruckner-field-services';
 const BRUCKNER_NAME = 'Bruckner Field Services';
 const BRUCKNER_TAG = 'BFS';
+
+// Professional dealer/service network; pays fine for routine service logistics. Failed and
+// quarantined returns nobody wants to haul carry a premium, and expensive technician-crew
+// relocations pay a bit above base.
+const BRUCKNER_BASE_GENEROSITY = 1.3;
+const BRUCKNER_RETURN_GENEROSITY = 1.5;
+const BRUCKNER_CREW_GENEROSITY = 1.45;
 const DIRECT_CREW_RELOCATION_COUNT = 2;
 const SUB_HUB_LEAF_DISTRIBUTION_COUNT = 4;
 const CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT = 2;
@@ -204,7 +211,7 @@ function templateIdFor(prefix: string, option: BrucknerCargoOption): string {
   return `${prefix}:${option.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '')}`;
 }
 
-function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: BrucknerCargoOption, laneLikelihood: number): void {
+function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: BrucknerCargoOption, laneLikelihood: number, generosity: number = BRUCKNER_BASE_GENEROSITY): void {
   const templateId = templateIdFor(templatePrefix, option);
   out.push({
     factionId: BRUCKNER_ID,
@@ -215,6 +222,7 @@ function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string
     destinationId,
     cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
+    generosity,
   });
 }
 
@@ -227,9 +235,10 @@ function pushSampledCargoOptions(
   laneLikelihood: number,
   count: number,
   seedBase: number,
+  generosity: number = BRUCKNER_BASE_GENEROSITY,
 ): void {
   for (const option of weightedPick(options, count, seedBase ^ hashString(`${templatePrefix}:${sourceId}->${destinationId}`), option => option.likelihood)) {
-    pushCargoOption(out, templatePrefix, sourceId, destinationId, option, laneLikelihood);
+    pushCargoOption(out, templatePrefix, sourceId, destinationId, option, laneLikelihood, generosity);
   }
 }
 
@@ -254,7 +263,7 @@ function addCrewRelocations(out: FactionContractCandidate[], ctx: FactionContrac
   );
   directTargets.forEach((destination, index) => {
     const [crew] = weightedPick(CREW_MOVES, 1, seed ^ hashString(`${destination.id}:${index}`), option => option.likelihood);
-    if (crew) pushCargoOption(out, 'crew-direct', ctx.sourceId, destination.id, crew, 0.55 * destination.weight);
+    if (crew) pushCargoOption(out, 'crew-direct', ctx.sourceId, destination.id, crew, 0.55 * destination.weight, BRUCKNER_CREW_GENEROSITY);
   });
 }
 
@@ -270,7 +279,7 @@ function generateBrucknerContracts(ctx: FactionContractContext): FactionContract
   }
 
   if (sourceId === CENTRAL_HUB_ID) {
-    pushSampledCargoOptions(out, 'export-return-to-highliner', sourceId, IMPORT_TOUCHDOWN_ID, RETURNS, 1.25, 2, seedBase);
+    pushSampledCargoOptions(out, 'export-return-to-highliner', sourceId, IMPORT_TOUCHDOWN_ID, RETURNS, 1.25, 2, seedBase, BRUCKNER_RETURN_GENEROSITY);
     for (const subHub of SUB_HUBS) pushSampledCargoOptions(out, 'hub-to-subhub', sourceId, subHub.id, HUB_DISTRIBUTION_STOCK, 0.75 * subHub.weight, 1, seedBase);
     for (const leaf of weightedPick(LOCAL_SERVICE_LEAVES, CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT, seedBase ^ 0x105ea1, leaf => leaf.weight)) {
       pushSampledCargoOptions(out, 'hub-to-local-leaf', sourceId, leaf.id, LEAF_SERVICE_STOCK, 0.55 * leaf.weight, 1, seedBase);
@@ -279,17 +288,17 @@ function generateBrucknerContracts(ctx: FactionContractContext): FactionContract
 
   const group = groupForSource(sourceId);
   if (group?.subHub.id === sourceId) {
-    pushSampledCargoOptions(out, 'subhub-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase);
+    pushSampledCargoOptions(out, 'subhub-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase, BRUCKNER_RETURN_GENEROSITY);
     for (const leaf of weightedPick(group.leaves, SUB_HUB_LEAF_DISTRIBUTION_COUNT, seedBase ^ 0x5e1f1eaf, leaf => leaf.weight)) {
       pushSampledCargoOptions(out, 'subhub-to-leaf', sourceId, leaf.id, LEAF_SERVICE_STOCK, 0.65 * leaf.weight, 1, seedBase);
     }
   } else if (group?.leaves.some(leaf => leaf.id === sourceId)) {
-    pushSampledCargoOptions(out, 'leaf-return-to-subhub', sourceId, group.subHub.id, RETURNS, 1.05, 2, seedBase);
-    pushSampledCargoOptions(out, 'leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 0.55, 1, seedBase);
+    pushSampledCargoOptions(out, 'leaf-return-to-subhub', sourceId, group.subHub.id, RETURNS, 1.05, 2, seedBase, BRUCKNER_RETURN_GENEROSITY);
+    pushSampledCargoOptions(out, 'leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 0.55, 1, seedBase, BRUCKNER_RETURN_GENEROSITY);
   }
 
   if (isLocalServiceLeaf(sourceId)) {
-    pushSampledCargoOptions(out, 'local-leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase);
+    pushSampledCargoOptions(out, 'local-leaf-return-to-hub', sourceId, CENTRAL_HUB_ID, RETURNS, 1.05, 2, seedBase, BRUCKNER_RETURN_GENEROSITY);
   }
 
   addCrewRelocations(out, ctx);
@@ -299,6 +308,7 @@ function generateBrucknerContracts(ctx: FactionContractContext): FactionContract
 export const BRUCKNER_FIELD_SERVICES_PROVIDER: FactionContractProvider = {
   id: BRUCKNER_ID,
   name: BRUCKNER_NAME,
+  generosity: BRUCKNER_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return generateBrucknerContracts(ctx);
   },

@@ -26,6 +26,10 @@ const KIS_E_ID = 'kisaragi-yards-estella';
 const KIS_E_NAME = 'Kisaragi Yards Estella';
 const KIS_E_TAG = 'KIS-E';
 
+// Subsidiary yard freight: premium goods, careful handling, but routine — pays above the
+// corporate baseline with no per-template variation.
+const KIS_E_BASE_GENEROSITY = 1.4;
+
 const FACILITY_DELIVERY_COUNT = 2;
 const FACILITY_BALANCING_COUNT = 2;
 const SUPPLIER_CARGO_COUNT = 2;
@@ -173,6 +177,7 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     destinationId,
     cargo: cargoFor(option, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
+    generosity: KIS_E_BASE_GENEROSITY,
   });
 }
 
@@ -217,6 +222,7 @@ function generateKisEContracts(ctx: FactionContractContext): FactionContractCand
 export const KISARAGI_YARDS_ESTELLA_PROVIDER: FactionContractProvider = {
   id: KIS_E_ID,
   name: KIS_E_NAME,
+  generosity: KIS_E_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return generateKisEContracts(ctx);
   },

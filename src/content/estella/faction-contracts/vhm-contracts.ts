@@ -19,6 +19,13 @@ const VHM_TAG = 'VHM';
 const WEYMARK_DEPOT_ID = 'estella-viii-harder-approach-station';
 const GAIA_CORPORATE_HQ_ID = 'estella-iii-finance-city';
 
+// Severe, deep-pocketed, and shipping rare precious hardware: VHM buys reliability and pays
+// near the top. Sealed hazard returns are the worst work and top the scale; executive and
+// audit travel pays a smaller premium over the direct-hardware base.
+const VHM_BASE_GENEROSITY = 1.5;
+const VHM_RETURN_GENEROSITY = 1.7;
+const VHM_PEOPLE_GENEROSITY = 1.6;
+
 const DIRECT_HARDWARE_DESTINATION_COUNT = 3;
 const GAIA_OUTBOUND_PEOPLE_DESTINATION_COUNT = 3;
 
@@ -160,7 +167,7 @@ function templateIdFor(prefix: string, option: VhmCargoOption): string {
   return `${prefix}:${option.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '')}`;
 }
 
-function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: VhmCargoOption, laneLikelihood: number): void {
+function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: VhmCargoOption, laneLikelihood: number, generosity: number = VHM_BASE_GENEROSITY): void {
   const templateId = templateIdFor(templatePrefix, option);
   out.push({
     factionId: VHM_ID,
@@ -171,6 +178,7 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     destinationId,
     cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
+    generosity,
   });
 }
 
@@ -192,24 +200,24 @@ function generateVhmContracts(ctx: FactionContractContext): FactionContractCandi
     });
 
     const returnParty = pickedCargo(VHM_PEOPLE, seed ^ 0x6a1a100);
-    if (returnParty) pushCandidate(out, 'people-return-home', sourceId, GAIA_CORPORATE_HQ_ID, returnParty, 0.45);
+    if (returnParty) pushCandidate(out, 'people-return-home', sourceId, GAIA_CORPORATE_HQ_ID, returnParty, 0.45, VHM_PEOPLE_GENEROSITY);
   }
 
   if (sourceId === GAIA_CORPORATE_HQ_ID) {
     const destinations = weightedPick([node(WEYMARK_DEPOT_ID, 1.6), ...VHM_SERVICE_LEAVES], GAIA_OUTBOUND_PEOPLE_DESTINATION_COUNT, seed ^ 0x9a1af1ce, leaf => leaf.weight);
     destinations.forEach((destination, index) => {
       const party = pickedCargo(VHM_PEOPLE, seed ^ hashString(`${destination.id}:${index}:people`));
-      if (party) pushCandidate(out, 'people-outbound', sourceId, destination.id, party, 0.55 * destination.weight);
+      if (party) pushCandidate(out, 'people-outbound', sourceId, destination.id, party, 0.55 * destination.weight, VHM_PEOPLE_GENEROSITY);
     });
   }
 
   const leaf = serviceLeaf(sourceId);
   if (leaf) {
     const returnCargo = pickedCargo(DIRECT_RETURNS, seed ^ 0x915eaf);
-    if (returnCargo) pushCandidate(out, 'direct-return-to-weymark', sourceId, WEYMARK_DEPOT_ID, returnCargo, 0.5 * leaf.weight);
+    if (returnCargo) pushCandidate(out, 'direct-return-to-weymark', sourceId, WEYMARK_DEPOT_ID, returnCargo, 0.5 * leaf.weight, VHM_RETURN_GENEROSITY);
 
     const returnParty = pickedCargo(VHM_PEOPLE, seed ^ 0x163a91a);
-    if (returnParty) pushCandidate(out, 'people-return-home', sourceId, GAIA_CORPORATE_HQ_ID, returnParty, 0.5 * leaf.weight);
+    if (returnParty) pushCandidate(out, 'people-return-home', sourceId, GAIA_CORPORATE_HQ_ID, returnParty, 0.5 * leaf.weight, VHM_PEOPLE_GENEROSITY);
   }
 
   return out;
@@ -218,6 +226,7 @@ function generateVhmContracts(ctx: FactionContractContext): FactionContractCandi
 export const VOSS_HEINKEL_METRICWERKE_PROVIDER: FactionContractProvider = {
   id: VHM_ID,
   name: VHM_NAME,
+  generosity: VHM_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return generateVhmContracts(ctx);
   },

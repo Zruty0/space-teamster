@@ -4,6 +4,7 @@ import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
+import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
 import { VOSS_HEINKEL_METRICWERKE_PROVIDER } from './vhm-contracts';
 
 export interface FactionContractContext {
@@ -20,11 +21,19 @@ export interface FactionContractCandidate {
   destinationId: string;
   cargo: MissionCargoSpec;
   likelihood: number;
+  /**
+   * Pay multiplier applied over par fuel cost for this contract. When omitted the
+   * board falls back to the mission-cost default generosity. Providers may set a
+   * faction base and override it per template (e.g. hazardous skim runs pay more).
+   */
+  generosity?: number;
 }
 
 export interface FactionContractProvider {
   id: string;
   name: string;
+  /** Faction base pay multiplier; individual templates may override it per candidate. */
+  generosity?: number;
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[];
 }
 
@@ -35,6 +44,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   VOSS_HEINKEL_METRICWERKE_PROVIDER,
   KISARAGI_YARDS_ESTELLA_PROVIDER,
   KISARAGI_HARMONY_YARDS_PROVIDER,
+  TEAMSTERS_GUILD_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {

@@ -26,6 +26,11 @@ const KIS_ID = 'kisaragi-harmony-yards';
 const KIS_NAME = 'Kisaragi Harmony Yards';
 const KIS_TAG = 'KIS';
 
+// The richest client in the system. Prestige work already pays well; Celadon-grade cargo and
+// the master-shipwright/executive delegations that ride with it hit the system's pay ceiling.
+const KIS_BASE_GENEROSITY = 1.6;
+const KIS_CELADON_GENEROSITY = 1.7;
+
 const GAIA_HQ_ID = 'estella-iii-finance-city';
 const HIGHLINER_BAY_ID = 'caravanserai-highliner-bay-poi';
 const IMPORT_DESTINATION_COUNT = 2;
@@ -165,6 +170,7 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     destinationId,
     cargo: cargoFor(option, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
+    generosity: option.tier === 'Celadon' ? KIS_CELADON_GENEROSITY : KIS_BASE_GENEROSITY,
   });
 }
 
@@ -220,6 +226,7 @@ function generateKisContracts(ctx: FactionContractContext): FactionContractCandi
 export const KISARAGI_HARMONY_YARDS_PROVIDER: FactionContractProvider = {
   id: KIS_ID,
   name: KIS_NAME,
+  generosity: KIS_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return generateKisContracts(ctx);
   },
