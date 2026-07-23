@@ -11,17 +11,19 @@ export interface MissionCostBreakdownItem {
 }
 
 /**
- * Contract pay dials. Gross pay = performance + bounty + fuel compensation:
- *   performance = max(0, generosity*parFuel - max(0, actualFuel - sloppinessAllowance*parFuel))
- *   fuelComp    = compensationRatio * min(actualFuel, maxCompAllowance*parFuel)
- * generosity sizes the reward; sloppinessAllowance sets how much fuel overrun is tolerated
- * before the reward erodes; bounty is a flat guaranteed payment; compensationRatio /
- * maxCompAllowance reimburse actual fuel up to a cap (the Combine's no-loss "safe transfer").
+ * Contract pay dials, two buckets summed: a fixed reward plus fuel compensation.
+ *   fixedReward = generosity * parFuel + flatReward
+ *   fuelComp    = compensationRatio * min(actualFuel, maxCompAllowance * parFuel)
+ *   grossPay    = fixedReward + fuelComp
+ * generosity scales the reward with route difficulty; flatReward is a flat floor that makes
+ * short/cheap runs worth taking; compensationRatio / maxCompAllowance reimburse actual fuel up
+ * to a cap (the Combine's no-loss "safe transfer"). A thin fixed reward is naturally tight
+ * (break-even near par); a fat one is naturally forgiving — precision-risk lives in contract
+ * requirements, not the pay curve.
  */
 export interface ContractPayTerms {
   generosity: number;
-  sloppinessAllowance: number;
-  bounty: number;
+  flatReward: number;
   compensationRatio: number;
   maxCompAllowance: number;
 }
@@ -46,10 +48,9 @@ const SHIP_DRY_MASS_TONS = 120;
 const CONTAINER_TARE_TONS = 8;
 const FUEL_PRICE_PER_TON_MPS = 1;
 const DEFAULT_GENEROSITY = 1.25;
-// Neutral/legacy pay dials. sloppinessAllowance = 10 means fuel overruns barely matter
-// (you would have to burn 10x par fuel before the performance reward starts eroding).
-const DEFAULT_SLOPPINESS_ALLOWANCE = 10;
-const DEFAULT_BOUNTY = 0;
+// Neutral/legacy pay dials: fixed reward only (generosity * par fuel), no flat floor,
+// no fuel compensation.
+const DEFAULT_FLAT_REWARD = 0;
 const DEFAULT_COMPENSATION_RATIO = 0;
 const DEFAULT_MAX_COMP_ALLOWANCE = 2;
 const CLUSTER_TRANSFER_SPEED = 200;
@@ -611,8 +612,7 @@ export function actualFuelCostForQuote(quote: MissionCostQuote, actualDv: number
 export function defaultPayTerms(generosity: number = DEFAULT_GENEROSITY): ContractPayTerms {
   return {
     generosity,
-    sloppinessAllowance: DEFAULT_SLOPPINESS_ALLOWANCE,
-    bounty: DEFAULT_BOUNTY,
+    flatReward: DEFAULT_FLAT_REWARD,
     compensationRatio: DEFAULT_COMPENSATION_RATIO,
     maxCompAllowance: DEFAULT_MAX_COMP_ALLOWANCE,
   };
@@ -622,22 +622,20 @@ export function makePayTerms(overrides: Partial<ContractPayTerms> = {}): Contrac
   const base = defaultPayTerms();
   return {
     generosity: overrides.generosity ?? base.generosity,
-    sloppinessAllowance: overrides.sloppinessAllowance ?? base.sloppinessAllowance,
-    bounty: overrides.bounty ?? base.bounty,
+    flatReward: overrides.flatReward ?? base.flatReward,
     compensationRatio: overrides.compensationRatio ?? base.compensationRatio,
     maxCompAllowance: overrides.maxCompAllowance ?? base.maxCompAllowance,
   };
 }
 
 /**
- * Actual gross payout for a flown mission. See ContractPayTerms for the formula.
+ * Actual gross payout for a flown mission = fixed reward + fuel compensation.
  * At par (actualFuelCost == parFuelCost) with legacy dials this equals parFuelCost * generosity.
  */
 export function contractGrossPay(pay: ContractPayTerms, parFuelCost: number, actualFuelCost: number): number {
-  const overage = Math.max(0, actualFuelCost - pay.sloppinessAllowance * parFuelCost);
-  const performance = Math.max(0, pay.generosity * parFuelCost - overage);
+  const fixedReward = pay.generosity * parFuelCost + pay.flatReward;
   const fuelComp = pay.compensationRatio * Math.min(actualFuelCost, pay.maxCompAllowance * parFuelCost);
-  return Math.round(performance + pay.bounty + fuelComp);
+  return Math.round(fixedReward + fuelComp);
 }
 
 export function contractPayoutForQuote(quote: MissionCostQuote, actualDv: number): number {

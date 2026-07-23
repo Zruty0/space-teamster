@@ -162,8 +162,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
   const pay = makePayTerms({
     generosity: candidate.generosity,
-    sloppinessAllowance: candidate.sloppinessAllowance,
-    bounty: candidate.bounty,
+    flatReward: candidate.flatReward,
     compensationRatio: candidate.compensationRatio,
     maxCompAllowance: candidate.maxCompAllowance,
   });

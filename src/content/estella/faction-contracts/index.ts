@@ -23,14 +23,13 @@ export interface FactionContractCandidate {
   likelihood: number;
   /**
    * Pay dials for this contract, all optional; unset dials fall back to mission-cost
-   * defaults (generosity 1.25, sloppinessAllowance 10, no bounty, no fuel compensation).
-   * generosity sizes the reward; sloppinessAllowance sets fuel-overrun tolerance before it
-   * erodes; bounty is flat guaranteed pay; compensationRatio/maxCompAllowance reimburse
-   * actual fuel up to a cap (the Combine's no-loss model).
+   * defaults (generosity 1.25, no flat reward, no fuel compensation).
+   * generosity scales the reward with route difficulty; flatReward is a flat floor;
+   * compensationRatio/maxCompAllowance reimburse actual fuel up to a cap (the Combine's
+   * no-loss model).
    */
   generosity?: number;
-  sloppinessAllowance?: number;
-  bounty?: number;
+  flatReward?: number;
   compensationRatio?: number;
   maxCompAllowance?: number;
 }
