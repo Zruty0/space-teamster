@@ -4,6 +4,7 @@ import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
+import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
 import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
 import { VOSS_HEINKEL_METRICWERKE_PROVIDER } from './vhm-contracts';
 
@@ -32,6 +33,10 @@ export interface FactionContractCandidate {
   flatReward?: number;
   compensationRatio?: number;
   maxCompAllowance?: number;
+  /** Optional presentation overrides. When set, the board uses these instead of the generic text. */
+  issuerName?: string;
+  title?: string;
+  blurb?: string;
 }
 
 export interface FactionContractProvider {
@@ -50,6 +55,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   KISARAGI_YARDS_ESTELLA_PROVIDER,
   KISARAGI_HARMONY_YARDS_PROVIDER,
   TEAMSTERS_GUILD_PROVIDER,
+  STEEL_COMBINE_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {

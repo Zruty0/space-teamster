@@ -1437,6 +1437,7 @@ export class Game {
         bodyRows: [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Open Market' },
+          ...(contract.blurb ? [{ kind: 'text' as const, text: `“${contract.blurb}”` }] : []),
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
