@@ -39,7 +39,7 @@ import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGenera
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateCareerContracts, type CareerContract } from './career-contracts';
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
-import { actualFuelCostForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene } from './interactive-scene';
 
@@ -609,7 +609,7 @@ export class Game {
     const contract = this.activeCareerContract;
     const quote = this.activeMissionQuote;
     if (!contract || !quote) return;
-    this.career.money += quote.grossPay - actualFuelCostForQuote(quote, this.missionDvUsed);
+    this.career.money += contractPayoutForQuote(quote, this.missionDvUsed) - actualFuelCostForQuote(quote, this.missionDvUsed);
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
     saveCareerProfile(this.career);

@@ -1,6 +1,6 @@
 import { type CareerContract } from './career-contracts';
 import { type EstellaTransferOption } from './estella-mission';
-import { actualFuelCostForQuote, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, contractPayoutForQuote, type MissionCostQuote } from './mission-cost';
 
 const STORAGE_KEY = 'space-teamster.missionProfiles.v1';
 const MAX_ENTRIES = 1000;
@@ -64,6 +64,7 @@ export function createMissionProfileEntry(opts: {
   careerContract?: CareerContract | null;
 }): MissionProfileLogEntry {
   const actualFuelCost = actualFuelCostForQuote(opts.quote, opts.actualDv);
+  const grossPay = contractPayoutForQuote(opts.quote, opts.actualDv);
   return {
     completedAt: new Date().toISOString(),
     mode: opts.mode,
@@ -86,8 +87,8 @@ export function createMissionProfileEntry(opts: {
     deltaVsPar: Math.round(opts.actualDv - opts.quote.parDv),
     parFuelCost: opts.quote.parFuelCost,
     actualFuelCost,
-    grossPay: opts.quote.grossPay,
-    net: opts.quote.grossPay - actualFuelCost,
+    grossPay,
+    net: grossPay - actualFuelCost,
     breakdown: opts.quote.breakdown.map(item => `${item.label} ${item.dv}`).join('|'),
   };
 }

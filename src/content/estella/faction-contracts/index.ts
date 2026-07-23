@@ -22,11 +22,17 @@ export interface FactionContractCandidate {
   cargo: MissionCargoSpec;
   likelihood: number;
   /**
-   * Pay multiplier applied over par fuel cost for this contract. When omitted the
-   * board falls back to the mission-cost default generosity. Providers may set a
-   * faction base and override it per template (e.g. hazardous skim runs pay more).
+   * Pay dials for this contract, all optional; unset dials fall back to mission-cost
+   * defaults (generosity 1.25, sloppinessAllowance 10, no bounty, no fuel compensation).
+   * generosity sizes the reward; sloppinessAllowance sets fuel-overrun tolerance before it
+   * erodes; bounty is flat guaranteed pay; compensationRatio/maxCompAllowance reimburse
+   * actual fuel up to a cap (the Combine's no-loss model).
    */
   generosity?: number;
+  sloppinessAllowance?: number;
+  bounty?: number;
+  compensationRatio?: number;
+  maxCompAllowance?: number;
 }
 
 export interface FactionContractProvider {

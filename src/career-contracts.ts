@@ -2,7 +2,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
-import { estimateEstellaMissionCost, generateGenericCargoForRoute, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
+import { estimateEstellaMissionCost, generateGenericCargoForRoute, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -160,7 +160,14 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
   const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
-  const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, candidate.generosity);
+  const pay = makePayTerms({
+    generosity: candidate.generosity,
+    sloppinessAllowance: candidate.sloppinessAllowance,
+    bounty: candidate.bounty,
+    compensationRatio: candidate.compensationRatio,
+    maxCompAllowance: candidate.maxCompAllowance,
+  });
+  const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, pay);
   const target = contractTarget(candidate.destinationId);
   return {
     id: `${candidate.factionId}:${candidate.templateId}:${candidate.sourceId}->${candidate.destinationId}:${index}`,
