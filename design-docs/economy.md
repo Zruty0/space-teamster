@@ -19,6 +19,8 @@ Current implementation:
 - Kisaragi Harmony Yards generator: `src/content/estella/faction-contracts/kisaragi-contracts.ts`
 - Teamsters' Guild generator: `src/content/estella/faction-contracts/teamsters-guild-contracts.ts`
 - Steel Combine generator: `src/content/estella/faction-contracts/steel-combine-contracts.ts`
+- Glitterfield miners generator: `src/content/estella/faction-contracts/glitterfield-miners-contracts.ts`
+- Halloran Smelting House generator: `src/content/estella/faction-contracts/halloran-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -54,6 +56,8 @@ Per-faction generosity, rank preserved in a [1.10, 1.70] band (open market and G
 | Voss-Heinkel Metricwerke | 1.50 | hazard returns 1.7, exec/audit 1.6 |
 | Kisaragi Harmony Yards | 1.60 | Celadon-tier 1.7 |
 | Steel Combine | 0 (compensation-only) | exports add flatReward 10,000; comp 1.0, cap 2 |
+| Glitterfield mining companies | 1.30 | in-cluster ore (depot → Cupola) is 0.8 + 50% fuel comp (low-risk/low-reward) |
+| Halloran Smelting House | 1.30 | — |
 
 ## Faction: The Steel Combine
 
@@ -95,6 +99,31 @@ Compensation-only: `generosity 0, compensationRatio 1.0, maxCompAllowance 2`. Ex
 ### Reputation hooks later
 
 Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair/refit at Perun City, at-cost resupply, priority weather-gated berthing, sanctuary/CHR-defector work, and — the cash tier — trusted-carrier access to the paying export runs. Combine standing is most valuable to a poor early-game Teamster. Known tuning debts (deferred): the flat export bounty does not scale with route size/risk, and the 2× compensation cap leaves large botch losses on the big surface↔orbit runs.
+
+## Glitterfield (Belt mining cluster)
+
+- Cluster: `glitterfield` — a metal-rich Belt cluster (renamed from the former "The Working"); denser than the mined-out New Canaan Field.
+- Stations: Cupola Station (`industrial-refinery-asteroid-es-m-0002`, the refinery) plus four ore depots — Grubstake (`grubstake-depot-dock`), Highgrade (`highgrade-depot-dock`), Slagfoot (`slagfoot-depot-dock`), Deepcut (`deepcut-depot-dock`).
+- Model: a swarm of small Hartwell mining companies work the field; all ore funnels through the single Cupola Station refinery. Ore and metal stay in-system.
+
+### Glitterfield mining companies
+
+- ID: `glitterfield-miners` (shared). No market tag — too small to appear on the system market, so contracts show only the company name.
+- 20 companies sampled from a name pool, each assigned 1–2 ores and one home depot (stable roster).
+- Ores: nickel-iron, cobalt, platinum-group, chromite, nickel concentrate, rare-earth-bearing.
+- Flows: shift crews in (Hartwell → depot); mining and life-support supplies in (Caravanserai / Hartwell → depot); ore to the refinery (depot → Cupola, in-cluster); occasional raw ore direct to in-system buyers (depot → Hammer / Svarog); refined ingots out (Cupola → Hammer / Svarog).
+- Pay: standard fixed-price 1.30, except in-cluster ore (depot → Cupola), which is deliberately low-risk / low-reward: generosity 0.8 plus 50% fuel compensation (cap 2×).
+
+### Halloran Smelting House
+
+- ID: `halloran-smelting-house`, tag `HALL`.
+- A Hartwell firm that took its cut instead of digging — it runs the Cupola Station refinery, the chokepoint all Glitterfield ore must pass through ("the House always takes its cut"). It ships no metal itself; the miners and buyers move the ingots.
+- Flows: refinery consumables in (flux, electrodes, reagents); crew in from Hartwell; experts and executives in from Gaia (the House is wealthy); crew and executive rotations out.
+- Pay: standard fixed-price 1.30.
+
+### Buyer side
+
+Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers source directly from Cupola — the Steel Combine's `import-glitterfield` lane (Cupola → Hammer) and Kisaragi Yards Estella's finished-goods sourcing.
 
 ## Faction: The Teamsters' Guild
 
