@@ -71,9 +71,6 @@ const CHR_WORKFORCE_ORIGINS = [
   'estella-iv-primary-city',
   'estella-iv-main-orbital-station',
   'estella-v-capital-settlement',
-  'estella-vi-industrial-city',
-  'estella-vi-spaceport',
-  'estella-vi-main-transit-dispatch',
   'caravanserai-main-commercial-dock',
   'caravanserai-customs-inspection',
   'caravanserai-free-trader-anchorage',
@@ -102,7 +99,7 @@ const CERBERUS_TEMPLATES: CerberusContractTemplate[] = [
   { templateId: 'local-surface-labor-processing', sourceIds: [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface labor allocation', massClass: 'heavy', likelihood: 1.2 },
 
   // Carbonvale and Olympos exports.
-  { templateId: 'carbon-fiber-to-camps', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-vi-industrial-city'], cargoLabel: 'carbon-fiber structural rolls', massClass: 'heavy', likelihood: 0.95 },
+  { templateId: 'carbon-fiber-to-camps', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'carbon-fiber structural rolls', massClass: 'heavy', likelihood: 0.95 },
   { templateId: 'graphene-to-drydock', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-via-drydock-station', 'caravanserai-outfitter-drydock'], cargoLabel: 'graphene cable stock', massClass: 'standard', likelihood: 0.8 },
   { templateId: 'graphite-to-components', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-via-component-supply-station'], cargoLabel: 'graphite heat-sink blocks', massClass: 'heavy', likelihood: 0.7 },
   { templateId: 'oxygen-industrial-bottles', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-xid-main-port', 'estella-vi-heavy-cargo-station'], cargoLabel: 'industrial oxygen bottles', massClass: 'standard', likelihood: 0.55 },
@@ -110,10 +107,10 @@ const CERBERUS_TEMPLATES: CerberusContractTemplate[] = [
   // High-value surface extraction exports.
   { templateId: 'rare-metals-to-gaia-tech', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'platinum-group metal ingots', massClass: 'dense', likelihood: 1.0 },
   { templateId: 'silica-to-precision-factory', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-vii-high-vacuum-factory'], cargoLabel: 'silica crystal stock', massClass: 'heavy', likelihood: 0.65 },
-  { templateId: 'rare-metals-to-foundry', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-vi-foundry-complex'], cargoLabel: 'pressure-mined rare metal pallets', massClass: 'dense', likelihood: 0.8 },
+  { templateId: 'rare-metals-to-foundry', sourceIds: ACHERON_SURFACE_OPS_NODES, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'pressure-mined rare metal pallets', massClass: 'dense', likelihood: 0.8 },
 
   // Inputs for surface operations and chain maintenance.
-  { templateId: 'pressure-valves-to-acheron', sourceIds: ['estella-vi-foundry-complex', 'estella-vi-industrial-city'], destinationIds: ACHERON_SURFACE_OPS_NODES, cargoLabel: 'deep-pressure valve assemblies', massClass: 'heavy', likelihood: 0.9 },
+  { templateId: 'pressure-valves-to-acheron', sourceIds: ['estella-vi-heavy-cargo-station'], destinationIds: ACHERON_SURFACE_OPS_NODES, cargoLabel: 'deep-pressure valve assemblies', massClass: 'heavy', likelihood: 0.9 },
   { templateId: 'lift-bearings-to-olympos', sourceIds: ['estella-via-component-supply-station', 'estella-via-drydock-station'], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'acid-rated lift bearings', massClass: 'heavy', likelihood: 0.75 },
   { templateId: 'medicine-to-olympos', sourceIds: ['estella-vib-cold-chain-station'], destinationIds: [ACHERON_OLYMPOS_ID, ACHERON_COMMERCIAL_HUB_ID], cargoLabel: 'executive medicine lockers', massClass: 'light', likelihood: 0.55 },
   { templateId: 'hydrogen-to-pandemonium', sourceIds: ['estella-ii-nimbus-crucible', ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_PANDEMONIUM_ID], cargoLabel: 'surface hydrogen ration tanks', massClass: 'standard', likelihood: 0.9 },
