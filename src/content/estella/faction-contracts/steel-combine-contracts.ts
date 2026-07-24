@@ -1,13 +1,13 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
-import { estellaNodeById } from '../index';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 const STEEL_COMBINE_ID = 'steel-combine';
 const STEEL_COMBINE_NAME = 'The Steel Combine';
 const STEEL_COMBINE_TAG = 'STEEL';
 
-// Posting authorities (issuer flavor).
-const PLAN_DIRECTORATE = 'Steel Combine Plan Directorate';
+// Posting authorities (both STEEL). Internal plan logistics come from the Planning Office;
+// anything crossing the trade membrane (imports/exports) comes from the Foreign Trade Committee.
+const PLANNING_OFFICE = 'Steel Combine Planning Office';
 const FOREIGN_TRADE_COMMITTEE = 'Steel Combine Foreign Trade Committee';
 
 // Pay: everything is fuel-compensation only (net-zero, no-loss "safe transfer"), except exports,
@@ -73,72 +73,11 @@ const TEMPLATES: SteelTemplate[] = [
   { templateId: 'export-alloy-tessera', kind: 'export', sourceIds: [HAMMER], destinationIds: [TESSERA_FACTORY], cargoLabel: 'precision alloy billets', massClass: 'heavy', likelihood: 0.25 },
 ];
 
-interface FlavorSet {
-  issuer: string;
-  titles: string[];
-  blurbs: string[];
+function issuerFor(kind: JobKind): string {
+  return kind === 'distribution' ? PLANNING_OFFICE : FOREIGN_TRADE_COMMITTEE;
 }
 
-const FLAVOR: Record<JobKind, FlavorSet> = {
-  distribution: {
-    issuer: PLAN_DIRECTORATE,
-    titles: ['Plan delivery: {cargo} \u2192 {destination}', 'Plan lift: {cargo} \u2192 {destination}', 'Quota run: {cargo} \u2192 {destination}'],
-    blurbs: [
-      'For the good of the people.',
-      'Plan fulfillment is a collective duty.',
-      'The quota does not wait.',
-      'Every tonne serves the commune.',
-      'The furnaces must not go cold.',
-      'Honor to the udarnik who exceeds the quota.',
-    ],
-  },
-  import: {
-    issuer: FOREIGN_TRADE_COMMITTEE,
-    titles: ['Trade intake: {cargo} \u2192 {destination}', 'Foreign supply: {cargo} \u2192 {destination}'],
-    blurbs: [
-      "The commune's foundries hunger.",
-      'Feedstock for the plan. For the good of the people.',
-      'What the Belt sells, the Republic forges.',
-    ],
-  },
-  export: {
-    issuer: FOREIGN_TRADE_COMMITTEE,
-    titles: ['Export lot: {cargo} \u2192 {destination}', 'Foreign trade: {cargo} \u2192 {destination}'],
-    blurbs: [
-      'Hard currency keeps the heat on.',
-      'The Republic sells steel so the people may breathe.',
-      'Plan surplus for export. For the good of the people.',
-    ],
-  },
-};
-
-function hashString(text: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function pick<T>(pool: T[], seed: number): T {
-  return pool[(seed >>> 0) % pool.length];
-}
-
-function nodeName(id: string): string {
-  return estellaNodeById(id)?.name ?? id;
-}
-
-function fill(template: string, cargo: string, destination: string): string {
-  return template.replace(/\{cargo\}/g, cargo).replace(/\{destination\}/g, destination);
-}
-
-function candidateFor(template: SteelTemplate, sourceId: string, destinationId: string, worldTime: number): FactionContractCandidate {
-  const day = Math.floor(worldTime / 86_400);
-  const routeSeed = hashString(`${template.templateId}:${sourceId}->${destinationId}:${day}`);
-  const flavor = FLAVOR[template.kind];
-  const title = fill(pick(flavor.titles, routeSeed), template.cargoLabel, nodeName(destinationId));
-  const blurb = pick(flavor.blurbs, hashString(`${template.templateId}:${sourceId}->${destinationId}:${day}:blurb`));
+function candidateFor(template: SteelTemplate, sourceId: string, destinationId: string): FactionContractCandidate {
   const cargo: MissionCargoSpec = {
     label: template.cargoLabel,
     massClass: template.massClass,
@@ -153,9 +92,7 @@ function candidateFor(template: SteelTemplate, sourceId: string, destinationId: 
     destinationId,
     cargo,
     likelihood: template.likelihood,
-    issuerName: flavor.issuer,
-    title,
-    blurb,
+    issuerName: issuerFor(template.kind),
     // Fuel-compensation only; exports add a flat plan-bonus.
     generosity: 0,
     compensationRatio: 1.0,
@@ -170,7 +107,7 @@ function generateSteelCombineContracts(ctx: FactionContractContext): FactionCont
     if (!template.sourceIds.includes(ctx.sourceId)) continue;
     for (const destinationId of template.destinationIds) {
       if (destinationId === ctx.sourceId) continue;
-      out.push(candidateFor(template, ctx.sourceId, destinationId, ctx.worldTime));
+      out.push(candidateFor(template, ctx.sourceId, destinationId));
     }
   }
   return out;

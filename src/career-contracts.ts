@@ -17,7 +17,6 @@ export interface CareerContract {
   issuerId?: string;
   issuerName?: string;
   issuerTag?: string;
-  blurb?: string;
   templateId?: string;
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
@@ -176,11 +175,10 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     destinationName: target.name,
     destinationPath: target.path,
     routeClass: classifyRoute(candidate.sourceId, candidate.destinationId),
-    title: candidate.title ?? `Deliver ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
+    title: `Deliver ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
     issuerId: candidate.factionId,
     issuerName: candidate.issuerName ?? candidate.factionName,
     issuerTag: candidate.factionTag,
-    blurb: candidate.blurb,
     templateId: candidate.templateId,
     cargo: candidate.cargo,
     quote,

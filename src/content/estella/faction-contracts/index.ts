@@ -33,10 +33,8 @@ export interface FactionContractCandidate {
   flatReward?: number;
   compensationRatio?: number;
   maxCompAllowance?: number;
-  /** Optional presentation overrides. When set, the board uses these instead of the generic text. */
+  /** Optional issuer-name override (e.g. a sub-committee under the same faction tag). */
   issuerName?: string;
-  title?: string;
-  blurb?: string;
 }
 
 export interface FactionContractProvider {
