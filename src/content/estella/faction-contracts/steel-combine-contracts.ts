@@ -35,79 +35,233 @@ const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
 
 type JobKind = 'distribution' | 'import' | 'export';
 
-interface SteelTemplate {
-  templateId: string;
+interface CargoOption {
+  label: string;
+  massClass: CargoMassClass;
+}
+
+interface SteelLane {
+  laneId: string;
   kind: JobKind;
   sourceIds: string[];
   destinationIds: string[];
-  cargoLabel: string;
-  massClass: CargoMassClass;
+  cargo: CargoOption[];
   likelihood: number;
+  // How many distinct cargo types to offer per (source -> destination) on a given board.
+  sampleCount: number;
 }
 
-const TEMPLATES: SteelTemplate[] = [
-  // --- Internal distribution: Hammer (bulk/heavy) <-> surface ---
-  { templateId: 'hammer-feedstock-to-gornilo', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [GORNILO], cargoLabel: 'smelter feedstock', massClass: 'dense', likelihood: 1.1 },
-  { templateId: 'hammer-billet-to-perun', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [PERUN], cargoLabel: 'billet stock', massClass: 'heavy', likelihood: 0.9 },
-  { templateId: 'hammer-supplies-to-veles', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [VELES], cargoLabel: 'mining supplies', massClass: 'standard', likelihood: 0.6 },
-  { templateId: 'gornilo-steel-to-hammer', kind: 'distribution', sourceIds: [GORNILO], destinationIds: [HAMMER], cargoLabel: 'rolled structural sections', massClass: 'dense', likelihood: 1.1 },
-  { templateId: 'perun-machinery-to-hammer', kind: 'distribution', sourceIds: [PERUN], destinationIds: [HAMMER], cargoLabel: 'finished machinery', massClass: 'heavy', likelihood: 0.9 },
-  { templateId: 'veles-ore-to-hammer', kind: 'distribution', sourceIds: [VELES], destinationIds: [HAMMER], cargoLabel: 'specialty ore', massClass: 'dense', likelihood: 0.7 },
+// --- Cargo pools ---------------------------------------------------------------------------
 
-  // --- Internal distribution: Anvil (light/passengers/paperwork) <-> surface ---
-  { templateId: 'anvil-crews-to-surface', kind: 'distribution', sourceIds: [ANVIL], destinationIds: [GORNILO, PERUN, VELES], cargoLabel: 'work crews', massClass: 'light', likelihood: 0.9 },
-  { templateId: 'anvil-directives-to-surface', kind: 'distribution', sourceIds: [ANVIL], destinationIds: [GORNILO, PERUN, STRIBOG], cargoLabel: 'plan directives', massClass: 'light', likelihood: 0.7 },
-  { templateId: 'mokosh-rations-to-anvil', kind: 'distribution', sourceIds: [MOKOSH], destinationIds: [ANVIL], cargoLabel: 'bulk-food allotments', massClass: 'standard', likelihood: 0.8 },
-  { templateId: 'surface-quota-to-anvil', kind: 'distribution', sourceIds: [GORNILO, PERUN, VELES], destinationIds: [ANVIL], cargoLabel: 'quota reports', massClass: 'light', likelihood: 0.75 },
-  { templateId: 'morana-telemetry-to-anvil', kind: 'distribution', sourceIds: [MORANA], destinationIds: [ANVIL], cargoLabel: 'weather telemetry cores', massClass: 'light', likelihood: 0.5 },
-
-  // --- Imports (sparse): likely external feedstock sources -> Hammer ---
-  { templateId: 'import-concentrate-newcanaan', kind: 'import', sourceIds: NEW_CANAAN_DOCKS, destinationIds: [HAMMER], cargoLabel: 'titanium tailings concentrate', massClass: 'dense', likelihood: 0.3 },
-  { templateId: 'import-basalt-newcanaan', kind: 'import', sourceIds: NEW_CANAAN_DOCKS, destinationIds: [HAMMER], cargoLabel: 'basalt fiber feedstock', massClass: 'heavy', likelihood: 0.25 },
-  { templateId: 'import-refractory-serai', kind: 'import', sourceIds: [CARAVANSERAI], destinationIds: [HAMMER], cargoLabel: 'imported refractory feedstock', massClass: 'dense', likelihood: 0.25 },
-
-  // --- Exports (sparse, lucrative: compensation + flat bounty): Hammer -> external buyers ---
-  { templateId: 'export-structural-svarog', kind: 'export', sourceIds: [HAMMER], destinationIds: [SVAROG_YARD], cargoLabel: 'rolled structural sections', massClass: 'dense', likelihood: 0.35 },
-  { templateId: 'export-steel-yardstock', kind: 'export', sourceIds: [HAMMER], destinationIds: [YARDSTOCK], cargoLabel: 'certified steel stock', massClass: 'heavy', likelihood: 0.3 },
-  { templateId: 'export-machinery-serai', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERAI_OUTFITTER], cargoLabel: 'heavy machinery', massClass: 'heavy', likelihood: 0.25 },
-  { templateId: 'export-alloy-tessera', kind: 'export', sourceIds: [HAMMER], destinationIds: [TESSERA_FACTORY], cargoLabel: 'precision alloy billets', massClass: 'heavy', likelihood: 0.25 },
+// Feedstock and supplies flowing DOWN from the bulk membrane to the works.
+const GORNILO_INTAKE: CargoOption[] = [
+  { label: 'smelter feedstock', massClass: 'dense' },
+  { label: 'iron-ore pellets', massClass: 'dense' },
+  { label: 'coke and flux', massClass: 'heavy' },
+  { label: 'scrap charge', massClass: 'heavy' },
+  { label: 'alloying additives', massClass: 'standard' },
+  { label: 'refractory brick', massClass: 'heavy' },
 ];
+const PERUN_INTAKE: CargoOption[] = [
+  { label: 'billet stock', massClass: 'heavy' },
+  { label: 'plate and sheet stock', massClass: 'heavy' },
+  { label: 'bar and rod stock', massClass: 'heavy' },
+  { label: 'casting blanks', massClass: 'dense' },
+  { label: 'machine-tool stock', massClass: 'standard' },
+];
+const VELES_INTAKE: CargoOption[] = [
+  { label: 'mining supplies', massClass: 'standard' },
+  { label: 'drill stock', massClass: 'standard' },
+  { label: 'blasting charges', massClass: 'light' },
+  { label: 'shoring timber', massClass: 'heavy' },
+  { label: 'replacement cutting heads', massClass: 'standard' },
+];
+
+// Finished goods and ore flowing UP to the bulk membrane.
+const GORNILO_OUTPUT: CargoOption[] = [
+  { label: 'rolled structural sections', massClass: 'dense' },
+  { label: 'steel billets', massClass: 'dense' },
+  { label: 'plate steel', massClass: 'heavy' },
+  { label: 'rail and beam stock', massClass: 'heavy' },
+  { label: 'alloy ingots', massClass: 'dense' },
+  { label: 'pressure-pipe stock', massClass: 'heavy' },
+];
+const PERUN_OUTPUT: CargoOption[] = [
+  { label: 'finished machinery', massClass: 'heavy' },
+  { label: 'machine tools', massClass: 'heavy' },
+  { label: 'pumps and compressors', massClass: 'heavy' },
+  { label: 'gear assemblies', massClass: 'standard' },
+  { label: 'prefabricated structural modules', massClass: 'dense' },
+  { label: 'heavy vehicle chassis', massClass: 'heavy' },
+];
+const VELES_OUTPUT: CargoOption[] = [
+  { label: 'specialty ore', massClass: 'dense' },
+  { label: 'rare-earth concentrate', massClass: 'dense' },
+  { label: 'refractory ore', massClass: 'dense' },
+  { label: 'high-grade alloy ore', massClass: 'dense' },
+];
+
+// Light membrane traffic (people, orders, small freight) via Anvil.
+const ANVIL_DOWN: CargoOption[] = [
+  { label: 'work crews', massClass: 'light' },
+  { label: 'shift rotations', massClass: 'light' },
+  { label: 'plan directives', massClass: 'light' },
+  { label: 'quota allocations', massClass: 'light' },
+  { label: 'tooling and spares', massClass: 'standard' },
+  { label: 'medical supplies', massClass: 'light' },
+];
+const SURFACE_UP_LIGHT: CargoOption[] = [
+  { label: 'quota reports', massClass: 'light' },
+  { label: 'production returns', massClass: 'light' },
+  { label: 'work rotations', massClass: 'light' },
+  { label: 'spent-tooling returns', massClass: 'standard' },
+  { label: 'personnel transfers', massClass: 'light' },
+];
+const FOOD: CargoOption[] = [
+  { label: 'bulk-food allotments', massClass: 'standard' },
+  { label: 'grain rations', massClass: 'standard' },
+  { label: 'protein rations', massClass: 'standard' },
+  { label: 'preserved-food crates', massClass: 'standard' },
+];
+const WEATHER: CargoOption[] = [
+  { label: 'weather telemetry cores', massClass: 'light' },
+  { label: 'storm-forecast data', massClass: 'light' },
+  { label: 'atmospheric survey logs', massClass: 'light' },
+];
+
+// Imports (external feedstock -> Hammer).
+const NEW_CANAAN_IMPORTS: CargoOption[] = [
+  { label: 'titanium tailings concentrate', massClass: 'dense' },
+  { label: 'basalt fiber feedstock', massClass: 'heavy' },
+  { label: 'scrap pressure alloy', massClass: 'heavy' },
+  { label: 'regolith aggregate', massClass: 'dense' },
+  { label: 'bulk silicates', massClass: 'heavy' },
+];
+const SERAI_IMPORTS: CargoOption[] = [
+  { label: 'imported refractory feedstock', massClass: 'dense' },
+  { label: 'off-world alloy stock', massClass: 'heavy' },
+  { label: 'bulk industrial chemicals', massClass: 'standard' },
+  { label: 'imported machine parts', massClass: 'standard' },
+];
+
+// Exports (Hammer -> external buyers).
+const EXPORT_SVAROG: CargoOption[] = [
+  { label: 'rolled structural sections', massClass: 'dense' },
+  { label: 'hull plate stock', massClass: 'heavy' },
+  { label: 'pressure-shell blanks', massClass: 'dense' },
+  { label: 'frame members', massClass: 'heavy' },
+];
+const EXPORT_YARDSTOCK: CargoOption[] = [
+  { label: 'certified steel stock', massClass: 'heavy' },
+  { label: 'structural billets', massClass: 'dense' },
+  { label: 'fastener stock', massClass: 'standard' },
+  { label: 'welded assemblies', massClass: 'heavy' },
+];
+const EXPORT_SERAI: CargoOption[] = [
+  { label: 'heavy machinery', massClass: 'heavy' },
+  { label: 'prefabricated modules', massClass: 'dense' },
+  { label: 'cargo-frame stock', massClass: 'heavy' },
+  { label: 'structural components', massClass: 'heavy' },
+];
+const EXPORT_TESSERA: CargoOption[] = [
+  { label: 'precision alloy billets', massClass: 'heavy' },
+  { label: 'tool-steel stock', massClass: 'heavy' },
+  { label: 'high-purity ingots', massClass: 'dense' },
+  { label: 'instrument-grade alloy', massClass: 'standard' },
+];
+
+const LANES: SteelLane[] = [
+  // Internal distribution: Hammer (bulk) <-> surface.
+  { laneId: 'hammer-to-gornilo', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [GORNILO], cargo: GORNILO_INTAKE, likelihood: 1.1, sampleCount: 2 },
+  { laneId: 'hammer-to-perun', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [PERUN], cargo: PERUN_INTAKE, likelihood: 0.9, sampleCount: 2 },
+  { laneId: 'hammer-to-veles', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [VELES], cargo: VELES_INTAKE, likelihood: 0.6, sampleCount: 1 },
+  { laneId: 'gornilo-to-hammer', kind: 'distribution', sourceIds: [GORNILO], destinationIds: [HAMMER], cargo: GORNILO_OUTPUT, likelihood: 1.1, sampleCount: 2 },
+  { laneId: 'perun-to-hammer', kind: 'distribution', sourceIds: [PERUN], destinationIds: [HAMMER], cargo: PERUN_OUTPUT, likelihood: 0.9, sampleCount: 2 },
+  { laneId: 'veles-to-hammer', kind: 'distribution', sourceIds: [VELES], destinationIds: [HAMMER], cargo: VELES_OUTPUT, likelihood: 0.7, sampleCount: 1 },
+
+  // Internal distribution: Anvil (light/passengers/paperwork) <-> surface.
+  { laneId: 'anvil-to-surface', kind: 'distribution', sourceIds: [ANVIL], destinationIds: [GORNILO, PERUN, VELES, STRIBOG], cargo: ANVIL_DOWN, likelihood: 0.85, sampleCount: 1 },
+  { laneId: 'surface-to-anvil', kind: 'distribution', sourceIds: [GORNILO, PERUN, VELES], destinationIds: [ANVIL], cargo: SURFACE_UP_LIGHT, likelihood: 0.75, sampleCount: 1 },
+  { laneId: 'mokosh-to-anvil', kind: 'distribution', sourceIds: [MOKOSH], destinationIds: [ANVIL], cargo: FOOD, likelihood: 0.8, sampleCount: 1 },
+  { laneId: 'morana-to-anvil', kind: 'distribution', sourceIds: [MORANA], destinationIds: [ANVIL], cargo: WEATHER, likelihood: 0.5, sampleCount: 1 },
+
+  // Imports (sparse): likely external feedstock sources -> Hammer.
+  { laneId: 'import-new-canaan', kind: 'import', sourceIds: NEW_CANAAN_DOCKS, destinationIds: [HAMMER], cargo: NEW_CANAAN_IMPORTS, likelihood: 0.3, sampleCount: 1 },
+  { laneId: 'import-serai', kind: 'import', sourceIds: [CARAVANSERAI], destinationIds: [HAMMER], cargo: SERAI_IMPORTS, likelihood: 0.25, sampleCount: 1 },
+
+  // Exports (sparse, lucrative: compensation + flat bounty): Hammer -> external buyers.
+  { laneId: 'export-svarog', kind: 'export', sourceIds: [HAMMER], destinationIds: [SVAROG_YARD], cargo: EXPORT_SVAROG, likelihood: 0.35, sampleCount: 1 },
+  { laneId: 'export-yardstock', kind: 'export', sourceIds: [HAMMER], destinationIds: [YARDSTOCK], cargo: EXPORT_YARDSTOCK, likelihood: 0.3, sampleCount: 1 },
+  { laneId: 'export-serai', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERAI_OUTFITTER], cargo: EXPORT_SERAI, likelihood: 0.25, sampleCount: 1 },
+  { laneId: 'export-tessera', kind: 'export', sourceIds: [HAMMER], destinationIds: [TESSERA_FACTORY], cargo: EXPORT_TESSERA, likelihood: 0.25, sampleCount: 1 },
+];
+
+function hashString(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+// Deterministic sample of `count` distinct cargo options (seeded Fisher-Yates).
+function sampleCargo(pool: CargoOption[], count: number, seed: number): CargoOption[] {
+  if (count >= pool.length) return pool.slice();
+  const idx = pool.map((_, i) => i);
+  let s = seed >>> 0 || 1;
+  const rng = () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 0xffffffff; };
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx.slice(0, count).map(i => pool[i]);
+}
+
+function templateIdFor(laneId: string, label: string): string {
+  return `${laneId}:${label.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '')}`;
+}
 
 function issuerFor(kind: JobKind): string {
   return kind === 'distribution' ? PLANNING_OFFICE : FOREIGN_TRADE_COMMITTEE;
 }
 
-function candidateFor(template: SteelTemplate, sourceId: string, destinationId: string): FactionContractCandidate {
+function candidateFor(lane: SteelLane, sourceId: string, destinationId: string, option: CargoOption): FactionContractCandidate {
+  const templateId = templateIdFor(lane.laneId, option.label);
   const cargo: MissionCargoSpec = {
-    label: template.cargoLabel,
-    massClass: template.massClass,
-    massTons: cargoMassForClass(template.massClass, `${STEEL_COMBINE_ID}:${template.templateId}:${sourceId}->${destinationId}:${template.cargoLabel}`),
+    label: option.label,
+    massClass: option.massClass,
+    massTons: cargoMassForClass(option.massClass, `${STEEL_COMBINE_ID}:${templateId}:${sourceId}->${destinationId}:${option.label}`),
   };
   return {
     factionId: STEEL_COMBINE_ID,
     factionName: STEEL_COMBINE_NAME,
     factionTag: STEEL_COMBINE_TAG,
-    templateId: template.templateId,
+    templateId,
     sourceId,
     destinationId,
     cargo,
-    likelihood: template.likelihood,
-    issuerName: issuerFor(template.kind),
+    likelihood: lane.likelihood,
+    issuerName: issuerFor(lane.kind),
     // Fuel-compensation only; exports add a flat plan-bonus.
     generosity: 0,
     compensationRatio: 1.0,
     maxCompAllowance: MAX_COMP_ALLOWANCE,
-    flatReward: template.kind === 'export' ? EXPORT_BOUNTY : 0,
+    flatReward: lane.kind === 'export' ? EXPORT_BOUNTY : 0,
   };
 }
 
 function generateSteelCombineContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
-  for (const template of TEMPLATES) {
-    if (!template.sourceIds.includes(ctx.sourceId)) continue;
-    for (const destinationId of template.destinationIds) {
+  const day = Math.floor(ctx.worldTime / 86_400);
+  for (const lane of LANES) {
+    if (!lane.sourceIds.includes(ctx.sourceId)) continue;
+    for (const destinationId of lane.destinationIds) {
       if (destinationId === ctx.sourceId) continue;
-      out.push(candidateFor(template, ctx.sourceId, destinationId));
+      const seed = hashString(`${lane.laneId}:${ctx.sourceId}->${destinationId}:${day}`);
+      for (const option of sampleCargo(lane.cargo, lane.sampleCount, seed)) {
+        out.push(candidateFor(lane, ctx.sourceId, destinationId, option));
+      }
     }
   }
   return out;

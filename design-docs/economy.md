@@ -74,6 +74,20 @@ The Combine runs Kuznia as a planned economy behind an orbital trade membrane. I
 
 Imports and exports are deliberately sparse — the Combine leans on other companies' shipping for most external trade.
 
+### Cargo
+
+Each lane draws from a cargo pool, sampled per route and world-day, so goods vary across contracts and over time:
+
+- Hammer → works (feedstock/supplies): smelter feedstock, iron-ore pellets, coke and flux, scrap charge, alloying additives, refractory brick (Gornilo); billet/plate/bar stock, casting blanks, machine-tool stock (Perun); mining supplies, drill stock, blasting charges, shoring timber, cutting heads (Veles).
+- Works → Hammer (finished/ore): rolled structural sections, steel billets, plate steel, rail/beam stock, alloy ingots, pressure-pipe stock (Gornilo); finished machinery, machine tools, pumps/compressors, gear assemblies, prefab modules, vehicle chassis (Perun); specialty/rare-earth/refractory/high-grade ore (Veles).
+- Anvil ↔ surface (light): work crews, shift rotations, plan directives, quota allocations, tooling and spares, medical supplies (down); quota reports, production returns, work rotations, spent-tooling returns, personnel transfers (up); food allotments from Mokosh; weather/forecast/survey data from Morana.
+- Imports: titanium tailings concentrate, basalt fiber feedstock, scrap pressure alloy, regolith aggregate, bulk silicates (New Canaan); imported refractory feedstock, off-world alloy stock, bulk industrial chemicals, imported machine parts (Caravanserai).
+- Exports: structural sections, hull plate, pressure-shell blanks, frame members (Svarog); certified steel stock, structural billets, fastener stock, welded assemblies (Yardstock); heavy machinery, prefab modules, cargo-frame stock, structural components (Caravanserai outfitter); precision alloy billets, tool-steel stock, high-purity ingots, instrument-grade alloy (Tessera).
+
+### Kuznia membrane rule
+
+Only the Steel Combine operates on Kuznia's surface. Every other faction interfaces exclusively at the orbital membrane — Hammer (bulk) and Anvil (parts/personnel/light) — never a surface node. Redirected accordingly: Co-op (tailings/basalt → Hammer; seals/recycler/rations → Anvil), Cerberus (rare metals/carbon-fiber/valves → Hammer; workforce recruitment removed from Kuznia entirely), Bruckner & VHM (parts/technicians → Anvil), Kisaragi Yards Estella (supplier inputs → Hammer). The moons Svarog and Kalyna are independent polities and exempt.
+
 ### Pay
 
 Compensation-only: `generosity 0, compensationRatio 1.0, maxCompAllowance 2`. Exports add `flatReward 10,000`.
@@ -141,18 +155,18 @@ Emergency Caravanserai sourcing:
 
 Preferred inbound suppliers:
 
-- Perun City (`estella-vi-industrial-city`) -> New Canaan docks: pressure seals and valve blocks
-- Steel Combine (`estella-vi-foundry-complex`) -> New Canaan docks: recycler pump cartridges
+- Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: pressure seals and valve blocks
+- Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: recycler pump cartridges
 - Yardstock Terminal (`estella-via-component-supply-station`) -> `harlan-dock`: rotary bearing kits
 - Svarog Shipyard (`estella-via-drydock-station`) -> New Canaan docks: airlock actuator assemblies
-- Mokosh Lowlands (`estella-vi-agricultural-lowlands`) -> New Canaan docks: bulk ration packs
+- Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: bulk ration packs
 - Kalyna Orbital (`estella-vib-cold-chain-station`) -> New Canaan docks: medical cold-chain lockers
 - `still-public-approach-dock` -> New Canaan docks: certified pressure gas cylinders
 
 Outbound brokerage:
 
-- New Canaan docks -> Steel Combine (`estella-vi-foundry-complex`): low-grade titanium tailings concentrate
-- New Canaan docks -> Perun City (`estella-vi-industrial-city`): basalt fiber feedstock
+- New Canaan docks -> Hammer Station (`estella-vi-heavy-cargo-station`): low-grade titanium tailings concentrate
+- New Canaan docks -> Hammer Station (`estella-vi-heavy-cargo-station`): basalt fiber feedstock
 - New Canaan docks -> Svarog Shipyard (`estella-via-drydock-station`): scrap pressure alloy
 - New Canaan docks -> Yardstock Terminal (`estella-via-component-supply-station`): regolith shielding blocks
 - New Canaan docks -> `estella-iii-high-tech-city`: sealed assay cores
@@ -227,9 +241,6 @@ Workforce and custody origins are system-wide population, legal, and industrial 
 - `estella-iv-primary-city`
 - `estella-iv-main-orbital-station`
 - Concord (`estella-v-capital-settlement`)
-- `estella-vi-industrial-city`
-- `estella-vi-spaceport`
-- `estella-vi-main-transit-dispatch`
 - `caravanserai-main-commercial-dock`
 - `caravanserai-customs-inspection`
 - `caravanserai-free-trader-anchorage`
@@ -251,7 +262,7 @@ Acheron-local traffic:
 
 Carbonvale and Olympos exports:
 
-- `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-vi-industrial-city`: carbon-fiber structural rolls
+- `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-vi-heavy-cargo-station` (Kuznia membrane): carbon-fiber structural rolls
 - Acheron corporate nodes -> `estella-via-drydock-station` / `caravanserai-outfitter-drydock`: graphene cable stock
 - Acheron corporate nodes -> `estella-via-component-supply-station`: graphite heat-sink blocks
 - Acheron corporate nodes -> `estella-xid-main-port` / `estella-vi-heavy-cargo-station`: industrial oxygen bottles
@@ -260,11 +271,11 @@ Rare-metal/surface exports:
 
 - Acheron surface-ops nodes -> `estella-iii-high-tech-city`: platinum-group metal ingots
 - Acheron surface-ops nodes -> Mosaic Assembly Lab (`estella-vii-high-vacuum-factory`): silica crystal stock
-- Acheron surface-ops nodes -> `estella-vi-foundry-complex`: pressure-mined rare metal pallets
+- Acheron surface-ops nodes -> `estella-vi-heavy-cargo-station` (Kuznia membrane): pressure-mined rare metal pallets
 
 Surface operations inputs:
 
-- `estella-vi-foundry-complex` / `estella-vi-industrial-city` -> Acheron surface-ops nodes: deep-pressure valve assemblies
+- `estella-vi-heavy-cargo-station` (Kuznia membrane) -> Acheron surface-ops nodes: deep-pressure valve assemblies
 - `estella-via-component-supply-station` / `estella-via-drydock-station` -> `estella-ii-olympos`: acid-rated lift bearings
 - `estella-vib-cold-chain-station` -> `estella-ii-olympos` / `estella-ii-commercial-hub-dock`: executive medicine lockers
 - `estella-ii-nimbus-crucible` / `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-ii-pandemonium`: surface hydrogen ration tanks
