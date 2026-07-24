@@ -6,7 +6,7 @@ This file tracks the actor-driven economy for Space Teamster. It is a working de
 
 Career contracts are generated from the player's current dock and career world time. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board weighted-picks at least 2 and at most 10 faction contracts when candidates are available, then fills remaining board space with generic open-market freight.
 
-Mission pay is based on par fuel economics for the specified cargo. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
+Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
 Current implementation:
 
@@ -17,8 +17,87 @@ Current implementation:
 - Voss-Heinkel Metricwerke generator: `src/content/estella/faction-contracts/vhm-contracts.ts`
 - Kisaragi Yards Estella generator: `src/content/estella/faction-contracts/kisaragi-estella-contracts.ts`
 - Kisaragi Harmony Yards generator: `src/content/estella/faction-contracts/kisaragi-contracts.ts`
+- Teamsters' Guild generator: `src/content/estella/faction-contracts/teamsters-guild-contracts.ts`
+- Steel Combine generator: `src/content/estella/faction-contracts/steel-combine-contracts.ts`
+- Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
+
+## Contract pay model
+
+Gross pay is two buckets summed, settled from the *actual* ΔV flown:
+
+```
+fixedReward = generosity * parFuel + flatReward
+fuelComp    = compensationRatio * min(actualFuel, maxCompAllowance * parFuel)
+grossPay    = fixedReward + fuelComp
+net         = grossPay - actualFuel
+```
+
+Dials live on the faction contract candidate; unset dials fall back to defaults:
+
+- `generosity` — reward scaled with route difficulty (× par fuel). Default 1.25 (open-market baseline).
+- `flatReward` — flat credit floor/bonus. Default 0.
+- `compensationRatio` + `maxCompAllowance` — reimburse actual fuel up to a cap. Default 0 / 2.
+
+A thin fixed reward is naturally tight (break-even near par); a fat one is forgiving — so pay level already encodes a risk gradient without a dedicated dial. Precision-risk (fragile cargo, landing quality, deadlines) belongs in contract requirements, not the pay curve.
+
+Per-faction generosity, rank preserved in a [1.10, 1.70] band (open market and Guild sit at the 1.25 baseline):
+
+| Faction | base | notable overrides |
+|---|---|---|
+| New Canaan Miners Mutual | 1.10 | emergency relief 1.4 |
+| Open market / Teamsters' Guild | 1.25 | Guild: skim 1.7, staging 1.5, paperwork 1.35 |
+| Bruckner Field Services | 1.30 | returns/incident 1.5, crew 1.45 |
+| Cerberus Human Resources | 1.30 | custody/Pandemonium 1.6, rare-metal/corporate 1.45 |
+| Kisaragi Yards Estella | 1.40 | — |
+| Voss-Heinkel Metricwerke | 1.50 | hazard returns 1.7, exec/audit 1.6 |
+| Kisaragi Harmony Yards | 1.60 | Celadon-tier 1.7 |
+| Steel Combine | 0 (compensation-only) | exports add flatReward 10,000; comp 1.0, cap 2 |
+
+## Faction: The Steel Combine
+
+- ID: `steel-combine`
+- Tag: `STEEL`
+- Public name: The Steel Combine
+- Home world: Kuznia (Estella VI) — a People's Republic that is at once republic, company, and commune
+- Posting authorities (both STEEL): Steel Combine Planning Office (internal), Steel Combine Foreign Trade Committee (external)
+- Key nodes: Hammer Station (`estella-vi-heavy-cargo-station`, bulk membrane), Anvil Station (`estella-vi-main-transit-dispatch`, light/passengers/paperwork membrane), Gornilo Crucible (`estella-vi-foundry-complex`), Perun City (`estella-vi-industrial-city`), Mokosh Lowlands (`estella-vi-agricultural-lowlands`), Veles Mine (`estella-vi-mountain-mining`), Morana Station (`estella-vi-polar-weather-research`), Port Stribog (`estella-vi-spaceport`)
+
+The Combine runs Kuznia as a planned economy behind an orbital trade membrane. It does market profit only grudgingly: nearly all its posted work is fuel-compensation only (net-zero, no-loss "safe transfer"), the real reward being in-kind/reputation (deferred until reputation exists). Full lore: `design-docs/locations/kuznia.md`.
+
+### Job kinds
+
+- Internal distribution (common): Hammer/Anvil ↔ surface, both ways. Planning Office. Compensation-only. Hammer legs are bulk/heavy; Anvil legs are light/passengers/paperwork.
+- Imports (sparse): likely feedstock sources (New Canaan `harlan-dock`/`mercer-dock`, Caravanserai) → Hammer. Foreign Trade Committee. Compensation-only.
+- Exports (sparse, lucrative): Hammer → external buyers (Svarog Shipyard, Yardstock Terminal, Caravanserai outfitter, Mosaic Assembly Lab). Foreign Trade Committee. Compensation + a modest flat bounty (10,000 cr).
+
+Imports and exports are deliberately sparse — the Combine leans on other companies' shipping for most external trade.
+
+### Pay
+
+Compensation-only: `generosity 0, compensationRatio 1.0, maxCompAllowance 2`. Exports add `flatReward 10,000`.
+
+### Reputation hooks later
+
+Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair/refit at Perun City, at-cost resupply, priority weather-gated berthing, sanctuary/CHR-defector work, and — the cash tier — trusted-carrier access to the paying export runs. Combine standing is most valuable to a poor early-game Teamster. Known tuning debts (deferred): the flat export bounty does not scale with route size/risk, and the 2× compensation cap leaves large botch losses on the big surface↔orbit runs.
+
+## Faction: The Teamsters' Guild
+
+- ID: `teamsters-guild`
+- Tag: `GUILD`
+- Public name: The Teamsters' Guild
+- Key nodes: the Still (`still-distribution-bay`, `still-guild-hq`, `still-skim-runner-berth-poi`), Skim Hubs (`skim-hub-alpha-precursor-dock`, `skim-hub-beta-precursor-dock`), Certification Authority (`caravanserai-certification-authority`)
+
+The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Estella I staging → the Still, hazard-premium pay), fuel distribution (the Still → a few high-traffic hubs only, since bulk fuel canisters are rarely needed elsewhere), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
+
+### Pay
+
+Base generosity 1.25 (neutral market-setter). Overrides: skim precursor 1.7 (extreme hazard pay), staging 1.5, paperwork 1.35.
+
+### Notes
+
+The marquee 1.7 skim-precursor runs currently post only at the near-star skim hubs, which are not yet selectable nav targets — so they are unreachable until those nodes become dockable. Reputation later should gate the skim and cert/insurance/debt work.
 
 ## Faction: New Canaan Miners Mutual
 
