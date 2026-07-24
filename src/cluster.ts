@@ -191,6 +191,28 @@ const REACH_COMET_FRAGMENT_6_PORTS = makePorts('reach-comet-fragment-6', [
   { id: 'reach-comet-fragment-6-dock-port', name: 'Outer Science Cell', poiId: 'reach-comet-fragment-6-poi' },
 ], 2400);
 
+const CUPOLA_PORTS = makePorts('industrial-refinery-asteroid-es-m-0002', [
+  { id: 'cupola-ore-intake-port', name: 'Ore Intake Dock', poiId: 'industrial-refinery-ore-intake' },
+  { id: 'cupola-ingot-bay-port', name: 'Ingot Bay', poiId: 'industrial-refinery-finished-goods' },
+  { id: 'cupola-staff-hab-port', name: 'Staff Hab', poiId: 'industrial-refinery-staff-hab' },
+], 3600);
+
+const GRUBSTAKE_DEPOT_PORTS = makePorts('glitterfield-grubstake', [
+  { id: 'grubstake-depot-dock-port', name: 'Grubstake Dock', poiId: 'grubstake-depot-dock' },
+], 2400);
+
+const HIGHGRADE_DEPOT_PORTS = makePorts('glitterfield-highgrade', [
+  { id: 'highgrade-depot-dock-port', name: 'Highgrade Dock', poiId: 'highgrade-depot-dock' },
+], 2400);
+
+const SLAGFOOT_DEPOT_PORTS = makePorts('glitterfield-slagfoot', [
+  { id: 'slagfoot-depot-dock-port', name: 'Slagfoot Dock', poiId: 'slagfoot-depot-dock' },
+], 2400);
+
+const DEEPCUT_DEPOT_PORTS = makePorts('glitterfield-deepcut', [
+  { id: 'deepcut-depot-dock-port', name: 'Deepcut Dock', poiId: 'deepcut-depot-dock' },
+], 2400);
+
 export const NEW_CANAAN_CLUSTER_LEVEL: ClusterLevel = {
   id: 90,
   name: 'New Canaan Traffic Volume',
@@ -249,7 +271,36 @@ export const REACH_COMET_SWARM_CLUSTER_LEVEL: ClusterLevel = {
   timeWarpLevels: [1, 2, 5, 10],
 };
 
-const CLUSTER_TEMPLATES = [NEW_CANAAN_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL];
+export const GLITTERFIELD_CLUSTER_LEVEL: ClusterLevel = {
+  id: 92,
+  name: 'Glitterfield Traffic Volume',
+  subtitle: 'Local flight: Cupola Station and the ore depots',
+  rx: 80_000,
+  ry: 45_000,
+  orbitAngle: 0.1,
+  members: [
+    { id: 'industrial-refinery-asteroid-es-m-0002', name: 'Cupola Station', x: -24_000, y: 31_000, radius: 3200, ports: CUPOLA_PORTS },
+    { id: 'glitterfield-grubstake', name: 'Grubstake Depot', x: 12_000, y: 8_000, radius: 1800, ports: GRUBSTAKE_DEPOT_PORTS },
+    { id: 'glitterfield-highgrade', name: 'Highgrade Depot', x: -8_000, y: -14_000, radius: 1800, ports: HIGHGRADE_DEPOT_PORTS },
+    { id: 'glitterfield-slagfoot', name: 'Slagfoot Depot', x: 26_000, y: -6_000, radius: 1800, ports: SLAGFOOT_DEPOT_PORTS },
+    { id: 'glitterfield-deepcut', name: 'Deepcut Depot', x: -30_000, y: -20_000, radius: 1800, ports: DEEPCUT_DEPOT_PORTS },
+  ],
+  targetPortId: 'cupola-ore-intake-port',
+  startX: -6_500,
+  startY: 2_000,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 2.05,
+  forwardAccel: 9.375,
+  rotAccel: 2.8,
+  baseTimeScale: 4,
+  rockCount: 100,
+  captureRadius: 8_000,
+  captureMaxSpeed: 18,
+  timeWarpLevels: [1, 2, 5, 10],
+};
+
+const CLUSTER_TEMPLATES = [NEW_CANAAN_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL, GLITTERFIELD_CLUSTER_LEVEL];
 const LOCAL_CLUSTER_TRANSFER_KINEMATIC_SCALE = 0.1;
 
 export const CLUSTER_LEVELS: ClusterLevel[] = [...CLUSTER_TEMPLATES];
@@ -262,6 +313,7 @@ export function clusterBodyIdForPoi(poiId: string): string | undefined {
   const template = clusterTemplateForPoi(poiId);
   if (template === NEW_CANAAN_CLUSTER_LEVEL) return 'new-canaan-field';
   if (template === REACH_COMET_SWARM_CLUSTER_LEVEL) return 'reach-comet-swarm';
+  if (template === GLITTERFIELD_CLUSTER_LEVEL) return 'glitterfield';
   return undefined;
 }
 

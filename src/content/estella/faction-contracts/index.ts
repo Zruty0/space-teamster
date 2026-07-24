@@ -3,6 +3,8 @@ import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
+import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
+import { HALLORAN_PROVIDER } from './halloran-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
 import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
 import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
@@ -16,7 +18,8 @@ export interface FactionContractContext {
 export interface FactionContractCandidate {
   factionId: string;
   factionName: string;
-  factionTag: string;
+  /** Short market identifier; omit for actors too small to appear on the system market. */
+  factionTag?: string;
   templateId: string;
   sourceId: string;
   destinationId: string;
@@ -54,6 +57,8 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   KISARAGI_HARMONY_YARDS_PROVIDER,
   TEAMSTERS_GUILD_PROVIDER,
   STEEL_COMBINE_PROVIDER,
+  HALLORAN_PROVIDER,
+  GLITTERFIELD_MINERS_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {

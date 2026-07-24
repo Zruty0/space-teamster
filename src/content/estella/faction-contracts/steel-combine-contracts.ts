@@ -143,6 +143,14 @@ const SERAI_IMPORTS: CargoOption[] = [
   { label: 'bulk industrial chemicals', massClass: 'standard' },
   { label: 'imported machine parts', massClass: 'standard' },
 ];
+// Refined metal bought from the Glitterfield refinery (Cupola Station) — the buyer-side leg of
+// the Belt-to-Camps ore corridor. Posts at Cupola's ingot bay.
+const GLITTERFIELD_INGOTS: CargoOption[] = [
+  { label: 'nickel-iron ingots', massClass: 'heavy' },
+  { label: 'ferrochrome ingots', massClass: 'heavy' },
+  { label: 'cobalt ingots', massClass: 'dense' },
+  { label: 'refined metal ingots', massClass: 'heavy' },
+];
 
 // Exports (Hammer -> external buyers).
 const EXPORT_SVAROG: CargoOption[] = [
@@ -188,6 +196,7 @@ const LANES: SteelLane[] = [
   // Imports (sparse): likely external feedstock sources -> Hammer.
   { laneId: 'import-new-canaan', kind: 'import', sourceIds: NEW_CANAAN_DOCKS, destinationIds: [HAMMER], cargo: NEW_CANAAN_IMPORTS, likelihood: 0.3, sampleCount: 1 },
   { laneId: 'import-serai', kind: 'import', sourceIds: [CARAVANSERAI], destinationIds: [HAMMER], cargo: SERAI_IMPORTS, likelihood: 0.25, sampleCount: 1 },
+  { laneId: 'import-glitterfield', kind: 'import', sourceIds: ['industrial-refinery-finished-goods'], destinationIds: [HAMMER], cargo: GLITTERFIELD_INGOTS, likelihood: 0.3, sampleCount: 1 },
 
   // Exports (sparse, lucrative: compensation + flat bounty): Hammer -> external buyers.
   { laneId: 'export-svarog', kind: 'export', sourceIds: [HAMMER], destinationIds: [SVAROG_YARD], cargo: EXPORT_SVAROG, likelihood: 0.35, sampleCount: 1 },
