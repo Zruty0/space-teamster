@@ -12,6 +12,7 @@ const CUPOLA_INTAKE = 'industrial-refinery-ore-intake';
 const CUPOLA_HAB = 'industrial-refinery-staff-hab';
 const HARTWELL_CREW = ['estella-v-transit-customs', 'estella-v-capital-settlement']; // Roadstead, Concord
 const SUPPLY_SOURCES = ['caravanserai-main-commercial-dock', 'estella-v-transit-customs'];
+const GAIA_HUBS = ['estella-iii-finance-city', 'estella-iii-capital-city']; // the House is rich enough to fly people from Gaia
 
 const GENEROSITY = 1.3;
 
@@ -27,6 +28,9 @@ const CONSUMABLES: CargoOption[] = [
   { label: 'refractory linings', massClass: 'heavy' },
   { label: 'furnace consumables', massClass: 'standard' },
 ];
+
+// Experts and executives the House flies in from Gaia (passengers).
+const GAIA_PEOPLE = ['metallurgical experts', 'assay auditors', 'refinery executives', 'process engineers', 'House delegation'];
 
 function hashString(text: string): number {
   let hash = 2166136261;
@@ -79,10 +83,19 @@ function generateHalloranContracts(ctx: FactionContractContext): FactionContract
     out.push(candidate('crew-in', src, CUPOLA_HAB, makeCargo('refinery crews', 'light', `crewin:${src}`), 0.5));
   }
 
-  // Crew out: Cupola -> Hartwell.
+  // Experts and executives in from Gaia — the House can afford it.
+  if (GAIA_HUBS.includes(src)) {
+    const p = pick(GAIA_PEOPLE, hashString(`halloran:gaia:${src}:${day}`));
+    out.push(candidate(`gaia-experts:${slug(p)}`, src, CUPOLA_HAB, makeCargo(p, 'light', `gaia:${src}`), 0.5));
+  }
+
+  // Crew out: Cupola -> Hartwell, and executive returns to Gaia.
   if (src === CUPOLA_HAB) {
     for (const dest of HARTWELL_CREW) {
       out.push(candidate(`crew-out:${dest}`, src, dest, makeCargo('refinery crew rotations', 'light', `crewout:${dest}`), 0.45));
+    }
+    for (const dest of GAIA_HUBS) {
+      out.push(candidate(`gaia-return:${dest}`, src, dest, makeCargo('House delegation', 'light', `gaiaret:${dest}`), 0.35));
     }
   }
 

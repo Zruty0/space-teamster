@@ -268,11 +268,11 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'co-orbital',
     orbit: { kind: 'circular', radius: 1_520_000_000, epochAngle: 2.4, epochTime: 0, orbitSense: 1 },
   },
-  'industrial-refinery-asteroid-es-m-0002': { kind: 'cluster-member', parentId: 'glitterfield', x: -24_000, y: 31_000 },
-  'glitterfield-grubstake': { kind: 'cluster-member', parentId: 'glitterfield', x: 12_000, y: 8_000 },
-  'glitterfield-highgrade': { kind: 'cluster-member', parentId: 'glitterfield', x: -8_000, y: -14_000 },
-  'glitterfield-slagfoot': { kind: 'cluster-member', parentId: 'glitterfield', x: 26_000, y: -6_000 },
-  'glitterfield-deepcut': { kind: 'cluster-member', parentId: 'glitterfield', x: -30_000, y: -20_000 },
+  'industrial-refinery-asteroid-es-m-0002': { kind: 'cluster-member', parentId: 'glitterfield', x: 28_000, y: 16_000 },
+  'glitterfield-grubstake': { kind: 'cluster-member', parentId: 'glitterfield', x: -44_000, y: 6_000 },
+  'glitterfield-highgrade': { kind: 'cluster-member', parentId: 'glitterfield', x: -12_000, y: -22_000 },
+  'glitterfield-slagfoot': { kind: 'cluster-member', parentId: 'glitterfield', x: 60_000, y: -6_000 },
+  'glitterfield-deepcut': { kind: 'cluster-member', parentId: 'glitterfield', x: -2_000, y: 27_000 },
 
   'estella-viii': {
     kind: 'orbit',
