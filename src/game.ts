@@ -1425,9 +1425,9 @@ export class Game {
         title: passengerBoard ? 'BROWSE PASSENGER CONTRACTS' : 'BROWSE FREIGHT CONTRACTS',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
         bodyRows: passengerBoard ? [
-          { kind: 'text', text: 'Seat blocks, crew rotations, and worker-transfer postings. Most are connectivity work: tight at par, ugly if flown sloppy.' },
+          { kind: 'text', text: 'Seat blocks, crew rotations, and worker-transfer postings. Most are connectivity work, not profit work.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
-          { kind: 'kv', label: 'Pay model', value: 'Break-even near par; about -20% at 1.5× par fuel use' },
+          { kind: 'kv', label: 'Pay model', value: 'Regular crew seats are about -10% at par; special passenger postings vary' },
         ] : [
           { kind: 'text', text: 'Local public freight postings. Select a posting to inspect the route and terms.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },

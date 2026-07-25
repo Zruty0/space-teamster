@@ -133,7 +133,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.
 - Coverage: Camps work sites, Belt work sites, and Wells hubs. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog, Kalyna, and Tessera remain direct passenger destinations.
 - Hearth/Hartwell traffic is special: not ordinary worksite crew blocks, but long-term shift cohorts, completed shift returnees, claim-office parties, and executive/supervisor staff moving into Hartwell.
-- Pay: connectivity work, not profit work. Dials are `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`: at par the operator breaks even; at 1.5× par fuel use the run loses about 20% of par fuel cost.
+- Pay: connectivity work, not profit work. Special passenger postings use `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`, so par breaks even. Regular Hartwell crew transfers use `generosity 0.1`, `compensationRatio 0.8`, `maxCompAllowance 2`, so par is about -10% and 1.5× par fuel use is about -20%.
 
 Current passenger families: Hartwell worksite crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, long-term Hartwell shift cohorts, executive/supervisor staff, completed shift returnees, and claims-office passenger parties.
 

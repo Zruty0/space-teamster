@@ -9,16 +9,21 @@ interface PassengerTemplate {
   massClass: CargoMassClass;
   likelihood: number;
   issuerName: string;
+  generosity?: number;
+  compensationRatio?: number;
 }
 
 const HARTWELL_LABOR_ID = 'hartwell-labor-exchange';
 const HARTWELL_LABOR_NAME = 'Hartwell Labor Exchange';
 const HARTWELL_LABOR_TAG = 'PASS';
 
-// Low-paying seat blocks: at par the operator breaks even; at 1.5x par fuel use they lose
-// ~20% of par fuel cost. This makes passenger legs ubiquitous connective tissue, not profit work.
+// Low-paying seat blocks: special passenger work breaks even at par, while regular
+// Hartwell crew transfers are slightly negative even when flown cleanly. This makes
+// passenger legs ubiquitous connective tissue, not profit work.
 const PASSENGER_GENEROSITY = 0.4;
 const PASSENGER_COMPENSATION_RATIO = 0.6;
+const REGULAR_CREW_GENEROSITY = 0.1;
+const REGULAR_CREW_COMPENSATION_RATIO = 0.8;
 const PASSENGER_MAX_COMP_ALLOWANCE = 2;
 
 const ROADSTEAD = 'estella-v-transit-customs';
@@ -89,6 +94,8 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     massClass: 'standard',
     likelihood: 1.7,
     issuerName: 'Hartwell Labor Exchange',
+    generosity: REGULAR_CREW_GENEROSITY,
+    compensationRatio: REGULAR_CREW_COMPENSATION_RATIO,
   },
   {
     templateId: 'hartwell-contractors-out',
@@ -98,6 +105,8 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     massClass: 'standard',
     likelihood: 1.25,
     issuerName: 'Concord Contractor Registry',
+    generosity: REGULAR_CREW_GENEROSITY,
+    compensationRatio: REGULAR_CREW_COMPENSATION_RATIO,
   },
   {
     templateId: 'hartwell-specialists-out',
@@ -107,6 +116,8 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     massClass: 'light',
     likelihood: 0.85,
     issuerName: 'Roadstead Placement Desk',
+    generosity: REGULAR_CREW_GENEROSITY,
+    compensationRatio: REGULAR_CREW_COMPENSATION_RATIO,
   },
   {
     templateId: 'hartwell-return-rotations',
@@ -116,6 +127,8 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     massClass: 'standard',
     likelihood: 1.6,
     issuerName: 'Hartwell Labor Exchange',
+    generosity: REGULAR_CREW_GENEROSITY,
+    compensationRatio: REGULAR_CREW_COMPENSATION_RATIO,
   },
   {
     templateId: 'hearth-long-term-shifts-in',
@@ -193,8 +206,8 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         likelihood: template.likelihood,
         issuerName: template.issuerName,
         category: 'passenger',
-        generosity: PASSENGER_GENEROSITY,
-        compensationRatio: PASSENGER_COMPENSATION_RATIO,
+        generosity: template.generosity ?? PASSENGER_GENEROSITY,
+        compensationRatio: template.compensationRatio ?? PASSENGER_COMPENSATION_RATIO,
         maxCompAllowance: PASSENGER_MAX_COMP_ALLOWANCE,
       });
     }
