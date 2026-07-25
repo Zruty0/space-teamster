@@ -24,6 +24,7 @@ export interface CareerContract {
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
+  completionMessage: string;
 }
 
 const CONTRACT_CLASS_COUNTS: Record<CareerContractClass, number> = {
@@ -191,6 +192,7 @@ function makeContract(sourceId: string, destinationId: string, routeClass: Caree
     cargo,
     quote,
     selectedTransfer,
+    completionMessage: 'Open Market thanks you for successfully completing this contract.',
   };
 }
 
@@ -224,6 +226,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
+    completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
   };
 }
 

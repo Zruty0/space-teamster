@@ -632,10 +632,16 @@ export function makePayTerms(overrides: Partial<ContractPayTerms> = {}): Contrac
  * Actual gross payout for a flown mission = fixed reward + fuel compensation.
  * At par (actualFuelCost == parFuelCost) with legacy dials this equals parFuelCost * generosity.
  */
+export function contractFixedPay(pay: ContractPayTerms, parFuelCost: number): number {
+  return Math.round(pay.generosity * parFuelCost + pay.flatReward);
+}
+
+export function contractFuelCompensation(pay: ContractPayTerms, parFuelCost: number, actualFuelCost: number): number {
+  return Math.round(pay.compensationRatio * Math.min(actualFuelCost, pay.maxCompAllowance * parFuelCost));
+}
+
 export function contractGrossPay(pay: ContractPayTerms, parFuelCost: number, actualFuelCost: number): number {
-  const fixedReward = pay.generosity * parFuelCost + pay.flatReward;
-  const fuelComp = pay.compensationRatio * Math.min(actualFuelCost, pay.maxCompAllowance * parFuelCost);
-  return Math.round(fixedReward + fuelComp);
+  return contractFixedPay(pay, parFuelCost) + contractFuelCompensation(pay, parFuelCost, actualFuelCost);
 }
 
 export function contractPayoutForQuote(quote: MissionCostQuote, actualDv: number): number {
@@ -650,7 +656,8 @@ export function formatCredits(value: number): string {
 
 export function formatMissionResultLine(quote: MissionCostQuote, actualDv: number): string {
   const actualFuel = actualFuelCostForQuote(quote, actualDv);
-  const pay = contractPayoutForQuote(quote, actualDv);
-  const net = pay - actualFuel;
-  return `PAR ${quote.parDv.toFixed(0)} m/s | ACTUAL ${actualDv.toFixed(0)} m/s | FUEL ${formatCredits(actualFuel)}\nPAY ${formatCredits(pay)} | NET ${formatCredits(net)}`;
+  const fixedPay = contractFixedPay(quote.pay, quote.parFuelCost);
+  const fuelComp = contractFuelCompensation(quote.pay, quote.parFuelCost, actualFuel);
+  const net = fixedPay + fuelComp - actualFuel;
+  return `PAR ${quote.parDv.toFixed(0)} m/s | ACTUAL ${actualDv.toFixed(0)} m/s\nFIXED PAY ${formatCredits(fixedPay)} | FUEL COST ${formatCredits(actualFuel)} (${(quote.pay.compensationRatio * 100).toFixed(0)}% comp: ${formatCredits(fuelComp)})\nNET PAY ${formatCredits(net)}`;
 }

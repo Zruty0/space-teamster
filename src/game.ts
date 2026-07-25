@@ -573,7 +573,7 @@ export class Game {
   }
 
   private currentMissionCompletionText(): string {
-    if (this.activeCareerContract) return 'Delivery complete. The BBS closes the contract and posts the run to your log.';
+    if (this.activeCareerContract) return this.activeCareerContract.completionMessage;
     return 'Delivery complete. Dispatch closes the manifest and posts the run to your log.';
   }
 
@@ -632,8 +632,9 @@ export class Game {
     }
     const detailText = detailLines.join('\n');
     this.guidanceText = '';
+    const finalContractTitle = completionText && this.activeCareerContract ? this.activeCareerContract.title : undefined;
     this.phaseCompletion = {
-      title: extra.title ?? this.phaseTitle(p),
+      title: finalContractTitle ?? extra.title ?? this.phaseTitle(p),
       tone: extra.tone ?? 'success',
       phaseDvUsed,
       missionDvUsed,

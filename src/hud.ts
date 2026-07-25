@@ -447,6 +447,20 @@ function drawLandedOverlay(
   ctx.fillText('BACKSPACE: Fly again  |  Esc: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
+function middleEllipsis(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  if (text.length <= 6) return text;
+  let left = Math.ceil(text.length / 2);
+  let right = Math.floor(text.length / 2);
+  while (left > 1 && right < text.length - 1) {
+    const candidate = `${text.slice(0, left)}...${text.slice(right)}`;
+    if (ctx.measureText(candidate).width <= maxWidth) return candidate;
+    if (left > text.length - right) left--;
+    else right++;
+  }
+  return text.slice(0, Math.max(0, Math.floor(maxWidth / 10) - 3)) + '...';
+}
+
 export function drawPhaseCompleteOverlay(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -479,7 +493,7 @@ export function drawPhaseCompleteOverlay(
   ctx.textAlign = 'center';
   ctx.fillStyle = accent;
   ctx.font = 'bold 22px monospace';
-  ctx.fillText(tone === 'transition' ? title : `${title}: success`, W / 2, top + 32);
+  ctx.fillText(middleEllipsis(ctx, title, 520), W / 2, top + 32);
 
   ctx.font = '15px monospace';
   ctx.fillStyle = accent;

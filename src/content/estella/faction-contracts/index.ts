@@ -41,6 +41,8 @@ export interface FactionContractCandidate {
   issuerName?: string;
   /** Contract board grouping. Freight is the default; passenger contracts live on their own BBS page. */
   category?: 'freight' | 'passenger';
+  /** Message shown on successful delivery. */
+  completionMessage?: string;
 }
 
 export interface FactionContractProvider {
@@ -66,5 +68,8 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx));
+  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(candidate => ({
+    ...candidate,
+    completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
+  })));
 }
