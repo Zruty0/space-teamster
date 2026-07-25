@@ -105,10 +105,11 @@ function contractPublishedPay(quote: MissionCostQuote): string {
 }
 
 function contractOptionTone(contract: CareerContract): InteractiveTone {
+  const netAtPar = contract.quote.expectedMargin;
   const marginRatio = contractMarginRatio(contract.quote);
-  if (marginRatio < -0.05) return 'danger';
+  if (netAtPar < -30_000) return 'danger';
   if (marginRatio <= 0.05) return 'warning';
-  if (marginRatio >= 0.25) return 'success';
+  if (netAtPar >= 100_000) return 'success';
   return 'normal';
 }
 
@@ -1467,7 +1468,8 @@ export class Game {
             label: contract.title,
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
             rightText: contractPublishedPay(contract.quote),
-            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET AT PAR ${contractMarginSummary(contract.quote)}`,
+            rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
+            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
             action: `contract:${contract.id}`,
             tone: contractOptionTone(contract),
           })),

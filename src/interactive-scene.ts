@@ -15,6 +15,7 @@ export interface InteractiveSceneOption {
   tone?: InteractiveTone;
   tag?: string;
   rightText?: string;
+  rightDetail?: string;
 }
 
 export interface InteractiveScene {
@@ -232,12 +233,18 @@ export function drawInteractiveScene(
       ctx.font = selected ? 'bold 14px monospace' : '14px monospace';
       ctx.textAlign = 'right';
       ctx.fillText(middleEllipsis(ctx, option.rightText, 280), x + boxW - 24, y);
+      if (option.rightDetail) {
+        ctx.fillStyle = toneColor(tone, selected);
+        ctx.font = selected ? 'bold 12px monospace' : '12px monospace';
+        ctx.fillText(middleEllipsis(ctx, option.rightDetail, 280), x + boxW - 24, y + 19);
+      }
       ctx.textAlign = 'left';
     }
     if (option.detail) {
       ctx.fillStyle = COL_HUD_DIM;
       ctx.font = '12px monospace';
-      ctx.fillText(middleEllipsis(ctx, option.detail, boxW - 66), x + 46, y + 19);
+      const detailWidth = option.rightText ? boxW - 360 : boxW - 66;
+      ctx.fillText(middleEllipsis(ctx, option.detail, detailWidth), x + 46, y + 19);
     }
   }
   ctx.restore();
