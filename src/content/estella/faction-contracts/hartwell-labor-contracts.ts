@@ -18,12 +18,12 @@ const HARTWELL_LABOR_NAME = 'Hartwell Labor Exchange';
 const HARTWELL_LABOR_TAG = 'PASS';
 
 // Low-paying seat blocks: special passenger work breaks even at par, while regular
-// Hartwell crew transfers are slightly negative even when flown cleanly. This makes
+// Hartwell crew transfers are slightly negative at par and punish wasteful burns. This makes
 // passenger legs ubiquitous connective tissue, not profit work.
 const PASSENGER_GENEROSITY = 0.4;
 const PASSENGER_COMPENSATION_RATIO = 0.6;
-const REGULAR_CREW_GENEROSITY = 0.1;
-const REGULAR_CREW_COMPENSATION_RATIO = 0.8;
+const REGULAR_CREW_GENEROSITY = 0.45;
+const REGULAR_CREW_COMPENSATION_RATIO = 0.5;
 const PASSENGER_MAX_COMP_ALLOWANCE = 2;
 
 const ROADSTEAD = 'estella-v-transit-customs';
