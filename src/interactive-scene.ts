@@ -225,12 +225,13 @@ export function drawInteractiveScene(
     }
     ctx.fillStyle = toneColor(tone, selected);
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
-    ctx.fillText(`${selected ? '▶ ' : '  '}${middleEllipsis(ctx, option.label, boxW - (textX - x) - 190)}`, textX, y);
+    const rightTextWidth = option.rightText ? 300 : 190;
+    ctx.fillText(`${selected ? '▶ ' : '  '}${middleEllipsis(ctx, option.label, boxW - (textX - x) - rightTextWidth)}`, textX, y);
     if (option.rightText) {
       ctx.fillStyle = toneColor(tone, selected);
       ctx.font = selected ? 'bold 14px monospace' : '14px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(option.rightText, x + boxW - 24, y);
+      ctx.fillText(middleEllipsis(ctx, option.rightText, 280), x + boxW - 24, y);
       ctx.textAlign = 'left';
     }
     if (option.detail) {
