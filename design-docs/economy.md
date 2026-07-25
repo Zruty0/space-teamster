@@ -131,10 +131,11 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Board: passenger contracts only; freight board excludes them.
 - Core nodes: Roadstead Customs and Concord.
 - Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.
-- Coverage: Gaia/Dahai civil nodes, Camps work sites, Belt work sites, and Wells hubs only. Local same-Hartwell passenger hops are suppressed.
+- Coverage: Camps work sites, Belt work sites, and Wells hubs. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog, Kalyna, and Tessera remain direct passenger destinations.
+- Hearth/Hartwell traffic is special: not ordinary worksite crew blocks, but long-term shift cohorts, completed shift returnees, claim-office parties, and executive/supervisor staff moving into Hartwell.
 - Pay: connectivity work, not profit work. Dials are `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`: at par the operator breaks even; at 1.5× par fuel use the run loses about 20% of par fuel cost.
 
-Current passenger families: Hartwell shift crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, and claims-office passenger parties.
+Current passenger families: Hartwell worksite crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, long-term Hartwell shift cohorts, executive/supervisor staff, completed shift returnees, and claims-office passenger parties.
 
 ## Faction: The Teamsters' Guild
 

@@ -33,15 +33,10 @@ const GAIA_DAHAI_NODES = [
   'estella-iv-primary-city',
 ];
 
+// Passenger traffic to Kuznia proper stops at Anvil; the Steel Combine handles all
+// surface distribution. Svarog, Kalyna, and Tessera remain independent destinations.
 const CAMPS_WORK_NODES = [
   'estella-vi-main-transit-dispatch',
-  'estella-vi-heavy-cargo-station',
-  'estella-vi-industrial-city',
-  'estella-vi-foundry-complex',
-  'estella-vi-spaceport',
-  'estella-vi-agricultural-lowlands',
-  'estella-vi-polar-weather-research',
-  'estella-vi-mountain-mining',
   'estella-via-drydock-station',
   'estella-via-component-supply-station',
   'estella-via-surface-anchor',
@@ -80,7 +75,6 @@ const WELLS_HUB_NODES = [
 ];
 
 const OUTBOUND_WORK_NODES = [
-  ...GAIA_DAHAI_NODES,
   ...CAMPS_WORK_NODES,
   ...BELT_WORK_NODES,
   ...WELLS_HUB_NODES,
@@ -91,7 +85,7 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     templateId: 'hartwell-shift-block-out',
     sourceIds: HARTWELL_PASSENGER_NODES,
     destinationIds: OUTBOUND_WORK_NODES,
-    cargoLabel: 'Hartwell shift crew block',
+    cargoLabel: 'Hartwell worksite crew block',
     massClass: 'standard',
     likelihood: 1.7,
     issuerName: 'Hartwell Labor Exchange',
@@ -108,7 +102,7 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
   {
     templateId: 'hartwell-specialists-out',
     sourceIds: HARTWELL_PASSENGER_NODES,
-    destinationIds: [...GAIA_DAHAI_NODES, ...CAMPS_WORK_NODES, ...WELLS_HUB_NODES],
+    destinationIds: [...CAMPS_WORK_NODES, ...WELLS_HUB_NODES],
     cargoLabel: 'technical specialist party',
     massClass: 'light',
     likelihood: 0.85,
@@ -122,6 +116,33 @@ const PASSENGER_TEMPLATES: PassengerTemplate[] = [
     massClass: 'standard',
     likelihood: 1.6,
     issuerName: 'Hartwell Labor Exchange',
+  },
+  {
+    templateId: 'hearth-long-term-shifts-in',
+    sourceIds: GAIA_DAHAI_NODES,
+    destinationIds: HARTWELL_PASSENGER_NODES,
+    cargoLabel: 'long-term Hartwell shift cohort',
+    massClass: 'standard',
+    likelihood: 1.2,
+    issuerName: 'Concord Placement Office',
+  },
+  {
+    templateId: 'hearth-supervisors-in',
+    sourceIds: GAIA_DAHAI_NODES,
+    destinationIds: HARTWELL_PASSENGER_NODES,
+    cargoLabel: 'executive and supervisor staff',
+    massClass: 'light',
+    likelihood: 0.85,
+    issuerName: 'Roadstead Supervisory Desk',
+  },
+  {
+    templateId: 'hearth-shift-returns-out',
+    sourceIds: HARTWELL_PASSENGER_NODES,
+    destinationIds: GAIA_DAHAI_NODES,
+    cargoLabel: 'completed long-term shift returnees',
+    massClass: 'standard',
+    likelihood: 0.75,
+    issuerName: 'Concord Placement Office',
   },
   {
     templateId: 'hartwell-medical-return',
@@ -157,7 +178,10 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
     if (!template.sourceIds.includes(ctx.sourceId)) continue;
     for (const destinationId of template.destinationIds) {
       if (destinationId === ctx.sourceId) continue;
-      if (HARTWELL_PASSENGER_NODES.includes(ctx.sourceId) && HARTWELL_PASSENGER_NODES.includes(destinationId)) continue;
+      const sourceIsHartwell = HARTWELL_PASSENGER_NODES.includes(ctx.sourceId);
+      const destinationIsHartwell = HARTWELL_PASSENGER_NODES.includes(destinationId);
+      if (sourceIsHartwell && destinationIsHartwell) continue;
+      if (template.templateId === 'hartwell-admin-travel' && sourceIsHartwell === destinationIsHartwell) continue;
       out.push({
         factionId: HARTWELL_LABOR_ID,
         factionName: HARTWELL_LABOR_NAME,
