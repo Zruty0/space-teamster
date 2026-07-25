@@ -1,4 +1,5 @@
 import type { MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbForCandidate } from './completion-blurbs';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
@@ -70,6 +71,6 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
   return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(candidate => ({
     ...candidate,
-    completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
+    completionMessage: candidate.completionMessage ?? completionBlurbForCandidate(candidate),
   })));
 }
