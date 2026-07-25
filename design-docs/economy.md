@@ -125,6 +125,17 @@ Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair
 
 Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers source directly from Cupola — the Steel Combine's `import-glitterfield` lane (Cupola → Hammer) and Kisaragi Yards Estella's finished-goods sourcing.
 
+## Passenger board: Hartwell Labor Exchange
+
+- ID: `hartwell-labor-exchange`, tag `PASS`.
+- Board: passenger contracts only; freight board excludes them.
+- Core nodes: Roadstead Customs and Concord.
+- Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.
+- Coverage: Gaia/Dahai civil nodes, Camps work sites, Belt work sites, and Wells hubs only. Local same-Hartwell passenger hops are suppressed.
+- Pay: connectivity work, not profit work. Dials are `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`: at par the operator breaks even; at 1.5× par fuel use the run loses about 20% of par fuel cost.
+
+Current passenger families: Hartwell shift crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, and claims-office passenger parties.
+
 ## Faction: The Teamsters' Guild
 
 - ID: `teamsters-guild`

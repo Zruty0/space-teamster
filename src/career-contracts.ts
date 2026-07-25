@@ -18,6 +18,7 @@ export interface CareerContract {
   issuerName?: string;
   issuerTag?: string;
   templateId?: string;
+  category?: 'freight' | 'passenger';
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
@@ -175,11 +176,12 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     destinationName: target.name,
     destinationPath: target.path,
     routeClass: classifyRoute(candidate.sourceId, candidate.destinationId),
-    title: `Deliver ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
+    title: `${candidate.category === 'passenger' ? 'Transport' : 'Deliver'} ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
     issuerId: candidate.factionId,
     issuerName: candidate.issuerName ?? candidate.factionName,
     issuerTag: candidate.factionTag,
     templateId: candidate.templateId,
+    category: candidate.category ?? 'freight',
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
@@ -197,6 +199,7 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
   const contracts: CareerContract[] = [];
 
   const factionCandidates = generateFactionContractCandidates({ sourceId, worldTime: startWorldTime })
+    .filter(candidate => (candidate.category ?? 'freight') !== 'passenger')
     .filter(candidate => candidate.sourceId === sourceId && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(sourceId, candidate.destinationId));
   const factionCount = Math.min(
     MAX_FACTION_CONTRACTS,
@@ -231,6 +234,17 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
   }
 
   return contracts;
+}
+
+const MAX_PASSENGER_CONTRACTS = 18;
+
+export function generatePassengerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
+  const seed = hashString(`passenger-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
+  const targetIds = new Set(estellaSelectableNavTargets().filter(target => target.id !== sourceId).map(target => target.id));
+  const candidates = generateFactionContractCandidates({ sourceId, worldTime: startWorldTime })
+    .filter(candidate => candidate.category === 'passenger')
+    .filter(candidate => candidate.sourceId === sourceId && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(sourceId, candidate.destinationId));
+  return weightedPick(candidates, MAX_PASSENGER_CONTRACTS, seed ^ 0x9a55e67).map((candidate, index) => makeFactionContract(candidate, index, startWorldTime));
 }
 
 export function careerContractClassLabel(routeClass: CareerContractClass): string {

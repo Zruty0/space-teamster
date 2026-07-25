@@ -37,7 +37,7 @@ import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estel
 import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
-import { careerContractClassLabel, generateCareerContracts, type CareerContract } from './career-contracts';
+import { careerContractClassLabel, generateCareerContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
@@ -62,8 +62,9 @@ type Phase =
   | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'browseContracts' | 'contractPosting' | 'careerStatus' | 'shipStatus';
+  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'careerStatus' | 'shipStatus';
   selectedIndex: number;
+  board?: 'freight' | 'passenger';
   contracts?: CareerContract[];
   contractIndex?: number;
 }
@@ -254,8 +255,26 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private openContractPosting(contracts: CareerContract[], contractIndex: number): void {
-    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex } };
+  private loadBrowsePassengerContracts(selectedIndex = 0): void {
+    this.phaseCompletion = null;
+    this.clearActiveMission();
+    this.worldTime = this.career.worldTime;
+    this.phase = {
+      kind: 'interactiveScene',
+      scene: {
+        id: 'browsePassengerContracts',
+        selectedIndex,
+        board: 'passenger',
+        contracts: generatePassengerContracts(this.career.locationId, this.career.worldTime),
+      },
+    };
+    this.showGuidance('BROWSE PASSENGER CONTRACTS');
+    this.time = 0;
+    this.accumulator = 0;
+  }
+
+  private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' = 'freight'): void {
+    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex, board } };
   }
 
   private resetCareer(): void {
@@ -1390,7 +1409,8 @@ export class Game {
         ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
         options: [
-          { label: 'Browse Contracts', detail: 'Open the local Teamsters\' Guild BBS postings.', action: 'browseContracts', tone: 'primary' },
+          { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
+          { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
@@ -1398,13 +1418,18 @@ export class Game {
       };
     }
 
-    if (state.id === 'browseContracts') {
+    if (state.id === 'browseContracts' || state.id === 'browsePassengerContracts') {
       const contracts = state.contracts ?? [];
+      const passengerBoard = state.id === 'browsePassengerContracts';
       return {
-        title: 'BROWSE CONTRACTS',
+        title: passengerBoard ? 'BROWSE PASSENGER CONTRACTS' : 'BROWSE FREIGHT CONTRACTS',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
-        bodyRows: [
-          { kind: 'text', text: 'Local public postings. Select a posting to inspect the route and terms.' },
+        bodyRows: passengerBoard ? [
+          { kind: 'text', text: 'Seat blocks, crew rotations, and worker-transfer postings. Most are connectivity work: tight at par, ugly if flown sloppy.' },
+          { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
+          { kind: 'kv', label: 'Pay model', value: 'Break-even near par; about -20% at 1.5× par fuel use' },
+        ] : [
+          { kind: 'text', text: 'Local public freight postings. Select a posting to inspect the route and terms.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
           { kind: 'kv', label: 'Sorting', value: 'Guild default: local work first, then longer hauls' },
         ],
@@ -1416,7 +1441,7 @@ export class Game {
             rightText: formatCredits(contract.quote.grossPay),
             detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
             action: `contract:${contract.id}`,
-            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : contract.issuerId ? 'success' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
+            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : passengerBoard ? 'warning' as const : contract.issuerId ? 'success' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
           })),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
@@ -1432,7 +1457,7 @@ export class Game {
         ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
         : 'immediate/local routing';
       return {
-        title: 'CONTRACT POSTING',
+        title: contract.category === 'passenger' ? 'PASSENGER POSTING' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyRows: [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
@@ -1441,7 +1466,7 @@ export class Game {
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
-          { kind: 'kv', label: 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t cargo, ${quote.loadedMassTons} t loaded)` },
+          { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
           { kind: 'kv', label: 'Pay', value: formatCredits(quote.grossPay), tone: 'success' },
@@ -1451,7 +1476,7 @@ export class Game {
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: back to contract board',
         options: [
           { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
-          { label: 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: 'browseContracts', tone: 'back' },
+          { label: contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
     }
@@ -1489,7 +1514,8 @@ export class Game {
 
     if (input.levelSelect) {
       if (p.scene.id === 'contractPosting') {
-        this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: p.scene.contractIndex ?? 0, contracts: p.scene.contracts ?? [] } };
+        const id = p.scene.board === 'passenger' ? 'browsePassengerContracts' : 'browseContracts';
+        this.phase = { kind: 'interactiveScene', scene: { id, selectedIndex: p.scene.contractIndex ?? 0, contracts: p.scene.contracts ?? [], board: p.scene.board } };
         return;
       }
       this.startMenuReturnPhase = p;
@@ -1509,8 +1535,13 @@ export class Game {
 
   private activateInteractiveSceneOption(state: InteractiveScenePhaseState, action: string): void {
     if (action === 'browseContracts') {
-      if (state.id === 'contractPosting') this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: state.contractIndex ?? 0, contracts: state.contracts ?? [] } };
+      if (state.id === 'contractPosting') this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: state.contractIndex ?? 0, contracts: state.contracts ?? [], board: 'freight' } };
       else this.loadBrowseContracts();
+      return;
+    }
+    if (action === 'browsePassengerContracts') {
+      if (state.id === 'contractPosting') this.phase = { kind: 'interactiveScene', scene: { id: 'browsePassengerContracts', selectedIndex: state.contractIndex ?? 0, contracts: state.contracts ?? [], board: 'passenger' } };
+      else this.loadBrowsePassengerContracts();
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
@@ -1520,7 +1551,7 @@ export class Game {
     if (action.startsWith('contract:')) {
       const contracts = state.contracts ?? [];
       const idx = contracts.findIndex(contract => `contract:${contract.id}` === action);
-      if (idx >= 0) this.openContractPosting(contracts, idx);
+      if (idx >= 0) this.openContractPosting(contracts, idx, state.id === 'browsePassengerContracts' || state.board === 'passenger' ? 'passenger' : 'freight');
       return;
     }
     if (action === 'acceptContract') {

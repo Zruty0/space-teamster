@@ -5,6 +5,7 @@ import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
 import { HALLORAN_PROVIDER } from './halloran-contracts';
+import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
 import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
 import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
@@ -38,6 +39,8 @@ export interface FactionContractCandidate {
   maxCompAllowance?: number;
   /** Optional issuer-name override (e.g. a sub-committee under the same faction tag). */
   issuerName?: string;
+  /** Contract board grouping. Freight is the default; passenger contracts live on their own BBS page. */
+  category?: 'freight' | 'passenger';
 }
 
 export interface FactionContractProvider {
@@ -59,6 +62,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   STEEL_COMBINE_PROVIDER,
   HALLORAN_PROVIDER,
   GLITTERFIELD_MINERS_PROVIDER,
+  HARTWELL_LABOR_EXCHANGE_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
