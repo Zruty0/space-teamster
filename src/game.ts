@@ -41,7 +41,7 @@ import { careerContractClassLabel, generateCareerContracts, generatePassengerCon
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
-import { drawInteractiveScene, type InteractiveScene } from './interactive-scene';
+import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -83,6 +83,41 @@ interface PhaseCompletion {
 }
 
 type TransitionRole = 'success' | 'contingency';
+
+function contractMarginRatio(quote: MissionCostQuote): number {
+  return quote.parFuelCost > 0 ? quote.expectedMargin / quote.parFuelCost : 0;
+}
+
+function formatSignedPercent(value: number): string {
+  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(0)}%`;
+}
+
+function contractMarginSummary(quote: MissionCostQuote): string {
+  return `${formatCredits(quote.expectedMargin)} (${formatSignedPercent(contractMarginRatio(quote))} at par)`;
+}
+
+function contractOptionTone(contract: CareerContract, passengerBoard: boolean): InteractiveTone {
+  const marginRatio = contractMarginRatio(contract.quote);
+  if (contract.category === 'passenger' || passengerBoard) {
+    if (marginRatio < -0.12) return 'danger';
+    if (marginRatio < -0.02) return 'warning';
+    if (marginRatio > 0.12) return 'success';
+    return 'normal';
+  }
+  if (contract.quote.expectedMargin < 0) return 'danger';
+  if (contract.issuerId) return 'success';
+  if (contract.routeClass === 'long') return 'warning';
+  return 'normal';
+}
+
+function contractPayTermsSummary(quote: MissionCostQuote): string {
+  const fixed = quote.pay.generosity * 100;
+  const comp = quote.pay.compensationRatio * 100;
+  const cap = quote.pay.maxCompAllowance;
+  const flat = quote.pay.flatReward > 0 ? ` + ${formatCredits(quote.pay.flatReward)} flat` : '';
+  if (quote.pay.compensationRatio > 0) return `${fixed.toFixed(0)}% par fixed${flat}; reimburses ${comp.toFixed(0)}% actual fuel up to ${cap.toFixed(1)}x par`;
+  return `${fixed.toFixed(0)}% par fixed${flat}; no fuel reimbursement`;
+}
 
 interface PhaseTransition {
   role: TransitionRole;
@@ -1427,7 +1462,7 @@ export class Game {
         bodyRows: passengerBoard ? [
           { kind: 'text', text: 'Seat blocks, crew rotations, and worker-transfer postings. Most are connectivity work, not profit work.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
-          { kind: 'kv', label: 'Pay model', value: 'Regular crew seats are about -10% at par; special passenger postings vary' },
+          { kind: 'kv', label: 'Pay model', value: 'Passenger rows are rated by par margin; near break-even is normal, not a warning' },
         ] : [
           { kind: 'text', text: 'Local public freight postings. Select a posting to inspect the route and terms.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
@@ -1438,10 +1473,10 @@ export class Game {
           ...contracts.map(contract => ({
             label: contract.title,
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
-            rightText: formatCredits(contract.quote.grossPay),
-            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s | NET ~${formatCredits(contract.quote.expectedMargin)}`,
+            rightText: `NET ${formatCredits(contract.quote.expectedMargin)}`,
+            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAY ${formatCredits(contract.quote.grossPay)} | PAR ${contract.quote.parDv.toFixed(0)} m/s | ${formatSignedPercent(contractMarginRatio(contract.quote))}`,
             action: `contract:${contract.id}`,
-            tone: contract.quote.expectedMargin < 0 ? 'danger' as const : passengerBoard ? 'warning' as const : contract.issuerId ? 'success' as const : contract.routeClass === 'long' ? 'warning' as const : 'normal' as const,
+            tone: contractOptionTone(contract, passengerBoard),
           })),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
@@ -1469,8 +1504,9 @@ export class Game {
           { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
-          { kind: 'kv', label: 'Pay', value: formatCredits(quote.grossPay), tone: 'success' },
-          { kind: 'kv', label: 'Expected margin', value: formatCredits(quote.expectedMargin), tone: quote.expectedMargin < 0 ? 'danger' : 'success' },
+          { kind: 'kv', label: 'Pay terms', value: contractPayTermsSummary(quote) },
+          { kind: 'kv', label: 'At-par payout', value: formatCredits(quote.grossPay), tone: quote.grossPay >= quote.parFuelCost ? 'success' : 'warning' },
+          { kind: 'kv', label: 'Par margin', value: contractMarginSummary(quote), tone: contractOptionTone(contract, contract.category === 'passenger') },
           { kind: 'kv', label: 'Transfer', value: transferSummary },
         ],
         footer: 'W/S or ↑↓: select   Enter: choose   Esc: back to contract board',

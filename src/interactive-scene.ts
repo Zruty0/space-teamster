@@ -227,7 +227,7 @@ export function drawInteractiveScene(
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
     ctx.fillText(`${selected ? '▶ ' : '  '}${middleEllipsis(ctx, option.label, boxW - (textX - x) - 190)}`, textX, y);
     if (option.rightText) {
-      ctx.fillStyle = tone === 'primary' || tone === 'success' ? COL_SUCCESS : COL_HUD;
+      ctx.fillStyle = toneColor(tone, selected);
       ctx.font = selected ? 'bold 14px monospace' : '14px monospace';
       ctx.textAlign = 'right';
       ctx.fillText(option.rightText, x + boxW - 24, y);
