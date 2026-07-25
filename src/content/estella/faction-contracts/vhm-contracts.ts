@@ -20,11 +20,13 @@ const WEYMARK_DEPOT_ID = 'estella-viii-harder-approach-station';
 const GAIA_CORPORATE_HQ_ID = 'estella-iii-finance-city';
 
 // Severe, deep-pocketed, and shipping rare precious hardware: VHM buys reliability and pays
-// near the top. Sealed hazard returns are the worst work and top the scale; executive and
-// audit travel pays a smaller premium over the direct-hardware base.
+// near the top. Sealed hazard returns are the worst work and top the scale. People movement
+// lives on the passenger board with reimbursement instead of freight margins.
 const VHM_BASE_GENEROSITY = 1.5;
 const VHM_RETURN_GENEROSITY = 1.7;
-const VHM_PEOPLE_GENEROSITY = 1.6;
+const VHM_PEOPLE_GENEROSITY = 0.5;
+const VHM_PEOPLE_COMPENSATION_RATIO = 0.6;
+const VHM_PEOPLE_MAX_COMP_ALLOWANCE = 2;
 
 const DIRECT_HARDWARE_DESTINATION_COUNT = 3;
 const GAIA_OUTBOUND_PEOPLE_DESTINATION_COUNT = 3;
@@ -168,6 +170,7 @@ function templateIdFor(prefix: string, option: VhmCargoOption): string {
 
 function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: VhmCargoOption, laneLikelihood: number, generosity: number = VHM_BASE_GENEROSITY): void {
   const templateId = templateIdFor(templatePrefix, option);
+  const passenger = templatePrefix.startsWith('people-');
   out.push({
     factionId: VHM_ID,
     factionName: VHM_NAME,
@@ -178,6 +181,9 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
     generosity,
+    compensationRatio: passenger ? VHM_PEOPLE_COMPENSATION_RATIO : undefined,
+    maxCompAllowance: passenger ? VHM_PEOPLE_MAX_COMP_ALLOWANCE : undefined,
+    category: passenger ? 'passenger' : undefined,
   });
 }
 

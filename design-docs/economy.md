@@ -50,14 +50,14 @@ Per-faction generosity, rank preserved in a [1.10, 1.70] band (open market and G
 |---|---|---|
 | New Canaan Miners Mutual | 1.10 | emergency relief 1.4 |
 | Open market / Teamsters' Guild | 1.25 | Guild: skim 1.7, staging 1.5, paperwork 1.35 |
-| Bruckner Field Services | 1.30 | returns/incident 1.5, crew 1.45 |
-| Cerberus Human Resources | 1.30 | custody/Pandemonium 1.6, rare-metal/corporate 1.45 |
-| Kisaragi Yards Estella | 1.40 | — |
-| Voss-Heinkel Metricwerke | 1.50 | hazard returns 1.7, exec/audit 1.6 |
-| Kisaragi Harmony Yards | 1.60 | Celadon-tier 1.7 |
-| Steel Combine | 0 (compensation-only) | exports add flatReward 10,000; comp 1.0, cap 2 |
-| Glitterfield mining companies | 1.30 | in-cluster ore (depot → Cupola) is 0.8 + 50% fuel comp (low-risk/low-reward) |
-| Halloran Smelting House | 1.30 | — |
+| Bruckner Field Services | 1.30 | returns/incident 1.5; crew passengers 0.5 + 60% fuel comp |
+| Cerberus Human Resources | 1.30 | rare-metal/corporate 1.45; hydrogen/Pandemonium freight 1.6; people templates 0.5 + 60% fuel comp |
+| Kisaragi Yards Estella | 1.40 | freight-only |
+| Voss-Heinkel Metricwerke | 1.50 | hazard returns 1.7; people 0.5 + 60% fuel comp |
+| Kisaragi Harmony Yards | 1.60 | Celadon-tier freight 1.7; people 0.5 + 60% fuel comp |
+| Steel Combine | 0 (compensation-only) | exports add flatReward 10,000; comp 1.0, cap 2; passengers 0.4 + 60% fuel comp |
+| Glitterfield mining companies | 1.30 | in-cluster ore (depot → Cupola) is 0.8 + 50% fuel comp; shift crews 0.3 + 60% fuel comp |
+| Halloran Smelting House | 1.30 | refinery crews 0.4 + 60% fuel comp; Gaia experts/delegations 0.5 + 60% fuel comp |
 
 ## Faction: The Steel Combine
 
@@ -136,6 +136,8 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Pay: connectivity work, not profit work. Special passenger postings use `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`, so par breaks even. Regular Hartwell crew transfers use `generosity 0.1`, `compensationRatio 0.8`, `maxCompAllowance 2`, so par is about -10% and 1.5× par fuel use is about -20%.
 
 Current passenger families: Hartwell worksite crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, long-term Hartwell shift cohorts, executive/supervisor staff, completed shift returnees, and claims-office passenger parties.
+
+Other factions can also post passenger-board work when the manifested load is people rather than freight: Cerberus workforce/custody/labor/delegation groups; BFS technician and inspection crews; VHM engineers/auditors/commissioning parties; Kisaragi shipwright, inspector, representative, and rotation parties; Steel Combine Anvil work/shift/personnel movements; Glitterfield shift crews; and Halloran refinery crews, experts, executives, and delegations. These use low fixed generosity plus 40–60% fuel reimbursement so par flight lands around -10% to +10% profit.
 
 ## Faction: The Teamsters' Guild
 

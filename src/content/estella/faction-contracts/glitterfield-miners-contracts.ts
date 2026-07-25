@@ -22,6 +22,7 @@ const SUPPLY_SOURCES = ['caravanserai-main-commercial-dock', 'estella-v-transit-
 // deliberately low-risk / low-reward: generosity dropped ~0.5 and half the fuel reimbursed.
 const STANDARD_PAY = { generosity: 1.3 } as const;
 const IN_CLUSTER_PAY = { generosity: 0.8, compensationRatio: 0.5, maxCompAllowance: 2 } as const;
+const CREW_PASSENGER_PAY = { generosity: 0.3, compensationRatio: 0.6, maxCompAllowance: 2 } as const;
 
 interface OreDef {
   ore: string;
@@ -113,6 +114,7 @@ function candidate(
   likelihood: number,
   pay: { generosity: number; compensationRatio?: number; maxCompAllowance?: number },
 ): FactionContractCandidate {
+  const passenger = templateId.endsWith(':crews');
   return {
     factionId: MINERS_ID,
     factionName: company.name, // shown as issuer; no tag (too small for the market)
@@ -121,7 +123,8 @@ function candidate(
     destinationId,
     cargo,
     likelihood,
-    ...pay,
+    ...(passenger ? CREW_PASSENGER_PAY : pay),
+    category: passenger ? 'passenger' : undefined,
   };
 }
 

@@ -14,21 +14,28 @@ const CERBERUS_ID = 'cerberus-human-resources';
 const CERBERUS_NAME = 'Cerberus Human Resources';
 const CERBERUS_TAG = 'CHR';
 
-// Rich but exploitative: ordinary corporate freight pays okay, the morally/physically ugly
-// custody, labor, and Pandemonium work must overpay to get flown, and high-value rare-metal
-// and corporate/luxury runs carry a smaller premium.
+// Rich but exploitative: ordinary corporate freight pays okay; morally/physically ugly freight
+// still overpays to get flown. People movement belongs on the passenger board and uses
+// reimbursement instead of freight margins.
 const CERBERUS_BASE_GENEROSITY = 1.3;
 const CERBERUS_UNSAVORY_GENEROSITY = 1.6;
 const CERBERUS_HIGH_VALUE_GENEROSITY = 1.45;
+const CERBERUS_PASSENGER_GENEROSITY = 0.5;
+const CERBERUS_PASSENGER_COMPENSATION_RATIO = 0.6;
+const CERBERUS_PASSENGER_MAX_COMP_ALLOWANCE = 2;
 
 const CERBERUS_UNSAVORY_TEMPLATES = new Set<string>([
+  'local-workforce-manifests',
+  'hydrogen-to-pandemonium',
+]);
+
+const CERBERUS_PASSENGER_TEMPLATES = new Set<string>([
   'workforce-transfer-to-hub',
   'custody-transfer-to-olympos',
   'surface-labor-allocation',
   'local-custody-processing',
-  'local-workforce-manifests',
   'local-surface-labor-processing',
-  'hydrogen-to-pandemonium',
+  'executive-delegation',
 ]);
 
 const CERBERUS_HIGH_VALUE_TEMPLATES = new Set<string>([
@@ -141,6 +148,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
     if (!template.sourceIds.includes(ctx.sourceId)) continue;
     for (const destinationId of template.destinationIds) {
       if (destinationId === ctx.sourceId) continue;
+      const passenger = CERBERUS_PASSENGER_TEMPLATES.has(template.templateId);
       out.push({
         factionId: CERBERUS_ID,
         factionName: CERBERUS_NAME,
@@ -150,7 +158,10 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         destinationId,
         cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood * destinationLikelihood(destinationId),
-        generosity: generosityForTemplate(template.templateId),
+        generosity: passenger ? CERBERUS_PASSENGER_GENEROSITY : generosityForTemplate(template.templateId),
+        compensationRatio: passenger ? CERBERUS_PASSENGER_COMPENSATION_RATIO : undefined,
+        maxCompAllowance: passenger ? CERBERUS_PASSENGER_MAX_COMP_ALLOWANCE : undefined,
+        category: passenger ? 'passenger' : undefined,
       });
     }
   }

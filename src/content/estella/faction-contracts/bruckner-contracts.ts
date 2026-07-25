@@ -22,11 +22,13 @@ const BRUCKNER_NAME = 'Bruckner Field Services';
 const BRUCKNER_TAG = 'BFS';
 
 // Professional dealer/service network; pays fine for routine service logistics. Failed and
-// quarantined returns nobody wants to haul carry a premium, and expensive technician-crew
-// relocations pay a bit above base.
+// quarantined returns nobody wants to haul carry a premium. Technician-crew relocations are
+// passenger-board connectivity work with mild reimbursement instead of freight margins.
 const BRUCKNER_BASE_GENEROSITY = 1.3;
 const BRUCKNER_RETURN_GENEROSITY = 1.5;
-const BRUCKNER_CREW_GENEROSITY = 1.45;
+const BRUCKNER_CREW_GENEROSITY = 0.5;
+const BRUCKNER_CREW_COMPENSATION_RATIO = 0.6;
+const BRUCKNER_CREW_MAX_COMP_ALLOWANCE = 2;
 const DIRECT_CREW_RELOCATION_COUNT = 2;
 const SUB_HUB_LEAF_DISTRIBUTION_COUNT = 4;
 const CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT = 2;
@@ -212,6 +214,7 @@ function templateIdFor(prefix: string, option: BrucknerCargoOption): string {
 
 function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: BrucknerCargoOption, laneLikelihood: number, generosity: number = BRUCKNER_BASE_GENEROSITY): void {
   const templateId = templateIdFor(templatePrefix, option);
+  const passenger = templatePrefix.startsWith('crew-');
   out.push({
     factionId: BRUCKNER_ID,
     factionName: BRUCKNER_NAME,
@@ -222,6 +225,9 @@ function pushCargoOption(out: FactionContractCandidate[], templatePrefix: string
     cargo: cargoFor(option.label, option.massClass, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
     generosity,
+    compensationRatio: passenger ? BRUCKNER_CREW_COMPENSATION_RATIO : undefined,
+    maxCompAllowance: passenger ? BRUCKNER_CREW_MAX_COMP_ALLOWANCE : undefined,
+    category: passenger ? 'passenger' : undefined,
   });
 }
 

@@ -15,6 +15,10 @@ const SUPPLY_SOURCES = ['caravanserai-main-commercial-dock', 'estella-v-transit-
 const GAIA_HUBS = ['estella-iii-finance-city', 'estella-iii-capital-city']; // the House is rich enough to fly people from Gaia
 
 const GENEROSITY = 1.3;
+const PASSENGER_GENEROSITY = 0.4;
+const GAIA_PASSENGER_GENEROSITY = 0.5;
+const PASSENGER_COMPENSATION_RATIO = 0.6;
+const PASSENGER_MAX_COMP_ALLOWANCE = 2;
 
 interface CargoOption {
   label: string;
@@ -54,6 +58,8 @@ function makeCargo(label: string, massClass: CargoMassClass, seedKey: string): M
 }
 
 function candidate(templateId: string, sourceId: string, destinationId: string, cargo: MissionCargoSpec, likelihood: number): FactionContractCandidate {
+  const passenger = templateId.startsWith('crew') || templateId.startsWith('gaia');
+  const gaiaPassenger = templateId.startsWith('gaia');
   return {
     factionId: HALLORAN_ID,
     factionName: HALLORAN_NAME,
@@ -63,7 +69,10 @@ function candidate(templateId: string, sourceId: string, destinationId: string, 
     destinationId,
     cargo,
     likelihood,
-    generosity: GENEROSITY,
+    generosity: passenger ? (gaiaPassenger ? GAIA_PASSENGER_GENEROSITY : PASSENGER_GENEROSITY) : GENEROSITY,
+    compensationRatio: passenger ? PASSENGER_COMPENSATION_RATIO : undefined,
+    maxCompAllowance: passenger ? PASSENGER_MAX_COMP_ALLOWANCE : undefined,
+    category: passenger ? 'passenger' : undefined,
   };
 }
 

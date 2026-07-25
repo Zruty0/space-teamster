@@ -10,10 +10,13 @@ const STEEL_COMBINE_TAG = 'STEEL';
 const PLANNING_OFFICE = 'Steel Combine Planning Office';
 const FOREIGN_TRADE_COMMITTEE = 'Steel Combine Foreign Trade Committee';
 
-// Pay: everything is fuel-compensation only (net-zero, no-loss "safe transfer"), except exports,
-// which add a modest flat plan-bonus on top. The commune does not do market profit.
+// Pay: most work is fuel-compensation only (net-zero, no-loss "safe transfer"), except exports,
+// which add a modest flat plan-bonus on top. People movement is explicit passenger work with
+// lower reimbursement so it stays around break-even instead of freight-profit work.
 const MAX_COMP_ALLOWANCE = 2;
 const EXPORT_BOUNTY = 10_000;
+const PASSENGER_GENEROSITY = 0.4;
+const PASSENGER_COMPENSATION_RATIO = 0.6;
 
 // Kuznia trade-membrane and surface nodes.
 const HAMMER = 'estella-vi-heavy-cargo-station'; // VI.2 high-orbit bulk marshalling
@@ -123,6 +126,8 @@ const FOOD: CargoOption[] = [
   { label: 'protein rations', massClass: 'standard' },
   { label: 'preserved-food crates', massClass: 'standard' },
 ];
+const PASSENGER_LABELS = new Set(['work crews', 'shift rotations', 'work rotations', 'personnel transfers']);
+
 const WEATHER: CargoOption[] = [
   { label: 'weather telemetry cores', massClass: 'light' },
   { label: 'storm-forecast data', massClass: 'light' },
@@ -237,6 +242,7 @@ function issuerFor(kind: JobKind): string {
 
 function candidateFor(lane: SteelLane, sourceId: string, destinationId: string, option: CargoOption): FactionContractCandidate {
   const templateId = templateIdFor(lane.laneId, option.label);
+  const passenger = PASSENGER_LABELS.has(option.label);
   const cargo: MissionCargoSpec = {
     label: option.label,
     massClass: option.massClass,
@@ -253,10 +259,11 @@ function candidateFor(lane: SteelLane, sourceId: string, destinationId: string, 
     likelihood: lane.likelihood,
     issuerName: issuerFor(lane.kind),
     // Fuel-compensation only; exports add a flat plan-bonus.
-    generosity: 0,
-    compensationRatio: 1.0,
+    generosity: passenger ? PASSENGER_GENEROSITY : 0,
+    compensationRatio: passenger ? PASSENGER_COMPENSATION_RATIO : 1.0,
     maxCompAllowance: MAX_COMP_ALLOWANCE,
-    flatReward: lane.kind === 'export' ? EXPORT_BOUNTY : 0,
+    flatReward: passenger ? 0 : lane.kind === 'export' ? EXPORT_BOUNTY : 0,
+    category: passenger ? 'passenger' : undefined,
   };
 }
 

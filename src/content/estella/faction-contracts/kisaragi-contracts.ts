@@ -26,10 +26,13 @@ const KIS_ID = 'kisaragi-harmony-yards';
 const KIS_NAME = 'Kisaragi Harmony Yards';
 const KIS_TAG = 'KIS';
 
-// The richest client in the system. Prestige work already pays well; Celadon-grade cargo and
-// the master-shipwright/executive delegations that ride with it hit the system's pay ceiling.
+// The richest client in the system. Prestige freight already pays well; Celadon-grade cargo hits
+// the system's pay ceiling. Kisaragi people move on the passenger board with reimbursement.
 const KIS_BASE_GENEROSITY = 1.6;
 const KIS_CELADON_GENEROSITY = 1.7;
+const KIS_PEOPLE_GENEROSITY = 0.5;
+const KIS_PEOPLE_COMPENSATION_RATIO = 0.6;
+const KIS_PEOPLE_MAX_COMP_ALLOWANCE = 2;
 
 const GAIA_HQ_ID = 'estella-iii-finance-city';
 const HIGHLINER_BAY_ID = 'caravanserai-highliner-bay-poi';
@@ -161,6 +164,7 @@ function templateIdFor(prefix: string, option: KisaragiCargoOption): string {
 
 function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, sourceId: string, destinationId: string, option: KisaragiCargoOption, laneLikelihood: number): void {
   const templateId = templateIdFor(templatePrefix, option);
+  const passenger = templatePrefix.startsWith('people-');
   out.push({
     factionId: KIS_ID,
     factionName: KIS_NAME,
@@ -170,7 +174,10 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     destinationId,
     cargo: cargoFor(option, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
-    generosity: option.tier === 'Celadon' ? KIS_CELADON_GENEROSITY : KIS_BASE_GENEROSITY,
+    generosity: passenger ? KIS_PEOPLE_GENEROSITY : option.tier === 'Celadon' ? KIS_CELADON_GENEROSITY : KIS_BASE_GENEROSITY,
+    compensationRatio: passenger ? KIS_PEOPLE_COMPENSATION_RATIO : undefined,
+    maxCompAllowance: passenger ? KIS_PEOPLE_MAX_COMP_ALLOWANCE : undefined,
+    category: passenger ? 'passenger' : undefined,
   });
 }
 
