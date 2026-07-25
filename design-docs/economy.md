@@ -4,7 +4,7 @@ This file tracks the actor-driven economy for Space Teamster. It is a working de
 
 ## Current contract model
 
-Career contracts are generated from the player's current dock and career world time. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board weighted-picks at least 2 and at most 10 faction contracts when candidates are available, then fills remaining board space with generic open-market freight.
+Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board weighted-picks at least 2 and at most 10 faction contracts when candidates are available, then fills remaining board space with generic open-market freight.
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 

@@ -1469,7 +1469,7 @@ export class Game {
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
             rightText: contractPublishedPay(contract.quote),
             rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-            detail: `${contract.issuerName ?? 'Open Market'} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
+            detail: `${contract.issuerName ?? 'Open Market'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
             action: `contract:${contract.id}`,
             tone: contractOptionTone(contract),
           })),
@@ -1492,6 +1492,7 @@ export class Game {
         bodyRows: [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Open Market' },
+          { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
