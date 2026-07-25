@@ -862,18 +862,45 @@ function clusterEscapeGuide(s: ClusterState, level: ClusterLevel, time: number):
   return { angle: target.angle, speed: target.speed, errorDeg };
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function clusterEllipseRayExitPoint(x: number, y: number, ux: number, uy: number, level: ClusterLevel): { x: number; y: number } {
+  const ca = Math.cos(level.orbitAngle), sa = Math.sin(level.orbitAngle);
+  const lx = x * ca + y * sa;
+  const ly = -x * sa + y * ca;
+  const lux = ux * ca + uy * sa;
+  const luy = -ux * sa + uy * ca;
+  const a = (lux * lux) / (level.rx * level.rx) + (luy * luy) / (level.ry * level.ry);
+  const b = 2 * ((lx * lux) / (level.rx * level.rx) + (ly * luy) / (level.ry * level.ry));
+  const c = (lx * lx) / (level.rx * level.rx) + (ly * ly) / (level.ry * level.ry) - 1;
+  const disc = b * b - 4 * a * c;
+  if (a <= 1e-9 || disc < 0) {
+    const edgeScale = 1 / Math.max(1e-6, Math.sqrt((ux / level.rx) ** 2 + (uy / level.ry) ** 2));
+    return { x: ux * edgeScale, y: uy * edgeScale };
+  }
+  const sqrtDisc = Math.sqrt(disc);
+  const t1 = (-b - sqrtDisc) / (2 * a);
+  const t2 = (-b + sqrtDisc) / (2 * a);
+  const t = [t1, t2].filter(v => v >= 0).sort((p, q) => p - q)[0] ?? Math.max(t1, t2, 0);
+  return { x: x + ux * t, y: y + uy * t };
+}
+
 function drawClusterEscapeGuide(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number, W: number, H: number): void {
   const guide = clusterEscapeGuide(s, level, time);
   if (!guide) return;
   const ux = Math.cos(guide.angle);
   const uy = Math.sin(guide.angle);
-  const edgeScale = 1 / Math.max(1e-6, Math.sqrt((ux / level.rx) ** 2 + (uy / level.ry) ** 2));
-  const edgeX = ux * edgeScale;
-  const edgeY = uy * edgeScale;
-  const [sx, sy] = cws(edgeX, edgeY, cam, W, H);
+  const edge = clusterEllipseRayExitPoint(s.x, s.y, ux, uy, level);
+  let [sx, sy] = cws(edge.x, edge.y, cam, W, H);
   const len = 42;
   const dx = ux;
   const dy = -uy;
+  const margin = 18;
+  const arrowExtent = len + 12;
+  sx = clamp(sx, margin + Math.max(0, -dx) * arrowExtent, W - margin - Math.max(0, dx) * arrowExtent);
+  sy = clamp(sy, margin + Math.max(0, -dy) * arrowExtent + 12, H - margin - Math.max(0, dy) * arrowExtent);
   ctx.save();
   ctx.strokeStyle = 'rgba(255, 221, 102, 0.9)';
   ctx.fillStyle = 'rgba(255, 221, 102, 0.9)';
