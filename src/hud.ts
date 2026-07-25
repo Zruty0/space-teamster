@@ -4,7 +4,7 @@ import { config } from './config';
 import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
 import { LevelDef } from './levels';
-import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
+import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel, wrapHudText } from './hud-layout';
 
 export type GameState = 'flying' | 'landed' | 'crashed';
 
@@ -447,20 +447,6 @@ function drawLandedOverlay(
   ctx.fillText('BACKSPACE: Fly again  |  Esc: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
-function middleEllipsis(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  if (text.length <= 6) return text;
-  let left = Math.ceil(text.length / 2);
-  let right = Math.floor(text.length / 2);
-  while (left > 1 && right < text.length - 1) {
-    const candidate = `${text.slice(0, left)}...${text.slice(right)}`;
-    if (ctx.measureText(candidate).width <= maxWidth) return candidate;
-    if (left > text.length - right) left--;
-    else right++;
-  }
-  return text.slice(0, Math.max(0, Math.floor(maxWidth / 10) - 3)) + '...';
-}
-
 export function drawPhaseCompleteOverlay(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -475,9 +461,12 @@ export function drawPhaseCompleteOverlay(
 ): void {
   const W = canvas.width;
   const H = canvas.height;
+  ctx.font = 'bold 22px monospace';
+  const titleLines = wrapHudText(ctx, title, 520);
+  const extraTitleH = Math.max(0, titleLines.length - 1) * 26;
   const detailLines = detailText ? detailText.split('\n').length : 0;
   const extraDetailH = Math.max(0, detailLines - 1) * 18;
-  const boxH = (ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170)) + extraDetailH;
+  const boxH = (ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170)) + extraDetailH + extraTitleH;
   const top = H / 2 - boxH / 2;
 
   const accent = tone === 'transition' ? COL_WARNING : COL_SUCCESS;
@@ -493,14 +482,14 @@ export function drawPhaseCompleteOverlay(
   ctx.textAlign = 'center';
   ctx.fillStyle = accent;
   ctx.font = 'bold 22px monospace';
-  ctx.fillText(middleEllipsis(ctx, title, 520), W / 2, top + 32);
+  titleLines.forEach((line, index) => ctx.fillText(line, W / 2, top + 32 + index * 26));
 
   ctx.font = '15px monospace';
   ctx.fillStyle = accent;
-  ctx.fillText(`DeltaV used this phase: ${phaseDvUsed.toFixed(0)} m/s`, W / 2, top + 70);
-  ctx.fillText(`DeltaV used this mission: ${missionDvUsed.toFixed(0)} m/s`, W / 2, top + 96);
+  ctx.fillText(`DeltaV used this phase: ${phaseDvUsed.toFixed(0)} m/s`, W / 2, top + 70 + extraTitleH);
+  ctx.fillText(`DeltaV used this mission: ${missionDvUsed.toFixed(0)} m/s`, W / 2, top + 96 + extraTitleH);
 
-  let y = top + 126;
+  let y = top + 126 + extraTitleH;
   if (ratingText) {
     ctx.fillStyle = ratingColor;
     ctx.font = 'bold 22px monospace';
