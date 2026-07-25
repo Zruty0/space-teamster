@@ -38,26 +38,27 @@ net         = grossPay - actualFuel
 
 Dials live on the faction contract candidate; unset dials fall back to defaults:
 
-- `generosity` — reward scaled with route difficulty (× par fuel). Default 1.25 (open-market baseline).
+- `generosity` — fixed reward scaled with route difficulty (× par fuel). Default 0.75 (open-market baseline).
 - `flatReward` — flat credit floor/bonus. Default 0.
-- `compensationRatio` + `maxCompAllowance` — reimburse actual fuel up to a cap. Default 0 / 2.
+- `compensationRatio` + `maxCompAllowance` — reimburse actual fuel up to a cap. Default 0.4 / 2.
 
-A thin fixed reward is naturally tight (break-even near par); a fat one is forgiving — so pay level already encodes a risk gradient without a dedicated dial. Precision-risk (fragile cargo, landing quality, deadlines) belongs in contract requirements, not the pay curve.
+Most contracts now split pay between fixed reward and fuel reimbursement. Zero reimbursement is reserved for high-end high-risk/high-reward work where sloppy fuel use is the hauler's problem. Precision-risk (fragile cargo, landing quality, deadlines) belongs in contract requirements, not the pay curve.
 
-Per-faction generosity, rank preserved in a [1.10, 1.70] band (open market and Guild sit at the 1.25 baseline):
+Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 
-| Faction | base | notable overrides |
+| Faction | routine formula | notable overrides |
 |---|---|---|
-| New Canaan Miners Mutual | 1.10 | emergency relief 1.4 |
-| Open market / Teamsters' Guild | 1.25 | Guild: skim 1.7, staging 1.5, paperwork 1.35 |
-| Bruckner Field Services | 1.30 | returns/incident 1.5; crew passengers 0.5 + 60% fuel comp |
-| Cerberus Human Resources | 1.30 | rare-metal/corporate 1.45; hydrogen/Pandemonium freight 1.6; people templates 0.5 + 60% fuel comp |
-| Kisaragi Yards Estella | 1.40 | freight-only |
-| Voss-Heinkel Metricwerke | 1.50 | hazard returns 1.7; people 0.5 + 60% fuel comp |
-| Kisaragi Harmony Yards | 1.60 | Celadon-tier freight 1.7; people 0.5 + 60% fuel comp |
-| Steel Combine | 0 (compensation-only) | exports add flatReward 10,000; comp 1.0, cap 2; passengers 0.4 + 60% fuel comp |
-| Glitterfield mining companies | 1.30 | in-cluster ore (depot → Cupola) is 0.8 + 50% fuel comp; shift crews 0.3 + 60% fuel comp |
-| Halloran Smelting House | 1.30 | refinery crews 0.4 + 60% fuel comp; Gaia experts/delegations 0.5 + 60% fuel comp |
+| Open market | 0.75 + 0.40 fuel comp (+15%) | — |
+| New Canaan Miners Mutual | 0.60 + 0.45 (+5%) | emergency 0.85 + 0.45 (+30%); exports 0.70 + 0.35 (+5%) |
+| Teamsters' Guild | 0.85 + 0.40 (+25%) | paperwork 0.90 + 0.35 (+25%); staging 1.30 + 0.15 (+45%); skim 1.70 + 0 (+70%) |
+| Bruckner Field Services | 0.80 + 0.45 (+25%) | returns 1.20 + 0.25 (+45%); crew passengers 0.50 + 0.60 (+10%) |
+| Cerberus Human Resources | 0.85 + 0.40 (+25%) | rare-metal/corporate 1.20 + 0.25 (+45%); hydrogen/Pandemonium 1.25 + 0.20 (+45%); people 0.50 + 0.60 (+10%) |
+| Kisaragi Yards Estella | 0.80 + 0.45 (+25%) | freight-only |
+| Voss-Heinkel Metricwerke | 1.55 + 0 (+55%) | hazard returns 1.70 + 0 (+70%); people 1.15 + 0 (+15%) |
+| Kisaragi Harmony Yards | 1.50 + 0 (+50%) | Celadon 1.70 + 0 (+70%); people 1.20 + 0 (+20%) |
+| Steel Combine | 0 + 1.00 fuel comp (0%) | exports 0.15 + 1.00 (+15%); no flat rewards |
+| Glitterfield mining companies | outbound ore/ingots 0.80 + 0.40 (+20%) | depot→Cupola ore 0.35 + 0.65 (0%); supplies 0.65 + 0.45 (+10%); crews 0.30 + 0.60 (-10%) |
+| Halloran Smelting House | 0.80 + 0.40 (+20%) | refinery crews 0.40 + 0.60 (0%); Gaia experts/delegations 0.50 + 0.60 (+10%) |
 
 ## Faction: The Steel Combine
 
@@ -94,11 +95,11 @@ Only the Steel Combine operates on Kuznia's surface. Every other faction interfa
 
 ### Pay
 
-Compensation-only: `generosity 0, compensationRatio 1.0, maxCompAllowance 2`. Exports add `flatReward 10,000`.
+Compensation model: `generosity 0`, `compensationRatio 1.0`, `maxCompAllowance 2` for routine internal distribution/import/passenger work. Exports use `generosity 0.15`, `compensationRatio 1.0`, and no flat reward.
 
 ### Reputation hooks later
 
-Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair/refit at Perun City, at-cost resupply, priority weather-gated berthing, sanctuary/CHR-defector work, and — the cash tier — trusted-carrier access to the paying export runs. Combine standing is most valuable to a poor early-game Teamster. Known tuning debts (deferred): the flat export bounty does not scale with route size/risk, and the 2× compensation cap leaves large botch losses on the big surface↔orbit runs.
+Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair/refit at Perun City, at-cost resupply, priority weather-gated berthing, sanctuary/CHR-defector work, and — the cash tier — trusted-carrier access to the paying export runs. Combine standing is most valuable to a poor early-game Teamster. The 2× compensation cap still leaves large botch losses on the big surface↔orbit runs.
 
 ## Glitterfield (Belt mining cluster)
 
@@ -112,14 +113,14 @@ Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair
 - 20 companies sampled from a name pool, each assigned 1–2 ores and one home depot (stable roster).
 - Ores: nickel-iron, cobalt, platinum-group, chromite, nickel concentrate, rare-earth-bearing.
 - Flows: shift crews in (Hartwell → depot); mining and life-support supplies in (Caravanserai / Hartwell → depot); ore to the refinery (depot → Cupola, in-cluster); occasional raw ore direct to in-system buyers (depot → Hammer / Svarog); refined ingots out (Cupola → Hammer / Svarog).
-- Pay: standard fixed-price 1.30, except in-cluster ore (depot → Cupola), which is deliberately low-risk / low-reward: generosity 0.8 plus 50% fuel compensation (cap 2×).
+- Pay: outbound ore/ingots use `generosity 0.8`, `compensationRatio 0.4` (+20% at par). In-cluster depot → Cupola ore is deliberately low-risk / low-reward: `0.35 + 0.65` (break-even at par). Supplies use `0.65 + 0.45` (+10%). Shift crews use `0.3 + 0.6` (-10%).
 
 ### Halloran Smelting House
 
 - ID: `halloran-smelting-house`, tag `HALL`.
 - A Hartwell firm that took its cut instead of digging — it runs the Cupola Station refinery, the chokepoint all Glitterfield ore must pass through ("the House always takes its cut"). It ships no metal itself; the miners and buyers move the ingots.
 - Flows: refinery consumables in (flux, electrodes, reagents); crew in from Hartwell; experts and executives in from Gaia (the House is wealthy); crew and executive rotations out.
-- Pay: standard fixed-price 1.30.
+- Pay: consumables use `generosity 0.8`, `compensationRatio 0.4` (+20% at par). Refinery crews use `0.4 + 0.6` (break-even), and Gaia experts/executives use `0.5 + 0.6` (+10%).
 
 ### Buyer side
 
@@ -137,7 +138,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 Current passenger families: Hartwell worksite crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, long-term Hartwell shift cohorts, executive/supervisor staff, completed shift returnees, and claims-office passenger parties.
 
-Other factions can also post passenger-board work when the manifested load is people rather than freight: Cerberus workforce/custody/labor/delegation groups; BFS technician and inspection crews; VHM engineers/auditors/commissioning parties; Kisaragi shipwright, inspector, representative, and rotation parties; Steel Combine Anvil work/shift/personnel movements; Glitterfield shift crews; and Halloran refinery crews, experts, executives, and delegations. These use low fixed generosity plus 40–60% fuel reimbursement so par flight lands around -10% to +10% profit.
+Other factions can also post passenger-board work when the manifested load is people rather than freight: Cerberus workforce/custody/labor/delegation groups; BFS technician and inspection crews; VHM engineers/auditors/commissioning parties; Kisaragi shipwright, inspector, representative, and rotation parties; Steel Combine Anvil work/shift/personnel movements; Glitterfield shift crews; and Halloran refinery crews, experts, executives, and delegations. Most are low-margin connectivity work; VHM and Kisaragi are exceptions that pay fixed premium rates with no reimbursement.
 
 ## Faction: The Teamsters' Guild
 
@@ -150,7 +151,7 @@ The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nod
 
 ### Pay
 
-Base generosity 1.25 (neutral market-setter). Overrides: skim precursor 1.7 (extreme hazard pay), staging 1.5, paperwork 1.35.
+Base routine formula is `generosity 0.85`, `compensationRatio 0.4` (+25% at par). Paperwork uses `0.9 + 0.35` (+25%). Skim staging uses `1.3 + 0.15` (+45%). Skim precursor uses `1.7 + 0` (+70%) as high-risk/high-reward work with no reimbursement.
 
 ### Notes
 

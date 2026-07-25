@@ -20,8 +20,9 @@ const SUPPLY_SOURCES = ['caravanserai-main-commercial-dock', 'estella-v-transit-
 
 // Pay. Hartwell capitalists pay standard fixed price; in-cluster ore hops (Depot -> Cupola) are
 // deliberately low-risk / low-reward: generosity dropped ~0.5 and half the fuel reimbursed.
-const STANDARD_PAY = { generosity: 1.3 } as const;
-const IN_CLUSTER_PAY = { generosity: 0.8, compensationRatio: 0.5, maxCompAllowance: 2 } as const;
+const STANDARD_PAY = { generosity: 0.8, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
+const IN_CLUSTER_PAY = { generosity: 0.35, compensationRatio: 0.65, maxCompAllowance: 2 } as const;
+const SUPPLY_PAY = { generosity: 0.65, compensationRatio: 0.45, maxCompAllowance: 2 } as const;
 const CREW_PASSENGER_PAY = { generosity: 0.3, compensationRatio: 0.6, maxCompAllowance: 2 } as const;
 
 interface OreDef {
@@ -162,7 +163,7 @@ function generateGlitterfieldMinerContracts(ctx: FactionContractContext): Factio
     // At supply sources: mining and life-support supplies in to the depot.
     if (SUPPLY_SOURCES.includes(src)) {
       const supply = pick(SUPPLIES, hashString(`${co.slug}:supply:${src}:${day}`));
-      out.push(candidate(co, `${co.slug}:supply:${slug(supply)}`, src, co.depot, makeCargo(supply, 'standard', `${co.slug}:supply:${src}`), 0.4, STANDARD_PAY));
+      out.push(candidate(co, `${co.slug}:supply:${slug(supply)}`, src, co.depot, makeCargo(supply, 'standard', `${co.slug}:supply:${src}`), 0.4, SUPPLY_PAY));
     }
   }
 

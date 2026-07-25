@@ -28,7 +28,9 @@ const KIS_E_TAG = 'KIS-E';
 
 // Subsidiary yard freight: premium goods, careful handling, but routine — pays above the
 // corporate baseline with no per-template variation.
-const KIS_E_BASE_GENEROSITY = 1.4;
+const KIS_E_BASE_GENEROSITY = 0.8;
+const KIS_E_COMPENSATION_RATIO = 0.45;
+const KIS_E_MAX_COMP_ALLOWANCE = 2;
 
 const FACILITY_DELIVERY_COUNT = 2;
 const FACILITY_BALANCING_COUNT = 2;
@@ -176,6 +178,8 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     cargo: cargoFor(option, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
     generosity: KIS_E_BASE_GENEROSITY,
+    compensationRatio: KIS_E_COMPENSATION_RATIO,
+    maxCompAllowance: KIS_E_MAX_COMP_ALLOWANCE,
   });
 }
 

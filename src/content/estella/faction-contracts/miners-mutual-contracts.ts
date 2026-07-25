@@ -9,6 +9,7 @@ interface MinersMutualContractTemplate {
   massClass: CargoMassClass;
   likelihood: number;
   generosity?: number;
+  compensationRatio?: number;
 }
 
 const MINERS_MUTUAL_ID = 'new-canaan-miners-mutual';
@@ -17,15 +18,20 @@ const MINERS_MUTUAL_TAG = 'CO-OP';
 
 // A broke mutual pays below open market for ordinary work — you fly for goodwill, not profit.
 // Genuine emergency relief is the exception: the Co-op will overpay when members are in trouble.
-const MINERS_MUTUAL_BASE_GENEROSITY = 1.1;
-const MINERS_MUTUAL_EMERGENCY_GENEROSITY = 1.4;
+const MINERS_MUTUAL_BASE_GENEROSITY = 0.6;
+const MINERS_MUTUAL_BASE_COMPENSATION_RATIO = 0.45;
+const MINERS_MUTUAL_EXPORT_GENEROSITY = 0.7;
+const MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO = 0.35;
+const MINERS_MUTUAL_EMERGENCY_GENEROSITY = 0.85;
+const MINERS_MUTUAL_EMERGENCY_COMPENSATION_RATIO = 0.45;
+const MINERS_MUTUAL_MAX_COMP_ALLOWANCE = 2;
 
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
 
 const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   // Emergency purchases from expensive Caravanserai suppliers: uncommon, but visible at game start.
-  { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY },
-  { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY },
+  { templateId: 'serai-emergency-patch-kits', sourceIds: ['caravanserai-main-commercial-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency patch kits', massClass: 'light', likelihood: 0.35, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY, compensationRatio: MINERS_MUTUAL_EMERGENCY_COMPENSATION_RATIO },
+  { templateId: 'serai-oxygen-bottles', sourceIds: ['caravanserai-refuel-depot'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'emergency oxygen bottles', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EMERGENCY_GENEROSITY, compensationRatio: MINERS_MUTUAL_EMERGENCY_COMPENSATION_RATIO },
 
   // Preferred inbound bulk supply: cheaper industrial/life-support suppliers outside the Caravanserai.
   { templateId: 'industrial-pressure-seals', sourceIds: ['estella-vi-main-transit-dispatch'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'pressure seals and valve blocks', massClass: 'standard', likelihood: 1.1 },
@@ -37,11 +43,11 @@ const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   { templateId: 'still-pressure-gas', sourceIds: ['still-public-approach-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'certified pressure gas cylinders', massClass: 'standard', likelihood: 0.65 },
 
   // Outbound brokerage from the Co-op rocks to buyers with better processors.
-  { templateId: 'tailings-to-foundry', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'low-grade titanium tailings concentrate', massClass: 'dense', likelihood: 1.15 },
-  { templateId: 'basalt-to-industrial-city', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'basalt fiber feedstock', massClass: 'heavy', likelihood: 0.95 },
-  { templateId: 'scrap-to-drydock', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-drydock-station'], cargoLabel: 'scrap pressure alloy', massClass: 'heavy', likelihood: 0.9 },
-  { templateId: 'shielding-to-components', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-component-supply-station'], cargoLabel: 'regolith shielding blocks', massClass: 'dense', likelihood: 0.7 },
-  { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45 },
+  { templateId: 'tailings-to-foundry', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'low-grade titanium tailings concentrate', massClass: 'dense', likelihood: 1.15, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
+  { templateId: 'basalt-to-industrial-city', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'basalt fiber feedstock', massClass: 'heavy', likelihood: 0.95, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
+  { templateId: 'scrap-to-drydock', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-drydock-station'], cargoLabel: 'scrap pressure alloy', massClass: 'heavy', likelihood: 0.9, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
+  { templateId: 'shielding-to-components', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-component-supply-station'], cargoLabel: 'regolith shielding blocks', massClass: 'dense', likelihood: 0.7, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
+  { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
 ];
 
 function cargoForTemplate(template: MinersMutualContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {
@@ -68,6 +74,8 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood,
         generosity: template.generosity ?? MINERS_MUTUAL_BASE_GENEROSITY,
+        compensationRatio: template.compensationRatio ?? MINERS_MUTUAL_BASE_COMPENSATION_RATIO,
+        maxCompAllowance: MINERS_MUTUAL_MAX_COMP_ALLOWANCE,
       });
     }
   }

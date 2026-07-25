@@ -10,13 +10,10 @@ const STEEL_COMBINE_TAG = 'STEEL';
 const PLANNING_OFFICE = 'Steel Combine Planning Office';
 const FOREIGN_TRADE_COMMITTEE = 'Steel Combine Foreign Trade Committee';
 
-// Pay: most work is fuel-compensation only (net-zero, no-loss "safe transfer"), except exports,
-// which add a modest flat plan-bonus on top. People movement is explicit passenger work with
-// lower reimbursement so it stays around break-even instead of freight-profit work.
+// Pay: the Combine reimburses actual fuel at 100% for all work. Exports add a modest fixed
+// production bonus; there are no flat rewards.
 const MAX_COMP_ALLOWANCE = 2;
-const EXPORT_BOUNTY = 10_000;
-const PASSENGER_GENEROSITY = 0.4;
-const PASSENGER_COMPENSATION_RATIO = 0.6;
+const EXPORT_GENEROSITY = 0.15;
 
 // Kuznia trade-membrane and surface nodes.
 const HAMMER = 'estella-vi-heavy-cargo-station'; // VI.2 high-orbit bulk marshalling
@@ -258,11 +255,11 @@ function candidateFor(lane: SteelLane, sourceId: string, destinationId: string, 
     cargo,
     likelihood: lane.likelihood,
     issuerName: issuerFor(lane.kind),
-    // Fuel-compensation only; exports add a flat plan-bonus.
-    generosity: passenger ? PASSENGER_GENEROSITY : 0,
-    compensationRatio: passenger ? PASSENGER_COMPENSATION_RATIO : 1.0,
+    // Fuel-compensation only; exports add a fixed percentage plan-bonus.
+    generosity: lane.kind === 'export' ? EXPORT_GENEROSITY : 0,
+    compensationRatio: 1.0,
     maxCompAllowance: MAX_COMP_ALLOWANCE,
-    flatReward: passenger ? 0 : lane.kind === 'export' ? EXPORT_BOUNTY : 0,
+    flatReward: 0,
     category: passenger ? 'passenger' : undefined,
   };
 }

@@ -47,11 +47,11 @@ export interface MissionCostQuote {
 const SHIP_DRY_MASS_TONS = 120;
 const CONTAINER_TARE_TONS = 8;
 const FUEL_PRICE_PER_TON_MPS = 1;
-const DEFAULT_GENEROSITY = 1.25;
-// Neutral/legacy pay dials: fixed reward only (generosity * par fuel), no flat floor,
-// no fuel compensation.
+const DEFAULT_GENEROSITY = 0.75;
+// Neutral/open-market pay dials: fixed reward plus partial fuel reimbursement. Zero
+// reimbursement is reserved for high-risk/high-reward contracts.
 const DEFAULT_FLAT_REWARD = 0;
-const DEFAULT_COMPENSATION_RATIO = 0;
+const DEFAULT_COMPENSATION_RATIO = 0.4;
 const DEFAULT_MAX_COMP_ALLOWANCE = 2;
 const CLUSTER_TRANSFER_SPEED = 200;
 const LOCAL_CLUSTER_TRANSFER_ECONOMY_SCALE = 0.1;

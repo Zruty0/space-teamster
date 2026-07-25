@@ -17,12 +17,15 @@ const CERBERUS_TAG = 'CHR';
 // Rich but exploitative: ordinary corporate freight pays okay; morally/physically ugly freight
 // still overpays to get flown. People movement belongs on the passenger board and uses
 // reimbursement instead of freight margins.
-const CERBERUS_BASE_GENEROSITY = 1.3;
-const CERBERUS_UNSAVORY_GENEROSITY = 1.6;
-const CERBERUS_HIGH_VALUE_GENEROSITY = 1.45;
+const CERBERUS_BASE_GENEROSITY = 0.85;
+const CERBERUS_BASE_COMPENSATION_RATIO = 0.4;
+const CERBERUS_UNSAVORY_GENEROSITY = 1.25;
+const CERBERUS_UNSAVORY_COMPENSATION_RATIO = 0.2;
+const CERBERUS_HIGH_VALUE_GENEROSITY = 1.2;
+const CERBERUS_HIGH_VALUE_COMPENSATION_RATIO = 0.25;
 const CERBERUS_PASSENGER_GENEROSITY = 0.5;
 const CERBERUS_PASSENGER_COMPENSATION_RATIO = 0.6;
-const CERBERUS_PASSENGER_MAX_COMP_ALLOWANCE = 2;
+const CERBERUS_MAX_COMP_ALLOWANCE = 2;
 
 const CERBERUS_UNSAVORY_TEMPLATES = new Set<string>([
   'local-workforce-manifests',
@@ -58,6 +61,12 @@ function generosityForTemplate(templateId: string): number {
   if (CERBERUS_UNSAVORY_TEMPLATES.has(templateId)) return CERBERUS_UNSAVORY_GENEROSITY;
   if (CERBERUS_HIGH_VALUE_TEMPLATES.has(templateId)) return CERBERUS_HIGH_VALUE_GENEROSITY;
   return CERBERUS_BASE_GENEROSITY;
+}
+
+function compensationForTemplate(templateId: string): number {
+  if (CERBERUS_UNSAVORY_TEMPLATES.has(templateId)) return CERBERUS_UNSAVORY_COMPENSATION_RATIO;
+  if (CERBERUS_HIGH_VALUE_TEMPLATES.has(templateId)) return CERBERUS_HIGH_VALUE_COMPENSATION_RATIO;
+  return CERBERUS_BASE_COMPENSATION_RATIO;
 }
 
 const ACHERON_COMMERCIAL_HUB_ID = 'estella-ii-commercial-hub-dock';
@@ -159,8 +168,8 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         cargo: cargoForTemplate(template, ctx.sourceId, destinationId),
         likelihood: template.likelihood * destinationLikelihood(destinationId),
         generosity: passenger ? CERBERUS_PASSENGER_GENEROSITY : generosityForTemplate(template.templateId),
-        compensationRatio: passenger ? CERBERUS_PASSENGER_COMPENSATION_RATIO : undefined,
-        maxCompAllowance: passenger ? CERBERUS_PASSENGER_MAX_COMP_ALLOWANCE : undefined,
+        compensationRatio: passenger ? CERBERUS_PASSENGER_COMPENSATION_RATIO : compensationForTemplate(template.templateId),
+        maxCompAllowance: CERBERUS_MAX_COMP_ALLOWANCE,
         category: passenger ? 'passenger' : undefined,
       });
     }

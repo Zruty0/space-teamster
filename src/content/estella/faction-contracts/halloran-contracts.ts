@@ -14,11 +14,12 @@ const HARTWELL_CREW = ['estella-v-transit-customs', 'estella-v-capital-settlemen
 const SUPPLY_SOURCES = ['caravanserai-main-commercial-dock', 'estella-v-transit-customs'];
 const GAIA_HUBS = ['estella-iii-finance-city', 'estella-iii-capital-city']; // the House is rich enough to fly people from Gaia
 
-const GENEROSITY = 1.3;
+const GENEROSITY = 0.8;
+const COMPENSATION_RATIO = 0.4;
 const PASSENGER_GENEROSITY = 0.4;
 const GAIA_PASSENGER_GENEROSITY = 0.5;
 const PASSENGER_COMPENSATION_RATIO = 0.6;
-const PASSENGER_MAX_COMP_ALLOWANCE = 2;
+const MAX_COMP_ALLOWANCE = 2;
 
 interface CargoOption {
   label: string;
@@ -70,8 +71,8 @@ function candidate(templateId: string, sourceId: string, destinationId: string, 
     cargo,
     likelihood,
     generosity: passenger ? (gaiaPassenger ? GAIA_PASSENGER_GENEROSITY : PASSENGER_GENEROSITY) : GENEROSITY,
-    compensationRatio: passenger ? PASSENGER_COMPENSATION_RATIO : undefined,
-    maxCompAllowance: passenger ? PASSENGER_MAX_COMP_ALLOWANCE : undefined,
+    compensationRatio: passenger ? PASSENGER_COMPENSATION_RATIO : COMPENSATION_RATIO,
+    maxCompAllowance: MAX_COMP_ALLOWANCE,
     category: passenger ? 'passenger' : undefined,
   };
 }

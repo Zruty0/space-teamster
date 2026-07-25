@@ -26,13 +26,13 @@ const KIS_ID = 'kisaragi-harmony-yards';
 const KIS_NAME = 'Kisaragi Harmony Yards';
 const KIS_TAG = 'KIS';
 
-// The richest client in the system. Prestige freight already pays well; Celadon-grade cargo hits
-// the system's pay ceiling. Kisaragi people move on the passenger board with reimbursement.
-const KIS_BASE_GENEROSITY = 1.6;
+// The richest client in the system. Kisaragi pays fixed premium rates for perfection and does
+// not reimburse fuel, even for people movement. Sloppy burns are reputation damage.
+const KIS_BASE_GENEROSITY = 1.5;
 const KIS_CELADON_GENEROSITY = 1.7;
-const KIS_PEOPLE_GENEROSITY = 0.5;
-const KIS_PEOPLE_COMPENSATION_RATIO = 0.6;
-const KIS_PEOPLE_MAX_COMP_ALLOWANCE = 2;
+const KIS_PEOPLE_GENEROSITY = 1.2;
+const KIS_COMPENSATION_RATIO = 0;
+const KIS_MAX_COMP_ALLOWANCE = 2;
 
 const GAIA_HQ_ID = 'estella-iii-finance-city';
 const HIGHLINER_BAY_ID = 'caravanserai-highliner-bay-poi';
@@ -175,8 +175,8 @@ function pushCandidate(out: FactionContractCandidate[], templatePrefix: string, 
     cargo: cargoFor(option, templateId, sourceId, destinationId),
     likelihood: laneLikelihood * option.likelihood,
     generosity: passenger ? KIS_PEOPLE_GENEROSITY : option.tier === 'Celadon' ? KIS_CELADON_GENEROSITY : KIS_BASE_GENEROSITY,
-    compensationRatio: passenger ? KIS_PEOPLE_COMPENSATION_RATIO : undefined,
-    maxCompAllowance: passenger ? KIS_PEOPLE_MAX_COMP_ALLOWANCE : undefined,
+    compensationRatio: KIS_COMPENSATION_RATIO,
+    maxCompAllowance: KIS_MAX_COMP_ALLOWANCE,
     category: passenger ? 'passenger' : undefined,
   });
 }
