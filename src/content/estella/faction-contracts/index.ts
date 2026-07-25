@@ -71,6 +71,6 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
   return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(candidate => ({
     ...candidate,
-    completionMessage: candidate.completionMessage ?? completionBlurbForCandidate(candidate),
+    completionMessage: candidate.completionMessage ?? completionBlurbForCandidate(candidate, ctx.worldTime),
   })));
 }
