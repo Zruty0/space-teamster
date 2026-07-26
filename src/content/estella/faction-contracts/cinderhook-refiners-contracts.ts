@@ -32,7 +32,7 @@ interface Company {
 }
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
-  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver at ${destination} signs for the ${cargo} with soot still on his cuffs. "Cinderhook made it clean enough for polite company," he says.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver at ${destination} signs for the ${cargo} with soot still on his cuffs. "Send it to the clean-metal cage before dust gets into the sample bags," he says.`,
   (_candidate, cargo, destination, issuer) => `The ${cargo} comes off at ${destination} tagged with fresh assay stamps and refinery heat still in the paperwork. ${issuer}'s clerk releases payment before the sample seal cools.`,
   (_candidate, cargo, destination) => `At ${destination}, handlers move the ${cargo} into the export lane with Hartwell's usual mix of frontier haste and careful accounting. The manifest clears without argument.`,
   (_candidate, cargo, destination, issuer) => `${issuer} logs the ${cargo} at ${destination} under yellow work lights. "Good batch," the dock foreman says. "Tell Cinderhook the slag numbers held."`,

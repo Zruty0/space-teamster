@@ -23,10 +23,10 @@ const EXPORT_PAY = { generosity: 0.8, compensationRatio: 0.4, maxCompAllowance: 
 const SHIPYARD_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
-  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver at ${destination} runs a glove over the ${cargo} and grins at the clean metal. "Pike still knows how to make honest ore," he says.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver at ${destination} runs a glove over the ${cargo} and grins at the clean metal. "Put this one in the shipyard lane," he says, pointing at the assay tag.`,
   (_candidate, cargo, destination, issuer) => `The ${cargo} comes off at ${destination} in gray dust and magnetic clatter. ${issuer}'s crew has the next lot staged before your clamps unlock.`,
   (_candidate, cargo, destination) => `At ${destination}, Pike handlers move the ${cargo} with the no-nonsense rhythm of people paid by tonnage. A chalk mark on the pallet sends it onward toward Hartwell or the forge worlds.`,
-  (_candidate, cargo, destination, issuer) => `${issuer} signs for the ${cargo} at ${destination} under bare work lights. "Clean lot," the foreman says. "Kuznia pays better when they can't complain."`,
+  (_candidate, cargo, destination, issuer) => `${issuer} signs for the ${cargo} at ${destination} under bare work lights. "Keep it segregated from the dirty lots," the foreman says. "Buyer wants clean metal only."`,
   (_candidate, cargo, destination) => `The ${cargo} joins a queue of Pike metal at ${destination}, all bright edges and old frontier accounting. The receipt is short, but the dock crew's relief is plain.`,
 ];
 

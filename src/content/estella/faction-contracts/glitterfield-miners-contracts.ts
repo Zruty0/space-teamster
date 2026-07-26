@@ -27,7 +27,7 @@ const SUPPLY_PAY = { generosity: 0.65, compensationRatio: 0.45, maxCompAllowance
 const CREW_PASSENGER_PAY = { generosity: 0.3, compensationRatio: 0.6, maxCompAllowance: 2 } as const;
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
-  (_candidate, cargo, destination, issuer) => `${issuer}'s crew at ${destination} crowds the hatch before the clamps finish settling. "Looks like payday wearing a pressure suit," one of them says of the ${cargo}.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s crew at ${destination} crowds the hatch before the clamps finish settling. "Get it into the depot lane before Cupola calls again," one of them says of the ${cargo}.`,
   (_candidate, cargo, destination, issuer) => `The ${cargo} reaches ${destination} and ${issuer} hands start moving it with Belt-born impatience. A shift lead thanks you over open comms, half gratitude and half static.`,
   (_candidate, cargo, destination) => `At ${destination}, dusty miners pull the ${cargo} into the depot lane and immediately start arguing about shares. The mood says the job mattered.`,
   (_candidate, cargo, destination, issuer) => `${issuer} signs off the ${cargo} at ${destination} with a thumbprint and a laugh. "Don't trust Cupola's scales," the signer warns, then releases payment anyway.`,

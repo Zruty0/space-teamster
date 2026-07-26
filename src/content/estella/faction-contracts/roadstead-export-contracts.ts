@@ -30,11 +30,11 @@ interface Broker {
 }
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
-  (_candidate, cargo, destination, issuer) => `${issuer}'s export clerk at ${destination} signs for the ${cargo} under a wall of Hartwell claim maps. "Roadstead clears it, the system buys it," she says.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s export clerk at ${destination} signs for the ${cargo} under a wall of Hartwell claim maps. "Put it in the buyer's lane before the assay window closes," she tells the dock crew.`,
   (_candidate, cargo, destination) => `The ${cargo} leaves Roadstead paper behind and enters ${destination}'s buyer chain. The broker's receipt is mostly stamps, liens, and satisfied arithmetic.`,
-  (_candidate, cargo, destination, issuer) => `${issuer} clears the ${cargo} into ${destination} with a customs seal still warm from Roadstead. "Clean lot, clean title," the receiver says.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} hands the ${cargo} over at ${destination} with a customs seal still warm from Roadstead. "Keep the assay stamp facing out," the receiver says, already waving a forklift in.`,
   (_candidate, cargo, destination) => `At ${destination}, the ${cargo} is treated less like ore than like money with mass. Hartwell's brokerage cut vanishes into the manifest before payment clears.`,
-  (_candidate, cargo, destination) => `The ${cargo} is accepted at ${destination} with assay stamps facing outward. Someone has already sold it twice on paper by the time it leaves your bay.`,
+  (_candidate, cargo, destination) => `The ${cargo} is accepted at ${destination} under bright buyer-floor lights. Someone has already sold it twice on paper by the time it leaves your bay.`,
 ];
 
 const NAME_POOL = [

@@ -23,7 +23,7 @@ const PASSENGER_COMPENSATION_RATIO = 0.6;
 const MAX_COMP_ALLOWANCE = 2;
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
-  (_candidate, cargo, destination, issuer) => `${issuer} receives the ${cargo} at ${destination} under refinery glare and hot-metal stink. "The House takes its cut," the clerk says, but at least he says thank you.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} receives the ${cargo} at ${destination} under refinery glare and hot-metal stink. "Set it by furnace three," the clerk says, already checking the heat schedule.`,
   (_candidate, cargo, destination) => `At ${destination}, Halloran crews move the ${cargo} toward the smelter side without breaking stride. The acknowledgement is brisk; furnaces do not wait.`,
   (_candidate, cargo, destination) => `The ${cargo} is logged at ${destination} beside heat-stained bulkheads and assay screens. Halloran thanks you for feeding the chokepoint.`,
   (_candidate, cargo, destination, issuer) => `${issuer}'s receiver signs for the ${cargo} at ${destination} with one eye on the cupola schedule. "Good timing," she says. "Next furnace cycle was getting hungry."`,

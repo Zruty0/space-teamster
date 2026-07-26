@@ -33,7 +33,7 @@ const COMPLETION_BLURBS: CompletionBlurb[] = [
   (_candidate, cargo, destination, issuer) => `${issuer}'s loading crew at ${destination} starts pulling the ${cargo} loose before your engine bells have cooled. "That buys us another week of air," the crew chief says, shaking your hand hard.`,
   (_candidate, cargo, destination, issuer) => `The ${cargo} is met by patched suits and tired faces at ${destination}. ${issuer} sends thanks from the Co-op board: another leak, pump, or ration line can stay ahead of failure.`,
   (_candidate, cargo, destination) => `At ${destination}, the dock boss counts the ${cargo} twice, then grins like the numbers came out better than expected. Someone chalks your ship name onto a bulkhead under "paid up friends."`,
-  (_candidate, cargo, destination, issuer) => `${issuer} locals swarm the ${cargo} with practiced urgency at ${destination}. "Nobody gets rich out here," a miner says, "but today nobody gets buried either."`,
+  (_candidate, cargo, destination, issuer) => `${issuer} locals swarm the ${cargo} with practiced urgency at ${destination}. "Take it straight to pressure maintenance," a miner says. "They've been waiting since dawn."`,
   (_candidate, cargo, destination) => `The ${cargo} comes off at ${destination} into a noisy argument about whose claim needs it first. The argument sounds cheerful, which is probably the best report the Co-op can give.`,
 ];
 

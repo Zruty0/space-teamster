@@ -35,7 +35,7 @@ const COMPLETION_BLURBS: CompletionBlurb[] = [
   (_candidate, cargo, destination, issuer) => `${issuer}'s ${cargo} files out at ${destination} talking excitedly about the shift. "This one pays unusually well," somebody says, and the whole group laughs.`,
   (_candidate, cargo, destination) => `The ${cargo} steps into ${destination} with bags, helmets, and practiced frontier optimism. A coordinator thanks you for keeping Hartwell's promises moving.`,
   (_candidate, cargo, destination) => `At ${destination}, passengers stretch their legs and start looking for the next desk, bus, or bunk assignment. The Labor Exchange closes your manifest with a weary thank-you.`,
-  (_candidate, cargo, destination) => `The ${cargo} clears the passenger unit at ${destination} in a stream of tool bags and personal lockers. "Road from Hartwell never really ends," one worker says.`,
+  (_candidate, cargo, destination) => `The ${cargo} clears the passenger unit at ${destination} in a stream of tool bags and personal lockers. "Which desk handles bunk assignments?" one worker asks, already reading the station signs.`,
   (_candidate, cargo, destination, issuer) => `${issuer} staff count the ${cargo} through the hatch at ${destination}. The thanks are practical: every seat filled is a job site that stays staffed.`,
 ];
 
