@@ -569,6 +569,7 @@ export class Game {
     if (p.kind === 'landing') {
       return p.launchGuidance ? `Launch from ${p.level.name}` : (p.level.subtitle || p.level.name);
     }
+    if (p.kind === 'orbital' && p.level.subtitle === 'Generated Estella transfer') return p.level.name;
     return p.level.subtitle || p.level.name;
   }
 
@@ -702,7 +703,7 @@ export class Game {
       billableDvAdjustment: transition.billableDvAdjustment,
       adjustmentLabel: transition.adjustmentLabel,
     };
-    if (transition.role === 'contingency') transitionExtra.title = transition.title ?? this.phaseTitle(p);
+    if (transition.title !== undefined || transition.role === 'contingency') transitionExtra.title = transition.title ?? this.phaseTitle(p);
     if (transition.detailText !== undefined) transitionExtra.detailText = transition.detailText;
     this.completePhase(p, transition.run, completionText, { ...transitionExtra, ...extra });
   }
@@ -1102,7 +1103,8 @@ export class Game {
           vy: originState.vy + Math.sin(handoffAngle) * handoffVInf,
           time: p.os.time,
         };
-        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), undefined, undefined, minimumEscapeBoostDv, 'Minimum escape boost');
+        const originName = bodyById(p.level.bodyId).name;
+        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), `Departed ${originName}`, `Entered ${nextLevel.name}.`, minimumEscapeBoostDv, 'Minimum escape boost');
       }
     }
 
@@ -1174,7 +1176,7 @@ export class Game {
           vy: captureRVY,
           angle: Math.atan2(Math.cos(p.os.renderAngle), Math.sin(p.os.renderAngle)),
         };
-        return this.makeTransition('success', () => this.loadCluster(clusterLevel, initOverride, captureTime));
+        return this.makeTransition('success', () => this.loadCluster(clusterLevel, initOverride, captureTime), `Arrived at ${body.name}`, `Entered local traffic for ${body.name}.`);
       }
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
@@ -1189,7 +1191,7 @@ export class Game {
         vy: arrival.vy,
         time: captureTime,
       };
-      return this.makeTransition('success', () => this.loadOrbital(arrivalLevel, initOverride, captureTime));
+      return this.makeTransition('success', () => this.loadOrbital(arrivalLevel, initOverride, captureTime), `Arrived at ${body.name}`, `Next: ${arrivalLevel.name}.`);
     }
 
     return null;

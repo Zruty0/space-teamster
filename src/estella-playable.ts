@@ -457,7 +457,7 @@ function createSystemTransferLevel(opts: {
     bodyId: opts.frameBodyId,
     bodyName: parent.name,
     name: `${source.name} → ${destination.name} Transfer`,
-    subtitle: 'Generated Estella transfer',
+    subtitle: `${parent.name} transfer frame`,
     planetRadius: parent.radius,
     planetGM: parent.gm,
     atmoHeight: 0,
