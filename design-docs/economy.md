@@ -21,6 +21,7 @@ Current implementation:
 - Steel Combine generator: `src/content/estella/faction-contracts/steel-combine-contracts.ts`
 - Glitterfield miners generator: `src/content/estella/faction-contracts/glitterfield-miners-contracts.ts`
 - Halloran Smelting House generator: `src/content/estella/faction-contracts/halloran-contracts.ts`
+- Pike mining companies generator: `src/content/estella/faction-contracts/pike-miners-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -59,6 +60,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Steel Combine | 0 + 1.00 fuel comp (0%) | exports 0.15 + 1.00 (+15%); no flat rewards |
 | Glitterfield mining companies | outbound ore/ingots 0.80 + 0.40 (+20%) | depot→Cupola ore 0.35 + 0.65 (0%); supplies 0.65 + 0.45 (+10%); crews 0.30 + 0.60 (-10%) |
 | Halloran Smelting House | 0.80 + 0.40 (+20%) | refinery crews 0.40 + 0.60 (0%); Gaia experts/delegations 0.50 + 0.60 (+10%) |
+| Pike mining companies | depot exports 0.80 + 0.40 (+20%) | strip→depot ore 0.35 + 0.65 (0%); strip→Cinderhook 0.70 + 0.40 (+10%); shipyard/Yardstock exports 0.85 + 0.40 (+25%) |
 
 ## Faction: The Steel Combine
 
@@ -125,6 +127,16 @@ Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair
 ### Buyer side
 
 Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers source directly from Cupola — the Steel Combine's `import-glitterfield` lane (Cupola → Hammer) and Kisaragi Yards Estella's finished-goods sourcing.
+
+## Pike mining companies
+
+- ID: `pike-mining-companies` (shared). No market tag — small Hartwell mining houses post under company names.
+- Roster: 20 stable Pike companies sampled from a name pool, each assigned 1–2 clean-metal product families.
+- Core nodes: Pike Strip Mine (`estella-va-strip-mine`), Pike Ore-Handling Depot (`estella-va-ore-handling-depot`), Cinderhook Refinery (`estella-v-atmo-refinery`), Hammer Station, Svarog Shipyard, Yardstock Terminal.
+- Surface flow: Pike Strip Mine → Pike Ore-Handling Depot for orbital export lots, and Pike Strip Mine → Cinderhook for Hartwell refining.
+- Export flow: all off-Pike system sales originate at Pike Ore-Handling Depot and go to Kuznia/Svarog buyers. There are no direct strip-mine-to-Kuznia/Svarog contracts.
+- Cargo palette: nickel-iron strip ore/ingots, clean sulfide concentrate, reduced metal lots/billets, magnesium-aluminum silicate feedstock, clean pressure-metal billets, certified Pike ballast slabs.
+- Pay: strip → depot uses `0.35 + 0.65` (break-even at par), strip → Cinderhook uses `0.70 + 0.40` (+10%), depot exports use `0.80 + 0.40` (+20%), and shipyard/Yardstock exports use `0.85 + 0.40` (+25%).
 
 ## Passenger board: Hartwell Labor Exchange
 

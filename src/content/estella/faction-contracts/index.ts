@@ -8,6 +8,7 @@ import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
 import { HALLORAN_PROVIDER } from './halloran-contracts';
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
+import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
 import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
 import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
 import { VOSS_HEINKEL_METRICWERKE_PROVIDER } from './vhm-contracts';
@@ -65,6 +66,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   STEEL_COMBINE_PROVIDER,
   HALLORAN_PROVIDER,
   GLITTERFIELD_MINERS_PROVIDER,
+  PIKE_MINERS_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
 ];
 
