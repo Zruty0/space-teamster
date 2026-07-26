@@ -1649,10 +1649,11 @@ export class Game {
     this.missionDvUsed = 0;
     this.worldTime = startWorldTime;
     if (generated.start.kind === 'landing') {
+      const launchHandoffAltitude = Math.max(100, generated.start.level.startY - generated.start.level.padY);
       this.loadLanding(
         generated.start.level,
         { x: generated.start.level.padCenterX, y: generated.start.level.padY + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 },
-        { targetAltitude: generated.start.level.startY, orbitDir: generatedEstellaDepartureOrbitDir(destinationId, sourceId), nextApproachLevelId: generated.start.nextApproachLevelId },
+        { targetAltitude: launchHandoffAltitude, orbitDir: generatedEstellaDepartureOrbitDir(destinationId, sourceId), nextApproachLevelId: generated.start.nextApproachLevelId },
       );
     } else if (generated.start.kind === 'docking') {
       this.loadDocking(generated.start.level);
