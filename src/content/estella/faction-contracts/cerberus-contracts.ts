@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface CerberusContractTemplate {
@@ -26,6 +27,14 @@ const CERBERUS_HIGH_VALUE_COMPENSATION_RATIO = 0.25;
 const CERBERUS_PASSENGER_GENEROSITY = 0.5;
 const CERBERUS_PASSENGER_COMPENSATION_RATIO = 0.6;
 const CERBERUS_MAX_COMP_ALLOWANCE = 2;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer} receives the ${cargo} at ${destination} behind tinted glass and immaculate hazard stripes. "Your performance has been recorded as satisfactory," a compliance officer says.`,
+  (_candidate, cargo, destination) => `At ${destination}, Cerberus handlers move the ${cargo} without wasting a word. Your receipt arrives with a legal footer longer than the message.`,
+  (_candidate, cargo, destination) => `The ${cargo} is absorbed into ${destination}'s Cerberus process chain with quiet efficiency. A supervisor smiles exactly once and certifies successful transfer.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} clocks the ${cargo} into ${destination} before you finish shutdown. "Schedule discipline is appreciated," the BBS says in a voice too smooth to be human.`,
+  (_candidate, cargo, destination) => `Cerberus staff at ${destination} separate the ${cargo} from your manifest like a balance-sheet entry becoming real. Payment clears immediately and without warmth.`,
+];
 
 const CERBERUS_UNSAVORY_TEMPLATES = new Set<string>([
   'local-workforce-manifests',
@@ -174,7 +183,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
       });
     }
   }
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const CERBERUS_HUMAN_RESOURCES_PROVIDER: FactionContractProvider = {

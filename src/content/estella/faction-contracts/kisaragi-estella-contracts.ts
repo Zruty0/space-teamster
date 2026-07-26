@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 type KisaragiTier = 'Silk' | 'Porcelain' | 'Celadon';
@@ -39,6 +40,14 @@ const FACILITY_CARGO_COUNT = 2;
 
 const TIER_ORDER: Record<KisaragiTier, number> = { Silk: 0, Porcelain: 1, Celadon: 2 };
 const KIS_E_TIERS: KisaragiTier[] = ['Silk', 'Porcelain'];
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s local yard office at ${destination} receives the ${cargo} with tidy efficiency. "Thank you for keeping the Harmony schedule smooth," the clerk says.`,
+  (_candidate, cargo, destination) => `The ${cargo} is moved into ${destination}'s Kisaragi-marked stores under soft lights and strict labels. Local staff are less theatrical than the parent house, but just as exacting.`,
+  (_candidate, cargo, destination) => `At ${destination}, KIS-E handlers inspect the ${cargo}, reseal the manifest, and send a brief note of appreciation. Nothing is hurried; nothing is late.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} clears the ${cargo} into ${destination}'s yard inventory. "Cadence preserved," the local expeditor says with a small bow.`,
+  (_candidate, cargo, destination) => `The ${cargo} joins a neat line of Kisaragi work at ${destination}. A modest receipt arrives, polished and formatted like a formal invitation.`,
+];
 
 function node(id: string, weight: number): WeightedNode {
   return { id, weight };
@@ -218,7 +227,7 @@ function generateKisEContracts(ctx: FactionContractContext): FactionContractCand
     }
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const KISARAGI_YARDS_ESTELLA_PROVIDER: FactionContractProvider = {

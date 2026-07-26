@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 type KisaragiTier = 'Silk' | 'Porcelain' | 'Celadon';
@@ -44,6 +45,14 @@ const OUTBOUND_PEOPLE_DESTINATION_COUNT = 2;
 
 const TIER_ORDER: Record<KisaragiTier, number> = { Silk: 0, Porcelain: 1, Celadon: 2 };
 const KIS_TIERS: KisaragiTier[] = ['Silk', 'Porcelain', 'Celadon'];
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s cargo dock at ${destination} is pristine and faintly scented with lavender. "Thank you for completing the delivery harmoniously," a smiling receptionist says.`,
+  (_candidate, cargo, destination) => `The ${cargo} is received at ${destination} by attendants in spotless yard coats. They bow to the manifest, then to you, and the payment arrives without a fingerprint on it.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} staff guide the ${cargo} into ${destination} as if it were entering a gallery. The thank-you note calls your arrival "properly balanced."`,
+  (_candidate, cargo, destination) => `At ${destination}, Kisaragi inspectors approve the ${cargo} with soft voices and exact instruments. "A graceful handoff," one says before the porcelain-white terminal marks completion.`,
+  (_candidate, cargo, destination) => `The ${cargo} vanishes into ${destination}'s polished yard chain. Someone offers tea while the BBS releases payment with elegant finality.`,
+];
 
 function node(id: string, weight: number): WeightedNode {
   return { id, weight };
@@ -227,7 +236,7 @@ function generateKisContracts(ctx: FactionContractContext): FactionContractCandi
     if (returnPeople) pushCandidate(out, 'people-return-hearth', sourceId, GAIA_HQ_ID, returnPeople, 0.55);
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const KISARAGI_HARMONY_YARDS_PROVIDER: FactionContractProvider = {

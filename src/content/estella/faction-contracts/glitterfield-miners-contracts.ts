@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 // The many small Hartwell mining companies working Glitterfield. They are too small to carry a
@@ -24,6 +25,14 @@ const STANDARD_PAY = { generosity: 0.8, compensationRatio: 0.4, maxCompAllowance
 const IN_CLUSTER_PAY = { generosity: 0.35, compensationRatio: 0.65, maxCompAllowance: 2 } as const;
 const SUPPLY_PAY = { generosity: 0.65, compensationRatio: 0.45, maxCompAllowance: 2 } as const;
 const CREW_PASSENGER_PAY = { generosity: 0.3, compensationRatio: 0.6, maxCompAllowance: 2 } as const;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s crew at ${destination} crowds the hatch before the clamps finish settling. "Looks like payday wearing a pressure suit," one of them says of the ${cargo}.`,
+  (_candidate, cargo, destination, issuer) => `The ${cargo} reaches ${destination} and ${issuer} hands start moving it with Belt-born impatience. A shift lead thanks you over open comms, half gratitude and half static.`,
+  (_candidate, cargo, destination) => `At ${destination}, dusty miners pull the ${cargo} into the depot lane and immediately start arguing about shares. The mood says the job mattered.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} signs off the ${cargo} at ${destination} with a thumbprint and a laugh. "Don't trust Cupola's scales," the signer warns, then releases payment anyway.`,
+  (_candidate, cargo, destination) => `The ${cargo} comes off at ${destination} into bright work lights and dirty gloves. Someone slaps the hull twice in thanks before the bay door closes.`,
+];
 
 interface OreDef {
   ore: string;
@@ -167,7 +176,7 @@ function generateGlitterfieldMinerContracts(ctx: FactionContractContext): Factio
     }
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const GLITTERFIELD_MINERS_PROVIDER: FactionContractProvider = {

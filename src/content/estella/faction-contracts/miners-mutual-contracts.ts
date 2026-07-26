@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface MinersMutualContractTemplate {
@@ -27,6 +28,14 @@ const MINERS_MUTUAL_EMERGENCY_COMPENSATION_RATIO = 0.45;
 const MINERS_MUTUAL_MAX_COMP_ALLOWANCE = 2;
 
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s loading crew at ${destination} starts pulling the ${cargo} loose before your engine bells have cooled. "That buys us another week of air," the crew chief says, shaking your hand hard.`,
+  (_candidate, cargo, destination, issuer) => `The ${cargo} is met by patched suits and tired faces at ${destination}. ${issuer} sends thanks from the Co-op board: another leak, pump, or ration line can stay ahead of failure.`,
+  (_candidate, cargo, destination) => `At ${destination}, the dock boss counts the ${cargo} twice, then grins like the numbers came out better than expected. Someone chalks your ship name onto a bulkhead under "paid up friends."`,
+  (_candidate, cargo, destination, issuer) => `${issuer} locals swarm the ${cargo} with practiced urgency at ${destination}. "Nobody gets rich out here," a miner says, "but today nobody gets buried either."`,
+  (_candidate, cargo, destination) => `The ${cargo} comes off at ${destination} into a noisy argument about whose claim needs it first. The argument sounds cheerful, which is probably the best report the Co-op can give.`,
+];
 
 const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   // Emergency purchases from expensive Caravanserai suppliers: uncommon, but visible at game start.
@@ -79,7 +88,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
       });
     }
   }
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const NEW_CANAAN_MINERS_MUTUAL_PROVIDER: FactionContractProvider = {

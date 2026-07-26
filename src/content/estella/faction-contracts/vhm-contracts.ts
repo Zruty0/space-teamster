@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface VhmCargoOption {
@@ -29,6 +30,14 @@ const VHM_MAX_COMP_ALLOWANCE = 2;
 
 const DIRECT_HARDWARE_DESTINATION_COUNT = 3;
 const GAIA_OUTBOUND_PEOPLE_DESTINATION_COUNT = 3;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer} accepts the ${cargo} at ${destination} in a silent clean bay. "Performance acceptable," the inspector says, which from VHM counts as lavish praise.`,
+  (_candidate, cargo, destination) => `The ${cargo} is transferred at ${destination} under seal, camera, and metric-field audit. Voss-Heinkel thanks you in precise language and no unnecessary adjectives.`,
+  (_candidate, cargo, destination) => `At ${destination}, white-gloved technicians check the ${cargo} against tolerances you are not cleared to know. Payment clears the moment the final seal light goes green.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s receiving team takes the ${cargo} without small talk at ${destination}. "Deviation within contract limits," someone says, and closes the file.`,
+  (_candidate, cargo, destination) => `The ${cargo} enters VHM custody at ${destination} through a door marked with more warnings than instructions. A clipped acknowledgement follows you back to the berth.`,
+];
 
 function node(id: string, weight: number): WeightedNode {
   return { id, weight };
@@ -224,7 +233,7 @@ function generateVhmContracts(ctx: FactionContractContext): FactionContractCandi
     if (returnParty) pushCandidate(out, 'people-return-home', sourceId, GAIA_CORPORATE_HQ_ID, returnParty, 0.5 * leaf.weight, VHM_PEOPLE_GENEROSITY);
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const VOSS_HEINKEL_METRICWERKE_PROVIDER: FactionContractProvider = {

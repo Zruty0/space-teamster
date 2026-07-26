@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface BrucknerCargoOption {
@@ -34,6 +35,14 @@ const BRUCKNER_MAX_COMP_ALLOWANCE = 2;
 const DIRECT_CREW_RELOCATION_COUNT = 2;
 const SUB_HUB_LEAF_DISTRIBUTION_COUNT = 4;
 const CENTRAL_LOCAL_LEAF_DISTRIBUTION_COUNT = 2;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s service desk at ${destination} tags the ${cargo} with a warranty-chain sticker before the pallet is fully down. "You just saved somebody's afternoon," a mechanic says.`,
+  (_candidate, cargo, destination) => `The ${cargo} rolls into ${destination}'s Bruckner cage among torque wrenches, orange cones, and half-open drive housings. Dispatch thanks you for keeping somebody else's warranty alive.`,
+  (_candidate, cargo, destination) => `At ${destination}, a field tech signs for the ${cargo} while already arguing about the repair queue. Your manifest clears under "arrived in serviceable condition."`,
+  (_candidate, cargo, destination, issuer) => `${issuer} receives the ${cargo} at ${destination} with practical relief rather than ceremony. "Good, we're only two crises behind now," the dock lead says.`,
+  (_candidate, cargo, destination) => `The ${cargo} disappears into labeled bins and anti-static sleeves at ${destination}. Bruckner's terminal prints a warranty receipt nobody will read until something breaks.`,
+];
 
 const IMPORT_TOUCHDOWN_ID = 'caravanserai-highliner-bay-poi';
 const CENTRAL_HUB_ID = 'estella-viii-harder-approach-station';
@@ -310,7 +319,7 @@ function generateBrucknerContracts(ctx: FactionContractContext): FactionContract
   }
 
   addCrewRelocations(out, ctx);
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const BRUCKNER_FIELD_SERVICES_PROVIDER: FactionContractProvider = {

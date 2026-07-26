@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 // Halloran Smelting House runs the Cupola Station refinery — the chokepoint all Glitterfield ore
@@ -20,6 +21,14 @@ const PASSENGER_GENEROSITY = 0.4;
 const GAIA_PASSENGER_GENEROSITY = 0.5;
 const PASSENGER_COMPENSATION_RATIO = 0.6;
 const MAX_COMP_ALLOWANCE = 2;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer} receives the ${cargo} at ${destination} under refinery glare and hot-metal stink. "The House takes its cut," the clerk says, but at least he says thank you.`,
+  (_candidate, cargo, destination) => `At ${destination}, Halloran crews move the ${cargo} toward the smelter side without breaking stride. The acknowledgement is brisk; furnaces do not wait.`,
+  (_candidate, cargo, destination) => `The ${cargo} is logged at ${destination} beside heat-stained bulkheads and assay screens. Halloran thanks you for feeding the chokepoint.`,
+  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver signs for the ${cargo} at ${destination} with one eye on the cupola schedule. "Good timing," she says. "Next furnace cycle was getting hungry."`,
+  (_candidate, cargo, destination) => `The ${cargo} disappears into ${destination}'s refinery traffic. A smelter boss gives you a short nod, the local equivalent of applause.`,
+];
 
 interface CargoOption {
   label: string;
@@ -109,7 +118,7 @@ function generateHalloranContracts(ctx: FactionContractContext): FactionContract
     }
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const HALLORAN_PROVIDER: FactionContractProvider = {

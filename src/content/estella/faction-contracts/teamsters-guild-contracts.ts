@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface GuildContractTemplate {
@@ -29,6 +30,14 @@ const SKIM_STAGING_COMPENSATION_RATIO = 0.15;
 const GUILD_PAPER_GENEROSITY = 0.9;
 const GUILD_PAPER_COMPENSATION_RATIO = 0.35;
 const GUILD_MAX_COMP_ALLOWANCE = 2;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer} closes the ${cargo} manifest at ${destination} with an old stamp and a newer encryption key. "The road remembers reliable hands," the dispatcher says.`,
+  (_candidate, cargo, destination) => `At ${destination}, Guild freight clerks take the ${cargo} into custody and argue over the ledger in three dialects. Your account balance settles before they finish.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} marks the ${cargo} delivered at ${destination}. "Acceptable time," a senior Teamster mutters, which is almost a compliment.`,
+  (_candidate, cargo, destination) => `The ${cargo} clears Guild inspection at ${destination}. The BBS posts a plain thank-you and a reminder that the next job is already waiting.`,
+  (_candidate, cargo, destination) => `At ${destination}, the Guild crew handles the ${cargo} like monopoly property: carefully, possessively, and with no apologies. The contract closes clean.`,
+];
 
 // Guild flight-control / fuel-chain nodes. Guild work is only posted at these docks.
 // Precursor skim-in originates at the near-star skim hubs and Estella I staging.
@@ -93,7 +102,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
       });
     }
   }
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {

@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 // Small Hartwell mining houses working Pike's clean-metal strip fields. They share a market
@@ -18,6 +19,14 @@ const ORBITAL_LIFT_PAY = { generosity: 0.35, compensationRatio: 0.65, maxCompAll
 const CINDERHOOK_PAY = { generosity: 0.7, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const EXPORT_PAY = { generosity: 0.8, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const SHIPYARD_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination, issuer) => `${issuer}'s receiver at ${destination} runs a glove over the ${cargo} and grins at the clean metal. "Pike still knows how to make honest ore," he says.`,
+  (_candidate, cargo, destination, issuer) => `The ${cargo} comes off at ${destination} in gray dust and magnetic clatter. ${issuer}'s crew has the next lot staged before your clamps unlock.`,
+  (_candidate, cargo, destination) => `At ${destination}, Pike handlers move the ${cargo} with the no-nonsense rhythm of people paid by tonnage. A chalk mark on the pallet sends it onward toward Hartwell or the forge worlds.`,
+  (_candidate, cargo, destination, issuer) => `${issuer} signs for the ${cargo} at ${destination} under bare work lights. "Clean lot," the foreman says. "Kuznia pays better when they can't complain."`,
+  (_candidate, cargo, destination) => `The ${cargo} joins a queue of Pike metal at ${destination}, all bright edges and old frontier accounting. The receipt is short, but the dock crew's relief is plain.`,
+];
 
 interface CargoDef {
   surfaceLot: string;
@@ -188,7 +197,7 @@ function generatePikeMinerContracts(ctx: FactionContractContext): FactionContrac
     }
   }
 
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const PIKE_MINERS_PROVIDER: FactionContractProvider = {

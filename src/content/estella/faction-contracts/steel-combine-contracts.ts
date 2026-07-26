@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 const STEEL_COMBINE_ID = 'steel-combine';
@@ -14,6 +15,14 @@ const FOREIGN_TRADE_COMMITTEE = 'Steel Combine Foreign Trade Committee';
 // production bonus; there are no flat rewards.
 const MAX_COMP_ALLOWANCE = 2;
 const EXPORT_GENEROSITY = 0.15;
+
+const COMPLETION_BLURBS: CompletionBlurb[] = [
+  (_candidate, cargo, destination) => `At ${destination}, the ${cargo} is received by a planning clerk with a red pencil and a tired smile. "Schedule fulfilled," she says, and stamps the line green.`,
+  (_candidate, cargo, destination) => `The ${cargo} enters ${destination}'s queue under stamped forms and loudspeakers. Someone marks another quota box green.`,
+  (_candidate, cargo, destination) => `Steel Combine workers at ${destination} unload the ${cargo} with practiced, collective rhythm. The receipt says only: delivered for the plan.`,
+  (_candidate, cargo, destination) => `At ${destination}, a foreman signs for the ${cargo} and waves you clear before the next shift horn. "Useful work," he says, brief and sincere.`,
+  (_candidate, cargo, destination) => `The ${cargo} is folded into ${destination}'s production chain almost immediately. The Combine terminal credits you for useful work, not heroics.`,
+];
 
 // Kuznia trade-membrane and surface nodes.
 const HAMMER = 'estella-vi-heavy-cargo-station'; // VI.2 high-orbit bulk marshalling
@@ -277,7 +286,7 @@ function generateSteelCombineContracts(ctx: FactionContractContext): FactionCont
       }
     }
   }
-  return out;
+  return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
 export const STEEL_COMBINE_PROVIDER: FactionContractProvider = {
