@@ -1004,19 +1004,24 @@ function drawAtmoBackground(
   // Sample altitude at top and bottom of screen
   const topY = cam.y + H / (2 * cam.zoom);
   const botY = cam.y - H / (2 * cam.zoom);
+  const atmoColor = level.body.atmosphere?.color ?? level.body.color;
+  const visualReferenceAltitude = Math.max(0, Math.min(level.poi.altitude || 0, level.body.atmosphere?.height ?? 0));
+  const visualReferenceDensity = Math.max(0.08, density(visualReferenceAltitude, level));
 
-  // Draw bands
+  // Draw bands. Very deep atmospheres (Acheron) are normalized around the playable
+  // altitude instead of sea-level pressure, otherwise cloud-city approaches render as vacuum-black.
   const bands = 30;
   for (let i = 0; i < bands; i++) {
     const frac = i / bands;
     const alt = topY + (botY - topY) * frac;
     const rho = density(Math.max(0, alt), level);
-
-    // Space is dark, atmosphere adds blue then orange near ground
-    const atmoFrac = level.surfaceDensity > 0 ? Math.min(1, rho / (level.surfaceDensity * 0.3)) : 0;
-    const r = Math.floor(5 + atmoFrac * 15);
-    const g = Math.floor(5 + atmoFrac * 20);
-    const b = Math.floor(16 + atmoFrac * 40);
+    const rawAtmoFrac = level.surfaceDensity > 0 ? rho / (visualReferenceDensity * 0.75) : 0;
+    const atmoFrac = clamp(Math.pow(rawAtmoFrac, 0.45), 0, 1);
+    const altitudeGlow = clamp(1 - Math.max(0, alt) / Math.max(1, level.body.atmosphere?.height ?? level.frame.planetRadius), 0, 1);
+    const haze = clamp(atmoFrac * 0.85 + altitudeGlow * 0.15, 0, 1);
+    const r = Math.floor(4 + atmoColor[0] * 0.34 * haze);
+    const g = Math.floor(5 + atmoColor[1] * 0.34 * haze);
+    const b = Math.floor(14 + atmoColor[2] * 0.34 * haze);
     ctx.fillStyle = `rgb(${r},${g},${b})`;
 
     const sy = (frac * H);
