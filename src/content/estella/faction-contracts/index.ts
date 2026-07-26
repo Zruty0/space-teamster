@@ -1,10 +1,12 @@
 import type { MissionCargoSpec } from '../../../mission-cost';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
+import { CINDERHOOK_REFINERS_PROVIDER } from './cinderhook-refiners-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
 import { HALLORAN_PROVIDER } from './halloran-contracts';
+import { HARTWELL_MACHINERY_BROKERS_PROVIDER } from './hartwell-machinery-contracts';
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
 import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
@@ -66,6 +68,8 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   HALLORAN_PROVIDER,
   GLITTERFIELD_MINERS_PROVIDER,
   PIKE_MINERS_PROVIDER,
+  CINDERHOOK_REFINERS_PROVIDER,
+  HARTWELL_MACHINERY_BROKERS_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
 ];
 
