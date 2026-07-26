@@ -9,6 +9,7 @@ const PIKE_MINERS_ID = 'pike-mining-companies';
 const PIKE_STRIP_MINE = 'estella-va-strip-mine';
 const PIKE_ORBITAL_DEPOT = 'estella-va-ore-handling-depot';
 const CINDERHOOK = 'estella-v-atmo-refinery';
+const ROADSTEAD = 'estella-v-transit-customs';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
 const YARDSTOCK = 'estella-via-component-supply-station';
@@ -17,6 +18,7 @@ const ROSTER_SIZE = 20;
 
 const ORBITAL_LIFT_PAY = { generosity: 0.35, compensationRatio: 0.65, maxCompAllowance: 2 } as const;
 const CINDERHOOK_PAY = { generosity: 0.7, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
+const ROADSTEAD_STAGING_PAY = { generosity: 0.75, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const EXPORT_PAY = { generosity: 0.8, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const SHIPYARD_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 
@@ -78,7 +80,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'orbital nickel-iron export lots',
     exportLot: 'Pike nickel-iron ingots',
     massClass: 'dense',
-    buyers: [HAMMER, SVAROG_SHIPYARD],
+    buyers: [ROADSTEAD, HAMMER, SVAROG_SHIPYARD],
   },
   {
     surfaceLot: 'clean sulfide concentrate',
@@ -86,7 +88,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'bagged sulfide concentrate lots',
     exportLot: 'Pike sulfide concentrate',
     massClass: 'dense',
-    buyers: [HAMMER, YARDSTOCK],
+    buyers: [ROADSTEAD, HAMMER, YARDSTOCK],
   },
   {
     surfaceLot: 'reduced metal-bearing regolith',
@@ -94,7 +96,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'reduced metal export lots',
     exportLot: 'reduced-metal billets',
     massClass: 'heavy',
-    buyers: [HAMMER, SVAROG_SHIPYARD],
+    buyers: [ROADSTEAD, HAMMER, SVAROG_SHIPYARD],
   },
   {
     surfaceLot: 'magnesium-aluminum silicate ore',
@@ -102,7 +104,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'bagged silicate feedstock',
     exportLot: 'magnesium-aluminum silicate lots',
     massClass: 'heavy',
-    buyers: [HAMMER, YARDSTOCK],
+    buyers: [ROADSTEAD, HAMMER, YARDSTOCK],
   },
   {
     surfaceLot: 'low-carbon pressure-metal ore',
@@ -110,7 +112,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'pressure-metal export lots',
     exportLot: 'clean pressure-metal billets',
     massClass: 'heavy',
-    buyers: [SVAROG_SHIPYARD, YARDSTOCK],
+    buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK],
   },
   {
     surfaceLot: 'shipyard ballast stone',
@@ -118,7 +120,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'cut ballast export slabs',
     exportLot: 'certified Pike ballast slabs',
     massClass: 'dense',
-    buyers: [SVAROG_SHIPYARD],
+    buyers: [ROADSTEAD, SVAROG_SHIPYARD],
   },
 ];
 
@@ -190,8 +192,10 @@ function generatePikeMinerContracts(ctx: FactionContractContext): FactionContrac
 
       if (src === PIKE_ORBITAL_DEPOT) {
         for (const buyer of cargo.buyers) {
+          const roadstead = buyer === ROADSTEAD;
           const shipyard = buyer === SVAROG_SHIPYARD || buyer === YARDSTOCK;
-          out.push(candidate(co, `${co.slug}:export:${slug(cargo.exportLot)}:${buyer}`, src, buyer, makeCargo(cargo.exportLot, cargo.massClass, `${co.slug}:export:${buyer}`), shipyard ? 0.42 : 0.55, shipyard ? SHIPYARD_PAY : EXPORT_PAY));
+          const pay = roadstead ? ROADSTEAD_STAGING_PAY : shipyard ? SHIPYARD_PAY : EXPORT_PAY;
+          out.push(candidate(co, `${co.slug}:export:${slug(cargo.exportLot)}:${buyer}`, src, buyer, makeCargo(cargo.exportLot, cargo.massClass, `${co.slug}:export:${buyer}`), roadstead ? 0.65 : shipyard ? 0.42 : 0.55, pay));
         }
       }
     }

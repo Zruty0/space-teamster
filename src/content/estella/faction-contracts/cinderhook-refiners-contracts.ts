@@ -64,12 +64,12 @@ const LOTS: RefinedLot[] = [
   { label: 'certified clean-metal lots', massClass: 'heavy', buyers: [ROADSTEAD, HAMMER, YARDSTOCK] },
   { label: 'pressure-alloy billets', massClass: 'heavy', buyers: [ROADSTEAD, HAMMER, SVAROG_SHIPYARD], certified: true },
   { label: 'reduced-metal ingots', massClass: 'dense', buyers: [ROADSTEAD, HAMMER] },
-  { label: 'low-carbon plate feedstock', massClass: 'heavy', buyers: [SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'certified weld stock', massClass: 'standard', buyers: [SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'instrument-grade alloy blanks', massClass: 'standard', buyers: [TESSERA_FACTORY, YARDSTOCK], certified: true },
+  { label: 'low-carbon plate feedstock', massClass: 'heavy', buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK], certified: true },
+  { label: 'certified weld stock', massClass: 'standard', buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK], certified: true },
+  { label: 'instrument-grade alloy blanks', massClass: 'standard', buyers: [ROADSTEAD, TESSERA_FACTORY, YARDSTOCK], certified: true },
   { label: 'sulfide byproduct drums', massClass: 'standard', buyers: [ROADSTEAD, HAMMER] },
-  { label: 'ceramic flux precursors', massClass: 'standard', buyers: [TESSERA_FACTORY] },
-  { label: 'clean ballast slabs', massClass: 'dense', buyers: [SVAROG_SHIPYARD], certified: true },
+  { label: 'ceramic flux precursors', massClass: 'standard', buyers: [ROADSTEAD, TESSERA_FACTORY] },
+  { label: 'clean ballast slabs', massClass: 'dense', buyers: [ROADSTEAD, SVAROG_SHIPYARD], certified: true },
 ];
 
 function hashString(text: string): number {
@@ -110,6 +110,7 @@ function candidate(company: Company, lot: RefinedLot, destinationId: string): Fa
   const roadstead = destinationId === ROADSTEAD;
   const pay = roadstead ? ROADSTEAD_STAGING_PAY : lot.certified ? CERTIFIED_EXPORT_PAY : ROUTINE_EXPORT_PAY;
   const cargo = makeCargo(lot.label, lot.massClass, `${company.slug}:${destinationId}:${lot.label}`);
+  const likelihood = roadstead ? 0.75 : lot.certified ? 0.32 : 0.4;
   return {
     factionId: CINDERHOOK_REFINERS_ID,
     factionName: company.name,
@@ -117,7 +118,7 @@ function candidate(company: Company, lot: RefinedLot, destinationId: string): Fa
     sourceId: CINDERHOOK,
     destinationId,
     cargo,
-    likelihood: roadstead ? 0.5 : lot.certified ? 0.42 : 0.55,
+    likelihood,
     ...pay,
   };
 }

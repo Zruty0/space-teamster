@@ -100,6 +100,7 @@ const LANES: Lane[] = [
   { sourceId: ANVIL, destinationIds: [ROADSTEAD, CONCORD, CINDERHOOK, GALE_SURVEY, PIKE_MINER_HAB], cargo: LIGHT_EQUIPMENT, likelihood: 0.55 },
   { sourceId: YARDSTOCK, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.45 },
   { sourceId: SVAROG_SHIPYARD, destinationIds: [CINDERHOOK, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ROADSTEAD], cargo: HEAVY_EQUIPMENT, likelihood: 0.42 },
+  { sourceId: ROADSTEAD, destinationIds: [CONCORD, CINDERHOOK, DAWES_CUT, GALE_SURVEY, PIKE_STRIP_MINE, PIKE_MINER_HAB, PIKE_ORBITAL_DEPOT], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.5 },
 ];
 
 function hashString(text: string): number {

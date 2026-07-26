@@ -23,6 +23,7 @@ Current implementation:
 - Halloran Smelting House generator: `src/content/estella/faction-contracts/halloran-contracts.ts`
 - Pike mining companies generator: `src/content/estella/faction-contracts/pike-miners-contracts.ts`
 - Cinderhook refining houses generator: `src/content/estella/faction-contracts/cinderhook-refiners-contracts.ts`
+- Roadstead export brokers generator: `src/content/estella/faction-contracts/roadstead-export-contracts.ts`
 - Hartwell machinery brokers generator: `src/content/estella/faction-contracts/hartwell-machinery-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
@@ -64,6 +65,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Halloran Smelting House | 0.80 + 0.40 (+20%) | refinery crews 0.40 + 0.60 (0%); Gaia experts/delegations 0.50 + 0.60 (+10%) |
 | Pike mining companies | depot exports 0.80 + 0.40 (+20%) | strip→depot ore 0.35 + 0.65 (0%); strip→Cinderhook 0.70 + 0.40 (+10%); shipyard/Yardstock exports 0.85 + 0.40 (+25%) |
 | Cinderhook refining houses | refined exports 0.80 + 0.40 (+20%) | Roadstead staging 0.75 + 0.40 (+15%); certified shipyard/Tessera lots 0.85 + 0.35 (+20%) |
+| Roadstead export brokers | brokered metal exports 0.75 + 0.40 (+15%) | certified lots 0.80 + 0.35 (+15%) |
 | Hartwell machinery brokers | routine machinery 0.75 + 0.45 (+20%) | heavy equipment 0.85 + 0.40 (+25%); finance/legal packets 0.70 + 0.45 (+15%) |
 
 ## Faction: The Steel Combine
@@ -136,9 +138,9 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 - ID: `pike-mining-companies` (shared). No market tag — small Hartwell mining houses post under company names.
 - Roster: 20 stable Pike companies sampled from a name pool, each assigned 1–2 clean-metal product families.
-- Core nodes: Pike Strip Mine (`estella-va-strip-mine`), Pike Ore-Handling Depot (`estella-va-ore-handling-depot`), Cinderhook Refinery (`estella-v-atmo-refinery`), Hammer Station, Svarog Shipyard, Yardstock Terminal.
+- Core nodes: Pike Strip Mine (`estella-va-strip-mine`), Pike Ore-Handling Depot (`estella-va-ore-handling-depot`), Cinderhook Refinery (`estella-v-atmo-refinery`), Roadstead Customs, Hammer Station, Svarog Shipyard, Yardstock Terminal.
 - Surface flow: Pike Strip Mine → Pike Ore-Handling Depot for orbital export lots, and Pike Strip Mine → Cinderhook for Hartwell refining.
-- Export flow: all off-Pike system sales originate at Pike Ore-Handling Depot and go to Kuznia/Svarog buyers. There are no direct strip-mine-to-Kuznia/Svarog contracts.
+- Export flow: all off-Pike system sales originate at Pike Ore-Handling Depot. Common Hartwell-brokered lots go first to Roadstead; direct buyer contracts still go to Kuznia/Svarog buyers. There are no direct strip-mine-to-Kuznia/Svarog contracts.
 - Cargo palette: nickel-iron strip ore/ingots, clean sulfide concentrate, reduced metal lots/billets, magnesium-aluminum silicate feedstock, clean pressure-metal billets, certified Pike ballast slabs.
 - Pay: strip → depot uses `0.35 + 0.65` (break-even at par), strip → Cinderhook uses `0.70 + 0.40` (+10%), depot exports use `0.80 + 0.40` (+20%), and shipyard/Yardstock exports use `0.85 + 0.40` (+25%).
 
@@ -147,17 +149,26 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - ID: `cinderhook-refining-houses` (shared). Small Hartwell refining houses post under company names.
 - Roster: 16 stable Cinderhook houses sampled from a name pool.
 - Source: Cinderhook Refinery only. Pike/Dawes extractors own inbound raw-feed legs; Cinderhook houses own outbound refined lots.
-- Destinations: Roadstead Customs for export staging; Hammer Station for industrial feedstock; Svarog Shipyard and Yardstock Terminal for shipyard-certified stock; Mosaic Assembly Lab for precision metal/feedstock.
+- Destinations: Roadstead Customs for export staging and brokerage; Hammer Station for industrial feedstock; Svarog Shipyard and Yardstock Terminal for shipyard-certified stock; Mosaic Assembly Lab for precision metal/feedstock. Roadstead staging is intentionally the densest lane.
 - Cargo palette: certified clean-metal lots, pressure-alloy billets, reduced-metal ingots, low-carbon plate feedstock, certified weld stock, instrument-grade alloy blanks, sulfide byproduct drums, ceramic flux precursors, clean ballast slabs.
 - Pay: Roadstead staging uses `0.75 + 0.40` (+15% at par), routine refined exports use `0.80 + 0.40` (+20%), and certified shipyard/Tessera lots use `0.85 + 0.35` (+20%).
+
+## Roadstead export brokers
+
+- ID: `roadstead-export-brokers` (shared). Hartwell broker houses post under company names.
+- Roster: 16 stable export brokers sampled from a name pool.
+- Source: Roadstead Customs only. Roadstead is Hartwell's orbital trade membrane: customs, brokerage, consolidation, and clean-title export.
+- Destinations: Hammer Station, Svarog Shipyard, Yardstock Terminal, Mosaic Assembly Lab, and Caravanserai.
+- Cargo palette: Hartwell clean-metal lots, brokered Pike nickel-iron ingots, Cinderhook pressure-alloy billets, low-carbon plate stock, instrument-grade alloy blanks, reduced-metal billets, Pike sulfide concentrate, certified Pike ballast slabs.
+- Pay: routine brokered lots use `0.75 + 0.40` (+15% at par); certified lots use `0.80 + 0.35` (+15%).
 
 ## Hartwell machinery brokers
 
 - ID: `hartwell-machinery-brokers` (shared). Hartwell broker houses post under company names.
 - Roster: 18 stable brokers sampled from a name pool.
 - Model: brokers finance, charter, and lease Kuznia/Svarog machinery into Hartwell and Pike. They are not manufacturers; they convert claims, liens, and future ore into equipment today.
-- Sources: Hammer Station, Anvil Station, Svarog Shipyard, and Yardstock Terminal.
-- Destinations: Roadstead Customs, Concord, Dawes Cut, Cinderhook Refinery, Gale Survey, Pike Strip Mine, Pike Miner Hab, and Pike Ore-Handling Depot.
+- Sources: Hammer Station, Anvil Station, Svarog Shipyard, Yardstock Terminal, and Roadstead Customs.
+- Destinations: Roadstead Customs, Concord, Dawes Cut, Cinderhook Refinery, Gale Survey, Pike Strip Mine, Pike Miner Hab, and Pike Ore-Handling Depot. Roadstead imports machinery from Kuznia/Svarog and can then post onward Hartwell/Pike distribution.
 - Cargo palette: drill heads, pump skids, hoist drums, crusher modules, compressors, vacuum loaders, ore sorters, refinery maintenance skids, survey instruments, claim beacons, assay benches, sealed title packets, control cabinets, valve kits.
 - Pay: routine machinery uses `0.75 + 0.45` (+20% at par), heavy/awkward equipment uses `0.85 + 0.40` (+25%), and paper/legal packets use `0.70 + 0.45` (+15%).
 
