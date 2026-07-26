@@ -1,4 +1,4 @@
-import { type LandingLayoutDef, type TerrainFeature } from '../../world';
+import { type LandingLayoutDef, type TerrainFeature, type WeatherProfileDef } from '../../world';
 
 export interface EstellaSurfaceFlightProfile {
   subtitle: string;
@@ -48,6 +48,7 @@ export interface EstellaSurfaceFlightProfile {
     fixedAllowanceDv?: number;
     atmosphericFallSpeedCap?: number;
   };
+  weatherProfile?: WeatherProfileDef;
 }
 
 const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {

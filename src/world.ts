@@ -26,12 +26,33 @@ export interface WindLayerDef {
   altitudeCenter: number;
   altitudeWidth: number;
   strength: number;
+  probability?: number;
+  altitudeJitter?: number;
+  widthJitter?: number;
+  strengthJitter?: number;
+  activeStart?: number;
+  activeEnd?: number;
+  fadeTime?: number;
 }
 
 export interface TurbulenceZoneDef {
   altitudeMin: number;
   altitudeMax: number;
   strength: number;
+  probability?: number;
+  altitudeJitter?: number;
+  widthJitter?: number;
+  strengthJitter?: number;
+  activeStart?: number;
+  activeEnd?: number;
+  fadeTime?: number;
+}
+
+export interface WeatherProfileDef {
+  /** 1 = ordinary weather; >1 changes faster and is more likely to spawn/fade bands during a phase. */
+  volatility: number;
+  windLayers: WindLayerDef[];
+  turbulence: TurbulenceZoneDef[];
 }
 
 export interface BodyDef {
@@ -132,6 +153,7 @@ export interface SurfacePoiDef {
     orbitDir: 1 | -1;
     fuelSeconds: number;
   };
+  weatherProfile?: WeatherProfileDef;
 }
 
 export interface StationPoiDef {

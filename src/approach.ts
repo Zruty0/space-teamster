@@ -7,7 +7,7 @@ import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfo
 import { InputState } from './input';
 import { landingLevelByPoiId } from './levels';
 import { Camera, worldToScreen } from './renderer';
-import { type BodyDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef, bodyById, stationPoiById, surfacePoiById } from './world';
+import { type BodyDef, type SurfacePoiDef, type TurbulenceZoneDef, type WeatherProfileDef, type WindLayerDef, bodyById, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
 
@@ -142,11 +142,81 @@ function createApproachFrame(poi: SurfacePoiDef): ApproachFrame {
   };
 }
 
-function approachEnvironment(body: BodyDef): { windLayers: WindLayer[]; turbulence: TurbulenceZone[] } {
-  return {
-    windLayers: body.approachEnvironment?.windLayers ?? [],
-    turbulence: body.approachEnvironment?.turbulence ?? [],
+function hashString(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandom(seed: number): () => number {
+  let s = seed >>> 0 || 1;
+  return () => {
+    s ^= s << 13;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    return (s >>> 0) / 0xffffffff;
   };
+}
+
+function varied(base: number, jitter: number | undefined, rng: () => number): number {
+  if (!jitter) return base;
+  return base * (1 + ((rng() * 2 - 1) * jitter));
+}
+
+function variedMeters(base: number, jitter: number | undefined, rng: () => number): number {
+  if (!jitter) return base;
+  return base + ((rng() * 2 - 1) * jitter);
+}
+
+function addLifecycle<T extends { activeStart?: number; activeEnd?: number; fadeTime?: number }>(item: T, volatility: number, rng: () => number): T {
+  const transitionChance = clamp(0.08 + volatility * 0.18, 0.05, 0.6);
+  if (rng() > transitionChance) return item;
+  const fadeTime = 60 + rng() * (180 / Math.max(0.5, volatility));
+  const span = 120 + rng() * (600 / Math.max(0.5, volatility));
+  if (rng() < 0.5) {
+    const activeStart = rng() * 240;
+    return { ...item, activeStart, activeEnd: activeStart + span, fadeTime };
+  }
+  return { ...item, activeStart: 0, activeEnd: 180 + rng() * 420, fadeTime };
+}
+
+export function generateApproachWeather(profile: WeatherProfileDef | undefined, poiId: string, arrivalTime: number): { windLayers: WindLayer[]; turbulence: TurbulenceZone[] } {
+  if (!profile) return { windLayers: [], turbulence: [] };
+  const volatility = Math.max(0.1, profile.volatility || 1);
+  const weatherPeriod = Math.max(900, 21_600 / volatility);
+  const weatherTick = Math.floor(arrivalTime / weatherPeriod);
+  const rng = seededRandom(hashString(`${poiId}:${weatherTick}:${Math.floor(arrivalTime / 300)}`));
+
+  const windLayers = profile.windLayers.flatMap(layer => {
+    const probability = layer.probability ?? 1;
+    if (rng() > probability) return [];
+    const altitudeCenter = Math.max(0, variedMeters(layer.altitudeCenter, layer.altitudeJitter, rng));
+    const altitudeWidth = Math.max(100, varied(layer.altitudeWidth, layer.widthJitter, rng));
+    const strength = varied(layer.strength, layer.strengthJitter, rng);
+    return [addLifecycle({ ...layer, altitudeCenter, altitudeWidth, strength }, volatility, rng)];
+  });
+
+  const turbulence = profile.turbulence.flatMap(zone => {
+    const probability = zone.probability ?? 1;
+    if (rng() > probability) return [];
+    const center = (zone.altitudeMin + zone.altitudeMax) * 0.5;
+    const halfWidth = Math.max(100, (zone.altitudeMax - zone.altitudeMin) * 0.5);
+    const jitteredCenter = Math.max(0, variedMeters(center, zone.altitudeJitter, rng));
+    const jitteredHalfWidth = Math.max(100, varied(halfWidth, zone.widthJitter, rng));
+    const strength = Math.max(0, varied(zone.strength, zone.strengthJitter, rng));
+    return [addLifecycle({ ...zone, altitudeMin: Math.max(0, jitteredCenter - jitteredHalfWidth), altitudeMax: jitteredCenter + jitteredHalfWidth, strength }, volatility, rng)];
+  });
+
+  return { windLayers, turbulence };
+}
+
+export function applyApproachWeather(level: ApproachLevel, arrivalTime: number): void {
+  const weather = generateApproachWeather(level.poi.weatherProfile, level.poi.id, arrivalTime);
+  level.windLayers = weather.windLayers;
+  level.turbulence = weather.turbulence;
 }
 
 function createDescentApproach(def: ApproachPhaseDef): ApproachLevel {
@@ -156,7 +226,6 @@ function createDescentApproach(def: ApproachPhaseDef): ApproachLevel {
   const airless = !atmo;
   const landingLevel = landingLevelByPoiId(def.landingPoiId ?? poi.id);
   if (!landingLevel) throw new Error(`Missing landing level for ${def.landingPoiId ?? poi.id}`);
-  const env = approachEnvironment(body);
   return {
     id: def.id,
     name: `${poi.name} Descent`,
@@ -191,8 +260,8 @@ function createDescentApproach(def: ApproachPhaseDef): ApproachLevel {
     gateRadius: poi.descentProfile.gateRadius,
     gateMaxSpeed: poi.descentProfile.gateMaxSpeed,
     gateMinSpeed: poi.descentProfile.gateMinSpeed,
-    windLayers: env.windLayers,
-    turbulence: env.turbulence,
+    windLayers: [],
+    turbulence: [],
     landingLevelId: landingLevel.id,
     returnToOrbital: {
       exitAltitude: body.orbitalDefaults.transitionAltitude,
@@ -206,7 +275,6 @@ function createDepartureApproach(def: ApproachPhaseDef): ApproachLevel {
   const body = bodyById(poi.bodyId);
   const atmo = body.atmosphere;
   const defaults = poi.departureProfile;
-  const env = approachEnvironment(body);
   return {
     id: def.id,
     name: `${poi.name} Departure`,
@@ -241,8 +309,8 @@ function createDepartureApproach(def: ApproachPhaseDef): ApproachLevel {
     gateRadius: 0,
     gateMaxSpeed: 0,
     gateMinSpeed: 0,
-    windLayers: env.windLayers,
-    turbulence: env.turbulence,
+    windLayers: [],
+    turbulence: [],
     landingLevelId: 0,
     departure: {
       exitAltitude: def.exitAltitude ?? defaults.exitAltitude,
@@ -423,19 +491,31 @@ function density(y: number, level: ApproachLevel): number {
   return level.surfaceDensity * Math.exp(-y / level.scaleHeight);
 }
 
+function weatherActivity(item: { activeStart?: number; activeEnd?: number; fadeTime?: number }, time: number): number {
+  const fade = Math.max(1, item.fadeTime ?? 1);
+  const start = item.activeStart ?? -Infinity;
+  const end = item.activeEnd ?? Infinity;
+  if (time < start - fade || time > end + fade) return 0;
+  const fadeIn = item.activeStart === undefined ? 1 : clamp((time - (start - fade)) / fade, 0, 1);
+  const fadeOut = item.activeEnd === undefined ? 1 : clamp(((end + fade) - time) / fade, 0, 1);
+  return Math.min(fadeIn, fadeOut);
+}
+
 /** Get wind acceleration at altitude (horizontal, m/s²). Time-evolving. */
 function getWind(y: number, level: ApproachLevel, time: number = 0): number {
   let wind = 0;
+  const volatility = level.poi.weatherProfile?.volatility ?? 1;
   for (let i = 0; i < level.windLayers.length; i++) {
     const w = level.windLayers[i];
-    // Slowly evolve width and strength over time
-    // Each layer gets a unique phase offset from its index
+    const activity = weatherActivity(w, time);
+    if (activity <= 0) continue;
+    // Slowly evolve width and strength over time; high-volatility POIs evolve faster.
     const phase = i * 2.17;
-    const widthMod = 1 + 0.3 * Math.sin(time * 0.08 + phase);
-    const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 + phase + 1.3)
-                          + 0.1 * Math.sin(time * 0.15 + phase * 0.7);
+    const widthMod = 1 + 0.3 * Math.sin(time * 0.08 * volatility + phase);
+    const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 * volatility + phase + 1.3)
+                          + 0.1 * Math.sin(time * 0.15 * volatility + phase * 0.7);
     const curWidth = w.altitudeWidth * widthMod;
-    const curStrength = w.strength * strengthMod;
+    const curStrength = w.strength * strengthMod * activity;
 
     const dist = Math.abs(y - w.altitudeCenter);
     if (dist < curWidth) {
@@ -447,15 +527,17 @@ function getWind(y: number, level: ApproachLevel, time: number = 0): number {
 }
 
 /** Get current wind layer params for rendering (time-evolved). */
-function getWindLayerParams(w: WindLayer, idx: number, time: number) {
+function getWindLayerParams(w: WindLayer, idx: number, time: number, volatility: number) {
   const phase = idx * 2.17;
-  const widthMod = 1 + 0.3 * Math.sin(time * 0.08 + phase);
-  const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 + phase + 1.3)
-                        + 0.1 * Math.sin(time * 0.15 + phase * 0.7);
+  const activity = weatherActivity(w, time);
+  const widthMod = 1 + 0.3 * Math.sin(time * 0.08 * volatility + phase);
+  const strengthMod = 1 + 0.25 * Math.sin(time * 0.06 * volatility + phase + 1.3)
+                        + 0.1 * Math.sin(time * 0.15 * volatility + phase * 0.7);
   return {
     altitudeCenter: w.altitudeCenter,
     altitudeWidth: w.altitudeWidth * widthMod,
-    strength: w.strength * strengthMod,
+    strength: w.strength * strengthMod * activity,
+    activity,
   };
 }
 
@@ -464,23 +546,26 @@ function getTurbulenceTorque(
   x: number, y: number, time: number, level: ApproachLevel,
 ): number {
   let torque = 0;
+  const volatility = level.poi.weatherProfile?.volatility ?? 1;
   for (const z of level.turbulence) {
+    const activity = weatherActivity(z, time);
+    if (activity <= 0) continue;
     if (y >= z.altitudeMin && y <= z.altitudeMax) {
       const edgeDist = Math.min(y - z.altitudeMin, z.altitudeMax - y);
       const edgeFade = clamp(edgeDist / 500, 0, 1);
-      const hash = Math.sin(x * 0.001 + y * 0.0013 + time * 3.7) *
-                   Math.cos(x * 0.0007 + time * 5.3) +
-                   Math.sin(y * 0.0008 + time * 4.9) * 0.5;
-      torque += hash * z.strength * edgeFade;
+      const hash = Math.sin(x * 0.001 + y * 0.0013 + time * 3.7 * volatility) *
+                   Math.cos(x * 0.0007 + time * 5.3 * volatility) +
+                   Math.sin(y * 0.0008 + time * 4.9 * volatility) * 0.5;
+      torque += hash * z.strength * edgeFade * activity;
     }
   }
   return torque;
 }
 
 /** Check if currently in turbulence zone. */
-function inTurbulence(y: number, level: ApproachLevel): boolean {
+function inTurbulence(y: number, level: ApproachLevel, time: number = 0): boolean {
   for (const z of level.turbulence) {
-    if (y >= z.altitudeMin && y <= z.altitudeMax) return true;
+    if (weatherActivity(z, time) > 0 && y >= z.altitudeMin && y <= z.altitudeMax) return true;
   }
   return false;
 }
@@ -1084,8 +1169,10 @@ function drawWindLayers(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
   level: ApproachLevel, W: number, H: number, time: number,
 ): void {
+  const volatility = level.poi.weatherProfile?.volatility ?? 1;
   for (let i = 0; i < level.windLayers.length; i++) {
-    const w = getWindLayerParams(level.windLayers[i], i, time);
+    const w = getWindLayerParams(level.windLayers[i], i, time, volatility);
+    if (w.activity <= 0) continue;
     const topAlt = w.altitudeCenter + w.altitudeWidth;
     const botAlt = w.altitudeCenter - w.altitudeWidth;
     const [, syTop] = ws(0, topAlt, cam, W, H);
@@ -1099,7 +1186,7 @@ function drawWindLayers(
 
     // Color: blue-ish for headwind (negative), orange-ish for tailwind (positive)
     const isHead = w.strength < 0;
-    const alpha = clamp(Math.abs(w.strength) / 15, 0.02, 0.07);
+    const alpha = clamp(Math.abs(w.strength) / 15, 0.02, 0.07) * w.activity;
     ctx.fillStyle = isHead
       ? `rgba(60, 100, 200, ${alpha})`
       : `rgba(200, 150, 60, ${alpha})`;
@@ -1777,7 +1864,7 @@ function drawApproachHUD(
     warnY += 22;
   }
 
-  if (inTurbulence(s.y, level)) {
+  if (inTurbulence(s.y, level, time)) {
     if (Math.sin(now * 0.008) > -0.2) {
       ctx.font = 'bold 16px monospace';
       ctx.textAlign = 'center';

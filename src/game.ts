@@ -14,7 +14,7 @@ import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
-  updateApproachCamera, renderApproach, drawApproachHUD, approachLevelById,
+  updateApproachCamera, renderApproach, drawApproachHUD, approachLevelById, applyApproachWeather,
 } from './approach';
 import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
@@ -208,6 +208,7 @@ export class Game {
   }
 
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
+    applyApproachWeather(level, worldTimeStart);
     const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);

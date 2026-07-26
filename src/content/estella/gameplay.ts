@@ -1,6 +1,6 @@
 import { ESTELLA_ATMOSPHERE_PHYSICS, ESTELLA_BODY_FLIGHT_PROFILES, ESTELLA_BODY_PHYSICS, ESTELLA_NODES_BY_ID, ESTELLA_PLACEMENTS } from './index';
 import { ESTELLA_SURFACE_FLIGHT_PROFILES } from './flight-profiles';
-import { type BodyDef, type StationPoiDef, type SurfacePoiDef, type TurbulenceZoneDef, type WindLayerDef } from '../../world';
+import { type BodyDef, type StationPoiDef, type SurfacePoiDef, type WeatherProfileDef } from '../../world';
 import { type Placement, type WorldNode } from '../types';
 
 function node(id: string): WorldNode {
@@ -84,62 +84,105 @@ function transferGameplay(id: string): BodyDef['transferGameplay'] {
   return undefined;
 }
 
-function approachEnvironment(id: string): BodyDef['approachEnvironment'] {
-  const windProfiles: Partial<Record<string, { windLayers: WindLayerDef[]; turbulence: TurbulenceZoneDef[] }>> = {
-    'estella-ii': {
-      windLayers: [
-        { altitudeCenter: 88_000, altitudeWidth: 10_000, strength: 14 },
-        { altitudeCenter: 60_000, altitudeWidth: 7_500, strength: 10 },
-        { altitudeCenter: 42_000, altitudeWidth: 5_500, strength: -12 },
-        { altitudeCenter: 24_000, altitudeWidth: 4_500, strength: 16 },
-      ],
-      turbulence: [
-        { altitudeMin: 50_000, altitudeMax: 62_000, strength: 2.0 },
-        { altitudeMin: 31_000, altitudeMax: 38_000, strength: 2.8 },
-        { altitudeMin: 14_000, altitudeMax: 24_000, strength: 3.5 },
-      ],
-    },
-    'estella-v': {
-      windLayers: [
-        { altitudeCenter: 18_000, altitudeWidth: 5_000, strength: 12 },
-        { altitudeCenter: 6_000, altitudeWidth: 2_200, strength: -8 },
-      ],
-      turbulence: [
-        { altitudeMin: 5_000, altitudeMax: 8_000, strength: 1.5 },
-      ],
-    },
-    'estella-iii': {
-      windLayers: [
-        { altitudeCenter: 16_000, altitudeWidth: 3_500, strength: -10 },
-        { altitudeCenter: 6_000, altitudeWidth: 2_000, strength: 8 },
-      ],
-      turbulence: [],
-    },
-    'estella-vi': {
-      windLayers: [
-        { altitudeCenter: 46_000, altitudeWidth: 7_000, strength: 20 },
-        { altitudeCenter: 24_000, altitudeWidth: 4_500, strength: -18 },
-        { altitudeCenter: 9_000, altitudeWidth: 2_400, strength: 12 },
-      ],
-      turbulence: [
-        { altitudeMin: 12_000, altitudeMax: 16_000, strength: 3 },
-        { altitudeMin: 34_000, altitudeMax: 38_000, strength: 2 },
-      ],
-    },
-    'estella-iv': {
-      windLayers: [
-        { altitudeCenter: 28_000, altitudeWidth: 4_500, strength: 18 },
-        { altitudeCenter: 13_000, altitudeWidth: 2_800, strength: -14 },
-        { altitudeCenter: 4_500, altitudeWidth: 1_500, strength: 10 },
-      ],
-      turbulence: [
-        { altitudeMin: 7_000, altitudeMax: 10_000, strength: 3 },
-        { altitudeMin: 18_000, altitudeMax: 21_000, strength: 2 },
-        { altitudeMin: 30_000, altitudeMax: 33_000, strength: 1 },
-      ],
-    },
-  };
-  return windProfiles[id];
+const GAIA_WEATHER: WeatherProfileDef = {
+  volatility: 0.8,
+  windLayers: [
+    { altitudeCenter: 16_000, altitudeWidth: 3_500, strength: -10, probability: 0.9, altitudeJitter: 1_400, strengthJitter: 0.25 },
+    { altitudeCenter: 6_000, altitudeWidth: 2_000, strength: 8, probability: 0.75, altitudeJitter: 800, strengthJitter: 0.25 },
+  ],
+  turbulence: [],
+};
+
+const DAHAI_WEATHER: WeatherProfileDef = {
+  volatility: 1.3,
+  windLayers: [
+    { altitudeCenter: 28_000, altitudeWidth: 4_500, strength: 18, probability: 0.95, altitudeJitter: 2_500, strengthJitter: 0.3 },
+    { altitudeCenter: 13_000, altitudeWidth: 2_800, strength: -14, probability: 0.85, altitudeJitter: 1_500, strengthJitter: 0.35 },
+    { altitudeCenter: 4_500, altitudeWidth: 1_500, strength: 10, probability: 0.75, altitudeJitter: 600, strengthJitter: 0.35 },
+  ],
+  turbulence: [
+    { altitudeMin: 7_000, altitudeMax: 10_000, strength: 3, probability: 0.65, widthJitter: 0.25, strengthJitter: 0.35 },
+    { altitudeMin: 18_000, altitudeMax: 21_000, strength: 2, probability: 0.55, widthJitter: 0.25, strengthJitter: 0.35 },
+    { altitudeMin: 30_000, altitudeMax: 33_000, strength: 1, probability: 0.45, widthJitter: 0.25, strengthJitter: 0.3 },
+  ],
+};
+
+const ACHERON_UPPER_CLOUD_WEATHER: WeatherProfileDef = {
+  volatility: 1.6,
+  windLayers: [
+    { altitudeCenter: 88_000, altitudeWidth: 10_000, strength: 14, probability: 0.85, altitudeJitter: 5_000, strengthJitter: 0.35 },
+    { altitudeCenter: 60_000, altitudeWidth: 7_500, strength: 10, probability: 0.95, altitudeJitter: 3_500, strengthJitter: 0.4 },
+    { altitudeCenter: 42_000, altitudeWidth: 5_500, strength: -12, probability: 0.7, altitudeJitter: 2_500, strengthJitter: 0.45 },
+  ],
+  turbulence: [
+    { altitudeMin: 50_000, altitudeMax: 62_000, strength: 2.0, probability: 0.7, widthJitter: 0.3, strengthJitter: 0.4 },
+  ],
+};
+
+const ACHERON_ACID_CLOUD_WEATHER: WeatherProfileDef = {
+  volatility: 2.0,
+  windLayers: [
+    { altitudeCenter: 60_000, altitudeWidth: 8_500, strength: 12, probability: 0.8, altitudeJitter: 4_000, strengthJitter: 0.45 },
+    { altitudeCenter: 42_000, altitudeWidth: 6_000, strength: -16, probability: 0.95, altitudeJitter: 2_500, strengthJitter: 0.45 },
+    { altitudeCenter: 24_000, altitudeWidth: 4_500, strength: 16, probability: 0.85, altitudeJitter: 1_800, strengthJitter: 0.5 },
+  ],
+  turbulence: [
+    { altitudeMin: 31_000, altitudeMax: 38_000, strength: 2.8, probability: 0.85, widthJitter: 0.35, strengthJitter: 0.45 },
+    { altitudeMin: 14_000, altitudeMax: 24_000, strength: 3.5, probability: 0.65, widthJitter: 0.35, strengthJitter: 0.5 },
+  ],
+};
+
+const HARTWELL_CLEAR_WEATHER: WeatherProfileDef = {
+  volatility: 1.0,
+  windLayers: [
+    { altitudeCenter: 18_000, altitudeWidth: 5_000, strength: 12, probability: 0.85, altitudeJitter: 2_000, strengthJitter: 0.35 },
+    { altitudeCenter: 6_000, altitudeWidth: 2_200, strength: -8, probability: 0.7, altitudeJitter: 800, strengthJitter: 0.35 },
+  ],
+  turbulence: [
+    { altitudeMin: 5_000, altitudeMax: 8_000, strength: 1.5, probability: 0.45, widthJitter: 0.25, strengthJitter: 0.35 },
+  ],
+};
+
+const HARTWELL_STORM_WEATHER: WeatherProfileDef = {
+  volatility: 2.4,
+  windLayers: [
+    { altitudeCenter: 22_000, altitudeWidth: 6_000, strength: 18, probability: 0.9, altitudeJitter: 3_000, strengthJitter: 0.45 },
+    { altitudeCenter: 12_000, altitudeWidth: 4_000, strength: -16, probability: 0.85, altitudeJitter: 2_000, strengthJitter: 0.5 },
+    { altitudeCenter: 3_500, altitudeWidth: 1_600, strength: 14, probability: 0.8, altitudeJitter: 700, strengthJitter: 0.5 },
+  ],
+  turbulence: [
+    { altitudeMin: 3_000, altitudeMax: 7_000, strength: 3.2, probability: 0.8, widthJitter: 0.35, strengthJitter: 0.45 },
+    { altitudeMin: 11_000, altitudeMax: 15_500, strength: 2.5, probability: 0.65, widthJitter: 0.3, strengthJitter: 0.4 },
+  ],
+};
+
+const KUZNIA_WEATHER: WeatherProfileDef = {
+  volatility: 1.5,
+  windLayers: [
+    { altitudeCenter: 46_000, altitudeWidth: 7_000, strength: 20, probability: 0.9, altitudeJitter: 4_000, strengthJitter: 0.4 },
+    { altitudeCenter: 24_000, altitudeWidth: 4_500, strength: -18, probability: 0.85, altitudeJitter: 2_500, strengthJitter: 0.4 },
+    { altitudeCenter: 9_000, altitudeWidth: 2_400, strength: 12, probability: 0.75, altitudeJitter: 1_200, strengthJitter: 0.35 },
+  ],
+  turbulence: [
+    { altitudeMin: 12_000, altitudeMax: 16_000, strength: 3, probability: 0.65, widthJitter: 0.3, strengthJitter: 0.45 },
+    { altitudeMin: 34_000, altitudeMax: 38_000, strength: 2, probability: 0.55, widthJitter: 0.3, strengthJitter: 0.35 },
+  ],
+};
+
+function weatherProfileForPoi(id: string, bodyId: string): WeatherProfileDef | undefined {
+  const explicit = ESTELLA_SURFACE_FLIGHT_PROFILES[id]?.weatherProfile;
+  if (explicit) return explicit;
+  if (id === 'estella-ii-nimbus-crucible') return ACHERON_ACID_CLOUD_WEATHER;
+  if (id === 'estella-ii-pandemonium') return ACHERON_ACID_CLOUD_WEATHER;
+  if (id === 'estella-v-storm-research') return HARTWELL_STORM_WEATHER;
+  if (id === 'estella-iv-climate-poi-1') return { ...DAHAI_WEATHER, volatility: 2.0 };
+  if (id === 'estella-vi-polar-weather-research') return { ...KUZNIA_WEATHER, volatility: 2.1 };
+  if (bodyId === 'estella-ii') return ACHERON_UPPER_CLOUD_WEATHER;
+  if (bodyId === 'estella-iii') return GAIA_WEATHER;
+  if (bodyId === 'estella-iv') return DAHAI_WEATHER;
+  if (bodyId === 'estella-v') return HARTWELL_CLEAR_WEATHER;
+  if (bodyId === 'estella-vi') return KUZNIA_WEATHER;
+  return undefined;
 }
 
 function atmosphereColor(id: string, fallback: [number, number, number]): [number, number, number] {
@@ -179,7 +222,6 @@ function createEstellaBody(id: string): BodyDef {
     } : null,
     orbit: bodyOrbit(id),
     orbitalDefaults: flight.orbitalDefaults,
-    approachEnvironment: approachEnvironment(id),
     transferGameplay: transferGameplay(id),
   };
 }
@@ -204,6 +246,7 @@ function createSurfacePoi(id: string): SurfacePoiDef {
     landingStart: profile.landingStart,
     descentProfile: profile.descentProfile,
     departureProfile: profile.departureProfile,
+    weatherProfile: weatherProfileForPoi(id, p.parentId),
   };
 }
 
