@@ -213,6 +213,14 @@ const DEEPCUT_DEPOT_PORTS = makePorts('glitterfield-deepcut', [
   { id: 'deepcut-depot-dock-port', name: 'Deepcut Dock', poiId: 'deepcut-depot-dock' },
 ], 2400);
 
+const ARK_QUARANTINE_STATION_PORTS = makePorts('ark-quarantine-station', [
+  { id: 'ark-quarantine-station-dock-port', name: 'Quarantine Dock', poiId: 'ark-quarantine-station-poi' },
+], 4600);
+
+const APOCRYPHA_CACHE_PORTS = makePorts('arkfall-apocrypha-cache', [
+  { id: 'arkfall-apocrypha-cache-port', name: 'Blindside Dock', poiId: 'arkfall-apocrypha-cache-poi' },
+], 1800);
+
 export const NEW_CANAAN_CLUSTER_LEVEL: ClusterLevel = {
   id: 90,
   name: 'New Canaan Traffic Volume',
@@ -301,7 +309,34 @@ export const GLITTERFIELD_CLUSTER_LEVEL: ClusterLevel = {
   timeWarpLevels: [1, 2, 5, 10],
 };
 
-const CLUSTER_TEMPLATES = [NEW_CANAAN_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL, GLITTERFIELD_CLUSTER_LEVEL];
+export const ARKFALL_CLUSTER_LEVEL: ClusterLevel = {
+  id: 93,
+  name: 'Arkfall Restricted Traffic Volume',
+  subtitle: 'Restricted local flight: Ark Quarantine Station and the Apocrypha Cache',
+  rx: 56_000,
+  ry: 26_000,
+  orbitAngle: -0.25,
+  members: [
+    { id: 'ark-quarantine-station', name: 'Ark Quarantine Station', x: 0, y: 0, radius: 5200, ports: ARK_QUARANTINE_STATION_PORTS },
+    { id: 'arkfall-apocrypha-cache', name: 'Apocrypha Cache', x: 31_000, y: -14_000, radius: 950, ports: APOCRYPHA_CACHE_PORTS },
+  ],
+  targetPortId: 'ark-quarantine-station-dock-port',
+  startX: -5_000,
+  startY: 1_500,
+  startVX: 0,
+  startVY: 0,
+  startAngle: 1.95,
+  forwardAccel: 9.375,
+  rotAccel: 2.8,
+  baseTimeScale: 4,
+  // Arkfall is mostly empty exclusion space with a few large tracked fragments, not Glitterfield gravel.
+  rockCount: 16,
+  captureRadius: 8_000,
+  captureMaxSpeed: 18,
+  timeWarpLevels: [1, 2, 5, 10],
+};
+
+const CLUSTER_TEMPLATES = [NEW_CANAAN_CLUSTER_LEVEL, REACH_COMET_SWARM_CLUSTER_LEVEL, GLITTERFIELD_CLUSTER_LEVEL, ARKFALL_CLUSTER_LEVEL];
 const LOCAL_CLUSTER_TRANSFER_KINEMATIC_SCALE = 0.1;
 
 export const CLUSTER_LEVELS: ClusterLevel[] = [...CLUSTER_TEMPLATES];
@@ -315,6 +350,7 @@ export function clusterBodyIdForPoi(poiId: string): string | undefined {
   if (template === NEW_CANAAN_CLUSTER_LEVEL) return 'new-canaan-field';
   if (template === REACH_COMET_SWARM_CLUSTER_LEVEL) return 'reach-comet-swarm';
   if (template === GLITTERFIELD_CLUSTER_LEVEL) return 'glitterfield';
+  if (template === ARKFALL_CLUSTER_LEVEL) return 'belt-cluster-wreckage-field';
   return undefined;
 }
 

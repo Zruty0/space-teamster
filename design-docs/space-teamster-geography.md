@@ -291,13 +291,15 @@ Three of the clusters share the Caravanserai's orbit and differ only by their ph
 | **Arkfall** | Different orbit (eccentric) | **Military exclusion / salvage license required** | Shattered remains of the Ark of the Covenant; war grave, navigation hazard, and restricted salvage zone |
 | **Cluster 5 — The Quiet Side** | Different orbit (outer co-planar) | **Reputation-gated** | Smuggler dead-drops, rare and valuable, fewer jobs |
 
-Each cluster contains roughly ten small asteroids, each one a single docking site. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
+Most clusters contain roughly ten small asteroids, each one a single docking site. Arkfall is the exception: its playable traffic volume is deliberately sparse, with only two operational POIs inside a much larger military exclusion zone. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
 
 ### Arkfall
 
 During the Covenant Wars, the Covenant crusade brought into Estella a unique supermassive station-ship called the **Ark of the Covenant**. It was headquarters, fortress, cathedral, logistics base, command staff, and political symbol in one moving body: a portable state for a movement that could not rely on predictable interstellar supply. Near the end of the wars, catastrophe befell the Ark in the Belt. The official history calls it a cascade failure during combat operations; survivors, families, veterans, and salvage crews all tell different stories. Many died, many more were evacuated, and the Covenant's bid to command the system died with the ship.
 
 The debris field is now called **Arkfall**. It is a mass grave, military exclusion zone, religious relic, intelligence site, and salvage prize all at once, patrolled by the Estella Defence Force under Council authority. The public reasons are unstable wreckage, unexploded ordnance, hot reactors, and navigation danger; the private reasons are sealed archives, command systems, disputed remains, and whatever evidence still survives about what actually destroyed the Ark. Licensed traffic gets narrow corridors and strict manifests. Everyone else gets warned off, intercepted, or disappeared into paperwork.
+
+The playable Arkfall cluster is smaller and emptier than Glitterfield: mostly blank exclusion space, a few tracked fragments, and very little random rock density. It has only two POIs for now: **Ark Quarantine Station**, the large EDF interdiction and salvage-control station anchored to the largest stable fragment, and **Apocrypha Cache**, a tiny clandestine dead drop hidden in a sensor-shadowed fragment where Covenant relics and sealed records circulate off the books.
 
 ## The Belt's named bodies
 

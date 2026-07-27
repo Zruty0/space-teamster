@@ -274,6 +274,16 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'glitterfield-slagfoot': { kind: 'cluster-member', parentId: 'glitterfield', x: 60_000, y: -6_000 },
   'glitterfield-deepcut': { kind: 'cluster-member', parentId: 'glitterfield', x: -2_000, y: 27_000 },
 
+  'belt-cluster-wreckage-field': {
+    kind: 'orbit',
+    parentId: 'estella',
+    usage: 'eccentric',
+    orbit: { kind: 'circular', radius: 1_610_000_000, epochAngle: -2.1, epochTime: 0, orbitSense: 1 },
+    notes: 'Gameplay uses a circular proxy for Arkfall\'s eccentric restricted orbit.',
+  },
+  'ark-quarantine-station': { kind: 'cluster-member', parentId: 'belt-cluster-wreckage-field', x: 0, y: 0 },
+  'arkfall-apocrypha-cache': { kind: 'cluster-member', parentId: 'belt-cluster-wreckage-field', x: 31_000, y: -14_000 },
+
   'estella-viii': {
     kind: 'orbit',
     parentId: 'estella',
