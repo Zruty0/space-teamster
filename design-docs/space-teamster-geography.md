@@ -77,6 +77,12 @@ POIs *on* a body take a dot suffix: *Estella IIIa.3* or *ES-C-0001.4*. The catal
 
 **One useful diagnostic:** the *naming density* of a region tells you how settled it is. The Hearth has hundreds of names. The Reach has almost none.
 
+## System government
+
+The formal state is the **Estella Commonwealth**, though almost nobody calls it that outside courts, treaties, and schoolbooks. In ordinary speech the system is governed by **the Council**: a collegiate body of planetary governors and recognized system authorities, with broad local autonomy left to Gaia, Dahai, Hartwell, Kuznia, the Belt authorities, and the more distant settled bodies. The Council handles matters that cannot be localized — Highliner arrival law, interplanetary navigation, customs standards, quarantine, charter recognition, war-grave jurisdiction, and the system defence budget.
+
+The Council's executive officer is **the Secretary**, and the office is more powerful than the title sounds. The Secretary sets the agenda, controls the permanent bureaucracy, speaks for the Council between sessions, and holds default emergency command over the **Estella Defence Force**; at present the Secretary is also the governor of Gaia, which makes Gaia's dominance both constitutional and practical. On paper, the EDF answers to the Council. In practice, unless the governors unite to overrule the Secretary, EDF orders come from Gaia.
+
 ---
 
 # I. The Hearth
@@ -282,10 +288,16 @@ Three of the clusters share the Caravanserai's orbit and differ only by their ph
 | **New Canaan Field** | Co-orbital with the Caravanserai (close phase) | Open | Old titanium-rush field: mined-out claim rocks, marginal Co-op operations, and downward-mobile washouts. *Contains the Caravanserai itself.* |
 | **Cluster 2 — The Working** | Co-orbital, mid phase | Open | Active industrial mid-Belt |
 | **Cluster 3 — The Outer Drift** | Co-orbital, far phase | Open | Sparser, more varied, longer transfers |
-| **Cluster 4 — The Wreckage Field** | Different orbit (eccentric) | **Salvage license required** | Dense field, navigation hazard, salvage flavor |
+| **Arkfall** | Different orbit (eccentric) | **Military exclusion / salvage license required** | Shattered remains of the Ark of the Covenant; war grave, navigation hazard, and restricted salvage zone |
 | **Cluster 5 — The Quiet Side** | Different orbit (outer co-planar) | **Reputation-gated** | Smuggler dead-drops, rare and valuable, fewer jobs |
 
 Each cluster contains roughly ten small asteroids, each one a single docking site. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
+
+### Arkfall
+
+During the Covenant Wars, the Covenant crusade brought into Estella a unique supermassive station-ship called the **Ark of the Covenant**. It was headquarters, fortress, cathedral, logistics base, command staff, and political symbol in one moving body: a portable state for a movement that could not rely on predictable interstellar supply. Near the end of the wars, catastrophe befell the Ark in the Belt. The official history calls it a cascade failure during combat operations; survivors, families, veterans, and salvage crews all tell different stories. Many died, many more were evacuated, and the Covenant's bid to command the system died with the ship.
+
+The debris field is now called **Arkfall**. It is a mass grave, military exclusion zone, religious relic, intelligence site, and salvage prize all at once, patrolled by the Estella Defence Force under Council authority. The public reasons are unstable wreckage, unexploded ordnance, hot reactors, and navigation danger; the private reasons are sealed archives, command systems, disputed remains, and whatever evidence still survives about what actually destroyed the Ark. Licensed traffic gets narrow corridors and strict manifests. Everyone else gets warned off, intercepted, or disappeared into paperwork.
 
 ## The Belt's named bodies
 
