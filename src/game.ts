@@ -1439,7 +1439,7 @@ export class Game {
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
         ],
-        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
           { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
@@ -1465,7 +1465,7 @@ export class Game {
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
           { kind: 'kv', label: 'Sorting', value: 'Guild default: local work first, then longer hauls' },
         ],
-        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           ...contracts.map(contract => ({
             label: contract.title,
@@ -1507,7 +1507,7 @@ export class Game {
           { kind: 'kv', label: 'Net at par', value: contractMarginSummary(quote), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Transfer', value: transferSummary },
         ],
-        footer: 'W/S or ↑↓: select   Enter: choose   Esc: back to contract board',
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
           { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
           { label: contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
@@ -1524,7 +1524,7 @@ export class Game {
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
         ],
-        footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
       };
     }
@@ -1536,7 +1536,7 @@ export class Game {
         { kind: 'text', text: 'Ship status terminal is not installed yet.', tone: 'warning' },
         { kind: 'text', text: 'Future read-only rig inspection will live here.' },
       ],
-      footer: 'W/S or ↑↓: select   Enter: choose   Esc: start menu',
+      footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
     };
   }
@@ -1560,7 +1560,7 @@ export class Game {
     if (p.scene.selectedIndex < 0 || p.scene.selectedIndex >= itemCount) p.scene.selectedIndex = 0;
     if (input.menuUp) p.scene.selectedIndex = (p.scene.selectedIndex - 1 + itemCount) % itemCount;
     if (input.menuDown) p.scene.selectedIndex = (p.scene.selectedIndex + 1) % itemCount;
-    if (!input.continueAction) return;
+    if (!input.menuConfirm) return;
 
     const option = scene.options[p.scene.selectedIndex];
     if (!option || option.disabled) return;

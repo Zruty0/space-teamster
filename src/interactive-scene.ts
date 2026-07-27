@@ -255,5 +255,5 @@ export function drawInteractiveScene(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText(scene.footer ?? 'W/S or ↑↓: select   Enter: choose   Esc: start menu', W / 2, H - 24);
+  ctx.fillText(scene.footer ?? 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu', W / 2, H - 24);
 }
