@@ -58,6 +58,8 @@ export interface ClusterLevel {
   rotAccel: number;
   baseTimeScale: number;
   rockCount: number;
+  rockStyle?: 'debris' | 'securityBeacon';
+  securityBeaconsActive?: boolean;
   captureRadius: number;
   captureMaxSpeed: number;
   timeWarpLevels: number[];
@@ -329,8 +331,10 @@ export const ARKFALL_CLUSTER_LEVEL: ClusterLevel = {
   forwardAccel: 9.375,
   rotAccel: 2.8,
   baseTimeScale: 4,
-  // Arkfall is mostly empty exclusion space with a few large tracked fragments, not Glitterfield gravel.
-  rockCount: 16,
+  // Arkfall has little natural rock, but the exclusion volume is thick with EDF security beacons.
+  rockCount: 220,
+  rockStyle: 'securityBeacon',
+  securityBeaconsActive: false,
   captureRadius: 8_000,
   captureMaxSpeed: 18,
   timeWarpLevels: [1, 2, 5, 10],
@@ -420,12 +424,14 @@ function createClusterLevelFromTemplate(template: ClusterLevel, sourcePoiId: str
   const ux = dx / dist;
   const uy = dy / dist;
   const startDist = template.captureRadius + 3_000;
+  const apocryphaActive = template === ARKFALL_CLUSTER_LEVEL && (sourcePoiId === 'arkfall-apocrypha-cache-poi' || destinationPoiId === 'arkfall-apocrypha-cache-poi');
   return {
     ...template,
     id,
     subtitle: `Local flight: ${sourceMember.name} to ${destMember.name}`,
     targetPortId: destPort.id,
     dockingLevelId,
+    securityBeaconsActive: template === ARKFALL_CLUSTER_LEVEL ? apocryphaActive : template.securityBeaconsActive,
     startX: sourceMember.x + ux * startDist,
     startY: sourceMember.y + uy * startDist,
     startVX: 0,
@@ -694,7 +700,12 @@ function rockInSafeCircle(rock: ClusterRock, level: ClusterLevel): boolean {
   return level.members.some(member => (rock.x - member.x) ** 2 + (rock.y - member.y) ** 2 <= level.captureRadius * level.captureRadius);
 }
 
+function clusterRockHazardsActive(level: ClusterLevel): boolean {
+  return level.rockStyle !== 'securityBeacon' || level.securityBeaconsActive === true;
+}
+
 function clusterRockCollision(s: ClusterState, level: ClusterLevel): boolean {
+  if (!clusterRockHazardsActive(level)) return false;
   const shipR = CLUSTER_SHIP_HIT_RADIUS;
   for (const rock of s.rocks) {
     if (rockInSafeCircle(rock, level)) continue;
@@ -713,7 +724,7 @@ function rockVelocity(rock: ClusterRock): { vx: number; vy: number } {
 }
 
 function rockCollisionTime(s: ClusterState, rock: ClusterRock, level: ClusterLevel, horizon = 30): number | null {
-  if (rockInSafeCircle(rock, level)) return null;
+  if (!clusterRockHazardsActive(level) || rockInSafeCircle(rock, level)) return null;
   const rx = rock.x - s.x;
   const ry = rock.y - s.y;
   const rv = rockVelocity(rock);
@@ -802,6 +813,8 @@ function drawClusterStars(ctx: CanvasRenderingContext2D, W: number, H: number): 
 }
 
 function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number, W: number, H: number): void {
+  const beaconStyle = level.rockStyle === 'securityBeacon';
+  const beaconsActive = clusterRockHazardsActive(level);
   for (const rock of s.rocks) {
     const [rx, ry] = cws(rock.x, rock.y, cam, W, H);
     const r = Math.max(1.5, rock.radius * cam.zoom);
@@ -809,21 +822,49 @@ function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: 
     ctx.save();
     ctx.translate(rx, ry);
     ctx.rotate(rock.angle);
-    ctx.beginPath();
-    const verts = 9;
-    for (let i = 0; i <= verts; i++) {
-      const a = (i / verts) * Math.PI * 2;
-      const rr = r * (0.78 + 0.22 * Math.sin(i * 2.31 + rock.radius));
-      const x = Math.cos(a) * rr;
-      const y = Math.sin(a) * rr;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    if (beaconStyle) {
+      const pulse = 0.55 + 0.45 * Math.sin(time * (beaconsActive ? 8 : 2) + rock.phase);
+      const coreR = Math.max(2, r * 0.38);
+      ctx.beginPath();
+      ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = beaconsActive ? '#351014' : '#101820';
+      ctx.fill();
+      ctx.strokeStyle = beaconsActive ? '#ff4455' : '#446078';
+      ctx.lineWidth = beaconsActive ? 1.6 : 1;
+      ctx.stroke();
+
+      ctx.strokeStyle = beaconsActive ? `rgba(255, 70, 85, ${0.35 + 0.35 * pulse})` : 'rgba(90, 130, 160, 0.25)';
+      ctx.lineWidth = beaconsActive ? 1.4 : 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(coreR + 4, r * 0.78), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.9, 0);
+      ctx.lineTo(-coreR - 2, 0);
+      ctx.moveTo(coreR + 2, 0);
+      ctx.lineTo(r * 0.9, 0);
+      ctx.moveTo(0, -r * 0.9);
+      ctx.lineTo(0, -coreR - 2);
+      ctx.moveTo(0, coreR + 2);
+      ctx.lineTo(0, r * 0.9);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      const verts = 9;
+      for (let i = 0; i <= verts; i++) {
+        const a = (i / verts) * Math.PI * 2;
+        const rr = r * (0.78 + 0.22 * Math.sin(i * 2.31 + rock.radius));
+        const x = Math.cos(a) * rr;
+        const y = Math.sin(a) * rr;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#111614';
+      ctx.fill();
+      ctx.strokeStyle = '#6f7f79';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
-    ctx.closePath();
-    ctx.fillStyle = '#111614';
-    ctx.fill();
-    ctx.strokeStyle = '#6f7f79';
-    ctx.lineWidth = 1;
-    ctx.stroke();
     ctx.restore();
 
     const ttc = rockCollisionTime(s, rock, level, 30);
