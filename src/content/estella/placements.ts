@@ -277,9 +277,9 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'belt-cluster-wreckage-field': {
     kind: 'orbit',
     parentId: 'estella',
-    usage: 'eccentric',
+    usage: 'outer',
     orbit: { kind: 'circular', radius: 1_610_000_000, epochAngle: -2.1, epochTime: 0, orbitSense: 1 },
-    notes: 'Gameplay uses a circular proxy for Arkfall\'s eccentric restricted orbit.',
+    notes: 'Arkfall occupies a distinct circular Belt orbit outside the Caravanserai/Glitterfield co-orbital radius.',
   },
   'ark-quarantine-station': { kind: 'cluster-member', parentId: 'belt-cluster-wreckage-field', x: 0, y: 0 },
   'arkfall-apocrypha-cache': { kind: 'cluster-member', parentId: 'belt-cluster-wreckage-field', x: 31_000, y: -14_000 },

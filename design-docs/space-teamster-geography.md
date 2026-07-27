@@ -281,14 +281,14 @@ The Belt's own native economy is mining, refining, and refueling — not glamoro
 
 A note on geography. The Belt's small asteroids are organized into five **clusters** — tight groups of bodies that occupy roughly the same orbital region. Within a cluster, asteroids are close enough that travel between them is simple, low-Δv, and works at a different scale than interplanetary flight. Travel *between* clusters, however, is a real orbital transfer.
 
-Three of the clusters share the Caravanserai's orbit and differ only by their phase angle. Two are in different orbits entirely.
+Three of the clusters share the Caravanserai's orbit and differ only by their phase angle. Two are in different orbits entirely; Arkfall is circular but at a distinct radius, while the Quiet Side is farther out.
 
 | Cluster | Position | Gating | Flavor |
 |---|---|---|---|
 | **New Canaan Field** | Co-orbital with the Caravanserai (close phase) | Open | Old titanium-rush field: mined-out claim rocks, marginal Co-op operations, and downward-mobile washouts. *Contains the Caravanserai itself.* |
 | **Cluster 2 — The Working** | Co-orbital, mid phase | Open | Active industrial mid-Belt |
 | **Cluster 3 — The Outer Drift** | Co-orbital, far phase | Open | Sparser, more varied, longer transfers |
-| **Arkfall** | Different orbit (eccentric) | **Military exclusion / salvage license required** | Shattered remains of the Ark of the Covenant; war grave, navigation hazard, and restricted salvage zone |
+| **Arkfall** | Different circular Belt orbit | **Military exclusion / salvage license required** | Shattered remains of the Ark of the Covenant; war grave, navigation hazard, and restricted salvage zone |
 | **Cluster 5 — The Quiet Side** | Different orbit (outer co-planar) | **Reputation-gated** | Smuggler dead-drops, rare and valuable, fewer jobs |
 
 Most clusters contain roughly ten small asteroids, each one a single docking site. Arkfall is the exception: its playable traffic volume is deliberately sparse, with only two operational POIs inside a much larger military exclusion zone. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
