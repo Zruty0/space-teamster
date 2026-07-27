@@ -2,7 +2,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
-import { estimateEstellaMissionCost, generateGenericCargoForRoute, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
+import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -27,20 +27,8 @@ export interface CareerContract {
   completionMessage: string;
 }
 
-const CONTRACT_CLASS_COUNTS: Record<CareerContractClass, number> = {
-  local: 5,
-  moderate: 3,
-  long: 2,
-};
-const MIN_FACTION_CONTRACTS = 2;
 const MAX_FACTION_CONTRACTS = 10;
 const MAX_CONTRACTS = 10;
-
-type GenericRouteCandidate = {
-  sourceId: string;
-  destinationId: string;
-  routeClass: CareerContractClass;
-};
 
 const SHARED_BBS_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid']);
 
@@ -59,15 +47,6 @@ function rand(seed: number): number {
   x ^= x >>> 17;
   x ^= x << 5;
   return (x >>> 0) / 0xffffffff;
-}
-
-function shuffled<T>(items: T[], seed: number): T[] {
-  const out = items.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rand(seed + i * 0x9e3779b9) * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
 }
 
 function weightedPick<T extends { likelihood: number }>(items: T[], count: number, seed: number): T[] {
@@ -171,31 +150,6 @@ function bbsSourceIds(locationId: string): string[] {
   return ordered.length ? ordered : [locationId];
 }
 
-function makeContract(sourceId: string, destinationId: string, routeClass: CareerContractClass, index: number, startWorldTime: number): CareerContract {
-  const mission = generateEstellaMission(sourceId, destinationId, startWorldTime);
-  const selectedTransfer = preferredContractTransfer(mission.transferOptions);
-  const cargo = generateGenericCargoForRoute(sourceId, destinationId);
-  const quote = estimateEstellaMissionCost(sourceId, destinationId, cargo, selectedTransfer);
-  const source = contractTarget(sourceId);
-  const target = contractTarget(destinationId);
-  return {
-    id: `generic:${sourceId}->${destinationId}:${index}`,
-    sourceId,
-    sourceName: source.name,
-    sourcePath: source.path,
-    destinationId,
-    destinationName: target.name,
-    destinationPath: target.path,
-    routeClass,
-    title: `Deliver ${cargo.label} to ${contractTitleDestination(destinationId)}`,
-    issuerName: 'Open Market',
-    cargo,
-    quote,
-    selectedTransfer,
-    completionMessage: 'Open Market thanks you for successfully completing this contract.',
-  };
-}
-
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
   const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
@@ -233,53 +187,16 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
 export function generateCareerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
   const seed = hashString(`career-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
   const boardSourceIds = bbsSourceIds(sourceId);
-  const targets = estellaSelectableNavTargets();
-  const targetIds = new Set(targets.map(target => target.id));
-  const byClass: Record<CareerContractClass, GenericRouteCandidate[]> = { local: [], moderate: [], long: [] };
-  for (const routeSourceId of boardSourceIds) {
-    for (const target of targets) {
-      if (target.id === routeSourceId || isDisallowedSameSiteDelivery(routeSourceId, target.id)) continue;
-      const route = { sourceId: routeSourceId, destinationId: target.id, routeClass: classifyRoute(routeSourceId, target.id) };
-      byClass[route.routeClass].push(route);
-    }
-  }
-
-  const picked = new Set<string>();
+  const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
   const contracts: CareerContract[] = [];
 
   const factionCandidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime }))
     .filter(candidate => (candidate.category ?? 'freight') !== 'passenger')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
-  const factionCount = Math.min(
-    MAX_FACTION_CONTRACTS,
-    Math.max(MIN_FACTION_CONTRACTS, factionCandidates.length),
-  );
+  const factionCount = Math.min(MAX_FACTION_CONTRACTS, factionCandidates.length);
   for (const candidate of weightedPick(factionCandidates, factionCount, seed ^ 0x51f15eed)) {
     if (contracts.length >= MAX_CONTRACTS) continue;
-    picked.add(candidate.destinationId);
     contracts.push(makeFactionContract(candidate, contracts.length, startWorldTime));
-  }
-
-  const takeFrom = (routeClass: CareerContractClass, count: number): void => {
-    for (const route of shuffled(byClass[routeClass].filter(candidate => !picked.has(candidate.destinationId)), seed ^ hashString(routeClass))) {
-      if (contracts.length >= MAX_CONTRACTS || count <= 0) break;
-      picked.add(route.destinationId);
-      contracts.push(makeContract(route.sourceId, route.destinationId, route.routeClass, contracts.length, startWorldTime));
-      count--;
-    }
-  };
-
-  takeFrom('local', CONTRACT_CLASS_COUNTS.local);
-  takeFrom('moderate', CONTRACT_CLASS_COUNTS.moderate);
-  takeFrom('long', CONTRACT_CLASS_COUNTS.long);
-
-  if (contracts.length < MAX_CONTRACTS) {
-    const leftovers = shuffled(Object.values(byClass).flat().filter(route => !picked.has(route.destinationId)), seed ^ 0xa5a5a5a5);
-    for (const route of leftovers) {
-      if (contracts.length >= MAX_CONTRACTS) break;
-      picked.add(route.destinationId);
-      contracts.push(makeContract(route.sourceId, route.destinationId, route.routeClass, contracts.length, startWorldTime));
-    }
   }
 
   return contracts;

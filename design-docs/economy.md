@@ -4,7 +4,7 @@ This file tracks the actor-driven economy for Space Teamster. It is a working de
 
 ## Current contract model
 
-Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board weighted-picks at least 2 and at most 10 faction contracts when candidates are available, then fills remaining board space with generic open-market freight.
+Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board now shows only faction-authored postings, weighted-picking up to 10 candidates; there is no generic open-market filler.
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
@@ -42,7 +42,7 @@ net         = grossPay - actualFuel
 
 Dials live on the faction contract candidate; unset dials fall back to defaults:
 
-- `generosity` — fixed reward scaled with route difficulty (× par fuel). Default 0.75 (open-market baseline).
+- `generosity` — fixed reward scaled with route difficulty (× par fuel). Default 0.75 for providers that omit a specific value.
 - `flatReward` — flat credit floor/bonus. Default 0.
 - `compensationRatio` + `maxCompAllowance` — reimburse actual fuel up to a cap. Default 0.4 / 2.
 
@@ -52,7 +52,6 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 
 | Faction | routine formula | notable overrides |
 |---|---|---|
-| Open market | 0.75 + 0.40 fuel comp (+15%) | — |
 | New Canaan Miners Mutual | 0.60 + 0.45 (+5%) | emergency 0.85 + 0.45 (+30%); exports 0.70 + 0.35 (+5%) |
 | Teamsters' Guild | 0.85 + 0.40 (+25%) | paperwork 0.90 + 0.35 (+25%); staging 1.30 + 0.15 (+45%); skim 1.70 + 0 (+70%) |
 | Bruckner Field Services | 0.80 + 0.45 (+25%) | returns 1.20 + 0.25 (+45%); crew passengers 0.50 + 0.60 (+10%) |

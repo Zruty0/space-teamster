@@ -1481,9 +1481,9 @@ export class Game {
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
           { kind: 'kv', label: 'Pay model', value: 'Published pay is fixed credits plus fuel reimbursement; color shows net at par' },
         ] : [
-          { kind: 'text', text: 'Local public freight postings. Select a posting to inspect the route and terms.' },
+          { kind: 'text', text: contracts.length ? 'Local faction freight postings. Select a posting to inspect the route and terms.' : 'No faction freight postings are available here today.', tone: contracts.length ? undefined : 'warning' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
-          { kind: 'kv', label: 'Sorting', value: 'Guild default: local work first, then longer hauls' },
+          { kind: 'kv', label: 'Sorting', value: 'Faction boards only; open-market filler is not posted' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
@@ -1492,7 +1492,7 @@ export class Game {
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
             rightText: contractPublishedPay(contract.quote),
             rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-            detail: `${contract.issuerName ?? 'Open Market'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
+            detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
             action: `contract:${contract.id}`,
             tone: contractOptionTone(contract),
           })),
@@ -1514,7 +1514,7 @@ export class Game {
         subtitle: 'Review route and terms before accepting.',
         bodyRows: [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
-          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Open Market' },
+          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
           { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath },

@@ -48,8 +48,8 @@ const SHIP_DRY_MASS_TONS = 120;
 const CONTAINER_TARE_TONS = 8;
 const FUEL_PRICE_PER_TON_MPS = 1;
 const DEFAULT_GENEROSITY = 0.75;
-// Neutral/open-market pay dials: fixed reward plus partial fuel reimbursement. Zero
-// reimbursement is reserved for high-risk/high-reward contracts.
+// Neutral fallback pay dials for providers that omit explicit terms: fixed reward plus
+// partial fuel reimbursement. Zero reimbursement is reserved for high-risk/high-reward contracts.
 const DEFAULT_FLAT_REWARD = 0;
 const DEFAULT_COMPENSATION_RATIO = 0.4;
 const DEFAULT_MAX_COMP_ALLOWANCE = 2;

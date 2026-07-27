@@ -17,7 +17,7 @@ const MINERS_MUTUAL_ID = 'new-canaan-miners-mutual';
 const MINERS_MUTUAL_NAME = 'New Canaan Miners Mutual';
 const MINERS_MUTUAL_TAG = 'CO-OP';
 
-// A broke mutual pays below open market for ordinary work — you fly for goodwill, not profit.
+// A broke mutual pays poorly for ordinary work — you fly for goodwill, not profit.
 // Genuine emergency relief is the exception: the Co-op will overpay when members are in trouble.
 const MINERS_MUTUAL_BASE_GENEROSITY = 0.6;
 const MINERS_MUTUAL_BASE_COMPENSATION_RATIO = 0.45;
