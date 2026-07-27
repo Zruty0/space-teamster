@@ -827,14 +827,14 @@ function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: 
       const coreR = Math.max(2, r * 0.38);
       ctx.beginPath();
       ctx.arc(0, 0, coreR, 0, Math.PI * 2);
-      ctx.fillStyle = beaconsActive ? '#351014' : '#101820';
+      ctx.fillStyle = beaconsActive ? '#221015' : '#101820';
       ctx.fill();
-      ctx.strokeStyle = beaconsActive ? '#ff4455' : '#446078';
-      ctx.lineWidth = beaconsActive ? 1.6 : 1;
+      ctx.strokeStyle = beaconsActive ? '#b83a48' : '#446078';
+      ctx.lineWidth = beaconsActive ? 1.4 : 1;
       ctx.stroke();
 
-      ctx.strokeStyle = beaconsActive ? `rgba(255, 70, 85, ${0.35 + 0.35 * pulse})` : 'rgba(90, 130, 160, 0.25)';
-      ctx.lineWidth = beaconsActive ? 1.4 : 1;
+      ctx.strokeStyle = beaconsActive ? `rgba(190, 54, 68, ${0.22 + 0.24 * pulse})` : 'rgba(90, 130, 160, 0.25)';
+      ctx.lineWidth = beaconsActive ? 1.2 : 1;
       ctx.beginPath();
       ctx.arc(0, 0, Math.max(coreR + 4, r * 0.78), 0, Math.PI * 2);
       ctx.stroke();
