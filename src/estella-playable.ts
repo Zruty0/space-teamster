@@ -204,7 +204,7 @@ function createApproachLevel(kind: 'departure' | 'descent', poiId: string, id: n
   return {
     id,
     name: `${poi.name} ${kind === 'departure' ? 'Departure' : 'Descent'}`,
-    subtitle: kind === 'departure' ? `Generated launch to ${b.name} orbit` : `Generated powered descent to ${poi.name}`,
+    subtitle: kind === 'departure' ? `${b.name} departure corridor` : `Powered descent to ${poi.name}`,
     body: b,
     poi,
     frame: { planetRadius: b.radius, planetGM: b.gm, landingSiteAngle: poi.surfaceAngle, localDir: -1 },
@@ -365,7 +365,7 @@ function createOrbitalLevel(opts: {
     id: opts.id,
     bodyId: opts.bodyId,
     name: opts.name,
-    subtitle: opts.station ? `Generated rendezvous around ${b.name}` : `Generated ${b.name} orbit`,
+    subtitle: opts.station ? `${b.name} station rendezvous` : `${b.name} orbital traffic`,
     planetRadius: b.radius,
     planetGM: b.gm,
     atmoHeight: b.atmosphere?.height ?? 0,
@@ -743,7 +743,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: destMemberName,
-      subtitle: 'Deliver generated Estella cargo',
+      subtitle: 'Deliver cargo to assigned berth',
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
@@ -761,7 +761,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
         id: nextId(),
         name: sourceMemberName,
-        subtitle: 'Undock and enter local cluster traffic',
+        subtitle: 'Undock and enter local traffic',
         exitMode: true,
         clusterLevelId: scaledClusterLevel.id,
         finalDestinationName: final.name,
@@ -787,7 +787,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: destMemberName,
-      subtitle: 'Deliver generated Estella cargo',
+      subtitle: 'Deliver cargo to assigned berth',
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
@@ -825,7 +825,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: nextId(),
       name: sourceMemberName,
-      subtitle: 'Undock and exit local cluster traffic',
+      subtitle: 'Undock and exit local traffic',
       exitMode: true,
       clusterLevelId: sourceClusterLevel.id,
       finalDestinationName: final.name,
@@ -853,7 +853,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const destDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: destMemberName,
-      subtitle: 'Deliver generated Estella cargo',
+      subtitle: 'Deliver cargo to assigned berth',
       exitMode: false,
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
@@ -881,7 +881,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: nextId(),
       name: station.name,
-      subtitle: 'Undock and begin generated Estella route',
+      subtitle: 'Undock and begin route',
       exitMode: true,
       orbitalLevelId: startOrbital.id,
       finalDestinationName: final.name,
@@ -912,7 +912,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     register(DOCKING_LEVELS, createGenericDockingLevel({
       id: destDockingId,
       name: station.name,
-      subtitle: 'Deliver generated Estella cargo',
+      subtitle: 'Deliver cargo to assigned berth',
       exitMode: false,
       targetSpoke: station.docking.delivery.targetSpoke,
       targetSide: station.docking.delivery.targetSide,
@@ -976,7 +976,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
       id: nextId(),
       name: sourceMemberName,
-      subtitle: 'Undock and exit local cluster traffic',
+      subtitle: 'Undock and exit local traffic',
       exitMode: true,
       clusterLevelId: clusterLevel.id,
       finalDestinationName: final.name,
@@ -1006,7 +1006,7 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
   const sourceDocking = register(DOCKING_LEVELS, createGenericDockingLevel({
     id: sourceDockingId,
     name: station.name,
-    subtitle: 'Undock and begin generated Estella route',
+    subtitle: 'Undock and begin route',
     exitMode: true,
     orbitalLevelId: startOrbital.id,
     finalDestinationName: final.name,

@@ -574,6 +574,17 @@ export class Game {
     return p.level.subtitle || p.level.name;
   }
 
+  private orbitalObjectiveLabel(level: OrbitalLevel): string {
+    if (level.station?.name) return `${level.station.name} rendezvous`;
+    if (level.targetBodyId) {
+      const body = getTransferBody(level, level.targetBodyId);
+      return `${body?.name ?? level.nextObjectiveName ?? 'target'} approach`;
+    }
+    if (level.escapeToOrbitalLevelId) return `${bodyById(level.bodyId).name} outbound transfer`;
+    if (level.finalDestinationName) return level.finalDestinationName;
+    return `${bodyById(level.bodyId).name} orbital traffic`;
+  }
+
   private currentMissionCompletionText(): string {
     if (this.activeCareerContract) return this.activeCareerContract.completionMessage;
     return 'Delivery complete. Dispatch closes the manifest and posts the run to your log.';
@@ -880,7 +891,7 @@ export class Game {
     if (!p.level.orbitalLevelId) return null;
     const orbLevel = orbitalLevelById(p.level.orbitalLevelId);
     if (!orbLevel) return null;
-    return this.makeTransition('success', () => this.loadOrbital(orbLevel, undefined, this.worldTime));
+    return this.makeTransition('success', () => this.loadOrbital(orbLevel, undefined, this.worldTime), `Cleared ${p.level.name}`, `Proceed to ${this.orbitalObjectiveLabel(orbLevel)}.`);
   }
 
   private transitionDockingToCluster(p: Extract<Phase, { kind: 'docking' }>): PhaseTransition | null {
@@ -889,7 +900,7 @@ export class Game {
     if (!clusterLevel) return null;
     const member = clusterMemberById(clusterLevel, p.level.clusterMemberId);
     const init = member ? this.clusterInitFromDocking(p, member.x, member.y) : undefined;
-    return this.makeTransition('success', () => this.loadCluster(clusterLevel, init, this.worldTime));
+    return this.makeTransition('success', () => this.loadCluster(clusterLevel, init, this.worldTime), `Cleared ${p.level.name}`, `Entering ${clusterLevel.name} local traffic.`);
   }
 
   // --- Cluster phase ---
@@ -922,7 +933,7 @@ export class Game {
         if (!p.cs.alive) p.state = 'crashed';
         if (p.cs.escaped) {
           const transition = this.transitionClusterToOrbital(p);
-          if (transition) this.completeTransition(p, transition, '', { title: 'New Canaan Local Traffic', detailText: 'Exited cluster traffic volume.' });
+          if (transition) this.completeTransition(p, transition);
           else p.state = 'crashed';
           return;
         }
@@ -931,7 +942,7 @@ export class Game {
           const transition = p.level.dockingLevelId
             ? this.transitionClusterToDocking(p)
             : this.finishRunTransition();
-          if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText(), { title: 'New Canaan Local Traffic', detailText: 'Berth approach complete.' });
+          if (transition) this.completeTransition(p, transition, p.level.dockingLevelId ? '' : this.currentMissionCompletionText());
           else p.state = 'crashed';
           return;
         }
@@ -956,7 +967,7 @@ export class Game {
       vy: clusterState.vy + p.cs.vy,
       time: this.worldTime,
     };
-    return this.makeTransition('success', () => this.loadOrbital(nextLevel, init, this.worldTime));
+    return this.makeTransition('success', () => this.loadOrbital(nextLevel, init, this.worldTime), `Cleared ${p.level.name}`, `Proceed to ${this.orbitalObjectiveLabel(nextLevel)}.`);
   }
 
   private transitionClusterToDocking(p: Extract<Phase, { kind: 'cluster' }>): PhaseTransition | null {
@@ -964,7 +975,7 @@ export class Game {
     const dockingLevel = DOCKING_LEVELS.find(level => level.id === p.level.dockingLevelId);
     if (!dockingLevel) return null;
     const init = this.dockingInitFromCluster(p, dockingLevel);
-    return this.makeTransition('success', () => this.loadDocking(dockingLevel, init, this.worldTime));
+    return this.makeTransition('success', () => this.loadDocking(dockingLevel, init, this.worldTime), 'Berth approach complete', `Arrived at ${dockingLevel.name}.`);
   }
 
   private clusterInitFromDocking(p: Extract<Phase, { kind: 'docking' }>, memberX: number, memberY: number): ClusterInitOverride {
@@ -1105,7 +1116,13 @@ export class Game {
           time: p.os.time,
         };
         const originName = bodyById(p.level.bodyId).name;
-        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), `Departed ${originName}`, `Entered ${nextLevel.name}.`, minimumEscapeBoostDv, 'Minimum escape boost');
+        const targetName = p.level.escapeTargetBodyId
+          ? (getTransferBody(nextLevel, p.level.escapeTargetBodyId)?.name ?? bodyById(p.level.escapeTargetBodyId).name)
+          : (nextLevel.targetBodyId ? (getTransferBody(nextLevel, nextLevel.targetBodyId)?.name ?? nextLevel.nextObjectiveName) : undefined);
+        const detail = targetName
+          ? `Transfer established: ${originName} → ${targetName}.`
+          : `Entered ${bodyById(nextLevel.bodyId).name} transfer frame.`;
+        return this.makeTransition('success', () => this.loadOrbital(nextLevel, initOverride, p.os.time), `Departed ${originName} SOI`, detail, minimumEscapeBoostDv, 'Minimum escape boost');
       }
     }
 
@@ -1177,7 +1194,7 @@ export class Game {
           vy: captureRVY,
           angle: Math.atan2(Math.cos(p.os.renderAngle), Math.sin(p.os.renderAngle)),
         };
-        return this.makeTransition('success', () => this.loadCluster(clusterLevel, initOverride, captureTime), `Arrived at ${body.name}`, `Entered local traffic for ${body.name}.`);
+        return this.makeTransition('success', () => this.loadCluster(clusterLevel, initOverride, captureTime), `${body.name} approach acquired`, `Arrived in ${clusterLevel.name} local traffic.`);
       }
 
       const arrivalLevelId = body.arrivalOrbitalLevelId;
@@ -1192,7 +1209,10 @@ export class Game {
         vy: arrival.vy,
         time: captureTime,
       };
-      return this.makeTransition('success', () => this.loadOrbital(arrivalLevel, initOverride, captureTime), `Arrived at ${body.name}`, `Next: ${arrivalLevel.name}.`);
+      const detail = arrivalLevel.finalDestinationName
+        ? `Capture corridor established for ${arrivalLevel.finalDestinationName}.`
+        : `Capture corridor established around ${body.name}.`;
+      return this.makeTransition('success', () => this.loadOrbital(arrivalLevel, initOverride, captureTime), `${body.name} approach acquired`, detail);
     }
 
     return null;
@@ -1212,7 +1232,7 @@ export class Game {
       vy: p.ship.vy,
       angle: progradeAngle,
     };
-    return this.makeTransition('success', () => this.loadApproach(approachLevel, initOverride));
+    return this.makeTransition('success', () => this.loadApproach(approachLevel, initOverride), `Cleared ${p.level.name}`, `Entering ${approachLevel.body.name} departure corridor.`);
   }
 
   private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): PhaseTransition | null {
@@ -1237,7 +1257,7 @@ export class Game {
         vy: Math.max(-5, Math.min(20, p.as.vy)),
         facingSign,
       };
-      return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride));
+      return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride), 'Final approach established', `Landing zone: ${landingLevel.name}.`);
     }
 
     const speed = Math.sqrt(p.as.vx * p.as.vx + p.as.vy * p.as.vy);
@@ -1262,7 +1282,7 @@ export class Game {
       vy: vy,
       facingSign,
     };
-    return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride));
+    return this.makeTransition('success', () => this.loadLanding(landingLevel, initOverride), 'Final approach established', `Landing zone: ${landingLevel.name}.`);
   }
 
   private transitionOrbitalToApproach(p: Extract<Phase, { kind: 'orbital' }>, role: TransitionRole = 'success'): PhaseTransition | null {
@@ -1275,8 +1295,8 @@ export class Game {
     return this.makeTransition(
       role,
       () => this.loadApproach(approachLevel, params, p.os.time),
-      role === 'contingency' ? (p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach') : undefined,
-      role === 'contingency' ? 'This is not the primary objective for the current orbital phase.' : undefined,
+      role === 'contingency' ? (p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach') : 'Deorbit corridor acquired',
+      role === 'contingency' ? 'This is not the primary objective for the current orbital phase.' : `Descending toward ${approachLevel.poi.name}.`,
     );
   }
 
@@ -1314,8 +1334,8 @@ export class Game {
     return this.makeTransition(
       role,
       () => this.loadOrbital(orbitalLevel, init, worldTime),
-      role === 'contingency' ? 'Returning to orbit' : undefined,
-      role === 'contingency' ? 'You climbed out of the descent corridor.' : undefined,
+      role === 'contingency' ? 'Returning to orbit' : `Orbital insertion at ${p.level.body.name}`,
+      role === 'contingency' ? 'You climbed out of the descent corridor.' : `Proceed to ${this.orbitalObjectiveLabel(orbitalLevel)}.`,
     );
   }
 
@@ -1362,7 +1382,7 @@ export class Game {
       vy: relVY,
       angle: Math.atan2(-uy, -ux),
     };
-    return this.makeTransition('success', () => this.loadDocking(dockingLevel, initOverride, p.os.time));
+    return this.makeTransition('success', () => this.loadDocking(dockingLevel, initOverride, p.os.time), `${station.name ?? dockingLevel.name} rendezvous acquired`, 'Closing on assigned docking berth.');
   }
 
   // --- Approach phase ---
