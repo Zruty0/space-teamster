@@ -1203,12 +1203,11 @@ export class Game {
     const approachLevel = nextId ? approachLevelById(nextId) : undefined;
     if (!approachLevel || !approachLevel.departure || approachLevel.body.id !== p.level.body.id) return null;
 
-    const terrainH = landingReferenceHeight(p.level, p.terrain, p.ship.x);
     const speed = Math.hypot(p.ship.vx, p.ship.vy);
     const progradeAngle = speed > 0.1 ? Math.atan2(p.ship.vx, p.ship.vy) : p.ship.angle;
     const initOverride: ApproachInitOverride = {
       x: p.ship.x - p.level.padCenterX,
-      y: Math.max(0, p.ship.y - terrainH),
+      y: Math.max(0, p.ship.y),
       vx: p.ship.vx,
       vy: p.ship.vy,
       angle: progradeAngle,
