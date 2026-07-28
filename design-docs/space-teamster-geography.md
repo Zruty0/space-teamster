@@ -416,9 +416,9 @@ The Wells were not originally feudal. During the first serious resource rush, a 
 
 That original unity did not survive inheritance. The founding siblings' descendants are now the **Three Houses**, each named for one sibling and each holding claims, clients, vassals, leases, militia ties, and old offices scattered across Gryphon, Hydra, and Manticore. Their disputes range from etiquette and archival writs through televised duels, charter combat, privateering, sabotage, and limited planetary actions. The Teamsters' Guild and Estella Defence Force prevent excessive escalation by economic pressure and force.
 
-The **XIe Outer-Spec Drydock** is traditional neutral ground because the Accord depends on the shipyard. No House may openly monopolize or attack it without inviting Guild and EDF intervention. **Oathmark Academy** is the martial neutral power of the Wells: a prestigious school for duelists, household captains, mercenary-company founders, charter-combat referees, and EDF exchange officers. No Duke presses a claim there because none can enforce it; the Academy, in turn, avoids flaunting independence.
+**Oathmark**, the moon holding the **XIe Outer-Spec Drydock**, is traditional neutral ground because the Accord depends on the shipyard. No House may openly monopolize or attack it without inviting Guild and EDF intervention. **Oathmark Academy** sits beside the shipyard as the martial neutral power of the Wells: a prestigious school for duelists, household captains, mercenary-company founders, charter-combat referees, and EDF exchange officers. No Duke presses a claim there because none can enforce it; the Academy, in turn, avoids flaunting independence. Gryphon's tidally heated Xd remains the large-scale military proving ground for charter-combat exercises, vehicle trials, and EDF-observed operations.
 
-Approved local polities to weave into this feudal fabric: Covenant remnant enclaves under treaty autonomy; a vice moon where nearly anything can be licensed, bonded, and paid for; a secret scientific polity building future AI governors; and an ultra-rich luxury retreat used for dynastic finance, hidden heirs, and hostage-guests.
+Approved local polities woven into this feudal fabric: Covenant remnant enclaves on Manticore XIIa and XIIb under treaty autonomy; Hydra XIc as the vice moon where nearly anything can be licensed, bonded, and paid for; XIf as the secret scientific polity building future AI governors; and a sealed ultra-rich retreat enclave on Gryphon Xb used for dynastic finance, hidden heirs, and hostage-guests.
 
 ## The Wells' economy
 
@@ -434,9 +434,9 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 |---|---|---|
 | **Gryphon** / Estella X (gas giant) | upper-atmosphere skim only | X.1 orbital skim hub / observation |
 | **Estella Xa** | Ice moon, subsurface ocean, airless surface | Xa.1 volatiles transit · Xa.2 deep ice/water mine · Xa.3 sealed exobiology research |
-| **Estella Xb** | Rocky moon, airless | Xb.1 rare-element strip mine · Xb.2 smelting / hot processing · Xb.3 worker hab |
-| **Estella Xc** | Small airless moon | Xc.1 main outpost / services · Xc.2 transit / refuel station |
-| **Estella Xd** | Tidally heated rocky moon, airless | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 Oathmark Academy |
+| **Estella Xb** | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 rare-element strip mine · Xb.2 smelting / hot processing · Xb.3 worker hab · Xb.4 ultra-luxury retreat |
+| **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Three Houses Seat · Xc.2 Thronehold transit / refuel station |
+| **Estella Xd** | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
 | **One captured** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Docking waypoint (refuel + comm relay) |
 
 ## Hydra — Estella XI, the big giant
@@ -448,10 +448,10 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | **Hydra** / Estella XI (gas giant) | upper-atmosphere skim possible | XI.1 orbital skim hub (industrial gas) |
 | **Estella XIa** | Sulfur volcanic moon, thin SO₂ atmo, hostile | XIa.1 sulfur mine · XIa.2 orbital chem station · XIa.3 sealed worker hab · XIa.4 specialty rare-element extraction |
 | **Estella XIb** | Methane / nitrogen moon (thick cold methane atmosphere) | XIb.1 cryo transit · XIb.2 methane refinery · XIb.3 organic chemistry plant · XIb.4 hydrocarbon extraction · XIb.5 science settlement |
-| **Estella XIc** | Ice moon, subsurface ocean, airless | XIc.1 research station · XIc.2 sealed deep-ice exobiology · XIc.3 ice mining |
+| **Estella XIc** | Ice moon turned licensed vice jurisdiction | XIc.1 status court station · XIc.2 memory parlors / body-contract clinics · XIc.3 ice mining |
 | **Estella XId** | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
-| **Estella XIe** | Small airless moon | XIe.1 outer-spec drydock · XIe.2 component / fabrication · XIe.3 rare alloy extraction |
-| **Estella XIf** | Small airless moon | XIf.1 observatory · XIf.2 deep-listening array · XIf.3 sealed research outpost |
+| **Oathmark** / Estella XIe | Small airless neutral moon | XIe.1 outer-spec drydock · XIe.2 component / fabrication · XIe.3 rare alloy extraction · XIe.4 Oathmark Academy |
+| **Estella XIf** | Small airless AI-research moon | XIf.1 governance observatory · XIf.2 deep-listening / training data array · XIf.3 sealed AI-regency research outpost |
 | **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | Smuggler dead-drop · science waypoint · pirate-adjacent fence · religious retreat |
 
 ## Manticore — Estella XII, the cold outer giant
@@ -461,8 +461,8 @@ Neptune-flavored. Sparse and cold. The bridge to the Reach.
 | Body | Type | POIs |
 |---|---|---|
 | **Manticore** / Estella XII (gas giant) | cold; light skim possible | XII.1 observation post |
-| **Estella XIIa** | Large icy moon, thin nitrogen atmo (flavor only) | XIIa.1 deep ice mine · XIIa.2 volatiles transit · XIIa.3 isolated settlement |
-| **Estella XIIb** | Small airless rocky moon | XIIb.1 outpost · XIIb.2 transit station |
+| **Estella XIIa** | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Covenant deep ice works · XIIa.2 Covenant volatiles transit · XIIa.3 Covenant enclave settlement |
+| **Estella XIIb** | Small airless Covenant remnant enclave | XIIb.1 Covenant watch outpost · XIIb.2 Covenant pilgrim transit station |
 | **Estella XIIc** | Captured comet/KBO, airless | XIIc.1 isotope mining · XIIc.2 comet research |
 | **Estella XIId** | Small airless moon | XIId.1 sealed black-project / exile site |
 | **Two captured** | Asteroids/comets in Manticore's SOI, no SOI of their own (ES-I-NNNN class, icy) | Smuggler waypoint · deep-space comm relay |
