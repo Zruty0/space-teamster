@@ -437,7 +437,7 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 | **Estella Xb** | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 rare-element strip mine · Xb.2 smelting / hot processing · Xb.3 worker hab · Xb.4 ultra-luxury retreat |
 | **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Three Houses Seat · Xc.2 Thronehold transit / refuel station |
 | **Estella Xd** | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
-| **One captured** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Docking waypoint (refuel + comm relay) |
+| **Herald's Rest** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Refuel, comm relay, herald-courier waypoint |
 
 ## Hydra — Estella XI, the big giant
 
@@ -452,7 +452,7 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | **Estella XId** | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
 | **Oathmark** / Estella XIe | Small airless neutral moon | XIe.1 outer-spec drydock · XIe.2 component / fabrication · XIe.3 rare alloy extraction · XIe.4 Oathmark Academy |
 | **Estella XIf** | Small airless AI-research moon | XIf.1 governance observatory · XIf.2 deep-listening / training data array · XIf.3 sealed AI-regency research outpost |
-| **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | Smuggler dead-drop · science waypoint · pirate-adjacent fence · religious retreat |
+| **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | The Thieves' Guild · Academy of Sublime Measures · The Black Exchange · Chapel of Virtues |
 
 ## Manticore — Estella XII, the cold outer giant
 
@@ -465,7 +465,7 @@ Neptune-flavored. Sparse and cold. The bridge to the Reach.
 | **Estella XIIb** | Small airless Covenant remnant enclave | XIIb.1 Covenant watch outpost · XIIb.2 Covenant pilgrim transit station |
 | **Estella XIIc** | Captured comet/KBO, airless | XIIc.1 isotope mining · XIIc.2 comet research |
 | **Estella XIId** | Small airless moon | XIId.1 sealed black-project / exile site |
-| **Two captured** | Asteroids/comets in Manticore's SOI, no SOI of their own (ES-I-NNNN class, icy) | Smuggler waypoint · deep-space comm relay |
+| **Two captured** | Asteroids/comets in Manticore's SOI, no SOI of their own (ES-I-NNNN class, icy) | Rookery of Knives · The Far Bell Tower |
 
 ---
 
