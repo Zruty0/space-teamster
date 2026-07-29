@@ -83,10 +83,12 @@ const ACHERON_OLYMPOS_ID = 'estella-ii-olympos';
 const ACHERON_PANDEMONIUM_ID = 'estella-ii-pandemonium';
 const ACHERON_CORPORATE_NODES = [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID];
 const ACHERON_SURFACE_OPS_NODES = [ACHERON_COMMERCIAL_HUB_ID, ACHERON_OLYMPOS_ID, ACHERON_PANDEMONIUM_ID];
+const MACAO_PALACE_ID = 'estella-xic-research-station-poi';
 const CERBERUS_ACHERON_DESTINATION_WEIGHTS: Record<string, number> = {
   [ACHERON_COMMERCIAL_HUB_ID]: 0.6,
   [ACHERON_OLYMPOS_ID]: 0.3,
   [ACHERON_PANDEMONIUM_ID]: 0.1,
+  [MACAO_PALACE_ID]: 0.35,
 };
 
 const CHR_WORKFORCE_ORIGINS = [
@@ -144,8 +146,8 @@ const CERBERUS_TEMPLATES: CerberusContractTemplate[] = [
   { templateId: 'shareholder-packets-to-finance', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-iii-finance-city'], cargoLabel: 'shareholder packets', massClass: 'light', likelihood: 0.75 },
   { templateId: 'legal-archives-to-capital', sourceIds: ACHERON_CORPORATE_NODES, destinationIds: ['estella-iii-capital-city'], cargoLabel: 'sealed legal archives', massClass: 'light', likelihood: 0.65 },
   { templateId: 'audit-records-to-acheron', sourceIds: ['estella-iii-finance-city', 'estella-iii-capital-city'], destinationIds: ACHERON_CORPORATE_NODES, cargoLabel: 'sealed audit records', massClass: 'light', likelihood: 0.6 },
-  { templateId: 'paradiso-hospitality-cargo', sourceIds: ['estella-iii-luxury-orbital-habitat', 'estella-iv-primary-city', 'caravanserai-highliner-bay-poi'], destinationIds: [ACHERON_OLYMPOS_ID], cargoLabel: 'Paradiso hospitality cargo', massClass: 'standard', likelihood: 0.65 },
-  { templateId: 'executive-delegation', sourceIds: ['estella-iii-finance-city', 'estella-iii-capital-city', ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_OLYMPOS_ID, 'estella-iii-finance-city'], cargoLabel: 'executive delegation', massClass: 'light', likelihood: 0.5 },
+  { templateId: 'paradiso-hospitality-cargo', sourceIds: ['estella-iii-luxury-orbital-habitat', 'estella-iv-primary-city', 'caravanserai-highliner-bay-poi'], destinationIds: [ACHERON_OLYMPOS_ID, MACAO_PALACE_ID], cargoLabel: 'Paradiso hospitality cargo', massClass: 'standard', likelihood: 0.65 },
+  { templateId: 'executive-delegation', sourceIds: ['estella-iii-finance-city', 'estella-iii-capital-city', ACHERON_OLYMPOS_ID], destinationIds: [ACHERON_OLYMPOS_ID, 'estella-iii-finance-city', MACAO_PALACE_ID], cargoLabel: 'executive delegation', massClass: 'light', likelihood: 0.5 },
 ];
 
 function cargoForTemplate(template: CerberusContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {

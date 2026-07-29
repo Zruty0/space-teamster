@@ -176,10 +176,10 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 - ID: `hartwell-shipping-companies` (shared). Small Hartwell carriers and spot-freight houses post under company names.
 - Roster: 18 stable companies sampled from a name pool.
-- Model: route arbitrage and backhaul. These firms buy or charter underpriced Wells resource lots into Camps demand, then keep ships earning with basic Hartwell/Kuznia life-support and industrial consumables back into Wells worksites. They are carriers/speculators, not machinery financiers.
+- Model: route arbitrage and backhaul. These firms buy or charter underpriced Wells resource lots into Camps demand, then keep ships earning with basic Hartwell/Kuznia life-support into all Wells destinations and industrial consumables back into Wells worksites. They are carriers/speculators, not machinery financiers.
 - Wells -> Camps sources: Gryphon Aerie, The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Hydra Maw Orbital, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Bluefire Mine, Castle Teide's isotope office, Serrat Domain Shipyard, and Keelwright Works.
 - Wells -> Camps destinations: Hammer Station, Anvil Station for light/bonded lots, Svarog Shipyard, Yardstock Terminal, Kalyna Orbital for cold-chain/industrial inputs, Zhitomir Hydroponics for specialty chemical inputs, Teteriv Broiler Farm for organic inputs, and Mosaic Assembly Lab for precision feedstock/isotopes.
-- Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, Hammer, Anvil, and Yardstock send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, habitat sealant, compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
+- Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, and Anvil send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, and habitat sealant to all Wells destinations, weighted toward population and traffic hubs such as Cadiz Highport, Serratine Goods Exchange, Serratine, Herald Gate, and Macao Palace. Hammer, Anvil, and Yardstock send compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
 - Kalyna -> Wells elite supply: Kalyna Orbital, Teteriv Broiler Farm, Zhitomir Hydroponics, and Dnipro Pools send boutique aquaculture, cultured game-bird cuts, noble-table protein, pharmaceutical horticulture, conservatory stock, banquet cold-chain, and medical nutriments to Serratine, Herald Gate, Serratine Goods Exchange, Macao Palace, Velvet City, and selected castle seats. Kalyna is not a bulk-food source.
 - Pay: routine resource/bulk arbitrage uses `0.75 + 0.40` (+15% at par), certified/rare lots use `0.85 + 0.40` (+25%), isotopes use `0.95 + 0.30` (+25% with more fuel risk), basic backhaul uses `0.70 + 0.45` (+15%), and Kalyna luxury uses `0.90 + 0.35` (+25%).
 
@@ -386,8 +386,8 @@ Corporate/governance/luxury:
 - Acheron corporate nodes -> `estella-iii-finance-city`: shareholder packets
 - Acheron corporate nodes -> `estella-iii-capital-city`: sealed legal archives
 - `estella-iii-finance-city` / `estella-iii-capital-city` -> Acheron corporate nodes: sealed audit records
-- `estella-iii-luxury-orbital-habitat` / `estella-iv-primary-city` / `caravanserai-highliner-bay-poi` -> `estella-ii-olympos`: Paradiso hospitality cargo
-- `estella-iii-finance-city` / `estella-iii-capital-city` / `estella-ii-olympos` -> `estella-ii-olympos` / `estella-iii-finance-city`: executive delegation
+- `estella-iii-luxury-orbital-habitat` / `estella-iv-primary-city` / `caravanserai-highliner-bay-poi` -> `estella-ii-olympos` / Macao Palace (`estella-xic-research-station-poi`): Paradiso hospitality cargo
+- `estella-iii-finance-city` / `estella-iii-capital-city` / `estella-ii-olympos` -> `estella-ii-olympos` / `estella-iii-finance-city` / Macao Palace: executive delegation
 
 ### Reputation hooks later
 

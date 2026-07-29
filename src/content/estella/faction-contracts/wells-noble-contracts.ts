@@ -28,7 +28,7 @@ const NOBLE_SEATS: NobleSeat[] = [
 ];
 
 const MACAO_DESTINATIONS = [
-  'estella-xic-research-station',
+  'estella-xic-research-station-poi',
   'estella-xic-deep-ice-exobiology',
   'estella-xic-last-breath-lists',
 ];

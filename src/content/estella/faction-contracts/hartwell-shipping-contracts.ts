@@ -3,8 +3,9 @@ import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-ut
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 // Hartwell shipping houses live on route arbitrage: Wells raw/resource lots into Camps demand,
-// basic Hartwell/Kuznia life-support backhauls into Wells worksites, and Kalyna luxury supply to
-// noble/elite Wells markets. They are carriers and speculators, not machinery financiers.
+// basic Hartwell/Kuznia life-support backhauls into all Wells destinations, industrial
+// consumables into Wells worksites, and Kalyna luxury supply to noble/elite Wells markets.
+// They are carriers and speculators, not machinery financiers.
 const HARTWELL_SHIPPING_ID = 'hartwell-shipping-companies';
 
 const ROADSTEAD = 'estella-v-transit-customs';
@@ -32,10 +33,17 @@ interface CargoOption {
   massClass: CargoMassClass;
 }
 
+interface WeightedDestination {
+  id: string;
+  weight: number;
+}
+
 interface Lane {
   laneId: string;
   sourceIds: string[];
-  destinationIds: string[];
+  destinationIds?: string[];
+  destinationPool?: WeightedDestination[];
+  destinationCount?: number;
   cargo: CargoOption[];
   likelihood: number;
   pay: Pay;
@@ -97,6 +105,74 @@ const WELLS_WORKS = [
   'estella-xie-rare-alloy-extraction',
   'estella-xiic-isotope-mining',
   'estella-xiic-castle-teide',
+];
+
+function destination(id: string, weight: number): WeightedDestination {
+  return { id, weight };
+}
+
+const WELLS_LIFE_SUPPORT_DESTINATIONS: WeightedDestination[] = [
+  destination('estella-xid-main-port', 3.2),
+  destination('estella-xid-customs-transit', 3.0),
+  destination('estella-xc-main-outpost', 2.8),
+  destination('estella-xc-transit-refuel', 2.5),
+  destination('estella-xic-research-station-poi', 2.4),
+  destination('estella-xia-sealed-worker-hab', 2.0),
+  destination('estella-xib-science-settlement', 2.0),
+  destination('estella-xa-volatiles-transit', 1.8),
+  destination('estella-xb-worker-hab', 1.8),
+  destination('estella-xid-services-outfitter-hangar', 1.8),
+  destination('estella-xiia-isolated-settlement', 1.7),
+  destination('estella-xic-ice-mining', 1.6),
+  destination('estella-xd-proving-grounds', 1.6),
+  destination('estella-xie-outer-spec-drydock', 1.6),
+  destination('estella-xie-oathmark-academy', 1.6),
+  destination('estella-xib-cryo-transit', 1.5),
+  destination('estella-xib-methane-refinery', 1.5),
+  destination('estella-xii-observation-post', 1.5),
+  destination('estella-x-observation-skim-hub', 1.4),
+  destination('estella-xi-skim-hub', 1.4),
+  destination('estella-xie-rare-alloy-extraction', 1.4),
+  destination('estella-xa-deep-ice-mine', 1.3),
+  destination('estella-xd-geothermal-extraction', 1.3),
+  destination('estella-xia-sulfur-mine', 1.3),
+  destination('estella-xib-hydrocarbon-extraction', 1.3),
+  destination('estella-xiic-castle-teide', 1.3),
+  destination('estella-xiic-isotope-mining', 1.2),
+  destination('estella-xc-castle-alvares', 1.2),
+  destination('estella-xc-castle-mendes', 1.2),
+  destination('estella-xb-smelting-processing', 1.1),
+  destination('estella-xd-chem-station', 1.1),
+  destination('estella-xia-chem-station', 1.1),
+  destination('estella-xib-organic-chemistry', 1.1),
+  destination('estella-xie-component-fabrication', 1.1),
+  destination('estella-xb-luxury-retreat', 1.0),
+  destination('estella-xic-deep-ice-exobiology', 1.0),
+  destination('estella-xic-last-breath-lists', 1.0),
+  destination('estella-xiid-mirror-clinic', 1.0),
+  destination('estella-xii-comm-relay-poi', 1.0),
+  destination('estella-x-captive-refuel-relay', 0.9),
+  destination('estella-xb-rare-element-mine', 0.9),
+  destination('estella-xia-rare-element-extraction', 0.9),
+  destination('estella-xiia-volatiles-transit', 0.9),
+  destination('estella-xiib-transit-station-poi', 0.9),
+  destination('estella-xi-religious-retreat-poi', 0.8),
+  destination('estella-xiic-comet-research', 0.8),
+  destination('estella-xiid-blackglass-observatory', 0.8),
+  destination('estella-xa-exobiology-research', 0.7),
+  destination('estella-xd-iron-lists', 0.7),
+  destination('estella-xd-redoubt-field', 0.7),
+  destination('estella-xi-science-waypoint-poi', 0.7),
+  destination('estella-xiia-deep-ice-mine', 0.7),
+  destination('estella-xiib-outpost', 0.7),
+  destination('estella-xiid-black-project-exile', 0.7),
+  destination('estella-xid-specialty-cargo', 0.6),
+  destination('estella-xi-fence-poi', 0.6),
+  destination('estella-xi-smuggler-deaddrop-poi', 0.5),
+  destination('estella-xii-smuggler-waypoint-poi', 0.5),
+  destination('estella-xif-deep-listening-array', 0.5),
+  destination('estella-xif-observatory', 0.4),
+  destination('estella-xif-sealed-research-outpost', 0.25),
 ];
 
 const WELLS_ELITE_MARKETS = [
@@ -197,7 +273,7 @@ const LANES: Lane[] = [
   { laneId: 'wells-metals-to-camps', sourceIds: ['estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction', 'estella-xia-rare-element-extraction'], destinationIds: [HAMMER, YARDSTOCK, SVAROG_SHIPYARD, MOSAIC], cargo: METALS, likelihood: 0.48, pay: CERTIFIED_PAY },
   { laneId: 'wells-isotopes-to-camps', sourceIds: ['estella-xiic-isotope-mining', 'estella-xiic-castle-teide'], destinationIds: [HAMMER, YARDSTOCK, MOSAIC], cargo: ISOTOPES, likelihood: 0.36, pay: ISOTOPE_PAY },
   { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [SVAROG_SHIPYARD, YARDSTOCK, MOSAIC], cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
-  { laneId: 'hartwell-life-support-to-wells', sourceIds: [ROADSTEAD, CONCORD], destinationIds: WELLS_WORKS, cargo: LIFE_SUPPORT, likelihood: 0.42, pay: BACKHAUL_PAY },
+  { laneId: 'hartwell-life-support-to-wells', sourceIds: [ROADSTEAD, CONCORD, ANVIL], destinationPool: WELLS_LIFE_SUPPORT_DESTINATIONS, destinationCount: 12, cargo: LIFE_SUPPORT, likelihood: 0.42, pay: BACKHAUL_PAY },
   { laneId: 'kuznia-consumables-to-wells', sourceIds: [HAMMER, ANVIL, YARDSTOCK], destinationIds: WELLS_WORKS, cargo: INDUSTRIAL_CONSUMABLES, likelihood: 0.38, pay: BACKHAUL_PAY },
   { laneId: 'kalyna-luxury-to-wells', sourceIds: [KALYNA_ORBITAL, TETERIV, ZHITOMIR, DNIPRO], destinationIds: WELLS_ELITE_MARKETS, cargo: KALYNA_LUXURY, likelihood: 0.32, pay: LUXURY_PAY },
 ];
@@ -209,6 +285,14 @@ function hashString(text: string): number {
     hash = Math.imul(hash, 16777619);
   }
   return hash >>> 0;
+}
+
+function rand(seed: number): number {
+  let x = seed >>> 0;
+  x ^= x << 13;
+  x ^= x >>> 17;
+  x ^= x << 5;
+  return (x >>> 0) / 0xffffffff;
 }
 
 function slug(text: string): string {
@@ -224,6 +308,23 @@ function seededSample<T>(pool: T[], count: number, seed: number): T[] {
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out.slice(0, count);
+}
+
+function weightedSampleDestinations(pool: WeightedDestination[], count: number, seed: number): WeightedDestination[] {
+  const remaining = pool.slice();
+  const picked: WeightedDestination[] = [];
+  for (let i = 0; i < count && remaining.length > 0; i++) {
+    const total = remaining.reduce((sum, item) => sum + Math.max(0, item.weight), 0);
+    let roll = rand(seed + i * 0x7f4a7c15) * total;
+    let index = 0;
+    for (; index < remaining.length; index++) {
+      roll -= Math.max(0, remaining[index].weight);
+      if (roll <= 0) break;
+    }
+    const [item] = remaining.splice(Math.min(index, remaining.length - 1), 1);
+    picked.push(item);
+  }
+  return picked;
 }
 
 const ROSTER: ShippingCompany[] = seededSample(NAME_POOL, 18, hashString('hartwell-shipping-roster-v1')).map(name => {
@@ -250,13 +351,20 @@ function candidate(company: ShippingCompany, lane: Lane, sourceId: string, desti
   };
 }
 
+function destinationIdsForLane(company: ShippingCompany, lane: Lane, sourceId: string, day: number): string[] {
+  if (lane.destinationPool) {
+    return weightedSampleDestinations(lane.destinationPool, lane.destinationCount ?? lane.destinationPool.length, hashString(`${company.slug}:${lane.laneId}:${sourceId}:destinations:${day}`)).map(destination => destination.id);
+  }
+  return lane.destinationIds ?? [];
+}
+
 function generateHartwellShippingContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   const day = Math.floor(ctx.worldTime / 86_400);
   for (const company of ROSTER) {
     for (const lane of company.lanes) {
       if (!lane.sourceIds.includes(ctx.sourceId)) continue;
-      for (const destinationId of lane.destinationIds) {
+      for (const destinationId of destinationIdsForLane(company, lane, ctx.sourceId, day)) {
         if (destinationId === ctx.sourceId) continue;
         const options = seededSample(lane.cargo, lane.sampleCount ?? 1, hashString(`${company.slug}:${lane.laneId}:${ctx.sourceId}->${destinationId}:${day}`));
         for (const option of options) out.push(candidate(company, lane, ctx.sourceId, destinationId, option));
