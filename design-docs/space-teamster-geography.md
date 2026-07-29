@@ -438,7 +438,7 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 | **Beira** / Estella Xa | Ice moon, subsurface ocean, airless surface | Xa.1 Castle Beira · Xa.2 The Count's Well · Xa.3 Frostglass Collegium |
 | **Tinto** / Estella Xb | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 Red Vein Works · Xb.2 Ember Court Foundry · Xb.3 Castle Tinto · Xb.4 Velvet City |
 | **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Serratine · Xc.2 Herald Gate · Xc.3 Castle Alvares · Xc.4 Castle Mendes |
-| **Estella Xd** | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
+| **Calatrava** / Estella Xd | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
 | **Herald's Rest** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Refuel, comm relay, herald-courier waypoint |
 
 ## Hydra — Estella XI, the big giant
@@ -448,12 +448,12 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | Body | Type | POIs |
 |---|---|---|
 | **Hydra** / Estella XI (gas giant) | upper-atmosphere skim possible | XI.1 orbital skim hub (industrial gas) |
-| **Estella XIa** | Sulfur volcanic moon, thin SO₂ atmo, hostile | XIa.1 sulfur mine · XIa.2 orbital chem station · XIa.3 sealed worker hab · XIa.4 specialty rare-element extraction |
-| **Estella XIb** | Methane / nitrogen moon (thick cold methane atmosphere) | XIb.1 cryo transit · XIb.2 methane refinery · XIb.3 organic chemistry plant · XIb.4 hydrocarbon extraction · XIb.5 science settlement |
-| **Estella XIc** | Ice moon turned casino, debt-court, and status jurisdiction | XIc.1 status court station · XIc.2 memory parlors / body-contract clinics · XIc.3 ice mining |
-| **Estella XId** | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
+| **Almaden** / Estella XIa | Sulfur volcanic moon, thin SO₂ atmo, hostile | XIa.1 sulfur mine · XIa.2 orbital chem station · XIa.3 sealed worker hab · XIa.4 specialty rare-element extraction |
+| **Marisma** / Estella XIb | Methane / nitrogen moon (thick cold methane atmosphere) | XIb.1 cryo transit · XIb.2 methane refinery · XIb.3 organic chemistry plant · XIb.4 hydrocarbon extraction · XIb.5 science settlement |
+| **Macao** / Estella XIc | Ice moon turned casino, debt-court, and status jurisdiction | XIc.1 status court station · XIc.2 memory parlors / body-contract clinics · XIc.3 ice mining |
+| **Cadiz** / Estella XId | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
 | **Oathmark** / Estella XIe | Small airless neutral moon | XIe.1 Serrat Domain Shipyard · XIe.2 component / fabrication · XIe.3 rare alloy extraction · XIe.4 Oathmark Academy |
-| **Estella XIf** | Small airless AI-research moon | XIf.1 governance observatory · XIf.2 deep-listening / training data array · XIf.3 sealed AI-regency research outpost |
+| **Coimbra** / Estella XIf | Small airless AI-research moon | XIf.1 governance observatory · XIf.2 deep-listening / training data array · XIf.3 sealed AI-regency research outpost |
 | **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | The Thieves' Guild · Academy of Sublime Measures · The Black Exchange · Chapel of Virtues |
 
 ## Manticore — Estella XII, the cold outer giant
@@ -463,10 +463,10 @@ Neptune-flavored. Sparse and cold. The bridge to the Reach.
 | Body | Type | POIs |
 |---|---|---|
 | **Manticore** / Estella XII (gas giant) | cold; light skim possible | XII.1 observation post |
-| **Estella XIIa** | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Covenant deep ice works · XIIa.2 Covenant volatiles transit · XIIa.3 Covenant enclave settlement |
-| **Estella XIIb** | Small airless Covenant remnant enclave | XIIb.1 Covenant watch outpost · XIIb.2 Covenant pilgrim transit station |
-| **Estella XIIc** | Captured comet/KBO, airless | XIIc.1 isotope mining · XIIc.2 comet research |
-| **Estella XIId** | Small airless moon | XIId.1 sealed black-project / exile site |
+| **Mercy** / Estella XIIa | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Covenant deep ice works · XIIa.2 Covenant volatiles transit · XIIa.3 Covenant enclave settlement |
+| **Vigil** / Estella XIIb | Small airless Covenant remnant enclave | XIIb.1 Covenant watch outpost · XIIb.2 Covenant pilgrim transit station |
+| **Teide** / Estella XIIc | Captured comet/KBO, airless | XIIc.1 isotope mining · XIIc.2 comet research |
+| **Ceuta** / Estella XIId | Small airless moon | XIId.1 sealed black-project / exile site |
 | **Two captured** | Asteroids/comets in Manticore's SOI, no SOI of their own (ES-I-NNNN class, icy) | Rookery of Knives · The Far Bell Tower |
 
 ---
