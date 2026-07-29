@@ -18,13 +18,13 @@ interface CargoOption {
 }
 
 const NOBLE_SEATS: NobleSeat[] = [
-  { id: 'estella-xa-volatiles-transit', house: 'House Beira', office: 'Castle Beira Household Office' },
-  { id: 'estella-xb-worker-hab', house: 'House Tinto', office: 'Castle Tinto Household Office' },
-  { id: 'estella-xd-proving-grounds', house: 'House Calatrava', office: 'Calatrava Keep Marshalcy' },
-  { id: 'estella-xia-sealed-worker-hab', house: 'House Almaden', office: 'Castle Almaden Household Office' },
-  { id: 'estella-xib-science-settlement', house: 'House Marisma', office: 'Castle Marisma Household Office' },
-  { id: 'estella-xid-services-outfitter-hangar', house: 'House Cadiz', office: 'Shipwright Keep Household Office' },
-  { id: 'estella-xiic-castle-teide', house: 'House Teide', office: 'Castle Teide Charter Office' },
+  { id: 'estella-xa-volatiles-transit', house: 'Count Beira', office: "Count Beira's Household Office" },
+  { id: 'estella-xb-worker-hab', house: 'Count Tinto', office: "Count Tinto's Household Office" },
+  { id: 'estella-xd-proving-grounds', house: 'Marquis Calatrava', office: "Marquis Calatrava's Marshalcy" },
+  { id: 'estella-xia-sealed-worker-hab', house: 'Marquis Almaden', office: "Marquis Almaden's Household Office" },
+  { id: 'estella-xib-science-settlement', house: 'Count Marisma', office: "Count Marisma's Household Office" },
+  { id: 'estella-xid-services-outfitter-hangar', house: 'Lord Cadiz', office: "Lord Cadiz's Household Office" },
+  { id: 'estella-xiic-castle-teide', house: 'Count Teide', office: "Count Teide's Charter Office" },
 ];
 
 const MACAO_DESTINATIONS = [
