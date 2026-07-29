@@ -435,8 +435,8 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 | Body | Type | POIs |
 |---|---|---|
 | **Gryphon** / Estella X (gas giant) | upper-atmosphere skim only | X.1 orbital skim hub / observation |
-| **Estella Xa** | Ice moon, subsurface ocean, airless surface | Xa.1 volatiles transit · Xa.2 deep ice/water mine · Xa.3 sealed exobiology research |
-| **Estella Xb** | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 rare-element strip mine · Xb.2 smelting / hot processing · Xb.3 worker hab · Xb.4 ultra-luxury retreat |
+| **Beira** / Estella Xa | Ice moon, subsurface ocean, airless surface | Xa.1 Castle Beira · Xa.2 The Count's Well · Xa.3 Frostglass Collegium |
+| **Tinto** / Estella Xb | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 Red Vein Works · Xb.2 Ember Court Foundry · Xb.3 Castle Tinto · Xb.4 Velvet City |
 | **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Three Houses Seat · Xc.2 Thronehold transit / refuel station |
 | **Estella Xd** | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
 | **Herald's Rest** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Refuel, comm relay, herald-courier waypoint |
