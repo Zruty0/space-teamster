@@ -499,6 +499,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xiib-outpost': { kind: 'surface', parentId: 'estella-xiib', angle: 0.7, side: 'equatorial' },
   'estella-xiic-isotope-mining': { kind: 'surface', parentId: 'estella-xiic', angle: -0.9, side: 'equatorial' },
   'estella-xiic-comet-research': { kind: 'surface', parentId: 'estella-xiic', angle: 1.9, side: 'equatorial' },
+  'estella-xiic-castle-teide': { kind: 'surface', parentId: 'estella-xiic', angle: 0.45, side: 'equatorial' },
   'estella-xiid-black-project-exile': { kind: 'surface', parentId: 'estella-xiid', angle: -1.75, side: 'unspecified' },
   'estella-xiid-blackglass-observatory': { kind: 'surface', parentId: 'estella-xiid', angle: 0.35, side: 'unspecified' },
   'estella-xiid-mirror-clinic': { kind: 'surface', parentId: 'estella-xiid', angle: 2.15, side: 'unspecified' },
