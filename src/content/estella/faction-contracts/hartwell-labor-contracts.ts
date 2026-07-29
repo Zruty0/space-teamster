@@ -85,6 +85,11 @@ const WELLS_HUB_NODES = [
   'estella-xid-main-port',
   'estella-xid-customs-transit',
   'estella-xii-observation-post',
+  'estella-xd-geothermal-extraction',
+  'estella-xia-sulfur-mine',
+  'estella-xib-hydrocarbon-extraction',
+  'estella-xie-rare-alloy-extraction',
+  'estella-xiic-isotope-mining',
 ];
 
 const OUTBOUND_WORK_NODES = [

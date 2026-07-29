@@ -102,7 +102,7 @@ const NODE_GROUPS: BrucknerNodeGroup[] = [
     leaves: [
       node('estella-xid-services-outfitter-hangar', 0.9),
       node('estella-xie-outer-spec-drydock', 2.6),
-      node('estella-xie-component-fabrication', 1.2),
+      node('estella-xie-rare-alloy-extraction', 1.2),
       node('estella-xi-skim-hub', 1.2),
       node('estella-xia-chem-station', 1.0),
       node('estella-xib-cryo-transit', 0.6),

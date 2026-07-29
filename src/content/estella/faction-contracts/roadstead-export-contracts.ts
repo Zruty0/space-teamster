@@ -11,6 +11,9 @@ const SVAROG_SHIPYARD = 'estella-via-drydock-station';
 const YARDSTOCK = 'estella-via-component-supply-station';
 const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
 const CARAVANSERAI = 'caravanserai-main-commercial-dock';
+const SERRAT_DOMAIN_SHIPYARD = 'estella-xie-outer-spec-drydock';
+const KEELWRIGHT_WORKS = 'estella-xie-rare-alloy-extraction';
+const BANNER_FORGE = 'estella-xie-component-fabrication';
 
 const ROSTER_SIZE = 16;
 const ROUTINE_PAY = { generosity: 0.75, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
@@ -59,14 +62,14 @@ const NAME_POOL = [
 ];
 
 const LOTS: ExportLot[] = [
-  { label: 'Hartwell clean-metal lots', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK] },
-  { label: 'brokered Pike nickel-iron ingots', massClass: 'dense', buyers: [HAMMER, SVAROG_SHIPYARD] },
-  { label: 'Cinderhook pressure-alloy billets', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'certified low-carbon plate stock', massClass: 'heavy', buyers: [SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'instrument-grade Hartwell alloy blanks', massClass: 'standard', buyers: [TESSERA_FACTORY], certified: true },
+  { label: 'Hartwell clean-metal lots', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK, SERRAT_DOMAIN_SHIPYARD] },
+  { label: 'brokered Pike nickel-iron ingots', massClass: 'dense', buyers: [HAMMER, SVAROG_SHIPYARD, KEELWRIGHT_WORKS] },
+  { label: 'Cinderhook pressure-alloy billets', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK, KEELWRIGHT_WORKS, BANNER_FORGE], certified: true },
+  { label: 'certified low-carbon plate stock', massClass: 'heavy', buyers: [SVAROG_SHIPYARD, YARDSTOCK, SERRAT_DOMAIN_SHIPYARD, KEELWRIGHT_WORKS], certified: true },
+  { label: 'instrument-grade Hartwell alloy blanks', massClass: 'standard', buyers: [TESSERA_FACTORY, BANNER_FORGE], certified: true },
   { label: 'reduced-metal billet lots', massClass: 'heavy', buyers: [HAMMER, CARAVANSERAI] },
   { label: 'Pike sulfide concentrate', massClass: 'dense', buyers: [HAMMER, YARDSTOCK] },
-  { label: 'certified Pike ballast slabs', massClass: 'dense', buyers: [SVAROG_SHIPYARD], certified: true },
+  { label: 'certified Pike ballast slabs', massClass: 'dense', buyers: [SVAROG_SHIPYARD, SERRAT_DOMAIN_SHIPYARD], certified: true },
 ];
 
 function hashString(text: string): number {

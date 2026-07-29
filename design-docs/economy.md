@@ -82,7 +82,7 @@ The Combine runs Kuznia as a planned economy behind an orbital trade membrane. I
 
 - Internal distribution (common): Hammer/Anvil ↔ surface, both ways. Planning Office. Compensation-only. Hammer legs are bulk/heavy; Anvil legs are light/passengers/paperwork.
 - Imports (sparse): likely feedstock sources (New Canaan `harlan-dock`/`mercer-dock`, Caravanserai) → Hammer. Foreign Trade Committee. Compensation-only.
-- Exports (sparse, lucrative): Hammer → external buyers (Svarog Shipyard, Yardstock Terminal, Caravanserai outfitter, Mosaic Assembly Lab). Foreign Trade Committee. Compensation + a modest flat bounty (10,000 cr).
+- Exports (sparse, lucrative): Hammer → external buyers (Svarog Shipyard, Yardstock Terminal, Caravanserai outfitter, Mosaic Assembly Lab, and Oathmark shipyard/forge buyers). Foreign Trade Committee. Compensation + a modest fixed premium.
 
 Imports and exports are deliberately sparse — the Combine leans on other companies' shipping for most external trade.
 
@@ -94,7 +94,7 @@ Each lane draws from a cargo pool, sampled per route and world-day, so goods var
 - Works → Hammer (finished/ore): rolled structural sections, steel billets, plate steel, rail/beam stock, alloy ingots, pressure-pipe stock (Gornilo); finished machinery, machine tools, pumps/compressors, gear assemblies, prefab modules, vehicle chassis (Perun); specialty/rare-earth/refractory/high-grade ore (Veles).
 - Anvil ↔ surface (light): work crews, shift rotations, plan directives, quota allocations, tooling and spares, medical supplies (down); quota reports, production returns, work rotations, spent-tooling returns, personnel transfers (up); food allotments from Mokosh; weather/forecast/survey data from Morana.
 - Imports: titanium tailings concentrate, basalt fiber feedstock, scrap pressure alloy, regolith aggregate, bulk silicates (New Canaan); imported refractory feedstock, off-world alloy stock, bulk industrial chemicals, imported machine parts (Caravanserai).
-- Exports: structural sections, hull plate, pressure-shell blanks, frame members (Svarog); certified steel stock, structural billets, fastener stock, welded assemblies (Yardstock); heavy machinery, prefab modules, cargo-frame stock, structural components (Caravanserai outfitter); precision alloy billets, tool-steel stock, high-purity ingots, instrument-grade alloy (Tessera).
+- Exports: structural sections, hull plate, pressure-shell blanks, frame members (Svarog); certified steel stock, structural billets, fastener stock, welded assemblies (Yardstock); heavy machinery, prefab modules, cargo-frame stock, structural components (Caravanserai outfitter); precision alloy billets, tool-steel stock, high-purity ingots, instrument-grade alloy (Tessera); outer-spec hull plate, certified frame members, shipyard machine-tool stock, armor-grade plate, and proofed structural billets (Oathmark).
 
 ### Kuznia membrane rule
 
@@ -157,7 +157,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - ID: `roadstead-export-brokers` (shared). Hartwell broker houses post under company names.
 - Roster: 16 stable export brokers sampled from a name pool.
 - Source: Roadstead Customs only. Roadstead is Hartwell's orbital trade membrane: customs, brokerage, consolidation, and clean-title export.
-- Destinations: Hammer Station, Svarog Shipyard, Yardstock Terminal, Mosaic Assembly Lab, and Caravanserai.
+- Destinations: Hammer Station, Svarog Shipyard, Yardstock Terminal, Mosaic Assembly Lab, Caravanserai, Serrat Domain Shipyard, Keelwright Works, and Banner Forge.
 - Cargo palette: Hartwell clean-metal lots, brokered Pike nickel-iron ingots, Cinderhook pressure-alloy billets, low-carbon plate stock, instrument-grade alloy blanks, reduced-metal billets, Pike sulfide concentrate, certified Pike ballast slabs.
 - Pay: routine brokered lots use `0.75 + 0.40` (+15% at par); certified lots use `0.80 + 0.35` (+15%).
 
@@ -177,7 +177,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Board: passenger contracts only; freight board excludes them.
 - Core nodes: Roadstead Customs and Concord.
 - Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.
-- Coverage: Camps work sites, Belt work sites, and Wells hubs. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog, Kalyna, and Tessera remain direct passenger destinations.
+- Coverage: Camps work sites, Belt work sites, Wells hubs, and a limited set of non-noble Wells work sites: Marcher Wells, Yellow Pit, Blackwater Fields, Keelwright Works, and Bluefire Mine. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog, Kalyna, and Tessera remain direct passenger destinations.
 - Hearth/Hartwell traffic is special: not ordinary worksite crew blocks, but long-term shift cohorts, completed shift returnees, claim-office parties, and executive/supervisor staff moving into Hartwell.
 - Pay: connectivity work, not profit work. Special passenger postings use `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`, so par breaks even. Regular Hartwell crew transfers use `generosity 0.45`, `compensationRatio 0.5`, `maxCompAllowance 2`, so par is about -5% and 1.5× par fuel use is about -30%.
 
@@ -192,7 +192,7 @@ Other factions can also post passenger-board work when the manifested load is pe
 - Public name: The Teamsters' Guild
 - Key nodes: the Still (`still-distribution-bay`, `still-guild-hq`, `still-skim-runner-berth-poi`), Skim Hubs (`skim-hub-alpha-precursor-dock`, `skim-hub-beta-precursor-dock`), Certification Authority (`caravanserai-certification-authority`)
 
-The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Estella I staging → the Still, hazard-premium pay), fuel distribution (the Still → a few high-traffic hubs only, since bulk fuel canisters are rarely needed elsewhere), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
+The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Estella I staging → the Still, hazard-premium pay), fuel distribution (the Still → high-traffic hubs and Wells fuel-chain anchors), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
 
 ### Pay
 
@@ -405,7 +405,7 @@ Kisaragi sells finished ships, not loose components. Cargo labels such as `Porce
 
 KIS-E current route families:
 
-- Supplier -> Kisaragi facilities: Silk/Porcelain-class cargo and non-classed premium inputs only
+- Supplier -> Kisaragi facilities: Silk/Porcelain-class cargo and non-classed premium inputs only. Oathmark supplier legs use Keelwright Works for ship components, not Banner Forge martial production.
 - Kisaragi facility -> Kisaragi facility: Silk/Porcelain-class balancing, unfinished sections, fit-out modules, tooling, rework lots
 - Kisaragi facility -> Highliner Bay / Gaia HQ: light documents and records only
 
@@ -531,7 +531,7 @@ Weymark naming:
 
 ### Current BFS network model
 
-BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are mostly vacuum stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided. Surface work is deliberately rare and weighted low, limited to precision machinery support at factories, mines, and specialized industrial sites. Dockyards and ship-service nodes carry the highest leaf weights. In the Wells, BFS/VHM service networks avoid Ratline House and Covenant enclave sites.
+BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are mostly vacuum stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided. Surface work is deliberately rare and weighted low, limited to precision machinery support at factories, mines, and specialized industrial sites. Dockyards and ship-service nodes carry the highest leaf weights. In the Wells, BFS/VHM service networks avoid Ratline House and Covenant enclave sites; ship-component service traffic uses Keelwright Works rather than Banner Forge.
 
 Core nodes:
 
@@ -584,7 +584,7 @@ Scope:
 - Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues.
 - Minor houses do not charter ordinary economic cargo and do not usually route to Daedalus or Covenant sites. Macao, Oathmark, and the shipyard are acceptable noble destinations.
 
-Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Oathmark Academy, Banner Forge, and selected Hearth elite destinations.
+Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, Banner Forge, and selected Hearth elite destinations.
 
 Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilt-yard drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 

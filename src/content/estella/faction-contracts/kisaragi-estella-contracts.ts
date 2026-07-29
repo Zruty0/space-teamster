@@ -62,7 +62,7 @@ const KISARAGI_FACILITIES: WeightedNode[] = [
 const KISARAGI_SUPPLIERS: WeightedNode[] = [
   node('estella-vi-heavy-cargo-station', 2.5),
   node('estella-via-component-supply-station', 1.8),
-  node('estella-xie-component-fabrication', 1.6),
+  node('estella-xie-rare-alloy-extraction', 1.6),
   node('estella-vii-high-vacuum-factory', 1.0),
   node('industrial-refinery-finished-goods', 0.9),
 ];

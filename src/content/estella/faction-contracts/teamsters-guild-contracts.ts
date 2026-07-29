@@ -42,8 +42,7 @@ const COMPLETION_BLURBS: CompletionBlurb[] = [
 // Guild flight-control / fuel-chain nodes. Guild work is only posted at these docks.
 // Precursor skim-in originates at the near-star skim hubs and Estella I staging.
 // Fuel distribution and hardware originate at the Still; paperwork at Guild offices.
-// Bulk fuel canisters only move to high-throughput traffic hubs (Caravanserai, the
-// Wells main-port hub, the Reach main port); small relays refuel locally.
+// Bulk fuel canisters move to high-throughput traffic hubs and Wells fuel-chain anchors.
 const SKIM_STAGING_DOCK = 'estella-i-transit-customs';
 const STILL_SKIM_BERTH = 'still-skim-runner-berth-poi';
 const STILL_DISTRIBUTION = 'still-distribution-bay';
@@ -56,9 +55,9 @@ const GUILD_TEMPLATES: GuildContractTemplate[] = [
   { templateId: 'skim-precursor-beta', sourceIds: ['skim-hub-beta-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 0.8, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO },
   { templateId: 'skim-staging-precursor', sourceIds: [SKIM_STAGING_DOCK], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'staged precursor lot', massClass: 'heavy', likelihood: 0.7, generosity: SKIM_STAGING_GENEROSITY, compensationRatio: SKIM_STAGING_COMPENSATION_RATIO },
 
-  // Fuel distribution-out: limited bulk canister runs from the Still to major traffic hubs only.
+  // Fuel distribution-out: limited bulk canister runs from the Still to major traffic hubs and fuel-chain anchors.
   { templateId: 'fuel-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-refuel-depot'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.9 },
-  { templateId: 'fuel-wells-hub', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-xid-main-port'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.55 },
+  { templateId: 'fuel-wells-hub', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-x-observation-skim-hub', 'estella-xc-transit-refuel', 'estella-x-captive-refuel-relay', 'estella-xi-skim-hub', 'estella-xid-main-port', 'estella-xii-observation-post'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.55 },
   { templateId: 'fuel-reach-port', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-xiii-main-port'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.45 },
 
   // Engine / RCS supply: Guild-controlled propulsion hardware out to outfitters and maintenance yards.

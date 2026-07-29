@@ -48,6 +48,11 @@ const OATHMARK_DESTINATIONS = [
   ...OATHMARK_MARTIAL_DESTINATIONS,
 ];
 
+const COURT_DESTINATIONS = [
+  'estella-xc-main-outpost',
+  'estella-xc-transit-refuel',
+];
+
 const HEARTH_DESTINATIONS = [
   'estella-iii-capital-city',
   'estella-iii-finance-city',
@@ -56,7 +61,7 @@ const HEARTH_DESTINATIONS = [
 ];
 
 const SEAT_IDS = NOBLE_SEATS.map(seat => seat.id);
-const SPECIAL_IDS = [...MACAO_DESTINATIONS, ...OATHMARK_DESTINATIONS];
+const SPECIAL_IDS = [...MACAO_DESTINATIONS, ...OATHMARK_DESTINATIONS, ...COURT_DESTINATIONS];
 const ALLOWED_SOURCE_IDS = [...SEAT_IDS, ...SPECIAL_IDS, ...HEARTH_DESTINATIONS];
 
 const PASSENGER_CARGO: CargoOption[] = [
@@ -76,6 +81,14 @@ const FREIGHT_CARGO: CargoOption[] = [
   { label: 'marriage exchange gifts', massClass: 'standard', likelihood: 0.58 },
   { label: 'tournament prizes and trophy engines', massClass: 'standard', likelihood: 0.52 },
   { label: 'sealed petition archive', massClass: 'light', likelihood: 0.48 },
+];
+
+const COURT_CARGO: CargoOption[] = [
+  { label: 'precedence case witnesses', massClass: 'light', category: 'passenger', likelihood: 0.74 },
+  { label: 'petition counsel and sealed clerks', massClass: 'light', category: 'passenger', likelihood: 0.7 },
+  { label: 'marriage-contract notaries', massClass: 'light', category: 'passenger', likelihood: 0.62 },
+  { label: 'sealed chancery bundles', massClass: 'light', likelihood: 0.66 },
+  { label: 'heraldic evidence chests', massClass: 'standard', likelihood: 0.54 },
 ];
 
 const TO_SHIPYARD_CARGO: CargoOption[] = [
@@ -216,6 +229,7 @@ function candidate(sourceId: string, destinationId: string, option: CargoOption,
 }
 
 function cargoPoolForLane(sourceId: string, destinationId: string, day: number): CargoOption[] {
+  if (COURT_DESTINATIONS.includes(destinationId) || COURT_DESTINATIONS.includes(sourceId)) return COURT_CARGO;
   if (SHIPYARD_DESTINATIONS.includes(destinationId)) return TO_SHIPYARD_CARGO;
   if (SHIPYARD_DESTINATIONS.includes(sourceId)) return FROM_SHIPYARD_CARGO;
   if (OATHMARK_MARTIAL_DESTINATIONS.includes(destinationId)) return TO_OATHMARK_CARGO;

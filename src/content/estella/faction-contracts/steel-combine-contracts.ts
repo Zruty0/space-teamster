@@ -41,6 +41,9 @@ const SVAROG_YARD = 'estella-via-drydock-station';
 const YARDSTOCK = 'estella-via-component-supply-station';
 const SERAI_OUTFITTER = 'caravanserai-outfitter-drydock';
 const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
+const SERRAT_DOMAIN_SHIPYARD = 'estella-xie-outer-spec-drydock';
+const KEELWRIGHT_WORKS = 'estella-xie-rare-alloy-extraction';
+const BANNER_FORGE = 'estella-xie-component-fabrication';
 
 type JobKind = 'distribution' | 'import' | 'export';
 
@@ -188,6 +191,13 @@ const EXPORT_TESSERA: CargoOption[] = [
   { label: 'high-purity ingots', massClass: 'dense' },
   { label: 'instrument-grade alloy', massClass: 'standard' },
 ];
+const EXPORT_OATHMARK: CargoOption[] = [
+  { label: 'outer-spec hull plate stock', massClass: 'heavy' },
+  { label: 'certified frame members', massClass: 'heavy' },
+  { label: 'shipyard machine-tool stock', massClass: 'standard' },
+  { label: 'armor-grade plate lots', massClass: 'heavy' },
+  { label: 'proofed structural billets', massClass: 'dense' },
+];
 
 const LANES: SteelLane[] = [
   // Internal distribution: Hammer (bulk) <-> surface.
@@ -214,6 +224,7 @@ const LANES: SteelLane[] = [
   { laneId: 'export-yardstock', kind: 'export', sourceIds: [HAMMER], destinationIds: [YARDSTOCK], cargo: EXPORT_YARDSTOCK, likelihood: 0.3, sampleCount: 1 },
   { laneId: 'export-serai', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERAI_OUTFITTER], cargo: EXPORT_SERAI, likelihood: 0.25, sampleCount: 1 },
   { laneId: 'export-tessera', kind: 'export', sourceIds: [HAMMER], destinationIds: [TESSERA_FACTORY], cargo: EXPORT_TESSERA, likelihood: 0.25, sampleCount: 1 },
+  { laneId: 'export-oathmark', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERRAT_DOMAIN_SHIPYARD, KEELWRIGHT_WORKS, BANNER_FORGE], cargo: EXPORT_OATHMARK, likelihood: 0.22, sampleCount: 1 },
 ];
 
 function hashString(text: string): number {
