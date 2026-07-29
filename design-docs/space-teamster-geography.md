@@ -434,7 +434,7 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 
 | Body | Type | POIs |
 |---|---|---|
-| **Gryphon** / Estella X (gas giant) | upper-atmosphere skim only | X.1 orbital skim hub / observation |
+| **Gryphon** / Estella X (gas giant) | upper-atmosphere skim only | X.1 Gryphon Aerie |
 | **Beira** / Estella Xa | Ice moon, subsurface ocean, airless surface | Xa.1 Castle Beira · Xa.2 The Count's Well · Xa.3 Frostglass Collegium |
 | **Tinto** / Estella Xb | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 Red Vein Works · Xb.2 Ember Court Foundry · Xb.3 Castle Tinto · Xb.4 Velvet City |
 | **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Serratine · Xc.2 Herald Gate · Xc.3 Castle Alvares · Xc.4 Castle Mendes |
