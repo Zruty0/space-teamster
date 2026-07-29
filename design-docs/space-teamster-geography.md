@@ -463,7 +463,7 @@ Neptune-flavored. Sparse and cold. The bridge to the Reach.
 | Body | Type | POIs |
 |---|---|---|
 | **Manticore** / Estella XII (gas giant) | cold; light skim possible | XII.1 observation post |
-| **Mercy** / Estella XIIa | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Covenant deep ice works · XIIa.2 Covenant volatiles transit · XIIa.3 Covenant enclave settlement |
+| **Mercy** / Estella XIIa | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Monastery of Sacred Toil · XIIa.2 Pilgrim Gate · XIIa.3 Cathedral of Holy Rapture |
 | **Vigil** / Estella XIIb | Small airless Covenant remnant enclave | XIIb.1 Covenant watch outpost · XIIb.2 Covenant pilgrim transit station |
 | **Teide** / Estella XIIc | Captured comet/KBO, airless | XIIc.1 isotope mining · XIIc.2 comet research |
 | **Ceuta** / Estella XIId | Small airless moon | XIId.1 sealed black-project / exile site |
