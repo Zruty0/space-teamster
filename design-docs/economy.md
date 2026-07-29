@@ -531,7 +531,7 @@ Weymark naming:
 
 ### Current BFS network model
 
-BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are mostly vacuum stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided. Surface work is deliberately rare and weighted low, limited to precision machinery support at factories, mines, and specialized industrial sites. Dockyards and ship-service nodes carry the highest leaf weights.
+BFS cargo follows a service lattice rather than a commodity flow. It uses Caravanserai Highliner Bay as the interstellar import/export touchdown, Bruckner Weymark Depot as the central owned distribution hub, one regional sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach. Practical final destinations are mostly vacuum stations, dockyards, service nodes, and industrial clients; ordinary population centers and research sites are avoided. Surface work is deliberately rare and weighted low, limited to precision machinery support at factories, mines, and specialized industrial sites. Dockyards and ship-service nodes carry the highest leaf weights. In the Wells, BFS/VHM service networks avoid Ratline House and Covenant enclave sites.
 
 Core nodes:
 
@@ -541,7 +541,7 @@ Core nodes:
 - Camps sub-hub: Yardstock Terminal (`estella-via-component-supply-station`)
 - Estella X sub-hub: `estella-xc-transit-refuel`
 - Estella XI sub-hub: `estella-xid-main-port`
-- Estella XII sub-hub: `estella-xiib-transit-station-poi`
+- Estella XII sub-hub: `estella-xii-observation-post`
 - Reach sub-hub: `estella-xiii-main-port`
 
 Current route families:

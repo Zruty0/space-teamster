@@ -51,7 +51,7 @@ const HEARTH_SUB_HUB_ID = 'estella-iii-main-customs';
 const CAMPS_SUB_HUB_ID = 'estella-via-component-supply-station';
 const ESTELLA_X_SUB_HUB_ID = 'estella-xc-transit-refuel';
 const ESTELLA_XI_SUB_HUB_ID = 'estella-xid-main-port';
-const ESTELLA_XII_SUB_HUB_ID = 'estella-xiib-transit-station-poi';
+const ESTELLA_XII_SUB_HUB_ID = 'estella-xii-observation-post';
 const REACH_SUB_HUB_ID = 'estella-xiii-main-port';
 
 function node(id: string, weight: number): WeightedNode {
@@ -101,7 +101,6 @@ const NODE_GROUPS: BrucknerNodeGroup[] = [
     subHub: node(ESTELLA_XI_SUB_HUB_ID, 1.5),
     leaves: [
       node('estella-xid-services-outfitter-hangar', 0.9),
-      node('estella-xid-specialty-cargo', 0.9),
       node('estella-xie-outer-spec-drydock', 2.6),
       node('estella-xie-component-fabrication', 1.2),
       node('estella-xi-skim-hub', 1.2),
@@ -113,7 +112,6 @@ const NODE_GROUPS: BrucknerNodeGroup[] = [
   {
     subHub: node(ESTELLA_XII_SUB_HUB_ID, 0.9),
     leaves: [
-      node('estella-xiia-volatiles-transit', 0.5),
       node('estella-xiic-isotope-mining', 0.35),
       node('estella-xii-comm-relay-poi', 0.8),
     ],

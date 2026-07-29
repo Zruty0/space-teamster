@@ -74,7 +74,6 @@ const VHM_SERVICE_LEAVES: WeightedNode[] = [
 
   node('estella-xid-main-port', 1.5),
   node('estella-xid-services-outfitter-hangar', 0.9),
-  node('estella-xid-specialty-cargo', 0.9),
   node('estella-xie-outer-spec-drydock', 2.6),
   node('estella-xie-component-fabrication', 1.2),
   node('estella-xi-skim-hub', 1.2),
@@ -82,8 +81,7 @@ const VHM_SERVICE_LEAVES: WeightedNode[] = [
   node('estella-xib-cryo-transit', 0.6),
   node('estella-xib-organic-chemistry', 0.4),
 
-  node('estella-xiib-transit-station-poi', 0.9),
-  node('estella-xiia-volatiles-transit', 0.5),
+  node('estella-xii-observation-post', 0.9),
   node('estella-xiic-isotope-mining', 0.35),
   node('estella-xii-comm-relay-poi', 0.8),
 

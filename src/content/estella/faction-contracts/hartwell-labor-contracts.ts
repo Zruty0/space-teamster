@@ -85,7 +85,6 @@ const WELLS_HUB_NODES = [
   'estella-xid-main-port',
   'estella-xid-customs-transit',
   'estella-xii-observation-post',
-  'estella-xiib-transit-station-poi',
 ];
 
 const OUTBOUND_WORK_NODES = [
