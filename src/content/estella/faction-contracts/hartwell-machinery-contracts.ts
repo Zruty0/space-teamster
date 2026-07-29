@@ -19,6 +19,29 @@ const PIKE_STRIP_MINE = 'estella-va-strip-mine';
 const PIKE_MINER_HAB = 'estella-va-miner-hab';
 const PIKE_ORBITAL_DEPOT = 'estella-va-ore-handling-depot';
 
+const WELLS_HEAVY_MACHINERY_DESTINATIONS = [
+  'estella-xa-deep-ice-mine',
+  'estella-xb-rare-element-mine',
+  'estella-xb-smelting-processing',
+  'estella-xd-geothermal-extraction',
+  'estella-xia-sulfur-mine',
+  'estella-xib-cryo-transit',
+  'estella-xib-methane-refinery',
+  'estella-xib-hydrocarbon-extraction',
+  'estella-xic-ice-mining',
+  'estella-xiic-isotope-mining',
+];
+
+const WELLS_SPECIALIST_MACHINERY_DESTINATIONS = [
+  ...WELLS_HEAVY_MACHINERY_DESTINATIONS,
+  'estella-xd-chem-station',
+  'estella-xia-chem-station',
+  'estella-xia-rare-element-extraction',
+  'estella-xib-organic-chemistry',
+  'estella-xie-rare-alloy-extraction',
+  'estella-xiic-castle-teide',
+];
+
 const ROSTER_SIZE = 18;
 
 const ROUTINE_PAY = { generosity: 0.75, compensationRatio: 0.45, maxCompAllowance: 2 } as const;
@@ -84,6 +107,9 @@ const HEAVY_EQUIPMENT: CargoOption[] = [
   { label: 'vacuum loader kits', massClass: 'heavy', pay: HEAVY_PAY },
   { label: 'ore sorter modules', massClass: 'standard', pay: ROUTINE_PAY },
   { label: 'refinery maintenance skids', massClass: 'heavy', pay: HEAVY_PAY },
+  { label: 'sulfur-rated loader frames', massClass: 'heavy', pay: HEAVY_PAY },
+  { label: 'cryo pump skids', massClass: 'heavy', pay: HEAVY_PAY },
+  { label: 'hydrocarbon separator skids', massClass: 'heavy', pay: HEAVY_PAY },
 ];
 
 const LIGHT_EQUIPMENT: CargoOption[] = [
@@ -93,14 +119,16 @@ const LIGHT_EQUIPMENT: CargoOption[] = [
   { label: 'sealed title packets', massClass: 'light', pay: PAPER_PAY },
   { label: 'maintenance control cabinets', massClass: 'standard', pay: ROUTINE_PAY },
   { label: 'valve control kits', massClass: 'standard', pay: ROUTINE_PAY },
+  { label: 'cryo-safe valve racks', massClass: 'standard', pay: ROUTINE_PAY },
+  { label: 'sealed export-lien packets', massClass: 'light', pay: PAPER_PAY },
 ];
 
 const LANES: Lane[] = [
-  { sourceId: HAMMER, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT], cargo: HEAVY_EQUIPMENT, likelihood: 0.55 },
-  { sourceId: ANVIL, destinationIds: [ROADSTEAD, CONCORD, CINDERHOOK, GALE_SURVEY, PIKE_MINER_HAB], cargo: LIGHT_EQUIPMENT, likelihood: 0.55 },
-  { sourceId: YARDSTOCK, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.45 },
-  { sourceId: SVAROG_SHIPYARD, destinationIds: [CINDERHOOK, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ROADSTEAD], cargo: HEAVY_EQUIPMENT, likelihood: 0.42 },
-  { sourceId: ROADSTEAD, destinationIds: [CONCORD, CINDERHOOK, DAWES_CUT, GALE_SURVEY, PIKE_STRIP_MINE, PIKE_MINER_HAB, PIKE_ORBITAL_DEPOT], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.5 },
+  { sourceId: HAMMER, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_HEAVY_MACHINERY_DESTINATIONS], cargo: HEAVY_EQUIPMENT, likelihood: 0.55 },
+  { sourceId: ANVIL, destinationIds: [ROADSTEAD, CONCORD, CINDERHOOK, GALE_SURVEY, PIKE_MINER_HAB, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: LIGHT_EQUIPMENT, likelihood: 0.55 },
+  { sourceId: YARDSTOCK, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.45 },
+  { sourceId: SVAROG_SHIPYARD, destinationIds: [CINDERHOOK, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ROADSTEAD, ...WELLS_HEAVY_MACHINERY_DESTINATIONS, 'estella-xie-rare-alloy-extraction'], cargo: HEAVY_EQUIPMENT, likelihood: 0.42 },
+  { sourceId: ROADSTEAD, destinationIds: [CONCORD, CINDERHOOK, DAWES_CUT, GALE_SURVEY, PIKE_STRIP_MINE, PIKE_MINER_HAB, PIKE_ORBITAL_DEPOT, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.5 },
 ];
 
 function hashString(text: string): number {

@@ -8,6 +8,7 @@ import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
 import { HALLORAN_PROVIDER } from './halloran-contracts';
 import { HARTWELL_MACHINERY_BROKERS_PROVIDER } from './hartwell-machinery-contracts';
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
+import { HARTWELL_SHIPPING_COMPANIES_PROVIDER } from './hartwell-shipping-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
 import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
 import { ROADSTEAD_EXPORT_BROKERS_PROVIDER } from './roadstead-export-contracts';
@@ -73,6 +74,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   CINDERHOOK_REFINERS_PROVIDER,
   ROADSTEAD_EXPORT_BROKERS_PROVIDER,
   HARTWELL_MACHINERY_BROKERS_PROVIDER,
+  HARTWELL_SHIPPING_COMPANIES_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];

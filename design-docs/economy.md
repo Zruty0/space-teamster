@@ -165,11 +165,23 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 - ID: `hartwell-machinery-brokers` (shared). Hartwell broker houses post under company names.
 - Roster: 18 stable brokers sampled from a name pool.
-- Model: brokers finance, charter, and lease Kuznia/Svarog machinery into Hartwell and Pike. They are not manufacturers; they convert claims, liens, and future ore into equipment today.
+- Model: brokers finance, charter, and lease Kuznia/Svarog machinery into Hartwell, Pike, and Wells industrial works. They are not manufacturers; they convert claims, liens, and future ore into equipment today.
 - Sources: Hammer Station, Anvil Station, Svarog Shipyard, Yardstock Terminal, and Roadstead Customs.
-- Destinations: Roadstead Customs, Concord, Dawes Cut, Cinderhook Refinery, Gale Survey, Pike Strip Mine, Pike Miner Hab, and Pike Ore-Handling Depot. Roadstead imports machinery from Kuznia/Svarog and can then post onward Hartwell/Pike distribution.
-- Cargo palette: drill heads, pump skids, hoist drums, crusher modules, compressors, vacuum loaders, ore sorters, refinery maintenance skids, survey instruments, claim beacons, assay benches, sealed title packets, control cabinets, valve kits.
+- Hartwell/Pike destinations: Roadstead Customs, Concord, Dawes Cut, Cinderhook Refinery, Gale Survey, Pike Strip Mine, Pike Miner Hab, and Pike Ore-Handling Depot. Roadstead imports machinery from Kuznia/Svarog and can then post onward Hartwell/Pike/Wells distribution.
+- Wells destinations: non-noble industrial sites only, including The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Keelwright Works, Bluefire Mine, and Castle Teide's isotope charter office. Noble castles, Covenant sites, Daedalus, and Ratline House are excluded.
+- Cargo palette: drill heads, pump skids, hoist drums, crusher modules, compressors, vacuum loaders, ore sorters, refinery maintenance skids, sulfur-rated loader frames, cryo pump skids, hydrocarbon separator skids, survey instruments, claim beacons, assay benches, sealed title/export-lien packets, control cabinets, valve kits, and cryo-safe valve racks.
 - Pay: routine machinery uses `0.75 + 0.45` (+20% at par), heavy/awkward equipment uses `0.85 + 0.40` (+25%), and paper/legal packets use `0.70 + 0.45` (+15%).
+
+## Hartwell shipping companies
+
+- ID: `hartwell-shipping-companies` (shared). Small Hartwell carriers and spot-freight houses post under company names.
+- Roster: 18 stable companies sampled from a name pool.
+- Model: route arbitrage and backhaul. These firms buy or charter underpriced Wells resource lots into Camps demand, then keep ships earning with basic Hartwell/Kuznia life-support and industrial consumables back into Wells worksites. They are carriers/speculators, not machinery financiers.
+- Wells -> Camps sources: Gryphon Aerie, The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Hydra Maw Orbital, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Bluefire Mine, Castle Teide's isotope office, Serrat Domain Shipyard, and Keelwright Works.
+- Wells -> Camps destinations: Hammer Station, Anvil Station for light/bonded lots, Svarog Shipyard, Yardstock Terminal, Kalyna Orbital for cold-chain/industrial inputs, Zhitomir Hydroponics for specialty chemical inputs, Teteriv Broiler Farm for organic inputs, and Mosaic Assembly Lab for precision feedstock/isotopes.
+- Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, Hammer, Anvil, and Yardstock send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, habitat sealant, compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
+- Kalyna -> Wells elite supply: Kalyna Orbital, Teteriv Broiler Farm, Zhitomir Hydroponics, and Dnipro Pools send boutique aquaculture, cultured game-bird cuts, noble-table protein, pharmaceutical horticulture, conservatory stock, banquet cold-chain, and medical nutriments to Serratine, Herald Gate, Serratine Goods Exchange, Macao Palace, Velvet City, and selected castle seats. Kalyna is not a bulk-food source.
+- Pay: routine resource/bulk arbitrage uses `0.75 + 0.40` (+15% at par), certified/rare lots use `0.85 + 0.40` (+25%), isotopes use `0.95 + 0.30` (+25% with more fuel risk), basic backhaul uses `0.70 + 0.45` (+15%), and Kalyna luxury uses `0.90 + 0.35` (+25%).
 
 ## Passenger board: Hartwell Labor Exchange
 
