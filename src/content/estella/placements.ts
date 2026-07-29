@@ -472,6 +472,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xib-science-settlement': { kind: 'surface', parentId: 'estella-xib', angle: -2.4, side: 'unspecified' },
   'estella-xic-deep-ice-exobiology': { kind: 'surface', parentId: 'estella-xic', angle: 0.55, side: 'equatorial' },
   'estella-xic-ice-mining': { kind: 'surface', parentId: 'estella-xic', angle: 2.15, side: 'equatorial' },
+  'estella-xic-last-breath-lists': { kind: 'surface', parentId: 'estella-xic', angle: -1.65, side: 'equatorial' },
   'estella-xid-services-outfitter-hangar': { kind: 'surface', parentId: 'estella-xid', angle: -0.35, side: 'equatorial' },
   'estella-xid-customs-transit': { kind: 'surface', parentId: 'estella-xid', angle: 1.15, side: 'equatorial' },
   'estella-xid-specialty-cargo': { kind: 'surface', parentId: 'estella-xid', angle: 2.55, side: 'equatorial' },

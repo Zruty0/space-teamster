@@ -476,6 +476,7 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-xib-science-settlement': { ...ESTELLA_WELLS_METHANE_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-xic-deep-ice-exobiology': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-xic-ice-mining': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xic-last-breath-lists': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xid-services-outfitter-hangar': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xid-customs-transit': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xid-specialty-cargo': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
