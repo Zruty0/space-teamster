@@ -451,7 +451,7 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | **Almaden** / Estella XIa | Sulfur volcanic marquisate, thin SO₂ atmo, hostile | XIa.1 Yellow Pit · XIa.2 Almaden Orbital · XIa.3 Castle Almaden · XIa.4 Cinnabar Cut |
 | **Marisma** / Estella XIb | Methane / nitrogen extraction and refinery moon (thick cold methane atmosphere) | XIb.1 Coldgate · XIb.2 Blue Fen Refinery · XIb.3 Marisma Cauldron · XIb.4 Blackwater Fields · XIb.5 Castle Marisma |
 | **Macao** / Estella XIc | Ice moon turned casino, debt-court, and status jurisdiction | XIc.1 Macao Palace · XIc.2 Garden of Rebirth · XIc.3 Bottom Court · XIc.4 The Great Arena |
-| **Cadiz** / Estella XId | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
+| **Cadiz** / Estella XId | Mid-size rocky moon, airless; Hydra's port and trade hub | XId.1 Cadiz Highport · XId.2 Shipwright Keep · XId.3 Serratine Goods Exchange · XId.4 Ratline House |
 | **Oathmark** / Estella XIe | Small airless neutral moon | XIe.1 Serrat Domain Shipyard · XIe.2 component / fabrication · XIe.3 rare alloy extraction · XIe.4 Oathmark Academy |
 | **Coimbra** / Estella XIf | Small airless AI-research moon | XIf.1 governance observatory · XIf.2 deep-listening / training data array · XIf.3 sealed AI-regency research outpost |
 | **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | The Thieves' Guild · Academy of Sublime Measures · The Black Exchange · Chapel of Virtues |
