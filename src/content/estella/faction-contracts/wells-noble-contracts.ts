@@ -33,10 +33,19 @@ const MACAO_DESTINATIONS = [
   'estella-xic-last-breath-lists',
 ];
 
-const OATHMARK_DESTINATIONS = [
+const SHIPYARD_DESTINATIONS = [
   'estella-xie-outer-spec-drydock',
+  'estella-xie-rare-alloy-extraction',
+];
+
+const OATHMARK_MARTIAL_DESTINATIONS = [
   'estella-xie-oathmark-academy',
   'estella-xie-component-fabrication',
+];
+
+const OATHMARK_DESTINATIONS = [
+  ...SHIPYARD_DESTINATIONS,
+  ...OATHMARK_MARTIAL_DESTINATIONS,
 ];
 
 const HEARTH_DESTINATIONS = [
@@ -67,6 +76,38 @@ const FREIGHT_CARGO: CargoOption[] = [
   { label: 'marriage exchange gifts', massClass: 'standard', likelihood: 0.58 },
   { label: 'tournament prizes and trophy engines', massClass: 'standard', likelihood: 0.52 },
   { label: 'sealed petition archive', massClass: 'light', likelihood: 0.48 },
+];
+
+const TO_SHIPYARD_CARGO: CargoOption[] = [
+  { label: 'house yacht refit bonds', massClass: 'light', likelihood: 0.74 },
+  { label: 'heraldic hull plate patterns', massClass: 'standard', likelihood: 0.68 },
+  { label: 'private stateroom fittings', massClass: 'standard', likelihood: 0.62 },
+  { label: 'yard arbitration counsel', massClass: 'light', category: 'passenger', likelihood: 0.58 },
+  { label: 'crest-coded transponder petitions', massClass: 'light', likelihood: 0.52 },
+];
+
+const FROM_SHIPYARD_CARGO: CargoOption[] = [
+  { label: 'sealed yard acceptance papers', massClass: 'light', likelihood: 0.72 },
+  { label: 'proofed yacht components', massClass: 'standard', likelihood: 0.66 },
+  { label: 'shipwright witnesses and appraisers', massClass: 'light', category: 'passenger', likelihood: 0.6 },
+  { label: 'house pennant transponder cores', massClass: 'light', likelihood: 0.56 },
+  { label: 'polished cabin shrine modules', massClass: 'standard', likelihood: 0.46 },
+];
+
+const TO_OATHMARK_CARGO: CargoOption[] = [
+  { label: 'household guard candidates', massClass: 'standard', category: 'passenger', likelihood: 0.76 },
+  { label: 'duelists, seconds, and armor squires', massClass: 'standard', category: 'passenger', likelihood: 0.72 },
+  { label: 'challenge writs and bout stakes', massClass: 'light', likelihood: 0.64 },
+  { label: 'unproofed ceremonial armor', massClass: 'standard', likelihood: 0.58 },
+  { label: 'family blade blanks', massClass: 'light', likelihood: 0.5 },
+];
+
+const FROM_OATHMARK_CARGO: CargoOption[] = [
+  { label: 'certified duel referees', massClass: 'light', category: 'passenger', likelihood: 0.72 },
+  { label: 'proofed honor blades', massClass: 'light', likelihood: 0.66 },
+  { label: 'academy verdict rolls', massClass: 'light', likelihood: 0.58 },
+  { label: 'tournament armor aftercare crates', massClass: 'standard', likelihood: 0.52 },
+  { label: 'graduated household guard cadres', massClass: 'standard', category: 'passenger', likelihood: 0.48 },
 ];
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
@@ -165,9 +206,16 @@ function candidate(sourceId: string, destinationId: string, option: CargoOption,
   };
 }
 
+function cargoPoolForLane(sourceId: string, destinationId: string, day: number): CargoOption[] {
+  if (SHIPYARD_DESTINATIONS.includes(destinationId)) return TO_SHIPYARD_CARGO;
+  if (SHIPYARD_DESTINATIONS.includes(sourceId)) return FROM_SHIPYARD_CARGO;
+  if (OATHMARK_MARTIAL_DESTINATIONS.includes(destinationId)) return TO_OATHMARK_CARGO;
+  if (OATHMARK_MARTIAL_DESTINATIONS.includes(sourceId)) return FROM_OATHMARK_CARGO;
+  return (hashString(`${sourceId}->${destinationId}:kind:${day}`) & 1) === 0 ? PASSENGER_CARGO : FREIGHT_CARGO;
+}
+
 function cargoForLane(sourceId: string, destinationId: string, day: number): CargoOption {
-  const pool = (hashString(`${sourceId}->${destinationId}:kind:${day}`) & 1) === 0 ? PASSENGER_CARGO : FREIGHT_CARGO;
-  return seededSample(pool, 1, hashString(`${sourceId}->${destinationId}:cargo:${day}`))[0];
+  return seededSample(cargoPoolForLane(sourceId, destinationId, day), 1, hashString(`${sourceId}->${destinationId}:cargo:${day}`))[0];
 }
 
 function generateWellsNobleContracts(ctx: FactionContractContext): FactionContractCandidate[] {

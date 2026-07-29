@@ -586,7 +586,7 @@ Scope:
 
 Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Oathmark Academy, Banner Forge, and selected Hearth elite destinations.
 
-Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues.
+Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 
 ## Known design questions
 
