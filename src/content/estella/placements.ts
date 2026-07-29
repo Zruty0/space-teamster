@@ -444,6 +444,8 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xc-castle-mendes': { kind: 'surface', parentId: 'estella-xc', angle: -1.35, side: 'equatorial' },
   'estella-xd-geothermal-extraction': { kind: 'surface', parentId: 'estella-xd', angle: -1.2, side: 'equatorial' },
   'estella-xd-proving-grounds': { kind: 'surface', parentId: 'estella-xd', angle: 1.45, side: 'equatorial' },
+  'estella-xd-iron-lists': { kind: 'surface', parentId: 'estella-xd', angle: 2.55, side: 'equatorial' },
+  'estella-xd-redoubt-field': { kind: 'surface', parentId: 'estella-xd', angle: -2.45, side: 'equatorial' },
 
   'estella-xi': { kind: 'orbit', parentId: 'estella', usage: 'stellar', orbit: { kind: 'circular', radius: 2_650_000_000, epochAngle: 1.1, epochTime: 0, orbitSense: 1 } },
   'estella-xi-industrial-skim-hub': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 1_450_000, altitude: 300_000, epochAngle: -0.2, epochTime: 0, orbitSense: 1 } },

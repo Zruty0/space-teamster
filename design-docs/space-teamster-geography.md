@@ -438,7 +438,7 @@ Saturn-flavored. The friendliest of the three. Where Teamsters first learn moon-
 | **Beira** / Estella Xa | Ice moon, subsurface ocean, airless surface | Xa.1 Castle Beira · Xa.2 The Count's Well · Xa.3 Frostglass Collegium |
 | **Tinto** / Estella Xb | Rocky moon, airless; mines/smelters plus sealed ultra-rich resort enclave | Xb.1 Red Vein Works · Xb.2 Ember Court Foundry · Xb.3 Castle Tinto · Xb.4 Velvet City |
 | **Thronehold** / Estella Xc | Small airless moon; shared seat of the Three Houses | Xc.1 Serratine · Xc.2 Herald Gate · Xc.3 Castle Alvares · Xc.4 Castle Mendes |
-| **Calatrava** / Estella Xd | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 geothermal extraction · Xd.2 orbital chem station · Xd.3 military proving grounds |
+| **Calatrava** / Estella Xd | Tidally heated rocky moon, airless; large-scale military proving ground | Xd.1 Marcher Wells · Xd.2 Alembic Ring · Xd.3 Calatrava Keep · Xd.4 Iron Lists · Xd.5 Redoubt Field |
 | **Herald's Rest** | Trojan asteroid in Gryphon's SOI, no SOI of its own (ES-C-NNNN class) | Refuel, comm relay, herald-courier waypoint |
 
 ## Hydra — Estella XI, the big giant

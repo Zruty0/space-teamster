@@ -464,6 +464,8 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-xc-castle-mendes': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xd-geothermal-extraction': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xd-proving-grounds': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xd-iron-lists': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xd-redoubt-field': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xia-sulfur-mine': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
   'estella-xia-sealed-worker-hab': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
   'estella-xia-rare-element-extraction': ESTELLA_WELLS_THIN_ATMO_SURFACE_PROFILE,
