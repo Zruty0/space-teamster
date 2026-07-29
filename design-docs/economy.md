@@ -591,12 +591,14 @@ Minor Wells nobility is represented by one combined provider. The three senior H
 Scope:
 
 - Most routes stay inside the Wells.
+- For Gryphon and Hydra origins, roughly 80% of generated destinations stay inside the same gas-giant SOI; the remainder may cross to another Wells SOI or occasionally a Hearth elite destination.
+- Manticore is sparse for minor-noble traffic, so Castle Teide mostly routes through Manticore Observatory plus cross-SOI/Hearth work until more Manticore minor seats exist.
 - Seat-to-seat traffic is the majority and may be funded by either the source or destination household office.
 - Occasional routes touch the Hearth: capital, finance, resort, or historic/pilgrimage destinations.
 - Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues.
 - Minor houses do not charter ordinary economic cargo and do not usually route to Daedalus or Covenant sites. Macao, Oathmark, and the shipyard are acceptable noble destinations.
 
-Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, Banner Forge, and selected Hearth elite destinations.
+Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, Banner Forge, Manticore Observatory, and selected Hearth elite destinations.
 
 Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilt-yard drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 

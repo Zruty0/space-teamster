@@ -53,6 +53,10 @@ const COURT_DESTINATIONS = [
   'estella-xc-transit-refuel',
 ];
 
+const MANTICORE_ADJACENT_DESTINATIONS = [
+  'estella-xii-observation-post',
+];
+
 const HEARTH_DESTINATIONS = [
   'estella-iii-capital-city',
   'estella-iii-finance-city',
@@ -61,8 +65,10 @@ const HEARTH_DESTINATIONS = [
 ];
 
 const SEAT_IDS = NOBLE_SEATS.map(seat => seat.id);
-const SPECIAL_IDS = [...MACAO_DESTINATIONS, ...OATHMARK_DESTINATIONS, ...COURT_DESTINATIONS];
+const SPECIAL_IDS = [...MACAO_DESTINATIONS, ...OATHMARK_DESTINATIONS, ...COURT_DESTINATIONS, ...MANTICORE_ADJACENT_DESTINATIONS];
 const ALLOWED_SOURCE_IDS = [...SEAT_IDS, ...SPECIAL_IDS, ...HEARTH_DESTINATIONS];
+const NOBLE_DESTINATION_COUNT = 5;
+const SAME_GIANT_DESTINATION_COUNT = 4;
 
 const PASSENGER_CARGO: CargoOption[] = [
   { label: 'petition counsel and clerks', massClass: 'light', category: 'passenger', likelihood: 0.75 },
@@ -181,21 +187,50 @@ function issuerName(sourceId: string, destinationId: string, seed: number): stri
   return 'Wells Noble Charter Desk';
 }
 
+function giantSoiFor(id: string): 'gryphon' | 'hydra' | 'manticore' | undefined {
+  if ([
+    'estella-xa-volatiles-transit',
+    'estella-xb-worker-hab',
+    'estella-xd-proving-grounds',
+    ...COURT_DESTINATIONS,
+  ].includes(id)) return 'gryphon';
+  if ([
+    'estella-xia-sealed-worker-hab',
+    'estella-xib-science-settlement',
+    'estella-xid-services-outfitter-hangar',
+    ...MACAO_DESTINATIONS,
+    ...OATHMARK_DESTINATIONS,
+  ].includes(id)) return 'hydra';
+  if ([
+    'estella-xiic-castle-teide',
+    ...MANTICORE_ADJACENT_DESTINATIONS,
+  ].includes(id)) return 'manticore';
+  return undefined;
+}
+
+function sameGiantDestinationsFor(sourceId: string): string[] {
+  const sourceGiant = giantSoiFor(sourceId);
+  if (!sourceGiant) return [];
+  return [...SEAT_IDS, ...SPECIAL_IDS].filter(id => id !== sourceId && giantSoiFor(id) === sourceGiant);
+}
+
+function wideDestinationsFor(sourceId: string, day: number): string[] {
+  const sourceGiant = giantSoiFor(sourceId);
+  const wells = [...SEAT_IDS, ...SPECIAL_IDS].filter(id => id !== sourceId && giantSoiFor(id) !== sourceGiant);
+  const hearth = day % 4 === 0 ? HEARTH_DESTINATIONS : [];
+  return [...wells, ...hearth];
+}
+
 function destinationPoolFor(sourceId: string, day: number): string[] {
   const sourceIsSeat = SEAT_IDS.includes(sourceId);
   const sourceIsSpecial = SPECIAL_IDS.includes(sourceId);
   const sourceIsHearth = HEARTH_DESTINATIONS.includes(sourceId);
 
-  if (sourceIsSeat) {
-    const otherSeats = SEAT_IDS.filter(id => id !== sourceId);
-    const seats = seededSample(otherSeats, 3, hashString(`${sourceId}:seats:${day}`));
-    const special = seededSample(SPECIAL_IDS, 1, hashString(`${sourceId}:special:${day}`));
-    const hearth = day % 4 === 0 ? seededSample(HEARTH_DESTINATIONS, 1, hashString(`${sourceId}:hearth:${day}`)) : [];
-    return [...seats, ...special, ...hearth];
-  }
-
-  if (sourceIsSpecial) {
-    return seededSample(SEAT_IDS, 4, hashString(`${sourceId}:return-seats:${day}`));
+  if (sourceIsSeat || sourceIsSpecial) {
+    const sameGiant = seededSample(sameGiantDestinationsFor(sourceId), SAME_GIANT_DESTINATION_COUNT, hashString(`${sourceId}:same-giant:${day}`));
+    const wideCount = Math.max(1, NOBLE_DESTINATION_COUNT - sameGiant.length);
+    const wide = seededSample(wideDestinationsFor(sourceId, day).filter(id => !sameGiant.includes(id)), wideCount, hashString(`${sourceId}:wide:${day}`));
+    return [...sameGiant, ...wide];
   }
 
   if (sourceIsHearth) {
