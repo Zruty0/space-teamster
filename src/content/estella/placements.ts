@@ -500,6 +500,8 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xiic-isotope-mining': { kind: 'surface', parentId: 'estella-xiic', angle: -0.9, side: 'equatorial' },
   'estella-xiic-comet-research': { kind: 'surface', parentId: 'estella-xiic', angle: 1.9, side: 'equatorial' },
   'estella-xiid-black-project-exile': { kind: 'surface', parentId: 'estella-xiid', angle: -1.75, side: 'unspecified' },
+  'estella-xiid-blackglass-observatory': { kind: 'surface', parentId: 'estella-xiid', angle: 0.35, side: 'unspecified' },
+  'estella-xiid-mirror-clinic': { kind: 'surface', parentId: 'estella-xiid', angle: 2.15, side: 'unspecified' },
 
   // The Reach
   'estella-xiii': { kind: 'orbit', parentId: 'estella', usage: 'stellar', orbit: { kind: 'circular', radius: 4_800_000_000, epochAngle: 0.35, epochTime: 0, orbitSense: 1 } },

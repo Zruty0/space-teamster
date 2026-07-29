@@ -494,6 +494,8 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-xiic-isotope-mining': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xiic-comet-research': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xiid-black-project-exile': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xiid-blackglass-observatory': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
+  'estella-xiid-mirror-clinic': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
 
   'estella-xiii-governors-outpost': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xiii-deep-ice-mining': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
