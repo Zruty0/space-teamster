@@ -572,6 +572,22 @@ BFS cargo palette:
 - Bruckner field technician teams
 - drive alignment crews
 
+## Faction: Wells Noble Houses
+
+Minor Wells nobility is represented by one combined provider. The three senior Houses remain separate future providers because Alvares, Mendes, and Nunes are in active conflict; counts, marquises, and lesser households share this minor-noble charter traffic.
+
+Scope:
+
+- Most routes stay inside the Wells.
+- Seat-to-seat traffic is the majority and may be funded by either the source or destination household office.
+- Occasional routes touch the Hearth: capital, finance, resort, or historic/pilgrimage destinations.
+- Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues.
+- Minor houses do not charter ordinary economic cargo and do not usually route to Daedalus or Covenant sites. Macao, Oathmark, and the shipyard are acceptable noble destinations.
+
+Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Oathmark Academy, Banner Forge, and selected Hearth elite destinations.
+
+Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues.
+
 ## Known design questions
 
 - Reputation should probably be faction-specific, with some faction-pair consequences later.

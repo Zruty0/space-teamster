@@ -14,6 +14,7 @@ import { ROADSTEAD_EXPORT_BROKERS_PROVIDER } from './roadstead-export-contracts'
 import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
 import { TEAMSTERS_GUILD_PROVIDER } from './teamsters-guild-contracts';
 import { VOSS_HEINKEL_METRICWERKE_PROVIDER } from './vhm-contracts';
+import { WELLS_NOBLE_HOUSES_PROVIDER } from './wells-noble-contracts';
 
 export interface FactionContractContext {
   sourceId: string;
@@ -73,6 +74,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   ROADSTEAD_EXPORT_BROKERS_PROVIDER,
   HARTWELL_MACHINERY_BROKERS_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
+  WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
