@@ -100,6 +100,11 @@ const TO_OATHMARK_CARGO: CargoOption[] = [
   { label: 'challenge writs and bout stakes', massClass: 'light', likelihood: 0.64 },
   { label: 'unproofed ceremonial armor', massClass: 'standard', likelihood: 0.58 },
   { label: 'family blade blanks', massClass: 'light', likelihood: 0.5 },
+  { label: 'disassembled siege engine kits', massClass: 'heavy', likelihood: 0.46 },
+  { label: 'robotic destrier cradles', massClass: 'heavy', likelihood: 0.44 },
+  { label: 'shock-lance racks', massClass: 'standard', likelihood: 0.42 },
+  { label: 'tilt-yard drone packs', massClass: 'standard', likelihood: 0.38 },
+  { label: 'house banner target automata', massClass: 'standard', likelihood: 0.34 },
 ];
 
 const FROM_OATHMARK_CARGO: CargoOption[] = [
@@ -108,6 +113,10 @@ const FROM_OATHMARK_CARGO: CargoOption[] = [
   { label: 'academy verdict rolls', massClass: 'light', likelihood: 0.58 },
   { label: 'tournament armor aftercare crates', massClass: 'standard', likelihood: 0.52 },
   { label: 'graduated household guard cadres', massClass: 'standard', category: 'passenger', likelihood: 0.48 },
+  { label: 'certified robotic destriers', massClass: 'heavy', likelihood: 0.44 },
+  { label: 'proofed siege engine carriages', massClass: 'heavy', likelihood: 0.4 },
+  { label: 'calibrated joust drone swarms', massClass: 'standard', likelihood: 0.36 },
+  { label: 'referee telemetry pylons', massClass: 'standard', likelihood: 0.32 },
 ];
 
 const COMPLETION_BLURBS: CompletionBlurb[] = [
