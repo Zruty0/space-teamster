@@ -448,7 +448,7 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | Body | Type | POIs |
 |---|---|---|
 | **Hydra** / Estella XI (gas giant) | upper-atmosphere skim possible | XI.1 orbital skim hub (industrial gas) |
-| **Almaden** / Estella XIa | Sulfur volcanic moon, thin SO₂ atmo, hostile | XIa.1 sulfur mine · XIa.2 orbital chem station · XIa.3 sealed worker hab · XIa.4 specialty rare-element extraction |
+| **Almaden** / Estella XIa | Sulfur volcanic marquisate, thin SO₂ atmo, hostile | XIa.1 Yellow Pit · XIa.2 Almaden Orbital · XIa.3 Castle Almaden · XIa.4 Cinnabar Cut |
 | **Marisma** / Estella XIb | Methane / nitrogen moon (thick cold methane atmosphere) | XIb.1 cryo transit · XIb.2 methane refinery · XIb.3 organic chemistry plant · XIb.4 hydrocarbon extraction · XIb.5 science settlement |
 | **Macao** / Estella XIc | Ice moon turned casino, debt-court, and status jurisdiction | XIc.1 status court station · XIc.2 memory parlors / body-contract clinics · XIc.3 ice mining |
 | **Cadiz** / Estella XId | Mid-size rocky moon, airless | XId.1 main port station (Wells region hub) · XId.2 services / outfitter / hangar · XId.3 customs / transit · XId.4 specialty cargo handling |
