@@ -111,6 +111,7 @@ export interface ClusterState {
   dvUsed: number;
   timeWarpLevel: number;
   timeWarp: number;
+  collisionWarningActive: boolean;
   rocks: ClusterRock[];
   rockSeed: number;
 }
@@ -494,6 +495,7 @@ export function createClusterState(level: ClusterLevel, override?: ClusterInitOv
     dvUsed: 0,
     timeWarpLevel: 0,
     timeWarp: level.timeWarpLevels[0] ?? 1,
+    collisionWarningActive: false,
     rocks: [],
     rockSeed: 1 + Math.floor(Math.random() * 2147483646),
   };
@@ -660,6 +662,13 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
   s.dvUsed += Math.sqrt(ax * ax + ay * ay) * dt;
 
   updateClusterRocks(s, level, dt);
+  const threat = clusterCollisionThreat(s, level);
+  const warningActive = threat?.level === 'warning';
+  if (warningActive && !s.collisionWarningActive && s.timeWarpLevel > 0) {
+    s.timeWarpLevel = 0;
+    s.timeWarp = level.timeWarpLevels[0] ?? 1;
+  }
+  s.collisionWarningActive = warningActive;
   if (clusterRockCollision(s, level)) {
     s.alive = false;
     return;

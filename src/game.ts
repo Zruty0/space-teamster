@@ -1404,7 +1404,7 @@ export class Game {
       p.as.timeWarpLevel = Math.max(p.as.timeWarpLevel - 1, 0);
       p.as.timeWarp = [1, 2, 5][p.as.timeWarpLevel];
     }
-    if ((input.throttleUp || input.throttleDown) && p.as.timeWarpLevel > 0) {
+    if ((input.throttleUp || input.throttleDown || input.pitch !== 0) && p.as.timeWarpLevel > 0) {
       p.as.timeWarpLevel = 0;
       p.as.timeWarp = 1;
     }
