@@ -602,6 +602,8 @@ Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Cas
 
 Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilt-yard drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 
+Pay: noble work uses `0.30 + 0.70` plus a flat honorarium. At par, net is the honorarium only; beating par keeps 30% of fuel savings and overruns cost 30% until the compensation cap. Same-SOI/ordinary legs use `12,000 cr`; Macao/Oathmark/court/special legs use `20,000 cr`; rare Hearth elite legs use `30,000 cr`. This prevents overestimated cross-SOI par costs from creating giant windfalls while still rewarding efficient flying.
+
 ## Known design questions
 
 - Reputation should probably be faction-specific, with some faction-pair consequences later.

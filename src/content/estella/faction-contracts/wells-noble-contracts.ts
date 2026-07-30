@@ -69,6 +69,9 @@ const SPECIAL_IDS = [...MACAO_DESTINATIONS, ...OATHMARK_DESTINATIONS, ...COURT_D
 const ALLOWED_SOURCE_IDS = [...SEAT_IDS, ...SPECIAL_IDS, ...HEARTH_DESTINATIONS];
 const NOBLE_DESTINATION_COUNT = 5;
 const SAME_GIANT_DESTINATION_COUNT = 4;
+const NOBLE_GENEROSITY = 0.3;
+const NOBLE_COMPENSATION_RATIO = 0.7;
+const NOBLE_MAX_COMP_ALLOWANCE = 2;
 
 const PASSENGER_CARGO: CargoOption[] = [
   { label: 'petition counsel and clerks', massClass: 'light', category: 'passenger', likelihood: 0.75 },
@@ -256,10 +259,10 @@ function candidate(sourceId: string, destinationId: string, option: CargoOption,
     cargo: makeCargo(option, seedKey),
     category: option.category,
     likelihood: option.likelihood * (isHearthLeg ? 0.28 : isSpecialLeg ? 0.75 : 1),
-    generosity: isHearthLeg ? 1.1 : isSpecialLeg ? 1.0 : 0.9,
-    flatReward: isHearthLeg ? 18_000 : isSpecialLeg ? 12_000 : 8_000,
-    compensationRatio: 0.5,
-    maxCompAllowance: 2,
+    generosity: NOBLE_GENEROSITY,
+    flatReward: isHearthLeg ? 30_000 : isSpecialLeg ? 20_000 : 12_000,
+    compensationRatio: NOBLE_COMPENSATION_RATIO,
+    maxCompAllowance: NOBLE_MAX_COMP_ALLOWANCE,
   };
 }
 
