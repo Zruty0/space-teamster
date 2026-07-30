@@ -146,9 +146,9 @@ const HARTWELL_CLEAR_WEATHER: WeatherProfileDef = {
 const HARTWELL_STORM_WEATHER: WeatherProfileDef = {
   volatility: 2.4,
   windLayers: [
-    { altitudeCenter: 22_000, altitudeWidth: 6_000, strength: 18, probability: 0.9, altitudeJitter: 3_000, strengthJitter: 0.45 },
-    { altitudeCenter: 12_000, altitudeWidth: 4_000, strength: -16, probability: 0.85, altitudeJitter: 2_000, strengthJitter: 0.5 },
-    { altitudeCenter: 3_500, altitudeWidth: 1_600, strength: 14, probability: 0.8, altitudeJitter: 700, strengthJitter: 0.5 },
+    { altitudeCenter: 24_000, altitudeWidth: 5_000, strength: 18, probability: 0.9, altitudeJitter: 2_000, strengthJitter: 0.45 },
+    { altitudeCenter: 11_500, altitudeWidth: 3_200, strength: -16, probability: 0.85, altitudeJitter: 1_200, strengthJitter: 0.5 },
+    { altitudeCenter: 3_500, altitudeWidth: 1_400, strength: 14, probability: 0.8, altitudeJitter: 600, strengthJitter: 0.5 },
   ],
   turbulence: [
     { altitudeMin: 3_000, altitudeMax: 7_000, strength: 3.2, probability: 0.8, widthJitter: 0.35, strengthJitter: 0.45 },
