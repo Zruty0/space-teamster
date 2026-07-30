@@ -19,6 +19,7 @@ const TETERIV = 'estella-vib-vat-protein';
 const ZHITOMIR = 'estella-vib-pharma-horticulture';
 const DNIPRO = 'estella-vib-aquaculture';
 const MOSAIC = 'estella-vii-high-vacuum-factory';
+const CADIZ_HIGHPORT = 'estella-xid-main-port';
 
 const ROUTINE_PAY = { generosity: 0.75, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const CERTIFIED_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
@@ -44,6 +45,8 @@ interface Lane {
   destinationIds?: string[];
   destinationPool?: WeightedDestination[];
   destinationCount?: number;
+  /** If set, this lane models consolidation: hub gets 80% of posting weight, direct buyers share 20%. */
+  consolidationHubId?: string;
   cargo: CargoOption[];
   likelihood: number;
   pay: Pay;
@@ -190,12 +193,19 @@ const WELLS_ELITE_MARKETS = [
   'estella-xiic-castle-teide',
 ];
 
-const VOLATILES: CargoOption[] = [
+const BEIRA_VOLATILES: CargoOption[] = [
   { label: 'Beira ice blocks', massClass: 'heavy' },
   { label: 'bonded water tanks', massClass: 'heavy' },
   { label: 'clean volatile lots', massClass: 'standard' },
-  { label: 'Macao debt-court ice', massClass: 'heavy' },
 ];
+
+const MACAO_VOLATILES: CargoOption[] = [
+  { label: 'Macao debt-court ice', massClass: 'heavy' },
+  { label: 'bonded water tanks', massClass: 'heavy' },
+  { label: 'clean volatile lots', massClass: 'standard' },
+];
+
+const VOLATILES: CargoOption[] = [...BEIRA_VOLATILES, ...MACAO_VOLATILES];
 
 const GAS_PRODUCTS: CargoOption[] = [
   { label: 'helium-rich industrial gas racks', massClass: 'standard' },
@@ -266,16 +276,18 @@ const KALYNA_LUXURY: CargoOption[] = [
 ];
 
 const LANES: Lane[] = [
-  { laneId: 'wells-volatiles-to-camps', sourceIds: ['estella-xa-deep-ice-mine', 'estella-xic-ice-mining'], destinationIds: [HAMMER, ANVIL, KALYNA_ORBITAL], cargo: VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
-  { laneId: 'wells-gas-to-camps', sourceIds: ['estella-x-observation-skim-hub', 'estella-xi-skim-hub'], destinationIds: [HAMMER, YARDSTOCK, SVAROG_SHIPYARD, KALYNA_ORBITAL], cargo: GAS_PRODUCTS, likelihood: 0.52, pay: ROUTINE_PAY },
-  { laneId: 'wells-sulfur-chemicals-to-camps', sourceIds: ['estella-xia-sulfur-mine', 'estella-xia-chem-station', 'estella-xd-chem-station'], destinationIds: [HAMMER, ZHITOMIR, MOSAIC], cargo: SULFUR_CHEMICALS, likelihood: 0.5, pay: ROUTINE_PAY },
-  { laneId: 'wells-hydrocarbons-to-camps', sourceIds: ['estella-xib-cryo-transit', 'estella-xib-methane-refinery', 'estella-xib-organic-chemistry', 'estella-xib-hydrocarbon-extraction'], destinationIds: [HAMMER, KALYNA_ORBITAL, ZHITOMIR, TETERIV], cargo: HYDROCARBONS, likelihood: 0.5, pay: ROUTINE_PAY },
-  { laneId: 'wells-metals-to-camps', sourceIds: ['estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction', 'estella-xia-rare-element-extraction'], destinationIds: [HAMMER, YARDSTOCK, SVAROG_SHIPYARD, MOSAIC], cargo: METALS, likelihood: 0.48, pay: CERTIFIED_PAY },
-  { laneId: 'wells-isotopes-to-camps', sourceIds: ['estella-xiic-isotope-mining', 'estella-xiic-castle-teide'], destinationIds: [HAMMER, YARDSTOCK, MOSAIC], cargo: ISOTOPES, likelihood: 0.36, pay: ISOTOPE_PAY },
-  { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [SVAROG_SHIPYARD, YARDSTOCK, MOSAIC], cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
+  { laneId: 'beira-volatiles-to-camps', sourceIds: ['estella-xa-deep-ice-mine'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: BEIRA_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
+  { laneId: 'macao-volatiles-to-camps', sourceIds: ['estella-xic-ice-mining'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: MACAO_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
+  { laneId: 'wells-gas-to-camps', sourceIds: ['estella-x-observation-skim-hub', 'estella-xi-skim-hub'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, SVAROG_SHIPYARD, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: GAS_PRODUCTS, likelihood: 0.52, pay: ROUTINE_PAY },
+  { laneId: 'wells-sulfur-chemicals-to-camps', sourceIds: ['estella-xia-sulfur-mine', 'estella-xia-chem-station', 'estella-xd-chem-station'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ZHITOMIR, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: SULFUR_CHEMICALS, likelihood: 0.5, pay: ROUTINE_PAY },
+  { laneId: 'wells-hydrocarbons-to-camps', sourceIds: ['estella-xib-cryo-transit', 'estella-xib-methane-refinery', 'estella-xib-organic-chemistry', 'estella-xib-hydrocarbon-extraction'], destinationIds: [CADIZ_HIGHPORT, HAMMER, KALYNA_ORBITAL, ZHITOMIR, TETERIV], consolidationHubId: CADIZ_HIGHPORT, cargo: HYDROCARBONS, likelihood: 0.5, pay: ROUTINE_PAY },
+  { laneId: 'wells-metals-to-camps', sourceIds: ['estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction', 'estella-xia-rare-element-extraction'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, SVAROG_SHIPYARD, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: METALS, likelihood: 0.48, pay: CERTIFIED_PAY },
+  { laneId: 'wells-isotopes-to-camps', sourceIds: ['estella-xiic-isotope-mining', 'estella-xiic-castle-teide'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: ISOTOPES, likelihood: 0.36, pay: ISOTOPE_PAY },
+  { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [CADIZ_HIGHPORT, SVAROG_SHIPYARD, YARDSTOCK, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
   { laneId: 'hartwell-life-support-to-wells', sourceIds: [ROADSTEAD, CONCORD, ANVIL], destinationPool: WELLS_LIFE_SUPPORT_DESTINATIONS, destinationCount: 12, cargo: LIFE_SUPPORT, likelihood: 0.42, pay: BACKHAUL_PAY },
   { laneId: 'kuznia-consumables-to-wells', sourceIds: [HAMMER, ANVIL, YARDSTOCK], destinationIds: WELLS_WORKS, cargo: INDUSTRIAL_CONSUMABLES, likelihood: 0.38, pay: BACKHAUL_PAY },
   { laneId: 'kalyna-luxury-to-wells', sourceIds: [KALYNA_ORBITAL, TETERIV, ZHITOMIR, DNIPRO], destinationIds: WELLS_ELITE_MARKETS, cargo: KALYNA_LUXURY, likelihood: 0.32, pay: LUXURY_PAY },
+  { laneId: 'cadiz-consolidated-wells-exports', sourceIds: [CADIZ_HIGHPORT], destinationIds: [HAMMER, ANVIL, SVAROG_SHIPYARD, YARDSTOCK, KALYNA_ORBITAL, ZHITOMIR, TETERIV, MOSAIC], cargo: [...VOLATILES, ...GAS_PRODUCTS, ...SULFUR_CHEMICALS, ...HYDROCARBONS, ...METALS, ...ISOTOPES, ...YARD_SURPLUS], likelihood: 0.6, pay: ROUTINE_PAY },
 ];
 
 function hashString(text: string): number {
@@ -337,6 +349,13 @@ function makeCargo(option: CargoOption, seedKey: string): MissionCargoSpec {
   return { label: option.label, massClass: option.massClass, massTons: cargoMassForClass(option.massClass, `${HARTWELL_SHIPPING_ID}:${seedKey}:${option.label}`) };
 }
 
+function destinationLikelihoodMultiplier(lane: Lane, destinationId: string): number {
+  if (!lane.consolidationHubId || !lane.destinationIds) return 1;
+  if (destinationId === lane.consolidationHubId) return 0.8;
+  const directDestinationCount = Math.max(1, lane.destinationIds.filter(id => id !== lane.consolidationHubId).length);
+  return 0.2 / directDestinationCount;
+}
+
 function candidate(company: ShippingCompany, lane: Lane, sourceId: string, destinationId: string, option: CargoOption): FactionContractCandidate {
   const seedKey = `${company.slug}:${lane.laneId}:${sourceId}->${destinationId}:${slug(option.label)}`;
   return {
@@ -346,7 +365,7 @@ function candidate(company: ShippingCompany, lane: Lane, sourceId: string, desti
     sourceId,
     destinationId,
     cargo: makeCargo(option, seedKey),
-    likelihood: lane.likelihood,
+    likelihood: lane.likelihood * destinationLikelihoodMultiplier(lane, destinationId),
     ...lane.pay,
   };
 }
