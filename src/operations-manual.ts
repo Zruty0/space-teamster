@@ -352,7 +352,7 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   let height = 0;
   ctx.font = '13px monospace';
   height += wrappedHeight(ctx, article.introduction, contentW, 18) + 22;
-  if (article.diagram) height += 440;
+  if (article.diagram) height += 576;
   height += 30;
   for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
   height += 18 + 30;
@@ -435,11 +435,11 @@ function drawOrbitalRendezvousDiagram(
   width: number,
 ): number {
   const gap = 14;
-  const panelH = 202;
+  const panelH = 270;
   const height = panelH * 2 + gap;
   const panelW = (width - gap) * 0.5;
-  const innerR = 42;
-  const outerR = 62;
+  const innerR = 58;
+  const outerR = 88;
 
   const panel = (index: number, title: string, subtitle: string): { x: number; y: number; cx: number; cy: number } => {
     const col = index % 2;
@@ -458,7 +458,7 @@ function drawOrbitalRendezvousDiagram(
     ctx.font = 'bold 10px monospace';
     ctx.fillStyle = COL_WARNING;
     ctx.fillText(subtitle, px + panelW * 0.5, py + 34);
-    return { x: px, y: py, cx: px + panelW * 0.5, cy: py + 112 };
+    return { x: px, y: py, cx: px + panelW * 0.5, cy: py + 146 };
   };
 
   const planet = (cx: number, cy: number): void => {
@@ -471,103 +471,174 @@ function drawOrbitalRendezvousDiagram(
     ctx.stroke();
   };
 
-  const orbit = (cx: number, cy: number, radius: number, color: string, dashed = false): void => {
+  const orbitalPoint = (cx: number, cy: number, radius: number, angle: number): [number, number] => [
+    cx + Math.cos(angle) * radius,
+    cy - Math.sin(angle) * radius,
+  ];
+
+  const orbit = (cx: number, cy: number, radius: number, color: string, dashed = false, arrowAngle = 2.35): void => {
     ctx.strokeStyle = color;
     ctx.setLineDash(dashed ? [5, 5] : []);
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
+    const [ax, ay] = orbitalPoint(cx, cy, radius, arrowAngle);
+    const tx = -Math.sin(arrowAngle);
+    const ty = -Math.cos(arrowAngle);
+    drawDiagramArrow(ctx, ax - tx * 7, ay - ty * 7, ax + tx * 7, ay + ty * 7, 'rgba(180, 220, 235, 0.42)');
   };
 
-  const station = (px: number, py: number): void => {
-    ctx.fillStyle = COL_TITLE;
+  const transferOrbit = (cx: number, cy: number, startRadius: number, endRadius: number, startAngle: number): void => {
+    const centerOffset = (startRadius - endRadius) * 0.5;
+    const centerX = cx + Math.cos(startAngle) * centerOffset;
+    const centerY = cy - Math.sin(startAngle) * centerOffset;
+    const rx = (startRadius + endRadius) * 0.5;
+    const ry = Math.sqrt(startRadius * endRadius);
+    ctx.strokeStyle = 'rgba(255, 170, 0, 0.74)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY, rx, ry, -startAngle, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillRect(-5, -5, 10, 10);
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-startAngle);
+    drawDiagramArrow(ctx, 8, -ry, -8, -ry, 'rgba(255, 200, 90, 0.5)');
     ctx.restore();
   };
 
-  const rig = (px: number, py: number): void => {
-    ctx.fillStyle = COL_WARNING;
+  const station = (px: number, py: number): void => {
+    const size = 8;
+    ctx.strokeStyle = '#ccbbff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px - size * 0.5, py - size * 0.5, size, size);
     ctx.beginPath();
-    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.moveTo(px - size * 1.5, py);
+    ctx.lineTo(px - size * 0.5, py);
+    ctx.moveTo(px + size * 0.5, py);
+    ctx.lineTo(px + size * 1.5, py);
+    ctx.stroke();
+  };
+
+  const rig = (px: number, py: number, orbitAngle: number): void => {
+    const size = 8;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(-orbitAngle);
+    ctx.fillStyle = '#102010';
+    ctx.fillRect(-size * 0.28, size * 0.12, size * 0.56, size * 0.74);
+    ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-size * 0.28, size * 0.12, size * 0.56, size * 0.74);
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(-size * 0.42, -size * 0.04, size * 0.84, size * 1.06);
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.22, -size * 0.82);
+    ctx.lineTo(size * 0.22, -size * 0.82);
+    ctx.lineTo(size * 0.34, -size * 0.32);
+    ctx.lineTo(-size * 0.34, -size * 0.32);
+    ctx.closePath();
+    ctx.fillStyle = '#0a140a';
     ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.13, -size * 0.58);
+    ctx.lineTo(0, -size * 0.68);
+    ctx.lineTo(size * 0.13, -size * 0.58);
+    ctx.strokeStyle = '#00ccff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  const rendezvousPoint = (px: number, py: number): void => {
+    ctx.beginPath();
+    ctx.arc(px, py, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffaa00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   };
 
   ctx.save();
   ctx.lineWidth = 1.25;
 
-  const inside = panel(0, '1. RIG ON THE INSIDE', 'RIG IS CATCHING UP — BURN PROGRADE');
-  orbit(inside.cx, inside.cy, outerR, 'rgba(0, 255, 204, 0.5)');
-  orbit(inside.cx, inside.cy, innerR, 'rgba(255, 170, 0, 0.62)', true);
+  const insideStationAngle = -0.35;
+  const insideRigAngle = -1.35;
+  const progradeFarRadius = outerR + 18;
+  const progradeP = 2 * innerR * progradeFarRadius / (innerR + progradeFarRadius);
+  const progradeE = (progradeFarRadius - innerR) / (progradeFarRadius + innerR);
+  const progradeDelta = Math.acos(Math.max(-1, Math.min(1, (progradeP / outerR - 1) / progradeE)));
+  const progradeMeetAngle = insideRigAngle + progradeDelta;
+
+  const inside = panel(0, '1. RIG INSIDE — CATCHING UP', 'TIME TO MAKE A PROGRADE BURN');
+  orbit(inside.cx, inside.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
+  orbit(inside.cx, inside.cy, innerR, 'rgba(0, 255, 100, 0.58)', true, 2.4);
   planet(inside.cx, inside.cy);
-  const insideStationAngle = -0.45;
-  const insideRigAngle = -1.45;
-  station(inside.cx + Math.cos(insideStationAngle) * outerR, inside.cy + Math.sin(insideStationAngle) * outerR);
-  rig(inside.cx + Math.cos(insideRigAngle) * innerR, inside.cy + Math.sin(insideRigAngle) * innerR);
+  const insideStation = orbitalPoint(inside.cx, inside.cy, outerR, insideStationAngle);
+  const insideRig = orbitalPoint(inside.cx, inside.cy, innerR, insideRigAngle);
+  station(insideStation[0], insideStation[1]);
+  rig(insideRig[0], insideRig[1], insideRigAngle);
   ctx.font = '10px monospace';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText('LOWER ORBIT = FASTER', inside.cx, inside.y + 188);
+  ctx.fillText('LOWER ORBIT = FASTER', inside.cx, inside.y + 252);
 
-  const prograde = panel(1, '2. AFTER PROGRADE BURN', 'RENDEZVOUS POINT AHEAD');
-  orbit(prograde.cx, prograde.cy, outerR, 'rgba(0, 255, 204, 0.5)');
-  ctx.strokeStyle = 'rgba(255, 170, 0, 0.72)';
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.ellipse(prograde.cx + 10, prograde.cy, 52, 47, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  const prograde = panel(1, '2. SAME CURRENT POSITIONS', 'AFTER PROGRADE BURN — RENDEZVOUS AHEAD');
+  orbit(prograde.cx, prograde.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
+  orbit(prograde.cx, prograde.cy, innerR, 'rgba(0, 255, 100, 0.34)', true, 2.4);
+  transferOrbit(prograde.cx, prograde.cy, innerR, progradeFarRadius, insideRigAngle);
   planet(prograde.cx, prograde.cy);
-  const proBurnX = prograde.cx - innerR;
-  const proMeetX = prograde.cx + outerR;
-  rig(proBurnX, prograde.cy);
-  station(proMeetX, prograde.cy);
-  drawDiagramArrow(ctx, proBurnX, prograde.cy - 19, proBurnX, prograde.cy + 17, COL_WARNING);
+  const progradeStation = orbitalPoint(prograde.cx, prograde.cy, outerR, insideStationAngle);
+  const progradeRig = orbitalPoint(prograde.cx, prograde.cy, innerR, insideRigAngle);
+  const progradeMeet = orbitalPoint(prograde.cx, prograde.cy, outerR, progradeMeetAngle);
+  station(progradeStation[0], progradeStation[1]);
+  rig(progradeRig[0], progradeRig[1], insideRigAngle);
+  rendezvousPoint(progradeMeet[0], progradeMeet[1]);
   ctx.font = '9px monospace';
-  ctx.fillStyle = COL_WARNING;
-  ctx.fillText('PROGRADE', proBurnX - 26, prograde.cy + 33);
-  ctx.fillStyle = COL_TITLE;
-  ctx.fillText('MEET', proMeetX - 2, prograde.cy + 24);
+  ctx.fillStyle = '#ffaa00';
+  ctx.fillText('FUTURE RENDEZVOUS', progradeMeet[0], progradeMeet[1] - 11);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '10px monospace';
-  ctx.fillText('TRANSFER ORBIT REACHES TARGET ORBIT', prograde.cx, prograde.y + 188);
+  ctx.fillText('TRANSFER CROSSES TARGET ORBIT BEFORE APOAPSIS', prograde.cx, prograde.y + 252);
 
-  const outside = panel(2, '3. RIG ON THE OUTSIDE', 'TARGET IS CATCHING UP — BURN RETROGRADE');
-  orbit(outside.cx, outside.cy, innerR, 'rgba(0, 255, 204, 0.5)');
-  orbit(outside.cx, outside.cy, outerR, 'rgba(255, 170, 0, 0.62)', true);
+  const outsideRigAngle = -0.35;
+  const outsideStationAngle = -1.35;
+  const retrogradeFarRadius = innerR - 14;
+  const retrogradeP = 2 * outerR * retrogradeFarRadius / (outerR + retrogradeFarRadius);
+  const retrogradeE = (outerR - retrogradeFarRadius) / (outerR + retrogradeFarRadius);
+  const retrogradeDelta = Math.acos(Math.max(-1, Math.min(1, (1 - retrogradeP / innerR) / retrogradeE)));
+  const retrogradeMeetAngle = outsideRigAngle + retrogradeDelta;
+
+  const outside = panel(2, '3. RIG OUTSIDE — TARGET CATCHING UP', 'TIME TO MAKE A RETROGRADE BURN');
+  orbit(outside.cx, outside.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
+  orbit(outside.cx, outside.cy, outerR, 'rgba(0, 255, 100, 0.58)', true, 2.4);
   planet(outside.cx, outside.cy);
-  const outsideRigAngle = -0.45;
-  const outsideStationAngle = -1.45;
-  rig(outside.cx + Math.cos(outsideRigAngle) * outerR, outside.cy + Math.sin(outsideRigAngle) * outerR);
-  station(outside.cx + Math.cos(outsideStationAngle) * innerR, outside.cy + Math.sin(outsideStationAngle) * innerR);
+  const outsideRig = orbitalPoint(outside.cx, outside.cy, outerR, outsideRigAngle);
+  const outsideStation = orbitalPoint(outside.cx, outside.cy, innerR, outsideStationAngle);
+  rig(outsideRig[0], outsideRig[1], outsideRigAngle);
+  station(outsideStation[0], outsideStation[1]);
   ctx.font = '10px monospace';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText('HIGHER ORBIT = SLOWER', outside.cx, outside.y + 188);
+  ctx.fillText('HIGHER ORBIT = SLOWER', outside.cx, outside.y + 252);
 
-  const retrograde = panel(3, '4. AFTER RETROGRADE BURN', 'RENDEZVOUS POINT AHEAD');
-  orbit(retrograde.cx, retrograde.cy, innerR, 'rgba(0, 255, 204, 0.5)');
-  ctx.strokeStyle = 'rgba(255, 170, 0, 0.72)';
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.ellipse(retrograde.cx - 10, retrograde.cy, 52, 47, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  const retrograde = panel(3, '4. SAME CURRENT POSITIONS', 'AFTER RETROGRADE BURN — RENDEZVOUS AHEAD');
+  orbit(retrograde.cx, retrograde.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
+  orbit(retrograde.cx, retrograde.cy, outerR, 'rgba(0, 255, 100, 0.34)', true, 2.4);
+  transferOrbit(retrograde.cx, retrograde.cy, outerR, retrogradeFarRadius, outsideRigAngle);
   planet(retrograde.cx, retrograde.cy);
-  const retroBurnX = retrograde.cx - outerR;
-  const retroMeetX = retrograde.cx + innerR;
-  rig(retroBurnX, retrograde.cy);
-  station(retroMeetX, retrograde.cy);
-  drawDiagramArrow(ctx, retroBurnX, retrograde.cy + 19, retroBurnX, retrograde.cy - 17, COL_WARNING);
+  const retrogradeRig = orbitalPoint(retrograde.cx, retrograde.cy, outerR, outsideRigAngle);
+  const retrogradeStation = orbitalPoint(retrograde.cx, retrograde.cy, innerR, outsideStationAngle);
+  const retrogradeMeet = orbitalPoint(retrograde.cx, retrograde.cy, innerR, retrogradeMeetAngle);
+  rig(retrogradeRig[0], retrogradeRig[1], outsideRigAngle);
+  station(retrogradeStation[0], retrogradeStation[1]);
+  rendezvousPoint(retrogradeMeet[0], retrogradeMeet[1]);
   ctx.font = '9px monospace';
-  ctx.fillStyle = COL_WARNING;
-  ctx.fillText('RETROGRADE', retroBurnX - 30, retrograde.cy + 33);
-  ctx.fillStyle = COL_TITLE;
-  ctx.fillText('MEET', retroMeetX, retrograde.cy + 24);
+  ctx.fillStyle = '#ffaa00';
+  ctx.fillText('FUTURE RENDEZVOUS', retrogradeMeet[0], retrogradeMeet[1] - 11);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '10px monospace';
-  ctx.fillText('TRANSFER ORBIT REACHES TARGET ORBIT', retrograde.cx, retrograde.y + 188);
+  ctx.fillText('TRANSFER CROSSES TARGET ORBIT BEFORE PERIAPSIS', retrograde.cx, retrograde.y + 252);
 
   ctx.restore();
   return y + height + 22;
