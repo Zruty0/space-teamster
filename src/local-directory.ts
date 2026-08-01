@@ -172,8 +172,8 @@ export function localContactPresentation(
       description: 'Gid’s office is wedged deep inside Guild HQ, a narrow room lined with dented maneuvering plaques, paper ledgers, and photographs of obsolete tugs. Gid himself is broad and silver-bearded, in a faded Guild work shirt; laugh lines crowd his eyes as one scarred hand offers a chair and the other guards a steaming mug.',
       dialogue: [
         '“There you are. The Public Approach Dock sent me a clean berth report, so your first practical is in the ledger.”',
-        '“Old Nell is carrying the next apprentice packet to Weymark. Board her here and she’ll take you and the training rig to Nell’s Rest.”',
-        '“Report to the Certification Office when you arrive and call me from there. I’ll issue the deorbit checkride over the Guild link.”',
+        '“Your next checkride phase is a moon landing, so you’ll take Old Nell out to Weymark. Don’t mind the smell or the noises—we respect the old girl for her long service, and she still gets where she’s going.”',
+        '“She’ll carry you and your rig to Nell’s Rest. Call me from the Certification Office when you arrive, and I’ll issue the deorbit practical over the Guild link.”',
       ],
     };
   }

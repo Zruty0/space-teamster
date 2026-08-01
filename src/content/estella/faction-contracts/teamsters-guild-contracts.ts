@@ -129,7 +129,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: NELLS_REST,
       title: 'Board Old Nell for the checkride',
       travelMode: 'old-nell',
-      completionMessage: `Old Nell delivers you and the training rig to Nell’s Rest. ${ctx.issuer.name} has already placed the next practical with the station certification office.`,
+      completionMessage: `Old Nell delivers you and your rig to Nell’s Rest. ${ctx.issuer.name} has already placed the next practical with the station certification office.`,
     })];
   }
 
@@ -140,7 +140,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: WEYMARK_TOWN,
       title: 'Deorbit and land at Weymark Town',
       certificationOnSuccess: 'basic-2',
-      completionMessage: `Weymark Town traffic logs the training rig safely on the pad. ${ctx.issuer.name} signs the landing practical over the certification link. “Good. Any landing you can file afterward is worth keeping.”`,
+      completionMessage: `Weymark Town traffic logs your rig safely on the pad. ${ctx.issuer.name} signs the landing practical over the certification link. “Any landing you walk away from is a good landing.”`,
     })];
   }
 

@@ -1533,7 +1533,7 @@ export class Game {
         title: 'ARRIVED ABOARD OLD NELL',
         subtitle: locationPath,
         bodyRows: [
-          { kind: 'text', text: 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your training rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
+          { kind: 'text', text: 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
           { kind: 'separator' },
           { kind: 'text', text: contract?.completionMessage ?? 'Your Guild apprentice passage is complete.', tone: 'success' },
           { kind: 'kv', label: 'Current location', value: locationPath },
