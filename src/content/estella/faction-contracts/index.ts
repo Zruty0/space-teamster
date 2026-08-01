@@ -68,6 +68,8 @@ export interface FactionContractCandidate {
   certificationOnSuccess?: TeamsterCertificationId;
   /** Non-flight passage supplied as part of a certification mission. */
   travelMode?: 'old-nell';
+  /** Schedule the run when an orbiting destination is this far ahead of its surface source. */
+  destinationLeadAngleFromSource?: number;
   /** Message shown on successful delivery. */
   completionMessage?: string;
 }

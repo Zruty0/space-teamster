@@ -5,6 +5,7 @@ import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estel
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
 import { localDirectoryEntryById, localTerminalScopeIds } from './local-directory';
 import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
+import { bodyById } from './world';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -26,6 +27,7 @@ export interface CareerContract {
   category?: 'freight' | 'passenger' | 'certification';
   certificationOnSuccess?: TeamsterCertificationId;
   travelMode?: 'old-nell';
+  scheduledStartWorldTime?: number;
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
@@ -130,8 +132,34 @@ function contractTitleDestination(destinationId: string): string {
   return ESTELLA_NODES_BY_ID.get(destinationId)?.name ?? contractTarget(destinationId).name;
 }
 
+function positiveAngle(angle: number): number {
+  const turn = Math.PI * 2;
+  return ((angle % turn) + turn) % turn;
+}
+
+function scheduledStartForDestinationLead(candidate: FactionContractCandidate, notBeforeWorldTime: number): number | undefined {
+  const leadAngle = candidate.destinationLeadAngleFromSource;
+  if (leadAngle === undefined) return undefined;
+  const sourcePlacement = ESTELLA_NODES_BY_ID.get(candidate.sourceId)?.placement;
+  const destinationPlacement = ESTELLA_NODES_BY_ID.get(candidate.destinationId)?.placement;
+  if (sourcePlacement?.kind !== 'surface' || destinationPlacement?.kind !== 'aboard') return undefined;
+  const stationPlacement = ESTELLA_NODES_BY_ID.get(destinationPlacement.parentId)?.placement;
+  if (stationPlacement?.kind !== 'orbit' || !stationPlacement.orbit) return undefined;
+  const orbit = stationPlacement.orbit;
+  if (orbit.kind !== 'circular' || stationPlacement.parentId !== sourcePlacement.parentId) return undefined;
+  const body = bodyById(sourcePlacement.parentId);
+  const angularSpeed = Math.sqrt(body.gm / (orbit.radius ** 3));
+  if (!Number.isFinite(angularSpeed) || angularSpeed <= 0) return undefined;
+  const sense = orbit.orbitSense;
+  const currentAngle = orbit.epochAngle + sense * angularSpeed * (notBeforeWorldTime - orbit.epochTime);
+  const targetAngle = (sourcePlacement.angle ?? 0) + sense * leadAngle;
+  const remainingAlongOrbit = positiveAngle((targetAngle - currentAngle) * sense);
+  return notBeforeWorldTime + remainingAlongOrbit / angularSpeed;
+}
+
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
-  const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, startWorldTime);
+  const scheduledStartWorldTime = scheduledStartForDestinationLead(candidate, startWorldTime);
+  const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, scheduledStartWorldTime ?? startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
   const pay = makePayTerms({
     generosity: candidate.generosity,
@@ -160,6 +188,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     category: candidate.category ?? 'freight',
     certificationOnSuccess: candidate.certificationOnSuccess,
     travelMode: candidate.travelMode,
+    scheduledStartWorldTime,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,

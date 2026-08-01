@@ -1701,7 +1701,9 @@ export class Game {
       const transfer = contract.selectedTransfer;
       const transferSummary = transfer
         ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
-        : 'immediate/local routing';
+        : contract.scheduledStartWorldTime !== undefined
+          ? `Scheduled local departure | wait ${(Math.max(0, contract.scheduledStartWorldTime - this.career.worldTime) / 3600).toFixed(1)}h`
+          : 'immediate/local routing';
       return {
         title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
@@ -1873,7 +1875,7 @@ export class Game {
       const contract = state.contracts?.[state.contractIndex ?? -1];
       if (!contract) return;
       const selectedTransfer = contract.selectedTransfer;
-      const startWorldTime = selectedTransfer?.waitTime ?? this.career.worldTime;
+      const startWorldTime = contract.scheduledStartWorldTime ?? selectedTransfer?.waitTime ?? this.career.worldTime;
       if (contract.travelMode === 'old-nell') {
         this.completeOldNellTransit(contract);
         return;

@@ -86,7 +86,7 @@ function cargoForTemplate(template: GuildContractTemplate, sourceId: string, des
 
 function certificationCandidate(
   ctx: FactionContactContractContext,
-  candidate: Pick<FactionContractCandidate, 'templateId' | 'sourceId' | 'destinationId' | 'title' | 'certificationOnSuccess' | 'travelMode' | 'completionMessage'>,
+  candidate: Pick<FactionContractCandidate, 'templateId' | 'sourceId' | 'destinationId' | 'title' | 'certificationOnSuccess' | 'travelMode' | 'destinationLeadAngleFromSource' | 'completionMessage'>,
 ): FactionContractCandidate {
   return {
     factionId: GUILD_ID,
@@ -151,6 +151,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: NELLS_REST,
       title: 'Launch and dock at Nell’s Rest',
       certificationOnSuccess: 'basic-3',
+      destinationLeadAngleFromSource: 150 * Math.PI / 180,
       completionMessage: `Nell’s Rest closes the tractor capture and returns a clean berth report. ${ctx.issuer.name} signs the final practical. “Three for three. Welcome to the Guild rolls, Teamster.”`,
     })];
   }
