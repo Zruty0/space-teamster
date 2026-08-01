@@ -43,7 +43,7 @@ import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionC
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 import { localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
-import { drawOperationsManualArticle, operationsManualArticleById, type OperationsManualArticleId } from './operations-manual';
+import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -62,7 +62,7 @@ type Phase =
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
   | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState }
   | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }
-  | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean };
+  | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
   id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus';
@@ -259,7 +259,7 @@ export class Game {
     this.accumulator = 0;
     if (this.activeCareerContract?.templateId === 'basic-certification-still-transfer' && !this.localTransferTutorialShown) {
       this.localTransferTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'local-transfer', returnPhase: clusterPhase, tutorialSplash: true };
+      this.phase = { kind: 'manualArticle', articleId: 'local-transfer', returnPhase: clusterPhase, tutorialSplash: true, scrollOffset: 0 };
     }
   }
 
@@ -432,7 +432,7 @@ export class Game {
     } else if (p.kind === 'interactiveScene') {
       this.handleInteractiveScene(input);
     } else if (p.kind === 'manualArticle') {
-      this.handleManualArticle(input);
+      this.handleManualArticle(input, frameTime);
     }
 
     this.renderFrame();
@@ -441,8 +441,13 @@ export class Game {
 
   // --- Start menu / operating manual ---
 
-  private handleManualArticle(input: InputState): void {
+  private handleManualArticle(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'manualArticle' }>;
+    const article = operationsManualArticleById(p.articleId);
+    const maxScroll = operationsManualArticleScrollLimit(this.ctx, this.canvas, article);
+    const scrollSpeed = 460;
+    if (input.throttleUp) p.scrollOffset = Math.max(0, p.scrollOffset - scrollSpeed * frameTime);
+    if (input.throttleDown) p.scrollOffset = Math.min(maxScroll, p.scrollOffset + scrollSpeed * frameTime);
     if (input.menuConfirm || (!p.tutorialSplash && input.levelSelect)) {
       this.phase = p.returnPhase;
       this.accumulator = 0;
@@ -1739,6 +1744,7 @@ export class Game {
         articleId: 'local-transfer',
         returnPhase: { kind: 'interactiveScene', scene: { id: 'operationsManual', selectedIndex: state.selectedIndex } },
         tutorialSplash: false,
+        scrollOffset: 0,
       };
       return;
     }
@@ -1909,7 +1915,7 @@ export class Game {
     } else if (p.kind === 'interactiveScene') {
       drawInteractiveScene(this.ctx, this.canvas, this.buildInteractiveScene(p.scene), p.scene.selectedIndex);
     } else if (p.kind === 'manualArticle') {
-      drawOperationsManualArticle(this.ctx, this.canvas, operationsManualArticleById(p.articleId), p.tutorialSplash);
+      drawOperationsManualArticle(this.ctx, this.canvas, operationsManualArticleById(p.articleId), p.tutorialSplash, p.scrollOffset);
     }
     if (p.kind !== 'manualArticle') this.drawGuidanceBanner();
     if (this.phaseCompletion) {

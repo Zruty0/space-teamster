@@ -2,11 +2,18 @@ import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText 
 
 export type OperationsManualArticleId = 'local-transfer';
 
+export interface ManualControl {
+  keys: string[];
+  action: string;
+  description: string;
+  modeSpecific?: boolean;
+}
+
 export interface OperationsManualArticle {
   id: OperationsManualArticleId;
   title: string;
   introduction: string;
-  controls: { control: string; action: string }[];
+  controls: ManualControl[];
   flyingParagraphs: string[];
   procedure: string[];
   hud: { label: string; description: string }[];
@@ -17,12 +24,17 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
   title: 'Local Transfer',
   introduction: 'Local Transfer mode covers flight between stations, asteroids, and other facilities inside a shared traffic volume. There is no useful drag: once moving, your rig will continue moving until you brake. Follow the cyan target marker, then enter the destination’s dashed intercept circle below the displayed REL V limit to begin docking.',
   controls: [
-    { control: 'W A S D', action: 'Thrust up, left, down, or right on the map' },
-    { control: 'Hold Shift', action: 'High thrust' },
-    { control: 'T', action: 'Toggle braking SAS' },
-    { control: '[ / ]', action: 'Decrease/increase time warp' },
-    { control: 'Esc', action: 'Open the Flight Menu' },
-    { control: 'Backspace', action: 'Restart the current flight stage' },
+    {
+      keys: ['W', 'A', 'S', 'D'],
+      action: 'LATERAL THRUST',
+      description: 'W: up  •  A: left  •  S: down  •  D: right on the map.',
+      modeSpecific: true,
+    },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust key to accelerate faster.' },
+    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic braking. SAS works the same way in every flight mode.' },
+    { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
   ],
   flyingParagraphs: [
     'Use thrust to build velocity toward the cyan destination marker, then release the controls and coast. Start braking well before arrival.',
@@ -51,6 +63,73 @@ export function operationsManualArticleById(id: OperationsManualArticleId): Oper
   return OPERATIONS_MANUAL_ARTICLES.find(article => article.id === id) ?? LOCAL_TRANSFER_ARTICLE;
 }
 
+interface ManualGeometry {
+  panelX: number;
+  panelY: number;
+  panelW: number;
+  panelH: number;
+  contentX: number;
+  contentW: number;
+  viewportY: number;
+  viewportH: number;
+}
+
+function manualGeometry(canvas: HTMLCanvasElement): ManualGeometry {
+  const W = canvas.width;
+  const H = canvas.height;
+  const outerPad = Math.max(20, Math.min(52, W * 0.04));
+  const panelW = Math.min(980, W - outerPad * 2);
+  const panelX = (W - panelW) * 0.5;
+  const panelY = 84;
+  const panelH = H - panelY - 58;
+  return {
+    panelX,
+    panelY,
+    panelW,
+    panelH,
+    contentX: panelX + 30,
+    contentW: panelW - 60,
+    viewportY: panelY + 18,
+    viewportH: panelH - 36,
+  };
+}
+
+function wrappedHeight(ctx: CanvasRenderingContext2D, text: string, width: number, lineHeight: number): number {
+  return wrapHudText(ctx, text, width).length * lineHeight;
+}
+
+function controlCardHeight(ctx: CanvasRenderingContext2D, control: ManualControl, contentW: number): number {
+  const keyColumnW = Math.min(260, contentW * 0.34);
+  ctx.font = '12px monospace';
+  return Math.max(58, 30 + wrappedHeight(ctx, control.description, contentW - keyColumnW - 34, 16));
+}
+
+function measureArticleContent(ctx: CanvasRenderingContext2D, article: OperationsManualArticle, contentW: number): number {
+  let height = 0;
+  ctx.font = '13px monospace';
+  height += wrappedHeight(ctx, article.introduction, contentW, 18) + 22;
+  height += 30;
+  for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
+  height += 18 + 30;
+  ctx.font = '12px monospace';
+  for (const paragraph of article.flyingParagraphs) height += wrappedHeight(ctx, paragraph, contentW, 17) + 12;
+  height += 14 + 30;
+  for (const step of article.procedure) height += wrappedHeight(ctx, step, contentW - 34, 17) + 10;
+  height += 14 + 30;
+  for (const item of article.hud) height += wrappedHeight(ctx, item.description, contentW - 100, 16) + 10;
+  return height + 20;
+}
+
+export function operationsManualArticleScrollLimit(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  article: OperationsManualArticle,
+): number {
+  const geometry = manualGeometry(canvas);
+  const contentHeight = measureArticleContent(ctx, article, geometry.contentW);
+  return Math.max(0, contentHeight - geometry.viewportH);
+}
+
 function drawWrapped(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -72,7 +151,57 @@ function drawHeading(ctx: CanvasRenderingContext2D, text: string, x: number, y: 
   ctx.fillStyle = COL_TITLE;
   ctx.font = 'bold 15px monospace';
   ctx.fillText(text.toUpperCase(), x, y);
-  return y + 24;
+  return y + 30;
+}
+
+function drawKeyCaps(ctx: CanvasRenderingContext2D, keys: string[], x: number, y: number, modeSpecific: boolean): void {
+  ctx.font = 'bold 12px monospace';
+  for (const key of keys) {
+    const width = Math.max(32, ctx.measureText(key).width + 18);
+    ctx.fillStyle = modeSpecific ? 'rgba(255, 170, 0, 0.16)' : 'rgba(0, 255, 204, 0.10)';
+    ctx.strokeStyle = modeSpecific ? COL_WARNING : COL_SUCCESS;
+    ctx.lineWidth = 1.25;
+    ctx.fillRect(x, y - 16, width, 25);
+    ctx.strokeRect(x, y - 16, width, 25);
+    ctx.fillStyle = modeSpecific ? COL_WARNING : COL_SUCCESS;
+    ctx.textAlign = 'center';
+    ctx.fillText(key, x + width * 0.5, y + 1);
+    x += width + 7;
+  }
+  ctx.textAlign = 'left';
+}
+
+function drawControlCard(
+  ctx: CanvasRenderingContext2D,
+  control: ManualControl,
+  x: number,
+  y: number,
+  width: number,
+): number {
+  const height = controlCardHeight(ctx, control, width);
+  const modeSpecific = control.modeSpecific === true;
+  const keyColumnW = Math.min(260, width * 0.34);
+  ctx.fillStyle = modeSpecific ? 'rgba(255, 170, 0, 0.055)' : 'rgba(0, 120, 120, 0.035)';
+  ctx.strokeStyle = modeSpecific ? 'rgba(255, 170, 0, 0.62)' : 'rgba(0, 255, 204, 0.24)';
+  ctx.lineWidth = modeSpecific ? 1.75 : 1;
+  ctx.fillRect(x, y, width, height);
+  ctx.strokeRect(x, y, width, height);
+
+  drawKeyCaps(ctx, control.keys, x + 14, y + 31, modeSpecific);
+  const textX = x + keyColumnW;
+  ctx.font = 'bold 13px monospace';
+  ctx.fillStyle = modeSpecific ? COL_WARNING : COL_TITLE;
+  ctx.fillText(control.action, textX, y + 22);
+  if (modeSpecific) {
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = COL_WARNING;
+    ctx.textAlign = 'right';
+    ctx.fillText('MODE-SPECIFIC', x + width - 12, y + 20);
+    ctx.textAlign = 'left';
+  }
+  ctx.font = '12px monospace';
+  drawWrapped(ctx, control.description, textX, y + 43, width - keyColumnW - 20, 16, COL_HUD);
+  return y + height + 10;
 }
 
 export function drawOperationsManualArticle(
@@ -80,14 +209,14 @@ export function drawOperationsManualArticle(
   canvas: HTMLCanvasElement,
   article: OperationsManualArticle,
   tutorialSplash: boolean,
+  requestedScrollOffset: number,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
-  const pad = Math.max(24, Math.min(52, W * 0.04));
-  const panelX = pad;
-  const panelY = 84;
-  const panelW = W - pad * 2;
-  const panelH = H - panelY - 58;
+  const geometry = manualGeometry(canvas);
+  const contentHeight = measureArticleContent(ctx, article, geometry.contentW);
+  const maxScroll = Math.max(0, contentHeight - geometry.viewportH);
+  const scrollOffset = Math.max(0, Math.min(maxScroll, requestedScrollOffset));
 
   ctx.fillStyle = '#030611';
   ctx.fillRect(0, 0, W, H);
@@ -102,67 +231,69 @@ export function drawOperationsManualArticle(
   ctx.fillStyle = 'rgba(0, 120, 120, 0.045)';
   ctx.strokeStyle = tutorialSplash ? 'rgba(255, 170, 0, 0.55)' : 'rgba(0, 255, 204, 0.4)';
   ctx.lineWidth = 1.5;
-  ctx.fillRect(panelX, panelY, panelW, panelH);
-  ctx.strokeRect(panelX, panelY, panelW, panelH);
+  ctx.fillRect(geometry.panelX, geometry.panelY, geometry.panelW, geometry.panelH);
+  ctx.strokeRect(geometry.panelX, geometry.panelY, geometry.panelW, geometry.panelH);
 
   ctx.save();
   ctx.beginPath();
-  ctx.rect(panelX + 1, panelY + 1, panelW - 2, panelH - 2);
+  ctx.rect(geometry.panelX + 1, geometry.viewportY, geometry.panelW - 2, geometry.viewportH);
   ctx.clip();
   ctx.textAlign = 'left';
+
+  let y = geometry.viewportY + 10 - scrollOffset;
   ctx.font = '13px monospace';
-  let y = drawWrapped(ctx, article.introduction, panelX + 22, panelY + 28, panelW - 44, 18);
-  y += 12;
+  y = drawWrapped(ctx, article.introduction, geometry.contentX, y, geometry.contentW, 18);
+  y += 22;
 
-  const gap = 34;
-  const columnW = (panelW - 44 - gap) / 2;
-  const leftX = panelX + 22;
-  const rightX = leftX + columnW + gap;
-  let leftY = y;
-  let rightY = y;
+  y = drawHeading(ctx, 'Controls', geometry.contentX, y);
+  for (const control of article.controls) y = drawControlCard(ctx, control, geometry.contentX, y, geometry.contentW);
 
-  leftY = drawHeading(ctx, 'Controls', leftX, leftY);
-  const controlWidth = Math.min(125, columnW * 0.3);
-  for (const control of article.controls) {
-    ctx.font = 'bold 13px monospace';
-    ctx.fillStyle = COL_SUCCESS;
-    ctx.fillText(control.control, leftX, leftY);
-    ctx.font = '12px monospace';
-    leftY = drawWrapped(ctx, control.action, leftX + controlWidth, leftY, columnW - controlWidth, 16, COL_HUD);
-    leftY += 7;
-  }
-
-  leftY += 8;
-  leftY = drawHeading(ctx, 'Flying the Transfer', leftX, leftY);
+  y += 18;
+  y = drawHeading(ctx, 'Flying the Transfer', geometry.contentX, y);
   ctx.font = '12px monospace';
   for (const paragraph of article.flyingParagraphs) {
-    leftY = drawWrapped(ctx, paragraph, leftX, leftY, columnW, 17);
-    leftY += 9;
+    y = drawWrapped(ctx, paragraph, geometry.contentX, y, geometry.contentW, 17);
+    y += 12;
   }
 
-  rightY = drawHeading(ctx, 'Recommended Procedure', rightX, rightY);
-  ctx.font = '12px monospace';
+  y += 14;
+  y = drawHeading(ctx, 'Recommended Procedure', geometry.contentX, y);
   article.procedure.forEach((step, index) => {
+    ctx.font = 'bold 12px monospace';
     ctx.fillStyle = COL_SUCCESS;
-    ctx.fillText(`${index + 1}.`, rightX, rightY);
-    rightY = drawWrapped(ctx, step, rightX + 26, rightY, columnW - 26, 17);
-    rightY += 8;
+    ctx.fillText(`${index + 1}.`, geometry.contentX, y);
+    ctx.font = '12px monospace';
+    y = drawWrapped(ctx, step, geometry.contentX + 34, y, geometry.contentW - 34, 17);
+    y += 10;
   });
 
-  rightY += 8;
-  rightY = drawHeading(ctx, 'HUD', rightX, rightY);
+  y += 14;
+  y = drawHeading(ctx, 'HUD', geometry.contentX, y);
   for (const item of article.hud) {
     ctx.font = 'bold 12px monospace';
     ctx.fillStyle = COL_SUCCESS;
-    ctx.fillText(item.label, rightX, rightY);
+    ctx.fillText(item.label, geometry.contentX, y);
     ctx.font = '12px monospace';
-    rightY = drawWrapped(ctx, item.description, rightX + 70, rightY, columnW - 70, 16, COL_HUD);
-    rightY += 6;
+    y = drawWrapped(ctx, item.description, geometry.contentX + 100, y, geometry.contentW - 100, 16, COL_HUD);
+    y += 10;
   }
   ctx.restore();
 
+  if (maxScroll > 0) {
+    const trackX = geometry.panelX + geometry.panelW - 10;
+    const trackY = geometry.viewportY + 4;
+    const trackH = geometry.viewportH - 8;
+    const thumbH = Math.max(30, trackH * (geometry.viewportH / contentHeight));
+    const thumbY = trackY + (trackH - thumbH) * (scrollOffset / maxScroll);
+    ctx.fillStyle = 'rgba(0, 255, 204, 0.12)';
+    ctx.fillRect(trackX, trackY, 3, trackH);
+    ctx.fillStyle = tutorialSplash ? COL_WARNING : COL_SUCCESS;
+    ctx.fillRect(trackX - 1, thumbY, 5, thumbH);
+  }
+
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '14px monospace';
-  ctx.fillText(tutorialSplash ? 'Enter/Space: Begin local transfer' : 'Enter/Space/Esc: Return to manual', W / 2, H - 20);
+  ctx.font = '13px monospace';
+  const returnControl = tutorialSplash ? 'Enter/Space: Begin local transfer' : 'Enter/Space/Esc: Return to manual';
+  ctx.fillText(`W/S or ↑↓: Scroll   ${returnControl}`, W / 2, H - 20);
 }
