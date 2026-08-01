@@ -108,7 +108,9 @@ export const GIDEON_BELL: LocalContactDef = {
   description: 'A broad, silver-bearded older Teamster leans toward the camera in a faded Guild work shirt. Laugh lines crowd his eyes; one scarred hand cradles a steaming mug while the other rests on a battered checkride clipboard.',
   dialogue: [
     '“Hello there! Gideon Bell—Gid to everybody who isn’t filing paperwork. Good to meet you.”',
-    '“I’m sure you already know how to handle the Teamster rig, but, you know, regulations. When you’re ready, visit me at Guild HQ and we’ll get your checkride out of the way.”',
+    '“I’m sure you already know how to handle the Teamster rig, but, you know, regulations. Every new Guild number needs a witnessed checkride in the ledger before Dispatch can turn you loose on contract work.”',
+    '“Keeps the insurers calm, keeps Council inspectors out of our hair, and every so often catches somebody who thought stopping was optional.”',
+    '“When you’re ready, visit me at Guild HQ and we’ll get your checkride out of the way.”',
   ],
   actions: [],
 };
