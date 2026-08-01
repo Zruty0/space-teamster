@@ -39,6 +39,7 @@ export function drawStartMenu(
     { label: 'Restart as a New Teamster', detail: 'Reset career location, money, and world time; then open the BBS.' },
     { label: 'New Game+', detail: 'Locked until a completed career exists.', disabled: true },
     { label: 'Fly a custom mission', detail: 'Open the Estella navigation browser and choose exact-authored source and destination.' },
+    { label: 'Teamster Operating Manual', detail: 'Read flight controls, procedures, and other help articles.' },
   ];
 
   for (let i = 0; i < rows.length; i++) {
@@ -71,7 +72,7 @@ export function drawStartMenu(
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(returnAvailable ? '↑↓: Select  Enter: Select  Esc: Return  |  1-4: Select' : '↑↓: Select  Enter: Select  |  1-4: Select', W / 2, startY + rows.length * lineH + 40);
+  ctx.fillText(returnAvailable ? '↑↓: Select  Enter: Select  Esc: Return  |  1-5: Select' : '↑↓: Select  Enter: Select  |  1-5: Select', W / 2, startY + rows.length * lineH + 40);
 
   if (confirmingNewTeamsterReset) {
     const boxW = 620;

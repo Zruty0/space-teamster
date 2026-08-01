@@ -43,6 +43,7 @@ import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionC
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 import { localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
+import { drawOperationsManualArticle, operationsManualArticleById, type OperationsManualArticleId } from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -60,10 +61,11 @@ type Phase =
   | { kind: 'flightMenu'; previous: GameplayPhase }
   | { kind: 'estellaNav'; nav: EstellaNavPhaseState }
   | { kind: 'estellaMission'; mission: EstellaGeneratedMissionState }
-  | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState };
+  | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }
+  | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'careerStatus' | 'shipStatus';
+  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus';
   selectedIndex: number;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
@@ -126,9 +128,10 @@ interface PhaseTransition {
   run: () => void;
 }
 
-const START_MENU_ITEMS = 4;
+const START_MENU_ITEMS = 5;
 const FLIGHT_MENU_ITEMS = 5;
 const START_MENU_NEW_GAME_PLUS_INDEX = 2;
+const START_MENU_OPERATIONS_MANUAL_INDEX = 4;
 const FLIGHT_MENU_SHIPBOARD_TERMINAL_INDEX = 3;
 
 export class Game {
@@ -152,6 +155,7 @@ export class Game {
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
+  private localTransferTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
 
@@ -247,11 +251,16 @@ export class Game {
     const cam = createClusterCamera(level);
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    this.phase = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = clusterPhase;
     this.showGuidance(level.escapeToOrbitalLevelId ? 'LOCAL TRAFFIC: EXIT VOLUME ON ESCAPE VECTOR' : 'LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
+    if (this.activeCareerContract?.templateId === 'basic-certification-still-transfer' && !this.localTransferTutorialShown) {
+      this.localTransferTutorialShown = true;
+      this.phase = { kind: 'manualArticle', articleId: 'local-transfer', returnPhase: clusterPhase, tutorialSplash: true };
+    }
   }
 
   private loadEstellaNavigation(): void {
@@ -422,13 +431,23 @@ export class Game {
       this.handleEstellaGeneratedMission(input);
     } else if (p.kind === 'interactiveScene') {
       this.handleInteractiveScene(input);
+    } else if (p.kind === 'manualArticle') {
+      this.handleManualArticle(input);
     }
 
     this.renderFrame();
     requestAnimationFrame(this.loop);
   };
 
-  // --- Start menu ---
+  // --- Start menu / operating manual ---
+
+  private handleManualArticle(input: InputState): void {
+    const p = this.phase as Extract<Phase, { kind: 'manualArticle' }>;
+    if (input.menuConfirm || (!p.tutorialSplash && input.levelSelect)) {
+      this.phase = p.returnPhase;
+      this.accumulator = 0;
+    }
+  }
 
   private handleStartMenu(input: InputState): void {
     if (!this.confirmingNewTeamsterReset && input.levelSelect && this.startMenuReturnPhase) {
@@ -484,6 +503,10 @@ export class Game {
       this.loadEstellaNavigation();
       return;
     }
+    if (index === START_MENU_OPERATIONS_MANUAL_INDEX) {
+      this.phaseCompletion = null;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'operationsManual', selectedIndex: 0 } };
+    }
   }
 
   private handleFlightMenu(input: InputState): void {
@@ -533,6 +556,7 @@ export class Game {
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
+    this.localTransferTutorialShown = false;
   }
 
   private quitToStartMenu(): void {
@@ -1510,6 +1534,22 @@ export class Game {
       };
     }
 
+    if (state.id === 'operationsManual') {
+      return {
+        title: 'TEAMSTER OPERATING MANUAL',
+        subtitle: 'Guild-standard flight controls and operating procedures',
+        bodyRows: [
+          { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
+          { kind: 'kv', label: 'Articles', value: '1' },
+        ],
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
+        options: [
+          { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
+          { label: 'Back to Start Menu', detail: 'Close the operating manual.', action: 'startMenu', tone: 'back' },
+        ],
+      };
+    }
+
     if (state.id === 'localDirectory') {
       const entries = localDirectoryEntriesAt(this.career.locationId);
       return {
@@ -1691,6 +1731,15 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
+    if (action === 'manualArticle:local-transfer') {
+      this.phase = {
+        kind: 'manualArticle',
+        articleId: 'local-transfer',
+        returnPhase: { kind: 'interactiveScene', scene: { id: 'operationsManual', selectedIndex: state.selectedIndex } },
+        tutorialSplash: false,
+      };
+      return;
+    }
     if (action === 'localDirectory') { this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectory', selectedIndex: 0 } }; return; }
     if (action.startsWith('directoryEntry:')) {
       const directoryEntryId = action.slice('directoryEntry:'.length);
@@ -1787,6 +1836,7 @@ export class Game {
   }
 
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
+    this.localTransferTutorialShown = false;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
@@ -1856,8 +1906,10 @@ export class Game {
       drawEstellaGeneratedMission(this.ctx, this.canvas, p.mission);
     } else if (p.kind === 'interactiveScene') {
       drawInteractiveScene(this.ctx, this.canvas, this.buildInteractiveScene(p.scene), p.scene.selectedIndex);
+    } else if (p.kind === 'manualArticle') {
+      drawOperationsManualArticle(this.ctx, this.canvas, operationsManualArticleById(p.articleId), p.tutorialSplash);
     }
-    this.drawGuidanceBanner();
+    if (p.kind !== 'manualArticle') this.drawGuidanceBanner();
     if (this.phaseCompletion) {
       drawPhaseCompleteOverlay(
         this.ctx,
