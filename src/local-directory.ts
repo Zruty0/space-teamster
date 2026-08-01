@@ -20,11 +20,14 @@ export interface LocalOfficeDef extends LocalDirectoryEntryBase {
   kind: 'office';
 }
 
+export type ContactCommsRange = 'local' | 'cluster' | 'body' | 'region';
+
 export interface LocalContactDef extends LocalDirectoryEntryBase {
   kind: 'contact';
   title: string;
   description: string;
   welcomeText: string;
+  commsRange: ContactCommsRange;
 }
 
 export type LocalDirectoryEntryDef = LocalOfficeDef | LocalContactDef;
@@ -38,6 +41,34 @@ function sharedTerminalParentId(locationId: string): string | undefined {
   if (node.placement?.kind !== 'aboard') return undefined;
   const parent = ESTELLA_NODES_BY_ID.get(node.placement.parentId);
   return parent && SHARED_TERMINAL_PARENT_KINDS.has(parent.kind) ? parent.id : undefined;
+}
+
+function ancestorIdOfKind(locationId: string, kinds: Set<string>): string | undefined {
+  let node = ESTELLA_NODES_BY_ID.get(locationId);
+  const seen = new Set<string>();
+  while (node && !seen.has(node.id)) {
+    seen.add(node.id);
+    if (kinds.has(node.kind)) return node.id;
+    node = node.placement?.parentId ? ESTELLA_NODES_BY_ID.get(node.placement.parentId) : undefined;
+  }
+  return undefined;
+}
+
+const BODY_KINDS = new Set(['planet', 'moon', 'dwarf-planet', 'gas-giant']);
+const CLUSTER_KINDS = new Set(['cluster']);
+
+function withinContactRange(currentLocationId: string, contactLocationId: string, range: ContactCommsRange): boolean {
+  if (range === 'local') return false;
+  if (range === 'cluster') {
+    const currentCluster = ancestorIdOfKind(currentLocationId, CLUSTER_KINDS);
+    return currentCluster !== undefined && currentCluster === ancestorIdOfKind(contactLocationId, CLUSTER_KINDS);
+  }
+  if (range === 'body') {
+    const currentBody = ancestorIdOfKind(currentLocationId, BODY_KINDS);
+    return currentBody !== undefined && currentBody === ancestorIdOfKind(contactLocationId, BODY_KINDS);
+  }
+  const currentRegion = ESTELLA_NODES_BY_ID.get(currentLocationId)?.regionId;
+  return currentRegion !== undefined && currentRegion === ESTELLA_NODES_BY_ID.get(contactLocationId)?.regionId;
 }
 
 /** POIs sharing the current physical station or asteroid terminal. Surface sites remain separate. */
@@ -61,10 +92,11 @@ export const GIDEON_BELL: LocalContactDef = {
   name: 'Gideon “Gid” Bell',
   title: 'Senior Certification Officer',
   organizationName: 'Teamsters’ Guild',
-  locationIds: ['caravanserai-certification-authority'],
+  locationIds: ['still-guild-hq'],
   summary: 'The Guild examiner responsible for basic Teamster certification.',
+  commsRange: 'cluster',
   description: 'A broad, silver-bearded former fuel hauler with a booming laugh. Gid treats nervous applicants like junior crewmates, forgives honest mistakes, and becomes quietly immovable wherever safety is concerned.',
-  welcomeText: '“There you are! Come in, come in. If you can dock without bending my station, we’re already friends.”',
+  welcomeText: '“There you are! Signal’s clean and everything. If you can dock without bending my station, we’re already friends.”',
   actions: [
     {
       id: 'basic-certification',
@@ -78,9 +110,17 @@ export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   GIDEON_BELL,
 ];
 
-export function localDirectoryEntriesAt(locationId: string): LocalDirectoryEntryDef[] {
+export type LocalDirectoryAccess = 'local' | 'remote';
+
+export function localDirectoryEntryAccess(entry: LocalDirectoryEntryDef, locationId: string): LocalDirectoryAccess | undefined {
   const scope = new Set(localTerminalScopeIds(locationId));
-  return LOCAL_DIRECTORY_ENTRIES.filter(entry => entry.locationIds.some(id => scope.has(id)));
+  if (entry.locationIds.some(id => scope.has(id))) return 'local';
+  if (entry.kind === 'contact' && entry.locationIds.some(id => withinContactRange(locationId, id, entry.commsRange))) return 'remote';
+  return undefined;
+}
+
+export function localDirectoryEntriesAt(locationId: string): LocalDirectoryEntryDef[] {
+  return LOCAL_DIRECTORY_ENTRIES.filter(entry => localDirectoryEntryAccess(entry, locationId) !== undefined);
 }
 
 export function localDirectoryEntryById(id: string): LocalDirectoryEntryDef | undefined {

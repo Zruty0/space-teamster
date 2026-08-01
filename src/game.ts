@@ -42,7 +42,7 @@ import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCa
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
-import { localDirectoryEntriesAt, localDirectoryEntryById } from './local-directory';
+import { localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -1466,7 +1466,7 @@ export class Game {
         options: [
           { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
           { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
-          { label: 'Local Directory', detail: 'Find offices and known contacts physically present at this port.', action: 'localDirectory', tone: 'primary' },
+          { label: 'Local Directory', detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
@@ -1511,20 +1511,24 @@ export class Game {
         title: 'LOCAL DIRECTORY',
         subtitle: locationPath,
         bodyRows: [
-          { kind: 'text', text: entries.length ? 'Local offices and known contacts available through this terminal.' : 'No local offices or known contacts are listed at this port.', tone: entries.length ? undefined : 'warning' },
+          { kind: 'text', text: entries.length ? 'Local offices and reachable contacts available through this terminal.' : 'No local offices or reachable contacts are listed here.', tone: entries.length ? undefined : 'warning' },
           { kind: 'kv', label: 'Listings', value: `${entries.length}` },
-          { kind: 'kv', label: 'Access', value: 'In-person listings at the current station or surface site' },
+          { kind: 'kv', label: 'Access', value: 'Local offices plus contacts within communications range' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          ...entries.map(entry => ({
-            label: entry.name,
-            tag: entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
-            rightText: entry.organizationName,
-            detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
-            action: `directoryEntry:${entry.id}`,
-            tone: 'primary' as InteractiveTone,
-          })),
+          ...entries.map(entry => {
+            const access = localDirectoryEntryAccess(entry, this.career.locationId);
+            return {
+              label: entry.name,
+              tag: entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
+              rightText: entry.organizationName,
+              rightDetail: access === 'remote' ? 'REMOTE COMMS' : 'LOCAL',
+              detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
+              action: `directoryEntry:${entry.id}`,
+              tone: 'primary' as InteractiveTone,
+            };
+          }),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' as InteractiveTone },
         ],
       };
@@ -1533,10 +1537,14 @@ export class Game {
     if (state.id === 'localDirectoryEntry') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
+      const access = localDirectoryEntryAccess(entry, this.career.locationId);
+      const contactLocation = estellaDisplayPath(entry.locationIds[0]);
       return {
         title: entry.name.toUpperCase(),
         subtitle: entry.kind === 'contact' ? `${entry.title} — ${entry.organizationName ?? 'Independent'}` : entry.organizationName,
         bodyRows: entry.kind === 'contact' ? [
+          { kind: 'kv', label: 'Contact location', value: contactLocation },
+          { kind: 'kv', label: 'Connection', value: access === 'remote' ? 'Remote communications link' : 'Local terminal connection' },
           { kind: 'text', text: entry.description },
           { kind: 'separator' },
           { kind: 'text', text: entry.welcomeText, tone: 'success' },
