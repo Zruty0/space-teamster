@@ -11,6 +11,8 @@ interface LocalDirectoryEntryBase {
   id: string;
   name: string;
   organizationName?: string;
+  factionId?: string;
+  missionTags?: string[];
   locationIds: string[];
   summary: string;
   actions: LocalDirectoryActionDef[];
@@ -92,6 +94,8 @@ export const GIDEON_BELL: LocalContactDef = {
   name: 'Gideon “Gid” Bell',
   title: 'Senior Certification Officer',
   organizationName: 'Teamsters’ Guild',
+  factionId: 'teamsters-guild',
+  missionTags: ['certification-basic'],
   locationIds: ['still-guild-hq'],
   summary: 'The Guild examiner responsible for basic Teamster certification.',
   commsRange: 'cluster',

@@ -515,7 +515,7 @@ export function estimateEstellaMissionCost(
   selectedTransfer?: EstellaTransferOption,
   pay: ContractPayTerms = defaultPayTerms(),
 ): MissionCostQuote {
-  const loadedMassTons = SHIP_DRY_MASS_TONS + CONTAINER_TARE_TONS + cargo.massTons;
+  const loadedMassTons = SHIP_DRY_MASS_TONS + (cargo.massTons > 0 ? CONTAINER_TARE_TONS : 0) + cargo.massTons;
   const breakdown: MissionCostBreakdownItem[] = [];
   const sameClusterTravel = clusterTravelDistanceForPois(sourceId, destinationId);
   const sourceSurface = locationSurface(sourceId);

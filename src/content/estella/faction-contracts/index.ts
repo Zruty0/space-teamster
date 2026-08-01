@@ -22,6 +22,19 @@ export interface FactionContractContext {
   worldTime: number;
 }
 
+export interface FactionMissionIssuer {
+  id: string;
+  name: string;
+  factionId: string;
+  missionTags: string[];
+}
+
+export interface FactionContactContractContext extends FactionContractContext {
+  issuer: FactionMissionIssuer;
+  availableSourceIds: string[];
+  progress: Readonly<Record<string, number>>;
+}
+
 export interface FactionContractCandidate {
   factionId: string;
   factionName: string;
@@ -30,6 +43,8 @@ export interface FactionContractCandidate {
   templateId: string;
   sourceId: string;
   destinationId: string;
+  /** Optional authored title; ordinary contracts derive a title from cargo and destination. */
+  title?: string;
   cargo: MissionCargoSpec;
   likelihood: number;
   /**
@@ -43,10 +58,13 @@ export interface FactionContractCandidate {
   flatReward?: number;
   compensationRatio?: number;
   maxCompAllowance?: number;
-  /** Optional issuer-name override (e.g. a sub-committee under the same faction tag). */
+  /** Optional issuer identity overrides for named representatives and sub-committees. */
+  issuerId?: string;
   issuerName?: string;
-  /** Contract board grouping. Freight is the default; passenger contracts live on their own BBS page. */
-  category?: 'freight' | 'passenger';
+  /** Contract board grouping. Freight is the default; passenger and certification work use dedicated entry points. */
+  category?: 'freight' | 'passenger' | 'certification';
+  /** Basic Teamster practical reached when this contract succeeds. */
+  certificationStageOnSuccess?: number;
   /** Message shown on successful delivery. */
   completionMessage?: string;
 }
@@ -57,6 +75,7 @@ export interface FactionContractProvider {
   /** Faction base pay multiplier; individual templates may override it per candidate. */
   generosity?: number;
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[];
+  generateContactContracts?(ctx: FactionContactContractContext): FactionContractCandidate[];
 }
 
 export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
@@ -79,9 +98,18 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 
-export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(candidate => ({
+function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
+  return {
     ...candidate,
     completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
-  })));
+  };
+}
+
+export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
+  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(withDefaultCompletion));
+}
+
+export function generateFactionContactContractCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
+  const provider = ESTELLA_FACTION_CONTRACT_PROVIDERS.find(candidate => candidate.id === ctx.issuer.factionId);
+  return provider?.generateContactContracts?.(ctx).map(withDefaultCompletion) ?? [];
 }

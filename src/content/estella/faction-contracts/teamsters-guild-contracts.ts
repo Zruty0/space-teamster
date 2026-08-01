@@ -1,6 +1,6 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
-import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
+import type { FactionContactContractContext, FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 interface GuildContractTemplate {
   templateId: string;
@@ -48,6 +48,8 @@ const STILL_SKIM_BERTH = 'still-skim-runner-berth-poi';
 const STILL_DISTRIBUTION = 'still-distribution-bay';
 const GUILD_HQ = 'still-guild-hq';
 const CERTIFICATION_AUTHORITY = 'caravanserai-certification-authority';
+const CARAVANSERAI_COMMERCIAL_DOCK = 'caravanserai-main-commercial-dock';
+const STILL_PUBLIC_DOCK = 'still-public-approach-dock';
 
 const GUILD_TEMPLATES: GuildContractTemplate[] = [
   // Precursor skim-in: crews haul stellar antimatter precursor from the near-star skim hubs to the Still.
@@ -80,6 +82,32 @@ function cargoForTemplate(template: GuildContractTemplate, sourceId: string, des
   };
 }
 
+function basicCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
+  if ((ctx.progress.basicTeamsterCertification ?? 0) !== 0) return [];
+  if (!ctx.issuer.missionTags.includes('certification-basic')) return [];
+  if (!ctx.availableSourceIds.includes(CARAVANSERAI_COMMERCIAL_DOCK)) return [];
+  return [{
+    factionId: GUILD_ID,
+    factionName: GUILD_NAME,
+    factionTag: GUILD_TAG,
+    templateId: 'basic-certification-still-transfer',
+    sourceId: CARAVANSERAI_COMMERCIAL_DOCK,
+    destinationId: STILL_PUBLIC_DOCK,
+    title: 'Transfer to the Still for the Teamster Guild certification',
+    issuerId: ctx.issuer.id,
+    issuerName: ctx.issuer.name,
+    category: 'certification',
+    certificationStageOnSuccess: 1,
+    cargo: { label: 'Guild certification telemetry kit', massTons: 0 },
+    likelihood: 1,
+    generosity: 0,
+    flatReward: 0,
+    compensationRatio: 1,
+    maxCompAllowance: Number.MAX_SAFE_INTEGER,
+    completionMessage: `The Public Approach Dock logs your berth without damage, and ${ctx.issuer.name} closes the first practical over comms. “That’s one. Nice and tidy—leave the exciting flying to people with poorer judgment.”`,
+  }];
+}
+
 function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   for (const template of GUILD_TEMPLATES) {
@@ -110,5 +138,8 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
   generosity: GUILD_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return candidatesFromTemplates(ctx);
+  },
+  generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
+    return basicCertificationCandidates(ctx);
   },
 };

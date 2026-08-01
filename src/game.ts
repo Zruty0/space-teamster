@@ -37,7 +37,7 @@ import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estel
 import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
-import { careerContractClassLabel, generateCareerContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
+import { careerContractClassLabel, generateCareerContracts, generateDirectoryEntryContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
 import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
@@ -65,7 +65,7 @@ type Phase =
 interface InteractiveScenePhaseState {
   id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'careerStatus' | 'shipStatus';
   selectedIndex: number;
-  board?: 'freight' | 'passenger';
+  board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
   contractIndex?: number;
   directoryEntryId?: string;
@@ -306,8 +306,8 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' = 'freight'): void {
-    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex, board } };
+  private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' | 'contact' = 'freight', directoryEntryId?: string): void {
+    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex, board, directoryEntryId } };
   }
 
   private resetCareer(): void {
@@ -677,6 +677,9 @@ export class Game {
     this.career.money += contractPayoutForQuote(quote, this.missionDvUsed) - actualFuelCostForQuote(quote, this.missionDvUsed);
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
+    if (contract.certificationStageOnSuccess !== undefined) {
+      this.career.basicCertificationStage = Math.max(this.career.basicCertificationStage, contract.certificationStageOnSuccess);
+    }
     saveCareerProfile(this.career);
     this.loadStationTerminal();
   }
@@ -1461,6 +1464,7 @@ export class Game {
           { kind: 'kv', label: 'Location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
+          { kind: 'kv', label: 'Basic certification', value: `${this.career.basicCertificationStage}/3 practicals complete`, tone: this.career.basicCertificationStage >= 3 ? 'success' : undefined },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
@@ -1569,6 +1573,9 @@ export class Game {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
       if (entry.id === 'gideon-gid-bell' && state.directoryActionId === 'basic-certification') {
+        const certificationContracts = state.contracts ?? generateDirectoryEntryContracts(entry.id, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+        const firstPractical = certificationContracts.find(contract => contract.certificationStageOnSuccess === 1);
+        const firstComplete = this.career.basicCertificationStage >= 1;
         return {
           title: 'BASIC TEAMSTER CERTIFICATION',
           subtitle: 'Gideon “Gid” Bell — Teamsters’ Guild',
@@ -1576,14 +1583,27 @@ export class Game {
             { kind: 'text', text: 'Gid settles back in his chair, smiling as though you have asked him about a favorite grandchild.' },
             { kind: 'text', text: '“Three practicals. No tricks, no heroics. Show me you can bring ship, cargo, and crew home in the same number of pieces they started in.”', tone: 'success' },
             { kind: 'separator' },
-            { kind: 'kv', label: 'Practical 1', value: 'Caravanserai → the Still; local flight and docking' },
+            { kind: 'kv', label: 'Practical 1', value: `Caravanserai → the Still; local flight and docking${firstComplete ? ' — COMPLETE' : ''}`, tone: firstComplete ? 'success' : undefined },
             { kind: 'kv', label: 'Practical 2', value: 'Nell’s Rest → Weymark Town → Nell’s Rest' },
             { kind: 'kv', label: 'Practical 3', value: 'Supervised planetary transfer' },
             { kind: 'text', text: 'Passing all three earns Basic Teamster Certification. Thin- and dense-atmosphere operations are separate qualifications.' },
           ],
           footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
           options: [
-            { label: 'Back to Gid Bell', detail: 'Return to the certification officer.', action: `directoryEntry:${entry.id}`, tone: 'back' },
+            ...(firstPractical ? [{
+              label: 'Request the first practical',
+              detail: firstPractical.title,
+              action: `contactContract:${firstPractical.id}`,
+              tone: 'primary' as InteractiveTone,
+            }] : []),
+            ...(!firstComplete && !firstPractical ? [{
+              label: 'First practical unavailable here',
+              detail: 'Contact Gid from a Caravanserai terminal to begin the flight.',
+              action: 'unavailableCertification',
+              disabled: true,
+              tone: 'disabled' as InteractiveTone,
+            }] : []),
+            { label: 'Back to Gid Bell', detail: 'Return to the certification officer.', action: `directoryEntry:${entry.id}`, tone: 'back' as InteractiveTone },
           ],
         };
       }
@@ -1592,14 +1612,18 @@ export class Game {
 
     if (state.id === 'contractPosting') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
-      if (!contract) return this.buildInteractiveScene({ id: 'browseContracts', selectedIndex: 0, contracts: state.contracts ?? [] });
+      if (!contract) {
+        if (state.board === 'contact' && state.directoryEntryId) return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: state.directoryEntryId });
+        return this.buildInteractiveScene({ id: 'browseContracts', selectedIndex: 0, contracts: state.contracts ?? [] });
+      }
       const quote = contract.quote;
+      const contactPosting = state.board === 'contact';
       const transfer = contract.selectedTransfer;
       const transferSummary = transfer
         ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
         : 'immediate/local routing';
       return {
-        title: contract.category === 'passenger' ? 'PASSENGER POSTING' : 'CONTRACT POSTING',
+        title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyRows: [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
@@ -1609,17 +1633,17 @@ export class Game {
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
-          { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
+          { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
           { kind: 'kv', label: 'Published pay', value: contractPublishedPay(quote), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Net at par', value: contractMarginSummary(quote), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Transfer', value: transferSummary },
         ],
-        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
+        footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
           { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
-          { label: contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return to local postings without accepting.', action: contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
+          { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryEntry:${state.directoryEntryId}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
     }
@@ -1632,6 +1656,7 @@ export class Game {
           { kind: 'kv', label: 'Current location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
+          { kind: 'kv', label: 'Basic certification', value: `${this.career.basicCertificationStage}/3 practicals complete`, tone: this.career.basicCertificationStage >= 3 ? 'success' : undefined },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
@@ -1657,6 +1682,10 @@ export class Game {
 
     if (input.levelSelect) {
       if (p.scene.id === 'contractPosting') {
+        if (p.scene.board === 'contact' && p.scene.directoryEntryId) {
+          this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: p.scene.directoryEntryId } };
+          return;
+        }
         const id = p.scene.board === 'passenger' ? 'browsePassengerContracts' : 'browseContracts';
         this.phase = { kind: 'interactiveScene', scene: { id, selectedIndex: p.scene.contractIndex ?? 0, contracts: p.scene.contracts ?? [], board: p.scene.board } };
         return;
@@ -1696,7 +1725,15 @@ export class Game {
     }
     if (action.startsWith('directoryAction:')) {
       const [, directoryEntryId, directoryActionId] = action.split(':');
-      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId } };
+      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId, contracts } };
+      return;
+    }
+    if (action.startsWith('contactContract:')) {
+      const contractId = action.slice('contactContract:'.length);
+      const contracts = state.contracts ?? [];
+      const idx = contracts.findIndex(contract => contract.id === contractId);
+      if (idx >= 0) this.openContractPosting(contracts, idx, 'contact', state.directoryEntryId);
       return;
     }
     if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }

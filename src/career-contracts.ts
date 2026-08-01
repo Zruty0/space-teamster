@@ -1,8 +1,8 @@
 import { ESTELLA_NODES_BY_ID } from './content/estella';
-import { generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
+import { generateFactionContactContractCandidates, generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
-import { localTerminalScopeIds } from './local-directory';
+import { localDirectoryEntryById, localTerminalScopeIds } from './local-directory';
 import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
@@ -17,11 +17,13 @@ export interface CareerContract {
   destinationPath: string;
   routeClass: CareerContractClass;
   title: string;
+  factionId?: string;
   issuerId?: string;
   issuerName?: string;
   issuerTag?: string;
   templateId?: string;
-  category?: 'freight' | 'passenger';
+  category?: 'freight' | 'passenger' | 'certification';
+  certificationStageOnSuccess?: number;
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
@@ -147,12 +149,14 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     destinationName: target.name,
     destinationPath: target.path,
     routeClass: classifyRoute(candidate.sourceId, candidate.destinationId),
-    title: `${candidate.category === 'passenger' ? 'Transport' : 'Deliver'} ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
-    issuerId: candidate.factionId,
+    title: candidate.title ?? `${candidate.category === 'passenger' ? 'Transport' : 'Deliver'} ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
+    factionId: candidate.factionId,
+    issuerId: candidate.issuerId ?? candidate.factionId,
     issuerName: candidate.issuerName ?? candidate.factionName,
     issuerTag: candidate.factionTag,
     templateId: candidate.templateId,
     category: candidate.category ?? 'freight',
+    certificationStageOnSuccess: candidate.certificationStageOnSuccess,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
@@ -167,7 +171,7 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
   const contracts: CareerContract[] = [];
 
   const factionCandidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime }))
-    .filter(candidate => (candidate.category ?? 'freight') !== 'passenger')
+    .filter(candidate => (candidate.category ?? 'freight') === 'freight')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
   const factionCount = Math.min(MAX_FACTION_CONTRACTS, factionCandidates.length);
   for (const candidate of weightedPick(factionCandidates, factionCount, seed ^ 0x51f15eed)) {
@@ -176,6 +180,27 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
   }
 
   return contracts;
+}
+
+export function generateDirectoryEntryContracts(entryId: string, sourceId: string, startWorldTime: number, basicCertificationStage: number): CareerContract[] {
+  const entry = localDirectoryEntryById(entryId);
+  if (!entry?.factionId || !entry.missionTags?.length) return [];
+  const availableSourceIds = localTerminalScopeIds(sourceId);
+  const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
+  return generateFactionContactContractCandidates({
+    sourceId,
+    worldTime: startWorldTime,
+    availableSourceIds,
+    progress: { basicTeamsterCertification: basicCertificationStage },
+    issuer: {
+      id: entry.id,
+      name: entry.name,
+      factionId: entry.factionId,
+      missionTags: entry.missionTags,
+    },
+  })
+    .filter(candidate => availableSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId))
+    .map((candidate, index) => makeFactionContract(candidate, index, startWorldTime));
 }
 
 const MAX_PASSENGER_CONTRACTS = 18;
