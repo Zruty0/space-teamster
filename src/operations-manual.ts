@@ -14,7 +14,7 @@ export interface OperationsManualArticle {
   title: string;
   introduction: string;
   controls: ManualControl[];
-  flyingParagraphs: string[];
+  tips: string[];
   procedure: string[];
   hud: { label: string; description: string }[];
 }
@@ -27,17 +27,16 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
     {
       keys: ['W', 'A', 'S', 'D'],
       action: 'LATERAL THRUST',
-      description: 'W: up  •  A: left  •  S: down  •  D: right on the map.',
+      description: '',
       modeSpecific: true,
     },
     { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust key to accelerate faster.' },
-    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic braking. SAS works the same way in every flight mode.' },
+    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic braking.' },
     { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration.' },
     { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
     { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
   ],
-  flyingParagraphs: [
-    'Use thrust to build velocity toward the cyan destination marker, then release the controls and coast. Start braking well before arrival.',
+  tips: [
     'You can use high thrust to accelerate faster, but remember: all the speed you build up will later have to be cancelled.',
   ],
   procedure: [
@@ -112,9 +111,9 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
   height += 18 + 30;
   ctx.font = '12px monospace';
-  for (const paragraph of article.flyingParagraphs) height += wrappedHeight(ctx, paragraph, contentW, 17) + 12;
-  height += 14 + 30;
   for (const step of article.procedure) height += wrappedHeight(ctx, step, contentW - 34, 17) + 10;
+  height += 14 + 30;
+  for (const tip of article.tips) height += wrappedHeight(ctx, tip, contentW, 17) + 12;
   height += 14 + 30;
   for (const item of article.hud) height += wrappedHeight(ctx, item.description, contentW - 100, 16) + 10;
   return height + 20;
@@ -249,14 +248,6 @@ export function drawOperationsManualArticle(
   for (const control of article.controls) y = drawControlCard(ctx, control, geometry.contentX, y, geometry.contentW);
 
   y += 18;
-  y = drawHeading(ctx, 'Flying the Transfer', geometry.contentX, y);
-  ctx.font = '12px monospace';
-  for (const paragraph of article.flyingParagraphs) {
-    y = drawWrapped(ctx, paragraph, geometry.contentX, y, geometry.contentW, 17);
-    y += 12;
-  }
-
-  y += 14;
   y = drawHeading(ctx, 'Recommended Procedure', geometry.contentX, y);
   article.procedure.forEach((step, index) => {
     ctx.font = 'bold 12px monospace';
@@ -266,6 +257,14 @@ export function drawOperationsManualArticle(
     y = drawWrapped(ctx, step, geometry.contentX + 34, y, geometry.contentW - 34, 17);
     y += 10;
   });
+
+  y += 14;
+  y = drawHeading(ctx, 'Tips', geometry.contentX, y);
+  ctx.font = '12px monospace';
+  for (const tip of article.tips) {
+    y = drawWrapped(ctx, tip, geometry.contentX, y, geometry.contentW, 17);
+    y += 12;
+  }
 
   y += 14;
   y = drawHeading(ctx, 'HUD', geometry.contentX, y);
