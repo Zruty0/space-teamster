@@ -663,7 +663,7 @@ export function updateCluster(s: ClusterState, input: InputState, level: Cluster
 
   updateClusterRocks(s, level, dt);
   const threat = clusterCollisionThreat(s, level);
-  const warningActive = threat?.level === 'warning';
+  const warningActive = threat !== null;
   if (warningActive && !s.collisionWarningActive && s.timeWarpLevel > 0) {
     s.timeWarpLevel = 0;
     s.timeWarp = level.timeWarpLevels[0] ?? 1;
@@ -704,6 +704,16 @@ function updateClusterRocks(s: ClusterState, level: ClusterLevel, dt: number): v
 }
 
 const CLUSTER_SHIP_HIT_RADIUS = 900;
+const CLUSTER_COLLISION_WARNING_WALL_SECONDS = 8;
+const CLUSTER_COLLISION_ALERT_WALL_SECONDS = 3;
+
+function clusterCollisionWarningHorizon(level: ClusterLevel): number {
+  return Math.max(30, level.baseTimeScale * CLUSTER_COLLISION_WARNING_WALL_SECONDS);
+}
+
+function clusterCollisionAlertThreshold(level: ClusterLevel): number {
+  return Math.max(10, level.baseTimeScale * CLUSTER_COLLISION_ALERT_WALL_SECONDS);
+}
 
 function rockInSafeCircle(rock: ClusterRock, level: ClusterLevel): boolean {
   return level.members.some(member => (rock.x - member.x) ** 2 + (rock.y - member.y) ** 2 <= level.captureRadius * level.captureRadius);
@@ -755,7 +765,7 @@ function createSafeClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boo
   let fallback = createClusterRock(s, level, atEdge);
   for (let attempt = 0; attempt < 40; attempt++) {
     const rock = attempt === 0 ? fallback : createClusterRock(s, level, atEdge);
-    if (rockCollisionTime(s, rock, level, 10) === null) return rock;
+    if (rockCollisionTime(s, rock, level, clusterCollisionAlertThreshold(level)) === null) return rock;
     fallback = rock;
   }
   return fallback;
@@ -764,11 +774,11 @@ function createSafeClusterRock(s: ClusterState, level: ClusterLevel, atEdge: boo
 function clusterCollisionThreat(s: ClusterState, level: ClusterLevel): { level: 'warning' | 'alert'; ttc: number } | null {
   let minTtc = Infinity;
   for (const rock of s.rocks) {
-    const ttc = rockCollisionTime(s, rock, level, 30);
+    const ttc = rockCollisionTime(s, rock, level, clusterCollisionWarningHorizon(level));
     if (ttc !== null && ttc < minTtc) minTtc = ttc;
   }
   if (!Number.isFinite(minTtc)) return null;
-  return { level: minTtc <= 10 ? 'alert' : 'warning', ttc: minTtc };
+  return { level: minTtc <= clusterCollisionAlertThreshold(level) ? 'alert' : 'warning', ttc: minTtc };
 }
 
 export function updateClusterCamera(cam: ClusterCamera, s: ClusterState, level: ClusterLevel, dt: number, W: number, H: number): void {
@@ -876,12 +886,13 @@ function drawClusterRocks(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: 
     }
     ctx.restore();
 
-    const ttc = rockCollisionTime(s, rock, level, 30);
-    if (ttc !== null && Math.sin(time * (ttc <= 10 ? 16 : 8)) > -0.2) {
-      const rr = r + (ttc <= 10 ? 10 : 7);
+    const alertThreshold = clusterCollisionAlertThreshold(level);
+    const ttc = rockCollisionTime(s, rock, level, clusterCollisionWarningHorizon(level));
+    if (ttc !== null && Math.sin(time * (ttc <= alertThreshold ? 16 : 8)) > -0.2) {
+      const rr = r + (ttc <= alertThreshold ? 10 : 7);
       const gap = 4;
-      const arm = ttc <= 10 ? 10 : 8;
-      ctx.strokeStyle = ttc <= 10 ? '#ff3333' : '#ffdd66';
+      const arm = ttc <= alertThreshold ? 10 : 8;
+      ctx.strokeStyle = ttc <= alertThreshold ? '#ff3333' : '#ffdd66';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(rx - rr - arm, ry);
@@ -1138,8 +1149,11 @@ function drawClusterTargetIndicator(
 
 function drawSpeedVectorDot(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, W: number, H: number): void {
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
-  if (speed < 0.1) return;
-  const lookahead = 10;
+  if (speed < 0.02) return;
+  const baseLookahead = 600;
+  const maxScreenLength = 180;
+  const uncappedScreenLength = speed * baseLookahead * cam.zoom;
+  const lookahead = baseLookahead * Math.min(1, maxScreenLength / Math.max(uncappedScreenLength, 1));
   const [px, py] = cws(s.x + s.vx * lookahead, s.y + s.vy * lookahead, cam, W, H);
   ctx.beginPath();
   ctx.arc(px, py, 4, 0, Math.PI * 2);
