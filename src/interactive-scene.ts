@@ -10,6 +10,7 @@ export type InteractiveSceneBodyRow =
 export interface InteractiveSceneOption {
   label: string;
   detail?: string;
+  detailLineCount?: 1 | 2;
   disabled?: boolean;
   action: string;
   tone?: InteractiveTone;
@@ -193,7 +194,7 @@ export function drawInteractiveScene(
   ctx.fillRect(x, listY, boxW, listH);
   ctx.strokeRect(x, listY, boxW, listH);
 
-  const rowH = 58;
+  const rowH = scene.options.some(option => option.detailLineCount === 2) ? 72 : 58;
   const visibleRows = Math.max(1, Math.floor((listH - 30) / rowH));
   const maxStart = Math.max(0, scene.options.length - visibleRows);
   const start = Math.max(0, Math.min(maxStart, selectedIndex - Math.floor(visibleRows / 2)));
@@ -244,7 +245,15 @@ export function drawInteractiveScene(
       ctx.fillStyle = COL_HUD_DIM;
       ctx.font = '12px monospace';
       const detailWidth = option.rightText ? boxW - 360 : boxW - 66;
-      ctx.fillText(middleEllipsis(ctx, option.detail, detailWidth), x + 46, y + 19);
+      const maxLines = option.detailLineCount ?? 1;
+      const wrapped = wrapText(ctx, option.detail, detailWidth);
+      const detailLines = wrapped.slice(0, maxLines);
+      if (wrapped.length > maxLines) {
+        detailLines[maxLines - 1] = middleEllipsis(ctx, `${detailLines[maxLines - 1]}…`, detailWidth);
+      }
+      for (let lineIndex = 0; lineIndex < detailLines.length; lineIndex++) {
+        ctx.fillText(detailLines[lineIndex], x + 46, y + 19 + lineIndex * 15);
+      }
     }
   }
   ctx.restore();
