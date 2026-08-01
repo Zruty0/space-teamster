@@ -50,6 +50,8 @@ const GUILD_HQ = 'still-guild-hq';
 const CERTIFICATION_AUTHORITY = 'caravanserai-certification-authority';
 const CARAVANSERAI_COMMERCIAL_DOCK = 'caravanserai-main-commercial-dock';
 const STILL_PUBLIC_DOCK = 'still-public-approach-dock';
+const NELLS_REST = 'estella-viii-first-rendezvous-station';
+const WEYMARK_TOWN = 'estella-viii-settlement';
 
 const GUILD_TEMPLATES: GuildContractTemplate[] = [
   // Precursor skim-in: crews haul stellar antimatter precursor from the near-star skim hubs to the Still.
@@ -82,30 +84,78 @@ function cargoForTemplate(template: GuildContractTemplate, sourceId: string, des
   };
 }
 
-function basicCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
-  if ((ctx.progress.basicTeamsterCertification ?? 0) !== 0) return [];
-  if (!ctx.issuer.missionTags.includes('certification-basic')) return [];
-  if (!ctx.availableSourceIds.includes(CARAVANSERAI_COMMERCIAL_DOCK)) return [];
-  return [{
+function certificationCandidate(
+  ctx: FactionContactContractContext,
+  candidate: Pick<FactionContractCandidate, 'templateId' | 'sourceId' | 'destinationId' | 'title' | 'certificationOnSuccess' | 'travelMode' | 'completionMessage'>,
+): FactionContractCandidate {
+  return {
     factionId: GUILD_ID,
     factionName: GUILD_NAME,
     factionTag: GUILD_TAG,
-    templateId: 'basic-certification-still-transfer',
-    sourceId: CARAVANSERAI_COMMERCIAL_DOCK,
-    destinationId: STILL_PUBLIC_DOCK,
-    title: 'Land at the Public Approach Dock at The Still',
     issuerId: ctx.issuer.id,
     issuerName: ctx.issuer.name,
     category: 'certification',
-    certificationStageOnSuccess: 1,
-    cargo: { label: 'Guild certification telemetry kit', massTons: 0 },
+    cargo: { label: candidate.travelMode === 'old-nell' ? 'Guild apprentice passage warrant' : 'Guild certification telemetry kit', massTons: 0 },
     likelihood: 1,
     generosity: 0,
     flatReward: 0,
     compensationRatio: 1,
     maxCompAllowance: Number.MAX_SAFE_INTEGER,
-    completionMessage: `The Public Approach Dock logs your berth without damage, and ${ctx.issuer.name} closes the first practical over comms. “That’s one. Nice and tidy—leave the exciting flying to people with poorer judgment.”`,
-  }];
+    ...candidate,
+  };
+}
+
+function basicCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
+  if (!ctx.issuer.missionTags.includes('certification-basic')) return [];
+  const hasBasic1 = (ctx.progress.basic1 ?? 0) > 0;
+  const hasBasic2 = (ctx.progress.basic2 ?? 0) > 0;
+  const hasBasic3 = (ctx.progress.basic3 ?? 0) > 0;
+
+  if (!hasBasic1 && ctx.availableSourceIds.includes(CARAVANSERAI_COMMERCIAL_DOCK)) {
+    return [certificationCandidate(ctx, {
+      templateId: 'basic-certification-still-transfer',
+      sourceId: CARAVANSERAI_COMMERCIAL_DOCK,
+      destinationId: STILL_PUBLIC_DOCK,
+      title: 'Land at the Public Approach Dock at The Still',
+      certificationOnSuccess: 'basic-1',
+      completionMessage: `The Public Approach Dock logs your berth without damage, and ${ctx.issuer.name} closes the first practical over comms. “That’s one. Nice and tidy—leave the exciting flying to people with poorer judgment.”`,
+    })];
+  }
+
+  if (hasBasic1 && !hasBasic2 && ctx.availableSourceIds.includes(GUILD_HQ)) {
+    return [certificationCandidate(ctx, {
+      templateId: 'basic-certification-board-old-nell',
+      sourceId: GUILD_HQ,
+      destinationId: NELLS_REST,
+      title: 'Board Old Nell for the checkride',
+      travelMode: 'old-nell',
+      completionMessage: `Old Nell delivers you and the training rig to Nell’s Rest. ${ctx.issuer.name} has already placed the next practical with the station certification office.`,
+    })];
+  }
+
+  if (hasBasic1 && !hasBasic2 && ctx.availableSourceIds.includes(NELLS_REST)) {
+    return [certificationCandidate(ctx, {
+      templateId: 'basic-certification-weymark-landing',
+      sourceId: NELLS_REST,
+      destinationId: WEYMARK_TOWN,
+      title: 'Deorbit and land at Weymark Town',
+      certificationOnSuccess: 'basic-2',
+      completionMessage: `Weymark Town traffic logs the training rig safely on the pad. ${ctx.issuer.name} signs the landing practical over the certification link. “Good. Any landing you can file afterward is worth keeping.”`,
+    })];
+  }
+
+  if (hasBasic2 && !hasBasic3 && ctx.availableSourceIds.includes(WEYMARK_TOWN)) {
+    return [certificationCandidate(ctx, {
+      templateId: 'basic-certification-nells-rest-return',
+      sourceId: WEYMARK_TOWN,
+      destinationId: NELLS_REST,
+      title: 'Launch and dock at Nell’s Rest',
+      certificationOnSuccess: 'basic-3',
+      completionMessage: `Nell’s Rest closes the tractor capture and returns a clean berth report. ${ctx.issuer.name} signs the final practical. “Three for three. Welcome to the Guild rolls, Teamster.”`,
+    })];
+  }
+
+  return [];
 }
 
 function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCandidate[] {

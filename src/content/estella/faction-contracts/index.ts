@@ -1,3 +1,4 @@
+import type { TeamsterCertificationId } from '../../../career-state';
 import type { MissionCargoSpec } from '../../../mission-cost';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
@@ -63,8 +64,10 @@ export interface FactionContractCandidate {
   issuerName?: string;
   /** Contract board grouping. Freight is the default; passenger and certification work use dedicated entry points. */
   category?: 'freight' | 'passenger' | 'certification';
-  /** Basic Teamster practical reached when this contract succeeds. */
-  certificationStageOnSuccess?: number;
+  /** Certification recorded when this contract succeeds. */
+  certificationOnSuccess?: TeamsterCertificationId;
+  /** Non-flight passage supplied as part of a certification mission. */
+  travelMode?: 'old-nell';
   /** Message shown on successful delivery. */
   completionMessage?: string;
 }

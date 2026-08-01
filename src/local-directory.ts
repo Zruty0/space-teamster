@@ -1,3 +1,4 @@
+import type { TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaSelectableNavTargets } from './content/estella/navigation';
 
@@ -38,6 +39,11 @@ export interface LocalContactDef extends LocalDirectoryEntryBase {
 }
 
 export type LocalDirectoryEntryDef = LocalOfficeDef | LocalContactDef;
+
+export interface LocalContactPresentation {
+  description: string;
+  dialogue: string[];
+}
 
 const SHARED_TERMINAL_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid']);
 
@@ -115,6 +121,66 @@ export const GIDEON_BELL: LocalContactDef = {
   actions: [],
 };
 
+export function localContactPresentation(
+  contact: LocalContactDef,
+  currentLocationId: string,
+  certifications: readonly TeamsterCertificationId[],
+): LocalContactPresentation {
+  if (contact.id !== GIDEON_BELL.id) return { description: contact.description, dialogue: contact.dialogue };
+
+  const hasBasic1 = certifications.includes('basic-1');
+  const hasBasic2 = certifications.includes('basic-2');
+  const hasBasic3 = certifications.includes('basic-3');
+  const atStill = localTerminalScopeIds(currentLocationId).includes('still-guild-hq');
+  const atNellsRest = localTerminalScopeIds(currentLocationId).includes('estella-viii-first-rendezvous-station');
+  const atWeymarkTown = currentLocationId === 'estella-viii-settlement';
+
+  if (hasBasic3) {
+    return {
+      description: contact.description,
+      dialogue: [
+        '“There’s our newly certified Teamster. All three practicals are in the ledger, seals and signatures included.”',
+        '“You’re cleared for ordinary Guild contract work. Try not to make me regret writing ‘sound judgment’ in the final box.”',
+      ],
+    };
+  }
+
+  if (hasBasic2) {
+    return {
+      description: contact.description,
+      dialogue: [
+        atWeymarkTown
+          ? '“Weymark Town sent me the touchdown record. Nicely done.”'
+          : '“I have your landing practical here. Two marks down, one to go.”',
+        '“Take the rig back to orbit and dock at Nell’s Rest. A clean tractor capture completes the Basic Teamster checkride.”',
+      ],
+    };
+  }
+
+  if (hasBasic1 && atNellsRest) {
+    return {
+      description: 'The certification-office terminal carries a slightly delayed feed from Gid’s office inside Guild HQ at the Still. Gid fills most of the frame: broad, silver-bearded, and still in the same faded work shirt, with a steaming mug beside his battered checkride clipboard.',
+      dialogue: [
+        '“Made it aboard Old Nell, did you? Good. She rattles, but she has never misplaced an apprentice.”',
+        '“Next practical is yours: undock from Nell’s Rest, deorbit, and put the rig down at Weymark Town. Call me again after landing.”',
+      ],
+    };
+  }
+
+  if (hasBasic1 && atStill) {
+    return {
+      description: 'Gid’s office is wedged deep inside Guild HQ, a narrow room lined with dented maneuvering plaques, paper ledgers, and photographs of obsolete tugs. Gid himself is broad and silver-bearded, in a faded Guild work shirt; laugh lines crowd his eyes as one scarred hand offers a chair and the other guards a steaming mug.',
+      dialogue: [
+        '“There you are. The Public Approach Dock sent me a clean berth report, so your first practical is in the ledger.”',
+        '“Old Nell is carrying the next apprentice packet to Weymark. Board her here and she’ll take you and the training rig to Nell’s Rest.”',
+        '“Report to the Certification Office when you arrive and call me from there. I’ll issue the deorbit checkride over the Guild link.”',
+      ],
+    };
+  }
+
+  return { description: contact.description, dialogue: contact.dialogue };
+}
+
 export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   kind: 'office',
   id: 'teamsters-guild-certification-office',
@@ -134,8 +200,48 @@ export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   ],
 };
 
+export const NELLS_REST_CERTIFICATION_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'nells-rest-certification-office',
+  name: 'Teamsters’ Guild Certification Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-viii-first-rendezvous-station'],
+  summary: 'Guild checkride administration and apprentice flight dispatch.',
+  description: 'The Certification Office is a glass-fronted room off Nell’s Rest’s maintenance concourse. Training orbits cover one wall; a heavy Guild communications terminal occupies the examiner’s desk, patched directly to Guild HQ at the Still.',
+  actions: [
+    {
+      id: 'contact-gid-for-weymark-checkride',
+      label: 'Contact Gid for checkride instructions',
+      detail: 'Open the reserved certification link to Guild HQ at the Still.',
+      tag: 'TUTORIAL',
+      contactId: GIDEON_BELL.id,
+    },
+  ],
+};
+
+export const WEYMARK_TOWN_CERTIFICATION_DESK: LocalOfficeDef = {
+  kind: 'office',
+  id: 'weymark-town-certification-desk',
+  name: 'Teamsters’ Guild Checkride Desk',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-viii-settlement'],
+  summary: 'The Guild terminal used to close surface practicals and issue return flights.',
+  description: 'A reinforced terminal booth beside Weymark Town’s pad office carries a Guild seal, a telemetry reader, and a direct certification circuit back to Gid at the Still.',
+  actions: [
+    {
+      id: 'contact-gid-for-return-checkride',
+      label: 'Contact Gid after landing',
+      detail: 'Submit the landing record and request the final practical.',
+      tag: 'TUTORIAL',
+      contactId: GIDEON_BELL.id,
+    },
+  ],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
+  NELLS_REST_CERTIFICATION_OFFICE,
+  WEYMARK_TOWN_CERTIFICATION_DESK,
   GIDEON_BELL,
 ];
 

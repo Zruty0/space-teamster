@@ -1,3 +1,4 @@
+import type { TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContactContractCandidates, generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
@@ -23,7 +24,8 @@ export interface CareerContract {
   issuerTag?: string;
   templateId?: string;
   category?: 'freight' | 'passenger' | 'certification';
-  certificationStageOnSuccess?: number;
+  certificationOnSuccess?: TeamsterCertificationId;
+  travelMode?: 'old-nell';
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
@@ -156,7 +158,8 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     issuerTag: candidate.factionTag,
     templateId: candidate.templateId,
     category: candidate.category ?? 'freight',
-    certificationStageOnSuccess: candidate.certificationStageOnSuccess,
+    certificationOnSuccess: candidate.certificationOnSuccess,
+    travelMode: candidate.travelMode,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
@@ -182,7 +185,7 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
   return contracts;
 }
 
-export function generateDirectoryEntryContracts(entryId: string, sourceId: string, startWorldTime: number, basicCertificationStage: number): CareerContract[] {
+export function generateDirectoryEntryContracts(entryId: string, sourceId: string, startWorldTime: number, certifications: readonly TeamsterCertificationId[]): CareerContract[] {
   const entry = localDirectoryEntryById(entryId);
   if (!entry?.factionId || !entry.missionTags?.length) return [];
   const availableSourceIds = localTerminalScopeIds(sourceId);
@@ -191,7 +194,12 @@ export function generateDirectoryEntryContracts(entryId: string, sourceId: strin
     sourceId,
     worldTime: startWorldTime,
     availableSourceIds,
-    progress: { basicTeamsterCertification: basicCertificationStage },
+    progress: {
+      basicTeamsterCertification: ['basic-1', 'basic-2', 'basic-3'].filter(id => certifications.includes(id as TeamsterCertificationId)).length,
+      basic1: certifications.includes('basic-1') ? 1 : 0,
+      basic2: certifications.includes('basic-2') ? 1 : 0,
+      basic3: certifications.includes('basic-3') ? 1 : 0,
+    },
     issuer: {
       id: entry.id,
       name: entry.name,

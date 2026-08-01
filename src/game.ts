@@ -38,11 +38,11 @@ import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateCareerContracts, generateDirectoryEntryContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
-import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
+import { CAREER_START_LOCATION_ID, awardTeamsterCertification, basicTeamsterCertificationStage, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
-import { localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
+import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
 import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
@@ -65,7 +65,7 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus';
+  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival';
   selectedIndex: number;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
@@ -714,11 +714,23 @@ export class Game {
     this.career.money += contractPayoutForQuote(quote, this.missionDvUsed) - actualFuelCostForQuote(quote, this.missionDvUsed);
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
-    if (contract.certificationStageOnSuccess !== undefined) {
-      this.career.basicCertificationStage = Math.max(this.career.basicCertificationStage, contract.certificationStageOnSuccess);
+    if (contract.certificationOnSuccess !== undefined) {
+      awardTeamsterCertification(this.career, contract.certificationOnSuccess);
     }
     saveCareerProfile(this.career);
     this.loadStationTerminal();
+  }
+
+  private completeOldNellTransit(contract: CareerContract): void {
+    const transfer = contract.selectedTransfer;
+    const departureTime = transfer ? Math.max(this.career.worldTime, transfer.waitTime) : this.career.worldTime;
+    this.career.locationId = contract.destinationId;
+    this.career.worldTime = departureTime + (transfer?.transferTime ?? 0);
+    this.worldTime = this.career.worldTime;
+    saveCareerProfile(this.career);
+    this.phaseCompletion = null;
+    this.phase = { kind: 'interactiveScene', scene: { id: 'oldNellArrival', selectedIndex: 0, contracts: [contract] } };
+    this.accumulator = 0;
   }
 
   private logSuccessfulGeneratedRun(): void {
@@ -1501,7 +1513,7 @@ export class Game {
           { kind: 'kv', label: 'Location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
-          { kind: 'kv', label: 'Basic certification', value: `${this.career.basicCertificationStage}/3 practicals complete`, tone: this.career.basicCertificationStage >= 3 ? 'success' : undefined },
+          { kind: 'kv', label: 'Basic certification', value: `${basicTeamsterCertificationStage(this.career)}/3 practicals complete`, tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : undefined },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
@@ -1511,6 +1523,25 @@ export class Game {
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
+        ],
+      };
+    }
+
+    if (state.id === 'oldNellArrival') {
+      const contract = state.contracts?.[0];
+      return {
+        title: 'ARRIVED ABOARD OLD NELL',
+        subtitle: locationPath,
+        bodyRows: [
+          { kind: 'text', text: 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your training rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
+          { kind: 'separator' },
+          { kind: 'text', text: contract?.completionMessage ?? 'Your Guild apprentice passage is complete.', tone: 'success' },
+          { kind: 'kv', label: 'Current location', value: locationPath },
+          { kind: 'kv', label: 'Fare', value: 'Guild apprentice passage — no charge' },
+        ],
+        footer: 'Enter/Space: continue',
+        options: [
+          { label: 'Continue to Nell’s Rest terminal', detail: 'Find the local Certification Office through the directory.', action: 'stationTerminal', tone: 'primary' },
         ],
       };
     }
@@ -1597,14 +1628,17 @@ export class Game {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
       const contactLocation = estellaDisplayPath(entry.locationIds[0]);
-      const contactContracts = state.contracts ?? generateDirectoryEntryContracts(entry.id, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      const contactContracts = state.contracts ?? generateDirectoryEntryContracts(entry.id, this.career.locationId, this.career.worldTime, this.career.certifications);
+      const contactPresentation = entry.kind === 'contact'
+        ? localContactPresentation(entry, this.career.locationId, this.career.certifications)
+        : undefined;
       return {
         title: entry.name.toUpperCase(),
         subtitle: entry.kind === 'contact' ? `${entry.title} — ${entry.organizationName ?? 'Independent'}` : entry.organizationName,
         bodyRows: entry.kind === 'contact' ? [
-          { kind: 'text', text: entry.description },
+          { kind: 'text', text: contactPresentation?.description ?? entry.description },
           { kind: 'separator' },
-          ...entry.dialogue.map((text, index) => ({ kind: 'text' as const, text, tone: index === 0 ? 'success' as const : undefined })),
+          ...(contactPresentation?.dialogue ?? entry.dialogue).map((text, index) => ({ kind: 'text' as const, text, tone: index === 0 ? 'success' as const : undefined })),
         ] : [
           { kind: 'text', text: entry.description },
           { kind: 'kv', label: 'Organization', value: entry.organizationName ?? 'Independent' },
@@ -1616,7 +1650,7 @@ export class Game {
             label: contract.title,
             tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
             tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
-            detail: `${contract.sourceName} → ${contract.destinationName} — ${contractPublishedPay(contract.quote)}`,
+            detail: `${contract.sourceName} → ${contract.destinationName} — ${contract.travelMode === 'old-nell' ? 'passage provided · no pay' : contractPublishedPay(contract.quote)}`,
             action: `contactContract:${contract.id}`,
             tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
@@ -1654,7 +1688,16 @@ export class Game {
       return {
         title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
-        bodyRows: [
+        bodyRows: contract.travelMode === 'old-nell' ? [
+          { kind: 'kv', label: 'Mission', value: contract.title, tone: 'success' },
+          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
+          { kind: 'kv', label: 'Boarding', value: contract.sourcePath },
+          { kind: 'kv', label: 'Arrival', value: contract.destinationPath },
+          { kind: 'separator' },
+          { kind: 'kv', label: 'Passage', value: 'Old Nell — Guild apprentice berth' },
+          { kind: 'kv', label: 'Fare', value: 'No charge', tone: 'warning' },
+          { kind: 'kv', label: 'Schedule', value: transferSummary },
+        ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
           { kind: 'kv', label: 'Source', value: contract.sourcePath },
@@ -1671,7 +1714,7 @@ export class Game {
         ],
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
-          { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
+          { label: contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract', detail: contract.travelMode === 'old-nell' ? 'Use the Guild apprentice berth and travel to Nell’s Rest.' : 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
           { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryContact:${state.directoryEntryId}:${state.directoryParentEntryId ?? ''}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
@@ -1685,7 +1728,10 @@ export class Game {
           { kind: 'kv', label: 'Current location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
-          { kind: 'kv', label: 'Basic certification', value: `${this.career.basicCertificationStage}/3 practicals complete`, tone: this.career.basicCertificationStage >= 3 ? 'success' : undefined },
+          { kind: 'kv', label: 'Basic 1 — Local transfer', value: hasTeamsterCertification(this.career, 'basic-1') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-1') ? 'success' : undefined },
+          { kind: 'kv', label: 'Basic 2 — Surface landing', value: hasTeamsterCertification(this.career, 'basic-2') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-2') ? 'success' : undefined },
+          { kind: 'kv', label: 'Basic 3 — Return docking', value: hasTeamsterCertification(this.career, 'basic-3') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : undefined },
+          { kind: 'kv', label: 'Basic Teamster Certification', value: hasTeamsterCertification(this.career, 'basic-3') ? 'CERTIFIED' : 'IN PROGRESS', tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : 'warning' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
@@ -1759,13 +1805,13 @@ export class Game {
     if (action === 'localDirectory') { this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectory', selectedIndex: 0 } }; return; }
     if (action.startsWith('directoryEntry:')) {
       const directoryEntryId = action.slice('directoryEntry:'.length);
-      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.certifications);
       this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId, contracts } };
       return;
     }
     if (action.startsWith('directoryContact:')) {
       const [, directoryEntryId, directoryParentEntryId] = action.split(':');
-      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.certifications);
       this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId, directoryParentEntryId: directoryParentEntryId || undefined, contracts } };
       return;
     }
@@ -1774,18 +1820,18 @@ export class Game {
       const directoryEntry = localDirectoryEntryById(directoryEntryId);
       const directoryAction = directoryEntry?.actions.find(candidate => candidate.id === directoryActionId);
       if (directoryAction?.contactId) {
-        const contracts = generateDirectoryEntryContracts(directoryAction.contactId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+        const contracts = generateDirectoryEntryContracts(directoryAction.contactId, this.career.locationId, this.career.worldTime, this.career.certifications);
         this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: directoryAction.contactId, directoryParentEntryId: directoryEntryId, contracts } };
         return;
       }
-      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.certifications);
       this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId, contracts } };
       return;
     }
     if (action.startsWith('contactContract:')) {
       const contractId = action.slice('contactContract:'.length);
       const contracts = state.contracts ?? (state.directoryEntryId
-        ? generateDirectoryEntryContracts(state.directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage)
+        ? generateDirectoryEntryContracts(state.directoryEntryId, this.career.locationId, this.career.worldTime, this.career.certifications)
         : []);
       const idx = contracts.findIndex(contract => contract.id === contractId);
       if (idx >= 0) this.openContractPosting(contracts, idx, 'contact', state.directoryEntryId, state.directoryParentEntryId);
@@ -1805,6 +1851,10 @@ export class Game {
       if (!contract) return;
       const selectedTransfer = contract.selectedTransfer;
       const startWorldTime = selectedTransfer?.waitTime ?? this.career.worldTime;
+      if (contract.travelMode === 'old-nell') {
+        this.completeOldNellTransit(contract);
+        return;
+      }
       this.activeCareerContract = contract;
       this.activeMissionQuote = contract.quote;
       this.activeMissionTransfer = selectedTransfer;
