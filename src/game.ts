@@ -41,7 +41,7 @@ import { careerContractClassLabel, generateCareerContracts, generateDirectoryEnt
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, basicTeamsterCertificationStage, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
-import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
 import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
 
@@ -73,6 +73,7 @@ interface InteractiveScenePhaseState {
   directoryEntryId?: string;
   directoryActionId?: string;
   directoryParentEntryId?: string;
+  bodyScrollOffset?: number;
 }
 
 interface PhaseCompletion {
@@ -1574,7 +1575,7 @@ export class Game {
             label: contract.title,
             labelLineCount: 2 as const,
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
-            rightText: contractPublishedPayForContract(contract),
+            rightText: contractPublishedPay(contract.quote),
             rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
             detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
             action: `contract:${contract.id}`,
@@ -1659,7 +1660,7 @@ export class Game {
             labelLineCount: 2 as const,
             tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
             tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
-            detail: `${contract.sourceName} → ${contract.destinationName} — ${contract.travelMode === 'old-nell' ? 'passage provided · no pay' : contractPublishedPayForContract(contract)}`,
+            detail: `${contract.sourceName} → ${contract.destinationName}`,
             action: `contactContract:${contract.id}`,
             tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
@@ -1697,6 +1698,7 @@ export class Game {
       return {
         title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
+        bodyMaxHeight: 360,
         bodyRows: contract.travelMode === 'old-nell' ? [
           { kind: 'kv', label: 'Mission', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
@@ -1778,6 +1780,11 @@ export class Game {
       this.phase = { kind: 'startMenu' };
       return;
     }
+
+    const maxBodyScroll = interactiveSceneBodyScrollLimit(this.ctx, this.canvas, scene);
+    p.scene.bodyScrollOffset = Math.max(0, Math.min(maxBodyScroll, p.scene.bodyScrollOffset ?? 0));
+    if (input.pageUp) p.scene.bodyScrollOffset = Math.max(0, p.scene.bodyScrollOffset - 180);
+    if (input.pageDown) p.scene.bodyScrollOffset = Math.min(maxBodyScroll, p.scene.bodyScrollOffset + 180);
 
     if (p.scene.selectedIndex < 0 || p.scene.selectedIndex >= itemCount) p.scene.selectedIndex = 0;
     if (input.menuUp) p.scene.selectedIndex = (p.scene.selectedIndex - 1 + itemCount) % itemCount;
@@ -1981,7 +1988,7 @@ export class Game {
     } else if (p.kind === 'estellaMission') {
       drawEstellaGeneratedMission(this.ctx, this.canvas, p.mission);
     } else if (p.kind === 'interactiveScene') {
-      drawInteractiveScene(this.ctx, this.canvas, this.buildInteractiveScene(p.scene), p.scene.selectedIndex);
+      drawInteractiveScene(this.ctx, this.canvas, this.buildInteractiveScene(p.scene), p.scene.selectedIndex, p.scene.bodyScrollOffset);
     } else if (p.kind === 'manualArticle') {
       drawOperationsManualArticle(this.ctx, this.canvas, operationsManualArticleById(p.articleId), p.tutorialSplash, p.scrollOffset);
     }

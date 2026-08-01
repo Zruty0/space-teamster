@@ -26,6 +26,8 @@ export interface InputState {
   menuLeft: boolean;       // edge-triggered
   menuRight: boolean;      // edge-triggered
   menuConfirm: boolean;    // edge-triggered (Enter/Space)
+  pageUp: boolean;         // edge-triggered (Page Up)
+  pageDown: boolean;       // edge-triggered (Page Down)
   continueAction: boolean; // edge-triggered (Enter)
   // Approach controls
   toggleWings: boolean;    // G edge-triggered (deploy/retract wings)
@@ -47,7 +49,7 @@ window.addEventListener('keydown', (e) => {
   }
   keys.add(e.code);
   // Prevent browser scroll/navigation on gameplay keys
-  if (['Space', 'Backspace', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+  if (['Space', 'Backspace', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(e.code)) {
     e.preventDefault();
   }
 });
@@ -102,6 +104,8 @@ export function readInput(): InputState {
   const menuLeft = justPressed.has('ArrowLeft') || justPressed.has('KeyA');
   const menuRight = justPressed.has('ArrowRight') || justPressed.has('KeyD');
   const menuConfirm = justPressed.has('Enter') || justPressed.has('Space');
+  const pageUp = justPressed.has('PageUp');
+  const pageDown = justPressed.has('PageDown');
   const continueAction = justPressed.has('Enter');
 
   // Approach controls
@@ -144,6 +148,8 @@ export function readInput(): InputState {
     menuLeft,
     menuRight,
     menuConfirm,
+    pageUp,
+    pageDown,
     continueAction,
     toggleWings,
     wingAngleUp,

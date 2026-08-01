@@ -26,6 +26,7 @@ export interface InteractiveScene {
   subtitle?: string;
   bodyLines?: string[];
   bodyRows?: InteractiveSceneBodyRow[];
+  bodyMaxHeight?: number;
   options: InteractiveSceneOption[];
   footer?: string;
 }
@@ -106,6 +107,33 @@ function bodyRows(scene: InteractiveScene): InteractiveSceneBodyRow[] {
     : { kind: 'text', text: line });
 }
 
+function sceneBodyMetrics(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  scene: InteractiveScene,
+): { contentHeight: number; viewportHeight: number } {
+  const boxW = Math.min(920, canvas.width - 80);
+  const rows = bodyRows(scene);
+  ctx.font = '13px monospace';
+  const contentHeight = rows.reduce((height, row) => {
+    if (row.kind === 'separator') return height + 14;
+    if (row.kind === 'kv') return height + (row.valueLineCount === 2 ? 40 : 22);
+    return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
+  }, 0);
+  const requestedHeight = rows.length ? Math.min(scene.bodyMaxHeight ?? 260, 24 + contentHeight) : 0;
+  const viewportHeight = Math.min(requestedHeight, Math.max(80, canvas.height - 282));
+  return { contentHeight, viewportHeight };
+}
+
+export function interactiveSceneBodyScrollLimit(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  scene: InteractiveScene,
+): number {
+  const { contentHeight, viewportHeight } = sceneBodyMetrics(ctx, canvas, scene);
+  return Math.max(0, contentHeight + 24 - viewportHeight);
+}
+
 function drawScrollHint(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, text: string): void {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
   ctx.fillRect(x + 1, y - 12, w - 2, 16);
@@ -120,6 +148,7 @@ export function drawInteractiveScene(
   canvas: HTMLCanvasElement,
   scene: InteractiveScene,
   selectedIndex: number,
+  requestedBodyScrollOffset = 0,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -141,13 +170,9 @@ export function drawInteractiveScene(
   const bodyY = 92;
   const rows = bodyRows(scene);
   const labelW = 165;
-  ctx.font = '13px monospace';
-  const bodyContentH = rows.reduce((height, row) => {
-    if (row.kind === 'separator') return height + 14;
-    if (row.kind === 'kv') return height + (row.valueLineCount === 2 ? 40 : 22);
-    return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
-  }, 0);
-  const bodyH = rows.length ? Math.min(260, 24 + bodyContentH) : 0;
+  const { contentHeight: bodyContentH, viewportHeight: bodyH } = sceneBodyMetrics(ctx, canvas, scene);
+  const maxBodyScroll = Math.max(0, bodyContentH + 24 - bodyH);
+  const bodyScrollOffset = Math.max(0, Math.min(maxBodyScroll, requestedBodyScrollOffset));
 
   if (rows.length) {
     ctx.fillStyle = 'rgba(0, 120, 120, 0.045)';
@@ -160,7 +185,7 @@ export function drawInteractiveScene(
     ctx.rect(x + 1, bodyY + 1, boxW - 2, bodyH - 2);
     ctx.clip();
 
-    let y = bodyY + 27;
+    let y = bodyY + 27 - bodyScrollOffset;
     const bottom = bodyY + bodyH - 12;
     for (const row of rows) {
       if (y > bottom) break;
@@ -204,7 +229,8 @@ export function drawInteractiveScene(
       y += 2;
     }
     ctx.restore();
-    if (bodyContentH + 24 > bodyH) drawScrollHint(ctx, x, bodyY + bodyH - 3, boxW, '↓ more detail');
+    if (bodyScrollOffset > 0) drawScrollHint(ctx, x, bodyY + 13, boxW, 'PgUp: earlier detail');
+    if (bodyScrollOffset < maxBodyScroll) drawScrollHint(ctx, x, bodyY + bodyH - 3, boxW, 'PgDn: more detail');
   }
 
   const listY = bodyY + bodyH + (bodyH ? 18 : 0);
@@ -296,5 +322,6 @@ export function drawInteractiveScene(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '14px monospace';
-  ctx.fillText(scene.footer ?? 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu', W / 2, H - 24);
+  const footer = scene.footer ?? 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu';
+  ctx.fillText(maxBodyScroll > 0 ? `PgUp/PgDn: details   ${footer}` : footer, W / 2, H - 24);
 }
