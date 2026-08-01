@@ -167,6 +167,7 @@ export class Game {
   private localTransferTutorialShown = false;
   private surfaceFlightTutorialShown = false;
   private orbitDeorbitTutorialShown = false;
+  private orbitalRendezvousTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
 
@@ -395,6 +396,9 @@ export class Game {
     if (this.activeCareerContract?.templateId === 'basic-certification-weymark-landing' && !this.orbitDeorbitTutorialShown) {
       this.orbitDeorbitTutorialShown = true;
       this.phase = { kind: 'manualArticle', articleId: 'orbit-deorbit', returnPhase: orbitalPhase, tutorialSplash: true, scrollOffset: 0 };
+    } else if (this.activeCareerContract?.templateId === 'basic-certification-nells-rest-return' && !this.orbitalRendezvousTutorialShown) {
+      this.orbitalRendezvousTutorialShown = true;
+      this.phase = { kind: 'manualArticle', articleId: 'orbital-rendezvous', returnPhase: orbitalPhase, tutorialSplash: true, scrollOffset: 0 };
     }
   }
 
@@ -591,6 +595,7 @@ export class Game {
     this.localTransferTutorialShown = false;
     this.surfaceFlightTutorialShown = false;
     this.orbitDeorbitTutorialShown = false;
+    this.orbitalRendezvousTutorialShown = false;
   }
 
   private quitToStartMenu(): void {
@@ -1607,7 +1612,7 @@ export class Game {
         subtitle: 'Guild-standard flight controls and operating procedures',
         bodyRows: [
           { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
-          { kind: 'kv', label: 'Articles', value: '4' },
+          { kind: 'kv', label: 'Articles', value: '5' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
@@ -1615,6 +1620,7 @@ export class Game {
           { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
           { label: 'Surface Landing and Takeoff', detail: 'Landing-pad descent, touchdown, and departure from the surface.', action: 'manualArticle:surface-flight', tone: 'primary' },
           { label: 'Orbit and Deorbit', detail: 'Changing an orbit and entering a surface approach corridor.', action: 'manualArticle:orbit-deorbit', tone: 'primary' },
+          { label: 'Orbital Rendezvous', detail: 'Phasing with a station, matching velocity, and entering capture.', action: 'manualArticle:orbital-rendezvous', tone: 'primary' },
           { label: 'Back to Start Menu', detail: 'Close the operations handbook.', action: 'startMenu', tone: 'back' },
         ],
       };
@@ -1833,14 +1839,16 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
-    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight' || action === 'manualArticle:orbit-deorbit') {
+    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight' || action === 'manualArticle:orbit-deorbit' || action === 'manualArticle:orbital-rendezvous') {
       const articleId: OperationsManualArticleId = action === 'manualArticle:docking-undocking'
         ? 'docking-undocking'
         : action === 'manualArticle:surface-flight'
           ? 'surface-flight'
           : action === 'manualArticle:orbit-deorbit'
             ? 'orbit-deorbit'
-            : 'local-transfer';
+            : action === 'manualArticle:orbital-rendezvous'
+              ? 'orbital-rendezvous'
+              : 'local-transfer';
       this.phase = {
         kind: 'manualArticle',
         articleId,
@@ -1954,6 +1962,7 @@ export class Game {
     this.localTransferTutorialShown = false;
     this.surfaceFlightTutorialShown = false;
     this.orbitDeorbitTutorialShown = false;
+    this.orbitalRendezvousTutorialShown = false;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;

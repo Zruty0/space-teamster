@@ -156,7 +156,7 @@ export function localContactPresentation(
           ? '“Weymark Town sent me the touchdown record. Nicely done.”'
           : '“I have your landing record here. Two marks down, one to go.”',
         '“Here’s the final certification run: take your rig back to orbit, rendezvous with Nell’s Rest, and dock.”',
-        '“Rendezvous can be tricky when the station isn’t where your eyes think it ought to be. If your orbital mechanics feel rusty, check the Orbital Mechanics entry in the TOH before you launch.”',
+        '“Rendezvous can be tricky when the station isn’t where your eyes think it ought to be. If your orbital mechanics feel rusty, check the Orbital Rendezvous entry in the TOH before you launch.”',
       ],
     };
   }

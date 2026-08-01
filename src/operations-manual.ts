@@ -1,6 +1,7 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText } from './hud-layout';
 
-export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight' | 'orbit-deorbit';
+export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight' | 'orbit-deorbit' | 'orbital-rendezvous';
+export type ManualDiagramId = 'orbital-rendezvous';
 
 export interface ManualControl {
   keys: string[];
@@ -13,6 +14,7 @@ export interface OperationsManualArticle {
   id: OperationsManualArticleId;
   title: string;
   introduction: string;
+  diagram?: ManualDiagramId;
   controls: ManualControl[];
   tips: string[];
   procedure?: string[];
@@ -178,6 +180,72 @@ export const ORBIT_DEORBIT_ARTICLE: OperationsManualArticle = {
   ],
 };
 
+export const ORBITAL_RENDEZVOUS_ARTICLE: OperationsManualArticle = {
+  id: 'orbital-rendezvous',
+  title: 'Orbital Rendezvous',
+  introduction: 'Rendezvous means matching both position and velocity with a moving station. Steering directly toward the station usually produces a fast crossing or a long chase. First change your orbit to control when your paths meet; then match velocity and close slowly for capture.',
+  diagram: 'orbital-rendezvous',
+  controls: [
+    {
+      keys: ['W', 'S'],
+      action: 'PROGRADE / RETROGRADE THRUST',
+      description: 'Used while shaping the intercept orbit.',
+      modeSpecific: true,
+    },
+    {
+      keys: ['A', 'D'],
+      action: 'SIDEWAYS THRUST',
+      description: 'Used while shaping the intercept orbit.',
+      modeSpecific: true,
+    },
+    {
+      keys: ['W', 'A', 'S', 'D'],
+      action: 'LATERAL THRUST — RENDEZVOUS ZOOM',
+      description: 'Close to the station, thrust becomes screen-relative for final approach.',
+      modeSpecific: true,
+    },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust control for maximum output.' },
+    { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration. Rendezvous zoom and thrust return warp to 1×.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
+  ],
+  procedureSections: [
+    {
+      title: 'Phase and Intercept',
+      steps: [
+        'Compare the station’s position with your own. If it is ahead, use a slightly lower orbit to gain on it; if it is behind, use a slightly higher orbit and let it catch up.',
+        'Coast and use time warp while the separation closes. Adjust the orbit rather than thrusting directly at the station.',
+        'Return toward the station’s orbital altitude as the two paths converge.',
+      ],
+    },
+    {
+      title: 'Match and Capture',
+      steps: [
+        'Use short burns to match the station’s velocity and reduce REL before closing the remaining DIST.',
+        'When rendezvous zoom begins, use screen-relative WASD thrust for the final approach.',
+        'Enter the capture radius with REL below the displayed limit to begin docking.',
+      ],
+    },
+  ],
+  tips: [
+    'The lower your orbit, the faster you travel around the body. Lower it to catch a target ahead; raise it to slow down and let a target behind catch you.',
+    'Do not aim at where the station is now. Rendezvous is a timing problem: arrange for both paths to reach the same place together.',
+    'Distance alone is not enough. A close pass at high relative speed is still a miss.',
+    'Use high thrust for large orbital changes, then make the final velocity corrections smoothly.',
+  ],
+  hud: [
+    { label: 'ALT', description: 'Current altitude above the surface' },
+    { label: 'SPD', description: 'Current orbital speed' },
+    { label: 'PeA', description: 'Periapsis altitude — the lowest point of the orbit' },
+    { label: 'ApA', description: 'Apoapsis altitude — the highest point of the orbit' },
+    { label: 'DIST', description: 'Distance to the station and required capture radius' },
+    { label: 'REL', description: 'Velocity relative to the station and maximum capture speed' },
+    { label: 'THR', description: 'Low or high thrust setting' },
+    { label: 'WARP', description: 'Current time acceleration' },
+    { label: 'ΔV', description: 'Fuel expended during the flight' },
+  ],
+};
+
 export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
   id: 'docking-undocking',
   title: 'Docking and Undocking',
@@ -227,6 +295,7 @@ export const OPERATIONS_MANUAL_ARTICLES: OperationsManualArticle[] = [
   LOCAL_TRANSFER_ARTICLE,
   SURFACE_FLIGHT_ARTICLE,
   ORBIT_DEORBIT_ARTICLE,
+  ORBITAL_RENDEZVOUS_ARTICLE,
 ];
 
 export function operationsManualArticleById(id: OperationsManualArticleId): OperationsManualArticle {
@@ -283,6 +352,7 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   let height = 0;
   ctx.font = '13px monospace';
   height += wrappedHeight(ctx, article.introduction, contentW, 18) + 22;
+  if (article.diagram) height += 242;
   height += 30;
   for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
   height += 18 + 30;
@@ -332,6 +402,144 @@ function drawHeading(ctx: CanvasRenderingContext2D, text: string, x: number, y: 
   ctx.font = 'bold 15px monospace';
   ctx.fillText(text.toUpperCase(), x, y);
   return y + 30;
+}
+
+function drawDiagramArrow(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  color: string,
+): void {
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - Math.cos(angle - 0.55) * 8, y2 - Math.sin(angle - 0.55) * 8);
+  ctx.lineTo(x2 - Math.cos(angle + 0.55) * 8, y2 - Math.sin(angle + 0.55) * 8);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawOrbitalRendezvousDiagram(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+): number {
+  const height = 220;
+  const gap = 16;
+  const panelW = (width - gap) * 0.5;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.24)';
+  ctx.lineWidth = 1;
+  ctx.fillRect(x, y, width, height);
+  ctx.strokeRect(x, y, width, height);
+  ctx.beginPath();
+  ctx.moveTo(x + panelW + gap * 0.5, y + 12);
+  ctx.lineTo(x + panelW + gap * 0.5, y + height - 12);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillStyle = COL_TITLE;
+  ctx.fillText('1. PHASE THE ORBITS', x + panelW * 0.5, y + 22);
+  ctx.fillText('2. MATCH AND CAPTURE', x + panelW + gap + panelW * 0.5, y + 22);
+
+  const orbitCx = x + panelW * 0.5;
+  const orbitCy = y + 105;
+  const outerR = Math.min(68, panelW * 0.25);
+  const innerR = outerR * 0.72;
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.45)';
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(orbitCx, orbitCy, outerR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 170, 0, 0.55)';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.arc(orbitCx, orbitCy, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#31506a';
+  ctx.beginPath();
+  ctx.arc(orbitCx, orbitCy, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#6f9fbd';
+  ctx.stroke();
+
+  const stationAngle = -0.65;
+  const stationX = orbitCx + Math.cos(stationAngle) * outerR;
+  const stationY = orbitCy + Math.sin(stationAngle) * outerR;
+  ctx.fillStyle = COL_TITLE;
+  ctx.save();
+  ctx.translate(stationX, stationY);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillRect(-5, -5, 10, 10);
+  ctx.restore();
+  const rigAngle = 2.45;
+  const rigX = orbitCx + Math.cos(rigAngle) * innerR;
+  const rigY = orbitCy + Math.sin(rigAngle) * innerR;
+  ctx.fillStyle = COL_WARNING;
+  ctx.beginPath();
+  ctx.arc(rigX, rigY, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = '10px monospace';
+  ctx.fillStyle = COL_TITLE;
+  ctx.fillText('STATION', stationX + 24, stationY - 7);
+  ctx.fillStyle = COL_WARNING;
+  ctx.fillText('RIG', rigX - 18, rigY + 17);
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.fillText('LOWER ORBIT → FASTER PHASING', orbitCx, y + 195);
+
+  const matchCx = x + panelW + gap + panelW * 0.5;
+  const matchCy = y + 105;
+  ctx.strokeStyle = 'rgba(0, 255, 204, 0.45)';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.arc(matchCx + 45, matchCy, 48, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = COL_TITLE;
+  ctx.save();
+  ctx.translate(matchCx + 45, matchCy);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillRect(-6, -6, 12, 12);
+  ctx.restore();
+  ctx.fillStyle = COL_WARNING;
+  ctx.beginPath();
+  ctx.moveTo(matchCx - 72, matchCy);
+  ctx.lineTo(matchCx - 58, matchCy - 7);
+  ctx.lineTo(matchCx - 58, matchCy + 7);
+  ctx.closePath();
+  ctx.fill();
+  drawDiagramArrow(ctx, matchCx - 65, matchCy + 30, matchCx - 65, matchCy - 30, COL_WARNING);
+  drawDiagramArrow(ctx, matchCx + 45, matchCy + 30, matchCx + 45, matchCy - 30, COL_TITLE);
+  ctx.font = '10px monospace';
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.fillText('MATCH VELOCITY ARROWS', matchCx, y + 175);
+  ctx.fillText('ENTER CAPTURE CIRCLE WITH LOW REL', matchCx, y + 195);
+  ctx.restore();
+  return y + height + 22;
+}
+
+function drawArticleDiagram(
+  ctx: CanvasRenderingContext2D,
+  diagram: ManualDiagramId,
+  x: number,
+  y: number,
+  width: number,
+): number {
+  if (diagram === 'orbital-rendezvous') return drawOrbitalRendezvousDiagram(ctx, x, y, width);
+  return y;
 }
 
 function drawKeyCaps(ctx: CanvasRenderingContext2D, keys: string[], x: number, y: number, modeSpecific: boolean): void {
@@ -424,6 +632,7 @@ export function drawOperationsManualArticle(
   ctx.font = '13px monospace';
   y = drawWrapped(ctx, article.introduction, geometry.contentX, y, geometry.contentW, 18);
   y += 22;
+  if (article.diagram) y = drawArticleDiagram(ctx, article.diagram, geometry.contentX, y, geometry.contentW);
 
   y = drawHeading(ctx, 'Controls', geometry.contentX, y);
   for (const control of article.controls) y = drawControlCard(ctx, control, geometry.contentX, y, geometry.contentW);
