@@ -1,6 +1,6 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText } from './hud-layout';
 
-export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking';
+export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight';
 
 export interface ManualControl {
   keys: string[];
@@ -56,6 +56,70 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
   ],
 };
 
+export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
+  id: 'surface-flight',
+  title: 'Surface Landing and Takeoff',
+  introduction: 'Surface Flight mode covers final descent to a landing pad and departure from the surface. To land, touch down on the assigned pad with the landing gear deployed and remain within the displayed vertical- and horizontal-speed limits. To depart, climb above the displayed altitude and build horizontal speed in the indicated direction.',
+  controls: [
+    {
+      keys: ['W', 'A', 'S', 'D'],
+      action: 'LATERAL THRUST — GEAR UP',
+      description: 'Apply direct translational thrust while the landing gear is retracted.',
+      modeSpecific: true,
+    },
+    {
+      keys: ['W', 'S'],
+      action: 'VERTICAL THROTTLE — GEAR DOWN',
+      description: 'Increase or decrease the persistent vertical-thrust setting.',
+      modeSpecific: true,
+    },
+    {
+      keys: ['A', 'D'],
+      action: 'LATERAL THRUST — GEAR DOWN',
+      description: 'Make fine horizontal corrections. Hold Shift for full lateral thrust.',
+      modeSpecific: true,
+    },
+    {
+      keys: ['SPACE'],
+      action: 'HOVER THROTTLE — GEAR DOWN',
+      description: 'Return the throttle to local gravity compensation. Hover is available only with the landing gear deployed.',
+      modeSpecific: true,
+    },
+    { keys: ['Q', 'E'], action: 'ROTATE', description: 'Manually override the rig’s automatic rotation.' },
+    { keys: ['G'], action: 'LANDING GEAR', description: 'Deploy or retract the landing gear.' },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust control for maximum output.' },
+    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic translational braking.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
+  ],
+  procedure: [
+    'Landing: deploy the landing gear before final descent.',
+    'Press Space to establish hover.',
+    'Use W/S to adjust your descent rate. Press Space to return to an unaccelerated descent. Use A/D to position the rig over the pad and cancel horizontal drift.',
+    'Touch down inside the pad with low vertical speed and low horizontal speed.',
+    'Takeoff: with the gear deployed, press Space and then increase throttle with W to begin climbing.',
+    'Once safely clear of the surface, retract the gear and use direct thrust to climb above the displayed altitude while building horizontal speed in the indicated direction.',
+  ],
+  tips: [
+    'Press Space often to return the throttle to local gravity compensation before making the next adjustment.',
+    'Fly smoothly. Make small corrections early so they do not become large corrections close to the ground.',
+    'Let the rig manage its own rotation. It will turn itself as needed unless you override it with Q/E.',
+    'Practice gentle touchdowns. Fragile cargo can impose handling penalties after a hard landing.',
+  ],
+  hud: [
+    { label: 'ALT', description: 'Height above the local surface' },
+    { label: 'V/S', description: 'Vertical speed' },
+    { label: 'H/S', description: 'Horizontal speed' },
+    { label: 'SPD', description: 'Total speed' },
+    { label: 'CFG', description: 'Landing-gear configuration' },
+    { label: 'THR', description: 'Current throttle' },
+    { label: 'SAS', description: 'Automatic braking status' },
+    { label: 'PAD', description: 'Distance from the assigned landing-pad center' },
+    { label: 'DIR', description: 'Required departure direction' },
+    { label: 'ΔV', description: 'Fuel expended during the flight' },
+  ],
+};
+
 export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
   id: 'docking-undocking',
   title: 'Docking and Undocking',
@@ -103,6 +167,7 @@ export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
 export const OPERATIONS_MANUAL_ARTICLES: OperationsManualArticle[] = [
   DOCKING_UNDOCKING_ARTICLE,
   LOCAL_TRANSFER_ARTICLE,
+  SURFACE_FLIGHT_ARTICLE,
 ];
 
 export function operationsManualArticleById(id: OperationsManualArticleId): OperationsManualArticle {

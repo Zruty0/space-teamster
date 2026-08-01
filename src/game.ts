@@ -165,6 +165,7 @@ export class Game {
   private activeCareerContract: CareerContract | null = null;
   private dockingTutorialShown = false;
   private localTransferTutorialShown = false;
+  private surfaceFlightTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
 
@@ -215,13 +216,18 @@ export class Game {
     const camera = createCamera();
     updateCamera(camera, ship, landingReferenceHeight(level, terrain, ship.x), 0);
     this.phaseCompletion = null;
-    this.phase = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = landingPhase;
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
     setDevPanelMode('landing');
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
+    if (this.activeCareerContract?.templateId === 'basic-certification-weymark-landing' && !this.surfaceFlightTutorialShown) {
+      this.surfaceFlightTutorialShown = true;
+      this.phase = { kind: 'manualArticle', articleId: 'surface-flight', returnPhase: landingPhase, tutorialSplash: true, scrollOffset: 0 };
+    }
   }
 
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
@@ -577,6 +583,7 @@ export class Game {
     this.activeCareerContract = null;
     this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
+    this.surfaceFlightTutorialShown = false;
   }
 
   private quitToStartMenu(): void {
@@ -1593,12 +1600,13 @@ export class Game {
         subtitle: 'Guild-standard flight controls and operating procedures',
         bodyRows: [
           { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
-          { kind: 'kv', label: 'Articles', value: '2' },
+          { kind: 'kv', label: 'Articles', value: '3' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           { label: 'Docking and Undocking', detail: 'Close maneuvering around stations and berthing facilities.', action: 'manualArticle:docking-undocking', tone: 'primary' },
           { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
+          { label: 'Surface Landing and Takeoff', detail: 'Landing-pad descent, touchdown, and departure from the surface.', action: 'manualArticle:surface-flight', tone: 'primary' },
           { label: 'Back to Start Menu', detail: 'Close the operations handbook.', action: 'startMenu', tone: 'back' },
         ],
       };
@@ -1817,10 +1825,15 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
-    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking') {
+    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight') {
+      const articleId: OperationsManualArticleId = action === 'manualArticle:docking-undocking'
+        ? 'docking-undocking'
+        : action === 'manualArticle:surface-flight'
+          ? 'surface-flight'
+          : 'local-transfer';
       this.phase = {
         kind: 'manualArticle',
-        articleId: action === 'manualArticle:docking-undocking' ? 'docking-undocking' : 'local-transfer',
+        articleId,
         returnPhase: { kind: 'interactiveScene', scene: { id: 'operationsManual', selectedIndex: state.selectedIndex } },
         tutorialSplash: false,
         scrollOffset: 0,
@@ -1929,6 +1942,7 @@ export class Game {
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
     this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
+    this.surfaceFlightTutorialShown = false;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
