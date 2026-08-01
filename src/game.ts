@@ -1602,6 +1602,7 @@ export class Game {
           ...contactContracts.map(contract => ({
             label: contract.title,
             tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
+            tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName} — ${contractPublishedPay(contract.quote)}`,
             action: `contactContract:${contract.id}`,
             tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
@@ -1609,6 +1610,7 @@ export class Game {
           ...entry.actions.map(action => ({
             label: action.label,
             tag: action.tag,
+            tagTone: action.tag === 'TUTORIAL' ? 'story' as InteractiveTone : undefined,
             detail: action.detail,
             action: `directoryAction:${entry.id}:${action.id}`,
             tone: action.tag === 'TUTORIAL' ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,

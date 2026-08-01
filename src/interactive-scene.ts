@@ -1,6 +1,6 @@
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING } from './hud-layout';
 
-export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'danger' | 'warning' | 'success' | 'muted';
+export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'danger' | 'warning' | 'success' | 'story' | 'muted';
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
@@ -15,6 +15,7 @@ export interface InteractiveSceneOption {
   action: string;
   tone?: InteractiveTone;
   tag?: string;
+  tagTone?: InteractiveTone;
   rightText?: string;
   rightDetail?: string;
 }
@@ -31,6 +32,7 @@ export interface InteractiveScene {
 function toneColor(tone: InteractiveTone | undefined, selected = false): string {
   if (tone === 'primary' || tone === 'success') return selected ? '#ffffff' : COL_SUCCESS;
   if (tone === 'warning') return COL_WARNING;
+  if (tone === 'story') return '#c58cff';
   if (tone === 'danger') return COL_DANGER;
   if (tone === 'back' || tone === 'muted') return selected ? COL_HUD : COL_HUD_DIM;
   if (tone === 'disabled') return '#446058';
@@ -40,6 +42,7 @@ function toneColor(tone: InteractiveTone | undefined, selected = false): string 
 function toneAccent(tone: InteractiveTone | undefined): string {
   if (tone === 'primary' || tone === 'success') return COL_SUCCESS;
   if (tone === 'warning') return COL_WARNING;
+  if (tone === 'story') return '#c58cff';
   if (tone === 'danger') return COL_DANGER;
   if (tone === 'back' || tone === 'muted') return '#4e6f70';
   if (tone === 'disabled') return '#446058';
@@ -49,6 +52,7 @@ function toneAccent(tone: InteractiveTone | undefined): string {
 function toneFill(tone: InteractiveTone | undefined): string {
   if (tone === 'primary' || tone === 'success') return 'rgba(0, 255, 136, 0.13)';
   if (tone === 'warning') return 'rgba(255, 170, 0, 0.12)';
+  if (tone === 'story') return 'rgba(197, 140, 255, 0.12)';
   if (tone === 'danger') return 'rgba(255, 60, 60, 0.12)';
   if (tone === 'back' || tone === 'muted') return 'rgba(120, 170, 170, 0.08)';
   return 'rgba(0, 255, 136, 0.10)';
@@ -226,7 +230,7 @@ export function drawInteractiveScene(
     const labelX = x + 28;
     let textX = labelX;
     if (option.tag) {
-      ctx.fillStyle = toneAccent(tone);
+      ctx.fillStyle = toneAccent(option.tagTone ?? tone);
       ctx.font = 'bold 12px monospace';
       ctx.fillText(`[${option.tag}]`, textX, y);
       textX += 82;
