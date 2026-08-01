@@ -1,6 +1,6 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText } from './hud-layout';
 
-export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight';
+export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight' | 'orbit-deorbit';
 
 export interface ManualControl {
   keys: string[];
@@ -120,6 +120,52 @@ export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
   ],
 };
 
+export const ORBIT_DEORBIT_ARTICLE: OperationsManualArticle = {
+  id: 'orbit-deorbit',
+  title: 'Orbit and Deorbit',
+  introduction: 'Orbital flight is controlled by changing velocity rather than steering directly toward a destination. Prograde thrust adds orbital energy; retrograde thrust removes it. For a surface arrival, lower your periapsis into the displayed approach corridor, then coast to the handoff.',
+  controls: [
+    {
+      keys: ['W', 'S'],
+      action: 'PROGRADE / RETROGRADE THRUST',
+      description: '',
+      modeSpecific: true,
+    },
+    {
+      keys: ['A', 'D'],
+      action: 'SIDEWAYS THRUST',
+      description: '',
+      modeSpecific: true,
+    },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust control for maximum output.' },
+    { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration. Any thrust returns warp to 1×.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
+  ],
+  procedure: [
+    'Read the projected orbit and note the current PeA and the destination’s required PeA.',
+    'Apply retrograde thrust until PeA falls below the displayed approach threshold, while keeping the projected path clear of the surface.',
+    'Release the controls and coast around the orbit. Use time warp while the projected route is safe.',
+    'Make short corrections as needed rather than holding a long burn.',
+    'Cross the low point of the orbit below the displayed transition altitude to enter the destination approach.',
+  ],
+  tips: [
+    'A burn changes the whole orbit. Prograde thrust generally raises the opposite side; retrograde thrust generally lowers it.',
+    'Most orbital flight is coasting. Burn briefly, then stop and inspect the new trajectory before correcting again.',
+    'Use high thrust sparingly near the deorbit threshold. A small excess can turn an approach into an impact trajectory.',
+  ],
+  hud: [
+    { label: 'ALT', description: 'Current altitude above the surface' },
+    { label: 'SPD', description: 'Current orbital speed' },
+    { label: 'PeA', description: 'Periapsis altitude — the lowest point of the orbit' },
+    { label: 'ApA', description: 'Apoapsis altitude — the highest point of the orbit' },
+    { label: 'ECC', description: 'Orbital eccentricity' },
+    { label: 'THR', description: 'Low or high thrust setting' },
+    { label: 'WARP', description: 'Current time acceleration' },
+    { label: 'ΔV', description: 'Fuel expended during the flight' },
+  ],
+};
+
 export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
   id: 'docking-undocking',
   title: 'Docking and Undocking',
@@ -168,6 +214,7 @@ export const OPERATIONS_MANUAL_ARTICLES: OperationsManualArticle[] = [
   DOCKING_UNDOCKING_ARTICLE,
   LOCAL_TRANSFER_ARTICLE,
   SURFACE_FLIGHT_ARTICLE,
+  ORBIT_DEORBIT_ARTICLE,
 ];
 
 export function operationsManualArticleById(id: OperationsManualArticleId): OperationsManualArticle {

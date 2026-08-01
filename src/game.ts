@@ -166,6 +166,7 @@ export class Game {
   private dockingTutorialShown = false;
   private localTransferTutorialShown = false;
   private surfaceFlightTutorialShown = false;
+  private orbitDeorbitTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
 
@@ -381,7 +382,8 @@ export class Game {
       }
     }
     this.phaseCompletion = null;
-    this.phase = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = orbitalPhase;
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
       : level.escapeSOIRadius ? 'ESCAPE TOWARD TARGET'
@@ -390,6 +392,10 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
+    if (this.activeCareerContract?.templateId === 'basic-certification-weymark-landing' && !this.orbitDeorbitTutorialShown) {
+      this.orbitDeorbitTutorialShown = true;
+      this.phase = { kind: 'manualArticle', articleId: 'orbit-deorbit', returnPhase: orbitalPhase, tutorialSplash: true, scrollOffset: 0 };
+    }
   }
 
   private showGuidance(text: string, duration = 4): void {
@@ -584,6 +590,7 @@ export class Game {
     this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
     this.surfaceFlightTutorialShown = false;
+    this.orbitDeorbitTutorialShown = false;
   }
 
   private quitToStartMenu(): void {
@@ -1600,13 +1607,14 @@ export class Game {
         subtitle: 'Guild-standard flight controls and operating procedures',
         bodyRows: [
           { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
-          { kind: 'kv', label: 'Articles', value: '3' },
+          { kind: 'kv', label: 'Articles', value: '4' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           { label: 'Docking and Undocking', detail: 'Close maneuvering around stations and berthing facilities.', action: 'manualArticle:docking-undocking', tone: 'primary' },
           { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
           { label: 'Surface Landing and Takeoff', detail: 'Landing-pad descent, touchdown, and departure from the surface.', action: 'manualArticle:surface-flight', tone: 'primary' },
+          { label: 'Orbit and Deorbit', detail: 'Changing an orbit and entering a surface approach corridor.', action: 'manualArticle:orbit-deorbit', tone: 'primary' },
           { label: 'Back to Start Menu', detail: 'Close the operations handbook.', action: 'startMenu', tone: 'back' },
         ],
       };
@@ -1825,12 +1833,14 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
-    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight') {
+    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight' || action === 'manualArticle:orbit-deorbit') {
       const articleId: OperationsManualArticleId = action === 'manualArticle:docking-undocking'
         ? 'docking-undocking'
         : action === 'manualArticle:surface-flight'
           ? 'surface-flight'
-          : 'local-transfer';
+          : action === 'manualArticle:orbit-deorbit'
+            ? 'orbit-deorbit'
+            : 'local-transfer';
       this.phase = {
         kind: 'manualArticle',
         articleId,
@@ -1943,6 +1953,7 @@ export class Game {
     this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
     this.surfaceFlightTutorialShown = false;
+    this.orbitDeorbitTutorialShown = false;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
