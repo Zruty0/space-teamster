@@ -1512,6 +1512,7 @@ export class Game {
 
   private buildInteractiveScene(state: InteractiveScenePhaseState): InteractiveScene {
     const locationPath = estellaDisplayPath(this.career.locationId);
+    const basicCertificationIncomplete = !hasTeamsterCertification(this.career, 'basic-3');
     if (state.id === 'stationTerminal') {
       return {
         title: 'STATION TERMINAL',
@@ -1527,7 +1528,7 @@ export class Game {
         options: [
           { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
           { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
-          { label: 'Local Directory', detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
+          { label: 'Local Directory', tag: basicCertificationIncomplete ? 'TUTORIAL' : undefined, tagTone: basicCertificationIncomplete ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
@@ -1617,9 +1618,12 @@ export class Game {
         options: [
           ...entries.map(entry => {
             const access = localDirectoryEntryAccess(entry, this.career.locationId);
+            const tutorialEntry = entry.tutorialUntilCertification !== undefined
+              && !hasTeamsterCertification(this.career, entry.tutorialUntilCertification);
             return {
               label: entry.name,
-              tag: entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
+              tag: tutorialEntry ? 'TUTORIAL' : entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
+              tagTone: tutorialEntry ? 'story' as InteractiveTone : undefined,
               rightText: entry.organizationName,
               rightDetail: access === 'remote' ? 'REMOTE COMMS' : 'LOCAL',
               detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
@@ -1664,14 +1668,17 @@ export class Game {
             action: `contactContract:${contract.id}`,
             tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
-          ...entry.actions.map(action => ({
-            label: action.label,
-            tag: action.tag,
-            tagTone: action.tag === 'TUTORIAL' ? 'story' as InteractiveTone : undefined,
-            detail: action.detail,
-            action: `directoryAction:${entry.id}:${action.id}`,
-            tone: action.tag === 'TUTORIAL' ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
-          })),
+          ...entry.actions.map(action => {
+            const tutorialAction = action.tag === 'TUTORIAL' && basicCertificationIncomplete;
+            return {
+              label: action.label,
+              tag: tutorialAction ? 'TUTORIAL' : action.tag === 'TUTORIAL' ? undefined : action.tag,
+              tagTone: tutorialAction ? 'story' as InteractiveTone : undefined,
+              detail: action.detail,
+              action: `directoryAction:${entry.id}:${action.id}`,
+              tone: tutorialAction ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
+            };
+          }),
           { label: state.directoryParentEntryId ? 'Back to Certification Office' : 'Back to Local Directory', detail: 'Return to the previous directory listing.', action: state.directoryParentEntryId ? `directoryEntry:${state.directoryParentEntryId}` : 'localDirectory', tone: 'back' as InteractiveTone },
         ],
       };

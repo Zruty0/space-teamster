@@ -20,6 +20,8 @@ interface LocalDirectoryEntryBase {
   summary: string;
   /** False when remote access must be initiated through an office rather than the general directory. */
   listedRemotely?: boolean;
+  /** Show this entry as tutorial guidance until the named certification is earned. */
+  tutorialUntilCertification?: TeamsterCertificationId;
   actions: LocalDirectoryActionDef[];
 }
 
@@ -110,6 +112,7 @@ export const GIDEON_BELL: LocalContactDef = {
   locationIds: ['still-guild-hq'],
   summary: 'The Guild examiner responsible for basic Teamster certification.',
   listedRemotely: false,
+  tutorialUntilCertification: 'basic-3',
   commsRange: 'cluster',
   description: 'A broad, silver-bearded older Teamster leans toward the camera in a faded Guild work shirt. Laugh lines crowd his eyes; one scarred hand cradles a steaming mug while the other rests on a battered checkride clipboard.',
   dialogue: [
@@ -191,6 +194,7 @@ export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   organizationName: 'Teamsters’ Guild',
   locationIds: ['caravanserai-certification-authority'],
   summary: 'Guild licensing and practical-flight administration for working Teamsters.',
+  tutorialUntilCertification: 'basic-3',
   description: 'The certification office occupies a low-ceilinged suite behind the Caravanserai traffic hall. Scuffed maneuver plots and framed rig licenses cover the walls; old acceleration couches serve as waiting-room seats.',
   actions: [
     {
@@ -210,6 +214,7 @@ export const NELLS_REST_CERTIFICATION_OFFICE: LocalOfficeDef = {
   organizationName: 'Teamsters’ Guild',
   locationIds: ['estella-viii-first-rendezvous-station'],
   summary: 'Guild checkride administration and apprentice flight dispatch.',
+  tutorialUntilCertification: 'basic-3',
   description: 'The Certification Office is a glass-fronted room off Nell’s Rest’s maintenance concourse. Training orbits cover one wall; a heavy Guild communications terminal occupies the examiner’s desk, patched directly to Guild HQ at the Still.',
   actions: [
     {
@@ -229,6 +234,7 @@ export const WEYMARK_TOWN_CERTIFICATION_DESK: LocalOfficeDef = {
   organizationName: 'Teamsters’ Guild',
   locationIds: ['estella-viii-settlement'],
   summary: 'The Guild terminal used to close surface practicals and issue return flights.',
+  tutorialUntilCertification: 'basic-3',
   description: 'A reinforced terminal booth beside Weymark Town’s pad office carries a Guild seal, a telemetry reader, and a direct certification circuit back to Gid at the Still.',
   actions: [
     {
