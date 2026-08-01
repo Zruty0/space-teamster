@@ -352,7 +352,7 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   let height = 0;
   ctx.font = '13px monospace';
   height += wrappedHeight(ctx, article.introduction, contentW, 18) + 22;
-  if (article.diagram) height += 242;
+  if (article.diagram) height += 440;
   height += 30;
   for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
   height += 18 + 30;
@@ -434,99 +434,141 @@ function drawOrbitalRendezvousDiagram(
   y: number,
   width: number,
 ): number {
-  const height = 220;
-  const gap = 16;
+  const gap = 14;
+  const panelH = 202;
+  const height = panelH * 2 + gap;
   const panelW = (width - gap) * 0.5;
+  const innerR = 42;
+  const outerR = 62;
+
+  const panel = (index: number, title: string, subtitle: string): { x: number; y: number; cx: number; cy: number } => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const px = x + col * (panelW + gap);
+    const py = y + row * (panelH + gap);
+    ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.24)';
+    ctx.lineWidth = 1;
+    ctx.fillRect(px, py, panelW, panelH);
+    ctx.strokeRect(px, py, panelW, panelH);
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = COL_TITLE;
+    ctx.fillText(title, px + panelW * 0.5, py + 18);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = COL_WARNING;
+    ctx.fillText(subtitle, px + panelW * 0.5, py + 34);
+    return { x: px, y: py, cx: px + panelW * 0.5, cy: py + 112 };
+  };
+
+  const planet = (cx: number, cy: number): void => {
+    ctx.fillStyle = '#31506a';
+    ctx.strokeStyle = '#6f9fbd';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  };
+
+  const orbit = (cx: number, cy: number, radius: number, color: string, dashed = false): void => {
+    ctx.strokeStyle = color;
+    ctx.setLineDash(dashed ? [5, 5] : []);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  const station = (px: number, py: number): void => {
+    ctx.fillStyle = COL_TITLE;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-5, -5, 10, 10);
+    ctx.restore();
+  };
+
+  const rig = (px: number, py: number): void => {
+    ctx.fillStyle = COL_WARNING;
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
   ctx.save();
-  ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
-  ctx.strokeStyle = 'rgba(0, 255, 204, 0.24)';
-  ctx.lineWidth = 1;
-  ctx.fillRect(x, y, width, height);
-  ctx.strokeRect(x, y, width, height);
-  ctx.beginPath();
-  ctx.moveTo(x + panelW + gap * 0.5, y + 12);
-  ctx.lineTo(x + panelW + gap * 0.5, y + height - 12);
-  ctx.stroke();
+  ctx.lineWidth = 1.25;
 
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 12px monospace';
-  ctx.fillStyle = COL_TITLE;
-  ctx.fillText('1. PHASE THE ORBITS', x + panelW * 0.5, y + 22);
-  ctx.fillText('2. MATCH AND CAPTURE', x + panelW + gap + panelW * 0.5, y + 22);
-
-  const orbitCx = x + panelW * 0.5;
-  const orbitCy = y + 105;
-  const outerR = Math.min(68, panelW * 0.25);
-  const innerR = outerR * 0.72;
-  ctx.strokeStyle = 'rgba(0, 255, 204, 0.45)';
-  ctx.setLineDash([]);
-  ctx.beginPath();
-  ctx.arc(orbitCx, orbitCy, outerR, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(255, 170, 0, 0.55)';
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.arc(orbitCx, orbitCy, innerR, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#31506a';
-  ctx.beginPath();
-  ctx.arc(orbitCx, orbitCy, 22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#6f9fbd';
-  ctx.stroke();
-
-  const stationAngle = -0.65;
-  const stationX = orbitCx + Math.cos(stationAngle) * outerR;
-  const stationY = orbitCy + Math.sin(stationAngle) * outerR;
-  ctx.fillStyle = COL_TITLE;
-  ctx.save();
-  ctx.translate(stationX, stationY);
-  ctx.rotate(Math.PI / 4);
-  ctx.fillRect(-5, -5, 10, 10);
-  ctx.restore();
-  const rigAngle = 2.45;
-  const rigX = orbitCx + Math.cos(rigAngle) * innerR;
-  const rigY = orbitCy + Math.sin(rigAngle) * innerR;
-  ctx.fillStyle = COL_WARNING;
-  ctx.beginPath();
-  ctx.arc(rigX, rigY, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.font = '10px monospace';
-  ctx.fillStyle = COL_TITLE;
-  ctx.fillText('STATION', stationX + 24, stationY - 7);
-  ctx.fillStyle = COL_WARNING;
-  ctx.fillText('RIG', rigX - 18, rigY + 17);
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText('LOWER ORBIT → FASTER PHASING', orbitCx, y + 195);
-
-  const matchCx = x + panelW + gap + panelW * 0.5;
-  const matchCy = y + 105;
-  ctx.strokeStyle = 'rgba(0, 255, 204, 0.45)';
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.arc(matchCx + 45, matchCy, 48, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = COL_TITLE;
-  ctx.save();
-  ctx.translate(matchCx + 45, matchCy);
-  ctx.rotate(Math.PI / 4);
-  ctx.fillRect(-6, -6, 12, 12);
-  ctx.restore();
-  ctx.fillStyle = COL_WARNING;
-  ctx.beginPath();
-  ctx.moveTo(matchCx - 72, matchCy);
-  ctx.lineTo(matchCx - 58, matchCy - 7);
-  ctx.lineTo(matchCx - 58, matchCy + 7);
-  ctx.closePath();
-  ctx.fill();
-  drawDiagramArrow(ctx, matchCx - 65, matchCy + 30, matchCx - 65, matchCy - 30, COL_WARNING);
-  drawDiagramArrow(ctx, matchCx + 45, matchCy + 30, matchCx + 45, matchCy - 30, COL_TITLE);
+  const inside = panel(0, '1. RIG ON THE INSIDE', 'RIG IS CATCHING UP — BURN PROGRADE');
+  orbit(inside.cx, inside.cy, outerR, 'rgba(0, 255, 204, 0.5)');
+  orbit(inside.cx, inside.cy, innerR, 'rgba(255, 170, 0, 0.62)', true);
+  planet(inside.cx, inside.cy);
+  const insideStationAngle = -0.45;
+  const insideRigAngle = -1.45;
+  station(inside.cx + Math.cos(insideStationAngle) * outerR, inside.cy + Math.sin(insideStationAngle) * outerR);
+  rig(inside.cx + Math.cos(insideRigAngle) * innerR, inside.cy + Math.sin(insideRigAngle) * innerR);
   ctx.font = '10px monospace';
   ctx.fillStyle = COL_HUD_DIM;
-  ctx.fillText('MATCH VELOCITY ARROWS', matchCx, y + 175);
-  ctx.fillText('ENTER CAPTURE CIRCLE WITH LOW REL', matchCx, y + 195);
+  ctx.fillText('LOWER ORBIT = FASTER', inside.cx, inside.y + 188);
+
+  const prograde = panel(1, '2. AFTER PROGRADE BURN', 'RENDEZVOUS POINT AHEAD');
+  orbit(prograde.cx, prograde.cy, outerR, 'rgba(0, 255, 204, 0.5)');
+  ctx.strokeStyle = 'rgba(255, 170, 0, 0.72)';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.ellipse(prograde.cx + 10, prograde.cy, 52, 47, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  planet(prograde.cx, prograde.cy);
+  const proBurnX = prograde.cx - innerR;
+  const proMeetX = prograde.cx + outerR;
+  rig(proBurnX, prograde.cy);
+  station(proMeetX, prograde.cy);
+  drawDiagramArrow(ctx, proBurnX, prograde.cy - 19, proBurnX, prograde.cy + 17, COL_WARNING);
+  ctx.font = '9px monospace';
+  ctx.fillStyle = COL_WARNING;
+  ctx.fillText('PROGRADE', proBurnX - 26, prograde.cy + 33);
+  ctx.fillStyle = COL_TITLE;
+  ctx.fillText('MEET', proMeetX - 2, prograde.cy + 24);
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '10px monospace';
+  ctx.fillText('TRANSFER ORBIT REACHES TARGET ORBIT', prograde.cx, prograde.y + 188);
+
+  const outside = panel(2, '3. RIG ON THE OUTSIDE', 'TARGET IS CATCHING UP — BURN RETROGRADE');
+  orbit(outside.cx, outside.cy, innerR, 'rgba(0, 255, 204, 0.5)');
+  orbit(outside.cx, outside.cy, outerR, 'rgba(255, 170, 0, 0.62)', true);
+  planet(outside.cx, outside.cy);
+  const outsideRigAngle = -0.45;
+  const outsideStationAngle = -1.45;
+  rig(outside.cx + Math.cos(outsideRigAngle) * outerR, outside.cy + Math.sin(outsideRigAngle) * outerR);
+  station(outside.cx + Math.cos(outsideStationAngle) * innerR, outside.cy + Math.sin(outsideStationAngle) * innerR);
+  ctx.font = '10px monospace';
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.fillText('HIGHER ORBIT = SLOWER', outside.cx, outside.y + 188);
+
+  const retrograde = panel(3, '4. AFTER RETROGRADE BURN', 'RENDEZVOUS POINT AHEAD');
+  orbit(retrograde.cx, retrograde.cy, innerR, 'rgba(0, 255, 204, 0.5)');
+  ctx.strokeStyle = 'rgba(255, 170, 0, 0.72)';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.ellipse(retrograde.cx - 10, retrograde.cy, 52, 47, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  planet(retrograde.cx, retrograde.cy);
+  const retroBurnX = retrograde.cx - outerR;
+  const retroMeetX = retrograde.cx + innerR;
+  rig(retroBurnX, retrograde.cy);
+  station(retroMeetX, retrograde.cy);
+  drawDiagramArrow(ctx, retroBurnX, retrograde.cy + 19, retroBurnX, retrograde.cy - 17, COL_WARNING);
+  ctx.font = '9px monospace';
+  ctx.fillStyle = COL_WARNING;
+  ctx.fillText('RETROGRADE', retroBurnX - 30, retrograde.cy + 33);
+  ctx.fillStyle = COL_TITLE;
+  ctx.fillText('MEET', retroMeetX, retrograde.cy + 24);
+  ctx.fillStyle = COL_HUD_DIM;
+  ctx.font = '10px monospace';
+  ctx.fillText('TRANSFER ORBIT REACHES TARGET ORBIT', retrograde.cx, retrograde.y + 188);
+
   ctx.restore();
   return y + height + 22;
 }
