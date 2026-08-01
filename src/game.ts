@@ -155,6 +155,7 @@ export class Game {
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
+  private dockingTutorialShown = false;
   private localTransferTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
@@ -239,11 +240,16 @@ export class Game {
     const cam = createDockingCamera();
     updateDockingCamera(cam, ds, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    this.phase = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = dockingPhase;
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
+    if (this.activeCareerContract?.templateId === 'basic-certification-still-transfer' && !this.dockingTutorialShown) {
+      this.dockingTutorialShown = true;
+      this.phase = { kind: 'manualArticle', articleId: 'docking-undocking', returnPhase: dockingPhase, tutorialSplash: true, scrollOffset: 0 };
+    }
   }
 
   private loadCluster(level: ClusterLevel, initOverride?: ClusterInitOverride, worldTimeStart: number = this.worldTime): void {
@@ -439,7 +445,7 @@ export class Game {
     requestAnimationFrame(this.loop);
   };
 
-  // --- Start menu / operating manual ---
+  // --- Start menu / operations handbook ---
 
   private handleManualArticle(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'manualArticle' }>;
@@ -561,6 +567,7 @@ export class Game {
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
+    this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
   }
 
@@ -1541,16 +1548,17 @@ export class Game {
 
     if (state.id === 'operationsManual') {
       return {
-        title: 'TEAMSTER OPERATING MANUAL',
+        title: 'TEAMSTER OPERATIONS HANDBOOK',
         subtitle: 'Guild-standard flight controls and operating procedures',
         bodyRows: [
           { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
-          { kind: 'kv', label: 'Articles', value: '1' },
+          { kind: 'kv', label: 'Articles', value: '2' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
+          { label: 'Docking and Undocking', detail: 'Close maneuvering around stations and berthing facilities.', action: 'manualArticle:docking-undocking', tone: 'primary' },
           { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
-          { label: 'Back to Start Menu', detail: 'Close the operating manual.', action: 'startMenu', tone: 'back' },
+          { label: 'Back to Start Menu', detail: 'Close the operations handbook.', action: 'startMenu', tone: 'back' },
         ],
       };
     }
@@ -1738,10 +1746,10 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
-    if (action === 'manualArticle:local-transfer') {
+    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking') {
       this.phase = {
         kind: 'manualArticle',
-        articleId: 'local-transfer',
+        articleId: action === 'manualArticle:docking-undocking' ? 'docking-undocking' : 'local-transfer',
         returnPhase: { kind: 'interactiveScene', scene: { id: 'operationsManual', selectedIndex: state.selectedIndex } },
         tutorialSplash: false,
         scrollOffset: 0,
@@ -1844,6 +1852,7 @@ export class Game {
   }
 
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
+    this.dockingTutorialShown = false;
     this.localTransferTutorialShown = false;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;

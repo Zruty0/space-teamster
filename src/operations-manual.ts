@@ -1,6 +1,6 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText } from './hud-layout';
 
-export type OperationsManualArticleId = 'local-transfer';
+export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking';
 
 export interface ManualControl {
   keys: string[];
@@ -56,7 +56,54 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
   ],
 };
 
-export const OPERATIONS_MANUAL_ARTICLES: OperationsManualArticle[] = [LOCAL_TRANSFER_ARTICLE];
+export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
+  id: 'docking-undocking',
+  title: 'Docking and Undocking',
+  introduction: 'Docking and Undocking mode covers close maneuvering around stations and other berthing facilities. When departing, clear the station beyond the displayed safe distance. When arriving, bring the container to the assigned bay, align the rig, and let the station tractor beam complete the capture.',
+  controls: [
+    {
+      keys: ['W', 'A', 'S', 'D'],
+      action: 'LATERAL THRUST',
+      description: '',
+      modeSpecific: true,
+    },
+    {
+      keys: ['Q', 'E'],
+      action: 'ROTATE',
+      description: '',
+      modeSpecific: true,
+    },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust key to accelerate faster.' },
+    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic translation and rotation braking.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
+  ],
+  procedure: [
+    'When undocking, use low thrust to clear the berth and nearby station structure.',
+    'Continue away from the station until STN exceeds the displayed clearance distance.',
+    'When docking, approach the assigned bay at low speed and brake before entering tractor range.',
+    'Rotate the tug so the container faces the bay opening, then bring DIST and ALIGN within their displayed limits.',
+    'Release the controls and hold alignment while the tractor beam pulls the container into the berth.',
+  ],
+  tips: [
+    'Use high thrust sparingly near a station. A small correction can become a collision before SAS has time to cancel it.',
+  ],
+  hud: [
+    { label: 'SPD', description: 'Current speed' },
+    { label: 'ANG', description: 'Current rig angle' },
+    { label: 'THR', description: 'Low or high thrust setting' },
+    { label: 'SAS', description: 'Automatic braking status' },
+    { label: 'DIST', description: 'Distance to the assigned bay and tractor-beam range' },
+    { label: 'ALIGN', description: 'Angular error and maximum permitted for tractor capture' },
+    { label: 'STN', description: 'Distance from the station and required undocking clearance' },
+    { label: 'ΔV', description: 'Fuel expended during the flight' },
+  ],
+};
+
+export const OPERATIONS_MANUAL_ARTICLES: OperationsManualArticle[] = [
+  DOCKING_UNDOCKING_ARTICLE,
+  LOCAL_TRANSFER_ARTICLE,
+];
 
 export function operationsManualArticleById(id: OperationsManualArticleId): OperationsManualArticle {
   return OPERATIONS_MANUAL_ARTICLES.find(article => article.id === id) ?? LOCAL_TRANSFER_ARTICLE;
@@ -222,7 +269,7 @@ export function drawOperationsManualArticle(
   ctx.textAlign = 'center';
   ctx.fillStyle = tutorialSplash ? COL_WARNING : COL_TITLE;
   ctx.font = 'bold 14px monospace';
-  ctx.fillText(tutorialSplash ? 'TUTORIAL' : 'TEAMSTER OPERATING MANUAL', W / 2, 28);
+  ctx.fillText(tutorialSplash ? 'TUTORIAL' : 'TEAMSTER OPERATIONS HANDBOOK', W / 2, 28);
   ctx.fillStyle = COL_TITLE;
   ctx.font = 'bold 28px monospace';
   ctx.fillText(article.title.toUpperCase(), W / 2, 60);
@@ -293,6 +340,9 @@ export function drawOperationsManualArticle(
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '13px monospace';
-  const returnControl = tutorialSplash ? 'Enter/Space: Begin local transfer' : 'Enter/Space/Esc: Return to manual';
-  ctx.fillText(`W/S or ↑↓: Scroll   ${returnControl}`, W / 2, H - 20);
+  const returnControl = tutorialSplash ? 'Enter/Space: Begin flight' : 'Enter/Space/Esc: Return to TOH';
+  if (tutorialSplash) {
+    ctx.fillText('This article is available anytime in the Teamster Operations Handbook (TOH).', W / 2, H - 36);
+  }
+  ctx.fillText(`W/S or ↑↓: Scroll   ${returnControl}`, W / 2, H - 18);
 }
