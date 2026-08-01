@@ -151,8 +151,9 @@ export function localContactPresentation(
       dialogue: [
         atWeymarkTown
           ? '“Weymark Town sent me the touchdown record. Nicely done.”'
-          : '“I have your landing practical here. Two marks down, one to go.”',
-        '“Take the rig back to orbit and dock at Nell’s Rest. A clean tractor capture completes the Basic Teamster checkride.”',
+          : '“I have your landing record here. Two marks down, one to go.”',
+        '“Here’s the final certification run: take your rig back to orbit, rendezvous with Nell’s Rest, and dock. There’s no pay, but the Guild reimburses 100% of your fuel.”',
+        '“Rendezvous can be tricky when the station isn’t where your eyes think it ought to be. If your orbital mechanics feel rusty, check the Orbital Mechanics entry in the TOH before you launch.”',
       ],
     };
   }
@@ -162,7 +163,8 @@ export function localContactPresentation(
       description: 'The certification-office terminal carries a slightly delayed feed from Gid’s office inside Guild HQ at the Still. Gid fills most of the frame: broad, silver-bearded, and still in the same faded work shirt, with a steaming mug beside his battered checkride clipboard.',
       dialogue: [
         '“Made it aboard Old Nell, did you? Good. She rattles, but she has never misplaced an apprentice.”',
-        '“Next practical is yours: undock from Nell’s Rest, deorbit, and put the rig down at Weymark Town. Call me again after landing.”',
+        '“Here’s the next certification run: undock from Nell’s Rest, deorbit, and put your rig down at Weymark Town. There’s no pay, but the Guild reimburses 100% of your fuel.”',
+        '“Call me again after landing.”',
       ],
     };
   }
@@ -173,7 +175,9 @@ export function localContactPresentation(
       dialogue: [
         '“There you are. The Public Approach Dock sent me a clean berth report, so your first practical is in the ledger.”',
         '“Your next checkride phase is a moon landing, so you’ll take Old Nell out to Weymark. Don’t mind the smell or the noises—we respect the old girl for her long service, and she still gets where she’s going.”',
-        '“She’ll carry you and your rig to Nell’s Rest. Call me from the Certification Office when you arrive, and I’ll issue the deorbit practical over the Guild link.”',
+        '“She’ll carry you and your rig to Nell’s Rest. Call me from the Certification Office when you arrive, and I’ll issue the deorbit run over the Guild link.”',
+        '“Certification runs don’t pay, but the Guild reimburses 100% of the fuel you use.”',
+        '“By the way, the TOH isn’t only good as emergency ballast. It’s got plenty of information in it, if you’re the reading kind.”',
       ],
     };
   }

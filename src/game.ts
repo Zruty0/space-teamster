@@ -110,6 +110,13 @@ function contractPublishedPay(quote: MissionCostQuote): string {
   return `${formatCredits(contractFixedReward(quote))} + ${(quote.pay.compensationRatio * 100).toFixed(0)}% fuel reimbursement`;
 }
 
+function contractPublishedPayForContract(contract: CareerContract): string {
+  if (contract.category === 'certification' && contract.travelMode !== 'old-nell' && contractFixedReward(contract.quote) === 0 && contract.quote.pay.compensationRatio === 1) {
+    return 'No pay + 100% fuel reimbursement';
+  }
+  return contractPublishedPay(contract.quote);
+}
+
 function contractOptionTone(contract: CareerContract): InteractiveTone {
   const netAtPar = contract.quote.expectedMargin;
   const marginRatio = contractMarginRatio(contract.quote);
@@ -1567,7 +1574,7 @@ export class Game {
             label: contract.title,
             labelLineCount: 2 as const,
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
-            rightText: contractPublishedPay(contract.quote),
+            rightText: contractPublishedPayForContract(contract),
             rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
             detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
             action: `contract:${contract.id}`,
@@ -1652,7 +1659,7 @@ export class Game {
             labelLineCount: 2 as const,
             tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
             tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
-            detail: `${contract.sourceName} → ${contract.destinationName} — ${contract.travelMode === 'old-nell' ? 'passage provided · no pay' : contractPublishedPay(contract.quote)}`,
+            detail: `${contract.sourceName} → ${contract.destinationName} — ${contract.travelMode === 'old-nell' ? 'passage provided · no pay' : contractPublishedPayForContract(contract)}`,
             action: `contactContract:${contract.id}`,
             tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
@@ -1710,7 +1717,7 @@ export class Game {
           { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
-          { kind: 'kv', label: 'Published pay', value: contractPublishedPay(quote), tone: contractOptionTone(contract) },
+          { kind: 'kv', label: 'Published pay', value: contractPublishedPayForContract(contract), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Net at par', value: contractMarginSummary(quote), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Transfer', value: transferSummary },
         ],
