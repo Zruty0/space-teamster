@@ -1156,16 +1156,9 @@ function drawSpeedVectorDot(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s
   const lookahead = baseLookahead * Math.min(1, maxScreenLength / Math.max(uncappedScreenLength, 1));
   const [px, py] = cws(s.x + s.vx * lookahead, s.y + s.vy * lookahead, cam, W, H);
   ctx.beginPath();
-  ctx.arc(px, py, 4, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,255,136,0.7)';
+  ctx.arc(px, py, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
   ctx.fill();
-  const [sx, sy] = cws(s.x, s.y, cam, W, H);
-  ctx.beginPath();
-  ctx.moveTo(sx, sy);
-  ctx.lineTo(px, py);
-  ctx.strokeStyle = 'rgba(0,255,136,0.25)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
 }
 
 function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, W: number, H: number, time: number): void {
