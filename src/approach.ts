@@ -87,6 +87,8 @@ export type TurbulenceZone = TurbulenceZoneDef;
 
 const APPROACH_WARP_SPEEDS = [1, 2, 5];
 const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
+const STANDARD_TRAJECTORY_PREDICTION_TIME = 180;
+const DENSE_ATMOSPHERE_TRAJECTORY_PREDICTION_TIME = 600;
 
 export interface ApproachState {
   x: number;
@@ -791,9 +793,15 @@ export function updateApproach(
 
 // ===================== Trajectory Prediction =====================
 
+function trajectoryPredictionTime(level: ApproachLevel): number {
+  return level.surfaceDensity >= 1.5
+    ? DENSE_ATMOSPHERE_TRAJECTORY_PREDICTION_TIME
+    : STANDARD_TRAJECTORY_PREDICTION_TIME;
+}
+
 export function predictTrajectory(
   s: ApproachState, level: ApproachLevel,
-  predTime: number = 0, maxTime = 180, step = 0.4,
+  predTime: number = 0, maxTime = trajectoryPredictionTime(level), step = 0.4,
   includeWind: boolean = true,
   includeTerrain: boolean = true,
 ): TrajectoryResult {
