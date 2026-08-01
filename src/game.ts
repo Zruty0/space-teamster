@@ -1581,26 +1581,6 @@ export class Game {
     if (state.id === 'localDirectoryAction') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
-      if (entry.id === 'gideon-gid-bell' && state.directoryActionId === 'basic-certification') {
-        const firstComplete = this.career.basicCertificationStage >= 1;
-        return {
-          title: 'BASIC TEAMSTER CERTIFICATION',
-          subtitle: 'Gideon “Gid” Bell — Teamsters’ Guild',
-          bodyRows: [
-            { kind: 'text', text: 'Gid settles back in his chair, smiling as though you have asked him about a favorite grandchild.' },
-            { kind: 'text', text: '“Three practicals. No tricks, no heroics. Show me you can bring ship, cargo, and crew home in the same number of pieces they started in.”', tone: 'success' },
-            { kind: 'separator' },
-            { kind: 'kv', label: 'Practical 1', value: `Caravanserai → the Still; local flight and docking${firstComplete ? ' — COMPLETE' : ''}`, tone: firstComplete ? 'success' : undefined },
-            { kind: 'kv', label: 'Practical 2', value: 'Nell’s Rest → Weymark Town → Nell’s Rest' },
-            { kind: 'kv', label: 'Practical 3', value: 'Supervised planetary transfer' },
-            { kind: 'text', text: 'Passing all three earns Basic Teamster Certification. Thin- and dense-atmosphere operations are separate qualifications.' },
-          ],
-          footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
-          options: [
-            { label: 'Back to Gid Bell', detail: 'Return to the certification officer.', action: `directoryEntry:${entry.id}`, tone: 'back' as InteractiveTone },
-          ],
-        };
-      }
       return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: entry.id });
     }
 

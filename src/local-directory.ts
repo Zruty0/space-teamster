@@ -101,13 +101,7 @@ export const GIDEON_BELL: LocalContactDef = {
   commsRange: 'cluster',
   description: 'A broad, silver-bearded former fuel hauler with a booming laugh. Gid treats nervous applicants like junior crewmates, forgives honest mistakes, and becomes quietly immovable wherever safety is concerned.',
   welcomeText: '“There you are! Signal’s clean and everything. If you can dock without bending my station, we’re already friends.”',
-  actions: [
-    {
-      id: 'basic-certification',
-      label: 'Ask about basic certification',
-      detail: 'Review the three practical flights required of a new Teamster.',
-    },
-  ],
+  actions: [],
 };
 
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
