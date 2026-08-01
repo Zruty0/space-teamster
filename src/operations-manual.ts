@@ -15,7 +15,8 @@ export interface OperationsManualArticle {
   introduction: string;
   controls: ManualControl[];
   tips: string[];
-  procedure: string[];
+  procedure?: string[];
+  procedureSections?: { title: string; steps: string[] }[];
   hud: { label: string; description: string }[];
 }
 
@@ -123,7 +124,7 @@ export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
 export const ORBIT_DEORBIT_ARTICLE: OperationsManualArticle = {
   id: 'orbit-deorbit',
   title: 'Orbit and Deorbit',
-  introduction: 'Orbital flight is controlled by changing velocity rather than steering directly toward a destination. Prograde thrust adds orbital energy; retrograde thrust removes it. For a surface arrival, lower your periapsis into the displayed approach corridor, then coast to the handoff.',
+  introduction: 'Orbital flight is controlled by changing velocity rather than steering directly toward a destination. Prograde thrust adds orbital energy; retrograde thrust removes it. For a surface arrival, lower the orbit into the approach corridor. For a departure, raise and circularize the orbit before continuing.',
   controls: [
     {
       keys: ['W', 'S'],
@@ -142,12 +143,23 @@ export const ORBIT_DEORBIT_ARTICLE: OperationsManualArticle = {
     { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
     { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
   ],
-  procedure: [
-    'Read the projected orbit and note the current PeA and the destination’s required PeA.',
-    'Apply retrograde thrust until PeA falls below the displayed approach threshold, while keeping the projected path clear of the surface.',
-    'Release the controls and coast around the orbit. Use time warp while the projected route is safe.',
-    'Make short corrections as needed rather than holding a long burn.',
-    'Cross the low point of the orbit below the displayed transition altitude to enter the destination approach.',
+  procedureSections: [
+    {
+      title: 'Deorbit',
+      steps: [
+        'Apply retrograde thrust until the predicted trajectory shows an impact.',
+        'Use short prograde and retrograde corrections to fine-tune the predicted impact point.',
+        'Release the controls and coast. Use time warp as needed while the projected route remains safe.',
+      ],
+    },
+    {
+      title: 'Establish Orbit',
+      steps: [
+        'Apply prograde thrust to raise the opposite side of the orbit.',
+        'Use high thrust if necessary to add enough orbital energy.',
+        'Near the high point, apply smooth prograde corrections until PeA and ApA are close together, producing a circular orbit.',
+      ],
+    },
   ],
   tips: [
     'A burn changes the whole orbit. Prograde thrust generally raises the opposite side; retrograde thrust generally lowers it.',
@@ -262,6 +274,11 @@ function controlCardHeight(ctx: CanvasRenderingContext2D, control: ManualControl
   return Math.max(58, 30 + wrappedHeight(ctx, control.description, contentW - keyColumnW - 34, 16));
 }
 
+function articleProcedureSections(article: OperationsManualArticle): { title?: string; steps: string[] }[] {
+  if (article.procedureSections?.length) return article.procedureSections;
+  return [{ steps: article.procedure ?? [] }];
+}
+
 function measureArticleContent(ctx: CanvasRenderingContext2D, article: OperationsManualArticle, contentW: number): number {
   let height = 0;
   ctx.font = '13px monospace';
@@ -270,8 +287,13 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   for (const control of article.controls) height += controlCardHeight(ctx, control, contentW) + 10;
   height += 18 + 30;
   ctx.font = '12px monospace';
-  for (const step of article.procedure) height += wrappedHeight(ctx, step, contentW - 34, 17) + 10;
-  height += 14 + 30;
+  const procedureSections = articleProcedureSections(article);
+  for (const section of procedureSections) {
+    if (section.title) height += 24;
+    for (const step of section.steps) height += wrappedHeight(ctx, step, contentW - 34, 17) + 10;
+    height += 8;
+  }
+  height += 6 + 30;
   for (const tip of article.tips) height += wrappedHeight(ctx, tip, contentW, 17) + 12;
   height += 14 + 30;
   for (const item of article.hud) height += wrappedHeight(ctx, item.description, contentW - 100, 16) + 10;
@@ -407,17 +429,27 @@ export function drawOperationsManualArticle(
   for (const control of article.controls) y = drawControlCard(ctx, control, geometry.contentX, y, geometry.contentW);
 
   y += 18;
-  y = drawHeading(ctx, 'Recommended Procedure', geometry.contentX, y);
-  article.procedure.forEach((step, index) => {
-    ctx.font = 'bold 12px monospace';
-    ctx.fillStyle = COL_SUCCESS;
-    ctx.fillText(`${index + 1}.`, geometry.contentX, y);
-    ctx.font = '12px monospace';
-    y = drawWrapped(ctx, step, geometry.contentX + 34, y, geometry.contentW - 34, 17);
-    y += 10;
-  });
+  const procedureSections = articleProcedureSections(article);
+  y = drawHeading(ctx, procedureSections.length > 1 ? 'Recommended Procedures' : 'Recommended Procedure', geometry.contentX, y);
+  for (const section of procedureSections) {
+    if (section.title) {
+      ctx.font = 'bold 13px monospace';
+      ctx.fillStyle = COL_WARNING;
+      ctx.fillText(section.title.toUpperCase(), geometry.contentX, y);
+      y += 24;
+    }
+    section.steps.forEach((step, index) => {
+      ctx.font = 'bold 12px monospace';
+      ctx.fillStyle = COL_SUCCESS;
+      ctx.fillText(`${index + 1}.`, geometry.contentX, y);
+      ctx.font = '12px monospace';
+      y = drawWrapped(ctx, step, geometry.contentX + 34, y, geometry.contentW - 34, 17);
+      y += 10;
+    });
+    y += 8;
+  }
 
-  y += 14;
+  y += 6;
   y = drawHeading(ctx, 'Tips', geometry.contentX, y);
   ctx.font = '12px monospace';
   for (const tip of article.tips) {
