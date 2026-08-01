@@ -157,14 +157,13 @@ export const ORBIT_DEORBIT_ARTICLE: OperationsManualArticle = {
       steps: [
         'Apply prograde thrust to raise the opposite side of the orbit.',
         'Use high thrust if necessary to add enough orbital energy.',
-        'Near the high point, apply smooth prograde corrections until PeA and ApA are close together, producing a circular orbit.',
+        'Approach the apoapsis marker, then apply a short prograde burn to push it ahead of the rig. Coast toward it and repeat, maintaining some distance from the moving marker until PeA and ApA are close together and the orbit is circular.',
       ],
     },
   ],
   tips: [
-    'A burn changes the whole orbit. Prograde thrust generally raises the opposite side; retrograde thrust generally lowers it.',
-    'Most orbital flight is coasting. Burn briefly, then stop and inspect the new trajectory before correcting again.',
-    'Use high thrust sparingly near the deorbit threshold. A small excess can turn an approach into an impact trajectory.',
+    'A burn changes the whole orbit. Prograde thrust raises the opposite side; retrograde thrust lowers it.',
+    'Most orbital flight is coasting. Burn briefly—high thrust is often helpful—then stop and inspect the new trajectory before correcting again.',
   ],
   hud: [
     { label: 'ALT', description: 'Current altitude above the surface' },
