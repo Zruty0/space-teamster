@@ -186,7 +186,6 @@ export function drawHUD(
   const vSpeed = ship.vy;
   const hSpeed = ship.vx;
   const speed = Math.sqrt(vSpeed * vSpeed + hSpeed * hSpeed);
-  const pitchDeg = (ship.angle * 180 / Math.PI);
   const padOffset = Math.abs(ship.x - level.padCenterX);
 
   ctx.save();
@@ -219,11 +218,6 @@ export function drawHUD(
   ly += lineH;
 
   drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(1)} m/s`, COL_HUD);
-  ly += lineH;
-
-  const pitchColor = Math.abs(ship.angle) > config.landingMaxAngle * 2 ? COL_DANGER :
-                      Math.abs(ship.angle) > config.landingMaxAngle ? COL_WARNING : COL_HUD;
-  drawHudLabel(ctx, lx, ly, 'ATT', `${pitchDeg.toFixed(1)}°`, pitchColor);
   ly += lineH;
 
   drawHudLabel(ctx, lx, ly, 'CFG', ship.gearDeployed ? 'GEAR DOWN' : 'GEAR UP', ship.gearDeployed ? COL_SUCCESS : COL_HUD_DIM);
@@ -263,7 +257,6 @@ export function drawHUD(
           { label: 'PAD', value: `${padOffset.toFixed(1)} m < ${level.padHalfWidth.toFixed(0)} m`, color: padOffset <= level.padHalfWidth ? COL_SUCCESS : COL_WARNING },
           { label: 'V/S', value: `${Math.abs(vSpeed).toFixed(1)} m/s < ${level.landingMaxVSpeed.toFixed(1)} m/s`, color: Math.abs(vSpeed) <= level.landingMaxVSpeed ? COL_SUCCESS : COL_WARNING },
           { label: 'H/S', value: `${Math.abs(hSpeed).toFixed(1)} m/s < ${level.landingMaxHSpeed.toFixed(1)} m/s`, color: Math.abs(hSpeed) <= level.landingMaxHSpeed ? COL_SUCCESS : COL_WARNING },
-          { label: 'ATT', value: `${Math.abs(pitchDeg).toFixed(1)}° < ${(level.landingMaxAngle * 180 / Math.PI).toFixed(1)}°`, color: Math.abs(ship.angle) <= level.landingMaxAngle ? COL_SUCCESS : COL_WARNING },
         ],
     guidance: landingGuidance,
   });
