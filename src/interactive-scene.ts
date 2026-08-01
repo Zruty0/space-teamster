@@ -4,11 +4,12 @@ export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'dang
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; tone?: InteractiveTone }
+  | { kind: 'kv'; label: string; value: string; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
   label: string;
+  labelLineCount?: 1 | 2;
   detail?: string;
   detailLineCount?: 1 | 2;
   disabled?: boolean;
@@ -139,10 +140,11 @@ export function drawInteractiveScene(
   const x = W / 2 - boxW / 2;
   const bodyY = 92;
   const rows = bodyRows(scene);
+  const labelW = 165;
   ctx.font = '13px monospace';
   const bodyContentH = rows.reduce((height, row) => {
     if (row.kind === 'separator') return height + 14;
-    if (row.kind === 'kv') return height + 22;
+    if (row.kind === 'kv') return height + (row.valueLineCount === 2 ? 40 : 22);
     return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
   }, 0);
   const bodyH = rows.length ? Math.min(260, 24 + bodyContentH) : 0;
@@ -160,7 +162,6 @@ export function drawInteractiveScene(
 
     let y = bodyY + 27;
     const bottom = bodyY + bodyH - 12;
-    const labelW = 165;
     for (const row of rows) {
       if (y > bottom) break;
       if (row.kind === 'separator') {
@@ -179,8 +180,17 @@ export function drawInteractiveScene(
         ctx.fillText(row.label.toUpperCase(), x + 22, y);
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
-        ctx.fillText(middleEllipsis(ctx, row.value, boxW - labelW - 54), x + 22 + labelW, y);
-        y += 22;
+        const valueWidth = boxW - labelW - 54;
+        if (row.valueLineCount === 2) {
+          const wrapped = wrapText(ctx, row.value, valueWidth);
+          const valueLines = wrapped.slice(0, 2);
+          if (wrapped.length > 2) valueLines[1] = middleEllipsis(ctx, `${valueLines[1]}…`, valueWidth);
+          valueLines.forEach((line, index) => ctx.fillText(line, x + 22 + labelW, y + index * 18));
+          y += 40;
+        } else {
+          ctx.fillText(middleEllipsis(ctx, row.value, valueWidth), x + 22 + labelW, y);
+          y += 22;
+        }
         continue;
       }
       ctx.textAlign = 'left';
@@ -204,7 +214,9 @@ export function drawInteractiveScene(
   ctx.fillRect(x, listY, boxW, listH);
   ctx.strokeRect(x, listY, boxW, listH);
 
-  const rowH = scene.options.some(option => option.detailLineCount === 2) ? 72 : 58;
+  const rowH = 58
+    + (scene.options.some(option => option.labelLineCount === 2) ? 18 : 0)
+    + (scene.options.some(option => option.detailLineCount === 2) ? 14 : 0);
   const visibleRows = Math.max(1, Math.floor((listH - 30) / rowH));
   const maxStart = Math.max(0, scene.options.length - visibleRows);
   const start = Math.max(0, Math.min(maxStart, selectedIndex - Math.floor(visibleRows / 2)));
@@ -238,7 +250,16 @@ export function drawInteractiveScene(
     ctx.fillStyle = toneColor(tone, selected);
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
     const rightTextWidth = option.rightText ? 300 : 190;
-    ctx.fillText(`${selected ? '▶ ' : '  '}${middleEllipsis(ctx, option.label, boxW - (textX - x) - rightTextWidth)}`, textX, y);
+    const labelWidth = boxW - (textX - x) - rightTextWidth;
+    const labelPrefix = selected ? '▶ ' : '  ';
+    const labelLines = option.labelLineCount === 2
+      ? wrapText(ctx, `${labelPrefix}${option.label}`, labelWidth).slice(0, 2)
+      : [`${labelPrefix}${middleEllipsis(ctx, option.label, labelWidth - ctx.measureText(labelPrefix).width)}`];
+    if (option.labelLineCount === 2) {
+      const allLabelLines = wrapText(ctx, `${labelPrefix}${option.label}`, labelWidth);
+      if (allLabelLines.length > 2) labelLines[1] = middleEllipsis(ctx, `${labelLines[1]}…`, labelWidth);
+    }
+    labelLines.forEach((line, lineIndex) => ctx.fillText(line, textX, y + lineIndex * 18));
     if (option.rightText) {
       ctx.fillStyle = toneColor(tone, selected);
       ctx.font = selected ? 'bold 14px monospace' : '14px monospace';
@@ -256,13 +277,14 @@ export function drawInteractiveScene(
       ctx.font = '12px monospace';
       const detailWidth = option.rightText ? boxW - 360 : boxW - 66;
       const maxLines = option.detailLineCount ?? 1;
+      const detailY = y + 19 + (option.labelLineCount === 2 ? 18 : 0);
       const wrapped = wrapText(ctx, option.detail, detailWidth);
       const detailLines = wrapped.slice(0, maxLines);
       if (wrapped.length > maxLines) {
         detailLines[maxLines - 1] = middleEllipsis(ctx, `${detailLines[maxLines - 1]}…`, detailWidth);
       }
       for (let lineIndex = 0; lineIndex < detailLines.length; lineIndex++) {
-        ctx.fillText(detailLines[lineIndex], x + 46, y + 19 + lineIndex * 15);
+        ctx.fillText(detailLines[lineIndex], x + 46, detailY + lineIndex * 15);
       }
     }
   }

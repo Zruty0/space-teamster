@@ -1565,6 +1565,7 @@ export class Game {
         options: [
           ...contracts.map(contract => ({
             label: contract.title,
+            labelLineCount: 2 as const,
             tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
             rightText: contractPublishedPay(contract.quote),
             rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
@@ -1648,6 +1649,7 @@ export class Game {
         options: [
           ...contactContracts.map(contract => ({
             label: contract.title,
+            labelLineCount: 2 as const,
             tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
             tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName} — ${contract.travelMode === 'old-nell' ? 'passage provided · no pay' : contractPublishedPay(contract.quote)}`,
@@ -1689,7 +1691,7 @@ export class Game {
         title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyRows: contract.travelMode === 'old-nell' ? [
-          { kind: 'kv', label: 'Mission', value: contract.title, tone: 'success' },
+          { kind: 'kv', label: 'Mission', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
           { kind: 'kv', label: 'Boarding', value: contract.sourcePath },
           { kind: 'kv', label: 'Arrival', value: contract.destinationPath },
@@ -1698,7 +1700,7 @@ export class Game {
           { kind: 'kv', label: 'Fare', value: 'No charge', tone: 'warning' },
           { kind: 'kv', label: 'Schedule', value: transferSummary },
         ] : [
-          { kind: 'kv', label: 'Contract', value: contract.title, tone: 'success' },
+          { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
           { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
