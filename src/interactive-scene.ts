@@ -135,7 +135,13 @@ export function drawInteractiveScene(
   const x = W / 2 - boxW / 2;
   const bodyY = 92;
   const rows = bodyRows(scene);
-  const bodyH = rows.length ? Math.min(260, 34 + rows.length * 22) : 0;
+  ctx.font = '13px monospace';
+  const bodyContentH = rows.reduce((height, row) => {
+    if (row.kind === 'separator') return height + 14;
+    if (row.kind === 'kv') return height + 22;
+    return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
+  }, 0);
+  const bodyH = rows.length ? Math.min(260, 24 + bodyContentH) : 0;
 
   if (rows.length) {
     ctx.fillStyle = 'rgba(0, 120, 120, 0.045)';
@@ -184,7 +190,7 @@ export function drawInteractiveScene(
       y += 2;
     }
     ctx.restore();
-    if (rows.length * 22 + 34 > bodyH) drawScrollHint(ctx, x, bodyY + bodyH - 3, boxW, '↓ more detail');
+    if (bodyContentH + 24 > bodyH) drawScrollHint(ctx, x, bodyY + bodyH - 3, boxW, '↓ more detail');
   }
 
   const listY = bodyY + bodyH + (bodyH ? 18 : 0);

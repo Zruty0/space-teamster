@@ -5,6 +5,8 @@ export interface LocalDirectoryActionDef {
   id: string;
   label: string;
   detail: string;
+  tag?: string;
+  contactId?: string;
 }
 
 interface LocalDirectoryEntryBase {
@@ -15,11 +17,14 @@ interface LocalDirectoryEntryBase {
   missionTags?: string[];
   locationIds: string[];
   summary: string;
+  /** False when remote access must be initiated through an office rather than the general directory. */
+  listedRemotely?: boolean;
   actions: LocalDirectoryActionDef[];
 }
 
 export interface LocalOfficeDef extends LocalDirectoryEntryBase {
   kind: 'office';
+  description: string;
 }
 
 export type ContactCommsRange = 'local' | 'cluster' | 'body' | 'region';
@@ -28,7 +33,7 @@ export interface LocalContactDef extends LocalDirectoryEntryBase {
   kind: 'contact';
   title: string;
   description: string;
-  welcomeText: string;
+  dialogue: string[];
   commsRange: ContactCommsRange;
 }
 
@@ -98,13 +103,37 @@ export const GIDEON_BELL: LocalContactDef = {
   missionTags: ['certification-basic'],
   locationIds: ['still-guild-hq'],
   summary: 'The Guild examiner responsible for basic Teamster certification.',
+  listedRemotely: false,
   commsRange: 'cluster',
-  description: 'A broad, silver-bearded former fuel hauler with a booming laugh. Gid treats nervous applicants like junior crewmates, forgives honest mistakes, and becomes quietly immovable wherever safety is concerned.',
-  welcomeText: '“There you are! Signal’s clean and everything. If you can dock without bending my station, we’re already friends.”',
+  description: 'A broad, silver-bearded older Teamster leans toward the camera in a faded Guild work shirt. Laugh lines crowd his eyes; one scarred hand cradles a steaming mug while the other rests on a battered checkride clipboard.',
+  dialogue: [
+    '“Hello there! Gideon Bell—Gid to everybody who isn’t filing paperwork. Good to meet you.”',
+    '“I’m sure you already know how to handle the Teamster rig, but, you know, regulations. When you’re ready, visit me at Guild HQ and we’ll get your checkride out of the way.”',
+  ],
   actions: [],
 };
 
+export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'teamsters-guild-certification-office',
+  name: 'Teamsters’ Guild Certification Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['caravanserai-certification-authority'],
+  summary: 'Guild licensing and practical-flight administration for working Teamsters.',
+  description: 'The certification office occupies a low-ceilinged suite behind the Caravanserai traffic hall. Scuffed maneuver plots and framed rig licenses cover the walls; old acceleration couches serve as waiting-room seats.',
+  actions: [
+    {
+      id: 'start-basic-certification',
+      label: 'Start Guild certification',
+      detail: 'Open a call with the Guild officer responsible for the basic checkride.',
+      tag: 'TUTORIAL',
+      contactId: GIDEON_BELL.id,
+    },
+  ],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
+  TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   GIDEON_BELL,
 ];
 
@@ -118,7 +147,10 @@ export function localDirectoryEntryAccess(entry: LocalDirectoryEntryDef, locatio
 }
 
 export function localDirectoryEntriesAt(locationId: string): LocalDirectoryEntryDef[] {
-  return LOCAL_DIRECTORY_ENTRIES.filter(entry => localDirectoryEntryAccess(entry, locationId) !== undefined);
+  return LOCAL_DIRECTORY_ENTRIES.filter(entry => {
+    const access = localDirectoryEntryAccess(entry, locationId);
+    return access !== undefined && (access === 'local' || entry.listedRemotely !== false);
+  });
 }
 
 export function localDirectoryEntryById(id: string): LocalDirectoryEntryDef | undefined {

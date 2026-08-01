@@ -93,7 +93,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
     templateId: 'basic-certification-still-transfer',
     sourceId: CARAVANSERAI_COMMERCIAL_DOCK,
     destinationId: STILL_PUBLIC_DOCK,
-    title: 'Transfer to the Still for the Teamster Guild certification',
+    title: 'Land at the Public Approach Dock at The Still',
     issuerId: ctx.issuer.id,
     issuerName: ctx.issuer.name,
     category: 'certification',

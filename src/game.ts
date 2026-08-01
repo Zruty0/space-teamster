@@ -70,6 +70,7 @@ interface InteractiveScenePhaseState {
   contractIndex?: number;
   directoryEntryId?: string;
   directoryActionId?: string;
+  directoryParentEntryId?: string;
 }
 
 interface PhaseCompletion {
@@ -306,8 +307,8 @@ export class Game {
     this.accumulator = 0;
   }
 
-  private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' | 'contact' = 'freight', directoryEntryId?: string): void {
-    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex, board, directoryEntryId } };
+  private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' | 'contact' = 'freight', directoryEntryId?: string, directoryParentEntryId?: string): void {
+    this.phase = { kind: 'interactiveScene', scene: { id: 'contractPosting', selectedIndex: 0, contracts, contractIndex, board, directoryEntryId, directoryParentEntryId } };
   }
 
   private resetCareer(): void {
@@ -1542,38 +1543,37 @@ export class Game {
     if (state.id === 'localDirectoryEntry') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
-      const access = localDirectoryEntryAccess(entry, this.career.locationId);
       const contactLocation = estellaDisplayPath(entry.locationIds[0]);
       const contactContracts = state.contracts ?? generateDirectoryEntryContracts(entry.id, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
       return {
         title: entry.name.toUpperCase(),
         subtitle: entry.kind === 'contact' ? `${entry.title} — ${entry.organizationName ?? 'Independent'}` : entry.organizationName,
         bodyRows: entry.kind === 'contact' ? [
-          { kind: 'kv', label: 'Contact location', value: contactLocation },
-          { kind: 'kv', label: 'Connection', value: access === 'remote' ? 'Remote communications link' : 'Local terminal connection' },
           { kind: 'text', text: entry.description },
           { kind: 'separator' },
-          { kind: 'text', text: entry.welcomeText, tone: 'success' },
+          ...entry.dialogue.map((text, index) => ({ kind: 'text' as const, text, tone: index === 0 ? 'success' as const : undefined })),
         ] : [
-          { kind: 'text', text: entry.summary },
+          { kind: 'text', text: entry.description },
           { kind: 'kv', label: 'Organization', value: entry.organizationName ?? 'Independent' },
+          { kind: 'kv', label: 'Location', value: contactLocation },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           ...contactContracts.map(contract => ({
             label: contract.title,
-            tag: contract.category === 'certification' ? 'MISSION' : 'WORK',
+            tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
             detail: `${contract.sourceName} → ${contract.destinationName} — ${contractPublishedPay(contract.quote)}`,
             action: `contactContract:${contract.id}`,
-            tone: 'primary' as InteractiveTone,
+            tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
           ...entry.actions.map(action => ({
             label: action.label,
+            tag: action.tag,
             detail: action.detail,
             action: `directoryAction:${entry.id}:${action.id}`,
-            tone: 'normal' as InteractiveTone,
+            tone: action.tag === 'TUTORIAL' ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
           })),
-          { label: 'Back to Local Directory', detail: 'Return to local listings.', action: 'localDirectory', tone: 'back' as InteractiveTone },
+          { label: state.directoryParentEntryId ? 'Back to Certification Office' : 'Back to Local Directory', detail: 'Return to the previous directory listing.', action: state.directoryParentEntryId ? `directoryEntry:${state.directoryParentEntryId}` : 'localDirectory', tone: 'back' as InteractiveTone },
         ],
       };
     }
@@ -1587,7 +1587,7 @@ export class Game {
     if (state.id === 'contractPosting') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
       if (!contract) {
-        if (state.board === 'contact' && state.directoryEntryId) return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: state.directoryEntryId });
+        if (state.board === 'contact' && state.directoryEntryId) return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: state.directoryEntryId, directoryParentEntryId: state.directoryParentEntryId });
         return this.buildInteractiveScene({ id: 'browseContracts', selectedIndex: 0, contracts: state.contracts ?? [] });
       }
       const quote = contract.quote;
@@ -1617,7 +1617,7 @@ export class Game {
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
           { label: 'Accept Contract', detail: 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
-          { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryEntry:${state.directoryEntryId}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
+          { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryContact:${state.directoryEntryId}:${state.directoryParentEntryId ?? ''}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
     }
@@ -1657,7 +1657,7 @@ export class Game {
     if (input.levelSelect) {
       if (p.scene.id === 'contractPosting') {
         if (p.scene.board === 'contact' && p.scene.directoryEntryId) {
-          this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: p.scene.directoryEntryId } };
+          this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: p.scene.directoryEntryId, directoryParentEntryId: p.scene.directoryParentEntryId } };
           return;
         }
         const id = p.scene.board === 'passenger' ? 'browsePassengerContracts' : 'browseContracts';
@@ -1698,8 +1698,21 @@ export class Game {
       this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId, contracts } };
       return;
     }
+    if (action.startsWith('directoryContact:')) {
+      const [, directoryEntryId, directoryParentEntryId] = action.split(':');
+      const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId, directoryParentEntryId: directoryParentEntryId || undefined, contracts } };
+      return;
+    }
     if (action.startsWith('directoryAction:')) {
       const [, directoryEntryId, directoryActionId] = action.split(':');
+      const directoryEntry = localDirectoryEntryById(directoryEntryId);
+      const directoryAction = directoryEntry?.actions.find(candidate => candidate.id === directoryActionId);
+      if (directoryAction?.contactId) {
+        const contracts = generateDirectoryEntryContracts(directoryAction.contactId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
+        this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: directoryAction.contactId, directoryParentEntryId: directoryEntryId, contracts } };
+        return;
+      }
       const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage);
       this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId, contracts } };
       return;
@@ -1710,7 +1723,7 @@ export class Game {
         ? generateDirectoryEntryContracts(state.directoryEntryId, this.career.locationId, this.career.worldTime, this.career.basicCertificationStage)
         : []);
       const idx = contracts.findIndex(contract => contract.id === contractId);
-      if (idx >= 0) this.openContractPosting(contracts, idx, 'contact', state.directoryEntryId);
+      if (idx >= 0) this.openContractPosting(contracts, idx, 'contact', state.directoryEntryId, state.directoryParentEntryId);
       return;
     }
     if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }
