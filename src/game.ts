@@ -42,6 +42,7 @@ import { CAREER_START_LOCATION_ID, loadCareerProfile, resetCareerProfile, saveCa
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, type InteractiveScene, type InteractiveTone } from './interactive-scene';
+import { localDirectoryEntriesAt, localDirectoryEntryById } from './local-directory';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -62,11 +63,13 @@ type Phase =
   | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'careerStatus' | 'shipStatus';
+  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'careerStatus' | 'shipStatus';
   selectedIndex: number;
   board?: 'freight' | 'passenger';
   contracts?: CareerContract[];
   contractIndex?: number;
+  directoryEntryId?: string;
+  directoryActionId?: string;
 }
 
 interface PhaseCompletion {
@@ -1463,6 +1466,7 @@ export class Game {
         options: [
           { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
           { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
+          { label: 'Local Directory', detail: 'Find offices and known contacts physically present at this port.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
@@ -1499,6 +1503,83 @@ export class Game {
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
       };
+    }
+
+    if (state.id === 'localDirectory') {
+      const entries = localDirectoryEntriesAt(this.career.locationId);
+      return {
+        title: 'LOCAL DIRECTORY',
+        subtitle: locationPath,
+        bodyRows: [
+          { kind: 'text', text: entries.length ? 'Local offices and known contacts available through this terminal.' : 'No local offices or known contacts are listed at this port.', tone: entries.length ? undefined : 'warning' },
+          { kind: 'kv', label: 'Listings', value: `${entries.length}` },
+          { kind: 'kv', label: 'Access', value: 'In-person listings at the current station or surface site' },
+        ],
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
+        options: [
+          ...entries.map(entry => ({
+            label: entry.name,
+            tag: entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
+            rightText: entry.organizationName,
+            detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
+            action: `directoryEntry:${entry.id}`,
+            tone: 'primary' as InteractiveTone,
+          })),
+          { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' as InteractiveTone },
+        ],
+      };
+    }
+
+    if (state.id === 'localDirectoryEntry') {
+      const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
+      if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
+      return {
+        title: entry.name.toUpperCase(),
+        subtitle: entry.kind === 'contact' ? `${entry.title} — ${entry.organizationName ?? 'Independent'}` : entry.organizationName,
+        bodyRows: entry.kind === 'contact' ? [
+          { kind: 'text', text: entry.description },
+          { kind: 'separator' },
+          { kind: 'text', text: entry.welcomeText, tone: 'success' },
+        ] : [
+          { kind: 'text', text: entry.summary },
+          { kind: 'kv', label: 'Organization', value: entry.organizationName ?? 'Independent' },
+        ],
+        footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
+        options: [
+          ...entry.actions.map(action => ({
+            label: action.label,
+            detail: action.detail,
+            action: `directoryAction:${entry.id}:${action.id}`,
+            tone: 'primary' as InteractiveTone,
+          })),
+          { label: 'Back to Local Directory', detail: 'Return to local listings.', action: 'localDirectory', tone: 'back' as InteractiveTone },
+        ],
+      };
+    }
+
+    if (state.id === 'localDirectoryAction') {
+      const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
+      if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
+      if (entry.id === 'gideon-gid-bell' && state.directoryActionId === 'basic-certification') {
+        return {
+          title: 'BASIC TEAMSTER CERTIFICATION',
+          subtitle: 'Gideon “Gid” Bell — Teamsters’ Guild',
+          bodyRows: [
+            { kind: 'text', text: 'Gid settles back in his chair, smiling as though you have asked him about a favorite grandchild.' },
+            { kind: 'text', text: '“Three practicals. No tricks, no heroics. Show me you can bring ship, cargo, and crew home in the same number of pieces they started in.”', tone: 'success' },
+            { kind: 'separator' },
+            { kind: 'kv', label: 'Practical 1', value: 'Caravanserai → the Still; local flight and docking' },
+            { kind: 'kv', label: 'Practical 2', value: 'Nell’s Rest → Weymark Town → Nell’s Rest' },
+            { kind: 'kv', label: 'Practical 3', value: 'Supervised planetary transfer' },
+            { kind: 'text', text: 'Passing all three earns Basic Teamster Certification. Thin- and dense-atmosphere operations are separate qualifications.' },
+          ],
+          footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
+          options: [
+            { label: 'Back to Gid Bell', detail: 'Return to the certification officer.', action: `directoryEntry:${entry.id}`, tone: 'back' },
+          ],
+        };
+      }
+      return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: entry.id });
     }
 
     if (state.id === 'contractPosting') {
@@ -1599,6 +1680,17 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
+    if (action === 'localDirectory') { this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectory', selectedIndex: 0 } }; return; }
+    if (action.startsWith('directoryEntry:')) {
+      const directoryEntryId = action.slice('directoryEntry:'.length);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId } };
+      return;
+    }
+    if (action.startsWith('directoryAction:')) {
+      const [, directoryEntryId, directoryActionId] = action.split(':');
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId } };
+      return;
+    }
     if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }
     if (action === 'shipStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'shipStatus', selectedIndex: 0 } }; return; }
     if (action === 'startMenu') { this.startMenuReturnPhase = null; this.phase = { kind: 'startMenu' }; return; }

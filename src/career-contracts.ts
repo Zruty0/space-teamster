@@ -2,6 +2,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
+import { localTerminalScopeIds } from './local-directory';
 import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
@@ -29,8 +30,6 @@ export interface CareerContract {
 
 const MAX_FACTION_CONTRACTS = 10;
 const MAX_CONTRACTS = 10;
-
-const SHARED_BBS_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid']);
 
 function hashString(text: string): number {
   let hash = 2166136261;
@@ -127,29 +126,6 @@ function contractTitleDestination(destinationId: string): string {
   return ESTELLA_NODES_BY_ID.get(destinationId)?.name ?? contractTarget(destinationId).name;
 }
 
-function sharedBbsParentId(locationId: string): string | undefined {
-  const node = ESTELLA_NODES_BY_ID.get(locationId);
-  if (!node) return undefined;
-  if (SHARED_BBS_PARENT_KINDS.has(node.kind)) return node.id;
-  if (node.placement?.kind !== 'aboard') return undefined;
-  const parent = ESTELLA_NODES_BY_ID.get(node.placement.parentId);
-  return parent && SHARED_BBS_PARENT_KINDS.has(parent.kind) ? parent.id : undefined;
-}
-
-function bbsSourceIds(locationId: string): string[] {
-  const parentId = sharedBbsParentId(locationId);
-  if (!parentId) return [locationId];
-  const selectableIds = new Set(estellaSelectableNavTargets().map(target => target.id));
-  const siblingPoiIds = [...ESTELLA_NODES_BY_ID.values()]
-    .filter(node => node.kind === 'poi' && node.placement?.kind === 'aboard' && node.placement.parentId === parentId && selectableIds.has(node.id))
-    .map(node => node.id);
-  const ordered = [
-    ...(selectableIds.has(locationId) ? [locationId] : []),
-    ...siblingPoiIds.filter(id => id !== locationId),
-  ];
-  return ordered.length ? ordered : [locationId];
-}
-
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
   const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, startWorldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);
@@ -186,7 +162,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
 
 export function generateCareerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
   const seed = hashString(`career-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
-  const boardSourceIds = bbsSourceIds(sourceId);
+  const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
   const contracts: CareerContract[] = [];
 
@@ -206,7 +182,7 @@ const MAX_PASSENGER_CONTRACTS = 18;
 
 export function generatePassengerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
   const seed = hashString(`passenger-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
-  const boardSourceIds = bbsSourceIds(sourceId);
+  const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
   const candidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime }))
     .filter(candidate => candidate.category === 'passenger')
