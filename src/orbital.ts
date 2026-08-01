@@ -3334,7 +3334,7 @@ function drawStation(
     // Flyby marker at station's predicted position
     ctx.beginPath();
     ctx.arc(casx, casy, 4, 0, Math.PI * 2);
-    ctx.strokeStyle = '#ffaa00';
+    ctx.strokeStyle = ca.dist < st.captureRadius ? '#00ffcc' : '#ffaa00';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
