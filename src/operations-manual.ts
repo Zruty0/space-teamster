@@ -31,7 +31,7 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
       modeSpecific: true,
     },
     { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust key to accelerate faster.' },
-    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic braking.' },
+    { keys: ['T'], action: 'BRAKING SAS', description: 'Toggle automatic braking and return time warp to 1×.' },
     { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration.' },
     { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
     { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
