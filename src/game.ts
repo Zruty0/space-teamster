@@ -1761,8 +1761,20 @@ export class Game {
 
     if (state.id === 'localDirectoryAction') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
-      if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
-      return this.buildInteractiveScene({ id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: entry.id });
+      const action = entry?.actions.find(candidate => candidate.id === state.directoryActionId);
+      if (!entry || !action?.response) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
+      const backAction = state.directoryParentEntryId
+        ? `directoryContact:${entry.id}:${state.directoryParentEntryId}`
+        : `directoryEntry:${entry.id}`;
+      return {
+        title: action.response.title.toUpperCase(),
+        subtitle: `${entry.name} — ${entry.organizationName ?? 'Independent'}`,
+        bodyRows: action.response.dialogue.map((text, index) => ({ kind: 'text' as const, text, tone: index === 0 ? 'success' as const : undefined })),
+        footer: 'Enter/Space: return to contact',
+        options: [
+          { label: `Back to ${entry.name}`, detail: 'Return to the contact screen.', action: backAction, tone: 'back' },
+        ],
+      };
     }
 
     if (state.id === 'contractPosting') {
@@ -1797,6 +1809,9 @@ export class Game {
         ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
+          ...(contract.templateId === 'line-certification-roadstead-checkride' ? [
+            { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
+          ] : []),
           ...(missingRequirements.length ? [{ kind: 'kv' as const, label: 'Missing requirements', value: missingRequirements.join(' + '), valueLineCount: 2 as const, tone: 'danger' as const }] : []),
           { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
@@ -1947,7 +1962,7 @@ export class Game {
         return;
       }
       const contracts = generateDirectoryEntryContracts(directoryEntryId, this.career.locationId, this.career.worldTime, this.career.certifications);
-      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId, contracts } };
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryAction', selectedIndex: 0, directoryEntryId, directoryActionId, directoryParentEntryId: state.directoryParentEntryId, contracts } };
       return;
     }
     if (action.startsWith('contactContract:')) {

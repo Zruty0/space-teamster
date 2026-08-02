@@ -10,6 +10,7 @@ export interface LocalDirectoryActionDef {
   contactId?: string;
   requiresCertification?: TeamsterCertificationId;
   purchaseCertification?: { certificationId: TeamsterCertificationId; price: number };
+  response?: { title: string; dialogue: string[] };
 }
 
 interface LocalDirectoryEntryBase {
@@ -125,7 +126,23 @@ export const GIDEON_BELL: LocalContactDef = {
     '“Keeps the insurers calm, keeps Council inspectors out of our hair, and every so often catches somebody who thought stopping was optional.”',
     '“When you’re ready, visit me at Guild HQ and we’ll get your checkride out of the way.”',
   ],
-  actions: [],
+  actions: [
+    {
+      id: 'ask-about-additional-endorsements',
+      label: 'Ask Gid about additional endorsements',
+      detail: 'Ask where the atmospheric practicals are administered and what each one covers.',
+      requiresCertification: 'basic-3',
+      response: {
+        title: 'Additional Endorsements',
+        dialogue: [
+          '“They’re optional endorsements, not part of the tutorial or your line certificate. Take them when the work you want calls for atmosphere authority.”',
+          '“For thin atmosphere, contact the Guild certification office at Roadstead Station. They’ll send you down through Hartwell’s thin carbon-dioxide air and dust to Concord. The practical checks descent planning and control where there isn’t much air to work with.”',
+          '“For thick atmosphere, contact the office at Anvil Station. That run goes through Kuznia’s cold, heavy weather to Port Stribog. Expect stronger drag, stronger winds, and less forgiveness if you carry too much speed.”',
+          '“Neither run pays a reward. The Guild reimburses the fuel, and a clean arrival adds the endorsement to your license.”',
+        ],
+      },
+    },
+  ],
 };
 
 export function localContactPresentation(
@@ -139,22 +156,16 @@ export function localContactPresentation(
   const hasBasic2 = certifications.includes('basic-2');
   const hasBasic3 = certifications.includes('basic-3');
   const hasLine = certifications.includes('line');
-  const hasThinAtmosphere = certifications.includes('thin-atmosphere');
-  const hasThickAtmosphere = certifications.includes('thick-atmosphere');
   const atStill = localTerminalScopeIds(currentLocationId).includes('still-guild-hq');
   const atNellsRest = localTerminalScopeIds(currentLocationId).includes('estella-viii-first-rendezvous-station');
   const atWeymarkTown = currentLocationId === 'estella-viii-settlement';
 
   if (hasBasic3) {
-    const endorsementDialogue = hasThinAtmosphere && hasThickAtmosphere
-      ? '“Your thin- and thick-atmosphere endorsements are both in order. That covers the ordinary civilian atmosphere classes.”'
-      : '“When you want atmospheric endorsements, Roadstead Station administers the thin-atmosphere descent to Concord on Hartwell. Anvil Station administers the thick-atmosphere descent to Port Stribog.”';
     if (hasLine) {
       return {
         description: contact.description,
         dialogue: [
           '“There’s a Teamster with a proper line certificate. Roadstead sent the clean arrival record.”',
-          endorsementDialogue,
           '“Fragile cargo, volatile cargo, and passenger licenses are desk tests. Any Guild certification office can sell you a sitting when you’re ready.”',
         ],
       };
@@ -169,8 +180,6 @@ export function localContactPresentation(
             ? '“Work the local boards as long as you like. When you’re ready, this office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”'
             : '“Work the local boards as long as you like. When you’re ready, the certification office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”',
         '“Pass that run and I can strike ‘Junior’ from the ledger.”',
-        '“The line checkride is paid like a real delivery: a fixed reward worth twenty percent of par fuel, plus eighty percent of the fuel you actually use. Fly efficiently and the difference stays in your pocket.”',
-        endorsementDialogue,
       ],
     };
   }
