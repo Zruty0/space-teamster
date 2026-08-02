@@ -37,7 +37,9 @@ import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estel
 import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
-import { careerContractClassLabel, generateCareerContracts, generateDirectoryEntryContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
+import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
+import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
+import type { PreparedContractBoards } from './contract-board-worker-types';
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
@@ -65,7 +67,7 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival';
+  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival';
   selectedIndex: number;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
@@ -74,6 +76,7 @@ interface InteractiveScenePhaseState {
   directoryActionId?: string;
   directoryParentEntryId?: string;
   bodyScrollOffset?: number;
+  loadingError?: string;
 }
 
 interface PhaseCompletion {
@@ -182,6 +185,7 @@ export class Game {
   private orbitalRendezvousTutorialShown = false;
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
+  private contractBoardLoadGeneration = 0;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
@@ -305,55 +309,79 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private prewarmContractBoards(): void {
+    if (!hasTeamsterCertification(this.career, 'basic-3')) return;
+    void prepareContractBoards(this.career.locationId, this.career.worldTime).catch(() => undefined);
+  }
+
   private loadStationTerminal(selectedIndex = 0): void {
+    this.contractBoardLoadGeneration++;
     this.phaseCompletion = null;
     this.clearActiveMission();
     this.worldTime = this.career.worldTime;
     this.phase = { kind: 'interactiveScene', scene: { id: 'stationTerminal', selectedIndex } };
+    this.prewarmContractBoards();
     this.showGuidance('STATION TERMINAL');
     this.time = 0;
     this.accumulator = 0;
   }
 
-  private loadBrowseContracts(selectedIndex = 0): void {
-    this.phaseCompletion = null;
-    this.clearActiveMission();
-    this.worldTime = this.career.worldTime;
-    const contracts = hasTeamsterCertification(this.career, 'basic-3')
-      ? generateCareerContracts(this.career.locationId, this.career.worldTime)
-      : [];
+  private showPreparedContractBoard(board: 'freight' | 'passenger', boards: PreparedContractBoards, selectedIndex: number): void {
+    const passenger = board === 'passenger';
     this.phase = {
       kind: 'interactiveScene',
       scene: {
-        id: 'browseContracts',
+        id: passenger ? 'browsePassengerContracts' : 'browseContracts',
         selectedIndex,
-        contracts,
+        board,
+        contracts: passenger ? boards.passenger : boards.freight,
       },
     };
-    this.showGuidance('BROWSE CONTRACTS');
+    this.showGuidance(passenger ? 'BROWSE PASSENGER CONTRACTS' : 'BROWSE CONTRACTS');
     this.time = 0;
     this.accumulator = 0;
   }
 
-  private loadBrowsePassengerContracts(selectedIndex = 0): void {
+  private loadContractBoard(board: 'freight' | 'passenger', selectedIndex = 0): void {
     this.phaseCompletion = null;
     this.clearActiveMission();
     this.worldTime = this.career.worldTime;
-    const contracts = hasTeamsterCertification(this.career, 'basic-3')
-      ? generatePassengerContracts(this.career.locationId, this.career.worldTime)
-      : [];
-    this.phase = {
-      kind: 'interactiveScene',
-      scene: {
-        id: 'browsePassengerContracts',
-        selectedIndex,
-        board: 'passenger',
-        contracts,
-      },
-    };
-    this.showGuidance('BROWSE PASSENGER CONTRACTS');
+    const sourceId = this.career.locationId;
+    const worldTime = this.career.worldTime;
+    const ready = preparedContractBoards(sourceId, worldTime);
+    if (ready) {
+      this.showPreparedContractBoard(board, ready, selectedIndex);
+      return;
+    }
+
+    const generation = ++this.contractBoardLoadGeneration;
+    this.phase = { kind: 'interactiveScene', scene: { id: 'contractBoardLoading', selectedIndex: 0, board } };
+    this.showGuidance('CALCULATING POSTINGS');
     this.time = 0;
     this.accumulator = 0;
+    void prepareContractBoards(sourceId, worldTime).then(boards => {
+      if (generation !== this.contractBoardLoadGeneration
+        || this.career.locationId !== sourceId
+        || this.career.worldTime !== worldTime
+        || this.phase.kind !== 'interactiveScene'
+        || this.phase.scene.id !== 'contractBoardLoading'
+        || this.phase.scene.board !== board) return;
+      this.showPreparedContractBoard(board, boards, selectedIndex);
+    }).catch(error => {
+      if (generation !== this.contractBoardLoadGeneration
+        || this.phase.kind !== 'interactiveScene'
+        || this.phase.scene.id !== 'contractBoardLoading'
+        || this.phase.scene.board !== board) return;
+      this.phase.scene.loadingError = error instanceof Error ? error.message : String(error);
+    });
+  }
+
+  private loadBrowseContracts(selectedIndex = 0): void {
+    this.loadContractBoard('freight', selectedIndex);
+  }
+
+  private loadBrowsePassengerContracts(selectedIndex = 0): void {
+    this.loadContractBoard('passenger', selectedIndex);
   }
 
   private openContractPosting(contracts: CareerContract[], contractIndex: number, board: 'freight' | 'passenger' | 'contact' = 'freight', directoryEntryId?: string, directoryParentEntryId?: string): void {
@@ -773,6 +801,7 @@ export class Game {
     this.career.worldTime = departureTime + (transfer?.transferTime ?? 0);
     this.worldTime = this.career.worldTime;
     saveCareerProfile(this.career);
+    this.prewarmContractBoards();
     this.phaseCompletion = null;
     this.phase = { kind: 'interactiveScene', scene: { id: 'oldNellArrival', selectedIndex: 0, contracts: [contract] } };
     this.accumulator = 0;
@@ -793,6 +822,12 @@ export class Game {
   }
 
   private finishRunTransition(): PhaseTransition {
+    const arrivalContract = this.activeCareerContract;
+    const boardsAuthorizedOnArrival = hasTeamsterCertification(this.career, 'basic-3')
+      || arrivalContract?.certificationOnSuccess === 'basic-3';
+    if (arrivalContract && boardsAuthorizedOnArrival) {
+      void prepareContractBoards(arrivalContract.destinationId, this.worldTime).catch(() => undefined);
+    }
     return this.makeTransition('success', () => {
       this.logSuccessfulGeneratedRun();
       if (this.activeCareerContract) {
@@ -1574,6 +1609,24 @@ export class Game {
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
+        ],
+      };
+    }
+
+    if (state.id === 'contractBoardLoading') {
+      const passenger = state.board === 'passenger';
+      const failed = !!state.loadingError;
+      return {
+        title: passenger ? 'PASSENGER POSTINGS' : 'FREIGHT POSTINGS',
+        subtitle: locationPath,
+        bodyRows: [
+          { kind: 'text', text: failed ? 'The posting service could not prepare this board.' : 'Calculating routes, transfer windows, and published terms in the background.', tone: failed ? 'danger' : 'success' },
+          ...(failed ? [{ kind: 'text' as const, text: state.loadingError ?? 'Unknown worker error.', tone: 'danger' as const }] : []),
+        ],
+        footer: failed ? 'Enter/Space: choose   Esc: start menu' : 'Contract calculations continue while the interface remains responsive.',
+        options: [
+          ...(failed ? [{ label: 'Retry', detail: 'Restart background contract generation.', action: passenger ? 'browsePassengerContracts' : 'browseContracts', tone: 'primary' as const }] : []),
+          { label: 'Back to Station Terminal', detail: failed ? 'Return to terminal functions.' : 'Contract generation will continue in the background.', action: 'stationTerminal', tone: 'back' },
         ],
       };
     }
