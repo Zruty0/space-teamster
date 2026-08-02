@@ -1622,15 +1622,18 @@ export class Game {
         options: [
           ...contracts.map(contract => {
             const missingRequirements = contractMissingRequirements(contract, this.career);
+            const routeDetail = `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`;
             return {
               label: contract.title,
               labelLineCount: 2 as const,
-              tag: missingRequirements.length ? 'REQUIREMENTS' : contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
+              tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
               rightText: contractPublishedPay(contract.quote),
-              rightDetail: missingRequirements.length ? missingRequirements.join(' + ') : `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-              detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
+              rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
+              statusText: missingRequirements.length ? 'LOCKED' : undefined,
+              detail: missingRequirements.length ? `REQUIRES ${missingRequirements.join(' + ')} | ${routeDetail}` : routeDetail,
+              detailLineCount: missingRequirements.length ? 2 as const : 1 as const,
               action: `contract:${contract.id}`,
-              tone: missingRequirements.length ? 'warning' as InteractiveTone : contractOptionTone(contract),
+              tone: contractOptionTone(contract),
             };
           }),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },

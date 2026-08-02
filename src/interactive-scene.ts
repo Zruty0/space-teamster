@@ -19,6 +19,8 @@ export interface InteractiveSceneOption {
   tagTone?: InteractiveTone;
   rightText?: string;
   rightDetail?: string;
+  /** Independent availability marker; does not replace semantic tags or row tone. */
+  statusText?: string;
 }
 
 export interface InteractiveScene {
@@ -296,6 +298,14 @@ export function drawInteractiveScene(
         ctx.font = selected ? 'bold 12px monospace' : '12px monospace';
         ctx.fillText(middleEllipsis(ctx, option.rightDetail, 280), x + boxW - 24, y + 19);
       }
+      ctx.textAlign = 'left';
+    }
+    if (option.statusText) {
+      ctx.fillStyle = COL_WARNING;
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'right';
+      const statusY = option.rightText ? y + (option.rightDetail ? 38 : 19) : y;
+      ctx.fillText(`[${option.statusText}]`, x + boxW - 24, statusY);
       ctx.textAlign = 'left';
     }
     if (option.detail) {
