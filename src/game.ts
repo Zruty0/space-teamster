@@ -42,7 +42,7 @@ import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertif
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
-import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, tutorialCertificationAvailableAt } from './local-directory';
+import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
@@ -1542,7 +1542,7 @@ export class Game {
     const tutorialCertificationIncomplete = !hasTeamsterCertification(this.career, 'line');
     const currentTeamsterRank = teamsterRank(this.career);
     const ordinaryWorkAuthorized = hasTeamsterCertification(this.career, 'basic-3');
-    const localEntries = localDirectoryEntriesAt(this.career.locationId);
+    const localEntries = localDirectoryEntriesAt(this.career.locationId, this.career.certifications);
     const tutorialCheckrideAvailableHere = tutorialCertificationIncomplete
       && tutorialCertificationAvailableAt(this.career.locationId, this.career.certifications);
     if (state.id === 'stationTerminal') {
@@ -1570,22 +1570,25 @@ export class Game {
 
     if (state.id === 'oldNellArrival') {
       const contract = state.contracts?.[0];
-      const returningToNewCanaan = contract?.templateId === 'junior-teamster-old-nell-return';
+      const juniorPassage = contract?.templateId?.startsWith('old-nell-passage-') === true;
+      const arrivingInNewCanaan = contract?.destinationId === 'caravanserai-main-commercial-dock';
       return {
         title: 'OLD NELL — ARRIVAL',
         subtitle: locationPath,
         bodyRows: [
-          { kind: 'text', text: returningToNewCanaan
+          { kind: 'text', text: arrivingInNewCanaan
             ? 'Old Nell settles into the Caravanserai’s traffic volume with familiar rattles. Yard tractors carry your rig to the commercial dock while passengers spill into New Canaan’s concourses.'
-            : 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
+            : juniorPassage
+              ? 'Old Nell finishes its Weymark insertion with a long sequence of familiar shudders. Yard tractors carry your rig into Nell’s Rest while working passengers file toward the station concourse.'
+              : 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
           { kind: 'separator' },
           { kind: 'text', text: contract?.completionMessage ?? 'Your Guild passage is complete.', tone: 'success' },
           { kind: 'kv', label: 'Current location', value: locationPath },
-          { kind: 'kv', label: 'Fare', value: returningToNewCanaan ? 'Junior Teamster repositioning — no charge' : 'Guild apprentice passage — no charge' },
+          { kind: 'kv', label: 'Fare', value: juniorPassage ? 'Junior Teamster passage — no charge' : 'Guild apprentice passage — no charge' },
         ],
         footer: 'Enter/Space: continue',
         options: [
-          { label: 'Continue to station terminal', detail: returningToNewCanaan ? 'Open the New Canaan local boards.' : 'Find the local Certification Office through the directory.', action: 'stationTerminal', tone: 'primary' },
+          { label: 'Continue to station terminal', detail: arrivingInNewCanaan ? 'Open the New Canaan local boards.' : juniorPassage ? 'Open the Weymark local boards and directory.' : 'Find the local Certification Office through the directory.', action: 'stationTerminal', tone: 'primary' },
         ],
       };
     }
@@ -1682,7 +1685,9 @@ export class Game {
     if (state.id === 'localDirectoryEntry') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       if (!entry) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
-      const contactLocation = estellaDisplayPath(entry.locationIds[0]);
+      const terminalScope = new Set(localTerminalScopeIds(this.career.locationId));
+      const entryLocationId = entry.locationIds.find(id => terminalScope.has(id)) ?? entry.locationIds[0];
+      const contactLocation = estellaDisplayPath(entryLocationId);
       const contactContracts = state.contracts ?? generateDirectoryEntryContracts(entry.id, this.career.locationId, this.career.worldTime, this.career.certifications);
       const contactPresentation = entry.kind === 'contact'
         ? localContactPresentation(entry, this.career.locationId, this.career.certifications)
@@ -1761,7 +1766,7 @@ export class Game {
       const requiredCertificationName = contract.requiredCertification
         ? teamsterCertificationName(contract.requiredCertification)
         : undefined;
-      const returningToNewCanaan = contract.templateId === 'junior-teamster-old-nell-return';
+      const juniorPassage = contract.templateId?.startsWith('old-nell-passage-') === true;
       const transfer = contract.selectedTransfer;
       const transferSummary = transfer
         ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
@@ -1778,7 +1783,7 @@ export class Game {
           { kind: 'kv', label: 'Boarding', value: contract.sourcePath },
           { kind: 'kv', label: 'Arrival', value: contract.destinationPath },
           { kind: 'separator' },
-          { kind: 'kv', label: 'Passage', value: returningToNewCanaan ? 'Old Nell — Junior Teamster repositioning berth' : 'Old Nell — Guild apprentice berth' },
+          { kind: 'kv', label: 'Passage', value: juniorPassage ? 'Old Nell — Junior Teamster berth' : 'Old Nell — Guild apprentice berth' },
           { kind: 'kv', label: 'Fare', value: 'No charge', tone: 'warning' },
           { kind: 'kv', label: 'Schedule', value: transferSummary },
         ] : [

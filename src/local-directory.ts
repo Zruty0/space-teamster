@@ -24,6 +24,8 @@ interface LocalDirectoryEntryBase {
   listedRemotely?: boolean;
   /** Show this entry as tutorial guidance until the named certification is earned. */
   tutorialUntilCertification?: TeamsterCertificationId;
+  /** Hide this listing until the named credential is earned. */
+  requiresCertification?: TeamsterCertificationId;
   actions: LocalDirectoryActionDef[];
 }
 
@@ -345,7 +347,22 @@ export const ANVIL_CERTIFICATION_OFFICE: LocalOfficeDef = {
   ],
 };
 
+export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'old-nell-passage-office',
+  name: 'Old Nell Passage Office',
+  organizationName: 'Teamsters’ Guild',
+  factionId: 'teamsters-guild',
+  missionTags: ['old-nell-passage'],
+  locationIds: ['caravanserai-main-commercial-dock', 'estella-viii-first-rendezvous-station'],
+  summary: 'No-charge Guild passage for Junior Teamsters and their rigs between New Canaan and Weymark.',
+  requiresCertification: 'basic-3',
+  description: 'Old Nell’s passage desk keeps a handwritten sailing board, a stack of berth warrants, and a permanent warning that machinery noises are not grounds for alarm. Junior Teamsters and their rigs travel between the Caravanserai and Nell’s Rest at no charge.',
+  actions: [],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
+  OLD_NELL_PASSAGE_OFFICE,
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,
   WEYMARK_TOWN_CERTIFICATION_DESK,
@@ -364,8 +381,9 @@ export function localDirectoryEntryAccess(entry: LocalDirectoryEntryDef, locatio
   return undefined;
 }
 
-export function localDirectoryEntriesAt(locationId: string): LocalDirectoryEntryDef[] {
+export function localDirectoryEntriesAt(locationId: string, certifications: readonly TeamsterCertificationId[]): LocalDirectoryEntryDef[] {
   return LOCAL_DIRECTORY_ENTRIES.filter(entry => {
+    if (entry.requiresCertification && !certifications.includes(entry.requiresCertification)) return false;
     const access = localDirectoryEntryAccess(entry, locationId);
     return access !== undefined && (access === 'local' || entry.listedRemotely !== false);
   });

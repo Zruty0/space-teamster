@@ -112,6 +112,36 @@ function certificationCandidate(
   };
 }
 
+function oldNellPassageCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
+  if (!ctx.issuer.missionTags.includes('old-nell-passage') || (ctx.progress.basic3 ?? 0) <= 0) return [];
+  const fromNewCanaan = ctx.availableSourceIds.includes(CARAVANSERAI_COMMERCIAL_DOCK);
+  const fromWeymark = ctx.availableSourceIds.includes(NELLS_REST);
+  if (!fromNewCanaan && !fromWeymark) return [];
+  const sourceId = fromNewCanaan ? CARAVANSERAI_COMMERCIAL_DOCK : NELLS_REST;
+  const destinationId = fromNewCanaan ? NELLS_REST : CARAVANSERAI_COMMERCIAL_DOCK;
+  return [{
+    factionId: GUILD_ID,
+    factionName: GUILD_NAME,
+    factionTag: GUILD_TAG,
+    issuerId: ctx.issuer.id,
+    issuerName: ctx.issuer.name,
+    templateId: fromNewCanaan ? 'old-nell-passage-to-weymark' : 'old-nell-passage-to-new-canaan',
+    sourceId,
+    destinationId,
+    title: fromNewCanaan ? 'Ride Old Nell to Weymark' : 'Ride Old Nell to New Canaan',
+    category: 'passenger',
+    cargo: { label: 'Junior Teamster passage warrant', massTons: 0 },
+    likelihood: 1,
+    generosity: 0,
+    flatReward: 0,
+    compensationRatio: 0,
+    travelMode: 'old-nell',
+    completionMessage: fromNewCanaan
+      ? 'Old Nell delivers you and your rig to Nell’s Rest. Weymark local boards and the station certification office are available from the terminal.'
+      : 'Old Nell returns you and your rig to the Caravanserai. New Canaan local boards are available from the terminal.',
+  }];
+}
+
 function basicCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
   if (!ctx.issuer.missionTags.includes('certification-basic')) return [];
   const hasBasic1 = (ctx.progress.basic1 ?? 0) > 0;
@@ -197,28 +227,6 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
     }
   }
 
-  if (ctx.availableSourceIds.includes(NELLS_REST)) {
-    candidates.push({
-      factionId: GUILD_ID,
-      factionName: GUILD_NAME,
-      factionTag: GUILD_TAG,
-      issuerId: ctx.issuer.id,
-      issuerName: ctx.issuer.name,
-      templateId: 'junior-teamster-old-nell-return',
-      sourceId: NELLS_REST,
-      destinationId: CARAVANSERAI_COMMERCIAL_DOCK,
-      title: 'Ride Old Nell back to New Canaan',
-      category: 'passenger',
-      cargo: { label: 'Junior Teamster repositioning warrant', massTons: 0 },
-      likelihood: 1,
-      generosity: 0,
-      flatReward: 0,
-      compensationRatio: 0,
-      travelMode: 'old-nell',
-      completionMessage: `Old Nell returns you and your rig to the Caravanserai. New Canaan local boards are open to Junior Teamsters; the line checkride remains available through Nell’s Rest or Guild HQ at the Still.`,
-    });
-  }
-
   if (!hasThinAtmosphere && ctx.availableSourceIds.includes(ROADSTEAD)) {
     candidates.push(certificationCandidate(ctx, {
       templateId: 'thin-atmosphere-endorsement-concord',
@@ -279,6 +287,7 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
     return candidatesFromTemplates(ctx);
   },
   generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
+    if (ctx.issuer.missionTags.includes('old-nell-passage')) return oldNellPassageCandidates(ctx);
     return basicCertificationCandidates(ctx);
   },
 };
