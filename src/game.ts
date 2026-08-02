@@ -1568,8 +1568,8 @@ export class Game {
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Browse Freight Contracts', detail: ordinaryWorkAuthorized ? 'Open authorized freight postings. Junior Teamsters see local work only.' : 'Basic certification is required before contract work.', action: 'browseContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
-          { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings. Teamster rank and a Passenger License are required to accept them.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
+          { label: 'Browse Freight Contracts', detail: ordinaryWorkAuthorized ? 'Open authorized freight postings.' : 'Basic certification is required before contract work.', action: 'browseContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
+          { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Local Directory', tag: tutorialCheckrideAvailableHere ? 'TUTORIAL' : undefined, tagTone: tutorialCheckrideAvailableHere ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
