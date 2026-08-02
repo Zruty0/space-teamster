@@ -345,7 +345,7 @@ const CLOSEST_PASS_EXPLANATION = 'The closest-pass circle is where the target wi
 function manualDiagramHeight(ctx: CanvasRenderingContext2D, diagram: ManualDiagramId, contentW: number): number {
   if (diagram === 'orbital-rendezvous') {
     ctx.font = '13px monospace';
-    return 554 + 26 + wrappedHeight(ctx, CLOSEST_PASS_EXPLANATION, contentW, 18) + 14 + 242;
+    return 554 + 26 + wrappedHeight(ctx, CLOSEST_PASS_EXPLANATION, contentW, 18) + 14 + 272;
   }
   return 0;
 }
@@ -575,12 +575,15 @@ function drawOrbitalRendezvousDiagram(
   };
 
   const drawClosestPassDiagram = (diagramY: number): number => {
-    const diagramH = 220;
+    const diagramH = 250;
     const cx = x + width * 0.5;
-    const rigX = cx - 145;
-    const rigY = diagramY + 146;
-    const targetX = cx + 145;
-    const targetY = diagramY + 88;
+    const cy = diagramY + 137;
+    const rigOrbitR = 62;
+    const targetOrbitR = 86;
+    const rigAngle = 2.4;
+    const targetAngle = 0.58;
+    const [rigX, rigY] = orbitalPoint(cx, cy, rigOrbitR, rigAngle);
+    const [targetX, targetY] = orbitalPoint(cx, cy, targetOrbitR, targetAngle);
     ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
     ctx.strokeStyle = 'rgba(0, 255, 204, 0.24)';
     ctx.lineWidth = 1;
@@ -592,30 +595,41 @@ function drawOrbitalRendezvousDiagram(
     ctx.fillStyle = COL_TITLE;
     ctx.fillText('READING THE CLOSEST-PASS DISPLAY', cx, diagramY + 22);
 
-    ctx.strokeStyle = '#00ffcc';
+    orbit(cx, cy, targetOrbitR, 'rgba(80, 140, 255, 0.55)', false, 3.1);
+    orbit(cx, cy, rigOrbitR, 'rgba(0, 255, 100, 0.58)', true, 4.2);
+    planet(cx, cy);
+
+    ctx.strokeStyle = '#ffaa00';
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
     ctx.moveTo(rigX, rigY);
     ctx.lineTo(targetX, targetY);
     ctx.stroke();
     ctx.setLineDash([]);
-    rendezvousPoint(targetX, targetY, '#00ffcc');
+    rendezvousPoint(targetX, targetY, '#ffaa00');
 
+    const lineMidX = (rigX + targetX) * 0.5;
+    const lineMidY = (rigY + targetY) * 0.5;
     ctx.font = 'bold 10px monospace';
-    ctx.fillStyle = '#00ff88';
-    ctx.fillText('YOUR RIG AT CLOSEST PASS', rigX, diagramY + 190);
-    drawDiagramArrow(ctx, rigX, diagramY + 174, rigX, rigY + 4, 'rgba(0, 255, 136, 0.68)');
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillText('CLOSEST-PASS LINE', lineMidX, lineMidY - 11);
 
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillText('TARGET AT CLOSEST PASS', targetX, diagramY + 52);
-    drawDiagramArrow(ctx, targetX, diagramY + 59, targetX, targetY - 9, 'rgba(0, 255, 204, 0.68)');
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('YOUR RIG AT CLOSEST PASS', rigX - 112, rigY + 17);
+    drawDiagramArrow(ctx, rigX - 28, rigY + 11, rigX - 5, rigY + 2, 'rgba(0, 255, 136, 0.68)');
+
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillText('TARGET AT CLOSEST PASS', targetX + 112, targetY - 5);
+    drawDiagramArrow(ctx, targetX + 31, targetY - 5, targetX + 8, targetY - 1, 'rgba(255, 170, 0, 0.74)');
 
     ctx.font = '10px monospace';
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.fillText('LINE LENGTH = PREDICTED SEPARATION', cx, diagramY + 139);
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('YOUR PREDICTED ORBIT', cx - 118, diagramY + 225);
+    ctx.fillStyle = 'rgba(100, 160, 255, 0.9)';
+    ctx.fillText('TARGET ORBIT', cx + 118, diagramY + 225);
     ctx.font = 'bold 10px monospace';
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillText('CYAN = PASS WITHIN CAPTURE RANGE', cx, diagramY + 207);
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillText('ORANGE = PASS OUTSIDE CAPTURE RANGE', cx, diagramY + 242);
     return diagramY + diagramH + 22;
   };
 
