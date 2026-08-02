@@ -1823,7 +1823,9 @@ export class Game {
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
           { kind: 'kv', label: 'Published pay', value: contractPublishedPayForContract(contract), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Net at par', value: contractMarginSummary(quote), tone: contractOptionTone(contract) },
-          { kind: 'kv', label: 'Transfer', value: transferSummary },
+          ...(contract.templateId === 'line-certification-roadstead-checkride' ? [] : [
+            { kind: 'kv' as const, label: 'Transfer', value: transferSummary },
+          ]),
         ],
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
