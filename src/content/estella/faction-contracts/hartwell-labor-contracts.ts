@@ -50,6 +50,9 @@ const GAIA_DAHAI_NODES = [
 // Passenger traffic to Kuznia proper stops at Anvil; the Steel Combine handles all
 // surface distribution. Svarog, Kalyna, and Tessera remain independent destinations.
 const CAMPS_WORK_NODES = [
+  'estella-va-strip-mine',
+  'estella-va-miner-hab',
+  'estella-va-ore-handling-depot',
   'estella-vi-main-transit-dispatch',
   'estella-via-drydock-station',
   'estella-via-component-supply-station',
