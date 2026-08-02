@@ -15,6 +15,7 @@ export interface OperationsManualArticle {
   title: string;
   introduction: string;
   diagram?: ManualDiagramId;
+  diagramPlacement?: 'introduction' | 'procedures';
   controls: ManualControl[];
   tips: string[];
   procedure?: string[];
@@ -185,6 +186,7 @@ export const ORBITAL_RENDEZVOUS_ARTICLE: OperationsManualArticle = {
   title: 'Orbital Rendezvous',
   introduction: 'Rendezvous means matching both position and velocity with a moving station. Steering directly toward the station usually produces a fast crossing or a long chase. First change your orbit to control when your paths meet; then match velocity and close slowly for capture.',
   diagram: 'orbital-rendezvous',
+  diagramPlacement: 'procedures',
   controls: [
     {
       keys: ['W', 'S'],
@@ -823,7 +825,9 @@ export function drawOperationsManualArticle(
   ctx.font = '13px monospace';
   y = drawWrapped(ctx, article.introduction, geometry.contentX, y, geometry.contentW, 18);
   y += 22;
-  if (article.diagram) y = drawArticleDiagram(ctx, article.diagram, geometry.contentX, y, geometry.contentW);
+  if (article.diagram && article.diagramPlacement !== 'procedures') {
+    y = drawArticleDiagram(ctx, article.diagram, geometry.contentX, y, geometry.contentW);
+  }
 
   y = drawHeading(ctx, 'Controls', geometry.contentX, y);
   for (const control of article.controls) y = drawControlCard(ctx, control, geometry.contentX, y, geometry.contentW);
@@ -831,6 +835,9 @@ export function drawOperationsManualArticle(
   y += 18;
   const procedureSections = articleProcedureSections(article);
   y = drawHeading(ctx, procedureSections.length > 1 ? 'Recommended Procedures' : 'Recommended Procedure', geometry.contentX, y);
+  if (article.diagram && article.diagramPlacement === 'procedures') {
+    y = drawArticleDiagram(ctx, article.diagram, geometry.contentX, y, geometry.contentW);
+  }
   for (const section of procedureSections) {
     if (section.title) {
       ctx.font = 'bold 13px monospace';
