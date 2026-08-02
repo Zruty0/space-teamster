@@ -164,10 +164,25 @@ function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef
   return { id: 'now', label: 'Depart now', waitTime: departureTime, transferTime: tof, departureVInf, departureVInfAngle, arrivalVInf, totalDeltaV, sourceBodyId: source.id, destinationBodyId: destination.id };
 }
 
+const TRANSFER_OPTIONS_CACHE_LIMIT = 256;
+const transferOptionsCache = new Map<string, EstellaTransferOption[]>();
+
+function cacheTransferOptions(key: string, options: EstellaTransferOption[]): EstellaTransferOption[] {
+  if (transferOptionsCache.size >= TRANSFER_OPTIONS_CACHE_LIMIT) {
+    const oldest = transferOptionsCache.keys().next().value as string | undefined;
+    if (oldest !== undefined) transferOptionsCache.delete(oldest);
+  }
+  transferOptionsCache.set(key, options);
+  return options;
+}
+
 function computeTransferOptions(sourceId: string, destinationId: string, startWorldTime: number): EstellaTransferOption[] {
   const pair = transferBodyPair(sourceId, destinationId);
   if (!pair || !pair.source.orbit || !pair.destination.orbit) return [];
   const { source, destination, parent } = pair;
+  const cacheKey = `${source.id}->${destination.id}@${startWorldTime}`;
+  const cached = transferOptionsCache.get(cacheKey);
+  if (cached) return cached;
   const sourceOrbit = source.orbit!;
   const destinationOrbit = destination.orbit!;
   const r1 = sourceOrbit.radius;
@@ -200,7 +215,7 @@ function computeTransferOptions(sourceId: string, destinationId: string, startWo
     samples.push(est);
     if (!best || est.totalDeltaV < best.totalDeltaV) best = est;
   }
-  if (!best) return [];
+  if (!best) return cacheTransferOptions(cacheKey, []);
   let soon = now ?? best;
   const threshold = best.totalDeltaV * 2;
   for (const sample of samples) {
@@ -221,7 +236,7 @@ function computeTransferOptions(sourceId: string, destinationId: string, startWo
     if (deduped.some(existing => Math.abs(existing.waitTime - option.waitTime) < 60 && Math.abs(existing.totalDeltaV - option.totalDeltaV) < 1)) continue;
     deduped.push(option);
   }
-  return deduped;
+  return cacheTransferOptions(cacheKey, deduped);
 }
 
 export function generateEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0): EstellaGeneratedMissionState {
