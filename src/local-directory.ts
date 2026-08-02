@@ -164,7 +164,7 @@ export function localContactPresentation(
       dialogue: [
         '“Three practicals complete. That makes you a Junior Teamster: cleared for local work, but not independent line work yet.”',
         atNellsRest
-          ? '“You can stay around Weymark and work the local boards, take Old Nell back to New Canaan, or fly the line checkride from here when you’re ready.”'
+          ? '“You can stay around Weymark and work the local boards, take Old Nell back to the Still, or fly the line checkride from here when you’re ready.”'
           : atStill
             ? '“Work the local boards as long as you like. When you’re ready, this office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”'
             : '“Work the local boards as long as you like. When you’re ready, the certification office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”',
@@ -354,10 +354,10 @@ export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
   organizationName: 'Teamsters’ Guild',
   factionId: 'teamsters-guild',
   missionTags: ['old-nell-passage'],
-  locationIds: ['caravanserai-main-commercial-dock', 'estella-viii-first-rendezvous-station'],
-  summary: 'No-charge Guild passage for Junior Teamsters and their rigs between New Canaan and Weymark.',
+  locationIds: ['still-public-approach-dock', 'estella-viii-first-rendezvous-station'],
+  summary: 'No-charge Guild passage for Junior Teamsters and their rigs between the Still and Weymark.',
   requiresCertification: 'basic-3',
-  description: 'Old Nell’s passage desk keeps a handwritten sailing board, a stack of berth warrants, and a permanent warning that machinery noises are not grounds for alarm. Junior Teamsters and their rigs travel between the Caravanserai and Nell’s Rest at no charge.',
+  description: 'Old Nell’s passage desk keeps a handwritten sailing board, a stack of berth warrants, and a permanent warning that machinery noises are not grounds for alarm. Junior Teamsters and their rigs travel between the Still and Nell’s Rest at no charge.',
   actions: [],
 };
 
