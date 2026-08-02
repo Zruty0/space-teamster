@@ -138,7 +138,6 @@ export const GIDEON_BELL: LocalContactDef = {
           '“They’re optional endorsements, not part of the tutorial or your line certificate. Take them when the work you want calls for atmosphere authority.”',
           '“For thin atmosphere, contact the Guild certification office at Roadstead Station. They’ll send you down through Hartwell’s thin carbon-dioxide air and dust to Concord. The practical checks descent planning and control where there isn’t much air to work with.”',
           '“For thick atmosphere, contact the office at Anvil Station. That run goes through Kuznia’s cold, heavy weather to Port Stribog. Expect stronger drag, stronger winds, and less forgiveness if you carry too much speed.”',
-          '“Neither run pays a reward. The Guild reimburses the fuel, and a clean arrival adds the endorsement to your license.”',
         ],
       },
     },
