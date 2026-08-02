@@ -232,6 +232,8 @@ export const ORBITAL_RENDEZVOUS_ARTICLE: OperationsManualArticle = {
     'The lower your orbit, the faster you travel around the body. Lower it to catch a target ahead; raise it to slow down and let a target behind catch you.',
     'Do not aim at where the station is now. Rendezvous is a timing problem: arrange for both paths to reach the same place together.',
     'Distance alone is not enough. A close pass at high relative speed is still a miss.',
+    'The more similar your orbit is to the target’s orbit, the slower the flyby speed will be.',
+    'There is no penalty for pressing Backspace to retry the phasing stage if you need another attempt.',
     'Use high thrust for large orbital changes, then make the final velocity corrections smoothly.',
   ],
   hud: [
@@ -338,7 +340,7 @@ function wrappedHeight(ctx: CanvasRenderingContext2D, text: string, width: numbe
   return wrapHudText(ctx, text, width).length * lineHeight;
 }
 
-const CLOSEST_PASS_EXPLANATION = 'The closest-pass marker shows where the station will be when your predicted orbit passes nearest to it. Orange means the pass remains outside capture range. Adjust the orbit with short burns until the marker and its connecting line turn cyan; then coast to the close pass before matching velocity.';
+const CLOSEST_PASS_EXPLANATION = 'The closest-pass circle is where the target will be when your predicted orbit passes nearest to it. The beginning of the connecting line is where your rig will be at that same moment; the line’s length is the predicted separation. Orange means the pass remains outside capture range. Adjust the orbit until the circle and line turn cyan, then coast to the close pass before matching velocity.';
 
 function manualDiagramHeight(ctx: CanvasRenderingContext2D, diagram: ManualDiagramId, contentW: number): number {
   if (diagram === 'orbital-rendezvous') {
@@ -574,68 +576,46 @@ function drawOrbitalRendezvousDiagram(
 
   const drawClosestPassDiagram = (diagramY: number): number => {
     const diagramH = 220;
-    const exampleGap = 14;
-    const exampleW = (width - exampleGap) * 0.5;
+    const cx = x + width * 0.5;
+    const rigX = cx - 145;
+    const rigY = diagramY + 146;
+    const targetX = cx + 145;
+    const targetY = diagramY + 88;
     ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
     ctx.strokeStyle = 'rgba(0, 255, 204, 0.24)';
     ctx.lineWidth = 1;
     ctx.fillRect(x, diagramY, width, diagramH);
     ctx.strokeRect(x, diagramY, width, diagramH);
+
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = COL_TITLE;
+    ctx.fillText('READING THE CLOSEST-PASS DISPLAY', cx, diagramY + 22);
+
+    ctx.strokeStyle = '#00ffcc';
+    ctx.setLineDash([3, 4]);
     ctx.beginPath();
-    ctx.moveTo(x + exampleW + exampleGap * 0.5, diagramY + 12);
-    ctx.lineTo(x + exampleW + exampleGap * 0.5, diagramY + diagramH - 12);
+    ctx.moveTo(rigX, rigY);
+    ctx.lineTo(targetX, targetY);
     ctx.stroke();
+    ctx.setLineDash([]);
+    rendezvousPoint(targetX, targetY, '#00ffcc');
 
-    const example = (index: number, color: string, title: string, separation: number, result: string): void => {
-      const ex = x + index * (exampleW + exampleGap);
-      const cx = ex + exampleW * 0.5;
-      const markerX = cx + 42;
-      const markerY = diagramY + 105;
-      const rigX = markerX;
-      const rigY = markerY + separation;
-      ctx.textAlign = 'center';
-      ctx.font = 'bold 11px monospace';
-      ctx.fillStyle = color;
-      ctx.fillText(title, cx, diagramY + 20);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('YOUR RIG AT CLOSEST PASS', rigX, diagramY + 190);
+    drawDiagramArrow(ctx, rigX, diagramY + 174, rigX, rigY + 4, 'rgba(0, 255, 136, 0.68)');
 
-      const orbitCx = markerX - 84;
-      const orbitCy = markerY;
-      ctx.strokeStyle = 'rgba(80, 140, 255, 0.4)';
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.arc(orbitCx, orbitCy, 84, -1.15, 1.15);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      const arrowAngle = 0.62;
-      const [arrowX, arrowY] = orbitalPoint(orbitCx, orbitCy, 84, arrowAngle);
-      const arrowTx = -Math.sin(arrowAngle);
-      const arrowTy = -Math.cos(arrowAngle);
-      drawDiagramArrow(ctx, arrowX - arrowTx * 6, arrowY - arrowTy * 6, arrowX + arrowTx * 6, arrowY + arrowTy * 6, 'rgba(180, 220, 235, 0.42)');
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillText('TARGET AT CLOSEST PASS', targetX, diagramY + 52);
+    drawDiagramArrow(ctx, targetX, diagramY + 59, targetX, targetY - 9, 'rgba(0, 255, 204, 0.68)');
 
-      rendezvousPoint(markerX, markerY, color);
-      rig(rigX, rigY, 0);
-      ctx.strokeStyle = color;
-      ctx.setLineDash([3, 4]);
-      ctx.beginPath();
-      ctx.moveTo(markerX, markerY + 7);
-      ctx.lineTo(rigX, rigY - 9);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.font = '9px monospace';
-      ctx.fillStyle = color;
-      ctx.fillText('CLOSEST-PASS MARKER', markerX, markerY - 12);
-      ctx.fillStyle = '#00ff88';
-      ctx.fillText('PREDICTED RIG', rigX - 48, rigY + 3);
-      ctx.fillStyle = COL_HUD_DIM;
-      ctx.fillText('PREDICTED SEPARATION', markerX - 54, markerY + separation * 0.5 + 3);
-      ctx.font = 'bold 10px monospace';
-      ctx.fillStyle = color;
-      ctx.fillText(result, cx, diagramY + 203);
-    };
-
-    example(0, '#ffaa00', 'ORANGE — PASS TOO FAR', 66, 'ADJUST THE ORBIT');
-    example(1, '#00ffcc', 'CYAN — PASS WITHIN RANGE', 30, 'COAST TO THE CLOSE PASS');
+    ctx.font = '10px monospace';
+    ctx.fillStyle = COL_HUD_DIM;
+    ctx.fillText('LINE LENGTH = PREDICTED SEPARATION', cx, diagramY + 139);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillText('CYAN = PASS WITHIN CAPTURE RANGE', cx, diagramY + 207);
     return diagramY + diagramH + 22;
   };
 
@@ -672,9 +652,9 @@ function drawOrbitalRendezvousDiagram(
   const progradeMeet = orbitalPoint(prograde.cx, prograde.cy, outerR, progradeMeetAngle);
   station(progradeStation[0], progradeStation[1]);
   rig(progradeRig[0], progradeRig[1], insideRigAngle);
-  rendezvousPoint(progradeMeet[0], progradeMeet[1]);
+  rendezvousPoint(progradeMeet[0], progradeMeet[1], '#00ffcc');
   ctx.font = '9px monospace';
-  ctx.fillStyle = '#ffaa00';
+  ctx.fillStyle = '#00ffcc';
   ctx.fillText('FUTURE RENDEZVOUS', progradeMeet[0], progradeMeet[1] - 11);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '10px monospace';
@@ -710,9 +690,9 @@ function drawOrbitalRendezvousDiagram(
   const retrogradeMeet = orbitalPoint(retrograde.cx, retrograde.cy, innerR, retrogradeMeetAngle);
   rig(retrogradeRig[0], retrogradeRig[1], outsideRigAngle);
   station(retrogradeStation[0], retrogradeStation[1]);
-  rendezvousPoint(retrogradeMeet[0], retrogradeMeet[1]);
+  rendezvousPoint(retrogradeMeet[0], retrogradeMeet[1], '#00ffcc');
   ctx.font = '9px monospace';
-  ctx.fillStyle = '#ffaa00';
+  ctx.fillStyle = '#00ffcc';
   ctx.fillText('FUTURE RENDEZVOUS', retrogradeMeet[0], retrogradeMeet[1] - 11);
   ctx.fillStyle = COL_HUD_DIM;
   ctx.font = '10px monospace';
