@@ -142,14 +142,14 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-v-transit-station': {
     kind: 'orbit',
     parentId: 'estella-v',
-    usage: 'low',
-    orbit: { kind: 'circular', radius: 390_000, altitude: 110_000, epochAngle: 0.45, epochTime: 0, orbitSense: 1 },
+    usage: 'high',
+    orbit: { kind: 'circular', radius: 620_000, altitude: 340_000, epochAngle: -1.1, epochTime: 0, orbitSense: 1 },
   },
   'estella-v-orbital-factory': {
     kind: 'orbit',
     parentId: 'estella-v',
-    usage: 'high',
-    orbit: { kind: 'circular', radius: 620_000, altitude: 340_000, epochAngle: -1.1, epochTime: 0, orbitSense: 1 },
+    usage: 'low',
+    orbit: { kind: 'circular', radius: 390_000, altitude: 110_000, epochAngle: 0.45, epochTime: 0, orbitSense: 1 },
   },
   'estella-v-capital-settlement': { kind: 'surface', parentId: 'estella-v', angle: 0.15, side: 'equatorial' },
   'estella-v-open-cast-mine': { kind: 'surface', parentId: 'estella-v', angle: 1.1, side: 'equatorial' },
