@@ -318,20 +318,12 @@ export const ROADSTEAD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   id: 'roadstead-certification-office',
   name: 'Teamsters’ Guild Certification Office',
   organizationName: 'Teamsters’ Guild',
+  factionId: 'teamsters-guild',
+  missionTags: ['certification-thin-atmosphere'],
   locationIds: ['estella-v-transit-customs'],
   summary: 'Hartwell thin-atmosphere endorsement and Guild license office.',
   description: 'The Roadstead office overlooks Hartwell through dust-streaked armor glass. Descent profiles to Concord fill the practical examiner’s displays; a separate counter handles written cargo and passenger licenses.',
-  actions: [
-    {
-      id: 'contact-gid-for-thin-atmosphere-endorsement',
-      label: 'Contact Gid about the thin-atmosphere endorsement',
-      detail: 'Request the Roadstead-to-Concord atmospheric practical.',
-      tag: 'ENDORSEMENT',
-      contactId: GIDEON_BELL.id,
-      requiresCertification: 'basic-3',
-    },
-    ...CERTIFICATION_LICENSE_ACTIONS,
-  ],
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
 };
 
 export const ANVIL_CERTIFICATION_OFFICE: LocalOfficeDef = {
@@ -339,20 +331,12 @@ export const ANVIL_CERTIFICATION_OFFICE: LocalOfficeDef = {
   id: 'anvil-certification-office',
   name: 'Teamsters’ Guild Certification Office',
   organizationName: 'Teamsters’ Guild',
+  factionId: 'teamsters-guild',
+  missionTags: ['certification-thick-atmosphere'],
   locationIds: ['estella-vi-main-transit-dispatch'],
   summary: 'Kuznia thick-atmosphere endorsement and Guild license office.',
   description: 'Anvil’s certification room sits beside surface-weather dispatch. Live pressure maps and wind columns dominate the displays; the practical route terminates at Port Stribog below.',
-  actions: [
-    {
-      id: 'contact-gid-for-thick-atmosphere-endorsement',
-      label: 'Contact Gid about the thick-atmosphere endorsement',
-      detail: 'Request the Anvil-to-Port Stribog atmospheric practical.',
-      tag: 'ENDORSEMENT',
-      contactId: GIDEON_BELL.id,
-      requiresCertification: 'basic-3',
-    },
-    ...CERTIFICATION_LICENSE_ACTIONS,
-  ],
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
 };
 
 export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {

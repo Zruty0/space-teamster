@@ -1721,7 +1721,7 @@ export class Game {
           ...contactContracts.map(contract => ({
             label: contract.title,
             labelLineCount: 2 as const,
-            tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'ENDORSEMENT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
+            tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
             tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName}`,
             action: `contactContract:${contract.id}`,

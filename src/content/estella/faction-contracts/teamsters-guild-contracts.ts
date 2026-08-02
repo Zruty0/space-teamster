@@ -142,6 +142,38 @@ function oldNellPassageCandidates(ctx: FactionContactContractContext): FactionCo
   }];
 }
 
+function atmosphericCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
+  if ((ctx.progress.basic3 ?? 0) <= 0) return [];
+  const candidates: FactionContractCandidate[] = [];
+  if (ctx.issuer.missionTags.includes('certification-thin-atmosphere')
+    && (ctx.progress.thinAtmosphere ?? 0) <= 0
+    && ctx.availableSourceIds.includes(ROADSTEAD)) {
+    candidates.push(certificationCandidate(ctx, {
+      templateId: 'thin-atmosphere-endorsement-concord',
+      sourceId: ROADSTEAD,
+      destinationId: CONCORD,
+      title: 'Fly the thin-atmosphere endorsement to Concord',
+      certificationOnSuccess: 'thin-atmosphere',
+      tutorial: false,
+      completionMessage: 'Concord pad control certifies the descent record and forwards it to Roadstead. The certification office adds the thin-atmosphere endorsement to your Guild license.',
+    }));
+  }
+  if (ctx.issuer.missionTags.includes('certification-thick-atmosphere')
+    && (ctx.progress.thickAtmosphere ?? 0) <= 0
+    && ctx.availableSourceIds.includes(ANVIL)) {
+    candidates.push(certificationCandidate(ctx, {
+      templateId: 'thick-atmosphere-endorsement-stribog',
+      sourceId: ANVIL,
+      destinationId: PORT_STRIBOG,
+      title: 'Fly the thick-atmosphere endorsement to Port Stribog',
+      certificationOnSuccess: 'thick-atmosphere',
+      tutorial: false,
+      completionMessage: 'Port Stribog weather control closes the practical after touchdown. The certification office records the thick-atmosphere endorsement on your Guild license.',
+    }));
+  }
+  return candidates;
+}
+
 function basicCertificationCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
   if (!ctx.issuer.missionTags.includes('certification-basic')) return [];
   const hasBasic1 = (ctx.progress.basic1 ?? 0) > 0;
@@ -201,8 +233,6 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
 
   const candidates: FactionContractCandidate[] = [];
   const hasLine = (ctx.progress.line ?? 0) > 0;
-  const hasThinAtmosphere = (ctx.progress.thinAtmosphere ?? 0) > 0;
-  const hasThickAtmosphere = (ctx.progress.thickAtmosphere ?? 0) > 0;
 
   if (!hasLine) {
     const lineSource = ctx.availableSourceIds.includes(NELLS_REST)
@@ -225,30 +255,6 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
         completionMessage: `Roadstead Station accepts the checkride telemetry and closes the arrival record. ${ctx.issuer.name} signs the line certificate. “That makes it official. You’re a Teamster.”`,
       }));
     }
-  }
-
-  if (!hasThinAtmosphere && ctx.availableSourceIds.includes(ROADSTEAD)) {
-    candidates.push(certificationCandidate(ctx, {
-      templateId: 'thin-atmosphere-endorsement-concord',
-      sourceId: ROADSTEAD,
-      destinationId: CONCORD,
-      title: 'Fly the thin-atmosphere endorsement to Concord',
-      certificationOnSuccess: 'thin-atmosphere',
-      tutorial: false,
-      completionMessage: `Concord pad control certifies the descent record and forwards it to Roadstead. ${ctx.issuer.name} adds the thin-atmosphere endorsement to your Guild license.`,
-    }));
-  }
-
-  if (!hasThickAtmosphere && ctx.availableSourceIds.includes(ANVIL)) {
-    candidates.push(certificationCandidate(ctx, {
-      templateId: 'thick-atmosphere-endorsement-stribog',
-      sourceId: ANVIL,
-      destinationId: PORT_STRIBOG,
-      title: 'Fly the thick-atmosphere endorsement to Port Stribog',
-      certificationOnSuccess: 'thick-atmosphere',
-      tutorial: false,
-      completionMessage: `Port Stribog weather control closes the practical after touchdown. ${ctx.issuer.name} records the thick-atmosphere endorsement on your Guild license.`,
-    }));
   }
 
   return candidates;
@@ -288,6 +294,9 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
   },
   generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
     if (ctx.issuer.missionTags.includes('old-nell-passage')) return oldNellPassageCandidates(ctx);
+    if (ctx.issuer.missionTags.some(tag => tag === 'certification-thin-atmosphere' || tag === 'certification-thick-atmosphere')) {
+      return atmosphericCertificationCandidates(ctx);
+    }
     return basicCertificationCandidates(ctx);
   },
 };
