@@ -1,7 +1,7 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, wrapHudText } from './hud-layout';
 
 export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight' | 'orbit-deorbit' | 'orbital-rendezvous';
-export type ManualDiagramId = 'orbital-rendezvous';
+export type ManualDiagramId = 'orbital-rendezvous-phasing' | 'orbital-rendezvous-closest-pass';
 
 export interface ManualControl {
   keys: string[];
@@ -16,10 +16,11 @@ export interface OperationsManualArticle {
   introduction: string;
   diagram?: ManualDiagramId;
   diagramPlacement?: 'introduction' | 'procedures';
+  afterTipsDiagram?: ManualDiagramId;
   controls: ManualControl[];
   tips: string[];
   procedure?: string[];
-  procedureSections?: { title: string; steps: string[] }[];
+  procedureSections?: { title: string; steps: string[]; diagram?: ManualDiagramId }[];
   hud: { label: string; description: string }[];
 }
 
@@ -185,8 +186,7 @@ export const ORBITAL_RENDEZVOUS_ARTICLE: OperationsManualArticle = {
   id: 'orbital-rendezvous',
   title: 'Orbital Rendezvous',
   introduction: 'Rendezvous means matching both position and velocity with a moving station. Steering directly toward the station usually produces a fast crossing or a long chase. First change your orbit to control when your paths meet; then match velocity and close slowly for capture.',
-  diagram: 'orbital-rendezvous',
-  diagramPlacement: 'procedures',
+  afterTipsDiagram: 'orbital-rendezvous-closest-pass',
   controls: [
     {
       keys: ['W', 'S'],
@@ -220,6 +220,7 @@ export const ORBITAL_RENDEZVOUS_ARTICLE: OperationsManualArticle = {
         'Use short burns to adjust the predicted pass until the closest-pass marker and connecting line turn cyan.',
         'Once the marker is cyan, stop correcting and coast—using time warp as needed—until you reach the close pass.',
       ],
+      diagram: 'orbital-rendezvous-phasing',
     },
     {
       title: 'Match and Capture',
@@ -345,9 +346,10 @@ function wrappedHeight(ctx: CanvasRenderingContext2D, text: string, width: numbe
 const CLOSEST_PASS_EXPLANATION = 'The closest-pass circle is where the target will be when your predicted orbit passes nearest to it. The beginning of the connecting line is where your rig will be at that same moment; the line’s length is the predicted separation. Orange means the pass remains outside capture range. Adjust the orbit until the circle and line turn cyan, then coast to the close pass before matching velocity.';
 
 function manualDiagramHeight(ctx: CanvasRenderingContext2D, diagram: ManualDiagramId, contentW: number): number {
-  if (diagram === 'orbital-rendezvous') {
+  if (diagram === 'orbital-rendezvous-phasing') return 576;
+  if (diagram === 'orbital-rendezvous-closest-pass') {
     ctx.font = '13px monospace';
-    return 554 + 26 + wrappedHeight(ctx, CLOSEST_PASS_EXPLANATION, contentW, 18) + 14 + 272;
+    return wrappedHeight(ctx, CLOSEST_PASS_EXPLANATION, contentW, 18) + 14 + 272;
   }
   return 0;
 }
@@ -358,7 +360,7 @@ function controlCardHeight(ctx: CanvasRenderingContext2D, control: ManualControl
   return Math.max(58, 30 + wrappedHeight(ctx, control.description, contentW - keyColumnW - 34, 16));
 }
 
-function articleProcedureSections(article: OperationsManualArticle): { title?: string; steps: string[] }[] {
+function articleProcedureSections(article: OperationsManualArticle): { title?: string; steps: string[]; diagram?: ManualDiagramId }[] {
   if (article.procedureSections?.length) return article.procedureSections;
   return [{ steps: article.procedure ?? [] }];
 }
@@ -376,10 +378,12 @@ function measureArticleContent(ctx: CanvasRenderingContext2D, article: Operation
   for (const section of procedureSections) {
     if (section.title) height += 24;
     for (const step of section.steps) height += wrappedHeight(ctx, step, contentW - 34, 17) + 10;
+    if (section.diagram) height += manualDiagramHeight(ctx, section.diagram, contentW);
     height += 8;
   }
   height += 6 + 30;
   for (const tip of article.tips) height += wrappedHeight(ctx, tip, contentW, 17) + 12;
+  if (article.afterTipsDiagram) height += manualDiagramHeight(ctx, article.afterTipsDiagram, contentW);
   height += 14 + 30;
   for (const item of article.hud) height += wrappedHeight(ctx, item.description, contentW - 100, 16) + 10;
   return height + 20;
@@ -448,6 +452,7 @@ function drawOrbitalRendezvousDiagram(
   x: number,
   y: number,
   width: number,
+  part: 'phasing' | 'closest-pass',
 ): number {
   const gap = 14;
   const panelH = 270;
@@ -635,6 +640,17 @@ function drawOrbitalRendezvousDiagram(
     return diagramY + diagramH + 22;
   };
 
+  if (part === 'closest-pass') {
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.font = '13px monospace';
+    let nextY = drawWrapped(ctx, CLOSEST_PASS_EXPLANATION, x, y, width, 18);
+    nextY += 14;
+    nextY = drawClosestPassDiagram(nextY);
+    ctx.restore();
+    return nextY;
+  }
+
   ctx.save();
   ctx.lineWidth = 1.25;
 
@@ -714,14 +730,8 @@ function drawOrbitalRendezvousDiagram(
   ctx.font = '10px monospace';
   ctx.fillText('TRANSFER CROSSES TARGET ORBIT BEFORE PERIAPSIS', retrograde.cx, retrograde.y + 252);
 
-  let nextY = y + height + 26;
-  ctx.textAlign = 'left';
-  ctx.font = '13px monospace';
-  nextY = drawWrapped(ctx, CLOSEST_PASS_EXPLANATION, x, nextY, width, 18);
-  nextY += 14;
-  nextY = drawClosestPassDiagram(nextY);
   ctx.restore();
-  return nextY;
+  return y + height + 22;
 }
 
 function drawArticleDiagram(
@@ -731,7 +741,8 @@ function drawArticleDiagram(
   y: number,
   width: number,
 ): number {
-  if (diagram === 'orbital-rendezvous') return drawOrbitalRendezvousDiagram(ctx, x, y, width);
+  if (diagram === 'orbital-rendezvous-phasing') return drawOrbitalRendezvousDiagram(ctx, x, y, width, 'phasing');
+  if (diagram === 'orbital-rendezvous-closest-pass') return drawOrbitalRendezvousDiagram(ctx, x, y, width, 'closest-pass');
   return y;
 }
 
@@ -853,6 +864,9 @@ export function drawOperationsManualArticle(
       y = drawWrapped(ctx, step, geometry.contentX + 34, y, geometry.contentW - 34, 17);
       y += 10;
     });
+    if (section.diagram) {
+      y = drawArticleDiagram(ctx, section.diagram, geometry.contentX, y, geometry.contentW);
+    }
     y += 8;
   }
 
@@ -862,6 +876,9 @@ export function drawOperationsManualArticle(
   for (const tip of article.tips) {
     y = drawWrapped(ctx, tip, geometry.contentX, y, geometry.contentW, 17);
     y += 12;
+  }
+  if (article.afterTipsDiagram) {
+    y = drawArticleDiagram(ctx, article.afterTipsDiagram, geometry.contentX, y, geometry.contentW);
   }
 
   y += 14;
