@@ -38,11 +38,11 @@ import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateCareerContracts, generateDirectoryEntryContracts, generatePassengerContracts, type CareerContract } from './career-contracts';
-import { CAREER_START_LOCATION_ID, awardTeamsterCertification, basicTeamsterCertificationStage, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, type CareerProfile } from './career-state';
+import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
-import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById } from './local-directory';
+import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, tutorialCertificationAvailableAt } from './local-directory';
 import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
@@ -307,12 +307,16 @@ export class Game {
     this.phaseCompletion = null;
     this.clearActiveMission();
     this.worldTime = this.career.worldTime;
+    const contracts = hasTeamsterCertification(this.career, 'basic-3')
+      ? generateCareerContracts(this.career.locationId, this.career.worldTime)
+        .filter(contract => hasTeamsterCertification(this.career, 'line') || contract.routeClass === 'local')
+      : [];
     this.phase = {
       kind: 'interactiveScene',
       scene: {
         id: 'browseContracts',
         selectedIndex,
-        contracts: generateCareerContracts(this.career.locationId, this.career.worldTime),
+        contracts,
       },
     };
     this.showGuidance('BROWSE CONTRACTS');
@@ -324,13 +328,17 @@ export class Game {
     this.phaseCompletion = null;
     this.clearActiveMission();
     this.worldTime = this.career.worldTime;
+    const contracts = hasTeamsterCertification(this.career, 'basic-3')
+      ? generatePassengerContracts(this.career.locationId, this.career.worldTime)
+        .filter(contract => hasTeamsterCertification(this.career, 'line') || contract.routeClass === 'local')
+      : [];
     this.phase = {
       kind: 'interactiveScene',
       scene: {
         id: 'browsePassengerContracts',
         selectedIndex,
         board: 'passenger',
-        contracts: generatePassengerContracts(this.career.locationId, this.career.worldTime),
+        contracts,
       },
     };
     this.showGuidance('BROWSE PASSENGER CONTRACTS');
@@ -1531,23 +1539,28 @@ export class Game {
 
   private buildInteractiveScene(state: InteractiveScenePhaseState): InteractiveScene {
     const locationPath = estellaDisplayPath(this.career.locationId);
-    const basicCertificationIncomplete = !hasTeamsterCertification(this.career, 'basic-3');
+    const tutorialCertificationIncomplete = !hasTeamsterCertification(this.career, 'line');
+    const currentTeamsterRank = teamsterRank(this.career);
+    const ordinaryWorkAuthorized = hasTeamsterCertification(this.career, 'basic-3');
+    const localEntries = localDirectoryEntriesAt(this.career.locationId);
+    const tutorialCheckrideAvailableHere = tutorialCertificationIncomplete
+      && tutorialCertificationAvailableAt(this.career.locationId, this.career.certifications);
     if (state.id === 'stationTerminal') {
       return {
         title: 'STATION TERMINAL',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
         bodyRows: [
-          { kind: 'text', text: 'Teamster account authenticated.', tone: 'success' },
+          { kind: 'text', text: 'Teamsters’ Guild account authenticated.', tone: 'success' },
           { kind: 'kv', label: 'Location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
-          { kind: 'kv', label: 'Basic certification', value: `${basicTeamsterCertificationStage(this.career)}/3 practicals complete`, tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : undefined },
+          { kind: 'kv', label: 'Teamster Rank', value: currentTeamsterRank, tone: currentTeamsterRank === 'Teamster' ? 'success' : undefined },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Browse Freight Contracts', detail: 'Open the local Teamsters\' Guild freight postings.', action: 'browseContracts', tone: 'primary' },
-          { label: 'Browse Passenger Contracts', detail: 'Open low-margin seat blocks, crew rotations, and worker-transfer postings.', action: 'browsePassengerContracts', tone: 'primary' },
-          { label: 'Local Directory', tag: basicCertificationIncomplete ? 'TUTORIAL' : undefined, tagTone: basicCertificationIncomplete ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
+          { label: 'Browse Freight Contracts', detail: ordinaryWorkAuthorized ? 'Open authorized freight postings. Junior Teamsters see local work only.' : 'Basic certification is required before contract work.', action: 'browseContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
+          { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings. A Passenger License is required to accept them.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
+          { label: 'Local Directory', tag: tutorialCheckrideAvailableHere ? 'TUTORIAL' : undefined, tagTone: tutorialCheckrideAvailableHere ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
@@ -1557,19 +1570,22 @@ export class Game {
 
     if (state.id === 'oldNellArrival') {
       const contract = state.contracts?.[0];
+      const returningToNewCanaan = contract?.templateId === 'junior-teamster-old-nell-return';
       return {
-        title: 'ARRIVED ABOARD OLD NELL',
+        title: 'OLD NELL — ARRIVAL',
         subtitle: locationPath,
         bodyRows: [
-          { kind: 'text', text: 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
+          { kind: 'text', text: returningToNewCanaan
+            ? 'Old Nell settles into the Caravanserai’s traffic volume with familiar rattles. Yard tractors carry your rig to the commercial dock while passengers spill into New Canaan’s concourses.'
+            : 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
           { kind: 'separator' },
-          { kind: 'text', text: contract?.completionMessage ?? 'Your Guild apprentice passage is complete.', tone: 'success' },
+          { kind: 'text', text: contract?.completionMessage ?? 'Your Guild passage is complete.', tone: 'success' },
           { kind: 'kv', label: 'Current location', value: locationPath },
-          { kind: 'kv', label: 'Fare', value: 'Guild apprentice passage — no charge' },
+          { kind: 'kv', label: 'Fare', value: returningToNewCanaan ? 'Junior Teamster repositioning — no charge' : 'Guild apprentice passage — no charge' },
         ],
         footer: 'Enter/Space: continue',
         options: [
-          { label: 'Continue to Nell’s Rest terminal', detail: 'Find the local Certification Office through the directory.', action: 'stationTerminal', tone: 'primary' },
+          { label: 'Continue to station terminal', detail: returningToNewCanaan ? 'Open the New Canaan local boards.' : 'Find the local Certification Office through the directory.', action: 'stationTerminal', tone: 'primary' },
         ],
       };
     }
@@ -1591,16 +1607,20 @@ export class Game {
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          ...contracts.map(contract => ({
-            label: contract.title,
-            labelLineCount: 2 as const,
-            tag: contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
-            rightText: contractPublishedPay(contract.quote),
-            rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-            detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
-            action: `contract:${contract.id}`,
-            tone: contractOptionTone(contract),
-          })),
+          ...contracts.map(contract => {
+            const missingLicense = contract.requiredCertification !== undefined
+              && !hasTeamsterCertification(this.career, contract.requiredCertification);
+            return {
+              label: contract.title,
+              labelLineCount: 2 as const,
+              tag: missingLicense ? 'LICENSE REQUIRED' : contract.issuerTag ?? careerContractClassLabel(contract.routeClass),
+              rightText: contractPublishedPay(contract.quote),
+              rightDetail: missingLicense ? teamsterCertificationName(contract.requiredCertification!) : `NET AT PAR ${contractMarginSummary(contract.quote)}`,
+              detail: `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`,
+              action: `contract:${contract.id}`,
+              tone: missingLicense ? 'warning' as InteractiveTone : contractOptionTone(contract),
+            };
+          }),
           { label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' },
         ],
       };
@@ -1627,7 +1647,7 @@ export class Game {
     }
 
     if (state.id === 'localDirectory') {
-      const entries = localDirectoryEntriesAt(this.career.locationId);
+      const entries = localEntries;
       return {
         title: 'LOCAL DIRECTORY',
         subtitle: locationPath,
@@ -1684,21 +1704,37 @@ export class Game {
           ...contactContracts.map(contract => ({
             label: contract.title,
             labelLineCount: 2 as const,
-            tag: contract.category === 'certification' ? 'TUTORIAL' : 'WORK',
-            tagTone: contract.category === 'certification' ? 'story' as InteractiveTone : undefined,
+            tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'ENDORSEMENT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
+            tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName}`,
             action: `contactContract:${contract.id}`,
-            tone: contract.category === 'certification' ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
+            tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
           })),
           ...entry.actions.map(action => {
-            const tutorialAction = action.tag === 'TUTORIAL' && basicCertificationIncomplete;
+            const tutorialAction = action.tag === 'TUTORIAL' && tutorialCertificationIncomplete;
+            const purchase = action.purchaseCertification;
+            const owned = purchase !== undefined && hasTeamsterCertification(this.career, purchase.certificationId);
+            const missingRequiredCertification = action.requiresCertification !== undefined
+              && !hasTeamsterCertification(this.career, action.requiresCertification);
+            const requiresJuniorRank = purchase !== undefined && !hasTeamsterCertification(this.career, 'basic-3');
+            const cannotAfford = purchase !== undefined && this.career.money < purchase.price;
             return {
-              label: action.label,
-              tag: tutorialAction ? 'TUTORIAL' : action.tag === 'TUTORIAL' ? undefined : action.tag,
+              label: owned ? `${action.label} — OWNED` : action.label,
+              tag: owned ? 'LICENSED' : tutorialAction ? 'TUTORIAL' : action.tag === 'TUTORIAL' ? undefined : action.tag,
               tagTone: tutorialAction ? 'story' as InteractiveTone : undefined,
-              detail: action.detail,
+              rightText: purchase ? formatCredits(purchase.price) : undefined,
+              detail: owned
+                ? 'This license is already recorded on your Guild account.'
+                : missingRequiredCertification
+                  ? 'Basic certification and Junior Teamster rank are required.'
+                  : requiresJuniorRank
+                  ? 'Basic certification and Junior Teamster rank are required.'
+                  : cannotAfford
+                    ? `Test fee exceeds available cash of ${formatCredits(this.career.money)}.`
+                    : action.detail,
               action: `directoryAction:${entry.id}:${action.id}`,
-              tone: tutorialAction ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
+              disabled: owned || missingRequiredCertification || requiresJuniorRank || cannotAfford,
+              tone: owned ? 'success' as InteractiveTone : tutorialAction ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
             };
           }),
           { label: state.directoryParentEntryId ? 'Back to Certification Office' : 'Back to Local Directory', detail: 'Return to the previous directory listing.', action: state.directoryParentEntryId ? `directoryEntry:${state.directoryParentEntryId}` : 'localDirectory', tone: 'back' as InteractiveTone },
@@ -1720,6 +1756,12 @@ export class Game {
       }
       const quote = contract.quote;
       const contactPosting = state.board === 'contact';
+      const missingRequiredCertification = contract.requiredCertification !== undefined
+        && !hasTeamsterCertification(this.career, contract.requiredCertification);
+      const requiredCertificationName = contract.requiredCertification
+        ? teamsterCertificationName(contract.requiredCertification)
+        : undefined;
+      const returningToNewCanaan = contract.templateId === 'junior-teamster-old-nell-return';
       const transfer = contract.selectedTransfer;
       const transferSummary = transfer
         ? `${transfer.label} | wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h | coast ${(transfer.transferTime / 3600).toFixed(1)}h`
@@ -1736,12 +1778,13 @@ export class Game {
           { kind: 'kv', label: 'Boarding', value: contract.sourcePath },
           { kind: 'kv', label: 'Arrival', value: contract.destinationPath },
           { kind: 'separator' },
-          { kind: 'kv', label: 'Passage', value: 'Old Nell — Guild apprentice berth' },
+          { kind: 'kv', label: 'Passage', value: returningToNewCanaan ? 'Old Nell — Junior Teamster repositioning berth' : 'Old Nell — Guild apprentice berth' },
           { kind: 'kv', label: 'Fare', value: 'No charge', tone: 'warning' },
           { kind: 'kv', label: 'Schedule', value: transferSummary },
         ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
+          ...(requiredCertificationName ? [{ kind: 'kv' as const, label: 'Required license', value: requiredCertificationName, tone: missingRequiredCertification ? 'danger' as const : 'success' as const }] : []),
           { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath },
@@ -1756,7 +1799,7 @@ export class Game {
         ],
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
-          { label: contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract', detail: contract.travelMode === 'old-nell' ? 'Use the Guild apprentice berth and travel to Nell’s Rest.' : 'Accept these terms and begin the run.', action: 'acceptContract', tone: 'primary' },
+          { label: missingRequiredCertification ? 'Required License Missing' : contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract', detail: missingRequiredCertification ? `${requiredCertificationName} must be purchased from a Guild certification office before accepting this posting.` : contract.travelMode === 'old-nell' ? `Use the no-charge Guild berth and travel to ${contract.destinationName}.` : 'Accept these terms and begin the run.', action: 'acceptContract', tone: missingRequiredCertification ? 'warning' : 'primary', disabled: missingRequiredCertification },
           { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryContact:${state.directoryEntryId}:${state.directoryParentEntryId ?? ''}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
@@ -1770,10 +1813,7 @@ export class Game {
           { kind: 'kv', label: 'Current location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
-          { kind: 'kv', label: 'Basic 1 — Local transfer', value: hasTeamsterCertification(this.career, 'basic-1') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-1') ? 'success' : undefined },
-          { kind: 'kv', label: 'Basic 2 — Surface landing', value: hasTeamsterCertification(this.career, 'basic-2') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-2') ? 'success' : undefined },
-          { kind: 'kv', label: 'Basic 3 — Return docking', value: hasTeamsterCertification(this.career, 'basic-3') ? 'COMPLETE' : 'PENDING', tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : undefined },
-          { kind: 'kv', label: 'Basic Teamster Certification', value: hasTeamsterCertification(this.career, 'basic-3') ? 'CERTIFIED' : 'IN PROGRESS', tone: hasTeamsterCertification(this.career, 'basic-3') ? 'success' : 'warning' },
+          { kind: 'kv', label: 'Teamster Rank', value: currentTeamsterRank, tone: currentTeamsterRank === 'Teamster' ? 'success' : currentTeamsterRank === 'Junior Teamster' ? 'warning' : undefined },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
@@ -1875,6 +1915,19 @@ export class Game {
       const [, directoryEntryId, directoryActionId] = action.split(':');
       const directoryEntry = localDirectoryEntryById(directoryEntryId);
       const directoryAction = directoryEntry?.actions.find(candidate => candidate.id === directoryActionId);
+      if (directoryAction?.requiresCertification
+        && !hasTeamsterCertification(this.career, directoryAction.requiresCertification)) return;
+      if (directoryAction?.purchaseCertification) {
+        const purchase = directoryAction.purchaseCertification;
+        if (!hasTeamsterCertification(this.career, 'basic-3')
+          || hasTeamsterCertification(this.career, purchase.certificationId)
+          || this.career.money < purchase.price) return;
+        this.career.money -= purchase.price;
+        awardTeamsterCertification(this.career, purchase.certificationId);
+        saveCareerProfile(this.career);
+        this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId } };
+        return;
+      }
       if (directoryAction?.contactId) {
         const contracts = generateDirectoryEntryContracts(directoryAction.contactId, this.career.locationId, this.career.worldTime, this.career.certifications);
         this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: directoryAction.contactId, directoryParentEntryId: directoryEntryId, contracts } };
@@ -1905,6 +1958,7 @@ export class Game {
     if (action === 'acceptContract') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
       if (!contract) return;
+      if (contract.requiredCertification && !hasTeamsterCertification(this.career, contract.requiredCertification)) return;
       const selectedTransfer = contract.selectedTransfer;
       const startWorldTime = contract.scheduledStartWorldTime ?? selectedTransfer?.waitTime ?? this.career.worldTime;
       if (contract.travelMode === 'old-nell') {

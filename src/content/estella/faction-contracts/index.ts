@@ -66,6 +66,10 @@ export interface FactionContractCandidate {
   category?: 'freight' | 'passenger' | 'certification';
   /** Certification recorded when this contract succeeds. */
   certificationOnSuccess?: TeamsterCertificationId;
+  /** Tutorial certification work is highlighted separately from later endorsements. */
+  tutorial?: boolean;
+  /** Credential required to accept the visible posting. */
+  requiredCertification?: TeamsterCertificationId;
   /** Non-flight passage supplied as part of a certification mission. */
   travelMode?: 'old-nell';
   /** Schedule the run when an orbiting destination is this far ahead of its surface source. */

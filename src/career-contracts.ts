@@ -26,6 +26,8 @@ export interface CareerContract {
   templateId?: string;
   category?: 'freight' | 'passenger' | 'certification';
   certificationOnSuccess?: TeamsterCertificationId;
+  tutorial?: boolean;
+  requiredCertification?: TeamsterCertificationId;
   travelMode?: 'old-nell';
   scheduledStartWorldTime?: number;
   cargo: MissionCargoSpec;
@@ -187,6 +189,9 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     templateId: candidate.templateId,
     category: candidate.category ?? 'freight',
     certificationOnSuccess: candidate.certificationOnSuccess,
+    tutorial: candidate.tutorial,
+    requiredCertification: candidate.requiredCertification
+      ?? (candidate.category === 'passenger' && candidate.travelMode !== 'old-nell' ? 'passenger' : undefined),
     travelMode: candidate.travelMode,
     scheduledStartWorldTime,
     cargo: candidate.cargo,
@@ -228,6 +233,9 @@ export function generateDirectoryEntryContracts(entryId: string, sourceId: strin
       basic1: certifications.includes('basic-1') ? 1 : 0,
       basic2: certifications.includes('basic-2') ? 1 : 0,
       basic3: certifications.includes('basic-3') ? 1 : 0,
+      line: certifications.includes('line') ? 1 : 0,
+      thinAtmosphere: certifications.includes('thin-atmosphere') ? 1 : 0,
+      thickAtmosphere: certifications.includes('thick-atmosphere') ? 1 : 0,
     },
     issuer: {
       id: entry.id,

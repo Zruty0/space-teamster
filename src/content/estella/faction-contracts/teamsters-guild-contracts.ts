@@ -1,3 +1,4 @@
+import type { TeamsterCertificationId } from '../../../career-state';
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContactContractContext, FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
@@ -12,6 +13,7 @@ interface GuildContractTemplate {
   /** Per-template pay override; falls back to Guild routine pay when omitted. */
   generosity?: number;
   compensationRatio?: number;
+  requiredCertification?: TeamsterCertificationId;
 }
 
 const GUILD_ID = 'teamsters-guild';
@@ -52,17 +54,21 @@ const CARAVANSERAI_COMMERCIAL_DOCK = 'caravanserai-main-commercial-dock';
 const STILL_PUBLIC_DOCK = 'still-public-approach-dock';
 const NELLS_REST = 'estella-viii-first-rendezvous-station';
 const WEYMARK_TOWN = 'estella-viii-settlement';
+const ROADSTEAD = 'estella-v-transit-customs';
+const CONCORD = 'estella-v-capital-settlement';
+const ANVIL = 'estella-vi-main-transit-dispatch';
+const PORT_STRIBOG = 'estella-vi-spaceport';
 
 const GUILD_TEMPLATES: GuildContractTemplate[] = [
   // Precursor skim-in: crews haul stellar antimatter precursor from the near-star skim hubs to the Still.
-  { templateId: 'skim-precursor-alpha', sourceIds: ['skim-hub-alpha-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 1.2, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO },
-  { templateId: 'skim-precursor-beta', sourceIds: ['skim-hub-beta-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 0.8, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO },
-  { templateId: 'skim-staging-precursor', sourceIds: [SKIM_STAGING_DOCK], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'staged precursor lot', massClass: 'heavy', likelihood: 0.7, generosity: SKIM_STAGING_GENEROSITY, compensationRatio: SKIM_STAGING_COMPENSATION_RATIO },
+  { templateId: 'skim-precursor-alpha', sourceIds: ['skim-hub-alpha-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 1.2, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
+  { templateId: 'skim-precursor-beta', sourceIds: ['skim-hub-beta-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 0.8, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
+  { templateId: 'skim-staging-precursor', sourceIds: [SKIM_STAGING_DOCK], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'staged precursor lot', massClass: 'heavy', likelihood: 0.7, generosity: SKIM_STAGING_GENEROSITY, compensationRatio: SKIM_STAGING_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
 
   // Fuel distribution-out: limited bulk canister runs from the Still to major traffic hubs and fuel-chain anchors.
-  { templateId: 'fuel-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-refuel-depot'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.9 },
-  { templateId: 'fuel-wells-hub', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-x-observation-skim-hub', 'estella-xc-transit-refuel', 'estella-x-captive-refuel-relay', 'estella-xi-skim-hub', 'estella-xid-main-port', 'estella-xii-observation-post'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.55 },
-  { templateId: 'fuel-reach-port', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-xiii-main-port'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.45 },
+  { templateId: 'fuel-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-refuel-depot'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.9, requiredCertification: 'volatile-cargo' },
+  { templateId: 'fuel-wells-hub', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-x-observation-skim-hub', 'estella-xc-transit-refuel', 'estella-x-captive-refuel-relay', 'estella-xi-skim-hub', 'estella-xid-main-port', 'estella-xii-observation-post'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.55, requiredCertification: 'volatile-cargo' },
+  { templateId: 'fuel-reach-port', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-xiii-main-port'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.45, requiredCertification: 'volatile-cargo' },
 
   // Engine / RCS supply: Guild-controlled propulsion hardware out to outfitters and maintenance yards.
   { templateId: 'engine-outfitter-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-outfitter-drydock'], cargoLabel: 'certified maneuvering engine units', massClass: 'heavy', likelihood: 0.8 },
@@ -86,7 +92,8 @@ function cargoForTemplate(template: GuildContractTemplate, sourceId: string, des
 
 function certificationCandidate(
   ctx: FactionContactContractContext,
-  candidate: Pick<FactionContractCandidate, 'templateId' | 'sourceId' | 'destinationId' | 'title' | 'certificationOnSuccess' | 'travelMode' | 'destinationLeadAngleFromSource' | 'completionMessage'>,
+  candidate: Pick<FactionContractCandidate, 'templateId' | 'sourceId' | 'destinationId' | 'title' | 'certificationOnSuccess' | 'tutorial' | 'travelMode' | 'destinationLeadAngleFromSource' | 'completionMessage'>
+    & Partial<Pick<FactionContractCandidate, 'cargo' | 'generosity' | 'flatReward' | 'compensationRatio' | 'maxCompAllowance'>>,
 ): FactionContractCandidate {
   return {
     factionId: GUILD_ID,
@@ -95,12 +102,12 @@ function certificationCandidate(
     issuerId: ctx.issuer.id,
     issuerName: ctx.issuer.name,
     category: 'certification',
-    cargo: { label: candidate.travelMode === 'old-nell' ? 'Guild apprentice passage warrant' : 'Guild certification telemetry kit', massTons: 0 },
+    cargo: candidate.cargo ?? { label: candidate.travelMode === 'old-nell' ? 'Guild apprentice passage warrant' : 'Guild certification telemetry kit', massTons: 0 },
     likelihood: 1,
-    generosity: 0,
-    flatReward: 0,
-    compensationRatio: 1,
-    maxCompAllowance: Number.MAX_SAFE_INTEGER,
+    generosity: candidate.generosity ?? 0,
+    flatReward: candidate.flatReward ?? 0,
+    compensationRatio: candidate.compensationRatio ?? 1,
+    maxCompAllowance: candidate.maxCompAllowance ?? Number.MAX_SAFE_INTEGER,
     ...candidate,
   };
 }
@@ -118,6 +125,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: STILL_PUBLIC_DOCK,
       title: 'Land at the Public Approach Dock at The Still',
       certificationOnSuccess: 'basic-1',
+      tutorial: true,
       completionMessage: `The Public Approach Dock logs your berth without damage, and ${ctx.issuer.name} closes the first practical over comms. “That’s one. Nice and tidy—leave the exciting flying to people with poorer judgment.”`,
     })];
   }
@@ -128,6 +136,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       sourceId: GUILD_HQ,
       destinationId: NELLS_REST,
       title: 'Board Old Nell for the checkride',
+      tutorial: true,
       travelMode: 'old-nell',
       completionMessage: `Old Nell delivers you and your rig to Nell’s Rest. ${ctx.issuer.name} has already placed the next practical with the station certification office.`,
     })];
@@ -140,6 +149,7 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: WEYMARK_TOWN,
       title: 'Deorbit and land at Weymark Town',
       certificationOnSuccess: 'basic-2',
+      tutorial: true,
       completionMessage: `Weymark Town traffic logs your rig safely on the pad. ${ctx.issuer.name} signs the landing practical over the certification link. “Any landing you walk away from is a good landing.”`,
     })];
   }
@@ -151,12 +161,89 @@ function basicCertificationCandidates(ctx: FactionContactContractContext): Facti
       destinationId: NELLS_REST,
       title: 'Launch and dock at Nell’s Rest',
       certificationOnSuccess: 'basic-3',
+      tutorial: true,
       destinationLeadAngleFromSource: 150 * Math.PI / 180,
-      completionMessage: `Nell’s Rest closes the tractor capture and returns a clean berth report. ${ctx.issuer.name} signs the final practical. “Three for three. Welcome to the Guild rolls, Teamster.”`,
+      completionMessage: `Nell’s Rest closes the tractor capture and returns a clean berth report. ${ctx.issuer.name} signs the basic certificate. “Three for three. Welcome to the Guild rolls, Junior Teamster.”`,
     })];
   }
 
-  return [];
+  if (!hasBasic3) return [];
+
+  const candidates: FactionContractCandidate[] = [];
+  const hasLine = (ctx.progress.line ?? 0) > 0;
+  const hasThinAtmosphere = (ctx.progress.thinAtmosphere ?? 0) > 0;
+  const hasThickAtmosphere = (ctx.progress.thickAtmosphere ?? 0) > 0;
+
+  if (!hasLine) {
+    const lineSource = ctx.availableSourceIds.includes(NELLS_REST)
+      ? NELLS_REST
+      : ctx.availableSourceIds.includes(GUILD_HQ)
+        ? GUILD_HQ
+        : undefined;
+    if (lineSource) {
+      candidates.push(certificationCandidate(ctx, {
+        templateId: 'line-certification-roadstead-checkride',
+        sourceId: lineSource,
+        destinationId: ROADSTEAD,
+        title: 'Fly the line checkride to Roadstead Station',
+        certificationOnSuccess: 'line',
+        tutorial: true,
+        cargo: { label: 'bonded Guild line-check freight', massClass: 'standard', massTons: 20 },
+        generosity: 0.2,
+        compensationRatio: 0.8,
+        maxCompAllowance: Number.MAX_SAFE_INTEGER,
+        completionMessage: `Roadstead Station accepts the checkride telemetry and closes the arrival record. ${ctx.issuer.name} signs the line certificate. “That makes it official. You’re a Teamster.”`,
+      }));
+    }
+  }
+
+  if (ctx.availableSourceIds.includes(NELLS_REST)) {
+    candidates.push({
+      factionId: GUILD_ID,
+      factionName: GUILD_NAME,
+      factionTag: GUILD_TAG,
+      issuerId: ctx.issuer.id,
+      issuerName: ctx.issuer.name,
+      templateId: 'junior-teamster-old-nell-return',
+      sourceId: NELLS_REST,
+      destinationId: CARAVANSERAI_COMMERCIAL_DOCK,
+      title: 'Ride Old Nell back to New Canaan',
+      category: 'passenger',
+      cargo: { label: 'Junior Teamster repositioning warrant', massTons: 0 },
+      likelihood: 1,
+      generosity: 0,
+      flatReward: 0,
+      compensationRatio: 0,
+      travelMode: 'old-nell',
+      completionMessage: `Old Nell returns you and your rig to the Caravanserai. New Canaan local boards are open to Junior Teamsters; the line checkride remains available through Nell’s Rest or Guild HQ at the Still.`,
+    });
+  }
+
+  if (!hasThinAtmosphere && ctx.availableSourceIds.includes(ROADSTEAD)) {
+    candidates.push(certificationCandidate(ctx, {
+      templateId: 'thin-atmosphere-endorsement-concord',
+      sourceId: ROADSTEAD,
+      destinationId: CONCORD,
+      title: 'Fly the thin-atmosphere endorsement to Concord',
+      certificationOnSuccess: 'thin-atmosphere',
+      tutorial: false,
+      completionMessage: `Concord pad control certifies the descent record and forwards it to Roadstead. ${ctx.issuer.name} adds the thin-atmosphere endorsement to your Guild license.`,
+    }));
+  }
+
+  if (!hasThickAtmosphere && ctx.availableSourceIds.includes(ANVIL)) {
+    candidates.push(certificationCandidate(ctx, {
+      templateId: 'thick-atmosphere-endorsement-stribog',
+      sourceId: ANVIL,
+      destinationId: PORT_STRIBOG,
+      title: 'Fly the thick-atmosphere endorsement to Port Stribog',
+      certificationOnSuccess: 'thick-atmosphere',
+      tutorial: false,
+      completionMessage: `Port Stribog weather control closes the practical after touchdown. ${ctx.issuer.name} records the thick-atmosphere endorsement on your Guild license.`,
+    }));
+  }
+
+  return candidates;
 }
 
 function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCandidate[] {
@@ -177,6 +264,7 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
         generosity: template.generosity ?? GUILD_BASE_GENEROSITY,
         compensationRatio: template.compensationRatio ?? GUILD_BASE_COMPENSATION_RATIO,
         maxCompAllowance: GUILD_MAX_COMP_ALLOWANCE,
+        requiredCertification: template.requiredCertification,
       });
     }
   }

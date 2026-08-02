@@ -1,4 +1,4 @@
-import type { TeamsterCertificationId } from './career-state';
+import { PURCHASABLE_TEAMSTER_LICENSES, type TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaSelectableNavTargets } from './content/estella/navigation';
 
@@ -8,6 +8,8 @@ export interface LocalDirectoryActionDef {
   detail: string;
   tag?: string;
   contactId?: string;
+  requiresCertification?: TeamsterCertificationId;
+  purchaseCertification?: { certificationId: TeamsterCertificationId; price: number };
 }
 
 interface LocalDirectoryEntryBase {
@@ -110,9 +112,9 @@ export const GIDEON_BELL: LocalContactDef = {
   factionId: 'teamsters-guild',
   missionTags: ['certification-basic'],
   locationIds: ['still-guild-hq'],
-  summary: 'The Guild examiner responsible for basic Teamster certification.',
+  summary: 'The Guild examiner responsible for Teamster flight certifications and endorsements.',
   listedRemotely: false,
-  tutorialUntilCertification: 'basic-3',
+  tutorialUntilCertification: 'line',
   commsRange: 'cluster',
   description: 'A broad, silver-bearded older Teamster leans toward the camera in a faded Guild work shirt. Laugh lines crowd his eyes; one scarred hand cradles a steaming mug while the other rests on a battered checkride clipboard.',
   dialogue: [
@@ -134,16 +136,39 @@ export function localContactPresentation(
   const hasBasic1 = certifications.includes('basic-1');
   const hasBasic2 = certifications.includes('basic-2');
   const hasBasic3 = certifications.includes('basic-3');
+  const hasLine = certifications.includes('line');
+  const hasThinAtmosphere = certifications.includes('thin-atmosphere');
+  const hasThickAtmosphere = certifications.includes('thick-atmosphere');
   const atStill = localTerminalScopeIds(currentLocationId).includes('still-guild-hq');
   const atNellsRest = localTerminalScopeIds(currentLocationId).includes('estella-viii-first-rendezvous-station');
   const atWeymarkTown = currentLocationId === 'estella-viii-settlement';
 
   if (hasBasic3) {
+    const endorsementDialogue = hasThinAtmosphere && hasThickAtmosphere
+      ? '“Your thin- and thick-atmosphere endorsements are both in order. That covers the ordinary civilian atmosphere classes.”'
+      : '“When you want atmospheric endorsements, Roadstead Station administers the thin-atmosphere descent to Concord on Hartwell. Anvil Station administers the thick-atmosphere descent to Port Stribog.”';
+    if (hasLine) {
+      return {
+        description: contact.description,
+        dialogue: [
+          '“There’s a Teamster with a proper line certificate. Roadstead sent the clean arrival record.”',
+          endorsementDialogue,
+          '“Fragile cargo, volatile cargo, and passenger licenses are desk tests. Any Guild certification office can sell you a sitting when you’re ready.”',
+        ],
+      };
+    }
     return {
       description: contact.description,
       dialogue: [
-        '“There’s our newly certified Teamster. All three practicals are in the ledger, seals and signatures included.”',
-        '“You’re cleared for ordinary Guild contract work. Try not to make me regret writing ‘sound judgment’ in the final box.”',
+        '“Three practicals complete. That makes you a Junior Teamster: cleared for local work, but not independent line work yet.”',
+        atNellsRest
+          ? '“You can stay around Weymark and work the local boards, take Old Nell back to New Canaan, or fly the line checkride from here when you’re ready.”'
+          : atStill
+            ? '“Work the local boards as long as you like. When you’re ready, this office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”'
+            : '“Work the local boards as long as you like. When you’re ready, the certification office at the Still or the one at Nell’s Rest can issue your line checkride to Roadstead Station.”',
+        '“Pass that run and I can strike ‘Junior’ from the ledger.”',
+        '“The line checkride is paid like a real delivery: a fixed reward worth twenty percent of par fuel, plus eighty percent of the fuel you actually use. Fly efficiently and the difference stays in your pocket.”',
+        endorsementDialogue,
       ],
     };
   }
@@ -187,6 +212,14 @@ export function localContactPresentation(
   return { description: contact.description, dialogue: contact.dialogue };
 }
 
+const CERTIFICATION_LICENSE_ACTIONS: LocalDirectoryActionDef[] = PURCHASABLE_TEAMSTER_LICENSES.map(license => ({
+  id: `purchase-${license.certificationId}-license`,
+  label: license.name,
+  detail: `Pay the ${license.price.toLocaleString('en-US')} cr test fee and add this license to your Guild record.`,
+  tag: 'LICENSE',
+  purchaseCertification: { certificationId: license.certificationId, price: license.price },
+}));
+
 export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   kind: 'office',
   id: 'teamsters-guild-certification-office',
@@ -199,11 +232,12 @@ export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {
   actions: [
     {
       id: 'start-basic-certification',
-      label: 'Start Guild certification',
-      detail: 'Open a call with the Guild officer responsible for the basic checkride.',
+      label: 'Contact Gid about Guild certification',
+      detail: 'Open a call with the Guild officer responsible for flight certifications.',
       tag: 'TUTORIAL',
       contactId: GIDEON_BELL.id,
     },
+    ...CERTIFICATION_LICENSE_ACTIONS,
   ],
 };
 
@@ -213,17 +247,18 @@ export const NELLS_REST_CERTIFICATION_OFFICE: LocalOfficeDef = {
   name: 'Teamsters’ Guild Certification Office',
   organizationName: 'Teamsters’ Guild',
   locationIds: ['estella-viii-first-rendezvous-station'],
-  summary: 'Guild checkride administration and apprentice flight dispatch.',
-  tutorialUntilCertification: 'basic-3',
+  summary: 'Guild checkride administration and Junior Teamster flight dispatch.',
+  tutorialUntilCertification: 'line',
   description: 'The Certification Office is a glass-fronted room off Nell’s Rest’s maintenance concourse. Training orbits cover one wall; a heavy Guild communications terminal occupies the examiner’s desk, patched directly to Guild HQ at the Still.',
   actions: [
     {
       id: 'contact-gid-for-weymark-checkride',
-      label: 'Contact Gid for checkride instructions',
+      label: 'Contact Gid for certification instructions',
       detail: 'Open the reserved certification link to Guild HQ at the Still.',
       tag: 'TUTORIAL',
       contactId: GIDEON_BELL.id,
     },
+    ...CERTIFICATION_LICENSE_ACTIONS,
   ],
 };
 
@@ -247,10 +282,76 @@ export const WEYMARK_TOWN_CERTIFICATION_DESK: LocalOfficeDef = {
   ],
 };
 
+export const STILL_CERTIFICATION_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'still-certification-office',
+  name: 'Teamsters’ Guild Certification Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['still-guild-hq'],
+  summary: 'Guild HQ certification office for line checkrides, endorsements, and license records.',
+  tutorialUntilCertification: 'line',
+  description: 'A row of examiner desks occupies the public side of Guild HQ. Checkride plots share wall space with cargo-license fee schedules and framed photographs of retired Teamsters.',
+  actions: [
+    {
+      id: 'contact-gid-for-line-checkride',
+      label: 'Contact Gid for line certification',
+      detail: 'Request the tutorial line checkride to Roadstead Station.',
+      tag: 'TUTORIAL',
+      contactId: GIDEON_BELL.id,
+    },
+    ...CERTIFICATION_LICENSE_ACTIONS,
+  ],
+};
+
+export const ROADSTEAD_CERTIFICATION_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'roadstead-certification-office',
+  name: 'Teamsters’ Guild Certification Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-v-transit-customs'],
+  summary: 'Hartwell thin-atmosphere endorsement and Guild license office.',
+  description: 'The Roadstead office overlooks Hartwell through dust-streaked armor glass. Descent profiles to Concord fill the practical examiner’s displays; a separate counter handles written cargo and passenger licenses.',
+  actions: [
+    {
+      id: 'contact-gid-for-thin-atmosphere-endorsement',
+      label: 'Contact Gid about the thin-atmosphere endorsement',
+      detail: 'Request the Roadstead-to-Concord atmospheric practical.',
+      tag: 'ENDORSEMENT',
+      contactId: GIDEON_BELL.id,
+      requiresCertification: 'basic-3',
+    },
+    ...CERTIFICATION_LICENSE_ACTIONS,
+  ],
+};
+
+export const ANVIL_CERTIFICATION_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'anvil-certification-office',
+  name: 'Teamsters’ Guild Certification Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-vi-main-transit-dispatch'],
+  summary: 'Kuznia thick-atmosphere endorsement and Guild license office.',
+  description: 'Anvil’s certification room sits beside surface-weather dispatch. Live pressure maps and wind columns dominate the displays; the practical route terminates at Port Stribog below.',
+  actions: [
+    {
+      id: 'contact-gid-for-thick-atmosphere-endorsement',
+      label: 'Contact Gid about the thick-atmosphere endorsement',
+      detail: 'Request the Anvil-to-Port Stribog atmospheric practical.',
+      tag: 'ENDORSEMENT',
+      contactId: GIDEON_BELL.id,
+      requiresCertification: 'basic-3',
+    },
+    ...CERTIFICATION_LICENSE_ACTIONS,
+  ],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,
   WEYMARK_TOWN_CERTIFICATION_DESK,
+  STILL_CERTIFICATION_OFFICE,
+  ROADSTEAD_CERTIFICATION_OFFICE,
+  ANVIL_CERTIFICATION_OFFICE,
   GIDEON_BELL,
 ];
 
@@ -268,6 +369,18 @@ export function localDirectoryEntriesAt(locationId: string): LocalDirectoryEntry
     const access = localDirectoryEntryAccess(entry, locationId);
     return access !== undefined && (access === 'local' || entry.listedRemotely !== false);
   });
+}
+
+export function tutorialCertificationAvailableAt(locationId: string, certifications: readonly TeamsterCertificationId[]): boolean {
+  const scope = new Set(localTerminalScopeIds(locationId));
+  const hasBasic1 = certifications.includes('basic-1');
+  const hasBasic2 = certifications.includes('basic-2');
+  const hasBasic3 = certifications.includes('basic-3');
+  if (!hasBasic1) return scope.has('caravanserai-main-commercial-dock');
+  if (!hasBasic2) return scope.has('still-guild-hq') || scope.has('estella-viii-first-rendezvous-station');
+  if (!hasBasic3) return scope.has('estella-viii-settlement');
+  if (!certifications.includes('line')) return scope.has('still-guild-hq') || scope.has('estella-viii-first-rendezvous-station');
+  return false;
 }
 
 export function localDirectoryEntryById(id: string): LocalDirectoryEntryDef | undefined {

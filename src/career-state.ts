@@ -1,7 +1,30 @@
 const CAREER_STORAGE_KEY = 'space-teamster.career.v1';
 
-export const TEAMSTER_CERTIFICATION_IDS = ['basic-1', 'basic-2', 'basic-3'] as const;
+export const TEAMSTER_CERTIFICATION_IDS = [
+  'basic-1',
+  'basic-2',
+  'basic-3',
+  'line',
+  'thin-atmosphere',
+  'thick-atmosphere',
+  'fragile-cargo',
+  'volatile-cargo',
+  'passenger',
+] as const;
 export type TeamsterCertificationId = typeof TEAMSTER_CERTIFICATION_IDS[number];
+export type TeamsterRank = 'Teamster Trainee' | 'Junior Teamster' | 'Teamster';
+
+export interface PurchasableTeamsterLicense {
+  certificationId: Extract<TeamsterCertificationId, 'fragile-cargo' | 'volatile-cargo' | 'passenger'>;
+  name: string;
+  price: number;
+}
+
+export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[] = [
+  { certificationId: 'fragile-cargo', name: 'Fragile Cargo License', price: 20_000 },
+  { certificationId: 'volatile-cargo', name: 'Volatile Cargo License', price: 40_000 },
+  { certificationId: 'passenger', name: 'Passenger License', price: 25_000 },
+];
 
 export interface CareerProfile {
   locationId: string;
@@ -57,11 +80,32 @@ export function hasTeamsterCertification(profile: Pick<CareerProfile, 'certifica
 
 export function basicTeamsterCertificationStage(profile: Pick<CareerProfile, 'certifications'>): number {
   let stage = 0;
-  for (const certification of TEAMSTER_CERTIFICATION_IDS) {
+  for (const certification of ['basic-1', 'basic-2', 'basic-3'] as const) {
     if (!profile.certifications.includes(certification)) break;
     stage++;
   }
   return stage;
+}
+
+export function teamsterRank(profile: Pick<CareerProfile, 'certifications'>): TeamsterRank {
+  if (profile.certifications.includes('line')) return 'Teamster';
+  if (profile.certifications.includes('basic-3')) return 'Junior Teamster';
+  return 'Teamster Trainee';
+}
+
+export function teamsterCertificationName(certification: TeamsterCertificationId): string {
+  const names: Record<TeamsterCertificationId, string> = {
+    'basic-1': 'Basic 1 Practical',
+    'basic-2': 'Basic 2 Practical',
+    'basic-3': 'Basic Certification',
+    line: 'Line Certification',
+    'thin-atmosphere': 'Thin-Atmosphere Endorsement',
+    'thick-atmosphere': 'Thick-Atmosphere Endorsement',
+    'fragile-cargo': 'Fragile Cargo License',
+    'volatile-cargo': 'Volatile Cargo License',
+    passenger: 'Passenger License',
+  };
+  return names[certification];
 }
 
 export function awardTeamsterCertification(profile: CareerProfile, certification: TeamsterCertificationId): void {
