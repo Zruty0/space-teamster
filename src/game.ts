@@ -45,7 +45,16 @@ import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionC
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
-import { drawOperationsManualArticle, operationsManualArticleById, operationsManualArticleScrollLimit, type OperationsManualArticleId } from './operations-manual';
+import {
+  OPERATIONS_MANUAL_ENTRIES,
+  drawOperationsManualArticle,
+  isOperationsManualArticleId,
+  operationsManualArticleById,
+  operationsManualArticleScrollLimit,
+  operationsManualTutorialFor,
+  type OperationsManualArticleId,
+  type OperationsManualTutorialEvent,
+} from './operations-manual';
 
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
@@ -178,11 +187,7 @@ export class Game {
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
-  private dockingTutorialShown = false;
-  private localTransferTutorialShown = false;
-  private surfaceFlightTutorialShown = false;
-  private orbitDeorbitTutorialShown = false;
-  private orbitalRendezvousTutorialShown = false;
+  private shownOperationsManualTutorials = new Set<OperationsManualArticleId>();
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
   private contractBoardLoadGeneration = 0;
@@ -200,6 +205,13 @@ export class Game {
   }
 
   // --- Level loading ---
+
+  private showContextualOperationsManual(event: OperationsManualTutorialEvent, returnPhase: GameplayPhase): void {
+    const articleId = operationsManualTutorialFor(this.activeCareerContract?.templateId, event);
+    if (!articleId || this.shownOperationsManualTutorials.has(articleId)) return;
+    this.shownOperationsManualTutorials.add(articleId);
+    this.phase = { kind: 'manualArticle', articleId, returnPhase, tutorialSplash: true, scrollOffset: 0 };
+  }
 
   private loadLanding(
     level: LevelDef,
@@ -242,10 +254,7 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
-    if (this.activeCareerContract?.templateId === 'basic-certification-weymark-landing' && !this.surfaceFlightTutorialShown) {
-      this.surfaceFlightTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'surface-flight', returnPhase: landingPhase, tutorialSplash: true, scrollOffset: 0 };
-    }
+    this.showContextualOperationsManual('landing', landingPhase);
   }
 
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
@@ -278,10 +287,7 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
-    if (this.activeCareerContract?.templateId === 'basic-certification-still-transfer' && !this.dockingTutorialShown) {
-      this.dockingTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'docking-undocking', returnPhase: dockingPhase, tutorialSplash: true, scrollOffset: 0 };
-    }
+    this.showContextualOperationsManual('docking', dockingPhase);
   }
 
   private loadCluster(level: ClusterLevel, initOverride?: ClusterInitOverride, worldTimeStart: number = this.worldTime): void {
@@ -295,10 +301,7 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
-    if (this.activeCareerContract?.templateId === 'basic-certification-still-transfer' && !this.localTransferTutorialShown) {
-      this.localTransferTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'local-transfer', returnPhase: clusterPhase, tutorialSplash: true, scrollOffset: 0 };
-    }
+    this.showContextualOperationsManual('cluster', clusterPhase);
   }
 
   private loadEstellaNavigation(): void {
@@ -439,13 +442,7 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
-    if (this.activeCareerContract?.templateId === 'basic-certification-weymark-landing' && !this.orbitDeorbitTutorialShown) {
-      this.orbitDeorbitTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'orbit-deorbit', returnPhase: orbitalPhase, tutorialSplash: true, scrollOffset: 0 };
-    } else if (this.activeCareerContract?.templateId === 'basic-certification-nells-rest-return' && !this.orbitalRendezvousTutorialShown) {
-      this.orbitalRendezvousTutorialShown = true;
-      this.phase = { kind: 'manualArticle', articleId: 'orbital-rendezvous', returnPhase: orbitalPhase, tutorialSplash: true, scrollOffset: 0 };
-    }
+    this.showContextualOperationsManual('orbital', orbitalPhase);
   }
 
   private showGuidance(text: string, duration = 4): void {
@@ -637,11 +634,7 @@ export class Game {
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
-    this.dockingTutorialShown = false;
-    this.localTransferTutorialShown = false;
-    this.surfaceFlightTutorialShown = false;
-    this.orbitDeorbitTutorialShown = false;
-    this.orbitalRendezvousTutorialShown = false;
+    this.shownOperationsManualTutorials.clear();
   }
 
   private quitToStartMenu(): void {
@@ -1700,15 +1693,16 @@ export class Game {
         subtitle: 'Guild-standard flight controls and operating procedures',
         bodyRows: [
           { kind: 'text', text: 'Select an article. Additional flight modes and reference material will be added as they enter service.' },
-          { kind: 'kv', label: 'Articles', value: '5' },
+          { kind: 'kv', label: 'Articles', value: `${OPERATIONS_MANUAL_ENTRIES.length}` },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Docking and Undocking', detail: 'Close maneuvering around stations and berthing facilities.', action: 'manualArticle:docking-undocking', tone: 'primary' },
-          { label: 'Local Transfer', detail: 'Flying between facilities inside a shared traffic volume.', action: 'manualArticle:local-transfer', tone: 'primary' },
-          { label: 'Surface Landing and Takeoff', detail: 'Landing-pad descent, touchdown, and departure from the surface.', action: 'manualArticle:surface-flight', tone: 'primary' },
-          { label: 'Orbit and Deorbit', detail: 'Changing an orbit and entering a surface approach corridor.', action: 'manualArticle:orbit-deorbit', tone: 'primary' },
-          { label: 'Orbital Rendezvous', detail: 'Phasing with a station, matching velocity, and entering capture.', action: 'manualArticle:orbital-rendezvous', tone: 'primary' },
+          ...OPERATIONS_MANUAL_ENTRIES.map(({ article, menuSummary }) => ({
+            label: article.title,
+            detail: menuSummary,
+            action: `manualArticle:${article.id}`,
+            tone: 'primary' as const,
+          })),
           { label: 'Back to Start Menu', detail: 'Close the operations handbook.', action: 'startMenu', tone: 'back' },
         ],
       };
@@ -1962,16 +1956,9 @@ export class Game {
       return;
     }
     if (action === 'stationTerminal') { this.loadStationTerminal(); return; }
-    if (action === 'manualArticle:local-transfer' || action === 'manualArticle:docking-undocking' || action === 'manualArticle:surface-flight' || action === 'manualArticle:orbit-deorbit' || action === 'manualArticle:orbital-rendezvous') {
-      const articleId: OperationsManualArticleId = action === 'manualArticle:docking-undocking'
-        ? 'docking-undocking'
-        : action === 'manualArticle:surface-flight'
-          ? 'surface-flight'
-          : action === 'manualArticle:orbit-deorbit'
-            ? 'orbit-deorbit'
-            : action === 'manualArticle:orbital-rendezvous'
-              ? 'orbital-rendezvous'
-              : 'local-transfer';
+    if (action.startsWith('manualArticle:')) {
+      const articleId = action.slice('manualArticle:'.length);
+      if (!isOperationsManualArticleId(articleId)) return;
       this.phase = {
         kind: 'manualArticle',
         articleId,
@@ -2095,11 +2082,7 @@ export class Game {
   }
 
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
-    this.dockingTutorialShown = false;
-    this.localTransferTutorialShown = false;
-    this.surfaceFlightTutorialShown = false;
-    this.orbitDeorbitTutorialShown = false;
-    this.orbitalRendezvousTutorialShown = false;
+    this.shownOperationsManualTutorials.clear();
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
