@@ -39,6 +39,38 @@ export const LOCAL_TRANSFER_ARTICLE: OperationsManualArticle = {
   ],
 };
 
+export const AIRLESS_APPROACH_ARTICLE: OperationsManualArticle = {
+  id: 'airless-approach',
+  title: 'Airless Approach',
+  introduction: 'Airless Approach mode carries the rig from orbit to a surface target area. There is no drag to slow you down: every unit of arrival speed must be removed with thrust before the landing handoff.',
+  controls: [
+    { keys: ['W', 'S'], action: 'MAIN / RETRO THRUST', description: 'Thrust along or against the tug’s nose.', modeSpecific: true },
+    { keys: ['A', 'D'], action: 'ROTATE', description: 'Point the rig for the next burn.', modeSpecific: true },
+    { keys: ['SHIFT'], action: 'HIGH THRUST', description: 'Hold with a thrust control for maximum output.' },
+    { keys: ['[', ']'], action: 'TIME WARP', description: 'Decrease or increase time acceleration. Thrust or rotation returns warp to 1×.' },
+    { keys: ['ESC'], action: 'FLIGHT MENU', description: 'Pause the flight and open mission controls.' },
+    { keys: ['BACKSPACE'], action: 'RESTART STAGE', description: 'Restart the current flight stage.' },
+  ],
+  procedure: [
+    'Point toward the target area and use short burns to place the predicted trajectory through it.',
+    'Favor a steep descent instead of a long, shallow approach close to the terrain.',
+    'Brake early enough to enter the target area inside the displayed speed band.',
+  ],
+  tips: {
+    items: [
+      'Steeper approaches are easier to aim and spend less time skimming terrain, but they demand decisive braking before arrival.',
+    ],
+  },
+  hud: [
+    { label: 'ALT', description: 'Altitude above the surface' },
+    { label: 'H/S', description: 'Horizontal speed' },
+    { label: 'V/S', description: 'Vertical speed' },
+    { label: 'SPD', description: 'Total speed and target-area speed status' },
+    { label: 'DIST', description: 'Distance to the target area' },
+    { label: 'WARP', description: 'Current time acceleration' },
+  ],
+};
+
 export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
   id: 'surface-flight',
   title: 'Surface Landing and Takeoff',
@@ -286,6 +318,7 @@ export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
 export const OPERATIONS_MANUAL_ENTRIES = [
   { article: DOCKING_UNDOCKING_ARTICLE, menuSummary: 'Close maneuvering around stations and berthing facilities.' },
   { article: LOCAL_TRANSFER_ARTICLE, menuSummary: 'Flying between facilities inside a shared traffic volume.' },
+  { article: AIRLESS_APPROACH_ARTICLE, menuSummary: 'Powered descent from orbit to a target area without atmospheric braking.' },
   { article: SURFACE_FLIGHT_ARTICLE, menuSummary: 'Landing-pad descent, touchdown, and departure from the surface.' },
   { article: ORBIT_DEORBIT_ARTICLE, menuSummary: 'Changing an orbit and entering a surface approach corridor.' },
   { article: ORBITAL_RENDEZVOUS_ARTICLE, menuSummary: 'Phasing with a station, matching velocity, and entering capture.' },

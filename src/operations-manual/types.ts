@@ -1,6 +1,6 @@
-export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'surface-flight' | 'orbit-deorbit' | 'orbital-rendezvous';
+export type OperationsManualArticleId = 'local-transfer' | 'docking-undocking' | 'airless-approach' | 'surface-flight' | 'orbit-deorbit' | 'orbital-rendezvous';
 export type ManualDiagramId = 'orbital-rendezvous-phasing' | 'orbital-rendezvous-closest-pass';
-export type OperationsManualTutorialEvent = 'landing' | 'docking' | 'cluster' | 'orbital';
+export type OperationsManualTutorialEvent = 'landing' | 'approach' | 'docking' | 'cluster' | 'orbital';
 
 export interface ManualControl {
   keys: string[];

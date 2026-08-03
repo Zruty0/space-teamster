@@ -263,7 +263,8 @@ export class Game {
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    this.phase = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    this.phase = approachPhase;
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
       this.showGuidance(`CLIMB to ${(level.departure.exitAltitude / 1000).toFixed(1)}km and ACCELERATE ${dir}`);
@@ -274,6 +275,9 @@ export class Game {
     this.time = 0;
     this.worldTime = worldTimeStart;
     this.accumulator = 0;
+    if (!level.departure && level.body.atmosphere === null) {
+      this.showContextualOperationsManual('approach', approachPhase);
+    }
   }
 
   private loadDocking(level: DockingLevel, initOverride?: DockingInitOverride, worldTimeStart: number = this.worldTime): void {
