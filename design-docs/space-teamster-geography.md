@@ -22,6 +22,8 @@ Estella herself is a yellow star of unremarkable size and temperature, similar e
 
 Estella has fourteen bodies of significant size, a diffuse asteroid belt, two stellar-orbit stations of considerable industrial importance, and several thousand smaller rocks of which the catalogue still occasionally adds new entries. Approximately two hundred sites are known to be inhabited, occupied, garrisoned, or otherwise actively used. The rest are inhabited only by surprise.
 
+**Gameplay orbit convention:** every authored natural-body and facility orbit runs clockwise. Prograde surface approaches and departures therefore read left-to-right in the local flight view.
+
 The system is divided, by colonist convention rather than astronomical decree, into **five regions**. These are not formal political entities. They are the names working people use when they tell other working people where they have just been or where they are unfortunately going next.
 
 | Region | What's there | What it feels like |
@@ -390,7 +392,7 @@ Small SOI, icy, scientific in flavor. Less developed.
 | ID | Type | Description |
 |---|---|---|
 | Estella IX.1 | Station, low orbit | Research station |
-| Estella IX.2 | Station, opposite-sense orbit | Supply depot |
+| Estella IX.2 | Station, high orbit | Supply depot |
 | Estella IX.3 | Surface | Research base |
 | Estella IX.4 | Surface | Ice mine |
 | Estella IX.5 | Captured moonlet | Observation outpost |
