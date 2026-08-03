@@ -13,7 +13,7 @@ const CONCORD = 'estella-v-capital-settlement';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const ANVIL = 'estella-vi-main-transit-dispatch';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 const KALYNA_ORBITAL = 'estella-vib-cold-chain-station';
 const TETERIV = 'estella-vib-vat-protein';
 const ZHITOMIR = 'estella-vib-pharma-horticulture';
@@ -278,16 +278,16 @@ const KALYNA_LUXURY: CargoOption[] = [
 const LANES: Lane[] = [
   { laneId: 'beira-volatiles-to-camps', sourceIds: ['estella-xa-deep-ice-mine'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: BEIRA_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
   { laneId: 'macao-volatiles-to-camps', sourceIds: ['estella-xic-ice-mining'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: MACAO_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
-  { laneId: 'wells-gas-to-camps', sourceIds: ['estella-x-observation-skim-hub', 'estella-xi-skim-hub'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, SVAROG_SHIPYARD, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: GAS_PRODUCTS, likelihood: 0.52, pay: ROUTINE_PAY },
+  { laneId: 'wells-gas-to-camps', sourceIds: ['estella-x-observation-skim-hub', 'estella-xi-skim-hub'], destinationIds: [CADIZ_HIGHPORT, HAMMER, VELES_TERMINAL, SVAROG_SHIPYARD, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: GAS_PRODUCTS, likelihood: 0.52, pay: ROUTINE_PAY },
   { laneId: 'wells-sulfur-chemicals-to-camps', sourceIds: ['estella-xia-sulfur-mine', 'estella-xia-chem-station', 'estella-xd-chem-station'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ZHITOMIR, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: SULFUR_CHEMICALS, likelihood: 0.5, pay: ROUTINE_PAY },
   { laneId: 'wells-hydrocarbons-to-camps', sourceIds: ['estella-xib-cryo-transit', 'estella-xib-methane-refinery', 'estella-xib-organic-chemistry', 'estella-xib-hydrocarbon-extraction'], destinationIds: [CADIZ_HIGHPORT, HAMMER, KALYNA_ORBITAL, ZHITOMIR, TETERIV], consolidationHubId: CADIZ_HIGHPORT, cargo: HYDROCARBONS, likelihood: 0.5, pay: ROUTINE_PAY },
-  { laneId: 'wells-metals-to-camps', sourceIds: ['estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction', 'estella-xia-rare-element-extraction'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, SVAROG_SHIPYARD, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: METALS, likelihood: 0.48, pay: CERTIFIED_PAY },
-  { laneId: 'wells-isotopes-to-camps', sourceIds: ['estella-xiic-isotope-mining', 'estella-xiic-castle-teide'], destinationIds: [CADIZ_HIGHPORT, HAMMER, YARDSTOCK, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: ISOTOPES, likelihood: 0.36, pay: ISOTOPE_PAY },
-  { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [CADIZ_HIGHPORT, SVAROG_SHIPYARD, YARDSTOCK, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
+  { laneId: 'wells-metals-to-camps', sourceIds: ['estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction', 'estella-xia-rare-element-extraction'], destinationIds: [CADIZ_HIGHPORT, HAMMER, VELES_TERMINAL, SVAROG_SHIPYARD, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: METALS, likelihood: 0.48, pay: CERTIFIED_PAY },
+  { laneId: 'wells-isotopes-to-camps', sourceIds: ['estella-xiic-isotope-mining', 'estella-xiic-castle-teide'], destinationIds: [CADIZ_HIGHPORT, HAMMER, VELES_TERMINAL, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: ISOTOPES, likelihood: 0.36, pay: ISOTOPE_PAY },
+  { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [CADIZ_HIGHPORT, SVAROG_SHIPYARD, VELES_TERMINAL, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
   { laneId: 'hartwell-life-support-to-wells', sourceIds: [ROADSTEAD, CONCORD, ANVIL], destinationPool: WELLS_LIFE_SUPPORT_DESTINATIONS, destinationCount: 12, cargo: LIFE_SUPPORT, likelihood: 0.42, pay: BACKHAUL_PAY },
-  { laneId: 'kuznia-consumables-to-wells', sourceIds: [HAMMER, ANVIL, YARDSTOCK], destinationIds: WELLS_WORKS, cargo: INDUSTRIAL_CONSUMABLES, likelihood: 0.38, pay: BACKHAUL_PAY },
+  { laneId: 'kuznia-consumables-to-wells', sourceIds: [HAMMER, ANVIL, VELES_TERMINAL], destinationIds: WELLS_WORKS, cargo: INDUSTRIAL_CONSUMABLES, likelihood: 0.38, pay: BACKHAUL_PAY },
   { laneId: 'kalyna-luxury-to-wells', sourceIds: [KALYNA_ORBITAL, TETERIV, ZHITOMIR, DNIPRO], destinationIds: WELLS_ELITE_MARKETS, cargo: KALYNA_LUXURY, likelihood: 0.32, pay: LUXURY_PAY },
-  { laneId: 'cadiz-consolidated-wells-exports', sourceIds: [CADIZ_HIGHPORT], destinationIds: [HAMMER, ANVIL, SVAROG_SHIPYARD, YARDSTOCK, KALYNA_ORBITAL, ZHITOMIR, TETERIV, MOSAIC], cargo: [...VOLATILES, ...GAS_PRODUCTS, ...SULFUR_CHEMICALS, ...HYDROCARBONS, ...METALS, ...ISOTOPES, ...YARD_SURPLUS], likelihood: 0.6, pay: ROUTINE_PAY },
+  { laneId: 'cadiz-consolidated-wells-exports', sourceIds: [CADIZ_HIGHPORT], destinationIds: [HAMMER, ANVIL, SVAROG_SHIPYARD, VELES_TERMINAL, KALYNA_ORBITAL, ZHITOMIR, TETERIV, MOSAIC], cargo: [...VOLATILES, ...GAS_PRODUCTS, ...SULFUR_CHEMICALS, ...HYDROCARBONS, ...METALS, ...ISOTOPES, ...YARD_SURPLUS], likelihood: 0.6, pay: ROUTINE_PAY },
 ];
 
 function hashString(text: string): number {

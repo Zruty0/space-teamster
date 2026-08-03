@@ -62,7 +62,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Steel Combine | 0 + 1.00 fuel comp (0%) | exports 0.15 + 1.00 (+15%); no flat rewards |
 | Glitterfield mining companies | outbound ore/ingots 0.80 + 0.40 (+20%) | depot→Cupola ore 0.35 + 0.65 (0%); supplies 0.65 + 0.45 (+10%); crews 0.30 + 0.60 (-10%) |
 | Halloran Smelting House | 0.80 + 0.40 (+20%) | refinery crews 0.40 + 0.60 (0%); Gaia experts/delegations 0.50 + 0.60 (+10%) |
-| Pike mining companies | depot exports 0.80 + 0.40 (+20%) | strip→depot ore 0.35 + 0.65 (0%); strip→Cinderhook 0.70 + 0.40 (+10%); shipyard/Yardstock exports 0.85 + 0.40 (+25%) |
+| Pike mining companies | depot exports 0.80 + 0.40 (+20%) | strip→depot ore 0.35 + 0.65 (0%); strip→Cinderhook 0.70 + 0.40 (+10%); shipyard/Veles Terminal exports 0.85 + 0.40 (+25%) |
 | Cinderhook refining houses | refined exports 0.80 + 0.40 (+20%) | Roadstead staging 0.75 + 0.40 (+15%); certified shipyard/Tessera lots 0.85 + 0.35 (+20%) |
 | Roadstead export brokers | brokered metal exports 0.75 + 0.40 (+15%) | certified lots 0.80 + 0.35 (+15%) |
 | Hartwell machinery brokers | routine machinery 0.75 + 0.45 (+20%) | heavy equipment 0.85 + 0.40 (+25%); finance/legal packets 0.70 + 0.45 (+15%) |
@@ -82,7 +82,7 @@ The Combine runs Kuznia as a planned economy behind an orbital trade membrane. I
 
 - Internal distribution (common): Hammer/Anvil ↔ surface, both ways. Planning Office. Compensation-only. Hammer legs are bulk/heavy; Anvil legs are light/passengers/paperwork.
 - Imports (sparse): likely feedstock sources (New Canaan `harlan-dock`/`mercer-dock`, Caravanserai) → Hammer. Foreign Trade Committee. Compensation-only.
-- Exports (sparse, lucrative): Hammer → external buyers (Svarog Shipyard, Yardstock Terminal, Caravanserai outfitter, Mosaic Assembly Lab, and Oathmark shipyard/forge buyers). Foreign Trade Committee. Compensation + a modest fixed premium.
+- Exports (sparse, lucrative): Hammer → external buyers (Svarog Shipyard, Veles Terminal, Caravanserai outfitter, Mosaic Assembly Lab, and Oathmark shipyard/forge buyers). Foreign Trade Committee. Compensation + a modest fixed premium.
 
 Imports and exports are deliberately sparse — the Combine leans on other companies' shipping for most external trade.
 
@@ -94,7 +94,7 @@ Each lane draws from a cargo pool, sampled per route and world-day, so goods var
 - Works → Hammer (finished/ore): rolled structural sections, steel billets, plate steel, rail/beam stock, alloy ingots, pressure-pipe stock (Gornilo); finished machinery, machine tools, pumps/compressors, gear assemblies, prefab modules, vehicle chassis (Perun); specialty/rare-earth/refractory/high-grade ore (Veles).
 - Anvil ↔ surface (light): work crews, shift rotations, plan directives, quota allocations, tooling and spares, medical supplies (down); quota reports, production returns, work rotations, spent-tooling returns, personnel transfers (up); food allotments from Mokosh; weather/forecast/survey data from Morana.
 - Imports: titanium tailings concentrate, basalt fiber feedstock, scrap pressure alloy, regolith aggregate, bulk silicates (New Canaan); imported refractory feedstock, off-world alloy stock, bulk industrial chemicals, imported machine parts (Caravanserai).
-- Exports: structural sections, hull plate, pressure-shell blanks, frame members (Svarog); certified steel stock, structural billets, fastener stock, welded assemblies (Yardstock); heavy machinery, prefab modules, cargo-frame stock, structural components (Caravanserai outfitter); precision alloy billets, tool-steel stock, high-purity ingots, instrument-grade alloy (Tessera); outer-spec hull plate, certified frame members, shipyard machine-tool stock, armor-grade plate, and proofed structural billets (Oathmark).
+- Exports: structural sections, hull plate, pressure-shell blanks, frame members (Svarog); certified steel stock, structural billets, fastener stock, welded assemblies (Veles Terminal); heavy machinery, prefab modules, cargo-frame stock, structural components (Caravanserai outfitter); precision alloy billets, tool-steel stock, high-purity ingots, instrument-grade alloy (Tessera); outer-spec hull plate, certified frame members, shipyard machine-tool stock, armor-grade plate, and proofed structural billets (Oathmark).
 
 ### Kuznia membrane rule
 
@@ -137,18 +137,18 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 - ID: `pike-mining-companies` (shared). No market tag — small Hartwell mining houses post under company names.
 - Roster: 20 stable Pike companies sampled from a name pool, each assigned 1–2 clean-metal product families.
-- Core nodes: Pike Strip Mine (`estella-va-strip-mine`), Pike Ore-Handling Depot (`estella-va-ore-handling-depot`), Cinderhook Refinery (`estella-v-atmo-refinery`), Roadstead Customs, Hammer Station, Svarog Shipyard, Yardstock Terminal.
+- Core nodes: Pike Strip Mine (`estella-va-strip-mine`), Pike Ore-Handling Depot (`estella-va-ore-handling-depot`), Cinderhook Refinery (`estella-v-atmo-refinery`), Roadstead Customs, Hammer Station, Svarog Shipyard, Veles Terminal.
 - Surface flow: Pike Strip Mine → Pike Ore-Handling Depot for orbital export lots, and Pike Strip Mine → Cinderhook for Hartwell refining.
 - Export flow: all off-Pike system sales originate at Pike Ore-Handling Depot. Common Hartwell-brokered lots go first to Roadstead; direct buyer contracts still go to Kuznia/Svarog buyers. There are no direct strip-mine-to-Kuznia/Svarog contracts.
 - Cargo palette: nickel-iron strip ore/ingots, clean sulfide concentrate, reduced metal lots/billets, magnesium-aluminum silicate feedstock, clean pressure-metal billets, certified Pike ballast slabs.
-- Pay: strip → depot uses `0.35 + 0.65` (break-even at par), strip → Cinderhook uses `0.70 + 0.40` (+10%), depot exports use `0.80 + 0.40` (+20%), and shipyard/Yardstock exports use `0.85 + 0.40` (+25%).
+- Pay: strip → depot uses `0.35 + 0.65` (break-even at par), strip → Cinderhook uses `0.70 + 0.40` (+10%), depot exports use `0.80 + 0.40` (+20%), and shipyard/Veles Terminal exports use `0.85 + 0.40` (+25%).
 
 ## Cinderhook refining houses
 
 - ID: `cinderhook-refining-houses` (shared). Small Hartwell refining houses post under company names.
 - Roster: 16 stable Cinderhook houses sampled from a name pool.
 - Source: Cinderhook Refinery only. Pike/Dawes extractors own inbound raw-feed legs; Cinderhook houses own outbound refined lots.
-- Destinations: Roadstead Customs for export staging and brokerage; Hammer Station for industrial feedstock; Svarog Shipyard and Yardstock Terminal for shipyard-certified stock; Mosaic Assembly Lab for precision metal/feedstock. Roadstead staging is intentionally the densest lane.
+- Destinations: Roadstead Customs for export staging and brokerage; Hammer Station for industrial feedstock; Svarog Shipyard and Veles Terminal for shipyard-certified stock; Mosaic Assembly Lab for precision metal/feedstock. Roadstead staging is intentionally the densest lane.
 - Cargo palette: certified clean-metal lots, pressure-alloy billets, reduced-metal ingots, low-carbon plate feedstock, certified weld stock, instrument-grade alloy blanks, sulfide byproduct drums, ceramic flux precursors, clean ballast slabs.
 - Pay: Roadstead staging uses `0.75 + 0.40` (+15% at par), routine refined exports use `0.80 + 0.40` (+20%), and certified shipyard/Tessera lots use `0.85 + 0.35` (+20%).
 
@@ -157,7 +157,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - ID: `roadstead-export-brokers` (shared). Hartwell broker houses post under company names.
 - Roster: 16 stable export brokers sampled from a name pool.
 - Source: Roadstead Customs only. Roadstead is Hartwell's orbital trade membrane: customs, brokerage, consolidation, and clean-title export.
-- Destinations: Hammer Station, Svarog Shipyard, Yardstock Terminal, Mosaic Assembly Lab, Caravanserai, Serrat Domain Shipyard, Keelwright Works, and Banner Forge.
+- Destinations: Hammer Station, Svarog Shipyard, Veles Terminal, Mosaic Assembly Lab, Caravanserai, Serrat Domain Shipyard, Keelwright Works, and Banner Forge.
 - Cargo palette: Hartwell clean-metal lots, brokered Pike nickel-iron ingots, Cinderhook pressure-alloy billets, low-carbon plate stock, instrument-grade alloy blanks, reduced-metal billets, Pike sulfide concentrate, certified Pike ballast slabs.
 - Pay: routine brokered lots use `0.75 + 0.40` (+15% at par); certified lots use `0.80 + 0.35` (+15%).
 
@@ -166,7 +166,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - ID: `hartwell-machinery-brokers` (shared). Hartwell broker houses post under company names.
 - Roster: 18 stable brokers sampled from a name pool.
 - Model: brokers finance, charter, and lease Kuznia/Svarog machinery into Hartwell, Pike, and Wells industrial works. They are not manufacturers; they convert claims, liens, and future ore into equipment today.
-- Sources: Hammer Station, Anvil Station, Svarog Shipyard, Yardstock Terminal, and Roadstead Customs.
+- Sources: Hammer Station, Anvil Station, Svarog Shipyard, Veles Terminal, and Roadstead Customs.
 - Hartwell/Pike destinations: Roadstead Customs, Concord, Dawes Cut, Cinderhook Refinery, Gale Survey, Pike Strip Mine, Pike Miner Hab, and Pike Ore-Handling Depot. Roadstead imports machinery from Kuznia/Svarog and can then post onward Hartwell/Pike/Wells distribution.
 - Wells destinations: non-noble industrial sites only, including The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Keelwright Works, Bluefire Mine, and Castle Teide's isotope charter office. Noble castles, Covenant sites, Daedalus, and Ratline House are excluded.
 - Cargo palette: drill heads, pump skids, hoist drums, crusher modules, compressors, vacuum loaders, ore sorters, refinery maintenance skids, sulfur-rated loader frames, cryo pump skids, hydrocarbon separator skids, survey instruments, claim beacons, assay benches, sealed title/export-lien packets, control cabinets, valve kits, and cryo-safe valve racks.
@@ -178,8 +178,8 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Roster: 18 stable companies sampled from a name pool.
 - Model: route arbitrage and backhaul. These firms buy or charter underpriced Wells resource lots into Camps demand, then keep ships earning with basic Hartwell/Kuznia life-support into all Wells destinations and industrial consumables back into Wells worksites. They are carriers/speculators, not machinery financiers.
 - Wells -> Camps sources: Gryphon Aerie, The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Hydra Maw Orbital, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Bluefire Mine, Castle Teide's isotope office, Serrat Domain Shipyard, and Keelwright Works.
-- Wells -> Camps destinations: roughly 80% of Wells resource/export freight first goes to Cadiz Highport for consolidation; roughly 20% posts as direct buyer legs to Hammer Station, Anvil Station for light/bonded lots, Svarog Shipyard, Yardstock Terminal, Kalyna Orbital for cold-chain/industrial inputs, Zhitomir Hydroponics for specialty chemical inputs, Teteriv Broiler Farm for organic inputs, and Mosaic Assembly Lab for precision feedstock/isotopes. Cadiz Highport then posts consolidated Wells export lots onward to those Camps buyers.
-- Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, and Anvil send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, and habitat sealant to all Wells destinations, weighted toward population and traffic hubs such as Cadiz Highport, Serratine Goods Exchange, Serratine, Herald Gate, and Macao Palace. Hammer, Anvil, and Yardstock send compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
+- Wells -> Camps destinations: roughly 80% of Wells resource/export freight first goes to Cadiz Highport for consolidation; roughly 20% posts as direct buyer legs to Hammer Station, Anvil Station for light/bonded lots, Svarog Shipyard, Veles Terminal, Kalyna Orbital for cold-chain/industrial inputs, Zhitomir Hydroponics for specialty chemical inputs, Teteriv Broiler Farm for organic inputs, and Mosaic Assembly Lab for precision feedstock/isotopes. Cadiz Highport then posts consolidated Wells export lots onward to those Camps buyers.
+- Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, and Anvil send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, and habitat sealant to all Wells destinations, weighted toward population and traffic hubs such as Cadiz Highport, Serratine Goods Exchange, Serratine, Herald Gate, and Macao Palace. Hammer, Anvil, and Veles Terminal send compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
 - Kalyna -> Wells elite supply: Kalyna Orbital, Teteriv Broiler Farm, Zhitomir Hydroponics, and Dnipro Pools send boutique aquaculture, cultured game-bird cuts, noble-table protein, pharmaceutical horticulture, conservatory stock, banquet cold-chain, and medical nutriments to Serratine, Herald Gate, Serratine Goods Exchange, Macao Palace, Velvet City, and selected castle seats. Kalyna is not a bulk-food source.
 - Pay: routine resource/bulk arbitrage uses `0.75 + 0.40` (+15% at par), certified/rare lots use `0.85 + 0.40` (+25%), isotopes use `0.95 + 0.30` (+25% with more fuel risk), basic backhaul uses `0.70 + 0.45` (+15%), and Kalyna luxury uses `0.90 + 0.35` (+25%).
 
@@ -258,7 +258,7 @@ Preferred inbound suppliers:
 
 - Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: pressure seals and valve blocks
 - Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: recycler pump cartridges
-- Yardstock Terminal (`estella-via-component-supply-station`) -> `harlan-dock`: rotary bearing kits
+- Veles Terminal (`estella-via-component-supply-station`) -> `harlan-dock`: rotary bearing kits
 - Svarog Shipyard (`estella-via-drydock-station`) -> New Canaan docks: airlock actuator assemblies
 - Anvil Station (`estella-vi-main-transit-dispatch`) -> New Canaan docks: bulk ration packs
 - Kalyna Orbital (`estella-vib-cold-chain-station`) -> New Canaan docks: medical cold-chain lockers
@@ -269,7 +269,7 @@ Outbound brokerage:
 - New Canaan docks -> Hammer Station (`estella-vi-heavy-cargo-station`): low-grade titanium tailings concentrate
 - New Canaan docks -> Hammer Station (`estella-vi-heavy-cargo-station`): basalt fiber feedstock
 - New Canaan docks -> Svarog Shipyard (`estella-via-drydock-station`): scrap pressure alloy
-- New Canaan docks -> Yardstock Terminal (`estella-via-component-supply-station`): regolith shielding blocks
+- New Canaan docks -> Veles Terminal (`estella-via-component-supply-station`): regolith shielding blocks
 - New Canaan docks -> `estella-iii-high-tech-city`: sealed assay cores
 
 ### Reputation hooks later
@@ -550,7 +550,7 @@ Core nodes:
 - Import touchdown: `caravanserai-highliner-bay-poi`
 - Central hub: `estella-viii-harder-approach-station`
 - Hearth sub-hub: `estella-iii-main-customs`
-- Camps sub-hub: Yardstock Terminal (`estella-via-component-supply-station`)
+- Camps sub-hub: Veles Terminal (`estella-via-component-supply-station`)
 - Estella X sub-hub: `estella-xc-transit-refuel`
 - Estella XI sub-hub: `estella-xid-main-port`
 - Estella XII sub-hub: `estella-xii-observation-post`

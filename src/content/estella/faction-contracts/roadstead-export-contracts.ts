@@ -8,7 +8,7 @@ const ROADSTEAD_EXPORT_ID = 'roadstead-export-brokers';
 const ROADSTEAD = 'estella-v-transit-customs';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
 const CARAVANSERAI = 'caravanserai-main-commercial-dock';
 const SERRAT_DOMAIN_SHIPYARD = 'estella-xie-outer-spec-drydock';
@@ -62,13 +62,13 @@ const NAME_POOL = [
 ];
 
 const LOTS: ExportLot[] = [
-  { label: 'Hartwell clean-metal lots', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK, SERRAT_DOMAIN_SHIPYARD] },
+  { label: 'Hartwell clean-metal lots', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, VELES_TERMINAL, SERRAT_DOMAIN_SHIPYARD] },
   { label: 'brokered Pike nickel-iron ingots', massClass: 'dense', buyers: [HAMMER, SVAROG_SHIPYARD, KEELWRIGHT_WORKS] },
-  { label: 'Cinderhook pressure-alloy billets', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, YARDSTOCK, KEELWRIGHT_WORKS, BANNER_FORGE], certified: true },
-  { label: 'certified low-carbon plate stock', massClass: 'heavy', buyers: [SVAROG_SHIPYARD, YARDSTOCK, SERRAT_DOMAIN_SHIPYARD, KEELWRIGHT_WORKS], certified: true },
+  { label: 'Cinderhook pressure-alloy billets', massClass: 'heavy', buyers: [HAMMER, SVAROG_SHIPYARD, VELES_TERMINAL, KEELWRIGHT_WORKS, BANNER_FORGE], certified: true },
+  { label: 'certified low-carbon plate stock', massClass: 'heavy', buyers: [SVAROG_SHIPYARD, VELES_TERMINAL, SERRAT_DOMAIN_SHIPYARD, KEELWRIGHT_WORKS], certified: true },
   { label: 'instrument-grade Hartwell alloy blanks', massClass: 'standard', buyers: [TESSERA_FACTORY, BANNER_FORGE], certified: true },
   { label: 'reduced-metal billet lots', massClass: 'heavy', buyers: [HAMMER, CARAVANSERAI] },
-  { label: 'Pike sulfide concentrate', massClass: 'dense', buyers: [HAMMER, YARDSTOCK] },
+  { label: 'Pike sulfide concentrate', massClass: 'dense', buyers: [HAMMER, VELES_TERMINAL] },
   { label: 'certified Pike ballast slabs', massClass: 'dense', buyers: [SVAROG_SHIPYARD, SERRAT_DOMAIN_SHIPYARD], certified: true },
 ];
 

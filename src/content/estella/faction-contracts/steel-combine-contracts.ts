@@ -38,7 +38,7 @@ const STRIBOG = 'estella-vi-spaceport'; // VI.5
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
 const CARAVANSERAI = 'caravanserai-main-commercial-dock';
 const SVAROG_YARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 const SERAI_OUTFITTER = 'caravanserai-outfitter-drydock';
 const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
 const SERRAT_DOMAIN_SHIPYARD = 'estella-xie-outer-spec-drydock';
@@ -173,7 +173,7 @@ const EXPORT_SVAROG: CargoOption[] = [
   { label: 'pressure-shell blanks', massClass: 'dense' },
   { label: 'frame members', massClass: 'heavy' },
 ];
-const EXPORT_YARDSTOCK: CargoOption[] = [
+const EXPORT_VELES_TERMINAL: CargoOption[] = [
   { label: 'certified steel stock', massClass: 'heavy' },
   { label: 'structural billets', massClass: 'dense' },
   { label: 'fastener stock', massClass: 'standard' },
@@ -221,7 +221,7 @@ const LANES: SteelLane[] = [
 
   // Exports (sparse, lucrative: compensation + flat bounty): Hammer -> external buyers.
   { laneId: 'export-svarog', kind: 'export', sourceIds: [HAMMER], destinationIds: [SVAROG_YARD], cargo: EXPORT_SVAROG, likelihood: 0.35, sampleCount: 1 },
-  { laneId: 'export-yardstock', kind: 'export', sourceIds: [HAMMER], destinationIds: [YARDSTOCK], cargo: EXPORT_YARDSTOCK, likelihood: 0.3, sampleCount: 1 },
+  { laneId: 'export-yardstock', kind: 'export', sourceIds: [HAMMER], destinationIds: [VELES_TERMINAL], cargo: EXPORT_VELES_TERMINAL, likelihood: 0.3, sampleCount: 1 },
   { laneId: 'export-serai', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERAI_OUTFITTER], cargo: EXPORT_SERAI, likelihood: 0.25, sampleCount: 1 },
   { laneId: 'export-tessera', kind: 'export', sourceIds: [HAMMER], destinationIds: [TESSERA_FACTORY], cargo: EXPORT_TESSERA, likelihood: 0.25, sampleCount: 1 },
   { laneId: 'export-oathmark', kind: 'export', sourceIds: [HAMMER], destinationIds: [SERRAT_DOMAIN_SHIPYARD, KEELWRIGHT_WORKS, BANNER_FORGE], cargo: EXPORT_OATHMARK, likelihood: 0.22, sampleCount: 1 },

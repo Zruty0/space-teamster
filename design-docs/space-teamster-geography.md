@@ -232,7 +232,7 @@ Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 | ID | Type | Description |
 |---|---|---|
 | Estella VIa.1 | Svarog Shipyard | Estella's largest conventional shipyard and drydock complex |
-| Estella VIa.2 | Yardstock Terminal | Controlled logistics and materials hub for certified shipyard stock, feedstock, parts, and yard-chain routing |
+| Estella VIa.2 | Veles Terminal | Controlled logistics and materials hub for certified shipyard stock, feedstock, parts, and yard-chain routing |
 | Estella VIa.3 | Anchorhold | Surface ballast/anchor, buried power, radiators, mooring fields, worker shelters, and alignment infrastructure |
 | Estella VIa.4 | Black Vein Mine | High-spec rare alloy and refractory dopant extraction |
 

@@ -9,7 +9,7 @@ const CINDERHOOK = 'estella-v-atmo-refinery';
 const ROADSTEAD = 'estella-v-transit-customs';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 const TESSERA_FACTORY = 'estella-vii-high-vacuum-factory';
 
 const ROSTER_SIZE = 16;
@@ -61,12 +61,12 @@ const NAME_POOL = [
 ];
 
 const LOTS: RefinedLot[] = [
-  { label: 'certified clean-metal lots', massClass: 'heavy', buyers: [ROADSTEAD, HAMMER, YARDSTOCK] },
+  { label: 'certified clean-metal lots', massClass: 'heavy', buyers: [ROADSTEAD, HAMMER, VELES_TERMINAL] },
   { label: 'pressure-alloy billets', massClass: 'heavy', buyers: [ROADSTEAD, HAMMER, SVAROG_SHIPYARD], certified: true },
   { label: 'reduced-metal ingots', massClass: 'dense', buyers: [ROADSTEAD, HAMMER] },
-  { label: 'low-carbon plate feedstock', massClass: 'heavy', buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'certified weld stock', massClass: 'standard', buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK], certified: true },
-  { label: 'instrument-grade alloy blanks', massClass: 'standard', buyers: [ROADSTEAD, TESSERA_FACTORY, YARDSTOCK], certified: true },
+  { label: 'low-carbon plate feedstock', massClass: 'heavy', buyers: [ROADSTEAD, SVAROG_SHIPYARD, VELES_TERMINAL], certified: true },
+  { label: 'certified weld stock', massClass: 'standard', buyers: [ROADSTEAD, SVAROG_SHIPYARD, VELES_TERMINAL], certified: true },
+  { label: 'instrument-grade alloy blanks', massClass: 'standard', buyers: [ROADSTEAD, TESSERA_FACTORY, VELES_TERMINAL], certified: true },
   { label: 'sulfide byproduct drums', massClass: 'standard', buyers: [ROADSTEAD, HAMMER] },
   { label: 'ceramic flux precursors', massClass: 'standard', buyers: [ROADSTEAD, TESSERA_FACTORY] },
   { label: 'clean ballast slabs', massClass: 'dense', buyers: [ROADSTEAD, SVAROG_SHIPYARD], certified: true },

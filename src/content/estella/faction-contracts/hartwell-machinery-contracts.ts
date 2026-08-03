@@ -8,7 +8,7 @@ const HARTWELL_MACHINERY_ID = 'hartwell-machinery-brokers';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const ANVIL = 'estella-vi-main-transit-dispatch';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 
 const ROADSTEAD = 'estella-v-transit-customs';
 const CONCORD = 'estella-v-capital-settlement';
@@ -126,7 +126,7 @@ const LIGHT_EQUIPMENT: CargoOption[] = [
 const LANES: Lane[] = [
   { sourceId: HAMMER, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_HEAVY_MACHINERY_DESTINATIONS], cargo: HEAVY_EQUIPMENT, likelihood: 0.55 },
   { sourceId: ANVIL, destinationIds: [ROADSTEAD, CONCORD, CINDERHOOK, GALE_SURVEY, PIKE_MINER_HAB, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: LIGHT_EQUIPMENT, likelihood: 0.55 },
-  { sourceId: YARDSTOCK, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.45 },
+  { sourceId: VELES_TERMINAL, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.45 },
   { sourceId: SVAROG_SHIPYARD, destinationIds: [CINDERHOOK, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ROADSTEAD, ...WELLS_HEAVY_MACHINERY_DESTINATIONS, 'estella-xie-rare-alloy-extraction'], cargo: HEAVY_EQUIPMENT, likelihood: 0.42 },
   { sourceId: ROADSTEAD, destinationIds: [CONCORD, CINDERHOOK, DAWES_CUT, GALE_SURVEY, PIKE_STRIP_MINE, PIKE_MINER_HAB, PIKE_ORBITAL_DEPOT, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: [...HEAVY_EQUIPMENT, ...LIGHT_EQUIPMENT], likelihood: 0.5 },
 ];

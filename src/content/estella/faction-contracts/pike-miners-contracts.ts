@@ -12,7 +12,7 @@ const CINDERHOOK = 'estella-v-atmo-refinery';
 const ROADSTEAD = 'estella-v-transit-customs';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const SVAROG_SHIPYARD = 'estella-via-drydock-station';
-const YARDSTOCK = 'estella-via-component-supply-station';
+const VELES_TERMINAL = 'estella-via-component-supply-station';
 
 const ROSTER_SIZE = 20;
 
@@ -88,7 +88,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'bagged sulfide concentrate lots',
     exportLot: 'Pike sulfide concentrate',
     massClass: 'dense',
-    buyers: [ROADSTEAD, HAMMER, YARDSTOCK],
+    buyers: [ROADSTEAD, HAMMER, VELES_TERMINAL],
   },
   {
     surfaceLot: 'reduced metal-bearing regolith',
@@ -104,7 +104,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'bagged silicate feedstock',
     exportLot: 'magnesium-aluminum silicate lots',
     massClass: 'heavy',
-    buyers: [ROADSTEAD, HAMMER, YARDSTOCK],
+    buyers: [ROADSTEAD, HAMMER, VELES_TERMINAL],
   },
   {
     surfaceLot: 'low-carbon pressure-metal ore',
@@ -112,7 +112,7 @@ const CARGOES: CargoDef[] = [
     depotLot: 'pressure-metal export lots',
     exportLot: 'clean pressure-metal billets',
     massClass: 'heavy',
-    buyers: [ROADSTEAD, SVAROG_SHIPYARD, YARDSTOCK],
+    buyers: [ROADSTEAD, SVAROG_SHIPYARD, VELES_TERMINAL],
   },
   {
     surfaceLot: 'shipyard ballast stone',
@@ -193,7 +193,7 @@ function generatePikeMinerContracts(ctx: FactionContractContext): FactionContrac
       if (src === PIKE_ORBITAL_DEPOT) {
         for (const buyer of cargo.buyers) {
           const roadstead = buyer === ROADSTEAD;
-          const shipyard = buyer === SVAROG_SHIPYARD || buyer === YARDSTOCK;
+          const shipyard = buyer === SVAROG_SHIPYARD || buyer === VELES_TERMINAL;
           const pay = roadstead ? ROADSTEAD_STAGING_PAY : shipyard ? SHIPYARD_PAY : EXPORT_PAY;
           out.push(candidate(co, `${co.slug}:export:${slug(cargo.exportLot)}:${buyer}`, src, buyer, makeCargo(cargo.exportLot, cargo.massClass, `${co.slug}:export:${buyer}`), roadstead ? 0.65 : shipyard ? 0.42 : 0.55, pay));
         }

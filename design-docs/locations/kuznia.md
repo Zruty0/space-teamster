@@ -61,7 +61,7 @@ Both of Kuznia's moons carry Slavic names — christened in the Udarnik renaming
 
 ### Svarog
 
-The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a yard. It is run by a **single operator** who owns the yard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Yardstock Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
+The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a yard. It is run by a **single operator** who owns the yard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Veles Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
 
 > **Writer's note:** Svarog's operator, its history, and its precise relationship to the commune below are left to expand later. The load-bearing facts: single landlord, many tenant manufacturers, not communist.
 
