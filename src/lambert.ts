@@ -38,12 +38,14 @@ export function lambertVelocity(
   r2: { x: number; y: number },
   tof: number,
   gm: number,
+  transferSense: 1 | -1 = 1,
 ): { v1x: number; v1y: number; v2x: number; v2y: number } | null {
   const r1m = Math.hypot(r1.x, r1.y);
   const r2m = Math.hypot(r2.x, r2.y);
   const cosDt = Math.max(-1, Math.min(1, (r1.x * r2.x + r1.y * r2.y) / Math.max(1, r1m * r2m)));
-  let sinDt = (r1.x * r2.y - r1.y * r2.x) / Math.max(1, r1m * r2m);
-  if (sinDt < 0) sinDt = -sinDt;
+  const geometricSinDt = (r1.x * r2.y - r1.y * r2.x) / Math.max(1, r1m * r2m);
+  const geometricSense: 1 | -1 = geometricSinDt < 0 ? -1 : 1;
+  const sinDt = Math.abs(geometricSinDt) * (geometricSense === transferSense ? 1 : -1);
   if (Math.abs(sinDt) < 1e-5 || Math.abs(1 - cosDt) < 1e-8) return null;
   const A = sinDt * Math.sqrt((r1m * r2m) / (1 - cosDt));
   if (!Number.isFinite(A) || Math.abs(A) < 1e-6) return null;
@@ -112,10 +114,11 @@ export function dynamicLambertDepartureVInf(
   transferTime: number,
 ): { angle: number; vInf: number } | null {
   const parent = bodyById(parentBodyId);
+  const sourceBody = bodyById(sourceBodyId);
   const source = circularBodyStateInFrame(sourceBodyId, parentBodyId, departureTime);
   const destination = circularBodyStateInFrame(destinationBodyId, parentBodyId, departureTime + transferTime);
   if (!source || !destination) return null;
-  const lambert = lambertVelocity(source, destination, transferTime, parent.gm);
+  const lambert = lambertVelocity(source, destination, transferTime, parent.gm, sourceBody.orbit?.orbitSense ?? -1);
   if (!lambert) return null;
   const vx = lambert.v1x - source.vx;
   const vy = lambert.v1y - source.vy;

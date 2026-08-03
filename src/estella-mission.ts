@@ -152,7 +152,7 @@ function transferEstimate(source: BodyDef, destination: BodyDef, parent: BodyDef
   const s0 = circularBodyStateInFrame(source.id, parent.id, departureTime);
   const d1 = circularBodyStateInFrame(destination.id, parent.id, departureTime + tof);
   if (!s0 || !d1) return null;
-  const lambert = lambertVelocity(s0, d1, tof, parent.gm);
+  const lambert = lambertVelocity(s0, d1, tof, parent.gm, source.orbit?.orbitSense ?? -1);
   if (!lambert) return null;
   const depVx = lambert.v1x - s0.vx;
   const depVy = lambert.v1y - s0.vy;
