@@ -558,7 +558,7 @@ export function generatedEstellaDepartureTarget(destinationId: string, sourceId?
     return {
       thresholdApoapsisAltitude: apoapsisThresholdForTarget(bodyId, targetOrbitAltitude),
       targetOrbitAltitude,
-      orbitDir: -1,
+      orbitDir: 1,
     };
   }
 
@@ -626,7 +626,7 @@ function buildRouteObjective(opts: {
       } else if (centralBodyIdForPoi(opts.destinationId) === childId && bodyById(childId).orbit?.parentBodyId === opts.currentBodyId) {
         const childBody = bodyById(childId);
         level.transferArrivalOrbitSense = childBody.orbit?.orbitSense;
-        level.nextObjectiveDetail = `Intercept ${level.nextObjectiveName}; moon orbit is ${senseLabel(childBody.orbit?.orbitSense ?? 1)}, then continue to the destination.`;
+        level.nextObjectiveDetail = `Intercept ${level.nextObjectiveName}; moon orbit is ${senseLabel(childBody.orbit?.orbitSense ?? -1)}, then continue to the destination.`;
       }
       return level;
     }

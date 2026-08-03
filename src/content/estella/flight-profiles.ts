@@ -87,7 +87,7 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
     exitAltitude: 8_000,
     thresholdApoapsisAltitude: 85_000,
     targetOrbitAltitude: 100_000,
-    orbitDir: -1,
+    orbitDir: 1,
     fuelSeconds: 180,
   },
   departurePar: {
@@ -197,7 +197,7 @@ const ESTELLA_II_OLYMPOS_PROFILE: EstellaSurfaceFlightProfile = {
     exitAltitude: 75_000,
     thresholdApoapsisAltitude: 140_000,
     targetOrbitAltitude: 160_000,
-    orbitDir: -1,
+    orbitDir: 1,
     fuelSeconds: 150,
   },
   departurePar: {

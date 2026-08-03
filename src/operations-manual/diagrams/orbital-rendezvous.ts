@@ -85,7 +85,7 @@ function drawOrbitalRendezvousDiagram(
     cy - Math.sin(angle) * radius,
   ];
 
-  const orbit = (cx: number, cy: number, radius: number, color: string, dashed = false, arrowAngle = 2.35): void => {
+  const orbit = (cx: number, cy: number, radius: number, color: string, dashed = false, arrowAngle = -2.35): void => {
     ctx.strokeStyle = color;
     ctx.setLineDash(dashed ? [5, 5] : []);
     ctx.beginPath();
@@ -93,8 +93,8 @@ function drawOrbitalRendezvousDiagram(
     ctx.stroke();
     ctx.setLineDash([]);
     const [ax, ay] = orbitalPoint(cx, cy, radius, arrowAngle);
-    const tx = -Math.sin(arrowAngle);
-    const ty = -Math.cos(arrowAngle);
+    const tx = Math.sin(arrowAngle);
+    const ty = Math.cos(arrowAngle);
     drawDiagramArrow(ctx, ax - tx * 7, ay - ty * 7, ax + tx * 7, ay + ty * 7, 'rgba(180, 220, 235, 0.42)');
   };
 
@@ -113,7 +113,7 @@ function drawOrbitalRendezvousDiagram(
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(-startAngle);
-    drawDiagramArrow(ctx, 8, -ry, -8, -ry, 'rgba(255, 200, 90, 0.5)');
+    drawDiagramArrow(ctx, -8, -ry, 8, -ry, 'rgba(255, 200, 90, 0.5)');
     ctx.restore();
   };
 
@@ -134,7 +134,7 @@ function drawOrbitalRendezvousDiagram(
     const size = 8;
     ctx.save();
     ctx.translate(px, py);
-    ctx.rotate(-orbitAngle);
+    ctx.rotate(Math.PI - orbitAngle);
     ctx.fillStyle = '#102010';
     ctx.fillRect(-size * 0.28, size * 0.12, size * 0.56, size * 0.74);
     ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
@@ -176,8 +176,8 @@ function drawOrbitalRendezvousDiagram(
     const cy = diagramY + 137;
     const rigOrbitR = 62;
     const targetOrbitR = 86;
-    const rigAngle = 2.4;
-    const targetAngle = 0.58;
+    const rigAngle = -2.4;
+    const targetAngle = -0.58;
     const [rigX, rigY] = orbitalPoint(cx, cy, rigOrbitR, rigAngle);
     const [targetX, targetY] = orbitalPoint(cx, cy, targetOrbitR, targetAngle);
     ctx.fillStyle = 'rgba(0, 120, 120, 0.035)';
@@ -191,8 +191,8 @@ function drawOrbitalRendezvousDiagram(
     ctx.fillStyle = COL_TITLE;
     ctx.fillText('READING THE CLOSEST-PASS DISPLAY', cx, diagramY + 22);
 
-    orbit(cx, cy, targetOrbitR, 'rgba(80, 140, 255, 0.55)', false, 3.1);
-    orbit(cx, cy, rigOrbitR, 'rgba(0, 255, 100, 0.58)', true, 4.2);
+    orbit(cx, cy, targetOrbitR, 'rgba(80, 140, 255, 0.55)', false, -3.1);
+    orbit(cx, cy, rigOrbitR, 'rgba(0, 255, 100, 0.58)', true, -4.2);
     planet(cx, cy);
 
     ctx.strokeStyle = '#ffaa00';
@@ -243,17 +243,17 @@ function drawOrbitalRendezvousDiagram(
   ctx.save();
   ctx.lineWidth = 1.25;
 
-  const insideStationAngle = -0.35;
-  const insideRigAngle = -1.35;
+  const insideStationAngle = 0.35;
+  const insideRigAngle = 1.35;
   const progradeFarRadius = outerR + 18;
   const progradeP = 2 * innerR * progradeFarRadius / (innerR + progradeFarRadius);
   const progradeE = (progradeFarRadius - innerR) / (progradeFarRadius + innerR);
   const progradeDelta = Math.acos(Math.max(-1, Math.min(1, (progradeP / outerR - 1) / progradeE)));
-  const progradeMeetAngle = insideRigAngle + progradeDelta;
+  const progradeMeetAngle = insideRigAngle - progradeDelta;
 
   const inside = panel(0, '1. RIG INSIDE — CATCHING UP', 'TIME TO MAKE A PROGRADE BURN');
-  orbit(inside.cx, inside.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
-  orbit(inside.cx, inside.cy, innerR, 'rgba(0, 255, 100, 0.58)', true, 2.4);
+  orbit(inside.cx, inside.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, -0.7);
+  orbit(inside.cx, inside.cy, innerR, 'rgba(0, 255, 100, 0.58)', true, -2.4);
   planet(inside.cx, inside.cy);
   const insideStation = orbitalPoint(inside.cx, inside.cy, outerR, insideStationAngle);
   const insideRig = orbitalPoint(inside.cx, inside.cy, innerR, insideRigAngle);
@@ -264,8 +264,8 @@ function drawOrbitalRendezvousDiagram(
   ctx.fillText('LOWER ORBIT = FASTER', inside.cx, inside.y + 252);
 
   const prograde = panel(1, '2. AFTER THE PROGRADE BURN', 'SAME POSITIONS — RENDEZVOUS POINT AHEAD');
-  orbit(prograde.cx, prograde.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
-  orbit(prograde.cx, prograde.cy, innerR, 'rgba(0, 255, 100, 0.34)', true, 2.4);
+  orbit(prograde.cx, prograde.cy, outerR, 'rgba(80, 140, 255, 0.55)', false, -0.7);
+  orbit(prograde.cx, prograde.cy, innerR, 'rgba(0, 255, 100, 0.34)', true, -2.4);
   transferOrbit(prograde.cx, prograde.cy, innerR, progradeFarRadius, insideRigAngle);
   planet(prograde.cx, prograde.cy);
   const progradeStation = orbitalPoint(prograde.cx, prograde.cy, outerR, insideStationAngle);
@@ -281,17 +281,17 @@ function drawOrbitalRendezvousDiagram(
   ctx.font = '10px monospace';
   ctx.fillText('TRANSFER CROSSES TARGET ORBIT BEFORE APOAPSIS', prograde.cx, prograde.y + 252);
 
-  const outsideRigAngle = -0.35;
-  const outsideStationAngle = -1.35;
+  const outsideRigAngle = 0.35;
+  const outsideStationAngle = 1.35;
   const retrogradeFarRadius = innerR - 14;
   const retrogradeP = 2 * outerR * retrogradeFarRadius / (outerR + retrogradeFarRadius);
   const retrogradeE = (outerR - retrogradeFarRadius) / (outerR + retrogradeFarRadius);
   const retrogradeDelta = Math.acos(Math.max(-1, Math.min(1, (1 - retrogradeP / innerR) / retrogradeE)));
-  const retrogradeMeetAngle = outsideRigAngle + retrogradeDelta;
+  const retrogradeMeetAngle = outsideRigAngle - retrogradeDelta;
 
   const outside = panel(2, '3. RIG OUTSIDE — TARGET CATCHING UP', 'TIME TO MAKE A RETROGRADE BURN');
-  orbit(outside.cx, outside.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
-  orbit(outside.cx, outside.cy, outerR, 'rgba(0, 255, 100, 0.58)', true, 2.4);
+  orbit(outside.cx, outside.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, -0.7);
+  orbit(outside.cx, outside.cy, outerR, 'rgba(0, 255, 100, 0.58)', true, -2.4);
   planet(outside.cx, outside.cy);
   const outsideRig = orbitalPoint(outside.cx, outside.cy, outerR, outsideRigAngle);
   const outsideStation = orbitalPoint(outside.cx, outside.cy, innerR, outsideStationAngle);
@@ -302,8 +302,8 @@ function drawOrbitalRendezvousDiagram(
   ctx.fillText('HIGHER ORBIT = SLOWER', outside.cx, outside.y + 252);
 
   const retrograde = panel(3, '4. AFTER THE RETROGRADE BURN', 'SAME POSITIONS — RENDEZVOUS POINT AHEAD');
-  orbit(retrograde.cx, retrograde.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, 0.7);
-  orbit(retrograde.cx, retrograde.cy, outerR, 'rgba(0, 255, 100, 0.34)', true, 2.4);
+  orbit(retrograde.cx, retrograde.cy, innerR, 'rgba(80, 140, 255, 0.55)', false, -0.7);
+  orbit(retrograde.cx, retrograde.cy, outerR, 'rgba(0, 255, 100, 0.34)', true, -2.4);
   transferOrbit(retrograde.cx, retrograde.cy, outerR, retrogradeFarRadius, outsideRigAngle);
   planet(retrograde.cx, retrograde.cy);
   const retrogradeRig = orbitalPoint(retrograde.cx, retrograde.cy, outerR, outsideRigAngle);

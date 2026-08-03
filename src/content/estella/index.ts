@@ -26,6 +26,14 @@ function applyDetailOverlays(node: WorldNode): WorldNode {
   };
 }
 
+function validateClockwiseOrbits(nodes: readonly WorldNode[]): WorldValidationIssue[] {
+  return nodes.flatMap(node => {
+    const placement = node.placement;
+    if (placement?.kind !== 'orbit' || !placement.orbit || placement.orbit.orbitSense === -1) return [];
+    return [{ severity: 'error' as const, message: `Estella orbit must be clockwise: ${node.id}`, nodeId: node.id }];
+  });
+}
+
 function validateDetailIds(nodes: readonly WorldNode[]): WorldValidationIssue[] {
   const issues: WorldValidationIssue[] = [];
   const ids = new Set(nodes.map(node => node.id));
@@ -50,6 +58,7 @@ export const ESTELLA_NODES: WorldNode[] = ESTELLA_NODE_BLUEPRINTS.map(applyDetai
 export const ESTELLA_VALIDATION_ISSUES: WorldValidationIssue[] = [
   ...validateWorldTree(ESTELLA_NODES),
   ...validateDetailIds(ESTELLA_NODES),
+  ...validateClockwiseOrbits(ESTELLA_NODES),
 ];
 
 export const ESTELLA_NODES_BY_ID = new Map(ESTELLA_NODES.map(node => [node.id, node]));
