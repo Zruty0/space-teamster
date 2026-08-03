@@ -58,7 +58,7 @@ export const AIRLESS_APPROACH_ARTICLE: OperationsManualArticle = {
   ],
   tips: {
     items: [
-      'Steeper approaches are easier to aim and spend less time skimming terrain, but they demand decisive braking before arrival.',
+      'During deorbit, favor a steeper approach. It costs about the same energy as a shallow descent, but gets you to the surface faster.',
     ],
   },
   hud: [
