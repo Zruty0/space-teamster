@@ -49,7 +49,7 @@ The heart of it all is **the Gornilo** (Estella VI.4) — *Gornilo Crucible*, th
 
 - **Perun City** (VI.3) — the machine city; finished goods and heavy machinery.
 - **Mokosh Lowlands** (VI.6) — agricultural lowlands, bulk food for the commune's tables.
-- **Veles Mine** (VI.8) — mountain mining, specialty ore, a hard high-altitude pad.
+- **Kopanka Mine** (VI.8) — mountain mining, specialty ore, a hard high-altitude pad.
 - **Morana Station** (VI.7) — polar weather research; named, aptly, for a goddess of winter and death.
 - **Port Stribog** (VI.5) — the weather-gated spaceport; passengers and bulk-food dispatch when Stribog's winds allow.
 

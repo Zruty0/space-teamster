@@ -224,7 +224,7 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 | Estella VI.5 | Port Stribog | Spaceport (passengers + bulk food dispatch; weather-gated) |
 | Estella VI.6 | Mokosh Lowlands | Agricultural lowlands (bulk food) |
 | Estella VI.7 | Morana Station | Polar weather research |
-| Estella VI.8 | Veles Mine | Mountain mining (specialty ore, hard pad, altitude) |
+| Estella VI.8 | Kopanka Mine | Mountain mining (specialty ore, hard pad, altitude) |
 
 ### Svarog
 Small airless shipyard moon of Kuznia, named for the Slavic forge god.

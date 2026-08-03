@@ -30,7 +30,7 @@ const ANVIL = 'estella-vi-main-transit-dispatch'; // VI.1 low-orbit dispatch/cus
 const GORNILO = 'estella-vi-foundry-complex'; // VI.4 Gornilo Crucible
 const PERUN = 'estella-vi-industrial-city'; // VI.3
 const MOKOSH = 'estella-vi-agricultural-lowlands'; // VI.6
-const VELES = 'estella-vi-mountain-mining'; // VI.8
+const KOPANKA = 'estella-vi-mountain-mining'; // VI.8
 const MORANA = 'estella-vi-polar-weather-research'; // VI.7
 const STRIBOG = 'estella-vi-spaceport'; // VI.5
 
@@ -81,7 +81,7 @@ const PERUN_INTAKE: CargoOption[] = [
   { label: 'casting blanks', massClass: 'dense' },
   { label: 'machine-tool stock', massClass: 'standard' },
 ];
-const VELES_INTAKE: CargoOption[] = [
+const KOPANKA_INTAKE: CargoOption[] = [
   { label: 'mining supplies', massClass: 'standard' },
   { label: 'drill stock', massClass: 'standard' },
   { label: 'blasting charges', massClass: 'light' },
@@ -106,7 +106,7 @@ const PERUN_OUTPUT: CargoOption[] = [
   { label: 'prefabricated structural modules', massClass: 'dense' },
   { label: 'heavy vehicle chassis', massClass: 'heavy' },
 ];
-const VELES_OUTPUT: CargoOption[] = [
+const KOPANKA_OUTPUT: CargoOption[] = [
   { label: 'specialty ore', massClass: 'dense' },
   { label: 'rare-earth concentrate', massClass: 'dense' },
   { label: 'refractory ore', massClass: 'dense' },
@@ -203,14 +203,14 @@ const LANES: SteelLane[] = [
   // Internal distribution: Hammer (bulk) <-> surface.
   { laneId: 'hammer-to-gornilo', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [GORNILO], cargo: GORNILO_INTAKE, likelihood: 1.1, sampleCount: 2 },
   { laneId: 'hammer-to-perun', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [PERUN], cargo: PERUN_INTAKE, likelihood: 0.9, sampleCount: 2 },
-  { laneId: 'hammer-to-veles', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [VELES], cargo: VELES_INTAKE, likelihood: 0.6, sampleCount: 1 },
+  { laneId: 'hammer-to-veles', kind: 'distribution', sourceIds: [HAMMER], destinationIds: [KOPANKA], cargo: KOPANKA_INTAKE, likelihood: 0.6, sampleCount: 1 },
   { laneId: 'gornilo-to-hammer', kind: 'distribution', sourceIds: [GORNILO], destinationIds: [HAMMER], cargo: GORNILO_OUTPUT, likelihood: 1.1, sampleCount: 2 },
   { laneId: 'perun-to-hammer', kind: 'distribution', sourceIds: [PERUN], destinationIds: [HAMMER], cargo: PERUN_OUTPUT, likelihood: 0.9, sampleCount: 2 },
-  { laneId: 'veles-to-hammer', kind: 'distribution', sourceIds: [VELES], destinationIds: [HAMMER], cargo: VELES_OUTPUT, likelihood: 0.7, sampleCount: 1 },
+  { laneId: 'veles-to-hammer', kind: 'distribution', sourceIds: [KOPANKA], destinationIds: [HAMMER], cargo: KOPANKA_OUTPUT, likelihood: 0.7, sampleCount: 1 },
 
   // Internal distribution: Anvil (light/passengers/paperwork) <-> surface.
-  { laneId: 'anvil-to-surface', kind: 'distribution', sourceIds: [ANVIL], destinationIds: [GORNILO, PERUN, VELES, STRIBOG], cargo: ANVIL_DOWN, likelihood: 0.85, sampleCount: 1 },
-  { laneId: 'surface-to-anvil', kind: 'distribution', sourceIds: [GORNILO, PERUN, VELES], destinationIds: [ANVIL], cargo: SURFACE_UP_LIGHT, likelihood: 0.75, sampleCount: 1 },
+  { laneId: 'anvil-to-surface', kind: 'distribution', sourceIds: [ANVIL], destinationIds: [GORNILO, PERUN, KOPANKA, STRIBOG], cargo: ANVIL_DOWN, likelihood: 0.85, sampleCount: 1 },
+  { laneId: 'surface-to-anvil', kind: 'distribution', sourceIds: [GORNILO, PERUN, KOPANKA], destinationIds: [ANVIL], cargo: SURFACE_UP_LIGHT, likelihood: 0.75, sampleCount: 1 },
   { laneId: 'mokosh-to-anvil', kind: 'distribution', sourceIds: [MOKOSH], destinationIds: [ANVIL], cargo: FOOD, likelihood: 0.8, sampleCount: 1 },
   { laneId: 'morana-to-anvil', kind: 'distribution', sourceIds: [MORANA], destinationIds: [ANVIL], cargo: WEATHER, likelihood: 0.5, sampleCount: 1 },
 
