@@ -185,7 +185,7 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 
 ## Passenger board: Hartwell Labor Exchange
 
-- ID: `hartwell-labor-exchange`, tag `HLE`.
+- ID: `hartwell-labor-exchange`. No market tag — this is an institutional posting network used by several labor, clinic, registry, and charter desks, not one company.
 - Board: passenger contracts only; freight board excludes them.
 - Core nodes: Roadstead Customs and Concord.
 - Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.

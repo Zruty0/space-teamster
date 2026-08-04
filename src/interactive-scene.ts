@@ -17,6 +17,8 @@ export interface InteractiveSceneOption {
   tone?: InteractiveTone;
   tag?: string;
   tagTone?: InteractiveTone;
+  /** Reserve the issuer-tag gutter even when this row has no tag; status appears below the tag. */
+  tagColumn?: boolean;
   rightText?: string;
   rightDetail?: string;
   /** Independent availability marker; does not replace semantic tags or row tone. */
@@ -268,13 +270,14 @@ export function drawInteractiveScene(
     }
 
     const labelX = x + 28;
+    const hasTagColumn = !!option.tag || option.tagColumn === true;
     let textX = labelX;
     if (option.tag) {
       ctx.fillStyle = toneAccent(option.tagTone ?? tone);
       ctx.font = 'bold 12px monospace';
       ctx.fillText(`[${option.tag}]`, textX, y);
-      textX += 82;
     }
+    if (hasTagColumn) textX += 82;
     ctx.fillStyle = toneColor(tone, selected);
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
     const rightTextWidth = option.rightText ? 300 : 190;
@@ -303,15 +306,22 @@ export function drawInteractiveScene(
     if (option.statusText) {
       ctx.fillStyle = COL_WARNING;
       ctx.font = 'bold 11px monospace';
-      ctx.textAlign = 'right';
-      const statusY = option.rightText ? y + (option.rightDetail ? 38 : 19) : y;
-      ctx.fillText(`[${option.statusText}]`, x + boxW - 24, statusY);
-      ctx.textAlign = 'left';
+      if (option.tagColumn) {
+        ctx.textAlign = 'left';
+        ctx.fillText(`[${option.statusText}]`, labelX, y + 19);
+      } else {
+        ctx.textAlign = 'right';
+        const statusY = option.rightText ? y + (option.rightDetail ? 38 : 19) : y;
+        ctx.fillText(`[${option.statusText}]`, x + boxW - 24, statusY);
+        ctx.textAlign = 'left';
+      }
     }
     if (option.detail) {
       ctx.fillStyle = COL_HUD_DIM;
       ctx.font = '12px monospace';
-      const detailWidth = option.rightText ? boxW - 360 : boxW - 66;
+      const detailX = option.tagColumn ? textX : x + 46;
+      const detailIndent = detailX - (x + 46);
+      const detailWidth = (option.rightText ? boxW - 360 : boxW - 66) - detailIndent;
       const maxLines = option.detailLineCount ?? 1;
       const detailY = y + 19 + (option.labelLineCount === 2 ? 18 : 0);
       const wrapped = wrapText(ctx, option.detail, detailWidth);
@@ -320,7 +330,7 @@ export function drawInteractiveScene(
         detailLines[maxLines - 1] = middleEllipsis(ctx, `${detailLines[maxLines - 1]}…`, detailWidth);
       }
       for (let lineIndex = 0; lineIndex < detailLines.length; lineIndex++) {
-        ctx.fillText(detailLines[lineIndex], x + 46, detailY + lineIndex * 15);
+        ctx.fillText(detailLines[lineIndex], detailX, detailY + lineIndex * 15);
       }
     }
   }

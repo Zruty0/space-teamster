@@ -16,7 +16,6 @@ interface PassengerTemplate {
 
 const HARTWELL_LABOR_ID = 'hartwell-labor-exchange';
 const HARTWELL_LABOR_NAME = 'Hartwell Labor Exchange';
-const HARTWELL_LABOR_TAG = 'HLE';
 
 // Low-paying seat blocks: special passenger work breaks even at par, while regular
 // Hartwell crew transfers are slightly negative at par and punish wasteful burns. This makes
@@ -214,7 +213,6 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
       out.push({
         factionId: HARTWELL_LABOR_ID,
         factionName: HARTWELL_LABOR_NAME,
-        factionTag: HARTWELL_LABOR_TAG,
         templateId: template.templateId,
         sourceId: ctx.sourceId,
         destinationId,

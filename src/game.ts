@@ -1677,6 +1677,7 @@ export class Game {
               label: contract.title,
               labelLineCount: 2 as const,
               tag: contract.issuerTag,
+              tagColumn: true,
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
               statusText: missingRequirements.length ? 'LOCKED' : undefined,
