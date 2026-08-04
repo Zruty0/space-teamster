@@ -16,7 +16,7 @@ interface PassengerTemplate {
 
 const HARTWELL_LABOR_ID = 'hartwell-labor-exchange';
 const HARTWELL_LABOR_NAME = 'Hartwell Labor Exchange';
-const HARTWELL_LABOR_TAG = 'PASS';
+const HARTWELL_LABOR_TAG = 'HLE';
 
 // Low-paying seat blocks: special passenger work breaks even at par, while regular
 // Hartwell crew transfers are slightly negative at par and punish wasteful burns. This makes
