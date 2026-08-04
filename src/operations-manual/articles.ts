@@ -295,7 +295,7 @@ export const DOCKING_UNDOCKING_ARTICLE: OperationsManualArticle = {
     'Continue away from the station until STN exceeds the displayed clearance distance.',
     'When docking, approach the assigned bay at low speed and brake before entering tractor range.',
     'Rotate the tug so the container faces the bay opening, then bring DIST and ALIGN within their displayed limits.',
-    'Release the controls and hold alignment while the tractor beam pulls the container into the berth.',
+    'Release the controls. The tractor beam gently centers and finishes aligning the rig as it pulls the container into the berth.',
   ],
   tips: {
     items: [

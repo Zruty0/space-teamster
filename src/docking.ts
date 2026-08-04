@@ -329,6 +329,8 @@ export function updateDocking(
   // Rotation: Q = CCW, E = CW
   s.rotCCW = false; s.rotCW = false;
   let torque = 0;
+  let sasAngularTorque = 0;
+  let sasAngularSnap = false;
   s.sasUp = false; s.sasDown = false; s.sasLeft = false; s.sasRight = false;
   s.sasCW = false; s.sasCCW = false;
 
@@ -336,15 +338,15 @@ export function updateDocking(
   if (input.wingAngleUp) { torque -= level.rotTorque; s.rotCW = true; }     // E = CW on screen
   if (s.sas && !input.wingAngleDown && !input.wingAngleUp) {
     if (Math.abs(s.angVel) > 0.05) {
-      torque -= s.angVel * level.rotTorque * 5;
+      sasAngularTorque = -s.angVel * level.rotTorque * 5;
+      torque += sasAngularTorque;
       if (s.angVel > 0.01) s.sasCW = true;
       if (s.angVel < -0.01) s.sasCCW = true;
     } else {
-      s.angVel = 0; // snap to zero when close
+      sasAngularSnap = true;
     }
   }
-  s.angVel += (torque / inertia) * dt;
-  s.angle += s.angVel * dt;
+  // Angular integration happens after tractor-beam correction is added below.
 
   // Translation: WASD = screen directions, decomposed into ship thrusters
   s.thrustUp = false; s.thrustDown = false; s.thrustLeft = false; s.thrustRight = false;
@@ -381,14 +383,16 @@ export function updateDocking(
   let fx = screenFx, fy = screenFy;
 
   // SAS translation damping
+  let sasFx = 0, sasFy = 0;
+  let sasTranslationSnap = false;
   if (s.sas) {
     const anyInput = input.throttleUp || input.throttleDown || input.pitch !== 0;
     if (!anyInput) {
       const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
       if (speed > 0.05) {
         const maxF = level.thrustForce * 2;
-        const sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
-        const sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
+        sasFx = -Math.max(-maxF, Math.min(maxF, s.vx * mass * 2.0));
+        sasFy = -Math.max(-maxF, Math.min(maxF, s.vy * mass * 2.0));
         fx += sasFx;
         fy += sasFy;
         const cosA = Math.cos(s.angle), sinA = Math.sin(s.angle);
@@ -399,14 +403,13 @@ export function updateDocking(
         if (sasLat > 0.01) s.sasUp = true;
         if (sasLat < -0.01) s.sasDown = true;
       } else {
-        s.vx = 0; s.vy = 0; // snap to zero when close
+        sasTranslationSnap = true;
       }
     }
   }
 
-  const thrusterFx = fx;
-  const thrusterFy = fy;
-  s.dvUsed += Math.sqrt(thrusterFx * thrusterFx + thrusterFy * thrusterFy) / mass * dt;
+  let thrusterFx = fx;
+  let thrusterFy = fy;
 
   // Tractor beam: alignment-gated, PID-like pull + rotation (not in exit mode)
   s.beamActive = false;
@@ -429,6 +432,18 @@ export function updateDocking(
           s.beamAligned = true;
           s.beamActive = true;
 
+          // Once captured, the tractor beam owns damping; SAS must not fight or
+          // repeatedly zero the beam's gentle translation and rotation.
+          torque -= sasAngularTorque;
+          sasAngularSnap = false;
+          fx -= sasFx;
+          fy -= sasFy;
+          thrusterFx -= sasFx;
+          thrusterFy -= sasFy;
+          sasTranslationSnap = false;
+          s.sasUp = false; s.sasDown = false; s.sasLeft = false; s.sasRight = false;
+          s.sasCW = false; s.sasCCW = false;
+
           // Rotational correction: critically damped PD
           // For critical damping: D = 2 * sqrt(K * I)
           const rotK = 3.0;
@@ -439,6 +454,7 @@ export function updateDocking(
           if (Math.abs(angleDiff) < 0.01 && Math.abs(s.angVel) < 0.05) {
             s.angle -= angleDiff; // snap to exact target
             s.angVel = 0;
+            torque = 0;
           }
 
           // Translational correction: PD controller toward bay center
@@ -452,6 +468,13 @@ export function updateDocking(
       }
     }
   }
+
+  if (sasAngularSnap) s.angVel = 0;
+  if (sasTranslationSnap) { s.vx = 0; s.vy = 0; }
+  s.dvUsed += Math.sqrt(thrusterFx * thrusterFx + thrusterFy * thrusterFy) / mass * dt;
+
+  s.angVel += (torque / inertia) * dt;
+  s.angle += s.angVel * dt;
 
   s.vx += (fx / mass) * dt;
   s.vy += (fy / mass) * dt;
@@ -1147,7 +1170,7 @@ export function drawDockingHUD(
     panelRows.push({ label: 'DIST', value: `${dist.toFixed(1)} m < ${level.beamRange.toFixed(1)} m`, color: dist < level.beamRange ? COL_SUCCESS : COL_HUD });
     panelRows.push({ label: 'ALIGN', value: `${(Math.abs(angleDiff) * 180 / Math.PI).toFixed(1)}° < 10.3°`, color: Math.abs(angleDiff) < 0.18 ? COL_SUCCESS : COL_WARNING });
     guidance = s.beamActive
-      ? 'Hold alignment and let the tractor beam pull you in.'
+      ? 'Release controls; the tractor beam will center and align the rig.'
       : dist < level.beamRange
         ? 'Align the container to activate the tractor beam.'
         : 'Close on the target bay and align the container.';
