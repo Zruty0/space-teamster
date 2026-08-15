@@ -50,7 +50,7 @@ const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   { templateId: 'component-rotary-kits', sourceIds: ['estella-via-component-supply-station'], destinationIds: ['harlan-dock'], cargoLabel: 'rotary bearing kits', massClass: 'heavy', likelihood: 1.0 },
   { templateId: 'drydock-airlock-actuators', sourceIds: ['estella-via-drydock-station'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'airlock actuator assemblies', massClass: 'heavy', likelihood: 0.8 },
   { templateId: 'agri-ration-packs', sourceIds: ['estella-vi-main-transit-dispatch'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'bulk ration packs', massClass: 'standard', likelihood: 0.75 },
-  { templateId: 'cold-chain-medical', sourceIds: ['estella-vib-cold-chain-station'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'medical cold-chain lockers', massClass: 'light', likelihood: 0.55, requiredCertification: 'fragile-cargo' },
+  { templateId: 'cold-chain-medical', sourceIds: ['estella-vib-cold-chain-station'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'medical cold-chain lockers', massClass: 'light', likelihood: 0.55 },
   { templateId: 'still-pressure-gas', sourceIds: ['still-public-approach-dock'], destinationIds: NEW_CANAAN_DOCKS, cargoLabel: 'certified pressure gas cylinders', massClass: 'standard', likelihood: 0.65, requiredCertification: 'volatile-cargo' },
 
   // Outbound brokerage from the Co-op rocks to buyers with better processors.
@@ -58,7 +58,7 @@ const MINERS_MUTUAL_TEMPLATES: MinersMutualContractTemplate[] = [
   { templateId: 'basalt-to-industrial-city', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-vi-heavy-cargo-station'], cargoLabel: 'basalt fiber feedstock', massClass: 'heavy', likelihood: 0.95, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
   { templateId: 'scrap-to-drydock', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-drydock-station'], cargoLabel: 'scrap pressure alloy', massClass: 'heavy', likelihood: 0.9, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
   { templateId: 'shielding-to-components', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-via-component-supply-station'], cargoLabel: 'regolith shielding blocks', massClass: 'dense', likelihood: 0.7, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
-  { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO, requiredCertification: 'fragile-cargo' },
+  { templateId: 'assay-to-high-tech', sourceIds: NEW_CANAAN_DOCKS, destinationIds: ['estella-iii-high-tech-city'], cargoLabel: 'sealed assay cores', massClass: 'light', likelihood: 0.45, generosity: MINERS_MUTUAL_EXPORT_GENEROSITY, compensationRatio: MINERS_MUTUAL_EXPORT_COMPENSATION_RATIO },
 ];
 
 function cargoForTemplate(template: MinersMutualContractTemplate, sourceId: string, destinationId: string): MissionCargoSpec {

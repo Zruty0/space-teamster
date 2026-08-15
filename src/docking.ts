@@ -88,6 +88,8 @@ export interface DockingState {
   highThrust: boolean;
   exitComplete: boolean;
   leftStartBay: boolean;   // has left the starting bay area (enables collision)
+  collisionImpactSpeed: number;
+  collisionImpactCooldown: number;
   dvUsed: number;
 }
 
@@ -295,6 +297,8 @@ export function createDockingState(level: DockingLevel, override?: DockingInitOv
     highThrust: false,
     exitComplete: false,
     leftStartBay: !level.exitMode, // if not exit mode, collision is always on
+    collisionImpactSpeed: 0,
+    collisionImpactCooldown: 0,
     dvUsed: 0,
   };
 }
@@ -319,6 +323,8 @@ export function updateDocking(
   s: DockingState, input: InputState, level: DockingLevel, dt: number,
 ): void {
   if (!s.alive || s.delivered) return;
+  s.collisionImpactSpeed = 0;
+  s.collisionImpactCooldown = Math.max(0, s.collisionImpactCooldown - dt);
 
   // SAS toggle (T key)
   if (input.toggleSAS) s.sas = !s.sas;
@@ -538,6 +544,10 @@ export function updateDocking(
       if (vNorm < 0) {
         const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
         if (speed > 5) { s.alive = false; return; }
+        if (s.collisionImpactCooldown <= 0) {
+          s.collisionImpactSpeed = -vNorm;
+          s.collisionImpactCooldown = 0.35;
+        }
         // Stop along collision normal (no bounce)
         s.vx -= col.nx * vNorm;
         s.vy -= col.ny * vNorm;

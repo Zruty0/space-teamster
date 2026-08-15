@@ -9,7 +9,7 @@ export interface LocalDirectoryActionDef {
   tag?: string;
   contactId?: string;
   requiresCertification?: TeamsterCertificationId;
-  purchaseCertification?: { certificationId: TeamsterCertificationId; price: number };
+  purchaseCertification?: { certificationId: TeamsterCertificationId; price: number; requiresCertification: TeamsterCertificationId };
   response?: { title: string; dialogue: string[] };
 }
 
@@ -225,9 +225,9 @@ export function localContactPresentation(
 const CERTIFICATION_LICENSE_ACTIONS: LocalDirectoryActionDef[] = PURCHASABLE_TEAMSTER_LICENSES.map(license => ({
   id: `purchase-${license.certificationId}-license`,
   label: license.name,
-  detail: `Pay the ${license.price.toLocaleString('en-US')} cr test fee and add this license to your Guild record.`,
+  detail: `Pay the ${license.price.toLocaleString('en-US')} cr license fee and add this credential to your Guild record.`,
   tag: 'LICENSE',
-  purchaseCertification: { certificationId: license.certificationId, price: license.price },
+  purchaseCertification: { certificationId: license.certificationId, price: license.price, requiresCertification: license.requiresCertification },
 }));
 
 export const TEAMSTERS_GUILD_CERTIFICATION_OFFICE: LocalOfficeDef = {

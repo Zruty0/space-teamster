@@ -14,7 +14,7 @@ import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
-  updateApproachCamera, renderApproach, drawApproachHUD, approachLevelById, applyApproachWeather,
+  updateApproachCamera, renderApproach, drawApproachHUD, approachLevelById, applyApproachWeather, approachInTurbulence,
 } from './approach';
 import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
@@ -41,7 +41,21 @@ import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerC
 import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
 import type { PreparedContractBoards } from './contract-board-worker-types';
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
-import { actualFuelCostForQuote, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, contractFixedPay, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
+import { fragilityDisplay } from './cargo-handling';
+import {
+  applyIntegrityDamage,
+  applyIntegrityExposure,
+  cloneIntegrityState,
+  createIntegrityState,
+  dockingIntegrityDamage,
+  drawIntegrityMeter,
+  integrityConditionSummary,
+  integrityPenalty,
+  landingIntegrityDamage,
+  type IntegrityState,
+  type IntegrityThrustLevel,
+} from './manifest-condition';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
@@ -59,12 +73,17 @@ import {
 const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
 
-type GameplayPhase =
+interface GameplayPhaseConditionBase {
+  manifestIntegrityStart: IntegrityState | null;
+}
+
+type GameplayPhase = (
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number; facingSign?: 1 | -1 }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number; missionDvStart: number }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number }
-  | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number };
+  | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number }
+) & GameplayPhaseConditionBase;
 
 type Phase =
   | { kind: 'startMenu' }
@@ -116,7 +135,7 @@ function contractMarginSummary(quote: MissionCostQuote): string {
 }
 
 function contractFixedReward(quote: MissionCostQuote): number {
-  return Math.round(quote.pay.generosity * quote.parFuelCost + quote.pay.flatReward);
+  return contractFixedPay(quote.pay, quote.parFuelCost);
 }
 
 function contractPublishedPay(quote: MissionCostQuote): string {
@@ -143,7 +162,7 @@ function contractMissingRequirements(contract: CareerContract, career: CareerPro
   const missing: string[] = [];
   const requiresLineAuthority = contract.category !== 'certification'
     && contract.travelMode !== 'old-nell'
-    && (contract.category === 'passenger' || contract.routeClass !== 'local');
+    && (contract.category === 'passenger' || contract.cargo.fragile !== undefined || contract.routeClass !== 'local');
   if (requiresLineAuthority && !hasTeamsterCertification(career, 'line')) missing.push('Teamster rank');
   if (contract.requiredCertification && !hasTeamsterCertification(career, contract.requiredCertification)) {
     missing.push(teamsterCertificationName(contract.requiredCertification));
@@ -187,6 +206,7 @@ export class Game {
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
+  private activeManifestIntegrity: IntegrityState | null = null;
   private shownOperationsManualTutorials = new Set<OperationsManualArticleId>();
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
@@ -246,7 +266,7 @@ export class Game {
     const camera = createCamera();
     updateCamera(camera, ship, landingReferenceHeight(level, terrain, ship.x), 0);
     this.phaseCompletion = null;
-    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
     this.phase = landingPhase;
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
@@ -263,7 +283,7 @@ export class Game {
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
     this.phase = approachPhase;
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
@@ -285,7 +305,7 @@ export class Game {
     const cam = createDockingCamera();
     updateDockingCamera(cam, ds, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
     this.phase = dockingPhase;
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
@@ -299,7 +319,7 @@ export class Game {
     const cam = createClusterCamera(level);
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
     this.phase = clusterPhase;
     this.showGuidance(level.escapeToOrbitalLevelId ? 'LOCAL TRAFFIC: EXIT VOLUME ON ESCAPE VECTOR' : 'LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
@@ -436,7 +456,7 @@ export class Game {
       }
     }
     this.phaseCompletion = null;
-    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed };
+    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
     this.phase = orbitalPhase;
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
@@ -638,6 +658,7 @@ export class Game {
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
+    this.activeManifestIntegrity = null;
     this.shownOperationsManualTutorials.clear();
   }
 
@@ -729,6 +750,7 @@ export class Game {
   private reloadPhase(p: GameplayPhase): void {
     this.phaseCompletion = null;
     this.missionDvUsed = p.missionDvStart;
+    this.activeManifestIntegrity = cloneIntegrityState(p.manifestIntegrityStart);
     if (p.kind === 'landing') this.loadLanding(p.level, p.initOverride, p.launchGuidance, p.worldTimeStart);
     else if (p.kind === 'approach') this.loadApproach(p.level, p.initOverride, p.worldTimeStart);
     else if (p.kind === 'orbital') this.loadOrbital(p.level, p.initOverride, p.worldTimeStart);
@@ -751,7 +773,11 @@ export class Game {
       detailLines.push(`${extra.adjustmentLabel ?? 'Billable correction'}: +${extra.billableDvAdjustment.toFixed(0)} m/s`);
     }
     if (completionText && this.activeMissionQuote) {
-      detailLines.push(formatMissionResultLine(this.activeMissionQuote, missionDvUsed));
+      const handlingPenalty = integrityPenalty(this.activeManifestIntegrity);
+      if (this.activeManifestIntegrity) {
+        detailLines.push(`CARGO CONDITION ${integrityConditionSummary(this.activeManifestIntegrity)}`);
+      }
+      detailLines.push(formatMissionResultLine(this.activeMissionQuote, missionDvUsed, handlingPenalty));
     }
     const detailText = detailLines.join('\n');
     this.guidanceText = '';
@@ -781,7 +807,9 @@ export class Game {
     const contract = this.activeCareerContract;
     const quote = this.activeMissionQuote;
     if (!contract || !quote) return;
-    this.career.money += contractPayoutForQuote(quote, this.missionDvUsed) - actualFuelCostForQuote(quote, this.missionDvUsed);
+    this.career.money += contractPayoutForQuote(quote, this.missionDvUsed)
+      - actualFuelCostForQuote(quote, this.missionDvUsed)
+      - integrityPenalty(this.activeManifestIntegrity);
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
     if (contract.certificationOnSuccess !== undefined) {
@@ -880,11 +908,16 @@ export class Game {
           this.clampLaunchShipToPad(p);
         } else {
           updateShip(p.ship, input, PHYSICS_DT, this.time);
+          const landingThrust: IntegrityThrustLevel = p.ship.thrustFiring
+            ? (input.shiftHeld ? 'high' : 'standard')
+            : 'none';
+          applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, landingThrust);
           this.checkLandingCollision(p);
         }
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {
           const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' } as const;
           const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
+          applyIntegrityDamage(this.activeManifestIntegrity, landingIntegrityDamage(score.rating));
           this.completePhase(
             p,
             this.finishRunTransition().run,
@@ -991,6 +1024,15 @@ export class Game {
       if (p.state === 'docking') {
         updateDocking(p.ds, input, p.level, PHYSICS_DT);
         input.toggleSAS = false;
+        const manualDockingThrust = p.ds.thrustUp || p.ds.thrustDown || p.ds.thrustLeft || p.ds.thrustRight;
+        const assistedDockingThrust = p.ds.sasUp || p.ds.sasDown || p.ds.sasLeft || p.ds.sasRight;
+        const dockingThrust: IntegrityThrustLevel = manualDockingThrust && p.ds.highThrust
+          ? 'high'
+          : manualDockingThrust || assistedDockingThrust
+            ? 'standard'
+            : 'none';
+        applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, dockingThrust);
+        applyIntegrityDamage(this.activeManifestIntegrity, dockingIntegrityDamage(p.ds.collisionImpactSpeed));
         if (!p.ds.alive) p.state = 'crashed';
         if (p.ds.delivered) {
           p.state = 'delivered';
@@ -1062,6 +1104,15 @@ export class Game {
       if (p.state === 'flying') {
         updateCluster(p.cs, input, p.level, PHYSICS_DT);
         input.toggleSAS = false;
+        const manualClusterThrust = p.cs.thrustForward !== 0 || p.cs.thrustBackward !== 0 || p.cs.thrustLeft !== 0 || p.cs.thrustRight !== 0;
+        const assistedClusterThrust = p.cs.sasForward !== 0 || p.cs.sasBackward !== 0 || p.cs.sasLeft !== 0 || p.cs.sasRight !== 0;
+        const clusterThrust: IntegrityThrustLevel = manualClusterThrust && p.cs.highThrust
+          ? 'high'
+          : manualClusterThrust || assistedClusterThrust
+            ? 'standard'
+            : 'none';
+        const clusterControlDt = PHYSICS_DT / Math.max(1, p.level.baseTimeScale * p.cs.timeWarp);
+        applyIntegrityExposure(this.activeManifestIntegrity, clusterControlDt, clusterThrust);
         if (!p.cs.alive) p.state = 'crashed';
         if (p.cs.escaped) {
           const transition = this.transitionClusterToOrbital(p);
@@ -1174,6 +1225,12 @@ export class Game {
           time: p.os.time,
         };
         updateOrbital(p.os, input, p.level, PHYSICS_DT);
+        const orbitalThrust: IntegrityThrustLevel = p.os.thrusting === 'none'
+          ? 'none'
+          : p.os.highThrust
+            ? 'high'
+            : 'standard';
+        applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, orbitalThrust);
         // Clear edge triggers after first step
         input.warpUp = false;
         input.warpDown = false;
@@ -1549,6 +1606,16 @@ export class Game {
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'approaching') {
         updateApproach(p.as, input, p.level, PHYSICS_DT, this.time);
+        const approachFiring = p.as.throttle > 0.01 || p.as.retroFiring;
+        const approachThrust: IntegrityThrustLevel = approachFiring
+          ? (p.as.highThrust ? 'high' : 'standard')
+          : 'none';
+        applyIntegrityExposure(
+          this.activeManifestIntegrity,
+          PHYSICS_DT,
+          approachThrust,
+          approachInTurbulence(p.as.y, p.level, this.time),
+        );
         // Clear edge triggers after first physics step
         if (!edgeConsumed) { edgeConsumed = true; }
         else { input.toggleWings = false; }
@@ -1783,9 +1850,9 @@ export class Game {
             const tutorialAction = action.tag === 'TUTORIAL' && tutorialCertificationIncomplete;
             const purchase = action.purchaseCertification;
             const owned = purchase !== undefined && hasTeamsterCertification(this.career, purchase.certificationId);
-            const missingRequiredCertification = action.requiresCertification !== undefined
-              && !hasTeamsterCertification(this.career, action.requiresCertification);
-            const requiresJuniorRank = purchase !== undefined && !hasTeamsterCertification(this.career, 'basic-3');
+            const requiredCertification = action.requiresCertification ?? purchase?.requiresCertification;
+            const missingRequiredCertification = requiredCertification !== undefined
+              && !hasTeamsterCertification(this.career, requiredCertification);
             const cannotAfford = purchase !== undefined && this.career.money < purchase.price;
             return {
               label: owned ? `${action.label} — OWNED` : action.label,
@@ -1795,14 +1862,14 @@ export class Game {
               detail: owned
                 ? 'This license is already recorded on your Guild account.'
                 : missingRequiredCertification
-                  ? 'Basic certification and Junior Teamster rank are required.'
-                  : requiresJuniorRank
-                  ? 'Basic certification and Junior Teamster rank are required.'
+                  ? requiredCertification === 'line'
+                    ? 'Full Teamster rank is required.'
+                    : 'Basic certification and Junior Teamster rank are required.'
                   : cannotAfford
-                    ? `Test fee exceeds available cash of ${formatCredits(this.career.money)}.`
+                    ? `License fee exceeds available cash of ${formatCredits(this.career.money)}.`
                     : action.detail,
               action: `directoryAction:${entry.id}:${action.id}`,
-              disabled: owned || missingRequiredCertification || requiresJuniorRank || cannotAfford,
+              disabled: owned || missingRequiredCertification || cannotAfford,
               tone: owned ? 'success' as InteractiveTone : tutorialAction ? 'warning' as InteractiveTone : 'normal' as InteractiveTone,
             };
           }),
@@ -1871,6 +1938,10 @@ export class Game {
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
           { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
+          ...(contract.cargo.fragile ? [
+            { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Condition at risk', value: `Up to ${(contract.cargo.fragile.conditionRiskFraction * 100).toFixed(0)}% of fixed pay — ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, tone: 'warning' as const },
+          ] : []),
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
           { kind: 'kv', label: 'Published pay', value: contractPublishedPayForContract(contract), tone: contractOptionTone(contract) },
@@ -1994,7 +2065,7 @@ export class Game {
         && !hasTeamsterCertification(this.career, directoryAction.requiresCertification)) return;
       if (directoryAction?.purchaseCertification) {
         const purchase = directoryAction.purchaseCertification;
-        if (!hasTeamsterCertification(this.career, 'basic-3')
+        if (!hasTeamsterCertification(this.career, purchase.requiresCertification)
           || hasTeamsterCertification(this.career, purchase.certificationId)
           || this.career.money < purchase.price) return;
         this.career.money -= purchase.price;
@@ -2088,6 +2159,10 @@ export class Game {
 
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
     this.shownOperationsManualTutorials.clear();
+    const fragile = this.activeCareerContract?.cargo.fragile;
+    this.activeManifestIntegrity = fragile && this.activeMissionQuote
+      ? createIntegrityState(fragile, contractFixedPay(this.activeMissionQuote.pay, this.activeMissionQuote.parFuelCost))
+      : null;
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
@@ -2135,6 +2210,7 @@ export class Game {
       renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime);
       drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     }
+    if (this.activeManifestIntegrity) drawIntegrityMeter(this.ctx, this.canvas, this.activeManifestIntegrity);
   }
 
   private renderFrame(): void {

@@ -3,6 +3,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { ESTELLA_SURFACE_FLIGHT_PROFILES, type EstellaSurfaceFlightProfile } from './content/estella/flight-profiles';
 import { type Placement, type WorldNode } from './content/types';
 import { type EstellaTransferOption } from './estella-mission';
+import type { FragileCargoTerms } from './cargo-handling';
 import { bodyById, type BodyDef } from './world';
 
 export interface MissionCostBreakdownItem {
@@ -67,6 +68,10 @@ export interface MissionCargoSpec {
   label: string;
   massTons: number;
   massClass?: CargoMassClass;
+  /** Stable handling identity, independent of route/template IDs. */
+  cargoTypeId?: string;
+  /** Explicit cargo-catalog classification; absent cargo is ordinary. */
+  fragile?: FragileCargoTerms;
 }
 
 const CARGO_CLASSES: Record<CargoMassClass, { label: string; minMass: number; maxMass: number }> = {
@@ -654,10 +659,12 @@ export function formatCredits(value: number): string {
   return `${sign}${abs.toLocaleString('en-US')} cr`;
 }
 
-export function formatMissionResultLine(quote: MissionCostQuote, actualDv: number): string {
+export function formatMissionResultLine(quote: MissionCostQuote, actualDv: number, handlingPenalty = 0): string {
   const actualFuel = actualFuelCostForQuote(quote, actualDv);
   const fixedPay = contractFixedPay(quote.pay, quote.parFuelCost);
   const fuelComp = contractFuelCompensation(quote.pay, quote.parFuelCost, actualFuel);
-  const net = fixedPay + fuelComp - actualFuel;
-  return `PAR ${quote.parDv.toFixed(0)} m/s | ACTUAL ${actualDv.toFixed(0)} m/s\nFIXED PAY ${formatCredits(fixedPay)} | FUEL COST ${formatCredits(actualFuel)} (${(quote.pay.compensationRatio * 100).toFixed(0)}% comp: ${formatCredits(fuelComp)})\nNET PAY ${formatCredits(net)}`;
+  const penalty = Math.max(0, Math.min(fixedPay, Math.round(handlingPenalty)));
+  const net = fixedPay + fuelComp - actualFuel - penalty;
+  const handling = penalty > 0 ? `\nHANDLING PENALTY -${formatCredits(penalty)}` : '';
+  return `PAR ${quote.parDv.toFixed(0)} m/s | ACTUAL ${actualDv.toFixed(0)} m/s\nFIXED PAY ${formatCredits(fixedPay)} | FUEL COST ${formatCredits(actualFuel)} (${(quote.pay.compensationRatio * 100).toFixed(0)}% comp: ${formatCredits(fuelComp)})${handling}\nNET PAY ${formatCredits(net)}`;
 }

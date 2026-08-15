@@ -18,12 +18,13 @@ export interface PurchasableTeamsterLicense {
   certificationId: Extract<TeamsterCertificationId, 'fragile-cargo' | 'volatile-cargo' | 'passenger'>;
   name: string;
   price: number;
+  requiresCertification: Extract<TeamsterCertificationId, 'basic-3' | 'line'>;
 }
 
 export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[] = [
-  { certificationId: 'fragile-cargo', name: 'Fragile Cargo License', price: 20_000 },
-  { certificationId: 'volatile-cargo', name: 'Volatile Cargo License', price: 40_000 },
-  { certificationId: 'passenger', name: 'Passenger License', price: 25_000 },
+  { certificationId: 'fragile-cargo', name: 'Fragile Cargo License', price: 5_000, requiresCertification: 'line' },
+  { certificationId: 'volatile-cargo', name: 'Volatile Cargo License', price: 40_000, requiresCertification: 'basic-3' },
+  { certificationId: 'passenger', name: 'Passenger License', price: 25_000, requiresCertification: 'basic-3' },
 ];
 
 export interface CareerProfile {

@@ -564,8 +564,8 @@ function getTurbulenceTorque(
   return torque;
 }
 
-/** Check if currently in turbulence zone. */
-function inTurbulence(y: number, level: ApproachLevel, time: number = 0): boolean {
+/** Check if currently in an active turbulence zone. */
+export function approachInTurbulence(y: number, level: ApproachLevel, time: number = 0): boolean {
   for (const z of level.turbulence) {
     if (weatherActivity(z, time) > 0 && y >= z.altitudeMin && y <= z.altitudeMax) return true;
   }
@@ -1872,7 +1872,7 @@ function drawApproachHUD(
     warnY += 22;
   }
 
-  if (inTurbulence(s.y, level, time)) {
+  if (approachInTurbulence(s.y, level, time)) {
     if (Math.sin(now * 0.008) > -0.2) {
       ctx.font = 'bold 16px monospace';
       ctx.textAlign = 'center';
