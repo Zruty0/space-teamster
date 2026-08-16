@@ -3,6 +3,7 @@
 
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
+import { localLayoutById, type LocalLayout, type LocalLayoutShape } from './local-layouts';
 
 // ===================== Types =====================
 
@@ -20,6 +21,10 @@ interface BayInfo {
   spokeIdx: number;
   side: number;
   slot: number;
+  layoutBerthId?: string;
+  localX?: number;
+  localY?: number;
+  openAngle?: number;
   filled: boolean;
   isTarget: boolean;
   colorIdx: number;
@@ -40,8 +45,11 @@ export interface DockingLevel {
   finalDestinationLocation?: string;
   nextObjectiveDetail?: string;
 
-  // Station center
+  // Station center and optional authored local layout. The same layoutId flows
+  // through world nodes for stations and, later, surface facilities.
   stationX: number; stationY: number;
+  layoutId?: string;
+  localLayout?: LocalLayout;
 
   // Bay layout (generated)
   bays: BayInfo[];
@@ -103,10 +111,20 @@ export interface DockingInitOverride {
 
 // ===================== Levels =====================
 
-function generateBays(targetSpoke: number, targetSide: number, targetSlot: number, fillPct: number): BayInfo[] {
+function seededRandom(initialSeed: number): () => number {
+  let seed = (Math.floor(initialSeed) >>> 0) || 0x9e3779b9;
+  return () => {
+    seed += 0x6d2b79f5;
+    let value = seed;
+    value = Math.imul(value ^ value >>> 15, value | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function generateBays(targetSpoke: number, targetSide: number, targetSlot: number, fillPct: number, randomSeed = 42): BayInfo[] {
   const bays: BayInfo[] = [];
-  let seed = 42;
-  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const rng = seededRandom(randomSeed);
   for (let spoke = 0; spoke < 4; spoke++) {
     for (let side = 0; side < 2; side++) {
       for (let slot = 0; slot < BAYS_PER_SIDE; slot++) {
@@ -120,9 +138,30 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
   return bays;
 }
 
+function generateLayoutBays(layout: LocalLayout, fillPct: number, randomSeed: number): BayInfo[] {
+  const rng = seededRandom(randomSeed);
+  const targetIndex = Math.floor(rng() * layout.berths.length);
+  return layout.berths.map((berth, index) => ({
+    spokeIdx: -1,
+    side: 0,
+    slot: index,
+    layoutBerthId: berth.id,
+    localX: (berth.svgCenterX - layout.centerX) / layout.svgUnitsPerMeter,
+    localY: -(berth.svgCenterY - layout.centerY) / layout.svgUnitsPerMeter,
+    openAngle: berth.noseAngle + Math.PI,
+    filled: index === targetIndex ? false : rng() < fillPct,
+    isTarget: index === targetIndex,
+    colorIdx: Math.floor(rng() * 5),
+    isPlayerBay: false,
+  }));
+}
+
 /** Get world-space center and open direction of a bay.
  *  Bay is perpendicular to spoke. Opens toward the spoke (inward). */
 export function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; y: number; angle: number } {
+  if (bay.layoutBerthId && bay.localX !== undefined && bay.localY !== undefined && bay.openAngle !== undefined) {
+    return { x: sx + bay.localX, y: sy + bay.localY, angle: bay.openAngle };
+  }
   const spokeAngle = bay.spokeIdx * Math.PI / 2;
   // Position along spoke
   const alongDist = HUB_RADIUS + WALL_THICK + bay.slot * BAY_PITCH + BAY_SLOT_W / 2;
@@ -138,10 +177,111 @@ export function bayWorldPos(bay: BayInfo, sx: number, sy: number): { x: number; 
   return { x: bx, y: by, angle: openAngle };
 }
 
+function polygonCollision(
+  px: number, py: number, points: readonly { x: number; y: number }[],
+): { nx: number; ny: number; depth: number } | null {
+  let inside = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const a = points[i], b = points[j];
+    if ((a.y > py) !== (b.y > py) && px < (b.x - a.x) * (py - a.y) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  if (!inside) return null;
+  let nearestX = points[0].x;
+  let nearestY = points[0].y;
+  let nearestDistSq = Infinity;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lengthSq = dx * dx + dy * dy;
+    const t = lengthSq > 0 ? Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / lengthSq)) : 0;
+    const x = a.x + dx * t;
+    const y = a.y + dy * t;
+    const distSq = (x - px) ** 2 + (y - py) ** 2;
+    if (distSq < nearestDistSq) {
+      nearestDistSq = distSq;
+      nearestX = x;
+      nearestY = y;
+    }
+  }
+  const depth = Math.sqrt(nearestDistSq);
+  if (depth < 1e-6) return { nx: 1, ny: 0, depth: 0.01 };
+  return { nx: (nearestX - px) / depth, ny: (nearestY - py) / depth, depth };
+}
+
+function localLayoutShapeCollision(
+  px: number, py: number, sx: number, sy: number, layout: LocalLayout, shape: LocalLayoutShape,
+): { nx: number; ny: number; depth: number } | null {
+  if (!shape.paint.fill || shape.paint.fillOpacity <= 0 || shape.paint.opacity <= 0) return null;
+  const scale = layout.svgUnitsPerMeter;
+  const lx = layout.centerX + (px - sx) * scale;
+  const ly = layout.centerY - (py - sy) * scale;
+  let collision: { nx: number; ny: number; depth: number } | null = null;
+  if (shape.kind === 'rect') {
+    if (lx < shape.x || lx > shape.x + shape.width || ly < shape.y || ly > shape.y + shape.height) return null;
+    const edges = [
+      { nx: -1, ny: 0, depth: lx - shape.x },
+      { nx: 1, ny: 0, depth: shape.x + shape.width - lx },
+      { nx: 0, ny: -1, depth: ly - shape.y },
+      { nx: 0, ny: 1, depth: shape.y + shape.height - ly },
+    ];
+    collision = edges.reduce((best, edge) => edge.depth < best.depth ? edge : best);
+  } else if (shape.kind === 'circle') {
+    const dx = lx - shape.cx;
+    const dy = ly - shape.cy;
+    const distance = Math.hypot(dx, dy);
+    if (distance >= shape.radius) return null;
+    collision = distance > 1e-6
+      ? { nx: dx / distance, ny: dy / distance, depth: shape.radius - distance }
+      : { nx: 1, ny: 0, depth: shape.radius };
+  } else {
+    collision = polygonCollision(lx, ly, shape.collisionPolygon);
+  }
+  if (!collision) return null;
+  return { nx: collision.nx, ny: -collision.ny, depth: collision.depth / scale };
+}
+
+function filledLayoutBayCollision(
+  px: number, py: number, sx: number, sy: number, bay: BayInfo,
+): { nx: number; ny: number; depth: number } | null {
+  if (!bay.filled || bay.isPlayerBay) return null;
+  const position = bayWorldPos(bay, sx, sy);
+  const cos = Math.cos(position.angle);
+  const sin = Math.sin(position.angle);
+  const dx = px - position.x;
+  const dy = py - position.y;
+  const along = dx * cos + dy * sin;
+  const across = -dx * sin + dy * cos;
+  const halfLong = CONTAINER_W / 2;
+  const halfWide = CONTAINER_H / 2;
+  if (Math.abs(along) >= halfLong || Math.abs(across) >= halfWide) return null;
+  const alongDepth = halfLong - Math.abs(along);
+  const acrossDepth = halfWide - Math.abs(across);
+  if (alongDepth < acrossDepth) {
+    const sign = along >= 0 ? 1 : -1;
+    return { nx: cos * sign, ny: sin * sign, depth: alongDepth };
+  }
+  const sign = across >= 0 ? 1 : -1;
+  return { nx: -sin * sign, ny: cos * sign, depth: acrossDepth };
+}
+
 /** Check if point is inside station solid geometry. Returns push-out vector or null. */
 function stationCollision(
-  px: number, py: number, sx: number, sy: number, bays: BayInfo[],
+  px: number, py: number, sx: number, sy: number, bays: BayInfo[], localLayout?: LocalLayout,
 ): { nx: number; ny: number; depth: number } | null {
+  if (localLayout) {
+    for (const shape of localLayout.shapes) {
+      const collision = localLayoutShapeCollision(px, py, sx, sy, localLayout, shape);
+      if (collision) return collision;
+    }
+    for (const bay of bays) {
+      const collision = filledLayoutBayCollision(px, py, sx, sy, bay);
+      if (collision) return collision;
+    }
+    return null;
+  }
+
   // Check hub
   const hdx = px - sx, hdy = py - sy;
   const hDist = Math.sqrt(hdx * hdx + hdy * hdy);
@@ -226,6 +366,8 @@ export function createGenericDockingLevel(opts: {
   targetSide?: number;
   targetSlot?: number;
   fillPct?: number;
+  layoutId?: string;
+  randomSeed?: number;
   exitDistance?: number;
   finalDestinationName?: string;
   finalDestinationLocation?: string;
@@ -234,6 +376,11 @@ export function createGenericDockingLevel(opts: {
   const targetSpoke = opts.targetSpoke ?? 0;
   const targetSide = opts.targetSide ?? 1;
   const targetSlot = opts.targetSlot ?? 2;
+  const localLayout = localLayoutById(opts.layoutId);
+  const randomSeed = opts.randomSeed ?? 42;
+  const bays = localLayout
+    ? generateLayoutBays(localLayout, opts.fillPct ?? 0.55, randomSeed)
+    : generateBays(targetSpoke, targetSide, targetSlot, opts.fillPct ?? 0.55, randomSeed);
   const level: DockingLevel = {
     id: opts.id,
     name: opts.name,
@@ -248,7 +395,9 @@ export function createGenericDockingLevel(opts: {
     finalDestinationLocation: opts.finalDestinationLocation,
     nextObjectiveDetail: opts.nextObjectiveDetail,
     stationX: 0, stationY: 0,
-    bays: generateBays(targetSpoke, targetSide, targetSlot, opts.fillPct ?? 0.55),
+    layoutId: localLayout?.id,
+    localLayout,
+    bays,
     beamRange: 12,
     beamStrength: 0.5,
     thrustForce: 3200,
@@ -262,16 +411,24 @@ export function createGenericDockingLevel(opts: {
     startVY: 0,
     startAngle: 0,
   };
+  const assignedBay = localLayout
+    ? level.bays.find(bay => bay.isTarget)!
+    : level.bays.find(bay => bay.spokeIdx === targetSpoke && bay.side === targetSide && bay.slot === targetSlot)!;
   if (opts.exitMode) {
-    const bay = level.bays.find(b => b.spokeIdx === targetSpoke && b.side === targetSide && b.slot === targetSlot)!;
-    bay.filled = false;
-    bay.isTarget = false;
-    bay.isPlayerBay = true;
-    for (const b of level.bays) b.isTarget = false;
-    const bp = bayWorldPos(bay, level.stationX, level.stationY);
+    assignedBay.filled = false;
+    assignedBay.isTarget = false;
+    assignedBay.isPlayerBay = true;
+    for (const bay of level.bays) bay.isTarget = false;
+    const bp = bayWorldPos(assignedBay, level.stationX, level.stationY);
     level.startX = bp.x;
     level.startY = bp.y;
     level.startAngle = bp.angle + Math.PI;
+  } else if (localLayout) {
+    const bp = bayWorldPos(assignedBay, level.stationX, level.stationY);
+    const noseAngle = bp.angle + Math.PI;
+    level.startX = bp.x + Math.cos(noseAngle) * 70;
+    level.startY = bp.y + Math.sin(noseAngle) * 70;
+    level.startAngle = noseAngle;
   }
   return level;
 }
@@ -536,7 +693,7 @@ export function updateDocking(
   for (const [lx, ly] of probes) {
     const wx = s.x + lx * colCos - ly * colSin;
     const wy = s.y + lx * colSin + ly * colCos;
-    const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays);
+    const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays, level.localLayout);
     if (col) {
       s.x += col.nx * col.depth * 1.1;
       s.y += col.ny * col.depth * 1.1;
@@ -601,7 +758,18 @@ export function updateDockingCamera(
   let targetY = s.y;
   let targetZoom = 4;
 
-  if (level.exitMode) {
+  if (level.localLayout) {
+    const halfWidth = level.localLayout.widthMeters / 2;
+    const halfHeight = level.localLayout.heightMeters / 2;
+    const shipMargin = 15;
+    const minX = Math.min(level.stationX - halfWidth, s.x - shipMargin);
+    const maxX = Math.max(level.stationX + halfWidth, s.x + shipMargin);
+    const minY = Math.min(level.stationY - halfHeight, s.y - shipMargin);
+    const maxY = Math.max(level.stationY + halfHeight, s.y + shipMargin);
+    targetX = (minX + maxX) / 2;
+    targetY = (minY + maxY) / 2;
+    targetZoom = Math.min(4, Math.max(1.5, Math.min((W * 0.82) / (maxX - minX), (H * 0.82) / (maxY - minY))));
+  } else if (level.exitMode) {
     const dx = level.stationX - s.x;
     const dy = level.stationY - s.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -731,10 +899,117 @@ function drawDockingStars(ctx: CanvasRenderingContext2D, W: number, H: number): 
 }
 
 // --- Station ---
+function drawAuthoredLayoutShape(ctx: CanvasRenderingContext2D, shape: LocalLayoutShape): void {
+  ctx.beginPath();
+  if (shape.kind === 'rect') {
+    ctx.rect(shape.x, shape.y, shape.width, shape.height);
+  } else if (shape.kind === 'circle') {
+    ctx.arc(shape.cx, shape.cy, shape.radius, 0, Math.PI * 2);
+  } else {
+    const path = new Path2D(shape.data);
+    if (shape.paint.fill) {
+      ctx.save();
+      ctx.globalAlpha = shape.paint.opacity * shape.paint.fillOpacity;
+      ctx.fillStyle = shape.paint.fill;
+      ctx.fill(path);
+      ctx.restore();
+    }
+    if (shape.paint.stroke && shape.paint.strokeWidth > 0) {
+      ctx.save();
+      ctx.globalAlpha = shape.paint.opacity * shape.paint.strokeOpacity;
+      ctx.strokeStyle = shape.paint.stroke;
+      ctx.lineWidth = shape.paint.strokeWidth;
+      ctx.setLineDash(shape.paint.strokeDash);
+      ctx.stroke(path);
+      ctx.restore();
+    }
+    return;
+  }
+  if (shape.paint.fill) {
+    ctx.save();
+    ctx.globalAlpha = shape.paint.opacity * shape.paint.fillOpacity;
+    ctx.fillStyle = shape.paint.fill;
+    ctx.fill();
+    ctx.restore();
+  }
+  if (shape.paint.stroke && shape.paint.strokeWidth > 0) {
+    ctx.save();
+    ctx.globalAlpha = shape.paint.opacity * shape.paint.strokeOpacity;
+    ctx.strokeStyle = shape.paint.stroke;
+    ctx.lineWidth = shape.paint.strokeWidth;
+    ctx.setLineDash(shape.paint.strokeDash);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawAuthoredLayoutBay(
+  ctx: CanvasRenderingContext2D, cam: DockingCamera, level: DockingLevel,
+  bay: BayInfo, W: number, H: number,
+): void {
+  if (!bay.filled && !bay.isTarget) return;
+  const bp = bayWorldPos(bay, level.stationX, level.stationY);
+  const cos = Math.cos(bp.angle), sin = Math.sin(bp.angle);
+  const alongX = cos * CONTAINER_W / 2, alongY = sin * CONTAINER_W / 2;
+  const acrossX = -sin * CONTAINER_H / 2, acrossY = cos * CONTAINER_H / 2;
+  const corners = [
+    [bp.x - alongX - acrossX, bp.y - alongY - acrossY],
+    [bp.x + alongX - acrossX, bp.y + alongY - acrossY],
+    [bp.x + alongX + acrossX, bp.y + alongY + acrossY],
+    [bp.x - alongX + acrossX, bp.y - alongY + acrossY],
+  ];
+  ctx.beginPath();
+  for (let i = 0; i < corners.length; i++) {
+    const [x, y] = dws(corners[i][0], corners[i][1], cam, W, H);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  if (bay.filled) {
+    const fills = ['#2a1a1a', '#1a1a2a', '#2a2a1a', '#1a2a2a', '#2a1a2a'];
+    const strokes = ['#aa5533', '#5533aa', '#aaaa33', '#33aa99', '#aa33aa'];
+    ctx.fillStyle = fills[bay.colorIdx % fills.length];
+    ctx.fill();
+    ctx.strokeStyle = strokes[bay.colorIdx % strokes.length];
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  if (bay.isTarget) {
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#00ffcc';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const [tx, ty] = dws(bp.x, bp.y, cam, W, H);
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#00ffcc';
+    ctx.textAlign = 'center';
+    ctx.fillText('TGT', tx, ty + 3);
+  }
+}
+
+function drawAuthoredStation(
+  ctx: CanvasRenderingContext2D, cam: DockingCamera,
+  level: DockingLevel, layout: LocalLayout, W: number, H: number,
+): void {
+  const [sx, sy] = dws(level.stationX, level.stationY, cam, W, H);
+  ctx.save();
+  ctx.translate(sx, sy);
+  const scale = cam.zoom / layout.svgUnitsPerMeter;
+  ctx.scale(scale, scale);
+  ctx.translate(-layout.centerX, -layout.centerY);
+  for (const shape of layout.shapes) drawAuthoredLayoutShape(ctx, shape);
+  ctx.restore();
+  for (const bay of level.bays) drawAuthoredLayoutBay(ctx, cam, level, bay, W, H);
+}
+
 function drawStation(
   ctx: CanvasRenderingContext2D, cam: DockingCamera,
   level: DockingLevel, W: number, H: number,
 ): void {
+  if (level.localLayout) {
+    drawAuthoredStation(ctx, cam, level, level.localLayout, W, H);
+    return;
+  }
   const z = cam.zoom;
   const sx = level.stationX, sy = level.stationY;
 

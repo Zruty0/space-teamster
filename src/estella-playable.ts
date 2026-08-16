@@ -33,6 +33,15 @@ function nextId(): number {
   return BASE_ID + (++seq);
 }
 
+function mixMissionLayoutSeed(seed: number, nodeId: string, phase: 'delivery' | 'undock'): number {
+  let mixed = (seed ^ (phase === 'delivery' ? 0x51f15e5d : 0x2c9277b5)) >>> 0;
+  for (let i = 0; i < nodeId.length; i++) {
+    mixed ^= nodeId.charCodeAt(i);
+    mixed = Math.imul(mixed, 16777619) >>> 0;
+  }
+  return mixed;
+}
+
 function nodeName(node: WorldNode | undefined): string {
   return node?.name ?? 'Estella site';
 }
@@ -726,7 +735,12 @@ function buildRouteObjectiveToCluster(opts: {
   }));
 }
 
-export function createPlayableEstellaMission(sourceId: string, destinationId: string, selectedTransfer?: EstellaTransferOption): EstellaPlayableMission {
+export function createPlayableEstellaMission(
+  sourceId: string,
+  destinationId: string,
+  selectedTransfer?: EstellaTransferOption,
+  missionLayoutSeed = Math.floor(Math.random() * 0x1_0000_0000),
+): EstellaPlayableMission {
   const sourceKind = playableKind(sourceId);
   const destKind = playableKind(destinationId);
   const sourceClusterBodyId = clusterBodyIdForPoi(sourceId);
@@ -891,6 +905,8 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       targetSide: station.docking.undock.targetSide,
       targetSlot: station.docking.undock.targetSlot,
       fillPct: station.docking.undock.fillPct,
+      layoutId: station.layoutId,
+      randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'undock'),
       exitDistance: station.docking.undock.exitDistance,
     }));
     return { start: { kind: 'docking', level: sourceDocking } };
@@ -918,6 +934,8 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
       targetSide: station.docking.delivery.targetSide,
       targetSlot: station.docking.delivery.targetSlot,
       fillPct: station.docking.delivery.fillPct,
+      layoutId: station.layoutId,
+      randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'delivery'),
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
       nextObjectiveDetail: 'Deliver to the target bay.',
@@ -1016,6 +1034,8 @@ export function createPlayableEstellaMission(sourceId: string, destinationId: st
     targetSide: station.docking.undock.targetSide,
     targetSlot: station.docking.undock.targetSlot,
     fillPct: station.docking.undock.fillPct,
+    layoutId: station.layoutId,
+    randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'undock'),
     exitDistance: station.docking.undock.exitDistance,
   }));
   return { start: { kind: 'docking', level: sourceDocking } };

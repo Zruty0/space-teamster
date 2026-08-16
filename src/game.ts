@@ -215,6 +215,7 @@ export class Game {
   private activeMissionQuote: MissionCostQuote | null = null;
   private activeMissionTransfer: EstellaTransferOption | undefined;
   private activeMissionStartWorldTime = 0;
+  private activeMissionLayoutSeed: number | null = null;
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
@@ -667,6 +668,7 @@ export class Game {
   private clearActiveMission(): void {
     this.activeMissionQuote = null;
     this.activeMissionTransfer = undefined;
+    this.activeMissionLayoutSeed = null;
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
@@ -2196,7 +2198,11 @@ export class Game {
     this.activeManifestIntegrity = fragile && this.activeMissionQuote
       ? createIntegrityState(fragile, contractFixedPay(this.activeMissionQuote.pay, this.activeMissionQuote.parFuelCost))
       : null;
-    const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer);
+    const sameMission = this.activeMissionSourceId === sourceId && this.activeMissionDestinationId === destinationId;
+    if (!sameMission || this.activeMissionLayoutSeed === null) {
+      this.activeMissionLayoutSeed = Math.floor(Math.random() * 0x1_0000_0000);
+    }
+    const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer, this.activeMissionLayoutSeed);
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
     this.activeMissionDestinationId = destinationId;

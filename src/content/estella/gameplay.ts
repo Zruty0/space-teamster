@@ -233,6 +233,7 @@ function createSurfacePoi(id: string): SurfacePoiDef {
   return {
     id,
     name: nodeName(id),
+    layoutId: ESTELLA_NODES_BY_ID.get(id)?.layoutId,
     subtitle: profile.subtitle,
     bodyId: p.parentId,
     surfaceAngle: p.angle ?? 0,
@@ -267,6 +268,7 @@ function createStationPoi(dockNodeId: string): StationPoiDef {
   return {
     id: dockNodeId,
     name: nodeName(dockNodeId),
+    layoutId: ESTELLA_NODES_BY_ID.get(dockNodeId)?.layoutId,
     subtitle: childPoi?.summary ?? 'Generated Estella docking site',
     bodyId: orbitPlacementDef.parentId,
     orbit: {

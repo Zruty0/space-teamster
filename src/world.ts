@@ -114,6 +114,7 @@ export type LandingLayoutDef = CloudCityLandingLayout;
 export interface SurfacePoiDef {
   id: string;
   name: string;
+  layoutId?: string;
   subtitle: string;
   bodyId: string;
   surfaceAngle: number;
@@ -159,6 +160,7 @@ export interface SurfacePoiDef {
 export interface StationPoiDef {
   id: string;
   name: string;
+  layoutId?: string;
   subtitle: string;
   bodyId: string;
   orbit: CircularOrbitDef;
