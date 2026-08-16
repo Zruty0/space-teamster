@@ -1975,8 +1975,8 @@ export class Game {
           { kind: 'separator' },
           { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           ...(contract.cargo.fragile ? [
-            { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), tone: 'warning' as const },
-            { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), icon: 'fragile' as const, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, icon: 'fragile' as const, tone: 'warning' as const },
           ] : []),
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },

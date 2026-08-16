@@ -9,7 +9,7 @@ export interface InteractiveTextSegment {
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: 'fragile'; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -140,13 +140,31 @@ function drawRichTextSegments(
 function drawFragileIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save();
   ctx.strokeStyle = COL_WARNING;
-  ctx.lineWidth = 1.4;
-  ctx.strokeRect(x + 0.5, y - 10.5, 11, 13);
+  ctx.lineWidth = 1.25;
+  ctx.lineCap = 'square';
+  ctx.lineJoin = 'miter';
+
+  // Schematic wineglass: rim, tapered bowl, stem, and base.
+  ctx.beginPath();
+  ctx.moveTo(x, y - 11);
+  ctx.lineTo(x + 12, y - 11);
+  ctx.moveTo(x + 1, y - 10);
+  ctx.lineTo(x + 3, y - 5);
+  ctx.lineTo(x + 6, y - 3);
+  ctx.lineTo(x + 9, y - 5);
+  ctx.lineTo(x + 11, y - 10);
+  ctx.moveTo(x + 6, y - 3);
+  ctx.lineTo(x + 6, y + 2);
+  ctx.moveTo(x + 2, y + 2);
+  ctx.lineTo(x + 10, y + 2);
+  ctx.stroke();
+
+  // Crack through the bowl.
   ctx.beginPath();
   ctx.moveTo(x + 7, y - 10);
-  ctx.lineTo(x + 5, y - 6);
-  ctx.lineTo(x + 8, y - 3);
-  ctx.lineTo(x + 5, y + 2);
+  ctx.lineTo(x + 5, y - 8);
+  ctx.lineTo(x + 7, y - 6);
+  ctx.lineTo(x + 5, y - 4);
   ctx.stroke();
   ctx.restore();
 }
@@ -253,7 +271,8 @@ export function drawInteractiveScene(
         ctx.textAlign = 'left';
         ctx.font = '11px monospace';
         ctx.fillStyle = COL_HUD_DIM;
-        ctx.fillText(row.label.toUpperCase(), x + 22, y);
+        if (row.icon === 'fragile') drawFragileIcon(ctx, x + 22, y);
+        ctx.fillText(row.label.toUpperCase(), x + (row.icon ? 40 : 22), y);
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
         const valueWidth = boxW - labelW - 54;
