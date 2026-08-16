@@ -1,4 +1,4 @@
-import ascensionScaffoldSvg from '../art/stations/spacestation1.svg?raw';
+import ascensionScaffoldSvg from '../art/stations/small-station-1.svg?raw';
 
 export interface LocalLayoutPaint {
   fill?: string;
