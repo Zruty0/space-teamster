@@ -453,7 +453,10 @@ export function createDockingState(level: DockingLevel, override?: DockingInitOv
     beamActive: false, beamAligned: false,
     highThrust: false,
     exitComplete: false,
-    leftStartBay: !level.exitMode, // if not exit mode, collision is always on
+    // Generic bays retain their legacy start-bay grace volume. Authored berths
+    // are sized around the rig, so collision can remain active from spawn and
+    // adjacent bay walls cannot be ghosted during undocking.
+    leftStartBay: !level.exitMode || !!level.localLayout,
     collisionImpactSpeed: 0,
     collisionImpactCooldown: 0,
     dvUsed: 0,
