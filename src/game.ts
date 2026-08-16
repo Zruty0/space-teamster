@@ -928,7 +928,10 @@ export class Game {
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {
           const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' } as const;
           const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
-          applyIntegrityDamage(this.activeManifestIntegrity, landingIntegrityDamage(score.rating));
+          applyIntegrityDamage(
+            this.activeManifestIntegrity,
+            landingIntegrityDamage(score.rating, this.activeManifestIntegrity?.baseMax ?? 0),
+          );
           this.completePhase(
             p,
             this.finishRunTransition().run,
@@ -1621,9 +1624,10 @@ export class Game {
         const approachThrust: IntegrityThrustLevel = approachFiring
           ? (p.as.highThrust ? 'high' : 'standard')
           : 'none';
+        const approachControlDt = PHYSICS_DT / Math.max(1, p.as.timeWarp);
         applyIntegrityExposure(
           this.activeManifestIntegrity,
-          PHYSICS_DT,
+          approachControlDt,
           approachThrust,
           approachInTurbulence(p.as.y, p.level, this.time),
         );

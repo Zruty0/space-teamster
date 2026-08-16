@@ -12,11 +12,11 @@ export interface IntegrityState {
 export type IntegrityThrustLevel = 'none' | 'standard' | 'high';
 
 export const INTEGRITY_DAMAGE_RATES = {
-  standardThrustPerSecond: 0.0025,
-  // High thrust is deliberately > the largest authored high/standard acceleration ratio,
-  // so using it for the same delta-v always costs more integrity than a precision burn.
-  highThrustPerSecond: 0.12,
-  turbulencePerSecond: 0.008,
+  // Player wall-clock exposure: one bar per two minutes of precision thrust,
+  // one per 30 seconds of high thrust or active turbulence.
+  standardThrustPerSecond: 1 / 120,
+  highThrustPerSecond: 1 / 30,
+  turbulencePerSecond: 1 / 30,
 } as const;
 
 export function createIntegrityState(
@@ -66,10 +66,13 @@ export function applyIntegrityExposure(
   return applyIntegrityDamage(state, rate * dt);
 }
 
-export function landingIntegrityDamage(rating: 'PERFECT' | 'GOOD' | 'HARD'): number {
-  if (rating === 'PERFECT') return 0.15;
-  if (rating === 'GOOD') return 0.45;
-  return 1;
+export function landingIntegrityDamage(
+  rating: 'PERFECT' | 'GOOD' | 'HARD',
+  baseIntegrityUnits: number,
+): number {
+  if (rating === 'PERFECT') return Math.max(0, baseIntegrityUnits) * 0.02;
+  if (rating === 'GOOD') return 0.5;
+  return 2;
 }
 
 export function dockingIntegrityDamage(impactSpeed: number): number {
