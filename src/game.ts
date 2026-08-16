@@ -57,7 +57,7 @@ import {
   type IntegrityThrustLevel,
 } from './manifest-condition';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
-import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTone } from './interactive-scene';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import {
   OPERATIONS_MANUAL_ENTRIES,
@@ -147,6 +147,17 @@ function contractPublishedPayForContract(contract: CareerContract): string {
     return 'No pay + 100% fuel reimbursement';
   }
   return contractPublishedPay(contract.quote);
+}
+
+function contractLocationSegments(currentPath: string, destinationPath: string): InteractiveTextSegment[] {
+  const current = currentPath.split(' -> ');
+  const destination = destinationPath.split(' -> ');
+  let shared = 0;
+  while (shared < current.length && shared < destination.length && current[shared] === destination[shared]) shared++;
+  return destination.map((part, index) => ({
+    text: `${index > 0 ? ' -> ' : ''}${part}`,
+    tone: index < shared ? 'success' : 'warning',
+  }));
 }
 
 function contractOptionTone(contract: CareerContract): InteractiveTone {
@@ -1745,6 +1756,7 @@ export class Game {
               labelLineCount: 2 as const,
               tag: contract.issuerTag,
               tagColumn: true,
+              leftIcon: contract.cargo.fragile ? 'fragile' as const : undefined,
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
               statusText: missingRequirements.length ? 'LOCKED' : undefined,
@@ -1842,6 +1854,7 @@ export class Game {
             labelLineCount: 2 as const,
             tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
             tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
+            leftIcon: contract.cargo.fragile ? 'fragile' as const : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName}`,
             action: `contactContract:${contract.id}`,
             tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
@@ -1932,23 +1945,19 @@ export class Game {
             { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
           ] : []),
           ...(missingRequirements.length ? [{ kind: 'kv' as const, label: 'Missing requirements', value: missingRequirements.join(' + '), valueLineCount: 2 as const, tone: 'danger' as const }] : []),
-          { kind: 'kv', label: 'Source', value: contract.sourcePath },
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
-          { kind: 'kv', label: 'Location', value: contract.destinationPath },
+          { kind: 'kv', label: 'Location', value: contract.destinationPath, valueSegments: contractLocationSegments(locationPath, contract.destinationPath), valueLineCount: 2 },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
           { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           ...(contract.cargo.fragile ? [
             { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), tone: 'warning' as const },
-            { kind: 'kv' as const, label: 'Condition at risk', value: `Up to ${(contract.cargo.fragile.conditionRiskFraction * 100).toFixed(0)}% of fixed pay — ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, tone: 'warning' as const },
           ] : []),
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
           { kind: 'kv', label: 'Published pay', value: contractPublishedPayForContract(contract), tone: contractOptionTone(contract) },
           { kind: 'kv', label: 'Net at par', value: contractMarginSummary(quote), tone: contractOptionTone(contract) },
-          ...(contract.templateId === 'line-certification-roadstead-checkride' ? [] : [
-            { kind: 'kv' as const, label: 'Transfer', value: transferSummary },
-          ]),
         ],
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [

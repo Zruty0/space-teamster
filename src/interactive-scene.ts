@@ -2,9 +2,14 @@ import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING }
 
 export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'danger' | 'warning' | 'success' | 'story' | 'muted';
 
+export interface InteractiveTextSegment {
+  text: string;
+  tone?: InteractiveTone;
+}
+
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -23,6 +28,8 @@ export interface InteractiveSceneOption {
   rightDetail?: string;
   /** Independent availability marker; does not replace semantic tags or row tone. */
   statusText?: string;
+  /** Small semantic icon at the far left of the issuer-tag gutter. */
+  leftIcon?: 'fragile';
 }
 
 export interface InteractiveScene {
@@ -102,6 +109,46 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   }
   if (line) lines.push(line);
   return lines;
+}
+
+function drawRichTextSegments(
+  ctx: CanvasRenderingContext2D,
+  segments: readonly InteractiveTextSegment[],
+  x: number,
+  y: number,
+  maxWidth: number,
+  maxLines: 1 | 2,
+): void {
+  let line = 0;
+  let cursorX = x;
+  for (const segment of segments) {
+    const tokens = segment.text.split(/(\s+)/).filter(Boolean);
+    for (const token of tokens) {
+      const width = ctx.measureText(token).width;
+      if (cursorX > x && cursorX + width > x + maxWidth && line + 1 < maxLines) {
+        line++;
+        cursorX = x;
+      }
+      if (line >= maxLines || cursorX + width > x + maxWidth) return;
+      ctx.fillStyle = toneColor(segment.tone);
+      ctx.fillText(token, cursorX, y + line * 18);
+      cursorX += width;
+    }
+  }
+}
+
+function drawFragileIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.strokeStyle = COL_WARNING;
+  ctx.lineWidth = 1.4;
+  ctx.strokeRect(x + 0.5, y - 10.5, 11, 13);
+  ctx.beginPath();
+  ctx.moveTo(x + 7, y - 10);
+  ctx.lineTo(x + 5, y - 6);
+  ctx.lineTo(x + 8, y - 3);
+  ctx.lineTo(x + 5, y + 2);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function bodyRows(scene: InteractiveScene): InteractiveSceneBodyRow[] {
@@ -210,7 +257,10 @@ export function drawInteractiveScene(
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
         const valueWidth = boxW - labelW - 54;
-        if (row.valueLineCount === 2) {
+        if (row.valueSegments) {
+          drawRichTextSegments(ctx, row.valueSegments, x + 22 + labelW, y, valueWidth, row.valueLineCount ?? 1);
+          y += row.valueLineCount === 2 ? 40 : 22;
+        } else if (row.valueLineCount === 2) {
           const wrapped = wrapText(ctx, row.value, valueWidth);
           const valueLines = wrapped.slice(0, 2);
           if (wrapped.length > 2) valueLines[1] = middleEllipsis(ctx, `${valueLines[1]}…`, valueWidth);
@@ -270,6 +320,7 @@ export function drawInteractiveScene(
     }
 
     const labelX = x + 28;
+    if (option.leftIcon === 'fragile') drawFragileIcon(ctx, x + 13, y);
     const hasTagColumn = !!option.tag || option.tagColumn === true;
     let textX = labelX;
     if (option.tag) {
