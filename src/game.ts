@@ -8,7 +8,7 @@ import {
 } from './ship';
 import { TerrainData, checkLandingCollision as checkTerrainCollision, generateTerrain, landingReferenceHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
-import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay } from './hud';
+import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay, type PhaseFinancialLine } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
 import { LevelDef, landingLevelById } from './levels';
 import {
@@ -41,7 +41,7 @@ import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerC
 import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
 import type { PreparedContractBoards } from './contract-board-worker-types';
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
-import { actualFuelCostForQuote, contractFixedPay, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, formatMissionResultLine, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
+import { actualFuelCostForQuote, contractFixedPay, contractFuelCompensation, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { fragilityDisplay } from './cargo-handling';
 import {
   applyIntegrityDamage,
@@ -116,6 +116,7 @@ interface PhaseCompletion {
   ratingText?: string;
   ratingColor?: string;
   detailText?: string;
+  financialLines?: PhaseFinancialLine[];
   onContinue: () => void;
   onRetry: () => void;
 }
@@ -783,12 +784,24 @@ export class Game {
     if (extra.billableDvAdjustment && extra.billableDvAdjustment > 0) {
       detailLines.push(`${extra.adjustmentLabel ?? 'Billable correction'}: +${extra.billableDvAdjustment.toFixed(0)} m/s`);
     }
+    let financialLines: PhaseFinancialLine[] | undefined;
     if (completionText && this.activeMissionQuote) {
+      const quote = this.activeMissionQuote;
       const handlingPenalty = integrityPenalty(this.activeManifestIntegrity);
       if (this.activeManifestIntegrity) {
         detailLines.push(`CARGO CONDITION ${integrityConditionSummary(this.activeManifestIntegrity)}`);
       }
-      detailLines.push(formatMissionResultLine(this.activeMissionQuote, missionDvUsed, handlingPenalty));
+      const fixedPay = contractFixedPay(quote.pay, quote.parFuelCost);
+      const fuelCost = actualFuelCostForQuote(quote, missionDvUsed);
+      const fuelReimbursement = contractFuelCompensation(quote.pay, quote.parFuelCost, fuelCost);
+      const total = fixedPay - handlingPenalty - fuelCost + fuelReimbursement;
+      financialLines = [
+        { label: 'Contract completion', amount: fixedPay },
+        ...(handlingPenalty > 0 ? [{ label: 'Handling penalty', amount: -handlingPenalty }] : []),
+        { label: 'Fuel cost', amount: -fuelCost },
+        { label: 'Fuel cost reimbursement', amount: fuelReimbursement },
+        { label: 'Total', amount: total, total: true },
+      ];
     }
     const detailText = detailLines.join('\n');
     this.guidanceText = '';
@@ -801,6 +814,7 @@ export class Game {
       completionText,
       ...extra,
       detailText,
+      financialLines,
       onContinue: () => {
         this.phaseCompletion = null;
         onContinue();
@@ -2268,6 +2282,7 @@ export class Game {
         this.phaseCompletion.ratingColor,
         this.phaseCompletion.detailText,
         this.phaseCompletion.tone,
+        this.phaseCompletion.financialLines,
       );
     }
   }

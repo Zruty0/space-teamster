@@ -441,6 +441,18 @@ function drawLandedOverlay(
   ctx.fillText('BACKSPACE: Fly again  |  Esc: Flight Menu', W / 2, H / 2 - 130 + boxH - 15);
 }
 
+export interface PhaseFinancialLine {
+  label: string;
+  amount: number;
+  total?: boolean;
+}
+
+function formatSignedCredits(value: number): string {
+  const rounded = Math.round(value);
+  const sign = rounded >= 0 ? '+' : '-';
+  return `${sign}${Math.abs(rounded).toLocaleString('en-US')} cr`;
+}
+
 export function drawPhaseCompleteOverlay(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -452,15 +464,17 @@ export function drawPhaseCompleteOverlay(
   ratingColor: string = COL_SUCCESS,
   detailText: string = '',
   tone: 'success' | 'transition' = 'success',
+  financialLines: readonly PhaseFinancialLine[] = [],
 ): void {
   const W = canvas.width;
   const H = canvas.height;
   ctx.font = 'bold 22px monospace';
   const titleLines = wrapHudText(ctx, title, 520);
   const extraTitleH = Math.max(0, titleLines.length - 1) * 26;
-  const detailLines = detailText ? detailText.split('\n').length : 0;
+  const detailLines = (detailText ? detailText.split('\n').length : 0) + financialLines.length;
   const extraDetailH = Math.max(0, detailLines - 1) * 18;
-  const boxH = (ratingText || detailText ? (completionText ? 290 : 220) : (completionText ? 250 : 170)) + extraDetailH + extraTitleH;
+  const hasDetails = detailText.length > 0 || financialLines.length > 0;
+  const boxH = (ratingText || hasDetails ? (completionText ? 290 : 220) : (completionText ? 250 : 170)) + extraDetailH + extraTitleH;
   const top = H / 2 - boxH / 2;
 
   const accent = tone === 'transition' ? COL_WARNING : COL_SUCCESS;
@@ -497,8 +511,16 @@ export function drawPhaseCompleteOverlay(
       ctx.fillText(line, W / 2, y);
       y += 18;
     }
-    y += 4;
   }
+  if (financialLines.length) {
+    for (const line of financialLines) {
+      ctx.fillStyle = line.amount >= 0 ? COL_SUCCESS : COL_WARNING;
+      ctx.font = line.total ? 'bold 14px monospace' : '13px monospace';
+      ctx.fillText(`${line.label}: ${formatSignedCredits(line.amount)}`, W / 2, y);
+      y += 18;
+    }
+  }
+  if (detailText || financialLines.length) y += 4;
 
   if (completionText) {
     ctx.fillStyle = '#88aa88';
