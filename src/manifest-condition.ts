@@ -67,12 +67,22 @@ export function applyIntegrityExposure(
 }
 
 export function landingIntegrityDamage(
-  rating: 'PERFECT' | 'GOOD' | 'HARD',
+  verticalSpeed: number,
+  horizontalSpeed: number,
   baseIntegrityUnits: number,
+  maxVerticalSpeed: number,
+  maxHorizontalSpeed: number,
 ): number {
-  if (rating === 'PERFECT') return Math.max(0, baseIntegrityUnits) * 0.02;
-  if (rating === 'GOOD') return 0.5;
-  return 2;
+  // Specific touchdown impulse is proportional to the velocity removed when the rig
+  // settles. Calibrate the line so the edge of a PERFECT touchdown costs 2% of base
+  // integrity and the corner of the accepted landing envelope costs two whole bars.
+  const impulse = Math.hypot(Math.abs(verticalSpeed), Math.abs(horizontalSpeed));
+  const perfectImpulse = Math.hypot(1, 0.5);
+  const hardImpulse = Math.max(perfectImpulse + 1e-6, Math.hypot(maxVerticalSpeed, maxHorizontalSpeed));
+  const perfectDamage = Math.max(0, baseIntegrityUnits) * 0.02;
+  const damage = perfectDamage
+    + (impulse - perfectImpulse) / (hardImpulse - perfectImpulse) * (2 - perfectDamage);
+  return Math.max(0, Math.min(2, damage));
 }
 
 export function dockingIntegrityDamage(impactSpeed: number): number {

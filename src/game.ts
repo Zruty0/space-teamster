@@ -930,7 +930,13 @@ export class Game {
           const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
           applyIntegrityDamage(
             this.activeManifestIntegrity,
-            landingIntegrityDamage(score.rating, this.activeManifestIntegrity?.baseMax ?? 0),
+            landingIntegrityDamage(
+              score.vSpeed,
+              score.hSpeed,
+              this.activeManifestIntegrity?.baseMax ?? 0,
+              config.landingMaxVSpeed,
+              config.landingMaxHSpeed,
+            ),
           );
           this.completePhase(
             p,
