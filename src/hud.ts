@@ -178,7 +178,7 @@ export function drawHUD(
   missionDvUsed: number = 0,
   missionParDv: number = 0,
   suppressStateOverlays = false,
-): void {
+): number {
   const W = canvas.width;
   const H = canvas.height;
   const terrainH = getTerrainHeight(terrain, ship.x);
@@ -244,7 +244,7 @@ export function drawHUD(
       : 'Build horizontal speed for orbital handoff.')
     : 'Settle near the pad with low speed and low angle.';
 
-  drawHudInfoPanel(ctx, canvas, {
+  const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? (launchGuidance ? `${level.body.name} Orbit` : level.name),
     subtitle: destinationLocation,
@@ -361,6 +361,7 @@ export function drawHUD(
   }
 
   ctx.restore();
+  return destinationPanel.bottom;
 }
 
 export interface LandingScore {

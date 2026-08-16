@@ -4020,7 +4020,7 @@ export function drawOrbitalHUD(
   missionDvUsed: number = 0,
   missionParDv: number = 0,
   suppressStateOverlays = false,
-): void {
+): number {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const r = Math.sqrt(s.x * s.x + s.y * s.y);
@@ -4079,7 +4079,7 @@ export function drawOrbitalHUD(
   if (missionParDv > 0) drawHudLabel(ctx, lx, ly, 'PAR ΔV', `${missionParDv.toFixed(0)} m/s`, missionDvUsed <= missionParDv ? COL_SUCCESS : COL_WARNING), ly += lh;
 
   const targetPanel = orbitalTargetPanel(s, level, pred, peAlt, apAlt);
-  drawHudInfoPanel(ctx, canvas, {
+  const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: level.finalDestinationName ?? destinationName ?? targetPanel.name,
     subtitle: level.finalDestinationLocation ?? destinationLocation,
@@ -4205,4 +4205,5 @@ export function drawOrbitalHUD(
   }
 
   ctx.restore();
+  return destinationPanel.bottom;
 }

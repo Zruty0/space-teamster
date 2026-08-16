@@ -106,17 +106,18 @@ export function drawIntegrityMeter(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   state: IntegrityState,
+  top: number,
 ): void {
   const brickW = 18;
   const brickH = 11;
   const gap = 3;
   const count = state.baseMax + state.bufferMax;
   const barW = count * brickW + Math.max(0, count - 1) * gap;
-  const panelW = Math.max(230, barW + 28);
+  const panelW = 300;
   const panelH = 48;
-  const x = canvas.width / 2 - panelW / 2;
-  const y = 42;
-  const barX = canvas.width / 2 - barW / 2;
+  const x = canvas.width - 20 - panelW;
+  const y = top;
+  const barX = x + panelW / 2 - barW / 2;
   const barY = y + 25;
 
   ctx.save();
@@ -128,7 +129,7 @@ export function drawIntegrityMeter(
   ctx.font = 'bold 11px monospace';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#b8fff1';
-  ctx.fillText('CARGO INTEGRITY', canvas.width / 2, y + 15);
+  ctx.fillText('FRAGILE CARGO INTEGRITY', x + panelW / 2, y + 15);
 
   let slot = 0;
   for (let i = 0; i < state.baseMax; i++, slot++) {

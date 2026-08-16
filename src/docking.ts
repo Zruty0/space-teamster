@@ -1135,7 +1135,7 @@ export function drawDockingHUD(
   missionDvUsed: number = 0,
   missionParDv: number = 0,
   suppressStateOverlays = false,
-): void {
+): number {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
 
@@ -1192,7 +1192,7 @@ export function drawDockingHUD(
     panelRows.push({ label: 'STN', value: `${eDist.toFixed(0)} m > ${level.exitDistance.toFixed(0)} m`, color: eDist >= level.exitDistance ? COL_SUCCESS : COL_HUD });
   }
 
-  drawHudInfoPanel(ctx, canvas, {
+  const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: level.finalDestinationName ?? destinationName ?? level.name,
     subtitle: level.finalDestinationLocation ?? destinationLocation,
@@ -1277,4 +1277,5 @@ export function drawDockingHUD(
   }
 
   ctx.restore();
+  return destinationPanel.bottom;
 }

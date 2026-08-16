@@ -1261,7 +1261,7 @@ export function drawClusterHUD(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   s: ClusterState, level: ClusterLevel, state: 'flying' | 'arrived' | 'crashed', time = 0,
   phaseDvUsed = 0, missionDvUsed = 0, missionParDv = 0, suppressStateOverlays = false,
-): void {
+): number {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const target = targetPort(level);
@@ -1314,7 +1314,7 @@ export function drawClusterHUD(
     rows.push({ label: 'REL V', value: `${speed.toFixed(1)} m/s < ${level.captureMaxSpeed.toFixed(0)} m/s`, color: speed <= level.captureMaxSpeed ? COL_SUCCESS : COL_HUD });
   }
 
-  drawHudInfoPanel(ctx, canvas, {
+  const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'LOCAL TRAFFIC',
     name: target && !level.escapeToOrbitalLevelId ? `${target.member.name} / ${target.port.name}` : level.name,
     subtitle: level.subtitle,
@@ -1358,4 +1358,5 @@ export function drawClusterHUD(
     ctx.fillText('W/A/S/D: Screen thrust  T: SAS  Shift: Hi Thrust  [/]: Warp  BACKSPACE: Restart  Esc: Flight Menu', W / 2, H - 15);
   }
   ctx.restore();
+  return destinationPanel.bottom;
 }

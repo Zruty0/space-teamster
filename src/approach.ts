@@ -1731,7 +1731,7 @@ function drawApproachHUD(
   missionDvUsed: number = 0,
   missionParDv: number = 0,
   suppressStateOverlays = false,
-): void {
+): number {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
   const altKm = (s.y / 1000);
@@ -1810,7 +1810,7 @@ function drawApproachHUD(
         { label: 'SPD', value: `${speed.toFixed(0)} m/s  ${level.gateMinSpeed.toFixed(0)}-${level.gateMaxSpeed.toFixed(0)} m/s`, color: speed >= level.gateMinSpeed && speed <= level.gateMaxSpeed ? COL_SUCCESS : COL_WARNING },
       ];
 
-  drawHudInfoPanel(ctx, canvas, {
+  const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: destinationName ?? (departure ? approachDepartureTargetName(level) : level.poi.name),
     subtitle: destinationLocation,
@@ -1925,6 +1925,7 @@ function drawApproachHUD(
   }
 
   ctx.restore();
+  return destinationPanel.bottom;
 }
 
 export { drawApproachHUD };

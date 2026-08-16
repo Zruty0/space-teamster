@@ -15,6 +15,14 @@ export interface HudRow {
   color?: string;
 }
 
+export interface HudPanelBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  bottom: number;
+}
+
 export interface HudInfoPanel {
   title: string;
   name: string;
@@ -64,7 +72,7 @@ export function drawHudInfoPanel(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   panel: HudInfoPanel,
-): void {
+): HudPanelBounds {
   const W = canvas.width;
   const width = panel.width ?? 300;
   const x = W - 20 - width;
@@ -158,4 +166,5 @@ export function drawHudInfoPanel(
   }
 
   ctx.restore();
+  return { x, y, width, height, bottom: y + height };
 }
