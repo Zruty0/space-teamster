@@ -22,6 +22,7 @@ function applyDetailOverlays(node: WorldNode): WorldNode {
     placement: ESTELLA_PLACEMENTS[node.id] ?? node.placement,
     layoutId: layout?.layoutId ?? node.layoutId,
     autoRotate: layout?.autoRotate ?? node.autoRotate,
+    rotationDegrees: layout?.rotationDegrees ?? node.rotationDegrees,
     accessPoints: layout?.accessPoints ?? node.accessPoints,
     economyTags: economy?.tags ?? node.economyTags,
   };
@@ -33,6 +34,7 @@ function validateOrbitalStationLayouts(nodes: readonly WorldNode[]): WorldValida
     const issues: WorldValidationIssue[] = [];
     if (!node.layoutId) issues.push({ severity: 'error', message: `Orbital station has no local layout: ${node.id}`, nodeId: node.id });
     if (node.autoRotate === undefined) issues.push({ severity: 'error', message: `Orbital station has no autoRotate property: ${node.id}`, nodeId: node.id });
+    if (node.autoRotate === false && !Number.isFinite(node.rotationDegrees)) issues.push({ severity: 'error', message: `Fixed orbital station has no rotation angle: ${node.id}`, nodeId: node.id });
     return issues;
   });
 }

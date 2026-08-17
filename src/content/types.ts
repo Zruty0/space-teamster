@@ -127,6 +127,7 @@ export interface WorldNode {
   placement?: Placement;
   layoutId?: string;
   autoRotate?: boolean;
+  rotationDegrees?: number;
   accessPoints?: AccessPoint[];
   capabilities?: NodeCapabilities;
   atmosphere?: AtmosphereModel;

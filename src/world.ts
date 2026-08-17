@@ -162,6 +162,7 @@ export interface StationPoiDef {
   name: string;
   layoutId?: string;
   autoRotate: boolean;
+  rotationDegrees: number;
   subtitle: string;
   bodyId: string;
   orbit: CircularOrbitDef;

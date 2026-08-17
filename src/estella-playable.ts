@@ -907,6 +907,7 @@ export function createPlayableEstellaMission(
       fillPct: station.docking.undock.fillPct,
       layoutId: station.layoutId,
       autoRotate: station.autoRotate,
+      rotationDegrees: station.rotationDegrees,
       randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'undock'),
       exitDistance: station.docking.undock.exitDistance,
     }));
@@ -937,6 +938,7 @@ export function createPlayableEstellaMission(
       fillPct: station.docking.delivery.fillPct,
       layoutId: station.layoutId,
       autoRotate: station.autoRotate,
+      rotationDegrees: station.rotationDegrees,
       randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'delivery'),
       finalDestinationName: final.name,
       finalDestinationLocation: final.location,
@@ -1038,6 +1040,7 @@ export function createPlayableEstellaMission(
     fillPct: station.docking.undock.fillPct,
     layoutId: station.layoutId,
     autoRotate: station.autoRotate,
+    rotationDegrees: station.rotationDegrees,
     randomSeed: mixMissionLayoutSeed(missionLayoutSeed, station.id, 'undock'),
     exitDistance: station.docking.undock.exitDistance,
   }));
