@@ -21,9 +21,20 @@ function applyDetailOverlays(node: WorldNode): WorldNode {
     ...node,
     placement: ESTELLA_PLACEMENTS[node.id] ?? node.placement,
     layoutId: layout?.layoutId ?? node.layoutId,
+    autoRotate: layout?.autoRotate ?? node.autoRotate,
     accessPoints: layout?.accessPoints ?? node.accessPoints,
     economyTags: economy?.tags ?? node.economyTags,
   };
+}
+
+function validateOrbitalStationLayouts(nodes: readonly WorldNode[]): WorldValidationIssue[] {
+  return nodes.flatMap(node => {
+    if (node.kind !== 'station' || node.placement?.kind !== 'orbit') return [];
+    const issues: WorldValidationIssue[] = [];
+    if (!node.layoutId) issues.push({ severity: 'error', message: `Orbital station has no local layout: ${node.id}`, nodeId: node.id });
+    if (node.autoRotate === undefined) issues.push({ severity: 'error', message: `Orbital station has no autoRotate property: ${node.id}`, nodeId: node.id });
+    return issues;
+  });
 }
 
 function validateClockwiseOrbits(nodes: readonly WorldNode[]): WorldValidationIssue[] {
@@ -58,6 +69,7 @@ export const ESTELLA_NODES: WorldNode[] = ESTELLA_NODE_BLUEPRINTS.map(applyDetai
 export const ESTELLA_VALIDATION_ISSUES: WorldValidationIssue[] = [
   ...validateWorldTree(ESTELLA_NODES),
   ...validateDetailIds(ESTELLA_NODES),
+  ...validateOrbitalStationLayouts(ESTELLA_NODES),
   ...validateClockwiseOrbits(ESTELLA_NODES),
 ];
 

@@ -373,6 +373,7 @@ export function createGenericDockingLevel(opts: {
   targetSlot?: number;
   fillPct?: number;
   layoutId?: string;
+  autoRotate?: boolean;
   randomSeed?: number;
   exitDistance?: number;
   finalDestinationName?: string;
@@ -384,7 +385,9 @@ export function createGenericDockingLevel(opts: {
   const targetSlot = opts.targetSlot ?? 2;
   const localLayout = localLayoutById(opts.layoutId);
   const randomSeed = opts.randomSeed ?? 42;
-  const layoutRotation = localLayout ? seededRandom(randomSeed ^ 0x7f4a7c15)() * Math.PI * 2 : 0;
+  const layoutRotation = localLayout && opts.autoRotate
+    ? seededRandom(randomSeed ^ 0x7f4a7c15)() * Math.PI * 2
+    : 0;
   const bays = localLayout
     ? generateLayoutBays(localLayout, opts.fillPct ?? 0.55, randomSeed, layoutRotation)
     : generateBays(targetSpoke, targetSide, targetSlot, opts.fillPct ?? 0.55, randomSeed);

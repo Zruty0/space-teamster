@@ -269,6 +269,7 @@ function createStationPoi(dockNodeId: string): StationPoiDef {
     id: dockNodeId,
     name: nodeName(dockNodeId),
     layoutId: ESTELLA_NODES_BY_ID.get(dockNodeId)?.layoutId,
+    autoRotate: ESTELLA_NODES_BY_ID.get(dockNodeId)?.autoRotate ?? false,
     subtitle: childPoi?.summary ?? 'Generated Estella docking site',
     bodyId: orbitPlacementDef.parentId,
     orbit: {
