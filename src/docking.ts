@@ -50,6 +50,7 @@ export interface DockingLevel {
   stationX: number; stationY: number;
   layoutId?: string;
   localLayout?: LocalLayout;
+  layoutRotation: number;
 
   // Bay layout (generated)
   bays: BayInfo[];
@@ -138,22 +139,28 @@ function generateBays(targetSpoke: number, targetSide: number, targetSlot: numbe
   return bays;
 }
 
-function generateLayoutBays(layout: LocalLayout, fillPct: number, randomSeed: number): BayInfo[] {
+function generateLayoutBays(layout: LocalLayout, fillPct: number, randomSeed: number, rotation: number): BayInfo[] {
   const rng = seededRandom(randomSeed);
   const targetIndex = Math.floor(rng() * layout.berths.length);
-  return layout.berths.map((berth, index) => ({
-    spokeIdx: -1,
-    side: 0,
-    slot: index,
-    layoutBerthId: berth.id,
-    localX: (berth.svgCenterX - layout.centerX) / layout.svgUnitsPerMeter,
-    localY: -(berth.svgCenterY - layout.centerY) / layout.svgUnitsPerMeter,
-    openAngle: berth.noseAngle + Math.PI,
-    filled: index === targetIndex ? false : rng() < fillPct,
-    isTarget: index === targetIndex,
-    colorIdx: Math.floor(rng() * 5),
-    isPlayerBay: false,
-  }));
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  return layout.berths.map((berth, index) => {
+    const unrotatedX = (berth.svgCenterX - layout.centerX) / layout.svgUnitsPerMeter;
+    const unrotatedY = -(berth.svgCenterY - layout.centerY) / layout.svgUnitsPerMeter;
+    return {
+      spokeIdx: -1,
+      side: 0,
+      slot: index,
+      layoutBerthId: berth.id,
+      localX: unrotatedX * cos - unrotatedY * sin,
+      localY: unrotatedX * sin + unrotatedY * cos,
+      openAngle: berth.noseAngle + rotation + Math.PI,
+      filled: index === targetIndex ? false : rng() < fillPct,
+      isTarget: index === targetIndex,
+      colorIdx: Math.floor(rng() * 5),
+      isPlayerBay: false,
+    };
+  });
 }
 
 /** Get world-space center and open direction of a bay.
@@ -211,18 +218,32 @@ function polygonCollision(
 }
 
 function localLayoutShapeCollision(
-  px: number, py: number, sx: number, sy: number, layout: LocalLayout, shape: LocalLayoutShape,
+  px: number, py: number, sx: number, sy: number, layout: LocalLayout, rotation: number, shape: LocalLayoutShape,
 ): { nx: number; ny: number; depth: number } | null {
   if (shape.paint.opacity <= 0) return null;
   const scale = layout.svgUnitsPerMeter;
-  const lx = layout.centerX + (px - sx) * scale;
-  const ly = layout.centerY - (py - sy) * scale;
+  const worldX = px - sx;
+  const worldY = py - sy;
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const unrotatedX = worldX * cos + worldY * sin;
+  const unrotatedY = -worldX * sin + worldY * cos;
+  const lx = layout.centerX + unrotatedX * scale;
+  const ly = layout.centerY - unrotatedY * scale;
   const polygons: { x: number; y: number }[][] = [];
   if (shape.paint.fill && shape.paint.fillOpacity > 0 && shape.collisionPolygon) polygons.push(shape.collisionPolygon);
   if (shape.paint.stroke && shape.paint.strokeOpacity > 0 && shape.strokeCollisionPolygons) polygons.push(...shape.strokeCollisionPolygons);
   for (const polygon of polygons) {
     const collision = polygonCollision(lx, ly, polygon);
-    if (collision) return { nx: collision.nx, ny: -collision.ny, depth: collision.depth / scale };
+    if (collision) {
+      const unrotatedNormalX = collision.nx;
+      const unrotatedNormalY = -collision.ny;
+      return {
+        nx: unrotatedNormalX * cos - unrotatedNormalY * sin,
+        ny: unrotatedNormalX * sin + unrotatedNormalY * cos,
+        depth: collision.depth / scale,
+      };
+    }
   }
   return null;
 }
@@ -253,11 +274,11 @@ function filledLayoutBayCollision(
 
 /** Check if point is inside station solid geometry. Returns push-out vector or null. */
 function stationCollision(
-  px: number, py: number, sx: number, sy: number, bays: BayInfo[], localLayout?: LocalLayout,
+  px: number, py: number, sx: number, sy: number, bays: BayInfo[], localLayout?: LocalLayout, layoutRotation = 0,
 ): { nx: number; ny: number; depth: number } | null {
   if (localLayout) {
     for (const shape of localLayout.shapes) {
-      const collision = localLayoutShapeCollision(px, py, sx, sy, localLayout, shape);
+      const collision = localLayoutShapeCollision(px, py, sx, sy, localLayout, layoutRotation, shape);
       if (collision) return collision;
     }
     for (const bay of bays) {
@@ -363,8 +384,9 @@ export function createGenericDockingLevel(opts: {
   const targetSlot = opts.targetSlot ?? 2;
   const localLayout = localLayoutById(opts.layoutId);
   const randomSeed = opts.randomSeed ?? 42;
+  const layoutRotation = localLayout ? seededRandom(randomSeed ^ 0x7f4a7c15)() * Math.PI * 2 : 0;
   const bays = localLayout
-    ? generateLayoutBays(localLayout, opts.fillPct ?? 0.55, randomSeed)
+    ? generateLayoutBays(localLayout, opts.fillPct ?? 0.55, randomSeed, layoutRotation)
     : generateBays(targetSpoke, targetSide, targetSlot, opts.fillPct ?? 0.55, randomSeed);
   const level: DockingLevel = {
     id: opts.id,
@@ -382,6 +404,7 @@ export function createGenericDockingLevel(opts: {
     stationX: 0, stationY: 0,
     layoutId: localLayout?.id,
     localLayout,
+    layoutRotation,
     bays,
     beamRange: 12,
     beamStrength: 0.5,
@@ -681,7 +704,7 @@ export function updateDocking(
   for (const [lx, ly] of probes) {
     const wx = s.x + lx * colCos - ly * colSin;
     const wy = s.y + lx * colSin + ly * colCos;
-    const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays, level.localLayout);
+    const col = stationCollision(wx, wy, level.stationX, level.stationY, level.bays, level.localLayout, level.layoutRotation);
     if (col) {
       s.x += col.nx * col.depth * 1.1;
       s.y += col.ny * col.depth * 1.1;
@@ -749,11 +772,15 @@ export function updateDockingCamera(
   if (level.localLayout) {
     const halfWidth = level.localLayout.widthMeters / 2;
     const halfHeight = level.localLayout.heightMeters / 2;
+    const cos = Math.abs(Math.cos(level.layoutRotation));
+    const sin = Math.abs(Math.sin(level.layoutRotation));
+    const rotatedHalfWidth = halfWidth * cos + halfHeight * sin;
+    const rotatedHalfHeight = halfWidth * sin + halfHeight * cos;
     const shipMargin = 15;
-    const minX = Math.min(level.stationX - halfWidth, s.x - shipMargin);
-    const maxX = Math.max(level.stationX + halfWidth, s.x + shipMargin);
-    const minY = Math.min(level.stationY - halfHeight, s.y - shipMargin);
-    const maxY = Math.max(level.stationY + halfHeight, s.y + shipMargin);
+    const minX = Math.min(level.stationX - rotatedHalfWidth, s.x - shipMargin);
+    const maxX = Math.max(level.stationX + rotatedHalfWidth, s.x + shipMargin);
+    const minY = Math.min(level.stationY - rotatedHalfHeight, s.y - shipMargin);
+    const maxY = Math.max(level.stationY + rotatedHalfHeight, s.y + shipMargin);
     targetX = (minX + maxX) / 2;
     targetY = (minY + maxY) / 2;
     targetZoom = Math.min(4, Math.max(1.5, Math.min((W * 0.82) / (maxX - minX), (H * 0.82) / (maxY - minY))));
@@ -988,6 +1015,7 @@ function drawAuthoredStation(
   const [sx, sy] = dws(level.stationX, level.stationY, cam, W, H);
   ctx.save();
   ctx.translate(sx, sy);
+  ctx.rotate(-level.layoutRotation);
   const scale = cam.zoom / layout.svgUnitsPerMeter;
   ctx.scale(scale, scale);
   ctx.translate(-layout.centerX, -layout.centerY);
