@@ -85,7 +85,7 @@ export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
     {
       keys: ['W', 'S'],
       action: 'VERTICAL THROTTLE — GEAR DOWN',
-      description: 'W immediately selects full vertical thrust; S selects idle. The setting persists.',
+      description: 'Increase or decrease the persistent vertical-thrust setting.',
       modeSpecific: true,
     },
     {
@@ -110,9 +110,9 @@ export const SURFACE_FLIGHT_ARTICLE: OperationsManualArticle = {
   procedure: [
     'Landing: deploy the landing gear before final descent.',
     'Press Space to establish hover.',
-    'Use brief W/S selections to adjust your descent rate. Press Space to return to an unaccelerated descent. Use A/D to position the rig over the pad and cancel horizontal drift.',
+    'Use W/S to adjust your descent rate. Press Space to return to an unaccelerated descent. Use A/D to position the rig over the pad and cancel horizontal drift.',
     'Touch down inside the pad with low vertical speed and low horizontal speed.',
-    'Takeoff: with the gear deployed, press Space and then select full throttle with W to begin climbing.',
+    'Takeoff: with the gear deployed, press Space and then increase throttle with W to begin climbing.',
     'Once safely clear of the surface, retract the gear and use direct thrust to climb above the displayed altitude while building horizontal speed in the indicated direction.',
   ],
   tips: {
