@@ -677,11 +677,7 @@ export function updateApproach(
   }
 
   const canBurn = true;
-  if (input.throttleUp && canBurn) {
-    s.throttle = clamp(s.throttle + 2.5 * dt, 0, 1);
-  } else if (!input.throttleDown) {
-    s.throttle = clamp(s.throttle - 3.0 * dt, 0, 1);
-  }
+  s.throttle = input.throttleUp && canBurn ? 1 : 0;
 
   let angAccel = 0;
   if (Math.abs(input.pitch) > 0.01) angAccel += input.pitch * config.rcsAngularAccel;

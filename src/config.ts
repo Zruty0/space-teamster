@@ -10,7 +10,6 @@ export const config = {
   gimbalMaxAngle: 0.262,          // rad (~15°)
   gimbalSlewRate: 0.35,           // rad/s (~20°/s)
   gimbalTorqueEfficiency: 0.4,    // angular accel per linear accel * sin(gimbal)
-  throttleRate: 2.5,              // throttle change per second (keyboard)
 
   // --- RCS ---
   rcsAngularAccel: 3.0,           // rad/s² (rotation)

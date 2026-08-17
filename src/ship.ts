@@ -123,9 +123,8 @@ export function updateShip(
 
   if (ship.gearDeployed) {
     // Gear down: constant vertical lift, optional lateral component.
-    const throttleRate = c.throttleRate * 0.25;
-    if (input.throttleUp) ship.throttle = clamp(ship.throttle + throttleRate * dt, 0, 1);
-    if (input.throttleDown) ship.throttle = clamp(ship.throttle - throttleRate * dt, 0, 1);
+    if (input.throttleUp) ship.throttle = 1;
+    if (input.throttleDown) ship.throttle = 0;
     if (input.setHoverThrottle) ship.throttle = clamp(c.gravity / c.mainEngineAccel, 0, 1);
 
     const lateralSign = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
