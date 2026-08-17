@@ -46,15 +46,15 @@ export const ESTELLA_LAYOUTS: Partial<Record<string, LayoutOverride>> = {
   'estella-ix-supply-depot': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 24 },
 
   // The Wells
-  'estella-x-skim-hub': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 311 },
-  'estella-xc-transit-refuel-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 83 },
-  'estella-xd-orbital-chem-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 146 },
-  'estella-xi-industrial-skim-hub': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 103 },
-  'estella-xia-orbital-chem-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 89 },
-  'estella-xic-research-station': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 91 },
-  'estella-xid-main-port-station': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 13 },
-  'estella-xii-observation-post-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 313 },
-  'estella-xiib-transit-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 126 },
+  'estella-x-skim-hub': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 311 },
+  'estella-xc-transit-refuel-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 83 },
+  'estella-xd-orbital-chem-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 146 },
+  'estella-xi-industrial-skim-hub': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 103 },
+  'estella-xia-orbital-chem-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 89 },
+  'estella-xic-research-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 91 },
+  'estella-xid-main-port-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 13 },
+  'estella-xii-observation-post-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 313 },
+  'estella-xiib-transit-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 126 },
 
   // The Reach
   'estella-xiii-main-port-station': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 293 },
