@@ -213,13 +213,18 @@ function polygonCollision(
 function localLayoutShapeCollision(
   px: number, py: number, sx: number, sy: number, layout: LocalLayout, shape: LocalLayoutShape,
 ): { nx: number; ny: number; depth: number } | null {
-  if (!shape.paint.fill || shape.paint.fillOpacity <= 0 || shape.paint.opacity <= 0 || !shape.collisionPolygon) return null;
+  if (shape.paint.opacity <= 0) return null;
   const scale = layout.svgUnitsPerMeter;
   const lx = layout.centerX + (px - sx) * scale;
   const ly = layout.centerY - (py - sy) * scale;
-  const collision = polygonCollision(lx, ly, shape.collisionPolygon);
-  if (!collision) return null;
-  return { nx: collision.nx, ny: -collision.ny, depth: collision.depth / scale };
+  const polygons: { x: number; y: number }[][] = [];
+  if (shape.paint.fill && shape.paint.fillOpacity > 0 && shape.collisionPolygon) polygons.push(shape.collisionPolygon);
+  if (shape.paint.stroke && shape.paint.strokeOpacity > 0 && shape.strokeCollisionPolygons) polygons.push(...shape.strokeCollisionPolygons);
+  for (const polygon of polygons) {
+    const collision = polygonCollision(lx, ly, polygon);
+    if (collision) return { nx: collision.nx, ny: -collision.ny, depth: collision.depth / scale };
+  }
+  return null;
 }
 
 function filledLayoutBayCollision(
@@ -890,6 +895,8 @@ function drawAuthoredLayoutShape(ctx: CanvasRenderingContext2D, shape: LocalLayo
     ctx.rect(shape.x, shape.y, shape.width, shape.height);
   } else if (shape.kind === 'circle') {
     ctx.arc(shape.cx, shape.cy, shape.radius, 0, Math.PI * 2);
+  } else if (shape.kind === 'ellipse') {
+    ctx.ellipse(shape.cx, shape.cy, shape.radiusX, shape.radiusY, 0, 0, Math.PI * 2);
   } else {
     const path = new Path2D(shape.data);
     if (shape.paint.fill) {

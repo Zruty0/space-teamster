@@ -12,5 +12,5 @@ export interface LayoutOverride {
  * navigable local map. POIs remain semantic destinations; pads/berths/clamps live here.
  */
 export const ESTELLA_LAYOUTS: Partial<Record<string, LayoutOverride>> = {
-  'estella-v-orbital-factory': { layoutId: 'ascension-scaffold' },
+  'estella-v-orbital-factory': { layoutId: 'small-station-2' },
 };

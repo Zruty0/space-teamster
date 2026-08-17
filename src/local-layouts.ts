@@ -1,4 +1,5 @@
-import ascensionScaffoldSvg from '../art/stations/small-station-1.svg?raw';
+import smallStation1Svg from '../art/stations/small-station-1.svg?raw';
+import smallStation2Svg from '../art/stations/small-station-2.svg?raw';
 
 export interface LocalLayoutPaint {
   fill?: string;
@@ -26,6 +27,7 @@ interface LocalLayoutShapeBase {
   // Filled geometry in final SVG coordinates. Open decorative paths have no
   // polygon and therefore render without becoming collision surfaces.
   collisionPolygon?: { x: number; y: number }[];
+  strokeCollisionPolygons?: { x: number; y: number }[][];
 }
 
 export interface LocalLayoutRect extends LocalLayoutShapeBase {
@@ -43,12 +45,20 @@ export interface LocalLayoutCircle extends LocalLayoutShapeBase {
   radius: number;
 }
 
+export interface LocalLayoutEllipse extends LocalLayoutShapeBase {
+  kind: 'ellipse';
+  cx: number;
+  cy: number;
+  radiusX: number;
+  radiusY: number;
+}
+
 export interface LocalLayoutPath extends LocalLayoutShapeBase {
   kind: 'path';
   data: string;
 }
 
-export type LocalLayoutShape = LocalLayoutRect | LocalLayoutCircle | LocalLayoutPath;
+export type LocalLayoutShape = LocalLayoutRect | LocalLayoutCircle | LocalLayoutEllipse | LocalLayoutPath;
 
 export interface LocalLayoutBerth {
   id: string;
@@ -74,7 +84,8 @@ interface LocalLayoutAsset {
 }
 
 const LOCAL_LAYOUT_ASSETS: Record<string, LocalLayoutAsset> = {
-  'ascension-scaffold': { id: 'ascension-scaffold', svg: ascensionScaffoldSvg },
+  'small-station-1': { id: 'small-station-1', svg: smallStation1Svg },
+  'small-station-2': { id: 'small-station-2', svg: smallStation2Svg },
 };
 
 const parsedLayouts = new Map<string, LocalLayout>();
@@ -254,11 +265,12 @@ function arcPoints(
   return points;
 }
 
-function flattenPath(data: string): { x: number; y: number }[] {
+function flattenPath(data: string): { points: { x: number; y: number }[]; closed: boolean } {
   const tokens = pathTokens(data);
   const points: { x: number; y: number }[] = [];
   let index = 0;
   let command = '';
+  let closed = false;
   let x = 0;
   let y = 0;
   let startX = 0;
@@ -302,6 +314,33 @@ function flattenPath(data: string): { x: number; y: number }[] {
         points.push({ x, y });
         break;
       }
+      case 'C': {
+        const c1xValue = number();
+        const c1yValue = number();
+        const c2xValue = number();
+        const c2yValue = number();
+        const endXValue = number();
+        const endYValue = number();
+        const c1x = relative ? x + c1xValue : c1xValue;
+        const c1y = relative ? y + c1yValue : c1yValue;
+        const c2x = relative ? x + c2xValue : c2xValue;
+        const c2y = relative ? y + c2yValue : c2yValue;
+        const endX = relative ? x + endXValue : endXValue;
+        const endY = relative ? y + endYValue : endYValue;
+        const startCurveX = x;
+        const startCurveY = y;
+        for (let i = 1; i <= 24; i++) {
+          const t = i / 24;
+          const mt = 1 - t;
+          points.push({
+            x: mt ** 3 * startCurveX + 3 * mt * mt * t * c1x + 3 * mt * t * t * c2x + t ** 3 * endX,
+            y: mt ** 3 * startCurveY + 3 * mt * mt * t * c1y + 3 * mt * t * t * c2y + t ** 3 * endY,
+          });
+        }
+        x = endX;
+        y = endY;
+        break;
+      }
       case 'A': {
         const rx = number();
         const ry = number();
@@ -321,13 +360,21 @@ function flattenPath(data: string): { x: number; y: number }[] {
         if (x !== startX || y !== startY) points.push({ x: startX, y: startY });
         x = startX;
         y = startY;
+        closed = true;
         command = '';
         break;
       default:
         throw new Error(`Unsupported local-layout SVG path command: ${command}`);
     }
   }
-  return points;
+  return { points, closed };
+}
+
+function berthNoseAngle(direction: string): number {
+  if (direction === 'right') return 0;
+  if (direction === 'up') return Math.PI / 2;
+  if (direction === 'left') return Math.PI;
+  return -Math.PI / 2;
 }
 
 interface BerthElement {
@@ -346,13 +393,40 @@ function pointsBounds(points: readonly { x: number; y: number }[]): { minX: numb
   };
 }
 
-function circlePolygon(cx: number, cy: number, radius: number, transform: LocalLayoutTransform): { x: number; y: number }[] {
+function ellipsePolygon(
+  cx: number, cy: number, radiusX: number, radiusY: number, transform: LocalLayoutTransform,
+): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i < 64; i++) {
     const angle = i / 64 * Math.PI * 2;
-    points.push(transformPoint(transform, cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius));
+    points.push(transformPoint(transform, cx + Math.cos(angle) * radiusX, cy + Math.sin(angle) * radiusY));
   }
   return points;
+}
+
+function strokePolygons(
+  points: readonly { x: number; y: number }[], strokeWidth: number, transform: LocalLayoutTransform,
+): { x: number; y: number }[][] {
+  if (strokeWidth <= 0 || points.length < 2) return [];
+  const polygons: { x: number; y: number }[][] = [];
+  const halfWidth = strokeWidth / 2;
+  for (let i = 0; i < points.length - 1; i++) {
+    const start = points[i];
+    const end = points[i + 1];
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.hypot(dx, dy);
+    if (length < 1e-9) continue;
+    const nx = -dy / length * halfWidth;
+    const ny = dx / length * halfWidth;
+    polygons.push([
+      transformPoint(transform, start.x + nx, start.y + ny),
+      transformPoint(transform, end.x + nx, end.y + ny),
+      transformPoint(transform, end.x - nx, end.y - ny),
+      transformPoint(transform, start.x - nx, start.y - ny),
+    ]);
+  }
+  return polygons;
 }
 
 function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
@@ -393,17 +467,31 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
       const cx = finiteNumber(element.getAttribute('cx') ?? '0', `${id} cx`);
       const cy = finiteNumber(element.getAttribute('cy') ?? '0', `${id} cy`);
       const radius = finiteNumber(element.getAttribute('r'), `${id} radius`);
-      const collisionPolygon = circlePolygon(cx, cy, radius, transform);
+      const collisionPolygon = ellipsePolygon(cx, cy, radius, radius, transform);
       const shape: LocalLayoutCircle = { kind: 'circle', id, paint, transform, collisionPolygon, cx, cy, radius };
+      shapes.push(shape);
+      bounds.push(pointsBounds(collisionPolygon));
+    } else if (element.localName === 'ellipse') {
+      const cx = finiteNumber(element.getAttribute('cx') ?? '0', `${id} cx`);
+      const cy = finiteNumber(element.getAttribute('cy') ?? '0', `${id} cy`);
+      const radiusX = finiteNumber(element.getAttribute('rx'), `${id} radius x`);
+      const radiusY = finiteNumber(element.getAttribute('ry'), `${id} radius y`);
+      const collisionPolygon = ellipsePolygon(cx, cy, radiusX, radiusY, transform);
+      const shape: LocalLayoutEllipse = { kind: 'ellipse', id, paint, transform, collisionPolygon, cx, cy, radiusX, radiusY };
       shapes.push(shape);
       bounds.push(pointsBounds(collisionPolygon));
     } else if (element.localName === 'path') {
       const data = element.getAttribute('d') ?? '';
-      const transformedPoints = flattenPath(data).map(point => transformPoint(transform, point.x, point.y));
-      const collisionPolygon = transformedPoints.length >= 3 ? transformedPoints : undefined;
-      const shape: LocalLayoutPath = { kind: 'path', id, paint, transform, data, collisionPolygon };
+      const flattened = flattenPath(data);
+      const transformedPoints = flattened.points.map(point => transformPoint(transform, point.x, point.y));
+      const collisionPolygon = flattened.closed && transformedPoints.length >= 3 ? transformedPoints : undefined;
+      const strokeCollisionPolygons = paint.stroke && paint.strokeOpacity > 0 && paint.opacity > 0
+        ? strokePolygons(flattened.points, paint.strokeWidth, transform)
+        : undefined;
+      const shape: LocalLayoutPath = { kind: 'path', id, paint, transform, data, collisionPolygon, strokeCollisionPolygons };
       shapes.push(shape);
       if (transformedPoints.length) bounds.push(pointsBounds(transformedPoints));
+      for (const polygon of strokeCollisionPolygons ?? []) bounds.push(pointsBounds(polygon));
     }
 
     for (const child of Array.from(element.children)) visit(child, transform, paint);
@@ -415,9 +503,10 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
   const markerScales = berthElements.map(({ id, element, direction, transform }) => {
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
     const height = finiteNumber(element.getAttribute('height'), `${id} height`);
-    const horizontal = direction === 'left' || direction === 'right';
-    const longScale = transformedVectorLength(transform, horizontal ? width : 0, horizontal ? 0 : height) / 14;
-    const shortScale = transformedVectorLength(transform, horizontal ? 0 : width, horizontal ? height : 0) / 4;
+    const transformedWidth = transformedVectorLength(transform, width, 0);
+    const transformedHeight = transformedVectorLength(transform, 0, height);
+    const longScale = Math.max(transformedWidth, transformedHeight) / 14;
+    const shortScale = Math.min(transformedWidth, transformedHeight) / 4;
     if (Math.abs(longScale - shortScale) > Math.max(longScale, shortScale) * 0.01) {
       throw new Error(`Local-layout berth ${id} is not a 14×4 cargo footprint`);
     }
@@ -437,13 +526,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
     const height = finiteNumber(element.getAttribute('height'), `${id} height`);
     const center = transformPoint(transform, x + width / 2, y + height / 2);
-    const sourceDirection = direction === 'left' ? [-1, 0]
-      : direction === 'right' ? [1, 0]
-        : direction === 'up' ? [0, -1]
-          : [0, 1];
-    const dx = transform.a * sourceDirection[0] + transform.c * sourceDirection[1];
-    const dy = transform.b * sourceDirection[0] + transform.d * sourceDirection[1];
-    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: Math.atan2(-dy, dx) };
+    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction) };
   });
   return {
     id: asset.id,
