@@ -213,31 +213,11 @@ function polygonCollision(
 function localLayoutShapeCollision(
   px: number, py: number, sx: number, sy: number, layout: LocalLayout, shape: LocalLayoutShape,
 ): { nx: number; ny: number; depth: number } | null {
-  if (!shape.paint.fill || shape.paint.fillOpacity <= 0 || shape.paint.opacity <= 0) return null;
+  if (!shape.paint.fill || shape.paint.fillOpacity <= 0 || shape.paint.opacity <= 0 || !shape.collisionPolygon) return null;
   const scale = layout.svgUnitsPerMeter;
   const lx = layout.centerX + (px - sx) * scale;
   const ly = layout.centerY - (py - sy) * scale;
-  let collision: { nx: number; ny: number; depth: number } | null = null;
-  if (shape.kind === 'rect') {
-    if (lx < shape.x || lx > shape.x + shape.width || ly < shape.y || ly > shape.y + shape.height) return null;
-    const edges = [
-      { nx: -1, ny: 0, depth: lx - shape.x },
-      { nx: 1, ny: 0, depth: shape.x + shape.width - lx },
-      { nx: 0, ny: -1, depth: ly - shape.y },
-      { nx: 0, ny: 1, depth: shape.y + shape.height - ly },
-    ];
-    collision = edges.reduce((best, edge) => edge.depth < best.depth ? edge : best);
-  } else if (shape.kind === 'circle') {
-    const dx = lx - shape.cx;
-    const dy = ly - shape.cy;
-    const distance = Math.hypot(dx, dy);
-    if (distance >= shape.radius) return null;
-    collision = distance > 1e-6
-      ? { nx: dx / distance, ny: dy / distance, depth: shape.radius - distance }
-      : { nx: 1, ny: 0, depth: shape.radius };
-  } else {
-    collision = polygonCollision(lx, ly, shape.collisionPolygon);
-  }
+  const collision = polygonCollision(lx, ly, shape.collisionPolygon);
   if (!collision) return null;
   return { nx: collision.nx, ny: -collision.ny, depth: collision.depth / scale };
 }
@@ -903,6 +883,8 @@ function drawDockingStars(ctx: CanvasRenderingContext2D, W: number, H: number): 
 
 // --- Station ---
 function drawAuthoredLayoutShape(ctx: CanvasRenderingContext2D, shape: LocalLayoutShape): void {
+  ctx.save();
+  ctx.transform(shape.transform.a, shape.transform.b, shape.transform.c, shape.transform.d, shape.transform.e, shape.transform.f);
   ctx.beginPath();
   if (shape.kind === 'rect') {
     ctx.rect(shape.x, shape.y, shape.width, shape.height);
@@ -926,6 +908,7 @@ function drawAuthoredLayoutShape(ctx: CanvasRenderingContext2D, shape: LocalLayo
       ctx.stroke(path);
       ctx.restore();
     }
+    ctx.restore();
     return;
   }
   if (shape.paint.fill) {
@@ -944,6 +927,7 @@ function drawAuthoredLayoutShape(ctx: CanvasRenderingContext2D, shape: LocalLayo
     ctx.stroke();
     ctx.restore();
   }
+  ctx.restore();
 }
 
 function drawAuthoredLayoutBay(

@@ -10,9 +10,22 @@ export interface LocalLayoutPaint {
   opacity: number;
 }
 
+export interface LocalLayoutTransform {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+}
+
 interface LocalLayoutShapeBase {
   id: string;
   paint: LocalLayoutPaint;
+  transform: LocalLayoutTransform;
+  // Filled geometry in final SVG coordinates. Open decorative paths have no
+  // polygon and therefore render without becoming collision surfaces.
+  collisionPolygon?: { x: number; y: number }[];
 }
 
 export interface LocalLayoutRect extends LocalLayoutShapeBase {
@@ -33,7 +46,6 @@ export interface LocalLayoutCircle extends LocalLayoutShapeBase {
 export interface LocalLayoutPath extends LocalLayoutShapeBase {
   kind: 'path';
   data: string;
-  collisionPolygon: { x: number; y: number }[];
 }
 
 export type LocalLayoutShape = LocalLayoutRect | LocalLayoutCircle | LocalLayoutPath;
@@ -83,24 +95,103 @@ function styleMap(element: Element): Map<string, string> {
   return styles;
 }
 
-function styleValue(element: Element, styles: Map<string, string>, name: string, fallback: string): string {
-  return element.getAttribute(name) ?? styles.get(name) ?? fallback;
+function styleValue(element: Element, styles: Map<string, string>, name: string): string | undefined {
+  return element.getAttribute(name) ?? styles.get(name);
 }
 
-function parsePaint(element: Element): LocalLayoutPaint {
+const DEFAULT_PAINT: LocalLayoutPaint = {
+  fill: '#000000',
+  fillOpacity: 1,
+  stroke: undefined,
+  strokeOpacity: 1,
+  strokeWidth: 1,
+  strokeDash: [],
+  opacity: 1,
+};
+
+function parsePaint(element: Element, inherited: LocalLayoutPaint = DEFAULT_PAINT): LocalLayoutPaint {
   const styles = styleMap(element);
-  const fill = styleValue(element, styles, 'fill', '#000000');
-  const stroke = styleValue(element, styles, 'stroke', 'none');
-  const dashText = styleValue(element, styles, 'stroke-dasharray', 'none');
+  const fillText = styleValue(element, styles, 'fill');
+  const strokeText = styleValue(element, styles, 'stroke');
+  const dashText = styleValue(element, styles, 'stroke-dasharray');
+  const ownOpacity = finiteNumber(styleValue(element, styles, 'opacity') ?? '1', 'opacity');
   return {
-    fill: fill === 'none' ? undefined : fill,
-    fillOpacity: finiteNumber(styleValue(element, styles, 'fill-opacity', '1'), 'fill opacity'),
-    stroke: stroke === 'none' ? undefined : stroke,
-    strokeOpacity: finiteNumber(styleValue(element, styles, 'stroke-opacity', '1'), 'stroke opacity'),
-    strokeWidth: finiteNumber(styleValue(element, styles, 'stroke-width', '1'), 'stroke width'),
-    strokeDash: dashText === 'none' ? [] : dashText.split(/[ ,]+/).filter(Boolean).map(value => finiteNumber(value, 'stroke dash')),
-    opacity: finiteNumber(styleValue(element, styles, 'opacity', '1'), 'opacity'),
+    fill: fillText === undefined ? inherited.fill : fillText === 'none' ? undefined : fillText,
+    fillOpacity: finiteNumber(styleValue(element, styles, 'fill-opacity') ?? String(inherited.fillOpacity), 'fill opacity'),
+    stroke: strokeText === undefined ? inherited.stroke : strokeText === 'none' ? undefined : strokeText,
+    strokeOpacity: finiteNumber(styleValue(element, styles, 'stroke-opacity') ?? String(inherited.strokeOpacity), 'stroke opacity'),
+    strokeWidth: finiteNumber(styleValue(element, styles, 'stroke-width') ?? String(inherited.strokeWidth), 'stroke width'),
+    strokeDash: dashText === undefined
+      ? inherited.strokeDash
+      : dashText === 'none' ? [] : dashText.split(/[ ,]+/).filter(Boolean).map(value => finiteNumber(value, 'stroke dash')),
+    opacity: inherited.opacity * ownOpacity,
   };
+}
+
+const IDENTITY_TRANSFORM: LocalLayoutTransform = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+
+function multiplyTransforms(left: LocalLayoutTransform, right: LocalLayoutTransform): LocalLayoutTransform {
+  return {
+    a: left.a * right.a + left.c * right.b,
+    b: left.b * right.a + left.d * right.b,
+    c: left.a * right.c + left.c * right.d,
+    d: left.b * right.c + left.d * right.d,
+    e: left.a * right.e + left.c * right.f + left.e,
+    f: left.b * right.e + left.d * right.f + left.f,
+  };
+}
+
+function parseTransform(value: string | null): LocalLayoutTransform {
+  if (!value?.trim()) return IDENTITY_TRANSFORM;
+  let result = IDENTITY_TRANSFORM;
+  const expression = /([a-zA-Z]+)\s*\(([^)]*)\)/g;
+  let match: RegExpExecArray | null;
+  let consumed = '';
+  while ((match = expression.exec(value))) {
+    consumed += match[0];
+    const args = match[2].split(/[ ,]+/).filter(Boolean).map(number => finiteNumber(number, `transform ${match![1]}`));
+    const name = match[1].toLowerCase();
+    let operation: LocalLayoutTransform;
+    if (name === 'matrix' && args.length === 6) {
+      operation = { a: args[0], b: args[1], c: args[2], d: args[3], e: args[4], f: args[5] };
+    } else if (name === 'translate' && (args.length === 1 || args.length === 2)) {
+      operation = { a: 1, b: 0, c: 0, d: 1, e: args[0], f: args[1] ?? 0 };
+    } else if (name === 'scale' && (args.length === 1 || args.length === 2)) {
+      operation = { a: args[0], b: 0, c: 0, d: args[1] ?? args[0], e: 0, f: 0 };
+    } else if (name === 'rotate' && (args.length === 1 || args.length === 3)) {
+      const angle = args[0] * Math.PI / 180;
+      const rotation = { a: Math.cos(angle), b: Math.sin(angle), c: -Math.sin(angle), d: Math.cos(angle), e: 0, f: 0 };
+      operation = args.length === 3
+        ? multiplyTransforms(
+            multiplyTransforms({ a: 1, b: 0, c: 0, d: 1, e: args[1], f: args[2] }, rotation),
+            { a: 1, b: 0, c: 0, d: 1, e: -args[1], f: -args[2] },
+          )
+        : rotation;
+    } else if ((name === 'skewx' || name === 'skewy') && args.length === 1) {
+      const tangent = Math.tan(args[0] * Math.PI / 180);
+      operation = name === 'skewx'
+        ? { a: 1, b: 0, c: tangent, d: 1, e: 0, f: 0 }
+        : { a: 1, b: tangent, c: 0, d: 1, e: 0, f: 0 };
+    } else {
+      throw new Error(`Unsupported local-layout SVG transform: ${match[0]}`);
+    }
+    result = multiplyTransforms(result, operation);
+  }
+  if (consumed.replace(/\s/g, '') !== value.replace(/\s/g, '')) {
+    throw new Error(`Invalid local-layout SVG transform: ${value}`);
+  }
+  return result;
+}
+
+function transformPoint(transform: LocalLayoutTransform, x: number, y: number): { x: number; y: number } {
+  return {
+    x: transform.a * x + transform.c * y + transform.e,
+    y: transform.b * x + transform.d * y + transform.f,
+  };
+}
+
+function transformedVectorLength(transform: LocalLayoutTransform, x: number, y: number): number {
+  return Math.hypot(transform.a * x + transform.c * y, transform.b * x + transform.d * y);
 }
 
 function pathTokens(data: string): string[] {
@@ -239,11 +330,29 @@ function flattenPath(data: string): { x: number; y: number }[] {
   return points;
 }
 
-function berthNoseAngle(direction: string): number {
-  if (direction === 'right') return 0;
-  if (direction === 'up') return Math.PI / 2;
-  if (direction === 'left') return Math.PI;
-  return -Math.PI / 2;
+interface BerthElement {
+  id: string;
+  element: Element;
+  direction: string;
+  transform: LocalLayoutTransform;
+}
+
+function pointsBounds(points: readonly { x: number; y: number }[]): { minX: number; minY: number; maxX: number; maxY: number } {
+  return {
+    minX: Math.min(...points.map(point => point.x)),
+    minY: Math.min(...points.map(point => point.y)),
+    maxX: Math.max(...points.map(point => point.x)),
+    maxY: Math.max(...points.map(point => point.y)),
+  };
+}
+
+function circlePolygon(cx: number, cy: number, radius: number, transform: LocalLayoutTransform): { x: number; y: number }[] {
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i < 64; i++) {
+    const angle = i / 64 * Math.PI * 2;
+    points.push(transformPoint(transform, cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius));
+  }
+  return points;
 }
 
 function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
@@ -251,60 +360,64 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
   const parseError = document.querySelector('parsererror');
   if (parseError) throw new Error(`Invalid local-layout SVG ${asset.id}: ${parseError.textContent ?? 'parse error'}`);
   const shapes: LocalLayoutShape[] = [];
-  const berthElements: { id: string; element: Element; direction: string }[] = [];
+  const berthElements: BerthElement[] = [];
   const bounds: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
 
-  for (const element of Array.from(document.querySelectorAll('rect,circle,path'))) {
+  const visit = (element: Element, parentTransform: LocalLayoutTransform, inheritedPaint: LocalLayoutPaint): void => {
+    if (element.localName === 'defs') return;
+    const transform = multiplyTransforms(parentTransform, parseTransform(element.getAttribute('transform')));
+    const paint = parsePaint(element, inheritedPaint);
     const id = element.getAttribute('id') ?? '';
     const berthMatch = /^berth-(.+)-nose-(left|right|up|down)$/.exec(id);
     if (berthMatch) {
       if (element.localName !== 'rect') throw new Error(`Local-layout berth ${id} must be a rectangle`);
-      berthElements.push({ id, element, direction: berthMatch[2] });
-      continue;
+      berthElements.push({ id, element, direction: berthMatch[2], transform });
+      return;
     }
-    const paint = parsePaint(element);
+
     if (element.localName === 'rect') {
-      const shape: LocalLayoutRect = {
-        kind: 'rect', id, paint,
-        x: finiteNumber(element.getAttribute('x') ?? '0', `${id} x`),
-        y: finiteNumber(element.getAttribute('y') ?? '0', `${id} y`),
-        width: finiteNumber(element.getAttribute('width'), `${id} width`),
-        height: finiteNumber(element.getAttribute('height'), `${id} height`),
-      };
+      const x = finiteNumber(element.getAttribute('x') ?? '0', `${id} x`);
+      const y = finiteNumber(element.getAttribute('y') ?? '0', `${id} y`);
+      const width = finiteNumber(element.getAttribute('width'), `${id} width`);
+      const height = finiteNumber(element.getAttribute('height'), `${id} height`);
+      const collisionPolygon = [
+        transformPoint(transform, x, y),
+        transformPoint(transform, x + width, y),
+        transformPoint(transform, x + width, y + height),
+        transformPoint(transform, x, y + height),
+      ];
+      const shape: LocalLayoutRect = { kind: 'rect', id, paint, transform, collisionPolygon, x, y, width, height };
       shapes.push(shape);
-      bounds.push({ minX: shape.x, minY: shape.y, maxX: shape.x + shape.width, maxY: shape.y + shape.height });
+      bounds.push(pointsBounds(collisionPolygon));
     } else if (element.localName === 'circle') {
-      const shape: LocalLayoutCircle = {
-        kind: 'circle', id, paint,
-        cx: finiteNumber(element.getAttribute('cx') ?? '0', `${id} cx`),
-        cy: finiteNumber(element.getAttribute('cy') ?? '0', `${id} cy`),
-        radius: finiteNumber(element.getAttribute('r'), `${id} radius`),
-      };
+      const cx = finiteNumber(element.getAttribute('cx') ?? '0', `${id} cx`);
+      const cy = finiteNumber(element.getAttribute('cy') ?? '0', `${id} cy`);
+      const radius = finiteNumber(element.getAttribute('r'), `${id} radius`);
+      const collisionPolygon = circlePolygon(cx, cy, radius, transform);
+      const shape: LocalLayoutCircle = { kind: 'circle', id, paint, transform, collisionPolygon, cx, cy, radius };
       shapes.push(shape);
-      bounds.push({ minX: shape.cx - shape.radius, minY: shape.cy - shape.radius, maxX: shape.cx + shape.radius, maxY: shape.cy + shape.radius });
-    } else {
+      bounds.push(pointsBounds(collisionPolygon));
+    } else if (element.localName === 'path') {
       const data = element.getAttribute('d') ?? '';
-      const collisionPolygon = flattenPath(data);
-      if (collisionPolygon.length < 3) throw new Error(`Local-layout path ${id} has no closed collision area`);
-      const shape: LocalLayoutPath = { kind: 'path', id, paint, data, collisionPolygon };
+      const transformedPoints = flattenPath(data).map(point => transformPoint(transform, point.x, point.y));
+      const collisionPolygon = transformedPoints.length >= 3 ? transformedPoints : undefined;
+      const shape: LocalLayoutPath = { kind: 'path', id, paint, transform, data, collisionPolygon };
       shapes.push(shape);
-      bounds.push({
-        minX: Math.min(...collisionPolygon.map(point => point.x)),
-        minY: Math.min(...collisionPolygon.map(point => point.y)),
-        maxX: Math.max(...collisionPolygon.map(point => point.x)),
-        maxY: Math.max(...collisionPolygon.map(point => point.y)),
-      });
+      if (transformedPoints.length) bounds.push(pointsBounds(transformedPoints));
     }
-  }
+
+    for (const child of Array.from(element.children)) visit(child, transform, paint);
+  };
+
+  visit(document.documentElement, IDENTITY_TRANSFORM, DEFAULT_PAINT);
   if (!bounds.length) throw new Error(`Local layout ${asset.id} contains no renderable geometry`);
   if (!berthElements.length) throw new Error(`Local layout ${asset.id} contains no named berths`);
-  const markerScales = berthElements.map(({ id, element, direction }) => {
+  const markerScales = berthElements.map(({ id, element, direction, transform }) => {
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
     const height = finiteNumber(element.getAttribute('height'), `${id} height`);
-    const longSide = direction === 'left' || direction === 'right' ? width : height;
-    const shortSide = direction === 'left' || direction === 'right' ? height : width;
-    const longScale = longSide / 14;
-    const shortScale = shortSide / 4;
+    const horizontal = direction === 'left' || direction === 'right';
+    const longScale = transformedVectorLength(transform, horizontal ? width : 0, horizontal ? 0 : height) / 14;
+    const shortScale = transformedVectorLength(transform, horizontal ? 0 : width, horizontal ? height : 0) / 4;
     if (Math.abs(longScale - shortScale) > Math.max(longScale, shortScale) * 0.01) {
       throw new Error(`Local-layout berth ${id} is not a 14×4 cargo footprint`);
     }
@@ -318,12 +431,19 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
   const minY = Math.min(...bounds.map(bound => bound.minY));
   const maxX = Math.max(...bounds.map(bound => bound.maxX));
   const maxY = Math.max(...bounds.map(bound => bound.maxY));
-  const berths: LocalLayoutBerth[] = berthElements.map(({ id, element, direction }) => {
+  const berths: LocalLayoutBerth[] = berthElements.map(({ id, element, direction, transform }) => {
     const x = finiteNumber(element.getAttribute('x') ?? '0', `${id} x`);
     const y = finiteNumber(element.getAttribute('y') ?? '0', `${id} y`);
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
     const height = finiteNumber(element.getAttribute('height'), `${id} height`);
-    return { id, svgCenterX: x + width / 2, svgCenterY: y + height / 2, noseAngle: berthNoseAngle(direction) };
+    const center = transformPoint(transform, x + width / 2, y + height / 2);
+    const sourceDirection = direction === 'left' ? [-1, 0]
+      : direction === 'right' ? [1, 0]
+        : direction === 'up' ? [0, -1]
+          : [0, 1];
+    const dx = transform.a * sourceDirection[0] + transform.c * sourceDirection[1];
+    const dy = transform.b * sourceDirection[0] + transform.d * sourceDirection[1];
+    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: Math.atan2(-dy, dx) };
   });
   return {
     id: asset.id,
