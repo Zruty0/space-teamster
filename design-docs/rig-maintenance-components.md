@@ -363,7 +363,7 @@ Severity impacts:
 |---|---|---:|---:|
 | Landing Gear Assembly | Supports touchdown, absorbs landing loads, and keeps the rig stable on prepared or rough surfaces. | `4/1` | `50,000 cr` |
 | Docking Coupler | Aligns, captures, and mechanically secures the rig to station docking fixtures. | `3/1` | `30,000 cr` |
-| Tractor Capture Receiver | Lets station tractor beams acquire, align, and safely move the rig during docking operations. | `3/1` | `40,000 cr` |
+| Tractor Capture Receiver | Lets station tractor beams acquire, align, and safely move the rig during docking operations. | `3/2` | `40,000 cr` |
 
 ### Landing Gear Assembly
 
@@ -402,6 +402,25 @@ Severity impacts:
 - **Minor — Coupler wear:** Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
 - **Major — Capture integrity compromised:** Station docking is unavailable; surface landing remains available. Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
 - **Total — Docking coupler failure:** The rig is grounded until the coupler is replaced.
+
+### Tractor Capture Receiver
+
+- **ID:** `landing-tractor-capture-receiver`
+- **Function:** Lets station tractor beams acquire, align, and safely move the rig during docking operations.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `40,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Tractor Field Hardware; Control Electronics
+- **Fault locations:** Port receiver panel; starboard receiver panel; aft receiver panel
+- **Replacement labor:** `6 hours`
+
+Severity impacts:
+
+- **Minor — Capture response degraded:** Tractor-load-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
+- **Major — Capture lock unreliable:** Station docking is unavailable. Tractor-load-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
+- **Total — Tractor receiver failure:** The rig is grounded until the receiver is replaced.
 
 ## Fault Libraries
 
@@ -560,6 +579,28 @@ Major faults:
 | Thermal-transfer passage ruptured | Replace and certify thermal-transfer passage | 8 hours | C |
 | Thermal contact surface warped | Machine or replace thermal contact surface | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Tractor Field Hardware
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Receiver face contaminated | Clean and certify receiver face | 2 hours | F |
+| Pickup-coil connector loose | Secure and test pickup-coil connector | 2 hours | F |
+| Flux-guide alignment drift | Align and lock flux guide | 3 hours | E |
+| Field-coupling gap uneven | Set and certify field-coupling gap | 4 hours | D |
+| Receiver-panel isolator compressed | Replace and balance panel isolator | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Flux guide cracked | Replace and align flux guide | 5 hours | D |
+| Pickup winding shorted | Replace and recertify pickup winding | 6 hours | C |
+| Field-coupling core fractured | Replace and certify coupling core | 7 hours | C |
+| Receiver face warped | Machine or replace receiver face | 7 hours | B |
+| Receiver-panel mount torn free | Rebuild and reinforce panel mount | 8 hours | B |
 
 ### Docking Coupler Hardware
 
