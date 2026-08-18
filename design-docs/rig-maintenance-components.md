@@ -52,7 +52,7 @@ Major faults:
 - **Major threshold:** `1 HP`
 - **Total threshold:** `0 HP`
 - **Fault libraries:** Pressure Vessel; Seals and Penetrations
-- **Fault locations:** Cab shell; aft pressure bulkhead; service penetration cluster
+- **Fault locations:** Forward pressure section; aft pressure section; service-bay pressure section
 - **Replacement labor:** `16 hours`
 
 Severity impacts:
@@ -194,7 +194,7 @@ Severity impacts:
 - **Minor threshold:** `2 HP`
 - **Major threshold:** `1 HP`
 - **Total threshold:** `0 HP`
-- **Fault libraries:** Fluid and Propellant; Pumps and Valves
+- **Fault libraries:** Fluid and Propellant; Flow Control Hardware
 - **Fault locations:** Supply manifold; metering block; core inlet
 - **Replacement labor:** `8 hours`
 
@@ -213,8 +213,8 @@ Severity impacts:
 - **Minor threshold:** `2 HP`
 - **Major threshold:** `1 HP`
 - **Total threshold:** `0 HP`
-- **Fault libraries:** Fluid and Propellant; Pumps and Valves; Heat Exchange
-- **Fault locations:** Core cooling jacket; coil cooling manifold; drive heat exchanger
+- **Fault libraries:** Fluid and Propellant; Flow Control Hardware; Heat Exchange
+- **Fault locations:** Core cooling branch; coil cooling branch; heat-exchanger branch
 - **Replacement labor:** `7 hours`
 
 Severity impacts:
@@ -261,7 +261,7 @@ Severity impacts:
 - **Minor threshold:** `2 HP`
 - **Major threshold:** `1 HP`
 - **Total threshold:** `0 HP`
-- **Fault libraries:** Fluid and Propellant; Pumps and Valves
+- **Fault libraries:** Fluid and Propellant; Flow Control Hardware
 - **Fault locations:** Forward distribution branch; aft distribution branch; thruster accumulator
 - **Replacement labor:** `4 hours`
 
@@ -280,8 +280,8 @@ Severity impacts:
 - **Minor threshold:** `2 HP`
 - **Major threshold:** `1 HP`
 - **Total threshold:** `0 HP`
-- **Fault libraries:** Pumps and Valves; Control Electronics
-- **Fault locations:** Forward valve block; aft valve block; pulse-control rack
+- **Fault libraries:** Flow Control Hardware; Control Electronics
+- **Fault locations:** Forward valve block; aft valve block; pulse-control valve rack
 - **Replacement labor:** `5 hours`
 
 Severity impacts:
@@ -317,11 +317,30 @@ Severity impacts:
 
 - **Minor — Shield protection degraded:** Atmospheric-heat-derived Atmospheric Package strike likelihood is multiplied by `1.25×`.
 - **Major — Shield protection compromised:** Atmospheric-heat-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
-- **Total — Heat shielding failure:** The rig is grounded.
+- **Total — Heat shielding failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
+
+### Atmospheric Surfaces
+
+- **ID:** `atmospheric-surfaces`
+- **Function:** Provides aerodynamic lift, drag, and stability through deployable wings and control surfaces.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `60,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Aerodynamic Surfaces; Panel Bonding
+- **Fault locations:** Port winglet; starboard winglet; aft stabilizer
+- **Replacement labor:** `8 hours`
+
+Severity impacts:
+
+- **Minor — Surface wear:** Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.25×`.
+- **Major — Surface integrity compromised:** Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
+- **Total — Atmospheric surface failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
 
 ## Fault Libraries
 
-Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
+Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
 
 ### Maneuvering Thrusters
 
@@ -376,7 +395,7 @@ Minor faults:
 | Output trim drifting | Calibrate and lock output trim | 3 hours | E |
 | Current limit out of tolerance | Calibrate regulator current limit | 4 hours | D |
 | Load sharing uneven | Balance regulator channels | 4 hours | D |
-| High-thrust transfer timing late | Adjust and certify transfer timing | 5 hours | C |
+| Mode-transfer timing late | Adjust and certify mode-transfer timing | 5 hours | C |
 | Phase setpoint wandering | Recalibrate phase setpoint | 4 hours | D |
 
 Major faults:
@@ -387,7 +406,7 @@ Major faults:
 | Output clamping stage failed | Replace and calibrate clamping stage | 8 hours | C |
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
-| High-thrust transition contactor welded | Replace and certify transition contactor | 7 hours | D |
+| Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
 
 ### Control Electronics
 
@@ -397,7 +416,7 @@ Minor faults:
 |---|---|---:|:---:|
 | Control-board connector oxidized | Clean and reseat control-board connector | 2 hours | F |
 | Calibration memory errors | Reflash and verify calibration memory | 2 hours | E |
-| Sensing input biased | Calibrate regulator sensing input | 3 hours | E |
+| Sensing input biased | Calibrate control sensing input | 3 hours | E |
 | Gate-driver timing drift | Calibrate gate-driver timing | 4 hours | D |
 | Board thermal contact poor | Renew control-board thermal interface | 3 hours | E |
 
@@ -417,43 +436,43 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Filter element loaded | Replace filter element and flush housing | 1.5 hours | F |
+| Local fluid passage restricted | Clear passage and flush local circuit | 1.5 hours | F |
 | Line union seeping | Reseat and seal line union | 2 hours | F |
 | Working fluid contaminated | Flush and polish fluid circuit | 3 hours | E |
-| Manifold pressure uneven | Balance and test manifold branches | 4 hours | D |
-| Accumulator precharge low | Recharge and test accumulator | 2 hours | E |
+| Local flow pressure uneven | Balance and test local flow path | 4 hours | D |
+| Pressure fluctuation detected | Stabilize and test local fluid circuit | 2 hours | E |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Fluid line ruptured | Replace line section and pressure-test circuit | 5 hours | D |
-| Manifold body cracked | Replace and certify manifold body | 7 hours | C |
+| Internal fluid passage ruptured | Replace passage section and pressure-test circuit | 5 hours | D |
+| Fluid housing cracked | Replace and certify local fluid housing | 7 hours | C |
 | Circuit contamination severe | Decontaminate and recertify fluid circuit | 8 hours | C |
-| Accumulator diaphragm failed | Replace diaphragm and rebuild accumulator | 5 hours | D |
+| Pressure boundary failed | Rebuild and pressure-test local boundary | 5 hours | D |
 | Isolation barrier compromised | Rebuild and pressure-test isolation section | 9 hours | B |
 
-### Pumps and Valves
+### Flow Control Hardware
 
 Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Pump inlet restricted | Clear inlet and service pump intake | 2 hours | E |
-| Metering valve sticking | Clean and lap metering valve | 3 hours | E |
-| Check valve leaking back | Replace check-valve cartridge | 2 hours | F |
-| Pump bearing running rough | Replace and align pump bearing | 4 hours | D |
-| Valve actuator travel out of tolerance | Calibrate valve actuator travel | 3 hours | D |
+| Flow-control inlet restricted | Clear inlet and service flow-control unit | 2 hours | E |
+| Metering element sticking | Clean and lap metering element | 3 hours | E |
+| Check element leaking back | Replace check-element cartridge | 2 hours | F |
+| Flow-control mechanism running rough | Service and align flow-control mechanism | 4 hours | D |
+| Flow actuator travel out of tolerance | Calibrate flow-actuator travel | 3 hours | D |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Feed pump seized | Replace and commission feed pump | 6 hours | D |
-| Metering valve jammed | Rebuild and calibrate metering valve | 5 hours | D |
-| Valve actuator burned out | Replace and certify valve actuator | 4 hours | D |
-| Pump impeller fractured | Rebuild and balance pump assembly | 7 hours | C |
-| Bypass valve failed shut | Replace and recommission bypass valve | 5 hours | C |
+| Flow-control unit seized | Rebuild and commission flow-control unit | 6 hours | D |
+| Metering element jammed | Rebuild and calibrate metering element | 5 hours | D |
+| Flow actuator burned out | Replace and certify flow actuator | 4 hours | D |
+| Flow-control mechanism fractured | Rebuild and align flow-control mechanism | 7 hours | C |
+| Bypass element failed shut | Replace and recommission bypass element | 5 hours | C |
 
 ### Heat Exchange
 
@@ -461,21 +480,43 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Heat-exchanger surfaces fouled | Clean and restore heat-exchanger surfaces | 2 hours | F |
+| Thermal-transfer surfaces fouled | Clean and restore thermal-transfer surfaces | 2 hours | F |
 | Thermal interface compound dried | Renew and seat thermal interface | 2 hours | F |
-| Cooling jacket scaled internally | Descale and flush cooling jacket | 3 hours | E |
-| Cold-plate contact uneven | Rebed and secure cold plate | 4 hours | D |
-| Heat-exchanger flow unbalanced | Balance and test heat-exchanger flow | 4 hours | D |
+| Internal thermal passage scaled | Descale and flush thermal passage | 3 hours | E |
+| Thermal contact uneven | Rebed and secure thermal-transfer contact | 4 hours | D |
+| Heat-transfer flow unbalanced | Balance and test local heat-transfer flow | 4 hours | D |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Heat-exchanger core blocked | Strip, clear, and pressure-test exchanger core | 6 hours | D |
-| Cooling jacket cracked | Repair and pressure-test cooling jacket | 8 hours | C |
-| Heat-exchanger matrix ruptured | Replace and certify exchanger matrix | 8 hours | C |
-| Cold plate warped | Machine or replace cold plate | 9 hours | B |
+| Thermal-transfer passage blocked | Strip, clear, and pressure-test thermal passage | 6 hours | D |
+| Thermal-transfer housing cracked | Repair and pressure-test thermal-transfer housing | 8 hours | C |
+| Thermal-transfer passage ruptured | Replace and certify thermal-transfer passage | 8 hours | C |
+| Thermal contact surface warped | Machine or replace thermal contact surface | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Aerodynamic Surfaces
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Surface-joint fairing loose | Secure and align surface-joint fairing | 1.5 hours | F |
+| Leading edge dented | Straighten and dress leading edge | 2 hours | E |
+| Surface skin wrinkled | Tension and secure surface skin | 3 hours | E |
+| Trailing edge out of true | Align and lock trailing edge | 3 hours | D |
+| Surface balance shifted | Rebalance and certify aerodynamic surface | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Leading edge crushed | Replace and align leading-edge section | 5 hours | D |
+| Surface skin torn | Reskin and load-test aerodynamic surface | 6 hours | C |
+| Internal surface spar cracked | Reinforce or replace internal surface spar | 7 hours | C |
+| Aerodynamic panel separated | Rebuild panel attachments and realign surface | 7 hours | C |
+| Aerodynamic surface warped | Jig and restore aerodynamic surface | 8 hours | B |
 
 ### Thermal Protection
 
@@ -509,16 +550,16 @@ Minor faults:
 | Panel edge seal cracked | Renew panel edge seal | 1.5 hours | F |
 | Panel fasteners relaxed | Retorque and lock panel fasteners | 1.5 hours | F |
 | Adhesive void detected | Inject and cure panel adhesive | 3 hours | E |
-| Expansion joint binding | Clean, reset, and lubricate expansion joint | 3 hours | E |
+| Panel joint binding | Clean, reset, and lubricate panel joint | 3 hours | E |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Panel bond line separated | Strip and rebond shield panel | 5 hours | D |
+| Panel bond line separated | Strip and rebond panel | 5 hours | D |
 | Attachment studs pulled through | Replace and reinforce attachment studs | 6 hours | C |
-| Expansion joint torn | Rebuild shield expansion joint | 5 hours | D |
-| Shield panel shifted | Realign and rebond shield panel | 7 hours | C |
+| Panel joint torn | Rebuild bonded panel joint | 5 hours | D |
+| Bonded panel shifted | Realign and rebond panel | 7 hours | C |
 | Mounting bed distorted | Restore and reinforce panel mounting bed | 8 hours | B |
 
 ### Pressure Vessel
@@ -527,21 +568,21 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Shell panel dented | Re-form and stress-relieve shell panel | 4 hours | E |
+| Pressure skin dented | Re-form and stress-relieve pressure skin | 4 hours | E |
 | Pressure seam working loose | Rework and reseal pressure seam | 5 hours | D |
 | Pressure-cycle fatigue found | Stop-drill and reinforce fatigued area | 6 hours | C |
-| Bulkhead out of plane | Square and brace pressure bulkhead | 7 hours | C |
-| Reinforcement ring shifted | Reset and secure reinforcement ring | 5 hours | D |
+| Pressure structure out of plane | Square and brace pressure structure | 7 hours | C |
+| Reinforcement member shifted | Reset and secure reinforcement member | 5 hours | D |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Pressure shell cracked through | Weld and plate pressure shell | 12 hours | B |
+| Pressure structure cracked through | Weld and plate pressure structure | 12 hours | B |
 | Structural seam separated | Rebuild structural pressure seam | 14 hours | B |
-| Pressure bulkhead buckled | Jig, straighten, and reinforce bulkhead | 18 hours | B |
-| Reinforcement ring torn free | Rebuild reinforcement-ring attachment | 15 hours | B |
-| Shell section collapsed | Cut out and replace pressure-shell section | 20 hours | A |
+| Pressure section buckled | Jig, straighten, and reinforce pressure section | 18 hours | B |
+| Reinforcement member torn free | Rebuild reinforcement-member attachment | 15 hours | B |
+| Pressure section collapsed | Cut out and replace pressure section | 20 hours | A |
 
 ### Seals and Penetrations
 
@@ -549,8 +590,8 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Cable gland leaking | Repack and reseal cable gland | 2 hours | F |
-| Pipe penetration seal hardened | Replace pipe penetration seal | 2 hours | F |
+| Penetration seal leaking | Repack and reseal pressure penetration | 2 hours | F |
+| Seal insert hardened | Replace penetration seal insert | 2 hours | F |
 | Feedthrough gasket weeping | Renew gasket and pressure-test feedthrough | 2.5 hours | F |
 | Penetration collar out of seat | Reset and lock penetration collar | 3 hours | E |
 | Sealant bed cracked | Strip and renew sealant bed | 4 hours | E |
@@ -559,9 +600,9 @@ Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Cable penetration block blown | Replace and repot penetration block | 6 hours | D |
-| Pipe penetration collar fractured | Replace collar and pressure-test penetration | 8 hours | C |
-| Feedthrough cluster pulled loose | Rebuild and secure feedthrough cluster | 10 hours | C |
+| Penetration block blown | Replace and repot penetration block | 6 hours | D |
+| Penetration collar fractured | Replace collar and pressure-test penetration | 8 hours | C |
+| Feedthrough assembly pulled loose | Rebuild and secure feedthrough assembly | 10 hours | C |
 | Pressure seal channel torn | Rebuild pressure seal channel | 7 hours | D |
 | Penetration plate warped | Straighten and reseat penetration plate | 9 hours | C |
 
@@ -571,7 +612,7 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Load rail bowed | Straighten and stress-relieve load rail | 5 hours | D |
+| Load-bearing member bowed | Straighten and stress-relieve load-bearing member | 5 hours | D |
 | Load flange distorted | Press and reinforce load flange | 4 hours | D |
 | Fatigue crack initiated | Stop-drill and plate fatigued area | 6 hours | C |
 | Web stiffener working loose | Secure and reinforce web stiffener | 3 hours | E |
@@ -581,7 +622,7 @@ Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Load rail cracked through | Weld and plate load rail | 10 hours | C |
+| Load-bearing member cracked through | Weld and plate load-bearing member | 10 hours | C |
 | Structural web buckled | Replace and reinforce structural web | 12 hours | B |
 | Load-bearing flange torn | Reconstruct load-bearing flange | 12 hours | B |
 | Frame section twisted | Jig, straighten, and brace frame section | 14 hours | B |
@@ -596,8 +637,8 @@ Minor faults:
 | Fasteners under-torqued | Retorque and witness-mark fasteners | 1.5 hours | F |
 | Locking hardware backed off | Replace locking hardware and torque joint | 2 hours | F |
 | Joint faces fretting | Dress and rebed joint faces | 4 hours | E |
-| Load-joint bushings worn | Replace load-joint bushings | 3 hours | E |
-| Load pin working in bore | Refit load pin and restore bore fit | 5 hours | D |
+| Joint bushings worn | Replace joint bushings | 3 hours | E |
+| Joint pin working in bore | Refit joint pin and restore bore fit | 5 hours | D |
 
 Major faults:
 
@@ -605,7 +646,7 @@ Major faults:
 |---|---|---:|:---:|
 | Fastener group sheared | Extract and replace fastener group | 6 hours | D |
 | Joint bore elongated | Sleeve and ream joint bore | 8 hours | C |
-| Load pin cracked | Replace load pin and inspect joint | 5 hours | D |
+| Joint pin cracked | Replace joint pin and inspect joint | 5 hours | D |
 | Joint faces separated | Rebuild and clamp structural joint | 9 hours | C |
 | Attachment lug torn | Rebuild lug and line-bore joint | 12 hours | B |
 
@@ -616,19 +657,19 @@ Minor faults:
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
 | Panel fasteners loose | Secure and witness-mark panel fasteners | 1 hour | F |
-| Access-panel seal lifted | Reseat and bond access-panel seal | 1.5 hours | F |
-| Impact strip dented | Straighten and secure impact strip | 2 hours | E |
-| Body panel buckled | Straighten and brace body panel | 3 hours | E |
+| Panel edge seal lifted | Reseat and bond panel edge seal | 1.5 hours | F |
+| Protective strip dented | Straighten and secure protective strip | 2 hours | E |
+| Exterior panel buckled | Straighten and brace exterior panel | 3 hours | E |
 | Panel seam opened | Dress, close, and reseal panel seam | 3 hours | E |
 
 Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Body panel torn away | Fit replacement panel and restore attachments | 5 hours | D |
-| Access bay exposed | Rebuild and seal access-bay closure | 6 hours | D |
-| Impact rail crushed | Replace impact rail and repair mounting points | 7 hours | C |
-| Body seam split | Rebuild and reinforce body seam | 8 hours | C |
+| Exterior panel torn away | Fit replacement panel and restore attachments | 5 hours | D |
+| Exterior enclosure exposed | Rebuild and seal exterior enclosure | 6 hours | D |
+| Protective rail crushed | Replace protective rail and repair mounting points | 7 hours | C |
+| Exterior seam split | Rebuild and reinforce exterior seam | 8 hours | C |
 | Panel support frame collapsed | Reconstruct panel support frame | 10 hours | B |
 
 ### Mounts and Isolation
@@ -639,7 +680,7 @@ Minor faults:
 |---|---|---:|:---:|
 | Mounting bolts loose | Retorque and lock mounting bolts | 1.5 hours | F |
 | Vibration isolator compressed | Replace vibration isolator | 2 hours | F |
-| Equipment tray shifted | Realign and secure equipment tray | 3 hours | E |
+| Mounted assembly shifted | Realign and secure mounted assembly | 3 hours | E |
 | Mount bushing worn | Replace mount bushing | 3 hours | E |
 | Support bracket cracked | Stop-drill and reinforce support bracket | 4 hours | D |
 
@@ -649,6 +690,6 @@ Major faults:
 |---|---|---:|:---:|
 | Isolator bank failed | Replace and balance isolator bank | 5 hours | D |
 | Mounting bracket fractured | Replace and reinforce mounting bracket | 6 hours | C |
-| Equipment bed warped | Jig and straighten equipment bed | 8 hours | C |
+| Mounting bed warped | Jig and straighten mounting bed | 8 hours | C |
 | Anchor points pulled through | Rebuild and reinforce anchor points | 10 hours | B |
-| Equipment rack partially detached | Remount and reinforce equipment rack | 9 hours | B |
+| Mounted assembly partially detached | Remount and reinforce mounted assembly | 9 hours | B |
