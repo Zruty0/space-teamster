@@ -365,6 +365,25 @@ Severity impacts:
 | Docking Coupler | Aligns, captures, and mechanically secures the rig to station docking fixtures. | `3/1` | `30,000 cr` |
 | Tractor Capture Receiver | Lets station tractor beams acquire, align, and safely move the rig during docking operations. | `3/1` | `40,000 cr` |
 
+### Landing Gear Assembly
+
+- **ID:** `landing-gear-assembly`
+- **Function:** Supports touchdown, absorbs landing loads, and keeps the rig stable on prepared or rough surfaces.
+- **Grade-D HP/AP:** `4/1`
+- **Grade-D cost:** `50,000 cr`
+- **Minor threshold:** `3 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Load-Bearing Structure; Actuators and Linkages; Dampers and Suspension
+- **Fault locations:** Forward landing gear; port main landing gear; starboard main landing gear
+- **Replacement labor:** `8 hours`
+
+Severity impacts:
+
+- **Minor — Landing gear wear:** Landing-impact-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
+- **Major — Landing gear unsafe:** Surface landings are unavailable; station docking remains available. Landing-impact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
+- **Total — Landing gear failure:** The rig is grounded until the assembly is replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -522,6 +541,28 @@ Major faults:
 | Thermal-transfer passage ruptured | Replace and certify thermal-transfer passage | 8 hours | C |
 | Thermal contact surface warped | Machine or replace thermal contact surface | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Dampers and Suspension
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Damper fluid low | Recharge and bleed landing damper | 2 hours | F |
+| Strut seal weeping | Replace seal and pressure-test strut | 2 hours | E |
+| Suspension preload uneven | Reset and balance suspension preload | 3 hours | E |
+| Rebound valve responding slowly | Clean and calibrate rebound valve | 3 hours | D |
+| Shock-mount bushing worn | Replace and align shock-mount bushing | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Damper seal blown | Rebuild and pressure-test landing damper | 4 hours | D |
+| Damper cylinder scored | Hone and rebuild damper cylinder | 5 hours | D |
+| Strut piston bent | Replace and align strut piston | 6 hours | C |
+| Energy absorber fractured | Replace and certify energy absorber | 6 hours | C |
+| Damper attachment torn free | Rebuild and reinforce damper attachment | 8 hours | B |
 
 ### Actuators and Linkages
 
