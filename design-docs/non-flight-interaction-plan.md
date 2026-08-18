@@ -356,17 +356,22 @@ interface EquipmentDef {
   name: string;
   category: EquipmentCategory;
   maxHp: number;
+  maxArmor: number;
   spaceworthyMinHp?: number;
   breakpoints: EquipmentBreakpoint[];
-  wearModel: WearModel;
+  telemetrySusceptibility: TelemetrySusceptibility;
+  subassemblies: ComponentSubassemblyDef[];
 }
 ```
+
+Repeated units are tracked as one component collection rather than many individual condition records. For example, the RCS assembly has one HP/AP state. A persistent fault may identify an authored subassembly such as the aft-port nozzle bank for diagnosis and repair flavor, but that nozzle bank does not have separate HP or service wear.
 
 ```ts
 interface EquipmentState {
   equipmentId: string;
   hp: number;
-  hiddenDamage?: number;
+  armor: number;
+  faults: EquipmentFaultState[];
   lastServicedAt?: number;
 }
 ```
@@ -381,16 +386,16 @@ Example nav computer:
 <20%  Failing to boot   Replacement, grounding
 ```
 
-Completed flights generate wear based on:
+Completed-flight telemetry produces an ordered sequence of strikes rather than degrading every component uniformly. Telemetry inputs include flight time, total ΔV, thrust exposure, landing roughness, atmospheric heat, turbulence, and docking/collision events. Each strike targets one or more of the seven systems, then selects one random component collection in each targeted system.
 
-- flight time
-- total ΔV
-- landing roughness
-- total overheat time in atmosphere
-- hard docking/collision events
-- existing equipment condition
+Components use small integer condition (HP) and armor (AP) pools. Component quality determines maximum HP/AP. Servicing refreshes AP; repairs restore HP. AP is strong but not an absolute buffer: each unit of current AP has five times the strike weight of each unit of maximum HP. For current armor `A` and maximum HP `Hmax`:
 
-Damaged equipment increases the chance/rate of further damage.
+```text
+P(AP hit) = 5A / (5A + Hmax)
+P(HP hit) = Hmax / (5A + Hmax)
+```
+
+An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP. Exact strike counts, telemetry thresholds, system targeting, and mission/retry commit timing remain to be defined.
 
 ### Warnings and grounding
 
