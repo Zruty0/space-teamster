@@ -431,18 +431,19 @@ Minor/Major/replacement parts percentages apply to the installed component's gra
 
 ### Faults and repair work
 
-Components may define optional Minor and Major HP thresholds; Total always occurs at `0 HP`. A fault is generated only the first time an HP hit crosses a threshold from above. For a `4 HP` component with Minor at `3` and Major at `1`, the sequence is Minor on `4→3`, nothing on `3→2`, Major on `2→1`, and Total on `1→0`. A Major fault supersedes the existing Minor fault rather than stacking with it. Total failure supersedes every repairable fault and requires replacement.
+Components may define optional Minor and Major HP thresholds; Total always occurs at `0 HP`. A fault is generated only the first time an HP hit crosses a threshold from above. For a `4 HP` component with Minor at `3` and Major at `1`, the sequence is Minor on `4→3`, nothing on `3→2`, Major on `2→1`, and Total on `1→0`. A Major fault supersedes the existing Minor fault rather than stacking with it. Total failure supersedes every repairable fault and requires replacement. Thresholds are absolute HP values authored against the grade-D baseline and do not increase with component grade; better-grade bonus HP therefore delays threshold crossings.
 
-Fault content comes from reusable libraries keyed by compatible component traits rather than a full component-by-fault Cartesian product. Example families include software, electronics, wiring/connectors, hydraulics, fluid/propellant, bearings/rotating machinery, mechanical linkages, seals/pressure, thermal/cooling, and structure/bodywork. A generated repairable fault stores:
+Fault content usually comes from reusable libraries keyed by compatible component traits rather than a full component-by-fault Cartesian product. A component may instead use a small component-local fault table when generic reuse adds no value, as with the Main Chassis. Example families include software, electronics, wiring/connectors, hydraulics, fluid/propellant, bearings/rotating machinery, mechanical linkages, seals/pressure, thermal/cooling, and structure/bodywork. A generated repairable fault stores:
 
 - severity (`minor` or `major`)
 - fault name
 - repair-action name
-- persistent authored subassembly location for flavor
+- optional persistent authored subassembly location for flavor
 - parts fraction of component base cost
 - labor hours
 - work grade (`A` through `F`)
-- gameplay symptom/effect
+
+The component severity definition owns the Minor/Major/Total gameplay impacts; fault entries own diagnosis and repair flavor.
 
 Parts are `20%` of component base cost for Minor work and `50%` for Major work. Replacement parts are `100%` of base cost. Labor is fault-dependent hours multiplied by the shop's labor rate.
 
@@ -503,9 +504,8 @@ interface MaintenanceShopDef {
   laborRate: number;
   partsMarkup: number;
   honesty: number;
-  competence: number;
+  workGrade: ShopGrade;
   turnaroundMultiplier: number;
-  specialties: string[];
 }
 ```
 
