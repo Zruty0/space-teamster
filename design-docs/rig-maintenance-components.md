@@ -147,9 +147,50 @@ Major faults:
 | Core containment housing distorted | Straighten and reinforce containment housing | 18 hours | A |
 | Fuel conversion face burned through | Replace and certify fuel conversion face | 15 hours | B |
 
+### Field Coil Bank
+
+- **ID:** `powertrain-field-coil-bank`
+- **Function:** Shapes and contains the drive field while transferring thrust into the rig's frame.
+- **Grade-D HP/AP:** `4/4`
+- **Grade-D cost:** `200,000 cr`
+- **Minor threshold:** `3 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault library:** Field Coils
+- **Fault locations:** Forward coil ring; center coil ring; aft coil ring
+- **Replacement labor:** `14 hours`
+
+Severity impacts:
+
+- **Minor — Field geometry degraded:** Thrust-derived Powertrain strike likelihood is multiplied by `1.25×`.
+- **Major — Field containment unstable:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
+- **Total — Field coil failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
+
+### Field Coils
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Coil-terminal fasteners loose | Retorque and lock coil-terminal fasteners | 2 hours | F |
+| Terminal contact resistance high | Clean, dress, and reseat coil terminals | 3 hours | E |
+| Coil preload relaxed | Reset and secure coil preload | 4 hours | E |
+| Winding insulation abraded | Reinsulate and test affected winding | 5 hours | D |
+| Coil segment alignment drift | Align and lock coil segment | 6 hours | C |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Coil winding shorted | Replace and recertify winding section | 12 hours | B |
+| Field conductor burned open | Splice, reinforce, and recertify field conductor | 10 hours | B |
+| Coil ring cracked | Sleeve and reinforce coil ring | 14 hours | B |
+| Coil segment displaced | Jig and reseat coil segment | 12 hours | B |
+| Coil insulation breakdown | Strip, reinsulate, and recertify coil ring | 16 hours | A |
 
 ### Pressure Vessel
 
