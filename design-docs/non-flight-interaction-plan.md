@@ -400,7 +400,15 @@ P(HP hit) = Hmax / (5A + Hmax)
 
 An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP.
 
-A normal mission targets a random mean of approximately **one strike-equivalent**, not exactly one guaranteed strike. Zero-strike missions should be common enough to notice, while the distribution must retain a tail allowing occasional surprising strike clusters. One strike affecting two systems counts as two strike-equivalents because it resolves two component-hit rolls. With seven baseline systems of five fresh `3 HP / 2 AP` components, one mean strike-equivalent per normal mission produces the first fault after roughly three to five missions; concentrated telemetry targeting one system tends toward the early end, while widely distributed targeting tends toward the late end. Exact random distribution, telemetry thresholds/weights, system targeting, and mission/retry commit timing remain to be defined.
+A normal mission targets a random mean of approximately **one strike-equivalent**, not exactly one guaranteed strike. Zero-strike missions should be common enough to notice, while the distribution must retain a tail allowing occasional surprising strike clusters. One strike affecting two systems counts as two strike-equivalents because it resolves two component-hit rolls. With seven baseline systems of five fresh `3 HP / 2 AP` components, one mean strike-equivalent per normal mission produces the first fault after roughly three to five missions; concentrated telemetry targeting one system tends toward the early end, while widely distributed targeting tends toward the late end.
+
+Telemetry produces a separate baseline expected-strike weight for each of the seven systems. Most active-fault effects modify one or more named target systems rather than adding constant strikes or applying an undifferentiated global modifier. All modifiers to the same target system multiply:
+
+```text
+adjustedWeight[system] = baseWeight[system] × product(activeFaultMultipliers[system])
+```
+
+For example, `1.25×` and `1.50×` Body and Frame modifiers combine to `1.875×`. A system with zero telemetry-derived weight remains at zero. The adjusted per-system weights feed the eventual random strike-count distribution, preserving the difference between gentle and abusive flights. Direct fault effects such as disabled high thrust, passenger restrictions, or grounding remain available where appropriate. Exact random distribution, telemetry thresholds/weights, system targeting, and mission/retry commit timing remain to be defined.
 
 ### Component and shop grades
 
