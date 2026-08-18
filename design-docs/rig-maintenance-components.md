@@ -526,6 +526,17 @@ Severity impacts:
 - **Major — Flight information unreliable:** The rig is grounded until repaired.
 - **Total — Instrument panel failure:** The rig remains grounded and the Instrument Panel must be replaced.
 
+## Auxiliary Systems
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Service Power Unit | Stores, converts, and distributes electrical power for cab, control, environmental, communication, and utility equipment. | `3/2` | `50,000 cr` |
+| Environmental Control Unit | Maintains breathable air, temperature, ventilation, and filtration for crew and passengers. | `3/2` | `40,000 cr` |
+| Communications Set | Provides voice, data, beacon, station, Guild, and BBS communications. | `3/1` | `20,000 cr` |
+| Cargo Handling Gear | Operates powered cargo locks, loading aids, winches, and cargo-interface hardware. | `3/1` | `30,000 cr` |
+
+Auxiliary Systems is also the home for optional installed equipment added later, including extra shock absorbers, passenger-comfort systems, and other specialized modules. These additions are not part of the baseline `140,000 cr` replacement value and will define their own condition and maintenance fields when designed.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
