@@ -61,6 +61,25 @@ Severity impacts:
 - **Major — Pressure integrity compromised:** Passenger contracts cannot be accepted. Flight-time telemetry produces twice the normal Auxiliary Systems strike weight. The pilot operates in pressure gear and may continue non-passenger work to reach a repair shop.
 - **Total — Pressure shell failure:** The crew compartment cannot maintain a survivable environment. The rig is grounded and the Cab Pressure Shell must be replaced.
 
+### Cargo Spine
+
+- **ID:** `body-cargo-spine`
+- **Function:** Rear load frame connecting the rig to its cargo coupling and transmitting hauling forces.
+- **Grade-D HP/AP:** `4/2`
+- **Grade-D cost:** `60,000 cr`
+- **Minor threshold:** `3 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Load-Bearing Structure; Joints and Fasteners
+- **Fault locations:** Forward spine root; mid-spine load rail; cargo-coupling cradle
+- **Replacement labor:** `12 hours`
+
+Severity impacts:
+
+- **Minor — Load-path vibration:** Fragile integrity and passenger comfort losses caused by thrust and turbulence increase by 25%. Loaded thrust and docking telemetry produces 25% more Body and Frame strike weight.
+- **Major — Load path compromised:** High thrust is unavailable.
+- **Total — Cargo spine failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -108,3 +127,47 @@ Major faults:
 | Feedthrough cluster pulled loose | Rebuild and secure feedthrough cluster | 10 hours | C |
 | Pressure seal channel torn | Rebuild pressure seal channel | 7 hours | D |
 | Penetration plate warped | Straighten and reseat penetration plate | 9 hours | C |
+
+### Load-Bearing Structure
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Load rail bowed | Straighten and stress-relieve load rail | 5 hours | D |
+| Load flange distorted | Press and reinforce load flange | 4 hours | D |
+| Fatigue crack initiated | Stop-drill and plate fatigued area | 6 hours | C |
+| Web stiffener working loose | Secure and reinforce web stiffener | 3 hours | E |
+| Load path out of alignment | Jig and align load-bearing structure | 6 hours | C |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Load rail cracked through | Weld and plate load rail | 10 hours | C |
+| Structural web buckled | Replace and reinforce structural web | 12 hours | B |
+| Load-bearing flange torn | Reconstruct load-bearing flange | 12 hours | B |
+| Frame section twisted | Jig, straighten, and brace frame section | 14 hours | B |
+| Structural member partially collapsed | Cut out and replace structural member | 16 hours | A |
+
+### Joints and Fasteners
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Fasteners under-torqued | Retorque and witness-mark fasteners | 1.5 hours | F |
+| Locking hardware backed off | Replace locking hardware and torque joint | 2 hours | F |
+| Joint faces fretting | Dress and rebed joint faces | 4 hours | E |
+| Load-joint bushings worn | Replace load-joint bushings | 3 hours | E |
+| Load pin working in bore | Refit load pin and restore bore fit | 5 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Fastener group sheared | Extract and replace fastener group | 6 hours | D |
+| Joint bore elongated | Sleeve and ream joint bore | 8 hours | C |
+| Load pin cracked | Replace load pin and inspect joint | 5 hours | D |
+| Joint faces separated | Rebuild and clamp structural joint | 9 hours | C |
+| Attachment lug torn | Rebuild lug and line-bore joint | 12 hours | B |
