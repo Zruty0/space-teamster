@@ -469,6 +469,25 @@ Major faults:
 | Control assembly shorted | Rebuild wiring and replace damaged control hardware | 5 hours | C |
 | Emergency cutoff interlock failed | Rebuild and certify cutoff interlock | 3 hours | D |
 
+### Flight Computer
+
+- **ID:** `cab-flight-computer`
+- **Function:** Performs control mixing, stabilization, guidance, and transfer calculations.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `55,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Control Electronics; Flight Software
+- **Replacement labor:** `4 hours`
+- **Fault locations:** None; diagnoses are generated without a location.
+
+Severity impacts:
+
+- **Minor — Processing reliability degraded:** Computation-load-derived Cab and Controls strike likelihood is multiplied by `1.25×`.
+- **Major — Flight computer unreliable:** The rig is grounded until repaired.
+- **Total — Flight computer failure:** The rig remains grounded and the Flight Computer must be replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -538,6 +557,28 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Flight Software
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Sensor-fusion cache stale | Purge and rebuild sensor-fusion cache | 1 hour | F |
+| Stabilization gains corrupted | Restore and certify stabilization gains | 1.5 hours | E |
+| Control-mixer calibration drift | Recalibrate and validate control mixer | 2 hours | E |
+| Guidance scheduler timing jitter | Retune and verify guidance scheduler | 2 hours | D |
+| Transfer solver validation errors | Reinstall and certify transfer-solver library | 2 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Flight-state estimator diverging | Rebuild and validate state-estimation service | 3 hours | D |
+| Boot-integrity check failing | Restore and certify secure boot image | 4 hours | C |
+| Guidance kernel corrupted | Reinstall and certify guidance kernel | 4 hours | C |
+| Control loop deadlocked | Rebuild and validate control runtime | 4 hours | C |
+| Failover image unreadable | Reconstruct and certify failover partition | 5 hours | B |
 
 ### Control Electronics
 
