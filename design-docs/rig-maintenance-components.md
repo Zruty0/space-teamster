@@ -575,6 +575,25 @@ Severity impacts:
 - **Major — Habitable environment unreliable:** Passenger contracts cannot be accepted. The pilot may continue non-passenger work in pressure gear. Flight-time-derived Auxiliary Systems strike likelihood is multiplied by `1.75×`.
 - **Total — Environmental control failure:** The rig is grounded until the unit is replaced.
 
+### Communications Set
+
+- **ID:** `auxiliary-communications`
+- **Function:** Provides voice, data, beacon, station, Guild, and BBS communications.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `20,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Communications Hardware; Control Electronics
+- **Fault locations:** Forward communications pod; aft communications pod
+- **Replacement labor:** `3 hours`
+
+Severity impacts:
+
+- **Minor — Signal quality degraded:** Communications-use-derived Auxiliary Systems strike likelihood is multiplied by `1.25×`.
+- **Major — Communications unreliable:** Communications-use-derived Auxiliary Systems strike likelihood is multiplied by `1.75×`.
+- **Total — Communications failure:** The rig is grounded until the Communications Set is replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -644,6 +663,28 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Communications Hardware
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Antenna radome contaminated | Clean and certify antenna radome | 1.5 hours | F |
+| Feedline connector oxidized | Clean and reseat feedline connector | 2 hours | F |
+| Antenna coupler out of tune | Tune and certify antenna coupler | 2 hours | E |
+| Beacon-power calibration drift | Calibrate and certify beacon output | 2 hours | E |
+| Transceiver thermal contact poor | Renew and seat transceiver thermal interface | 2 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Antenna element fractured | Replace and align antenna element | 3 hours | D |
+| Feedline shorted | Replace and certify feedline | 3 hours | D |
+| Pod enclosure cracked | Repair and reseal communications pod | 4 hours | D |
+| Transceiver power stage failed | Replace and certify transceiver power stage | 4 hours | C |
+| Signal duplexer burned out | Replace and certify signal duplexer | 4 hours | C |
 
 ### Atmosphere Processing
 
