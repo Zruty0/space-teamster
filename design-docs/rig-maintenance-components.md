@@ -223,6 +223,16 @@ Severity impacts:
 - **Major — Cooling capacity restricted:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
 - **Total — Drive cooling failure:** The rig is grounded.
 
+## Steering and Thrusters
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Maneuvering Thruster Array | Provides lateral, rotational, braking, and fine-positioning thrust throughout every flight mode. | `3/1` | `50,000 cr` |
+| Thruster Feed Assembly | Distributes fuel and maintains delivery pressure for the maneuvering thrusters. | `3/2` | `20,000 cr` |
+| Thruster Valve Bank | Meters and times individual thruster firings from commands issued by the flight controls. | `3/2` | `30,000 cr` |
+
+The Landing and Docking system will include a separate **Tractor Capture Receiver** for the rig-side receiver, alignment hardware, and force-coupling equipment used by station tractor beams.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
