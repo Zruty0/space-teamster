@@ -298,6 +298,27 @@ Severity impacts:
 | Atmospheric Surfaces | Provides aerodynamic lift, drag, and stability through deployable wings and control surfaces. | `3/1` | `60,000 cr` |
 | Surface Actuators | Deploys, angles, and locks the atmospheric surfaces in response to flight controls. | `3/2` | `30,000 cr` |
 
+The complete Atmospheric Package is optional equipment purchased and installed later rather than standard rig equipment. An uninstalled package appears as not installed rather than damaged. Its components receive no telemetry strike weight outside atmospheric flight, so vacuum and airless missions cannot damage them. Atmospheric work requires the package.
+
+### Heat Shielding
+
+- **ID:** `atmospheric-heat-shielding`
+- **Function:** Protects the rig and its internal equipment from atmospheric-entry heat.
+- **Grade-D HP/AP:** `4/2`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `3 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Thermal Protection; Panel Bonding
+- **Fault locations:** Forward belly shield; central belly shield; aft drive shield
+- **Replacement labor:** `6 hours`
+
+Severity impacts:
+
+- **Minor — Shield protection degraded:** Atmospheric-heat-derived Atmospheric Package strike likelihood is multiplied by `1.25×`.
+- **Major — Shield protection compromised:** Atmospheric-heat-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
+- **Total — Heat shielding failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -455,6 +476,50 @@ Major faults:
 | Heat-exchanger matrix ruptured | Replace and certify exchanger matrix | 8 hours | C |
 | Cold plate warped | Machine or replace cold plate | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Thermal Protection
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Thermal tile chipped | Replace and seal thermal tile | 2 hours | F |
+| Ablative coating glazed | Strip and renew ablative coating | 2 hours | E |
+| Char layer uneven | Dress and recoat shield surface | 3 hours | E |
+| Heat-spreader contact poor | Rebed and secure heat spreader | 4 hours | D |
+| Shield surface crazed | Seal and recoat crazed shield area | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Shield panel burned through | Replace and certify shield panel | 6 hours | C |
+| Thermal barrier delaminated | Remove and rebond thermal barrier | 8 hours | C |
+| Heat spreader cracked | Replace and test heat spreader | 7 hours | C |
+| Insulation blanket carbonized | Replace and seal insulation blanket | 5 hours | D |
+| Shield substrate warped | Jig and restore shield substrate | 10 hours | B |
+
+### Panel Bonding
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Bonding strip lifted | Clean and rebond panel strip | 2 hours | F |
+| Panel edge seal cracked | Renew panel edge seal | 1.5 hours | F |
+| Panel fasteners relaxed | Retorque and lock panel fasteners | 1.5 hours | F |
+| Adhesive void detected | Inject and cure panel adhesive | 3 hours | E |
+| Expansion joint binding | Clean, reset, and lubricate expansion joint | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Panel bond line separated | Strip and rebond shield panel | 5 hours | D |
+| Attachment studs pulled through | Replace and reinforce attachment studs | 6 hours | C |
+| Expansion joint torn | Rebuild shield expansion joint | 5 hours | D |
+| Shield panel shifted | Realign and rebond shield panel | 7 hours | C |
+| Mounting bed distorted | Restore and reinforce panel mounting bed | 8 hours | B |
 
 ### Pressure Vessel
 
