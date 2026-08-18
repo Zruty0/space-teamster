@@ -447,7 +447,7 @@ The component severity definition owns the Minor/Major/Total gameplay impacts; f
 
 Parts are `20%` of component base cost for Minor work and `50%` for Major work. Replacement parts are `100%` of base cost. Labor is fault-dependent hours multiplied by the shop's labor rate.
 
-Grade A is the most demanding/specialized work and F is the simplest. A shop may perform work at its capability grade or any easier grade: a C shop can do C/D/E/F, while an F shop can only replace modules. Replacement is always F-grade work, so a shop unable to perform the proper repair can recommend full replacement instead.
+Grade A is exceptional specialist/major-shipyard work; B is advanced structural or precision work; C is full-service professional work; D is ordinary licensed repair work; E needs only basic tools/limited facilities; and F covers trivial servicing, simple part changes, and standardized replacement. A shop may perform work at its capability grade or any easier grade: a C shop can do C/D/E/F, while an F shop can perform F-grade repairs and replacements. Replacement is always F-grade work, so a shop unable to perform the proper repair can recommend full replacement instead.
 
 A successful repair always restores the component to full HP, restores AP to its serviced maximum, clears the fault, and updates service time. Repair therefore includes servicing. Standalone servicing restores AP to maximum but does not restore lost HP. Replacement installs the component at full HP and AP and clears Total failure.
 
