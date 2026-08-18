@@ -99,6 +99,54 @@ Severity impacts:
 - **Major — Exposed and unsecured equipment:** Auxiliary Systems strike likelihood is multiplied by `1.75×`.
 - **Total — Bodywork and mounting failure:** The rig is grounded.
 
+## Powertrain
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Main Drive Core | Converts Guild fuel into the motive force that provides standard and high thrust. | `5/4` | `300,000 cr` |
+| Field Coil Bank | Shapes and contains the drive field while transferring thrust into the rig's frame. | `4/4` | `200,000 cr` |
+| Regulator Bank | Maintains field phase, output stability, and safe transitions between standard and high thrust. | `3/3` | `120,000 cr` |
+| Fuel Feed Assembly | Filters, meters, and delivers Guild fuel to the drive core. | `3/2` | `60,000 cr` |
+| Drive Cooling Loop | Removes waste heat from the core, coils, and regulator hardware. | `3/1` | `50,000 cr` |
+
+### Main Drive Core
+
+- **ID:** `powertrain-main-drive-core`
+- **Function:** Converts Guild fuel into the motive force that provides standard and high thrust.
+- **Grade-D HP/AP:** `5/4`
+- **Grade-D cost:** `300,000 cr`
+- **Minor threshold:** `3 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Replacement labor:** `18 hours`
+- **Fault source:** Authored component-local tables; no fault library or separate location pool.
+
+Severity impacts:
+
+- **Minor — Drive efficiency degraded:** Fuel use per unit of Delta-V is multiplied by `1.10×`. Thrust-derived Powertrain strike likelihood is multiplied by `1.25×`. Standard and high thrust remain available.
+- **Major — Drive output unstable:** High thrust is unavailable. Fuel use per unit of Delta-V is multiplied by `1.25×`. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
+- **Total — Drive core failure:** The rig is grounded.
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Core reaction face fouled | Clean and recondition core reaction face | 5 hours | E |
+| Converter lattice out of balance | Balance and recertify converter lattice | 6 hours | C |
+| Thrust-transfer collar out of alignment | Align and lock thrust-transfer collar | 5 hours | C |
+| Core support preload relaxed | Reset and secure core support preload | 3 hours | F |
+| Fuel injector plate uneven | Clean, match, and calibrate injector plate | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Core reaction chamber cracked | Sleeve and reinforce reaction chamber | 14 hours | B |
+| Converter lattice fractured | Replace and balance converter lattice section | 16 hours | A |
+| Thrust-transfer collar warped | Jig and restore thrust-transfer collar | 12 hours | B |
+| Core containment housing distorted | Straighten and reinforce containment housing | 18 hours | A |
+| Fuel conversion face burned through | Replace and certify fuel conversion face | 15 hours | B |
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
