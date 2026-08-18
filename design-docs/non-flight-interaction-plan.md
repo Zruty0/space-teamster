@@ -395,7 +395,9 @@ P(AP hit) = 5A / (5A + Hmax)
 P(HP hit) = Hmax / (5A + Hmax)
 ```
 
-An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP. Exact strike counts, telemetry thresholds, system targeting, and mission/retry commit timing remain to be defined.
+An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP.
+
+A normal mission targets a random mean of approximately **one strike-equivalent**, not exactly one guaranteed strike. Zero-strike missions should be common enough to notice, while the distribution must retain a tail allowing occasional surprising strike clusters. One strike affecting two systems counts as two strike-equivalents because it resolves two component-hit rolls. With seven baseline systems of five fresh `3 HP / 2 AP` components, one mean strike-equivalent per normal mission produces the first fault after roughly three to five missions; concentrated telemetry targeting one system tends toward the early end, while widely distributed targeting tends toward the late end. Exact random distribution, telemetry thresholds/weights, system targeting, and mission/retry commit timing remain to be defined.
 
 ### Faults and repair work
 
