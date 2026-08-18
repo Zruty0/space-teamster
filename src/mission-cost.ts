@@ -4,6 +4,7 @@ import { ESTELLA_SURFACE_FLIGHT_PROFILES, type EstellaSurfaceFlightProfile } fro
 import { type Placement, type WorldNode } from './content/types';
 import { type EstellaTransferOption } from './estella-mission';
 import type { FragileCargoTerms } from './cargo-handling';
+import type { PassengerComfortTerms } from './passenger-comfort';
 import { bodyById, type BodyDef } from './world';
 
 export interface MissionCostBreakdownItem {
@@ -72,6 +73,8 @@ export interface MissionCargoSpec {
   cargoTypeId?: string;
   /** Explicit cargo-catalog classification; absent cargo is ordinary. */
   fragile?: FragileCargoTerms;
+  /** Explicit passenger comfort terms; present only on player-flown passenger manifests. */
+  passengerComfort?: PassengerComfortTerms;
 }
 
 const CARGO_CLASSES: Record<CargoMassClass, { label: string; minMass: number; maxMass: number }> = {

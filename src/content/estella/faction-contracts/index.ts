@@ -1,6 +1,7 @@
 import type { TeamsterCertificationId } from '../../../career-state';
 import type { MissionCargoSpec } from '../../../mission-cost';
 import { classifyMissionCargo } from '../../../cargo-handling';
+import { passengerComfortTerms } from '../../../passenger-comfort';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { CINDERHOOK_REFINERS_PROVIDER } from './cinderhook-refiners-contracts';
@@ -109,7 +110,10 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
-  const cargo = classifyMissionCargo(candidate.cargo);
+  const classifiedCargo = classifyMissionCargo(candidate.cargo);
+  const cargo = candidate.category === 'passenger' && candidate.travelMode !== 'old-nell'
+    ? { ...classifiedCargo, passengerComfort: passengerComfortTerms(classifiedCargo.label) }
+    : classifiedCargo;
   return {
     ...candidate,
     cargo,
