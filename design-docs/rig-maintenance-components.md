@@ -166,6 +166,25 @@ Severity impacts:
 - **Major — Field containment unstable:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
 - **Total — Field coil failure:** The rig is grounded.
 
+### Regulator Bank
+
+- **ID:** `powertrain-regulator-bank`
+- **Function:** Maintains field phase, output stability, and safe transitions between standard and high thrust.
+- **Grade-D HP/AP:** `3/3`
+- **Grade-D cost:** `120,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Power Regulation; Control Electronics
+- **Fault locations:** Primary regulator rack; secondary regulator rack; high-thrust regulator rack
+- **Replacement labor:** `10 hours`
+
+Severity impacts:
+
+- **Minor — Regulation drift:** Thrust-derived Powertrain strike likelihood is multiplied by `1.25×`.
+- **Major — Regulation instability:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
+- **Total — Regulator failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -191,6 +210,50 @@ Major faults:
 | Coil ring cracked | Sleeve and reinforce coil ring | 14 hours | B |
 | Coil segment displaced | Jig and reseat coil segment | 12 hours | B |
 | Coil insulation breakdown | Strip, reinsulate, and recertify coil ring | 16 hours | A |
+
+### Power Regulation
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Output trim drifting | Calibrate and lock output trim | 3 hours | E |
+| Current limit out of tolerance | Calibrate regulator current limit | 4 hours | D |
+| Load sharing uneven | Balance regulator channels | 4 hours | D |
+| High-thrust transfer timing late | Adjust and certify transfer timing | 5 hours | C |
+| Phase setpoint wandering | Recalibrate phase setpoint | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Regulator channel dropped out | Rebuild and recommission regulator channel | 8 hours | C |
+| Output clamping stage failed | Replace and calibrate clamping stage | 8 hours | C |
+| Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
+| Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
+| High-thrust transition contactor welded | Replace and certify transition contactor | 7 hours | D |
+
+### Control Electronics
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Control-board connector oxidized | Clean and reseat control-board connector | 2 hours | F |
+| Calibration memory errors | Reflash and verify calibration memory | 2 hours | E |
+| Sensing input biased | Calibrate regulator sensing input | 3 hours | E |
+| Gate-driver timing drift | Calibrate gate-driver timing | 4 hours | D |
+| Board thermal contact poor | Renew control-board thermal interface | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Control processor intermittent | Replace and recommission control processor | 6 hours | C |
+| Gate-driver bank burned out | Replace and calibrate gate-driver bank | 7 hours | C |
+| Reference supply collapsed | Rebuild control-reference supply | 6 hours | D |
+| Control backplane cracked | Replace and certify control backplane | 9 hours | B |
+| Safety interlock false-tripping | Rebuild and validate safety-interlock circuit | 5 hours | D |
 
 ### Pressure Vessel
 
