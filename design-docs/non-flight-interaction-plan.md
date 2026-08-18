@@ -355,8 +355,9 @@ interface EquipmentDef {
   id: string;
   name: string;
   category: EquipmentCategory;
-  maxHp: number;
-  maxArmor: number;
+  baseHp: number; // grade-D maximum
+  baseArmor: number; // grade-D serviced baseline
+  baseCost: number; // grade-D component cost
   spaceworthyMinHp?: number;
   breakpoints: EquipmentBreakpoint[];
   telemetrySusceptibility: TelemetrySusceptibility;
@@ -369,10 +370,12 @@ Repeated units are tracked as one component collection rather than many individu
 ```ts
 interface EquipmentState {
   equipmentId: string;
+  grade: ComponentGrade;
   hp: number;
   armor: number;
   fault?: EquipmentFaultState;
   lastServicedAt?: number;
+  lastServiceShopGrade?: ShopGrade;
 }
 ```
 
@@ -398,6 +401,33 @@ P(HP hit) = Hmax / (5A + Hmax)
 An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP.
 
 A normal mission targets a random mean of approximately **one strike-equivalent**, not exactly one guaranteed strike. Zero-strike missions should be common enough to notice, while the distribution must retain a tail allowing occasional surprising strike clusters. One strike affecting two systems counts as two strike-equivalents because it resolves two component-hit rolls. With seven baseline systems of five fresh `3 HP / 2 AP` components, one mean strike-equivalent per normal mission produces the first fault after roughly three to five missions; concentrated telemetry targeting one system tends toward the early end, while widely distributed targeting tends toward the late end. Exact random distribution, telemetry thresholds/weights, system targeting, and mission/retry commit timing remain to be defined.
+
+### Component and shop grades
+
+Component grade, shop grade, and repair work grade all use A–F but are distinct qualified values. Grade D is the authored component baseline. Component grade modifies maximum HP, serviced baseline AP, and cost:
+
+| Component grade | HP modifier | AP modifier | Cost multiplier |
+|---|---:|---:|---:|
+| A | +1 | +1 | 4.0× |
+| B | +1 | +0 | 2.0× |
+| C | +1 | +0 | 1.5× |
+| D | +0 | +0 | 1.0× |
+| E | +0 | −1 | 0.9× |
+| F | +0 | −1 | 0.8× |
+
+Derived values are:
+
+```text
+maximum HP = base HP + component-grade HP modifier
+component AP baseline = max(0, base AP + component-grade AP modifier)
+component cost = base cost × component-grade cost multiplier
+```
+
+Shop grade also changes the AP supplied by servicing: A/B shops add `+1 AP`, C/D/E shops add `+0 AP`, and F shops apply `−1 AP`. Service first recalculates the installed component's grade-adjusted AP baseline, then applies the shop modifier once; repeated service never stacks bonuses. Effective serviced AP is clamped to at least zero. Repair counts as service and uses the repairing shop's modifier.
+
+For a baseline `3 HP / 2 AP` component, grades resolve to A `4/3`, B `4/2`, C `4/2`, D `3/2`, E `3/1`, and F `3/1` before shop service quality. A D-grade component leaves an A/B shop at `3 AP`, a C/D/E shop at `2 AP`, and an F shop at `1 AP`. An F-grade component serviced by an F shop leaves with `0 AP`.
+
+Minor/Major/replacement parts percentages apply to the installed component's grade-adjusted cost. Replacement may install a different purchased grade, after which HP/AP are recalculated for that grade and the replacing shop.
 
 ### Faults and repair work
 
