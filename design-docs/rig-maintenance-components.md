@@ -431,6 +431,44 @@ Severity impacts:
 | Navigation Instruments | Measures attitude, motion, range, atmospheric state, and relative position. | `3/2` | `40,000 cr` |
 | Instrument Panel | Displays flight data, equipment condition, warnings, and control-mode status. | `3/1` | `20,000 cr` |
 
+### Driver Controls
+
+- **ID:** `cab-driver-controls`
+- **Function:** Converts throttle, steering, rotation, wing, and mode inputs into flight commands.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `25,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Replacement labor:** `4 hours`
+- **Fault source:** Authored component-local tables; no separate location pool.
+
+Severity impacts:
+
+- **Minor — Control input wear:** Control-use-derived Cab and Controls strike likelihood is multiplied by `1.25×`.
+- **Major — Command integrity compromised:** The rig is grounded until repaired.
+- **Total — Driver control failure:** The rig remains grounded and the Driver Controls must be replaced.
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Switch contact oxidized | Clean and certify switch contacts | 1.5 hours | F |
+| Throttle detent worn | Replace and adjust throttle detent | 2 hours | F |
+| Control-return spring weak | Replace and balance return spring | 2 hours | E |
+| Control-input calibration drift | Calibrate and certify control input | 2 hours | E |
+| Input sensor producing noise | Replace and calibrate input sensor | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Throttle mechanism jammed | Rebuild and calibrate throttle mechanism | 4 hours | D |
+| Steering-control linkage fractured | Replace and align control linkage | 5 hours | C |
+| Command-bus interface failed | Replace and commission command interface | 4 hours | D |
+| Control assembly shorted | Rebuild wiring and replace damaged control hardware | 5 hours | C |
+| Emergency cutoff interlock failed | Rebuild and certify cutoff interlock | 3 hours | D |
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
