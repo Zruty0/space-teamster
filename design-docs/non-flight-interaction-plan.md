@@ -331,13 +331,30 @@ Old Nell is unique: the first local big iron, too old for profitable trunk line 
 
 ## Damage, Wear, Repair
 
-Rig equipment is persistent career state.
+Rig equipment is persistent career state. The Ship Status view groups components under seven confirmed, player-facing categories, each with its own status icon:
+
+1. **Body and Frame**
+2. **Powertrain**
+3. **Steering and Thrusters**
+4. **Atmospheric Package**
+5. **Landing and Docking**
+6. **Cab and Controls**
+7. **Auxiliary Systems**
 
 ```ts
+type EquipmentCategory =
+  | 'body-frame'
+  | 'powertrain'
+  | 'steering-thrusters'
+  | 'atmospheric-package'
+  | 'landing-docking'
+  | 'cab-controls'
+  | 'auxiliary-systems';
+
 interface EquipmentDef {
   id: string;
   name: string;
-  category: 'propulsion' | 'rcs' | 'landing' | 'avionics' | 'thermal' | 'electrical' | 'cargo' | 'lights';
+  category: EquipmentCategory;
   maxHp: number;
   spaceworthyMinHp?: number;
   breakpoints: EquipmentBreakpoint[];
