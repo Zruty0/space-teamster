@@ -488,6 +488,25 @@ Severity impacts:
 - **Major — Flight computer unreliable:** The rig is grounded until repaired.
 - **Total — Flight computer failure:** The rig remains grounded and the Flight Computer must be replaced.
 
+### Navigation Instruments
+
+- **ID:** `cab-navigation-instruments`
+- **Function:** Measures attitude, motion, range, atmospheric state, and relative position.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `40,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Navigation Sensors; Control Electronics
+- **Replacement labor:** `5 hours`
+- **Fault locations:** None; diagnoses are generated without a location.
+
+Severity impacts:
+
+- **Minor — Instrument accuracy degraded:** Sensor-use-derived Cab and Controls strike likelihood is multiplied by `1.25×`.
+- **Major — Navigation instruments unreliable:** The rig is grounded until repaired.
+- **Total — Navigation instrument failure:** The rig remains grounded and the Navigation Instruments must be replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -557,6 +576,28 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Navigation Sensors
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Rangefinder optics contaminated | Clean and certify rangefinder optics | 1.5 hours | F |
+| Inertial datum drifting | Calibrate and certify inertial reference | 2 hours | E |
+| Atmospheric sensor biased | Calibrate atmospheric sensor package | 2 hours | E |
+| Attitude reference producing vibration noise | Isolate and recalibrate attitude reference | 3 hours | D |
+| Rangefinder phase alignment skewed | Align and certify rangefinder channels | 3 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Air-data sensor failed | Replace and calibrate air-data sensor | 4 hours | D |
+| Rangefinding transceiver failed | Replace and certify rangefinding transceiver | 4 hours | C |
+| Attitude sensor array desynchronized | Rebuild and synchronize attitude sensor array | 4 hours | C |
+| Inertial reference lost | Rebuild and certify inertial-reference package | 5 hours | C |
+| Sensor timing bus failed | Rebuild and certify sensor timing bus | 5 hours | B |
 
 ### Flight Software
 
