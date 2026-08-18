@@ -7,9 +7,11 @@ export interface InteractiveTextSegment {
   tone?: InteractiveTone;
 }
 
+export type InteractiveIcon = 'fragile' | 'passenger';
+
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: 'fragile'; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -29,7 +31,7 @@ export interface InteractiveSceneOption {
   /** Independent availability marker; does not replace semantic tags or row tone. */
   statusText?: string;
   /** Small semantic icon at the far left of the issuer-tag gutter. */
-  leftIcon?: 'fragile';
+  leftIcon?: InteractiveIcon;
 }
 
 export interface InteractiveScene {
@@ -169,6 +171,27 @@ function drawFragileIcon(ctx: CanvasRenderingContext2D, x: number, y: number): v
   ctx.restore();
 }
 
+function drawPassengerIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.strokeStyle = '#4ddcff';
+  ctx.lineWidth = 1.4;
+  ctx.lineCap = 'round';
+
+  // MSN-style schematic bust: circular head over one shoulder arc.
+  ctx.beginPath();
+  ctx.arc(x + 6, y - 8, 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x + 6, y + 3, 6, Math.PI, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawInteractiveIcon(ctx: CanvasRenderingContext2D, icon: InteractiveIcon, x: number, y: number): void {
+  if (icon === 'fragile') drawFragileIcon(ctx, x, y);
+  else drawPassengerIcon(ctx, x, y);
+}
+
 function bodyRows(scene: InteractiveScene): InteractiveSceneBodyRow[] {
   if (scene.bodyRows) return scene.bodyRows;
   return (scene.bodyLines ?? []).map(line => line.startsWith('!')
@@ -271,7 +294,7 @@ export function drawInteractiveScene(
         ctx.textAlign = 'left';
         ctx.font = '11px monospace';
         ctx.fillStyle = COL_HUD_DIM;
-        if (row.icon === 'fragile') drawFragileIcon(ctx, x + 22, y);
+        if (row.icon) drawInteractiveIcon(ctx, row.icon, x + 22, y);
         ctx.fillText(row.label.toUpperCase(), x + (row.icon ? 40 : 22), y);
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
@@ -339,7 +362,7 @@ export function drawInteractiveScene(
     }
 
     const labelX = x + 28;
-    if (option.leftIcon === 'fragile') drawFragileIcon(ctx, x + 13, y);
+    if (option.leftIcon) drawInteractiveIcon(ctx, option.leftIcon, x + 13, y);
     const hasTagColumn = !!option.tag || option.tagColumn === true;
     let textX = labelX;
     if (option.tag) {

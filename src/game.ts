@@ -43,18 +43,27 @@ import type { PreparedContractBoards } from './contract-board-worker-types';
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
 import { actualFuelCostForQuote, contractFixedPay, contractFuelCompensation, contractPayoutForQuote, estimateEstellaMissionCost, formatCredits, generateGenericCargoForRoute, type MissionCostQuote } from './mission-cost';
 import { fragilityDisplay } from './cargo-handling';
+import { comfortExpectationDisplay } from './passenger-comfort';
 import {
+  applyComfortExposure,
+  applyComfortLoss,
   applyIntegrityDamage,
   applyIntegrityExposure,
-  cloneIntegrityState,
+  cloneManifestConditionState,
+  comfortConditionSummary,
+  comfortPenalty,
+  createComfortState,
   createIntegrityState,
+  createManifestConditionState,
+  dockingComfortLoss,
   dockingIntegrityDamage,
-  drawIntegrityMeter,
+  drawManifestConditionMeters,
   integrityConditionSummary,
   integrityPenalty,
+  landingComfortLoss,
   landingIntegrityDamage,
-  type IntegrityState,
   type IntegrityThrustLevel,
+  type ManifestConditionState,
 } from './manifest-condition';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
@@ -74,7 +83,7 @@ const PHYSICS_DT = 1 / 120;
 const MAX_FRAME_TIME = 0.1;
 
 interface GameplayPhaseConditionBase {
-  manifestIntegrityStart: IntegrityState | null;
+  manifestConditionStart: ManifestConditionState;
 }
 
 type GameplayPhase = (
@@ -219,7 +228,7 @@ export class Game {
   private activeMissionSourceId: string | null = null;
   private activeMissionDestinationId: string | null = null;
   private activeCareerContract: CareerContract | null = null;
-  private activeManifestIntegrity: IntegrityState | null = null;
+  private activeManifestCondition: ManifestConditionState = createManifestConditionState(null, null);
   private shownOperationsManualTutorials = new Set<OperationsManualArticleId>();
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
@@ -279,7 +288,7 @@ export class Game {
     const camera = createCamera();
     updateCamera(camera, ship, landingReferenceHeight(level, terrain, ship.x), 0);
     this.phaseCompletion = null;
-    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
+    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
     this.phase = landingPhase;
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
@@ -296,7 +305,7 @@ export class Game {
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
+    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
     this.phase = approachPhase;
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
@@ -318,7 +327,7 @@ export class Game {
     const cam = createDockingCamera();
     updateDockingCamera(cam, ds, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
+    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
     this.phase = dockingPhase;
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
@@ -332,7 +341,7 @@ export class Game {
     const cam = createClusterCamera(level);
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
+    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
     this.phase = clusterPhase;
     this.showGuidance(level.escapeToOrbitalLevelId ? 'LOCAL TRAFFIC: EXIT VOLUME ON ESCAPE VECTOR' : 'LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
@@ -469,7 +478,7 @@ export class Game {
       }
     }
     this.phaseCompletion = null;
-    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed, manifestIntegrityStart: cloneIntegrityState(this.activeManifestIntegrity) };
+    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
     this.phase = orbitalPhase;
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
@@ -672,7 +681,7 @@ export class Game {
     this.activeMissionSourceId = null;
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
-    this.activeManifestIntegrity = null;
+    this.activeManifestCondition = createManifestConditionState(null, null);
     this.shownOperationsManualTutorials.clear();
   }
 
@@ -764,7 +773,7 @@ export class Game {
   private reloadPhase(p: GameplayPhase): void {
     this.phaseCompletion = null;
     this.missionDvUsed = p.missionDvStart;
-    this.activeManifestIntegrity = cloneIntegrityState(p.manifestIntegrityStart);
+    this.activeManifestCondition = cloneManifestConditionState(p.manifestConditionStart);
     if (p.kind === 'landing') this.loadLanding(p.level, p.initOverride, p.launchGuidance, p.worldTimeStart);
     else if (p.kind === 'approach') this.loadApproach(p.level, p.initOverride, p.worldTimeStart);
     else if (p.kind === 'orbital') this.loadOrbital(p.level, p.initOverride, p.worldTimeStart);
@@ -789,17 +798,22 @@ export class Game {
     let financialLines: PhaseFinancialLine[] | undefined;
     if (completionText && this.activeMissionQuote) {
       const quote = this.activeMissionQuote;
-      const handlingPenalty = integrityPenalty(this.activeManifestIntegrity);
-      if (this.activeManifestIntegrity) {
-        detailLines.push(integrityConditionSummary(this.activeManifestIntegrity));
+      const handlingPenalty = integrityPenalty(this.activeManifestCondition.integrity);
+      const passengerServicePenalty = comfortPenalty(this.activeManifestCondition.comfort);
+      if (this.activeManifestCondition.integrity) {
+        detailLines.push(integrityConditionSummary(this.activeManifestCondition.integrity));
+      }
+      if (this.activeManifestCondition.comfort) {
+        detailLines.push(comfortConditionSummary(this.activeManifestCondition.comfort));
       }
       const fixedPay = contractFixedPay(quote.pay, quote.parFuelCost);
       const fuelCost = actualFuelCostForQuote(quote, missionDvUsed);
       const fuelReimbursement = contractFuelCompensation(quote.pay, quote.parFuelCost, fuelCost);
-      const total = fixedPay - handlingPenalty - fuelCost + fuelReimbursement;
+      const total = fixedPay - handlingPenalty - passengerServicePenalty - fuelCost + fuelReimbursement;
       financialLines = [
         { label: 'Contract completion', amount: fixedPay },
         ...(handlingPenalty > 0 ? [{ label: 'Handling penalty', amount: -handlingPenalty }] : []),
+        ...(passengerServicePenalty > 0 ? [{ label: 'Passenger service penalty', amount: -passengerServicePenalty }] : []),
         { label: 'Fuel cost', amount: -fuelCost },
         { label: 'Fuel cost reimbursement', amount: fuelReimbursement },
         { label: 'Total', amount: total, total: true },
@@ -836,7 +850,8 @@ export class Game {
     if (!contract || !quote) return;
     this.career.money += contractPayoutForQuote(quote, this.missionDvUsed)
       - actualFuelCostForQuote(quote, this.missionDvUsed)
-      - integrityPenalty(this.activeManifestIntegrity);
+      - integrityPenalty(this.activeManifestCondition.integrity)
+      - comfortPenalty(this.activeManifestCondition.comfort);
     this.career.locationId = contract.destinationId;
     this.career.worldTime = this.worldTime;
     if (contract.certificationOnSuccess !== undefined) {
@@ -938,21 +953,26 @@ export class Game {
           const landingThrust: IntegrityThrustLevel = p.ship.thrustFiring
             ? (input.shiftHeld ? 'high' : 'standard')
             : 'none';
-          applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, landingThrust);
+          applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, landingThrust);
+          applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, landingThrust);
           this.checkLandingCollision(p);
         }
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {
           const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' } as const;
           const score = p.score ?? calculateLandingScore(p.ship, p.terrain);
           applyIntegrityDamage(
-            this.activeManifestIntegrity,
+            this.activeManifestCondition.integrity,
             landingIntegrityDamage(
               score.vSpeed,
               score.hSpeed,
-              this.activeManifestIntegrity?.baseMax ?? 0,
+              this.activeManifestCondition.integrity?.baseMax ?? 0,
               config.landingMaxVSpeed,
               config.landingMaxHSpeed,
             ),
+          );
+          applyComfortLoss(
+            this.activeManifestCondition.comfort,
+            landingComfortLoss(score.vSpeed, score.hSpeed, config.landingMaxVSpeed, config.landingMaxHSpeed),
           );
           this.completePhase(
             p,
@@ -1067,8 +1087,10 @@ export class Game {
           : manualDockingThrust || assistedDockingThrust
             ? 'standard'
             : 'none';
-        applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, dockingThrust);
-        applyIntegrityDamage(this.activeManifestIntegrity, dockingIntegrityDamage(p.ds.collisionImpactSpeed));
+        applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, dockingThrust);
+        applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, dockingThrust);
+        applyIntegrityDamage(this.activeManifestCondition.integrity, dockingIntegrityDamage(p.ds.collisionImpactSpeed));
+        applyComfortLoss(this.activeManifestCondition.comfort, dockingComfortLoss(p.ds.collisionImpactSpeed));
         if (!p.ds.alive) p.state = 'crashed';
         if (p.ds.delivered) {
           p.state = 'delivered';
@@ -1148,7 +1170,8 @@ export class Game {
             ? 'standard'
             : 'none';
         const clusterControlDt = PHYSICS_DT / Math.max(1, p.level.baseTimeScale * p.cs.timeWarp);
-        applyIntegrityExposure(this.activeManifestIntegrity, clusterControlDt, clusterThrust);
+        applyIntegrityExposure(this.activeManifestCondition.integrity, clusterControlDt, clusterThrust);
+        applyComfortExposure(this.activeManifestCondition.comfort, clusterControlDt, clusterThrust, false, 0, p.cs.timeWarp);
         if (!p.cs.alive) p.state = 'crashed';
         if (p.cs.escaped) {
           const transition = this.transitionClusterToOrbital(p);
@@ -1266,7 +1289,8 @@ export class Game {
           : p.os.highThrust
             ? 'high'
             : 'standard';
-        applyIntegrityExposure(this.activeManifestIntegrity, PHYSICS_DT, orbitalThrust);
+        applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, orbitalThrust);
+        applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, orbitalThrust, false, p.os.temperature, p.os.timeWarp);
         // Clear edge triggers after first step
         input.warpUp = false;
         input.warpDown = false;
@@ -1647,11 +1671,20 @@ export class Game {
           ? (p.as.highThrust ? 'high' : 'standard')
           : 'none';
         const approachControlDt = PHYSICS_DT / Math.max(1, p.as.timeWarp);
+        const activeTurbulence = approachInTurbulence(p.as.y, p.level, this.time);
         applyIntegrityExposure(
-          this.activeManifestIntegrity,
+          this.activeManifestCondition.integrity,
           approachControlDt,
           approachThrust,
-          approachInTurbulence(p.as.y, p.level, this.time),
+          activeTurbulence,
+        );
+        applyComfortExposure(
+          this.activeManifestCondition.comfort,
+          approachControlDt,
+          approachThrust,
+          activeTurbulence,
+          p.as.temperature,
+          p.as.timeWarp,
         );
         // Clear edge triggers after first physics step
         if (!edgeConsumed) { edgeConsumed = true; }
@@ -1782,7 +1815,7 @@ export class Game {
               labelLineCount: 2 as const,
               tag: contract.issuerTag,
               tagColumn: true,
-              leftIcon: contract.cargo.fragile ? 'fragile' as const : undefined,
+              leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
               statusText: missingRequirements.length ? 'LOCKED' : undefined,
@@ -1880,7 +1913,7 @@ export class Game {
             labelLineCount: 2 as const,
             tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
             tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
-            leftIcon: contract.cargo.fragile ? 'fragile' as const : undefined,
+            leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
             detail: `${contract.sourceName} → ${contract.destinationName}`,
             action: `contactContract:${contract.id}`,
             tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
@@ -1979,6 +2012,10 @@ export class Game {
           ...(contract.cargo.fragile ? [
             { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), icon: 'fragile' as const, tone: 'warning' as const },
             { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, icon: 'fragile' as const, tone: 'warning' as const },
+          ] : []),
+          ...(contract.cargo.passengerComfort ? [
+            { kind: 'kv' as const, label: 'Comfort expectation', value: comfortExpectationDisplay(contract.cargo.passengerComfort), icon: 'passenger' as const, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Passenger service penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.passengerComfort.serviceRiskFraction))}`, icon: 'passenger' as const, tone: 'warning' as const },
           ] : []),
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
@@ -2195,9 +2232,14 @@ export class Game {
   private launchPlayableEstellaMission(sourceId: string, destinationId: string, startWorldTime: number = 0, selectedTransfer?: EstellaTransferOption): void {
     this.shownOperationsManualTutorials.clear();
     const fragile = this.activeCareerContract?.cargo.fragile;
-    this.activeManifestIntegrity = fragile && this.activeMissionQuote
-      ? createIntegrityState(fragile, contractFixedPay(this.activeMissionQuote.pay, this.activeMissionQuote.parFuelCost))
-      : null;
+    const passengerComfort = this.activeCareerContract?.cargo.passengerComfort;
+    const fixedPay = this.activeMissionQuote
+      ? contractFixedPay(this.activeMissionQuote.pay, this.activeMissionQuote.parFuelCost)
+      : 0;
+    this.activeManifestCondition = createManifestConditionState(
+      fragile && this.activeMissionQuote ? createIntegrityState(fragile, fixedPay) : null,
+      passengerComfort && this.activeMissionQuote ? createComfortState(passengerComfort, fixedPay) : null,
+    );
     const sameMission = this.activeMissionSourceId === sourceId && this.activeMissionDestinationId === destinationId;
     if (!sameMission || this.activeMissionLayoutSeed === null) {
       this.activeMissionLayoutSeed = Math.floor(Math.random() * 0x1_0000_0000);
@@ -2250,8 +2292,8 @@ export class Game {
       renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime);
       rightHudBottom = drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     }
-    if (this.activeManifestIntegrity) {
-      drawIntegrityMeter(this.ctx, this.canvas, this.activeManifestIntegrity, rightHudBottom + 10);
+    if (this.activeManifestCondition.integrity || this.activeManifestCondition.comfort) {
+      drawManifestConditionMeters(this.ctx, this.canvas, this.activeManifestCondition, rightHudBottom + 10);
     }
   }
 
