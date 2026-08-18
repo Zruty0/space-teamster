@@ -384,6 +384,25 @@ Severity impacts:
 - **Major — Landing gear unsafe:** Surface landings are unavailable; station docking remains available. Landing-impact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
 - **Total — Landing gear failure:** The rig is grounded until the assembly is replaced.
 
+### Docking Coupler
+
+- **ID:** `landing-docking-coupler`
+- **Function:** Aligns, captures, and mechanically secures the rig to station docking fixtures.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Docking Coupler Hardware; Joints and Fasteners
+- **Fault locations:** Port coupler sector; starboard coupler sector; lower coupler sector
+- **Replacement labor:** `5 hours`
+
+Severity impacts:
+
+- **Minor — Coupler wear:** Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
+- **Major — Capture integrity compromised:** Station docking is unavailable; surface landing remains available. Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
+- **Total — Docking coupler failure:** The rig is grounded until the coupler is replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -541,6 +560,28 @@ Major faults:
 | Thermal-transfer passage ruptured | Replace and certify thermal-transfer passage | 8 hours | C |
 | Thermal contact surface warped | Machine or replace thermal contact surface | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Docking Coupler Hardware
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Capture guide scuffed | Dress and polish capture guide | 2 hours | F |
+| Locking-dog travel uneven | Clean and adjust locking dog | 3 hours | E |
+| Capture-spring preload low | Reset and certify capture-spring preload | 3 hours | E |
+| Coupler face out of true | Align and certify coupler-face section | 4 hours | D |
+| Locking-collar segment worn | Dress and calibrate locking-collar segment | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Capture guide bent | Replace and align capture guide | 5 hours | D |
+| Locking dog fractured | Replace and certify locking dog | 5 hours | D |
+| Coupler-face section warped | Machine and realign coupler-face section | 7 hours | C |
+| Capture socket cracked | Sleeve and reinforce capture socket | 8 hours | C |
+| Locking-collar segment split | Replace and certify locking-collar segment | 9 hours | B |
 
 ### Dampers and Suspension
 
