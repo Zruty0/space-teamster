@@ -80,6 +80,25 @@ Severity impacts:
 - **Major — Load path compromised:** High thrust is unavailable.
 - **Total — Cargo spine failure:** The rig is grounded.
 
+### Bodywork and Mounts
+
+- **ID:** `body-bodywork-mounts`
+- **Function:** Exterior panels, access seals, impact strips, equipment brackets, and vibration isolators.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Exterior Bodywork; Mounts and Isolation
+- **Fault locations:** Cab exterior; equipment bay; underbody rack
+- **Replacement labor:** `6 hours`
+
+Severity impacts:
+
+- **Minor — Loose bodywork and mount vibration:** Auxiliary Systems strike likelihood is multiplied by `1.25×`.
+- **Major — Exposed and unsecured equipment:** Auxiliary Systems strike likelihood is multiplied by `1.75×`.
+- **Total — Bodywork and mounting failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -171,3 +190,47 @@ Major faults:
 | Load pin cracked | Replace load pin and inspect joint | 5 hours | D |
 | Joint faces separated | Rebuild and clamp structural joint | 9 hours | C |
 | Attachment lug torn | Rebuild lug and line-bore joint | 12 hours | B |
+
+### Exterior Bodywork
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Panel fasteners loose | Secure and witness-mark panel fasteners | 1 hour | F |
+| Access-panel seal lifted | Reseat and bond access-panel seal | 1.5 hours | F |
+| Impact strip dented | Straighten and secure impact strip | 2 hours | E |
+| Body panel buckled | Straighten and brace body panel | 3 hours | E |
+| Panel seam opened | Dress, close, and reseal panel seam | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Body panel torn away | Fit replacement panel and restore attachments | 5 hours | D |
+| Access bay exposed | Rebuild and seal access-bay closure | 6 hours | D |
+| Impact rail crushed | Replace impact rail and repair mounting points | 7 hours | C |
+| Body seam split | Rebuild and reinforce body seam | 8 hours | C |
+| Panel support frame collapsed | Reconstruct panel support frame | 10 hours | B |
+
+### Mounts and Isolation
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Mounting bolts loose | Retorque and lock mounting bolts | 1.5 hours | F |
+| Vibration isolator compressed | Replace vibration isolator | 2 hours | F |
+| Equipment tray shifted | Realign and secure equipment tray | 3 hours | E |
+| Mount bushing worn | Replace mount bushing | 3 hours | E |
+| Support bracket cracked | Stop-drill and reinforce support bracket | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Isolator bank failed | Replace and balance isolator bank | 5 hours | D |
+| Mounting bracket fractured | Replace and reinforce mounting bracket | 6 hours | C |
+| Equipment bed warped | Jig and straighten equipment bed | 8 hours | C |
+| Anchor points pulled through | Rebuild and reinforce anchor points | 10 hours | B |
+| Equipment rack partially detached | Remount and reinforce equipment rack | 9 hours | B |
