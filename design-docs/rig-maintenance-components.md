@@ -185,6 +185,25 @@ Severity impacts:
 - **Major — Regulation instability:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
 - **Total — Regulator failure:** The rig is grounded.
 
+### Fuel Feed Assembly
+
+- **ID:** `powertrain-fuel-feed`
+- **Function:** Filters, meters, and delivers Guild fuel to the drive core.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `60,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Fluid and Propellant; Pumps and Valves
+- **Fault locations:** Supply manifold; metering block; core inlet
+- **Replacement labor:** `8 hours`
+
+Severity impacts:
+
+- **Minor — Feed efficiency degraded:** Thrust-derived Powertrain strike likelihood is multiplied by `1.25×`.
+- **Major — Fuel delivery restricted:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
+- **Total — Fuel feed failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -254,6 +273,50 @@ Major faults:
 | Reference supply collapsed | Rebuild control-reference supply | 6 hours | D |
 | Control backplane cracked | Replace and certify control backplane | 9 hours | B |
 | Safety interlock false-tripping | Rebuild and validate safety-interlock circuit | 5 hours | D |
+
+### Fluid and Propellant
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Filter element loaded | Replace filter element and flush housing | 1.5 hours | F |
+| Line union seeping | Reseat and seal line union | 2 hours | F |
+| Working fluid contaminated | Flush and polish fluid circuit | 3 hours | E |
+| Manifold pressure uneven | Balance and test manifold branches | 4 hours | D |
+| Accumulator precharge low | Recharge and test accumulator | 2 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Fluid line ruptured | Replace line section and pressure-test circuit | 5 hours | D |
+| Manifold body cracked | Replace and certify manifold body | 7 hours | C |
+| Circuit contamination severe | Decontaminate and recertify fluid circuit | 8 hours | C |
+| Accumulator diaphragm failed | Replace diaphragm and rebuild accumulator | 5 hours | D |
+| Isolation barrier compromised | Rebuild and pressure-test isolation section | 9 hours | B |
+
+### Pumps and Valves
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Pump inlet restricted | Clear inlet and service pump intake | 2 hours | E |
+| Metering valve sticking | Clean and lap metering valve | 3 hours | E |
+| Check valve leaking back | Replace check-valve cartridge | 2 hours | F |
+| Pump bearing running rough | Replace and align pump bearing | 4 hours | D |
+| Valve actuator travel out of tolerance | Calibrate valve actuator travel | 3 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Feed pump seized | Replace and commission feed pump | 6 hours | D |
+| Metering valve jammed | Rebuild and calibrate metering valve | 5 hours | D |
+| Valve actuator burned out | Replace and certify valve actuator | 4 hours | D |
+| Pump impeller fractured | Rebuild and balance pump assembly | 7 hours | C |
+| Bypass valve failed shut | Replace and recommission bypass valve | 5 hours | C |
 
 ### Pressure Vessel
 
