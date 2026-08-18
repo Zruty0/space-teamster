@@ -422,6 +422,15 @@ Severity impacts:
 - **Major — Capture lock unreliable:** Station docking is unavailable. Tractor-load-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
 - **Total — Tractor receiver failure:** The rig is grounded until the receiver is replaced.
 
+## Cab and Controls
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Driver Controls | Converts the teamster's throttle, steering, rotation, wing, and mode inputs into flight commands. | `3/2` | `25,000 cr` |
+| Flight Computer | Performs control mixing, stabilization, guidance, and transfer calculations. | `3/2` | `55,000 cr` |
+| Navigation Instruments | Measures attitude, motion, range, atmospheric state, and relative position. | `3/2` | `40,000 cr` |
+| Instrument Panel | Displays flight data, equipment condition, warnings, and control-mode status. | `3/1` | `20,000 cr` |
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
