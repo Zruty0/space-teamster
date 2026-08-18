@@ -227,15 +227,56 @@ Severity impacts:
 
 | Component | Function | Grade-D HP/AP | Grade-D cost |
 |---|---|---:|---:|
-| Maneuvering Thruster Array | Provides lateral, rotational, braking, and fine-positioning thrust throughout every flight mode. | `3/1` | `50,000 cr` |
+| Maneuvering Thruster Array | Provides lateral, rotational, braking, and fine-positioning thrust throughout every flight mode. | `3/2` | `50,000 cr` |
 | Thruster Feed Assembly | Distributes fuel and maintains delivery pressure for the maneuvering thrusters. | `3/2` | `20,000 cr` |
 | Thruster Valve Bank | Meters and times individual thruster firings from commands issued by the flight controls. | `3/2` | `30,000 cr` |
 
 The Landing and Docking system will include a separate **Tractor Capture Receiver** for the rig-side receiver, alignment hardware, and force-coupling equipment used by station tractor beams.
 
+### Maneuvering Thruster Array
+
+- **ID:** `steering-maneuvering-thrusters`
+- **Function:** Provides lateral, rotational, braking, and fine-positioning thrust throughout every flight mode.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `50,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault library:** Maneuvering Thrusters
+- **Fault locations:** Forward-port, forward-starboard, aft-port, and aft-starboard thruster clusters
+- **Replacement labor:** `6 hours`
+
+Severity impacts:
+
+- **Minor — Thruster imbalance:** Steering and Thrusters strike likelihood is multiplied by `1.25×`.
+- **Major — Maneuvering authority compromised:** Braking SAS is unavailable. Steering and Thrusters strike likelihood is multiplied by `1.75×`.
+- **Total — Maneuvering thruster failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
+
+### Maneuvering Thrusters
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Injector face fouled | Clean and flow-test injector face | 2 hours | F |
+| Ignition electrode worn | Replace and gap ignition electrode | 2 hours | F |
+| Nozzle throat erosion beginning | Dress and recoat nozzle throat | 3 hours | E |
+| Nozzle alignment drift | Align and lock maneuvering nozzle | 4 hours | D |
+| Thruster-mount preload relaxed | Reset and secure thruster-mount preload | 3 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Injector face fractured | Replace and flow-match injector face | 5 hours | D |
+| Nozzle body split | Replace and align nozzle body | 5 hours | D |
+| Thrust-chamber liner burned through | Replace and certify thrust chamber | 7 hours | C |
+| Thruster mount fractured | Rebuild and align thruster mount | 6 hours | C |
+| Thruster cluster frame distorted | Jig and restore thruster cluster frame | 8 hours | B |
 
 ### Field Coils
 
