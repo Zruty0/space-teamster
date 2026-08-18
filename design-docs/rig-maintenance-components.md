@@ -537,6 +537,25 @@ Severity impacts:
 
 Auxiliary Systems is also the home for optional installed equipment added later, including extra shock absorbers, passenger-comfort systems, and other specialized modules. These additions are not part of the baseline `140,000 cr` replacement value and will define their own condition and maintenance fields when designed.
 
+### Service Power Unit
+
+- **ID:** `auxiliary-service-power`
+- **Function:** Stores, converts, and distributes electrical power for cab, control, environmental, communication, and utility equipment.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `50,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Energy Storage and Conversion; Electrical Distribution
+- **Replacement labor:** `6 hours`
+- **Fault locations:** None; diagnoses are generated without a location.
+
+Severity impacts:
+
+- **Minor — Power quality degraded:** Auxiliary Systems strike likelihood is multiplied by `1.25×`. Cab and Controls strike likelihood is independently multiplied by `1.25×`. Each modifier preserves zero telemetry-derived weight.
+- **Major — Service power unreliable:** The rig is grounded until repaired.
+- **Total — Service power failure:** The rig remains grounded and the Service Power Unit must be replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -606,6 +625,50 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Energy Storage and Conversion
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Battery-terminal resistance high | Clean, torque, and certify battery terminals | 1.5 hours | F |
+| Battery cells imbalanced | Balance and test battery cells | 2 hours | E |
+| Charge-controller calibration drift | Calibrate and certify charge controller | 2 hours | E |
+| Converter thermal interface compressed | Renew and seat converter thermal interface | 2 hours | E |
+| Converter output ripple high | Replace filter stage and calibrate converter | 3 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Charge controller failed | Replace and commission charge controller | 4 hours | D |
+| Battery module shorted | Isolate and replace battery module | 4 hours | D |
+| Converter stage burned out | Replace and certify converter stage | 5 hours | C |
+| Battery containment distorted | Replace and certify battery containment module | 6 hours | C |
+| Converter power bus arcing | Rebuild and certify converter power bus | 5 hours | B |
+
+### Electrical Distribution
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Bus connection loose | Clean, torque, and certify bus connection | 1.5 hours | F |
+| Contactor contacts pitted | Dress and test contactor contacts | 2 hours | E |
+| Circuit breaker nuisance-tripping | Replace and certify circuit breaker | 2 hours | E |
+| Harness insulation chafed | Repair insulation and secure harness | 3 hours | E |
+| Ground reference noisy | Clean and restore ground bonding | 3 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Distribution contactor welded | Replace and certify distribution contactor | 4 hours | D |
+| Ground bond fractured | Rebuild and certify ground bond | 4 hours | D |
+| Feeder cable burned open | Replace and certify feeder cable | 5 hours | C |
+| Breaker panel heat-damaged | Rebuild and certify breaker panel | 6 hours | C |
+| Main service bus shorted | Rebuild and certify main service bus | 6 hours | B |
 
 ### Displays and Indicators
 
