@@ -338,6 +338,25 @@ Severity impacts:
 - **Major — Surface integrity compromised:** Wings are unavailable during atmospheric flight. Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
 - **Total — Atmospheric surface failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
 
+### Surface Actuators
+
+- **ID:** `atmospheric-surface-actuators`
+- **Function:** Deploys, angles, and locks the atmospheric surfaces in response to flight controls.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Actuators and Linkages; Control Electronics
+- **Fault locations:** Port winglet actuator bay; starboard winglet actuator bay; aft stabilizer actuator bay
+- **Replacement labor:** `5 hours`
+
+Severity impacts:
+
+- **Minor — Actuator response degraded:** Atmospheric-control-derived Atmospheric Package strike likelihood is multiplied by `1.25×`.
+- **Major — Surface control unavailable:** Wings are unavailable during atmospheric flight. Atmospheric-control-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
+- **Total — Surface actuator failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -495,6 +514,28 @@ Major faults:
 | Thermal-transfer passage ruptured | Replace and certify thermal-transfer passage | 8 hours | C |
 | Thermal contact surface warped | Machine or replace thermal contact surface | 9 hours | B |
 | Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
+
+### Actuators and Linkages
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Actuator lubrication depleted | Clean and lubricate actuator mechanism | 2 hours | F |
+| Actuator rod-end play excessive | Adjust and rebush actuator rod end | 3 hours | E |
+| Travel stop out of tolerance | Reset and certify actuator travel stop | 3 hours | E |
+| Linkage preload uneven | Balance and secure linkage preload | 4 hours | D |
+| Position coupling loose | Secure and calibrate position coupling | 3 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Actuator drive screw stripped | Rebuild actuator drive mechanism | 5 hours | D |
+| Linkage arm bent | Replace and align linkage arm | 6 hours | C |
+| Actuator housing cracked | Replace and certify actuator housing | 7 hours | C |
+| Pivot bearing seized | Replace and align pivot bearing | 5 hours | D |
+| Linkage attachment torn free | Rebuild and reinforce linkage attachment | 8 hours | B |
 
 ### Aerodynamic Surfaces
 
