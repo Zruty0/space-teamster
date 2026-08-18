@@ -271,6 +271,25 @@ Severity impacts:
 - **Major — Feed capacity restricted:** Steering and Thrusters strike likelihood is multiplied by `1.75×`.
 - **Total — Thruster feed failure:** The rig is grounded.
 
+### Thruster Valve Bank
+
+- **ID:** `steering-thruster-valves`
+- **Function:** Meters and times individual thruster firings from commands issued by the flight controls.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Pumps and Valves; Control Electronics
+- **Fault locations:** Forward valve block; aft valve block; pulse-control rack
+- **Replacement labor:** `5 hours`
+
+Severity impacts:
+
+- **Minor — Firing response uneven:** Steering and Thrusters strike likelihood is multiplied by `1.25×`.
+- **Major — Firing control unreliable:** Braking SAS is unavailable. Steering and Thrusters strike likelihood is multiplied by `1.75×`.
+- **Total — Thruster valve failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
