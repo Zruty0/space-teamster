@@ -1795,7 +1795,6 @@ export class Game {
       const passengerBoard = state.id === 'browsePassengerContracts';
       return {
         title: passengerBoard ? 'BROWSE PASSENGER CONTRACTS' : 'BROWSE FREIGHT CONTRACTS',
-        subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
         bodyRows: passengerBoard ? [
           { kind: 'text', text: 'Seat blocks, crew rotations, and worker-transfer postings. Most are connectivity work, not profit work.' },
           { kind: 'kv', label: 'Postings', value: `${contracts.length}` },
