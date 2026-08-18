@@ -252,6 +252,25 @@ Severity impacts:
 - **Major — Maneuvering authority compromised:** Braking SAS is unavailable. Steering and Thrusters strike likelihood is multiplied by `1.75×`.
 - **Total — Maneuvering thruster failure:** The rig is grounded.
 
+### Thruster Feed Assembly
+
+- **ID:** `steering-thruster-feed`
+- **Function:** Distributes fuel and maintains delivery pressure for the maneuvering thrusters.
+- **Grade-D HP/AP:** `3/2`
+- **Grade-D cost:** `20,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Fluid and Propellant; Pumps and Valves
+- **Fault locations:** Forward distribution branch; aft distribution branch; thruster accumulator
+- **Replacement labor:** `4 hours`
+
+Severity impacts:
+
+- **Minor — Feed pressure uneven:** Steering and Thrusters strike likelihood is multiplied by `1.25×`.
+- **Major — Feed capacity restricted:** Steering and Thrusters strike likelihood is multiplied by `1.75×`.
+- **Total — Thruster feed failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
