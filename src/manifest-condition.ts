@@ -98,8 +98,7 @@ export function integrityPenalty(state: IntegrityState | null): number {
 
 export function integrityConditionSummary(state: IntegrityState): string {
   const intactPercent = Math.round(state.baseRemaining / state.baseMax * 100);
-  const bufferStatus = state.bufferRemaining > 0 ? 'shock buffer remains' : 'no shock buffer remains';
-  return `${intactPercent}% condition | ${bufferStatus}`;
+  return `${intactPercent}% integrity`;
 }
 
 export function drawIntegrityMeter(

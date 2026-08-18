@@ -791,7 +791,7 @@ export class Game {
       const quote = this.activeMissionQuote;
       const handlingPenalty = integrityPenalty(this.activeManifestIntegrity);
       if (this.activeManifestIntegrity) {
-        detailLines.push(`CARGO CONDITION ${integrityConditionSummary(this.activeManifestIntegrity)}`);
+        detailLines.push(integrityConditionSummary(this.activeManifestIntegrity));
       }
       const fixedPay = contractFixedPay(quote.pay, quote.parFuelCost);
       const fuelCost = actualFuelCostForQuote(quote, missionDvUsed);
