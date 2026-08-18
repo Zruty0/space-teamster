@@ -370,7 +370,6 @@ export class Game {
     this.worldTime = this.career.worldTime;
     this.phase = { kind: 'interactiveScene', scene: { id: 'stationTerminal', selectedIndex } };
     this.prewarmContractBoards();
-    this.showGuidance('STATION TERMINAL');
     this.time = 0;
     this.accumulator = 0;
   }
@@ -386,7 +385,6 @@ export class Game {
         contracts: passenger ? boards.passenger : boards.freight,
       },
     };
-    this.showGuidance(passenger ? 'BROWSE PASSENGER CONTRACTS' : 'BROWSE CONTRACTS');
     this.time = 0;
     this.accumulator = 0;
   }
@@ -405,7 +403,6 @@ export class Game {
 
     const generation = ++this.contractBoardLoadGeneration;
     this.phase = { kind: 'interactiveScene', scene: { id: 'contractBoardLoading', selectedIndex: 0, board } };
-    this.showGuidance('CALCULATING POSTINGS');
     this.time = 0;
     this.accumulator = 0;
     void prepareContractBoards(sourceId, worldTime).then(boards => {
