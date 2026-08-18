@@ -1815,7 +1815,7 @@ export class Game {
               labelLineCount: 2 as const,
               tag: contract.issuerTag,
               tagColumn: true,
-              leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
+              leftIcon: contract.cargo.fragile ? 'fragile' as const : undefined,
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
               statusText: missingRequirements.length ? 'LOCKED' : undefined,
