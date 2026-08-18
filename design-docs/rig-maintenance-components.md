@@ -507,6 +507,25 @@ Severity impacts:
 - **Major — Navigation instruments unreliable:** The rig is grounded until repaired.
 - **Total — Navigation instrument failure:** The rig remains grounded and the Navigation Instruments must be replaced.
 
+### Instrument Panel
+
+- **ID:** `cab-instrument-panel`
+- **Function:** Displays flight data, equipment condition, warnings, and control-mode status.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `20,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Displays and Indicators; Control Electronics
+- **Replacement labor:** `3 hours`
+- **Fault locations:** None; diagnoses are generated without a location.
+
+Severity impacts:
+
+- **Minor — Display reliability degraded:** Display-use-derived Cab and Controls strike likelihood is multiplied by `1.25×`.
+- **Major — Flight information unreliable:** The rig is grounded until repaired.
+- **Total — Instrument panel failure:** The rig remains grounded and the Instrument Panel must be replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -576,6 +595,28 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Displays and Indicators
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Warning indicator burned out | Replace and test warning indicator | 1 hour | F |
+| Display backlight intermittent | Replace and certify backlight driver | 1.5 hours | F |
+| Alarm speaker distorted | Replace and test alarm speaker | 1.5 hours | F |
+| Display calibration drifting | Calibrate and certify display output | 2 hours | E |
+| Display row dropping out | Replace and test display module | 2 hours | E |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Primary display blank | Replace and commission primary display | 3 hours | D |
+| Warning annunciator bank failed | Rebuild and certify annunciator bank | 3 hours | D |
+| Panel data receiver failed | Replace and commission panel data receiver | 4 hours | C |
+| Display controller failed | Replace and certify display controller | 4 hours | C |
+| Panel power bus shorted | Rebuild and certify panel power bus | 4 hours | C |
 
 ### Navigation Sensors
 
