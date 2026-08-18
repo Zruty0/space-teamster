@@ -339,6 +339,61 @@ export const ANVIL_CERTIFICATION_OFFICE: LocalOfficeDef = {
   actions: [...CERTIFICATION_LICENSE_ACTIONS],
 };
 
+export const GAIA_LICENSING_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'gaia-guild-licensing-office',
+  name: 'Teamsters’ Guild Licensing Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-iii-main-customs'],
+  summary: 'Guild license counter serving Gaia and the Hearth.',
+  description: 'A compact Guild counter operates beside Gaia’s main customs hall. It records cargo and passenger licenses but does not administer flight checkrides.',
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
+};
+
+export const HERALD_GATE_LICENSING_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'herald-gate-guild-licensing-office',
+  name: 'Teamsters’ Guild Licensing Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-xc-transit-refuel'],
+  summary: 'Guild license counter serving Gryphon and the inner Wells.',
+  description: 'The Guild’s Herald Gate counter sits among the herald and transit clerks. It records cargo and passenger licenses but does not administer flight checkrides.',
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
+};
+
+export const CADIZ_LICENSING_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'cadiz-guild-licensing-office',
+  name: 'Teamsters’ Guild Licensing Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-xid-main-port'],
+  summary: 'Guild license counter at the Wells’ main commercial hub.',
+  description: 'Cadiz Highport gives the Guild licensing counter a permanent room off the commercial arrivals concourse. It records cargo and passenger licenses but does not administer flight checkrides.',
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
+};
+
+export const MANTICORE_LICENSING_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'manticore-guild-licensing-office',
+  name: 'Teamsters’ Guild Licensing Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-xii-observation-post'],
+  summary: 'Small Guild liaison and license counter for the outer Wells.',
+  description: 'A one-room Guild liaison office shares Manticore Observatory’s civilian services deck. It records cargo and passenger licenses but does not administer flight checkrides.',
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
+};
+
+export const REACH_LICENSING_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'reach-guild-licensing-office',
+  name: 'Teamsters’ Guild Licensing Office',
+  organizationName: 'Teamsters’ Guild',
+  locationIds: ['estella-xiii-main-port'],
+  summary: 'Guild license counter serving the Reach and outer-system traffic.',
+  description: 'The Reach’s Guild counter occupies a spare dispatch booth at Estella XIII Main Port. It records cargo and passenger licenses but does not administer flight checkrides.',
+  actions: [...CERTIFICATION_LICENSE_ACTIONS],
+};
+
 export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
   kind: 'office',
   id: 'old-nell-passage-office',
@@ -361,6 +416,11 @@ export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   STILL_CERTIFICATION_OFFICE,
   ROADSTEAD_CERTIFICATION_OFFICE,
   ANVIL_CERTIFICATION_OFFICE,
+  GAIA_LICENSING_OFFICE,
+  HERALD_GATE_LICENSING_OFFICE,
+  CADIZ_LICENSING_OFFICE,
+  MANTICORE_LICENSING_OFFICE,
+  REACH_LICENSING_OFFICE,
   GIDEON_BELL,
 ];
 
