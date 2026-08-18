@@ -813,7 +813,7 @@ export class Game {
       financialLines = [
         { label: 'Contract completion', amount: fixedPay },
         ...(handlingPenalty > 0 ? [{ label: 'Handling penalty', amount: -handlingPenalty }] : []),
-        ...(passengerServicePenalty > 0 ? [{ label: 'Passenger service penalty', amount: -passengerServicePenalty }] : []),
+        ...(passengerServicePenalty > 0 ? [{ label: 'Service penalty', amount: -passengerServicePenalty }] : []),
         { label: 'Fuel cost', amount: -fuelCost },
         { label: 'Fuel cost reimbursement', amount: fuelReimbursement },
         { label: 'Total', amount: total, total: true },
@@ -2014,8 +2014,8 @@ export class Game {
             { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, icon: 'fragile' as const, tone: 'warning' as const },
           ] : []),
           ...(contract.cargo.passengerComfort ? [
-            { kind: 'kv' as const, label: 'Comfort expectation', value: comfortExpectationDisplay(contract.cargo.passengerComfort), icon: 'passenger' as const, tone: 'warning' as const },
-            { kind: 'kv' as const, label: 'Passenger service penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.passengerComfort.serviceRiskFraction))}`, icon: 'passenger' as const, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Comfort expectations', value: comfortExpectationDisplay(contract.cargo.passengerComfort), icon: 'passenger' as const, tone: 'warning' as const },
+            { kind: 'kv' as const, label: 'Service penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.passengerComfort.serviceRiskFraction))}`, icon: 'passenger' as const, tone: 'warning' as const },
           ] : []),
           { kind: 'kv', label: 'Par ΔV', value: `${quote.parDv.toFixed(0)} m/s`, tone: 'warning' },
           { kind: 'kv', label: 'Par fuel cost', value: formatCredits(quote.parFuelCost), tone: 'warning' },
