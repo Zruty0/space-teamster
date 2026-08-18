@@ -335,7 +335,7 @@ Severity impacts:
 Severity impacts:
 
 - **Minor — Surface wear:** Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.25×`.
-- **Major — Surface integrity compromised:** Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
+- **Major — Surface integrity compromised:** Wings are unavailable during atmospheric flight. Aerodynamic-load-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
 - **Total — Atmospheric surface failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
 
 ## Fault Libraries
