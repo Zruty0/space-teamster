@@ -441,6 +441,8 @@ Minor/Major/replacement parts percentages apply to the installed component's gra
 
 Components may define optional Minor and Major HP thresholds; Total always occurs at `0 HP`. A fault is generated only the first time an HP hit crosses a threshold from above. For a `4 HP` component with Minor at `3` and Major at `1`, the sequence is Minor on `4→3`, nothing on `3→2`, Major on `2→1`, and Total on `1→0`. A Major fault supersedes the existing Minor fault rather than stacking with it. Total failure supersedes every repairable fault and requires replacement. Thresholds are absolute HP values authored against the grade-D baseline and do not increase with component grade; better-grade bonus HP therefore delays threshold crossings.
 
+HP loss above the Minor threshold is intentional sub-threshold damage, not a repairable fault. It remains after ordinary servicing, which restores AP only. Shops do not offer preventive HP restoration: a repair becomes available only after a threshold crossing creates a named Minor or Major fault, and completing that repair then restores full HP and serviced AP. Thus a better-grade component can lose its bonus HP before presenting any repairable fault.
+
 Fault content usually comes from reusable libraries keyed by compatible component traits rather than a full component-by-fault Cartesian product. A component may instead use a small component-local fault table when generic reuse adds no value, as with the Main Chassis. Example families include software, electronics, wiring/connectors, hydraulics, fluid/propellant, bearings/rotating machinery, mechanical linkages, seals/pressure, thermal/cooling, and structure/bodywork. A generated repairable fault stores:
 
 - severity (`minor` or `major`)
