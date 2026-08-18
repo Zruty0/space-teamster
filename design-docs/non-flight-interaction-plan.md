@@ -371,7 +371,7 @@ interface EquipmentState {
   equipmentId: string;
   hp: number;
   armor: number;
-  faults: EquipmentFaultState[];
+  fault?: EquipmentFaultState;
   lastServicedAt?: number;
 }
 ```
@@ -396,6 +396,27 @@ P(HP hit) = Hmax / (5A + Hmax)
 ```
 
 An AP hit removes one current AP; an HP hit removes one current HP. The probability deliberately uses maximum HP, not current HP, so a badly damaged component does not become increasingly protected by its remaining armor. With maximum `3 HP` and current `2 AP`, every strike has `10/13` AP-hit and `3/13` HP-hit chances regardless of current HP. Exact strike counts, telemetry thresholds, system targeting, and mission/retry commit timing remain to be defined.
+
+### Faults and repair work
+
+Components may define optional Minor and Major HP thresholds; Total always occurs at `0 HP`. A fault is generated only the first time an HP hit crosses a threshold from above. For a `4 HP` component with Minor at `3` and Major at `1`, the sequence is Minor on `4→3`, nothing on `3→2`, Major on `2→1`, and Total on `1→0`. A Major fault supersedes the existing Minor fault rather than stacking with it. Total failure supersedes every repairable fault and requires replacement.
+
+Fault content comes from reusable libraries keyed by compatible component traits rather than a full component-by-fault Cartesian product. Example families include software, electronics, wiring/connectors, hydraulics, fluid/propellant, bearings/rotating machinery, mechanical linkages, seals/pressure, thermal/cooling, and structure/bodywork. A generated repairable fault stores:
+
+- severity (`minor` or `major`)
+- fault name
+- repair-action name
+- persistent authored subassembly location for flavor
+- parts fraction of component base cost
+- labor hours
+- work grade (`A` through `F`)
+- gameplay symptom/effect
+
+Parts are `20%` of component base cost for Minor work and `50%` for Major work. Replacement parts are `100%` of base cost. Labor is fault-dependent hours multiplied by the shop's labor rate.
+
+Grade A is the most demanding/specialized work and F is the simplest. A shop may perform work at its capability grade or any easier grade: a C shop can do C/D/E/F, while an F shop can only replace modules. Replacement is always F-grade work, so a shop unable to perform the proper repair can recommend full replacement instead.
+
+A successful repair always restores the component to full HP, restores AP to its serviced maximum, clears the fault, and updates service time. Repair therefore includes servicing. Standalone servicing restores AP to maximum but does not restore lost HP. Replacement installs the component at full HP and AP and clears Total failure.
 
 ### Warnings and grounding
 
