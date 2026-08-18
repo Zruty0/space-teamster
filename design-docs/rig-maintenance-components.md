@@ -357,6 +357,14 @@ Severity impacts:
 - **Major — Surface control unavailable:** Wings are unavailable during atmospheric flight. Atmospheric-control-derived Atmospheric Package strike likelihood is multiplied by `1.75×`.
 - **Total — Surface actuator failure:** The Atmospheric Package is grounded. Atmospheric missions are unavailable until replacement; vacuum and airless work remains available.
 
+## Landing and Docking
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Landing Gear Assembly | Supports touchdown, absorbs landing loads, and keeps the rig stable on prepared or rough surfaces. | `4/1` | `50,000 cr` |
+| Docking Coupler | Aligns, captures, and mechanically secures the rig to station docking fixtures. | `3/1` | `30,000 cr` |
+| Tractor Capture Receiver | Lets station tractor beams acquire, align, and safely move the rig during docking operations. | `3/1` | `40,000 cr` |
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
