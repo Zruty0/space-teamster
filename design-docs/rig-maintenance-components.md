@@ -290,6 +290,14 @@ Severity impacts:
 - **Major — Firing control unreliable:** Braking SAS is unavailable. Steering and Thrusters strike likelihood is multiplied by `1.75×`.
 - **Total — Thruster valve failure:** The rig is grounded.
 
+## Atmospheric Package
+
+| Component | Function | Grade-D HP/AP | Grade-D cost |
+|---|---|---:|---:|
+| Heat Shielding | Protects the rig and its internal equipment from atmospheric-entry heat. | `4/2` | `30,000 cr` |
+| Atmospheric Surfaces | Provides aerodynamic lift, drag, and stability through deployable wings and control surfaces. | `3/1` | `60,000 cr` |
+| Surface Actuators | Deploys, angles, and locks the atmospheric surfaces in response to flight controls. | `3/2` | `30,000 cr` |
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
