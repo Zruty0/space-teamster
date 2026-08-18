@@ -204,6 +204,25 @@ Severity impacts:
 - **Major — Fuel delivery restricted:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
 - **Total — Fuel feed failure:** The rig is grounded.
 
+### Drive Cooling Loop
+
+- **ID:** `powertrain-drive-cooling`
+- **Function:** Removes waste heat from the drive core, field coils, and regulator hardware.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `50,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Fluid and Propellant; Pumps and Valves; Heat Exchange
+- **Fault locations:** Core cooling jacket; coil cooling manifold; drive heat exchanger
+- **Replacement labor:** `7 hours`
+
+Severity impacts:
+
+- **Minor — Cooling capacity degraded:** Thrust-derived Powertrain strike likelihood is multiplied by `1.25×`.
+- **Major — Cooling capacity restricted:** High thrust is unavailable. Thrust-derived Powertrain strike likelihood is multiplied by `1.75×`.
+- **Total — Drive cooling failure:** The rig is grounded.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -317,6 +336,28 @@ Major faults:
 | Valve actuator burned out | Replace and certify valve actuator | 4 hours | D |
 | Pump impeller fractured | Rebuild and balance pump assembly | 7 hours | C |
 | Bypass valve failed shut | Replace and recommission bypass valve | 5 hours | C |
+
+### Heat Exchange
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Heat-exchanger surfaces fouled | Clean and restore heat-exchanger surfaces | 2 hours | F |
+| Thermal interface compound dried | Renew and seat thermal interface | 2 hours | F |
+| Cooling jacket scaled internally | Descale and flush cooling jacket | 3 hours | E |
+| Cold-plate contact uneven | Rebed and secure cold plate | 4 hours | D |
+| Heat-exchanger flow unbalanced | Balance and test heat-exchanger flow | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Heat-exchanger core blocked | Strip, clear, and pressure-test exchanger core | 6 hours | D |
+| Cooling jacket cracked | Repair and pressure-test cooling jacket | 8 hours | C |
+| Heat-exchanger matrix ruptured | Replace and certify exchanger matrix | 8 hours | C |
+| Cold plate warped | Machine or replace cold plate | 9 hours | B |
+| Thermal-transfer surface delaminated | Replace and recertify thermal-transfer assembly | 10 hours | B |
 
 ### Pressure Vessel
 
