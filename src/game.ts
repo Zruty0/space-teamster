@@ -329,21 +329,29 @@ export class Game {
     };
   }
 
+  private commitMechanicChange(changed: boolean): void {
+    if (!changed) return;
+    // Developer mutations can invalidate every shop's view of the rig. Clear
+    // inspections and their credits so each shop can diagnose the new state.
+    this.career.maintenanceShopInspections = {};
+    saveCareerProfile(this.career);
+  }
+
   private applyMechanicAction(systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade): void {
     const serviceTime = Math.max(this.worldTime, this.career.worldTime);
     const changed = applyMechanicSystemOperation(this.career.rig, systemId, operation, grade, serviceTime);
-    if (this.pendingMaintenanceSettlement) {
-      applyMechanicSystemOperation(this.pendingMaintenanceSettlement.resultingRig, systemId, operation, grade, serviceTime);
-    }
-    if (changed) saveCareerProfile(this.career);
+    const pendingChanged = this.pendingMaintenanceSettlement
+      ? applyMechanicSystemOperation(this.pendingMaintenanceSettlement.resultingRig, systemId, operation, grade, serviceTime)
+      : false;
+    this.commitMechanicChange(changed || pendingChanged);
   }
 
   private removeMechanicSystem(systemId: MaintenanceSystemId): void {
     const changed = removeOptionalMaintenanceSystem(this.career.rig, systemId);
-    if (this.pendingMaintenanceSettlement) {
-      removeOptionalMaintenanceSystem(this.pendingMaintenanceSettlement.resultingRig, systemId);
-    }
-    if (changed) saveCareerProfile(this.career);
+    const pendingChanged = this.pendingMaintenanceSettlement
+      ? removeOptionalMaintenanceSystem(this.pendingMaintenanceSettlement.resultingRig, systemId)
+      : false;
+    this.commitMechanicChange(changed || pendingChanged);
   }
 
   private damageMechanicComponent(componentId: string, pool: MechanicDamagePool): void {
@@ -352,7 +360,7 @@ export class Game {
     const pendingChanged = this.pendingMaintenanceSettlement
       ? applyMechanicComponentDamage(this.pendingMaintenanceSettlement.resultingRig, componentId, pool, rolls)
       : false;
-    if (changed || pendingChanged) saveCareerProfile(this.career);
+    this.commitMechanicChange(changed || pendingChanged);
   }
 
   // --- Level loading ---
