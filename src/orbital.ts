@@ -682,6 +682,36 @@ export function currentEscapeVector(
     if (current) return current;
   }
 
+  // Once the rig is on an outgoing hyperbola, energy and the eccentricity
+  // vector define its SOI-crossing state without a numerical forecast. The
+  // ordinary prediction horizon can be shorter than a slow climb to a large
+  // SOI, which previously hid VESC until late in the escape.
+  const radialSpeed = (s.x * s.vx + s.y * s.vy) / Math.max(r, 1);
+  const asymptote = radialSpeed >= 0
+    ? hyperbolicExcessFromLocalState(s.x, s.y, s.vx, s.vy, level.planetGM)
+    : null;
+  if (asymptote) {
+    const h = s.x * s.vy - s.y * s.vx;
+    let crossingAngle = Math.atan2(s.y, s.x);
+    if (Math.abs(h) >= 1e-9) {
+      const ex = (s.vy * h) / level.planetGM - s.x / Math.max(r, 1);
+      const ey = (-s.vx * h) / level.planetGM - s.y / Math.max(r, 1);
+      const e = Math.sqrt(ex * ex + ey * ey);
+      const p = h * h / level.planetGM;
+      const cosTrueAnomaly = (p / patchR - 1) / Math.max(e, 1);
+      const outgoingTrueAnomaly = (h >= 0 ? 1 : -1)
+        * Math.acos(Math.max(-1, Math.min(1, cosTrueAnomaly)));
+      crossingAngle = Math.atan2(ey, ex) + outgoingTrueAnomaly;
+    }
+    return {
+      angle: asymptote.angle,
+      speed: Math.sqrt(asymptote.vInf * asymptote.vInf + 2 * level.planetGM / patchR),
+      x: Math.cos(crossingAngle) * patchR,
+      y: Math.sin(crossingAngle) * patchR,
+      vInf: asymptote.vInf,
+    };
+  }
+
   const pred = getCachedPrediction(s, level);
   for (let i = 1; i < pred.points.length; i++) {
     const prev = pred.points[i - 1];
