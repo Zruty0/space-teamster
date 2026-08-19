@@ -1,25 +1,56 @@
 import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS } from './maintenance/catalog';
-import { componentMaxHp, componentReplacementCost } from './maintenance/grades';
+import { COMPONENT_GRADES, componentMaxHp, componentReplacementCost } from './maintenance/grades';
+import type { MechanicOperation } from './maintenance/maintenance-service';
 import { systemStatus } from './maintenance/rig-state';
-import type { MaintenanceDebugSnapshot, MaintenanceLedger } from './maintenance/types';
+import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId } from './maintenance/types';
 
 let panel: HTMLElement | null = null;
 let visible = false;
 let selectedTab: 'mechanic' | 'ledger' = 'mechanic';
 let snapshotProvider: (() => MaintenanceDebugSnapshot) | undefined;
+let mechanicActionHandler: ((systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void) | undefined;
+let pendingMechanicAction: { systemId: MaintenanceSystemId; operation: MechanicOperation } | undefined;
 let lastRefresh = 0;
 let dirty = true;
 let selectedLedgerId = 'current';
 
-export function createDevPanel(provider?: () => MaintenanceDebugSnapshot): void {
+export function createDevPanel(
+  provider?: () => MaintenanceDebugSnapshot,
+  onMechanicAction?: (systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void,
+): void {
   panel = document.getElementById('dev-panel');
   snapshotProvider = provider;
+  mechanicActionHandler = onMechanicAction;
   if (panel) {
     panel.addEventListener('click', event => {
       const target = event.target as HTMLElement;
+      const actionButton = target.closest<HTMLButtonElement>('[data-mechanic-action]');
+      if (actionButton && !actionButton.disabled) {
+        const systemId = actionButton.dataset.systemId as MaintenanceSystemId | undefined;
+        const operation = actionButton.dataset.mechanicAction as MechanicOperation | undefined;
+        if (systemId && operation) {
+          pendingMechanicAction = { systemId, operation };
+          dirty = true;
+          rebuildPanel();
+        }
+        return;
+      }
+      const gradeButton = target.closest<HTMLButtonElement>('[data-mechanic-grade]');
+      if (gradeButton && pendingMechanicAction) {
+        const grade = gradeButton.dataset.mechanicGrade;
+        const pending = pendingMechanicAction;
+        pendingMechanicAction = undefined;
+        if (grade !== 'cancel' && COMPONENT_GRADES.includes(grade as ComponentGrade)) {
+          mechanicActionHandler?.(pending.systemId, pending.operation, grade as ComponentGrade);
+        }
+        dirty = true;
+        rebuildPanel();
+        return;
+      }
       const tab = target.closest<HTMLElement>('[data-dev-tab]')?.dataset.devTab;
       if (tab === 'mechanic' || tab === 'ledger') {
         selectedTab = tab;
+        pendingMechanicAction = undefined;
         dirty = true;
         rebuildPanel();
       }
@@ -54,6 +85,18 @@ function escapeHtml(value: unknown): string {
 
 function num(value: number, digits = 3): string {
   return Number.isFinite(value) ? value.toFixed(digits).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1') : '—';
+}
+
+function renderMechanicControls(systemId: MaintenanceSystemId): string {
+  if (pendingMechanicAction?.systemId === systemId) {
+    const operationLabel = pendingMechanicAction.operation === 'repair' ? 'Repair' : pendingMechanicAction.operation === 'service' ? 'Service' : 'Exchange';
+    return `<span class="dev-mechanic-controls" title="${operationLabel}: choose grade; X cancels">${COMPONENT_GRADES.map(grade => `<button data-mechanic-grade="${grade}">${grade}</button>`).join('')}<button data-mechanic-grade="cancel">X</button></span>`;
+  }
+  return `<span class="dev-mechanic-controls">
+    <button data-mechanic-action="repair" data-system-id="${systemId}" title="Repair and service system; selected grade is shop grade">R</button>
+    <button data-mechanic-action="service" data-system-id="${systemId}" title="Service system; selected grade is shop grade">S</button>
+    <button data-mechanic-action="exchange" data-system-id="${systemId}" title="Exchange system components without service; selected grade is component grade">X</button>
+  </span>`;
 }
 
 function renderMechanic(snapshot: MaintenanceDebugSnapshot): string {
@@ -93,7 +136,7 @@ function renderMechanic(snapshot: MaintenanceDebugSnapshot): string {
       </tr>`;
     }).join('');
     return `<section class="dev-system">
-      <h3>${escapeHtml(system.name)} <span class="dev-status dev-${systemStatus(snapshot.rig, system.id)}">${systemStatus(snapshot.rig, system.id).toUpperCase()}</span></h3>
+      <h3>${escapeHtml(system.name)} <span class="dev-status dev-${systemStatus(snapshot.rig, system.id)}">${systemStatus(snapshot.rig, system.id).toUpperCase()}</span> ${renderMechanicControls(system.id)}</h3>
       <table><thead><tr><th>Component</th><th>Gr</th><th>HP</th><th>AP / Base AP</th><th>Fault / location</th><th>Service</th><th>Replacement</th><th>Active restrictions / multipliers</th></tr></thead><tbody>${rows}</tbody></table>
     </section>`;
   }).join('');

@@ -276,10 +276,10 @@ Shop transactions use the same quote and mutation engine as tests. Save money, w
 
 The existing `Backquote`/F2 `dev-panel.ts` remains the only entry point. Add no main-menu, station-terminal, BBS, or Ship Status navigation to these views.
 
-Refactor the placeholder panel into read-only tabs:
+Refactor the placeholder panel into two developer-only tabs:
 
-- **Mechanic**
-- **Telemetry Ledger**
+- **Mechanic**, with explicit debug maintenance controls
+- **Telemetry Ledger**, read-only
 
 The selected tab persists while the panel is closed. A provider callback supplies snapshots from `Game` without coupling maintenance modules to DOM code. Refresh visible data only when dirty or at a throttled rate.
 
@@ -288,19 +288,19 @@ The selected tab persists while the panel is closed. A provider callback supplie
 Show all seven systems and every catalog component, including absent optional equipment:
 
 - system and derived status
-- component name and stable ID
-- installed/not installed
+- component name and installed/not-installed state
 - component grade
 - current/max HP
-- current AP and AP that each shop grade would produce, with current serviced target emphasized
-- absolute Minor/Major/Total thresholds
+- current AP / grade-D base AP
 - active severity, fault name, and location
 - last service time/mission
 - grade-adjusted replacement value
-- direct restrictions and source-specific strike multipliers
+- active direct restrictions and nontrivial source-specific strike multipliers
 - validation warnings for unknown or invalid state
 
-Use compact system sections and color only as a supplement to text. The first implementation is inspection-only; mutation/cheat buttons are separate future work.
+Use compact system sections and color only as a supplement to text. Omit component IDs and fault thresholds.
+
+Each system heading has compact `R`, `S`, and `X` controls for repair, service, and exchange. Selecting an operation replaces that control group with `A B C D E F X`; A–F confirms the operation at that grade and X cancels. Repair clears repairable named faults, restores full HP, and services all installed components in the system at the selected shop grade; it does not erase sub-threshold HP loss or repair Total faults. Service restores AP at the selected shop grade. Exchange installs/replaces all system components at the selected component grade, restores their full HP and grade-base AP, clears faults, and does not count as service. Debug mutations persist immediately and are mirrored into any pending successful-delivery rig so settlement cannot silently overwrite them.
 
 ### Detailed telemetry ledger
 

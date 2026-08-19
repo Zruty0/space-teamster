@@ -70,10 +70,11 @@ import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type Interactive
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { validateMaintenanceCatalog } from './maintenance/catalog';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
+import { applyMechanicSystemOperation, type MechanicOperation } from './maintenance/maintenance-service';
 import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
-import type { MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
+import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
   drawOperationsManualArticle,
@@ -249,7 +250,10 @@ export class Game {
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
     this.ctx = ctx;
-    createDevPanel(() => this.maintenanceDebugSnapshot());
+    createDevPanel(
+      () => this.maintenanceDebugSnapshot(),
+      (systemId, operation, grade) => this.applyMechanicAction(systemId, operation, grade),
+    );
     installMissionProfileConsoleTools();
   }
 
@@ -269,6 +273,15 @@ export class Game {
       pendingLedger: this.pendingMaintenanceSettlement?.ledger,
       committedLedgers: this.committedMaintenanceLedgers,
     };
+  }
+
+  private applyMechanicAction(systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade): void {
+    const serviceTime = Math.max(this.worldTime, this.career.worldTime);
+    const changed = applyMechanicSystemOperation(this.career.rig, systemId, operation, grade, serviceTime);
+    if (this.pendingMaintenanceSettlement) {
+      applyMechanicSystemOperation(this.pendingMaintenanceSettlement.resultingRig, systemId, operation, grade, serviceTime);
+    }
+    if (changed) saveCareerProfile(this.career);
   }
 
   // --- Level loading ---

@@ -31,6 +31,9 @@
       padding: 5px 10px; cursor: pointer; font-family: inherit;
     }
     #dev-panel button:hover, #dev-panel button.active { background: #075; color: #fff; }
+    #dev-panel button:disabled { border-color: #345; color: #567; cursor: default; background: #031411; }
+    #dev-panel .dev-mechanic-controls { display: inline-flex; gap: 2px; white-space: nowrap; }
+    #dev-panel .dev-mechanic-controls button { min-width: 22px; padding: 2px 4px; font-size: 10px; line-height: 1.1; }
     #dev-panel table { width: 100%; min-width: 1040px; border-collapse: collapse; table-layout: auto; }
     #dev-panel table.dev-compact { min-width: 420px; }
     #dev-panel .dev-table-scroll { overflow-x: auto; }
