@@ -9,6 +9,7 @@ let visible = false;
 let selectedTab: 'mechanic' | 'ledger' = 'mechanic';
 let snapshotProvider: (() => MaintenanceDebugSnapshot) | undefined;
 let mechanicActionHandler: ((systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void) | undefined;
+let mechanicRemoveHandler: ((systemId: MaintenanceSystemId) => void) | undefined;
 let pendingMechanicAction: { systemId: MaintenanceSystemId; operation: MechanicOperation } | undefined;
 let lastRefresh = 0;
 let dirty = true;
@@ -17,13 +18,24 @@ let selectedLedgerId = 'current';
 export function createDevPanel(
   provider?: () => MaintenanceDebugSnapshot,
   onMechanicAction?: (systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void,
+  onMechanicRemove?: (systemId: MaintenanceSystemId) => void,
 ): void {
   panel = document.getElementById('dev-panel');
   snapshotProvider = provider;
   mechanicActionHandler = onMechanicAction;
+  mechanicRemoveHandler = onMechanicRemove;
   if (panel) {
     panel.addEventListener('click', event => {
       const target = event.target as HTMLElement;
+      const removeButton = target.closest<HTMLButtonElement>('[data-mechanic-remove]');
+      if (removeButton) {
+        const systemId = removeButton.dataset.systemId as MaintenanceSystemId | undefined;
+        if (systemId) mechanicRemoveHandler?.(systemId);
+        pendingMechanicAction = undefined;
+        dirty = true;
+        rebuildPanel();
+        return;
+      }
       const actionButton = target.closest<HTMLButtonElement>('[data-mechanic-action]');
       if (actionButton && !actionButton.disabled) {
         const systemId = actionButton.dataset.systemId as MaintenanceSystemId | undefined;
@@ -96,6 +108,7 @@ function renderMechanicControls(systemId: MaintenanceSystemId): string {
     <button data-mechanic-action="repair" data-system-id="${systemId}" title="Repair and service system; selected grade is shop grade">R</button>
     <button data-mechanic-action="service" data-system-id="${systemId}" title="Service system; selected grade is shop grade">S</button>
     <button data-mechanic-action="exchange" data-system-id="${systemId}" title="Exchange system components without service; selected grade is component grade">X</button>
+    ${systemId === 'atmospheric-package' ? `<button data-mechanic-remove data-system-id="${systemId}" title="Remove the complete Atmospheric Package">REMOVE</button>` : ''}
   </span>`;
 }
 

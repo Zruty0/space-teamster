@@ -70,7 +70,7 @@ import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type Interactive
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { validateMaintenanceCatalog } from './maintenance/catalog';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
-import { applyMechanicSystemOperation, type MechanicOperation } from './maintenance/maintenance-service';
+import { applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicOperation } from './maintenance/maintenance-service';
 import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
@@ -254,6 +254,7 @@ export class Game {
     createDevPanel(
       () => this.maintenanceDebugSnapshot(),
       (systemId, operation, grade) => this.applyMechanicAction(systemId, operation, grade),
+      systemId => this.removeMechanicSystem(systemId),
     );
     installMissionProfileConsoleTools();
   }
@@ -281,6 +282,14 @@ export class Game {
     const changed = applyMechanicSystemOperation(this.career.rig, systemId, operation, grade, serviceTime);
     if (this.pendingMaintenanceSettlement) {
       applyMechanicSystemOperation(this.pendingMaintenanceSettlement.resultingRig, systemId, operation, grade, serviceTime);
+    }
+    if (changed) saveCareerProfile(this.career);
+  }
+
+  private removeMechanicSystem(systemId: MaintenanceSystemId): void {
+    const changed = removeOptionalMaintenanceSystem(this.career.rig, systemId);
+    if (this.pendingMaintenanceSettlement) {
+      removeOptionalMaintenanceSystem(this.pendingMaintenanceSettlement.resultingRig, systemId);
     }
     if (changed) saveCareerProfile(this.career);
   }

@@ -44,6 +44,30 @@ export function applyMechanicOperation(
   return true;
 }
 
+export function removeOptionalMaintenanceSystem(rig: CareerRigState, systemId: MaintenanceSystemId): boolean {
+  const system = maintenanceSystemById(systemId);
+  if (!system?.optional) return false;
+  let changed = false;
+  for (const componentId of system.componentIds) {
+    const state = rig.components[componentId];
+    if (!state) continue;
+    changed = changed || state.installed || state.hp !== 0 || state.ap !== 0 || !!state.fault;
+    state.installed = false;
+    state.grade = 'D';
+    state.hp = 0;
+    state.ap = 0;
+    delete state.fault;
+    delete state.lastServiceWorldTime;
+    delete state.lastServiceMission;
+  }
+  if (systemId === 'atmospheric-package') {
+    const before = rig.optionalEquipment.length;
+    rig.optionalEquipment = rig.optionalEquipment.filter(id => id !== 'heavy-heat-shielding');
+    changed = changed || rig.optionalEquipment.length !== before;
+  }
+  return changed;
+}
+
 export function applyMechanicSystemOperation(
   rig: CareerRigState,
   systemId: MaintenanceSystemId,
