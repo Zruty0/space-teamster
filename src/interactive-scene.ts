@@ -206,9 +206,12 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void
 
 function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save();
-  ctx.fillStyle = '#4ddcff';
+  ctx.strokeStyle = '#4ddcff';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
-  // Compact upright open-end wrench silhouette.
+  // Compact upright open-end wrench outline.
   ctx.beginPath();
   ctx.moveTo(x + 2, y - 13);
   ctx.quadraticCurveTo(x - 1, y - 10, x + 1, y - 6);
@@ -223,7 +226,7 @@ function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): vo
   ctx.lineTo(x + 6, y - 7);
   ctx.lineTo(x + 4, y - 9);
   ctx.closePath();
-  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
