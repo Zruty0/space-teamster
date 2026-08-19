@@ -109,7 +109,7 @@ const COEFFICIENTS: Readonly<Partial<Record<TelemetrySourceId, Partial<Record<Ma
   turbulenceExposure: { 'body-frame': 0.03, 'steering-thrusters': 0.03, 'atmospheric-package': 0.05, 'cab-controls': 0.01 },
   wingOperation: { 'atmospheric-package': 0.03, 'cab-controls': 0.01 },
   surfaceOperation: { 'body-frame': 0.01, 'landing-docking': 0.05 },
-  touchdownStress: { 'body-frame': 0.15, 'steering-thrusters': 0.05, 'landing-docking': 0.35, 'auxiliary-systems': 0.05 },
+  touchdownStress: { 'body-frame': 0.15, 'steering-thrusters': 0.05, 'landing-docking': 1.25, 'auxiliary-systems': 0.05 },
   dockingOperation: { 'body-frame': 0.01, 'landing-docking': 0.05, 'auxiliary-systems': 0.01 },
   tractorCapture: { 'body-frame': 0.01, 'landing-docking': 0.07 },
   dockingCollision: { 'body-frame': 0.12, 'steering-thrusters': 0.08, 'landing-docking': 0.30, 'auxiliary-systems': 0.05 },

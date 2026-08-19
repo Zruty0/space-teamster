@@ -73,7 +73,7 @@ Severe heat is added on top of ordinary heat exposure. Its quadratic curve allow
 | Telemetry | One unit | Weight added per unit |
 |---|---|---|
 | Surface operation cycle | One launch or one successful landing | Body and Frame `0.01`; Landing and Docking `0.05` |
-| Touchdown stress | One normalized touchdown-stress unit | Body and Frame `0.15`; Steering and Thrusters `0.05`; Landing and Docking `0.35`; Auxiliary Systems `0.05` |
+| Touchdown stress | One normalized touchdown-stress unit | Body and Frame `0.15`; Steering and Thrusters `0.05`; Landing and Docking `1.25`; Auxiliary Systems `0.05` |
 
 Touchdown stress is:
 
@@ -87,7 +87,7 @@ r = max(
 touchdownStress = clamp((r - 0.2) / 0.8, 0, 1)^2
 ```
 
-At or below 20% of accepted limits this adds zero. At 50%, 75%, and 100% of limits it adds approximately `0.084`, `0.284`, and `0.600` total expected strikes respectively.
+At or below 20% of accepted limits this adds zero. At 50%, 75%, and 100% of limits it adds approximately `0.211`, `0.709`, and `1.500` total expected strikes respectively. Most touchdown wear targets Landing and Docking: a near-limit but successful landing should create roughly one expected strike against landing hardware rather than resemble an ordinary surface cycle.
 
 ## Docking operations
 
