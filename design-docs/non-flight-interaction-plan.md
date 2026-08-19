@@ -169,7 +169,7 @@ type SceneEffect =
 
 ## Contract Flow
 
-BBS rows should represent `ContractPosting`, not accepted contracts. Selecting a posting starts an acceptance flow.
+BBS rows should represent `ContractPosting`, not accepted contracts. Selecting a posting starts an acceptance flow. Contract marker icons occupy the issuer gutter's second row and read left-to-right: passenger or fragile-cargo marker first, then an orange lock when the posting is unavailable. Passenger and fragile markers use the same cyan; locked state uses the icon rather than the word `LOCKED`.
 
 ```text
 Posting selected

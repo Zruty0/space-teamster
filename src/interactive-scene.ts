@@ -7,7 +7,7 @@ export interface InteractiveTextSegment {
   tone?: InteractiveTone;
 }
 
-export type InteractiveIcon = 'fragile' | 'passenger' | 'warning' | 'alert';
+export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
@@ -28,10 +28,10 @@ export interface InteractiveSceneOption {
   tagColumn?: boolean;
   rightText?: string;
   rightDetail?: string;
-  /** Independent availability marker; does not replace semantic tags or row tone. */
-  statusText?: string;
   /** Small semantic icon at the far left of the issuer-tag gutter. */
   leftIcon?: InteractiveIcon;
+  /** Contract markers arranged left-to-right on the second row of the tag gutter. */
+  secondRowIcons?: InteractiveIcon[];
 }
 
 export interface InteractiveScene {
@@ -141,7 +141,7 @@ function drawRichTextSegments(
 
 function drawFragileIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save();
-  ctx.strokeStyle = COL_WARNING;
+  ctx.strokeStyle = '#4ddcff';
   ctx.lineWidth = 1.25;
   ctx.lineCap = 'square';
   ctx.lineJoin = 'miter';
@@ -187,6 +187,22 @@ function drawPassengerIcon(ctx: CanvasRenderingContext2D, x: number, y: number):
   ctx.restore();
 }
 
+function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.strokeStyle = COL_WARNING;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.arc(x + 6, y - 7, 4, Math.PI, 0);
+  ctx.lineTo(x + 10, y - 3);
+  ctx.moveTo(x + 2, y - 3);
+  ctx.lineTo(x + 2, y - 7);
+  ctx.stroke();
+  ctx.strokeRect(x + 1, y - 3, 10, 7);
+  ctx.restore();
+}
+
 function drawStatusTriangle(ctx: CanvasRenderingContext2D, x: number, y: number, alert: boolean): void {
   ctx.save();
   ctx.beginPath();
@@ -209,6 +225,7 @@ function drawStatusTriangle(ctx: CanvasRenderingContext2D, x: number, y: number,
 function drawInteractiveIcon(ctx: CanvasRenderingContext2D, icon: InteractiveIcon, x: number, y: number): void {
   if (icon === 'fragile') drawFragileIcon(ctx, x, y);
   else if (icon === 'passenger') drawPassengerIcon(ctx, x, y);
+  else if (icon === 'lock') drawLockIcon(ctx, x, y);
   else drawStatusTriangle(ctx, x, y, icon === 'alert');
 }
 
@@ -420,18 +437,8 @@ export function drawInteractiveScene(
       }
       ctx.textAlign = 'left';
     }
-    if (option.statusText) {
-      ctx.fillStyle = COL_WARNING;
-      ctx.font = 'bold 11px monospace';
-      if (option.tagColumn) {
-        ctx.textAlign = 'left';
-        ctx.fillText(`[${option.statusText}]`, labelX, y + 19);
-      } else {
-        ctx.textAlign = 'right';
-        const statusY = option.rightText ? y + (option.rightDetail ? 38 : 19) : y;
-        ctx.fillText(`[${option.statusText}]`, x + boxW - 24, statusY);
-        ctx.textAlign = 'left';
-      }
+    if (option.secondRowIcons?.length) {
+      option.secondRowIcons.forEach((icon, iconIndex) => drawInteractiveIcon(ctx, icon, labelX + iconIndex * 20, y + 19));
     }
     if (option.detail) {
       ctx.fillStyle = COL_HUD_DIM;

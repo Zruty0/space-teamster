@@ -66,7 +66,7 @@ import {
   type ManifestConditionState,
 } from './manifest-condition';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
-import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveIcon, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { validateMaintenanceCatalog } from './maintenance/catalog';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
@@ -187,6 +187,14 @@ function contractOptionTone(contract: CareerContract): InteractiveTone {
   if (marginRatio <= 0.05) return 'warning';
   if (netAtPar >= 100_000) return 'success';
   return 'normal';
+}
+
+function contractBoardIcons(contract: CareerContract, locked: boolean): InteractiveIcon[] {
+  const icons: InteractiveIcon[] = [];
+  if (contract.category === 'passenger') icons.push('passenger');
+  else if (contract.cargo.fragile) icons.push('fragile');
+  if (locked) icons.push('lock');
+  return icons;
 }
 
 function contractMissingQualifications(contract: CareerContract, career: CareerProfile): string[] {
@@ -1981,11 +1989,10 @@ export class Game {
               labelLineCount: 2 as const,
               tag: contract.issuerTag,
               tagColumn: true,
-              leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
+              secondRowIcons: contractBoardIcons(contract, lockingReasons.length > 0),
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-              statusText: lockingReasons.length ? 'LOCKED' : undefined,
-              detail: lockingReasons.length ? `LOCKED: ${lockingReasons.join(' + ')} | ${routeDetail}` : routeDetail,
+              detail: lockingReasons.length ? `${lockingReasons.join(' + ')} | ${routeDetail}` : routeDetail,
               detailLineCount: lockingReasons.length ? 2 as const : 1 as const,
               action: `contract:${contract.id}`,
               tone: contractOptionTone(contract),
@@ -2084,9 +2091,8 @@ export class Game {
               labelLineCount: 2 as const,
               tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
               tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
-              leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
-              statusText: lockingReasons.length ? 'LOCKED' : undefined,
-              detail: lockingReasons.length ? `LOCKED: ${lockingReasons.join(' + ')}` : `${contract.sourceName} → ${contract.destinationName}`,
+              secondRowIcons: contractBoardIcons(contract, lockingReasons.length > 0),
+              detail: lockingReasons.length ? lockingReasons.join(' + ') : `${contract.sourceName} → ${contract.destinationName}`,
               detailLineCount: lockingReasons.length ? 2 as const : 1 as const,
               action: `contactContract:${contract.id}`,
               tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
