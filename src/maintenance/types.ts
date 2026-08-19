@@ -78,6 +78,7 @@ export interface ComponentDefinition {
   minorThreshold: number;
   majorThreshold: number;
   replacementLaborHours: number;
+  serviceHours: number;
   faultLibraryIds: string[];
   locations: string[];
   localFaults: FaultDefinition[];

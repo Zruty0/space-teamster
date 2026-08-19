@@ -2,6 +2,18 @@
 
 Confirmed component catalog for the persistent rig maintenance system. Global HP/AP, grade, strike, threshold, service, repair, and replacement rules are defined in `non-flight-interaction-plan.md`.
 
+Routine service is ordered per system. Component service time uses half-hour increments with a minimum of `0.5 hours`. Installed component labor is additive within the selected system; absent optional components add no time or cost. The complete rig with Atmospheric Package totals `20.0 hours`, or `10,000 cr` at a standard `500 cr/hour` shop.
+
+| System | Component service times | System total |
+|---|---|---:|
+| Body and Frame | Main Chassis `1.5h`; Cab Pressure Shell `1.0h`; Cargo Spine `1.0h`; Bodywork and Mounts `0.5h` | `4.0h` |
+| Powertrain | Main Drive Core `1.5h`; Field Coil Bank `1.0h`; Regulator Bank `0.5h`; Fuel Feed Assembly `0.5h`; Drive Cooling Loop `1.0h` | `4.5h` |
+| Steering and Thrusters | Maneuvering Thruster Array `1.0h`; Thruster Feed Assembly `0.5h`; Thruster Valve Bank `0.5h` | `2.0h` |
+| Atmospheric Package | Heat Shielding `1.0h`; Atmospheric Surfaces `1.0h`; Surface Actuators `0.5h` | `2.5h` |
+| Landing and Docking | Landing Gear Assembly `1.0h`; Docking Coupler `0.5h`; Tractor Capture Receiver `1.0h` | `2.5h` |
+| Cab and Controls | Driver Controls `0.5h`; Flight Computer `0.5h`; Navigation Instruments `0.5h`; Instrument Panel `0.5h` | `2.0h` |
+| Auxiliary Systems | Service Power Unit `0.5h`; Environmental Control Unit `1.0h`; Communications Set `0.5h`; Cargo Handling Gear `0.5h` | `2.5h` |
+
 ## Body and Frame
 
 ### Main Chassis

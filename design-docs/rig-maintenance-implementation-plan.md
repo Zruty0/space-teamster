@@ -218,14 +218,14 @@ Ship Status is inspection-only. Service, diagnosis, repair, replacement, and pur
 
 Do not add seven system-specific icons. Show no icon for `OK`; show a yellow exclamation mark in a black warning triangle immediately beside the `WARNING` status text, and a white exclamation mark in a red triangle immediately beside the `ALERT` status text—not beside the system name. The Station Terminal's `Ship Status` option shows the same highest active warning/alert icon beside its label. Severity colors supplement rather than replace the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
 
-## 11. Maintenance-shop BBS postings
+## 11. Maintenance-shop directory entries
 
-Add a third station-terminal board beside freight and passenger work:
+Place authored maintenance shops in the Station Terminal's **Local Directory**, not in Ship Status or the freight/passenger contract boards:
 
-- terminal option: **Browse Maintenance Services**
-- scene title: **MAINTENANCE SERVICES**
-- only shops serving the current terminal scope are posted
+- local entries use a clear `SHOP` or `SERVICE` tag
+- only shops serving the current terminal scope can transact
 - remote directory contacts may advertise a shop, but transactions require local physical access
+- Ship Status remains inspection-only; an eventual `Find Local Maintenance` shortcut may route to filtered directory entries but performs no work itself
 
 Define authored shops with stable IDs:
 
@@ -235,13 +235,14 @@ interface MaintenanceShopDef {
   name: string;
   organizationName?: string;
   locationIds: string[];
-  shopGrade: ShopGrade;
+  diagnosticGrade: WorkGrade;
+  workQualityGrade: ShopGrade;
+  componentGradeBest: ComponentGrade;
+  componentGradeWorst: ComponentGrade;
   laborRate: number;
-  servicePrice: number;
   partsMarkup: number;
   honesty: number;
   turnaroundMultiplier: number;
-  stockedComponentGrades: ComponentGrade[];
   description: string;
 }
 ```
@@ -250,21 +251,26 @@ BBS rows show only player-legible commercial information:
 
 - shop name and organization tag
 - local location
-- shop grade
-- full-service price
-- labor rate
-- short capability/stock summary
+- diagnostic grade and work-quality grade
+- inclusive replacement-component grade range
+- projected full-service price from installed component service hours and labor rate
+- short capability summary
 - `CLOSED`, `UNAVAILABLE`, or restriction text when appropriate
 
 Selecting a posting opens a shop scene rather than a flight contract. Required scene flow:
 
-1. **Shop profile** — grade, rates, description, current rig summary, and request-inspection action.
-2. **Diagnosis/quote** — full service plus actual or claimed Minor/Major/Total line items.
-3. **Work selection** — toggle service, repairs, replacements, and stocked replacement component grade.
-4. **Confirmation** — total credits, labor/turnaround time, resulting AP quality, replaced component grade, and restrictions cleared or remaining.
-5. **Receipt** — atomically apply cash, world time, rig state, diagnosis state, service time, and replacement/repair results.
+1. **Shop profile** — diagnostic grade, work-quality grade, inclusive component stock range, rates, description, current rig summary, and request-inspection action.
+2. **Diagnosis/quote** — actual or claimed Minor/Major/Total line items plus every active restriction. Diagnostic capability compares against the fault's work grade. A fault above that capability identifies the component and severity as, for example, `Major unknown fault`, but does not reveal its fault or location.
+3. **Work selection** — toggle per-system service, repairs, and replacements. Repair services only the repaired component. System service adds every installed component's authored service time and skips absent optional equipment.
+4. **Replacement selection** — use the component's current grade when it lies within the shop's inclusive stock range. Otherwise state that an exact replacement is unavailable, show the resulting grade change, and offer only the closest stocked boundary grade or cancellation.
+5. **Confirmation** — total credits, labor/turnaround time, resulting service quality, replaced component grade, and restrictions cleared or remaining.
+6. **Receipt** — atomically apply cash, world time, rig state, diagnosis state, service time, and replacement/repair results.
 
-Replacement retains F-grade work complexity at every shop. The selected replacement part retains its purchased component grade, while the shop grade determines installed/service AP quality.
+Replacement retains F-grade work complexity at every shop. Work Quality Grade determines both repair capability and installed/service AP quality. The selected replacement part retains its purchased component grade. Replacement remains available for an unknown fault and at every shop.
+
+The standard licensed shop is Diagnostic C / Work D / Components D–D, normally at `500 cr/hour`. A complete installed baseline rig including Atmospheric Package has `20.0` authored service hours and therefore costs about `10,000 cr` there. Component service time uses half-hour increments, with `0.5 hours` as the smallest task.
+
+The unofficial-mechanic archetype is Diagnostic E / Work F / Components F–F. Most remote locations should provide one when no licensed shop is locally reachable; this guarantees diagnosis of only easy faults and universal standardized replacement, usually with an explicit downgrade to Grade F.
 
 Implement an honest-shop baseline first. Then add diagnosis quality and honesty:
 
@@ -377,7 +383,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 - planned surface impacts within 50 km of the authored target do not show the blinking `IMPACT TRAJECTORY` text
 - Ship Status and its Station Terminal option show only the approved warning/alert triangle when a named fault is active
 - Optional Equipment displays `None installed` for a migrated/default rig
-- the Maintenance Services board lists only locally reachable authored shops
+- Local Directory shop entries transact only when locally reachable
 - selecting a shop never enters contract acceptance or flight launch flow
 - quote selection previews correct component grade, shop-quality AP, parts, labor, service price, and turnaround
 - insufficient funds, declined quotes, and unavailable work leave career and rig state unchanged
@@ -406,7 +412,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 8. Service/repair/replacement engine and quote tests.
 9. Operational restriction enforcement.
 10. Player Ship Status scene with seven coarse indicators, equipment restrictions, and status icons.
-11. Authored shop catalog and local Maintenance Services BBS board.
+11. Authored shop catalog and Local Directory shop entries.
 12. Honest diagnosis, quote selection, confirmation, receipt, and atomic shop transactions.
 13. Dishonest diagnosis/quote behavior and replacement-grade stock.
 14. Browser smoke tests, seeded 100-mission regression scenarios, mobile checks, and balancing pass.

@@ -103,6 +103,9 @@ export function validateMaintenanceCatalog(): RigValidationWarning[] {
     if (component.majorThreshold >= component.minorThreshold || component.minorThreshold >= component.baseHp || component.majorThreshold <= 0) {
       warnings.push({ path: component.id, message: 'Invalid HP threshold order' });
     }
+    if (!(component.serviceHours >= 0.5 && component.serviceHours <= 2 && Number.isInteger(component.serviceHours * 2))) {
+      warnings.push({ path: component.id, message: 'Service time must be 0.5–2 hours in half-hour increments' });
+    }
     for (const libraryId of component.faultLibraryIds) {
       if (!FAULT_LIBRARIES[libraryId]) warnings.push({ path: component.id, message: `Unknown fault library: ${libraryId}` });
     }

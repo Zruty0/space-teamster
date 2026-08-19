@@ -465,7 +465,7 @@ Parts are `20%` of component base cost for Minor work and `50%` for Major work. 
 
 Grade A is exceptional specialist/major-shipyard work; B is advanced structural or precision work; C is full-service professional work; D is ordinary licensed repair work; E needs only basic tools/limited facilities; and F covers trivial servicing, simple part changes, and standardized replacement. A shop may perform work at its capability grade or any easier grade: a C shop can do C/D/E/F, while an F shop can perform F-grade repairs and replacements. Replacement always has F-grade work complexity, so a shop unable to perform the proper repair can recommend full replacement instead. That F describes task difficulty, not replacement quality: the purchased component retains its component grade, while the replacing shop's grade determines the installed component's serviced AP.
 
-A successful repair always restores the component to full HP, restores AP to its serviced maximum, clears the fault, and updates service time. Repair therefore includes servicing. Standalone servicing restores AP to maximum but does not restore lost HP. Replacement installs the component at full HP and AP and clears Total failure.
+A successful repair always restores the repaired component to full HP, restores that component's AP to its serviced maximum, clears the fault, and updates service time. It does not service other components in the same system. Standalone servicing is ordered per system: it restores AP but not HP for every installed component in that system, sums each component's authored half-hour-increment service time, and skips absent optional components. The baseline rig with Atmospheric Package totals `20.0 hours`, costing `10,000 cr` at `500 cr/hour`. Replacement installs the component at full HP and AP and clears Total failure.
 
 ### Warnings and grounding
 
@@ -482,6 +482,8 @@ type RigStatus = 'ok' | 'warning' | 'alert' | 'grounded';
 BBS/terminal header should show maintenance warning/alert icons. Non-spaceworthy rigs cannot accept/launch normal work until repaired, except special tow/yard-transfer/test exceptions.
 
 ### Repair quotes
+
+Each shop separately advertises Diagnostic Grade, Work Quality Grade, and an inclusive best-to-worst component stock range. Diagnostic capability compares against the fault's work grade. Beyond that capability the shop identifies the affected component, severity, and all active restrictions but reports an `Unknown fault`; replacement remains available. Work Quality Grade controls both repair capability and serviced/installation quality. Replacement uses the current component grade when stocked; otherwise the shop explicitly offers the closest stocked boundary grade and discloses the upgrade or downgrade before confirmation. A standard licensed shop is Diagnostic C / Work D / Components D–D. An unofficial remote mechanic is Diagnostic E / Work F / Components F–F, and most remote locations should have one.
 
 Separate actual damage from shop diagnosis.
 
