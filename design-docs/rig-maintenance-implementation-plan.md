@@ -1,6 +1,6 @@
 # Rig Maintenance Implementation Plan
 
-Implementation plan for the approved component catalog, telemetry weights, persistent condition, faults, servicing, repair, replacement, operational restrictions, player-facing Ship Status scenes, maintenance-shop BBS postings, and developer inspection views.
+Implementation plan for the approved component catalog, telemetry weights, persistent condition, faults, servicing, repair, replacement, operational restrictions, player-facing Ship Status, maintenance-shop BBS postings, and developer inspection views.
 
 Source design:
 
@@ -196,27 +196,23 @@ Show a specific reason wherever an action is blocked. Do not silently remove mon
 
 ## 10. Player-facing Ship Status
 
-Replace the existing Station Terminal `Ship Status` placeholder with an `InteractiveScene` hierarchy:
+Replace the existing Station Terminal `Ship Status` placeholder with one read-only `shipStatus` scene.
 
-- `shipStatus` — all seven confirmed systems with status icon, severity, and short restriction summary
-- `shipStatusSystem` — installed and absent components in the selected system
-- `shipStatusComponent` — one component's condition and known maintenance information
+Show exactly the seven approved systems in their approved order. Each system has one coarse player-facing indicator:
 
-The system root uses exactly the seven approved names and order. It shows overall spaceworthiness, active operational restrictions, and whether optional equipment such as the Atmospheric Package is absent.
+- `OK` — no named fault and no service warning
+- `WARNING` — depleted AP, persistent wear, or a Minor fault that does not impose an operational restriction
+- `ALERT` — a Major/Total fault or any active restriction sourced from that system
 
-Component rows show player-known information:
+Do not expose component rows or component-detail scenes. Ship Status does not show component grade, HP/AP numbers, thresholds, fault names, fault locations, service age, repair prices, RNG, hidden diagnosis truth, or raw telemetry.
 
-- component name and grade
-- current/max HP and current serviced AP
-- Minor/Major/Total thresholds
-- status (`OK`, `WORN`, `MINOR`, `MAJOR`, `TOTAL`, or `NOT INSTALLED`)
-- confirmed fault and location, or `Diagnosis required` when unknown
-- service age and whether AP is below the component/shop-independent grade baseline
-- current restrictions caused by that component
+Below the seven indicators, show the derived equipment-based restrictions as a plain list with specific reasons, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. If no restriction is active, show `No equipment restrictions`.
 
-Ship Status is inspection-only. It does not perform service, repair, replacement, or purchasing. Those actions belong to maintenance-shop postings. Do not expose RNG rolls, hidden diagnosis truth, raw telemetry weights, or dishonest-shop metadata in this player view.
+An absent optional Atmospheric Package is not itself a damaged-system alert. Show the package as `OK — not equipped`, while the restriction list states that atmospheric work is unavailable because the package is not installed.
 
-Add compact status icons for the seven systems and severity colors with text labels. Use existing `InteractiveScene` body scrolling and option navigation so the scenes work on narrow/mobile viewports.
+Ship Status is inspection-only. Service, diagnosis, repair, replacement, and purchasing belong to maintenance-shop postings.
+
+Add compact status icons for the seven systems and use severity colors only as a supplement to the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
 
 ## 11. Maintenance-shop BBS postings
 
@@ -339,7 +335,7 @@ The panel should widen responsively for ledger tables and support vertical and h
 
 ### Debug/player separation
 
-The Mechanic view always shows actual hidden state, including the true fault and location. Player Ship Status shows only the current diagnosis state. The Telemetry Ledger remains developer-only and never appears in Ship Status or maintenance-shop scenes.
+The Mechanic view always shows actual hidden state, including component condition, true faults, and locations. Player Ship Status shows only seven coarse system indicators and derived equipment restrictions. Diagnosis and component-specific work appear only in maintenance-shop scenes. The Telemetry Ledger remains developer-only and never appears in Ship Status or maintenance-shop scenes.
 
 ## 13. Tests and verification
 
@@ -369,9 +365,10 @@ The Mechanic view always shows actual hidden state, including the true fault and
 
 ### Player/shop integration tests
 
-- Station Terminal Ship Status opens the seven systems in the approved order
-- player scenes show diagnosed information but never hidden fault truth, RNG, or raw telemetry
-- absent Atmospheric Package displays `NOT INSTALLED`
+- Station Terminal Ship Status shows the seven systems in the approved order
+- each system displays only `OK`, `WARNING`, or `ALERT`, with status derivation covered by fixtures
+- Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
+- absent Atmospheric Package displays `OK — not equipped` while atmospheric unavailability appears in the restrictions list
 - the Maintenance Services board lists only locally reachable authored shops
 - selecting a shop never enters contract acceptance or flight launch flow
 - quote selection previews correct component grade, shop-quality AP, parts, labor, service price, and turnaround
@@ -400,7 +397,7 @@ The Mechanic view always shows actual hidden state, including the true fault and
 7. Detailed Telemetry Ledger developer view and debug history.
 8. Service/repair/replacement engine and quote tests.
 9. Operational restriction enforcement.
-10. Player Ship Status root, seven system scenes, component details, and status icons.
+10. Player Ship Status scene with seven coarse indicators, equipment restrictions, and status icons.
 11. Authored shop catalog and local Maintenance Services BBS board.
 12. Honest diagnosis, quote selection, confirmation, receipt, and atomic shop transactions.
 13. Dishonest diagnosis/quote behavior and replacement-grade stock.
