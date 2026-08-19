@@ -2017,7 +2017,7 @@ export class Game {
           label: system.name,
           rightText: quote.laborHours ? formatCredits(quote.credits) : undefined,
           rightDetail: quote.laborHours ? formatLaborHours(quote.laborHours) : undefined,
-          detail: quote.laborHours === 0 ? 'No installed equipment in this system.' : 'Service every installed component in this system.',
+          detail: quote.laborHours === 0 ? (system.notEquipped ? 'No installed equipment in this system.' : 'No maintenance required after inspection.') : 'Service only the components that benefit from maintenance.',
           action: `maintenanceServiceConfirm:${shop.id}:${system.id}`,
           disabled: !local || quote.laborHours === 0,
           tone: quote.laborHours ? 'primary' as const : 'muted' as const,
@@ -2028,13 +2028,13 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: 'Routine service restores service protection but does not repair persistent HP damage or clear faults.' },
+          { kind: 'text', text: 'Routine service restores service protection but does not repair persistent HP damage or clear faults. Quotes include only components that benefit from maintenance.' },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Service Everything', rightText: formatCredits(allQuote.credits), rightDetail: formatLaborHours(allQuote.laborHours), detail: 'Service every installed component in one work order.', action: `maintenanceServiceAllConfirm:${shop.id}`, tone: 'primary', disabled: !local || allQuote.laborHours === 0 },
+          { label: 'Service Everything', rightText: allQuote.laborHours ? formatCredits(allQuote.credits) : undefined, rightDetail: allQuote.laborHours ? formatLaborHours(allQuote.laborHours) : undefined, detail: allQuote.laborHours ? 'Service every component that benefits from maintenance in one work order.' : 'No maintenance required after inspection.', action: `maintenanceServiceAllConfirm:${shop.id}`, tone: allQuote.laborHours ? 'primary' : 'muted', disabled: !local || allQuote.laborHours === 0 },
           ...systemOptions,
           { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
         ],
@@ -2060,7 +2060,7 @@ export class Game {
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          { label: `Authorize ${formatCredits(payment.due)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: serviceAll ? 'Service every installed component.' : 'Service every installed component in this system.', action: serviceAll ? `maintenanceServiceAll:${shop.id}` : `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || quote.laborHours === 0 || this.career.money < payment.due },
+          { label: `Authorize ${formatCredits(payment.due)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: serviceAll ? 'Service every component that benefits from maintenance.' : 'Service the components that benefit from maintenance in this system.', action: serviceAll ? `maintenanceServiceAll:${shop.id}` : `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || quote.laborHours === 0 || this.career.money < payment.due },
           { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceServiceList:${shop.id}`, tone: 'back' },
         ],
       };

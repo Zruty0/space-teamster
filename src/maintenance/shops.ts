@@ -77,11 +77,17 @@ export function diagnoseRigAtShop(rig: CareerRigState, shop: MaintenanceShopDef)
   return changed;
 }
 
+export function componentNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): boolean {
+  const component = maintenanceComponentById(componentId);
+  const state = rig.components[componentId];
+  return !!component && !!state?.installed && state.ap < componentServicedAp(component, state.grade, shop.workQualityGrade);
+}
+
 export function systemServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId): MaintenanceQuote {
   const system = maintenanceSystemById(systemId);
   const laborHours = system.componentIds.reduce((sum, componentId) => {
     const component = maintenanceComponentById(componentId);
-    return sum + (component && rig.components[componentId]?.installed ? component.serviceHours : 0);
+    return sum + (component && componentNeedsService(rig, shop, componentId) ? component.serviceHours : 0);
   }, 0);
   return {
     credits: Math.round(laborHours * shop.laborRate),
@@ -102,11 +108,7 @@ export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef): 
 
 export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId): boolean {
   const system = maintenanceSystemById(systemId);
-  return system.componentIds.some(componentId => {
-    const component = maintenanceComponentById(componentId);
-    const state = rig.components[componentId];
-    return !!component && !!state?.installed && state.ap < componentServicedAp(component, state.grade, shop.workQualityGrade);
-  });
+  return system.componentIds.some(componentId => componentNeedsService(rig, shop, componentId));
 }
 
 export function repairQuote(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): (MaintenanceQuote & { repair: string; workGrade: WorkGrade }) | undefined {
@@ -158,7 +160,9 @@ export function replacementQuote(rig: CareerRigState, shop: MaintenanceShopDef, 
 export function serviceSystemAtShop(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId, worldTime: number): boolean {
   const system = maintenanceSystemById(systemId);
   let changed = false;
-  for (const componentId of system.componentIds) changed = applyMechanicOperation(rig, componentId, 'service', shop.workQualityGrade, worldTime) || changed;
+  for (const componentId of system.componentIds) {
+    if (componentNeedsService(rig, shop, componentId)) changed = applyMechanicOperation(rig, componentId, 'service', shop.workQualityGrade, worldTime) || changed;
+  }
   return changed;
 }
 
