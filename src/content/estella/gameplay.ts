@@ -56,6 +56,12 @@ const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['t
   'estella-vii': { patchRadius: 2_500_000, displayPatchRadius: 2_500_000 },
   'estella-viii': { patchRadius: 12_000_000, displayPatchRadius: 12_000_000 },
   'estella-ix': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
+  // Giant patches are tuned for comparable escape-coast time rather than one
+  // shared radius: Hydra's stronger gravity and far-out captive stations need
+  // its full patch, while lighter Manticore needs a much shorter boundary.
+  'estella-x': { patchRadius: 96_000_000, displayPatchRadius: 96_000_000 },
+  'estella-xi': { patchRadius: 120_000_000, displayPatchRadius: 120_000_000 },
+  'estella-xii': { patchRadius: 80_000_000, displayPatchRadius: 80_000_000 },
   'estella-xic': { patchRadius: 1_240_000, displayPatchRadius: 1_240_000 },
 };
 
