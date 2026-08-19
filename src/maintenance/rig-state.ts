@@ -157,14 +157,7 @@ export function systemStatus(rig: CareerRigState, systemId: MaintenanceSystemId)
   const states = system.componentIds.map(id => rig.components[id]).filter((state): state is InstalledComponentState => !!state && state.installed);
   if (!states.length && system.optional) return 'ok';
   if (states.some(state => state.fault?.severity === 'major' || state.fault?.severity === 'total')) return 'alert';
-  const restrictionComponents = new Set(deriveRestrictions(rig).map(restriction => restriction.componentId));
-  if (system.componentIds.some(id => restrictionComponents.has(id))) return 'alert';
-  for (const componentId of system.componentIds) {
-    const component = maintenanceComponentById(componentId);
-    const state = rig.components[componentId];
-    if (!component || !state?.installed) continue;
-    if (state.fault?.severity === 'minor' || state.ap <= 0 || state.hp < componentMaxHp(component, state.grade)) return 'warning';
-  }
+  if (states.some(state => state.fault?.severity === 'minor')) return 'warning';
   return 'ok';
 }
 

@@ -200,9 +200,9 @@ Replace the existing Station Terminal `Ship Status` placeholder with one read-on
 
 Show exactly the seven approved systems in their approved order. Each system has one coarse player-facing indicator:
 
-- `OK` — no named fault and no service warning
-- `WARNING` — depleted AP, persistent wear, or a Minor fault that does not impose an operational restriction
-- `ALERT` — a Major/Total fault or any active restriction sourced from that system
+- `OK` — no named fault
+- `WARNING` — at least one active Minor fault and no Major/Total fault
+- `ALERT` — at least one active Major or Total fault
 
 Do not expose component rows or component-detail scenes. Ship Status does not show component grade, HP/AP numbers, thresholds, fault names, fault locations, service age, repair prices, RNG, hidden diagnosis truth, or raw telemetry.
 
@@ -366,7 +366,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 ### Player/shop integration tests
 
 - Station Terminal Ship Status shows the seven systems in the approved order
-- each system displays only `OK`, `WARNING`, or `ALERT`, with status derivation covered by fixtures
+- each system displays only `OK`, `WARNING`, or `ALERT`; AP depletion and sub-threshold HP wear remain `OK`, Minor faults produce `WARNING`, and Major/Total faults produce `ALERT`
 - Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
 - absent Atmospheric Package displays `OK — not equipped` while atmospheric unavailability appears in the restrictions list
 - the Maintenance Services board lists only locally reachable authored shops
