@@ -62,6 +62,9 @@ const CLUSTER_AVOIDANCE_DV = 50;
 const CLUSTER_SLOPPINESS_FACTOR = 1.2;
 const ORBIT_TRANSFER_SLOP = 1.4;
 const ESCAPE_CAPTURE_SLOP = 1.1;
+const DIRECT_GIANT_INTERCEPT_PERIAPSIS_ALTITUDE = 3_000_000;
+const DIRECT_GIANT_INTERCEPT_APOAPSIS_MULTIPLIER = 2;
+const DIRECT_GIANT_INTERCEPT_MAX_PATCH_RATIO = 0.9;
 
 export type CargoMassClass = 'light' | 'standard' | 'heavy' | 'dense';
 
@@ -489,6 +492,46 @@ function nestedSourceDepartureToSelectedTransfer(
   return true;
 }
 
+function addDirectGiantChildArrival(
+  breakdown: MissionCostBreakdownItem[],
+  destinationId: string,
+  giant: BodyDef,
+  arrivalVInf: number,
+  destSurface: { bodyId: string } | null,
+  destOrbit: { bodyId: string; radius: number } | null,
+): boolean {
+  if (ESTELLA_NODES_BY_ID.get(giant.id)?.kind !== 'gas-giant') return false;
+  const childId = destSurface?.bodyId ?? destOrbit?.bodyId;
+  if (!childId) return false;
+  const child = safeBody(childId);
+  if (!child?.orbit || child.orbit.parentBodyId !== giant.id) return false;
+
+  const periapsis = giant.radius + DIRECT_GIANT_INTERCEPT_PERIAPSIS_ALTITUDE;
+  const targetOrbitRadius = child.orbit.radius;
+  const patchLimit = (giant.transferGameplay?.patchRadius ?? Infinity) * DIRECT_GIANT_INTERCEPT_MAX_PATCH_RATIO;
+  const apoapsis = Math.min(targetOrbitRadius * DIRECT_GIANT_INTERCEPT_APOAPSIS_MULTIPLIER, patchLimit);
+  if (!(periapsis < targetOrbitRadius && targetOrbitRadius <= apoapsis)) return false;
+
+  // One periapsis burn both captures at the giant and establishes the moon-intercept ellipse.
+  const semiMajorAxis = (periapsis + apoapsis) * 0.5;
+  const hyperbolicPeriapsisSpeed = Math.sqrt(arrivalVInf * arrivalVInf + 2 * giant.gm / periapsis);
+  const ellipsePeriapsisSpeed = Math.sqrt(giant.gm * (2 / periapsis - 1 / semiMajorAxis));
+  const giantCaptureDv = Math.max(0, hyperbolicPeriapsisSpeed - ellipsePeriapsisSpeed) * ESCAPE_CAPTURE_SLOP;
+
+  // At the moon's orbital radius, retain both radial speed and prograde tangential mismatch.
+  const angularMomentum = periapsis * ellipsePeriapsisSpeed;
+  const interceptSpeed = Math.sqrt(giant.gm * (2 / targetOrbitRadius - 1 / semiMajorAxis));
+  const interceptTangentialSpeed = angularMomentum / targetOrbitRadius;
+  const interceptRadialSpeed = Math.sqrt(Math.max(0, interceptSpeed * interceptSpeed - interceptTangentialSpeed * interceptTangentialSpeed));
+  const childOrbitalSpeed = circularOrbitSpeed(giant, targetOrbitRadius);
+  const childVInf = Math.hypot(interceptRadialSpeed, interceptTangentialSpeed - childOrbitalSpeed);
+
+  addBreakdown(breakdown, 'Capture into moon-intercept ellipse', giantCaptureDv);
+  addBreakdown(breakdown, 'Capture to child parking orbit', parkingEscapeOrCaptureDv(child, childVInf));
+  addDestinationFromParking(breakdown, destinationId, child, destOrbit, destSurface);
+  return true;
+}
+
 function addDestinationAfterSelectedCapture(
   breakdown: MissionCostBreakdownItem[],
   destinationId: string,
@@ -565,8 +608,10 @@ export function estimateEstellaMissionCost(
     } else {
       const destBody = safeBody(selectedTransfer.destinationBodyId);
       if (destBody) {
-        addBreakdown(breakdown, 'Capture to parking orbit', parkingEscapeOrCaptureDv(destBody, selectedTransfer.arrivalVInf));
-        addDestinationAfterSelectedCapture(breakdown, destinationId, destBody, destSurface, destOrbit);
+        if (!addDirectGiantChildArrival(breakdown, destinationId, destBody, selectedTransfer.arrivalVInf, destSurface, destOrbit)) {
+          addBreakdown(breakdown, 'Capture to parking orbit', parkingEscapeOrCaptureDv(destBody, selectedTransfer.arrivalVInf));
+          addDestinationAfterSelectedCapture(breakdown, destinationId, destBody, destSurface, destOrbit);
+        }
       } else {
         addBreakdown(breakdown, 'Arrival/capture reserve', 35 + selectedTransfer.arrivalVInf * 0.55);
       }

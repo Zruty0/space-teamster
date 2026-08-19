@@ -8,6 +8,8 @@ Career contracts are generated from the player's current dock and career world t
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
+For an interplanetary/inter-giant arrival whose operational destination is a moon of the destination gas giant, par uses a direct capture ellipse rather than full capture into low giant parking orbit followed by a separate Hohmann transfer back out to the moon. The standard plan targets a `3,000 km` periapsis altitude, performs one retrograde burn into an ellipse whose apoapsis radius is `2×` the target moon’s orbital radius (clamped to `90%` of the giant gameplay patch), crosses the moon’s orbit prograde, and then captures into child parking orbit from the resulting radial/tangential relative velocity. This is an attainable phased-intercept allowance; same-giant local routes, outbound nested-body escape, non-giant parents, and direct destinations at the giant retain their existing models. Six logged external/cross-giant Wells arrivals changed from `36,857 m/s` aggregate par to `13,200 m/s` against `10,957 m/s` actual (`83.0% actual/par`), matching the broader recent non-cross-giant calibration.
+
 Current implementation:
 
 - Faction provider registry and shared types: `src/content/estella/faction-contracts/index.ts`
