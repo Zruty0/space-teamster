@@ -1990,8 +1990,10 @@ export class Game {
     const local = this.maintenanceShopIsLocal(shop);
     const diagnosedHere = this.maintenanceShopDiagnosed(shop.id);
     const diagnosticCreditAvailable = this.career.maintenanceShopInspections[shop.id]?.creditRemaining ?? 0;
+    const routineServiceQuote = rigServiceQuote(this.career.rig, shop);
+    const routineServiceAvailable = diagnosedHere && routineServiceQuote.laborHours > 0;
     const diagnosisGatedScenes: InteractiveScenePhaseState['id'][] = ['maintenanceService', 'maintenanceServiceConfirm', 'maintenanceServiceAllConfirm', 'maintenanceFaults', 'maintenanceComponent', 'maintenanceWorkConfirm'];
-    if (!diagnosedHere && diagnosisGatedScenes.includes(state.id)) {
+    if ((!diagnosedHere && diagnosisGatedScenes.includes(state.id)) || (diagnosedHere && state.id === 'maintenanceDiagnosisConfirm')) {
       return this.maintenanceShopScene({ id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shop.id }, shop, locationPath);
     }
     const cash = formatCredits(this.career.money);
@@ -2060,7 +2062,7 @@ export class Game {
           label: system.name,
           rightText: quote.laborHours ? formatCredits(quote.credits) : undefined,
           rightDetail: quote.laborHours ? formatLaborHours(quote.laborHours) : undefined,
-          detail: quote.laborHours === 0 ? (system.notEquipped ? 'No installed equipment in this system.' : 'No maintenance required after inspection.') : 'Service only the components that benefit from maintenance.',
+          detail: quote.laborHours === 0 ? (system.notEquipped ? 'No installed equipment in this system.' : 'This system is already maintained.') : 'Service only the components that benefit from maintenance.',
           action: `maintenanceServiceConfirm:${shop.id}:${system.id}`,
           disabled: !local || quote.laborHours === 0,
           tone: quote.laborHours ? 'primary' as const : 'muted' as const,
@@ -2077,7 +2079,7 @@ export class Game {
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Service Everything', rightText: allQuote.laborHours ? formatCredits(allQuote.credits) : undefined, rightDetail: allQuote.laborHours ? formatLaborHours(allQuote.laborHours) : undefined, detail: allQuote.laborHours ? 'Service every component that benefits from maintenance in one work order.' : 'No maintenance required after inspection.', action: `maintenanceServiceAllConfirm:${shop.id}`, tone: allQuote.laborHours ? 'primary' : 'muted', disabled: !local || allQuote.laborHours === 0 },
+          { label: 'Service Everything', rightText: allQuote.laborHours ? formatCredits(allQuote.credits) : undefined, rightDetail: allQuote.laborHours ? formatLaborHours(allQuote.laborHours) : undefined, detail: allQuote.laborHours ? 'Service every component that benefits from maintenance in one work order.' : 'All systems are already maintained.', action: `maintenanceServiceAllConfirm:${shop.id}`, tone: allQuote.laborHours ? 'primary' : 'muted', disabled: !local || allQuote.laborHours === 0 },
           ...systemOptions,
           { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
         ],
@@ -2197,8 +2199,8 @@ export class Game {
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
-        { label: 'Diagnostic Inspection', detail: 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: 'primary', disabled: !local },
-        { label: 'Routine Service', detail: diagnosedHere ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'This shop must inspect the rig before accepting service work.', action: `maintenanceServiceList:${shop.id}`, tone: diagnosedHere ? 'primary' : 'muted', disabled: !local || !diagnosedHere },
+        { label: 'Diagnostic Inspection', detail: diagnosedHere ? 'Diagnostic inspection already completed.' : 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: diagnosedHere ? 'muted' : 'primary', disabled: !local || diagnosedHere },
+        { label: 'Routine Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
         { label: 'Repairs and Replacement', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : faulted.length ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && faulted.length ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !faulted.length },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
@@ -2738,13 +2740,14 @@ export class Game {
     }
     if (action.startsWith('maintenanceDiagnosisConfirm:')) {
       const shopId = action.slice('maintenanceDiagnosisConfirm:'.length);
+      if (this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceDiagnosisConfirm', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
     if (action.startsWith('maintenanceDiagnose:')) {
       const shopId = action.slice('maintenanceDiagnose:'.length);
       const shop = maintenanceShopById(shopId);
-      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      if (!shop || !this.maintenanceShopIsLocal(shop) || this.maintenanceShopDiagnosed(shopId)) return;
       const quote = diagnosisQuote(shop);
       if (this.career.money < quote.credits) return;
       this.career.money -= quote.credits;
