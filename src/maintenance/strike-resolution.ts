@@ -67,7 +67,7 @@ export function currentMaintenanceLedger(
   rig: CareerRigState,
   retryNote?: string,
 ): MaintenanceLedger {
-  const weights = calculateTelemetryWeights(raw, context, rig);
+  const weights = calculateTelemetryWeights(raw, context, rig, false);
   return {
     id: `${context.missionId}:${context.attempt}:current`,
     status: 'current',
@@ -114,8 +114,10 @@ export function resolveMaintenanceSettlement(
     else state.hp = Math.max(0, state.hp - 1);
 
     let crossedThreshold: StrikeLedgerEntry['crossedThreshold'];
+    let faultRoll: number | undefined;
     let faultId: string | undefined;
     let faultName: string | undefined;
+    let locationRoll: number | undefined;
     let locationId: string | undefined;
     const beforeSeverity = severityForHp(component.id, hpBefore);
     const afterSeverity = severityForHp(component.id, state.hp);
@@ -124,13 +126,13 @@ export function resolveMaintenanceSettlement(
       if (afterSeverity !== 'total') {
         const faults = componentFaults(component, afterSeverity);
         if (faults.length) {
-          const faultRoll = rng.next();
+          faultRoll = rng.next();
           const fault = faults[Math.min(faults.length - 1, Math.floor(faultRoll * faults.length))];
           faultId = fault.id;
           faultName = fault.name;
         }
         if (component.locations.length) {
-          const locationRoll = rng.next();
+          locationRoll = rng.next();
           locationId = component.locations[Math.min(component.locations.length - 1, Math.floor(locationRoll * component.locations.length))];
         }
       }
@@ -157,8 +159,10 @@ export function resolveMaintenanceSettlement(
       apBefore,
       apAfter: state.ap,
       crossedThreshold,
+      faultRoll,
       faultId,
       faultName,
+      locationRoll,
       locationId,
     });
   }

@@ -24,8 +24,8 @@ export function createDefaultRigState(includeAtmosphericPackage = false): Career
     components[component.id] = {
       installed,
       grade: 'D',
-      hp: component.baseHp,
-      ap: component.baseAp,
+      hp: installed ? component.baseHp : 0,
+      ap: installed ? component.baseAp : 0,
     };
   }
   return {

@@ -206,8 +206,10 @@ export interface StrikeLedgerEntry {
   apBefore: number;
   apAfter: number;
   crossedThreshold?: FaultSeverity;
+  faultRoll?: number;
   faultId?: string;
   faultName?: string;
+  locationRoll?: number;
   locationId?: string;
 }
 

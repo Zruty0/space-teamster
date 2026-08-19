@@ -121,7 +121,7 @@ function emptySystemWeights(): Record<MaintenanceSystemId, number> {
   return Object.fromEntries(MAINTENANCE_SYSTEM_IDS.map(id => [id, 0])) as Record<MaintenanceSystemId, number>;
 }
 
-export function normalizeTelemetry(raw: MaintenanceTelemetryAccumulator, context: MissionTelemetryContext): NormalizedTelemetry {
+export function normalizeTelemetry(raw: MaintenanceTelemetryAccumulator, context: MissionTelemetryContext, includeSettlementCycles = true): NormalizedTelemetry {
   const totalThrustDv = raw.standardMainDriveDv + raw.highMainDriveDv + raw.standardManeuverDv + raw.highManeuverDv;
   const sourceUnits = Object.fromEntries(TELEMETRY_SOURCE_IDS.map(id => [id, 0])) as Record<TelemetrySourceId, number>;
   Object.assign(sourceUnits, {
@@ -134,9 +134,9 @@ export function normalizeTelemetry(raw: MaintenanceTelemetryAccumulator, context
     flightDuration: raw.distortedFlightSeconds / 600,
     passengerOccupancy: raw.distortedPassengerSeconds / 600,
     loadedThrustStress: (Math.max(0, context.manifestMassTons) / 30) * (totalThrustDv / 1000),
-    freightHandling: context.manifestKind === 'freight' ? 1 : 0,
-    passengerService: context.manifestKind === 'passenger' ? 1 : 0,
-    communications: 1,
+    freightHandling: includeSettlementCycles && context.manifestKind === 'freight' ? 1 : 0,
+    passengerService: includeSettlementCycles && context.manifestKind === 'passenger' ? 1 : 0,
+    communications: includeSettlementCycles ? 1 : 0,
     heatExposure: raw.heatIntegral / 30,
     severeHeatExposure: raw.severeHeatIntegral / 10,
     aerodynamicLoading: raw.aerodynamicLoadIntegral / 30,
@@ -167,14 +167,14 @@ function contributionMultiplier(rig: CareerRigState, sourceId: TelemetrySourceId
   return value;
 }
 
-export function calculateTelemetryWeights(raw: MaintenanceTelemetryAccumulator, context: MissionTelemetryContext, rig: CareerRigState): {
+export function calculateTelemetryWeights(raw: MaintenanceTelemetryAccumulator, context: MissionTelemetryContext, rig: CareerRigState, includeSettlementCycles = true): {
   normalized: NormalizedTelemetry;
   contributions: TelemetryContribution[];
   baseSystemWeights: Record<MaintenanceSystemId, number>;
   adjustedSystemWeights: Record<MaintenanceSystemId, number>;
   mean: number;
 } {
-  const normalized = normalizeTelemetry(raw, context);
+  const normalized = normalizeTelemetry(raw, context, includeSettlementCycles);
   const contributions: TelemetryContribution[] = [];
   const baseSystemWeights = emptySystemWeights();
   const adjustedSystemWeights = emptySystemWeights();
