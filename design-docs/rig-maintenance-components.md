@@ -594,6 +594,25 @@ Severity impacts:
 - **Major — Communications unreliable:** Communications-use-derived Auxiliary Systems strike likelihood is multiplied by `1.75×`.
 - **Total — Communications failure:** The rig is grounded until the Communications Set is replaced.
 
+### Cargo Handling Gear
+
+- **ID:** `auxiliary-cargo-handling`
+- **Function:** Operates powered cargo locks, loading aids, winches, and cargo-interface hardware.
+- **Grade-D HP/AP:** `3/1`
+- **Grade-D cost:** `30,000 cr`
+- **Minor threshold:** `2 HP`
+- **Major threshold:** `1 HP`
+- **Total threshold:** `0 HP`
+- **Fault libraries:** Cargo Handling Hardware; Actuators and Linkages
+- **Fault locations:** Port cargo-handling rack; aft cargo-handling rack
+- **Replacement labor:** `5 hours`
+
+Severity impacts:
+
+- **Minor — Cargo securement degraded:** Fragile-cargo integrity loss caused by thrust, turbulence, and docking is multiplied by `1.25×`. Cargo-handling-derived Auxiliary Systems strike likelihood is multiplied by `1.25×`.
+- **Major — Cargo handling unsafe:** Freight contracts cannot be accepted. Cargo-handling-derived Auxiliary Systems strike likelihood is multiplied by `1.75×`.
+- **Total — Cargo handling failure:** The rig is grounded until the Cargo Handling Gear is replaced.
+
 ## Fault Libraries
 
 Fault-library diagnoses combine with one of the component's authored flavor locations. Every fault in a library attached to a component must be physically valid at every one of that component's locations; fault and location can therefore be selected independently, with no applicability tags or filtering. Gameplay effects come from the affected component's current severity, not the library entry.
@@ -663,6 +682,28 @@ Major faults:
 | Phase lock lost under load | Rebuild and certify phase-lock section | 10 hours | B |
 | Load-balancing bus unstable | Rebuild regulator synchronization bus | 10 hours | B |
 | Output transition contactor welded | Replace and certify output transition contactor | 7 hours | D |
+
+### Cargo Handling Hardware
+
+Minor faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Cargo-lock jaw contaminated | Clean and certify cargo-lock jaw | 2 hours | F |
+| Roller guide binding | Clean and service roller guide | 2 hours | E |
+| Winch cable beginning to fray | Replace and proof-test winch cable | 3 hours | E |
+| Cargo-clamp preload low | Reset and certify clamp preload | 3 hours | E |
+| Cargo-interface alignment drift | Align and certify cargo interface | 4 hours | D |
+
+Major faults:
+
+| Fault | Repair | Labor | Work grade |
+|---|---|---:|:---:|
+| Cargo lock fractured | Replace and certify cargo lock | 4 hours | D |
+| Load cable snapped | Replace and proof-test load cable | 4 hours | D |
+| Winch drum cracked | Replace and align winch drum | 5 hours | C |
+| Cargo-interface frame bent | Jig and restore interface frame | 6 hours | C |
+| Restraint anchor torn free | Rebuild and reinforce restraint anchor | 7 hours | B |
 
 ### Communications Hardware
 
