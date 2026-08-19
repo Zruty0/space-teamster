@@ -7,7 +7,7 @@ export interface InteractiveTextSegment {
   tone?: InteractiveTone;
 }
 
-export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'warning' | 'alert';
+export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
@@ -203,6 +203,25 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void
   ctx.restore();
 }
 
+function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.strokeStyle = '#4ddcff';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 1, y - 11);
+  ctx.lineTo(x + 4, y - 8);
+  ctx.lineTo(x + 7, y - 10);
+  ctx.moveTo(x + 4, y - 8);
+  ctx.lineTo(x + 10, y - 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x + 10, y - 2, 2, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawStatusTriangle(ctx: CanvasRenderingContext2D, x: number, y: number, alert: boolean): void {
   ctx.save();
   ctx.beginPath();
@@ -226,6 +245,7 @@ function drawInteractiveIcon(ctx: CanvasRenderingContext2D, icon: InteractiveIco
   if (icon === 'fragile') drawFragileIcon(ctx, x, y);
   else if (icon === 'passenger') drawPassengerIcon(ctx, x, y);
   else if (icon === 'lock') drawLockIcon(ctx, x, y);
+  else if (icon === 'wrench') drawWrenchIcon(ctx, x, y);
   else drawStatusTriangle(ctx, x, y, icon === 'alert');
 }
 

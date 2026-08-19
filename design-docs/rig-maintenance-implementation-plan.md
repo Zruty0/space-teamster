@@ -259,7 +259,7 @@ BBS rows show only player-legible commercial information:
 
 Selecting a posting opens a shop scene rather than a flight contract. Required scene flow:
 
-1. **Shop profile** — diagnostic grade, work-quality grade, inclusive component stock range, rates, description, current rig summary, and request-inspection action.
+1. **Shop profile** — description blurb, one-sentence verbal shop level, labor rate, and service actions. Internal diagnostic/work/stock grades and fault counts never appear in the profile or other player-facing shop scenes. Local Directory shop listings use a cyan wrench icon instead of a `[SHOP]` text tag.
 2. **Diagnosis/quote** — actual or claimed Minor/Major/Total line items plus every active restriction. Diagnostic capability compares against the fault's work grade. A fault above that capability identifies the component and severity as, for example, `Major unknown fault`, but does not reveal its fault or location.
 3. **Work selection** — toggle per-system service, repairs, and replacements. Repair services only the repaired component. System service adds every installed component's authored service time and skips absent optional equipment.
 4. **Replacement selection** — use the component's current grade when it lies within the shop's inclusive stock range. Otherwise state that an exact replacement is unavailable, show the resulting grade change, and offer only the closest stocked boundary grade or cancellation.

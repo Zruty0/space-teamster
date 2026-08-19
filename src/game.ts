@@ -1946,8 +1946,7 @@ export class Game {
         title: 'AUTHORIZE DIAGNOSTIC INSPECTION',
         subtitle: shopSubtitle,
         bodyRows: [
-          { kind: 'text', text: 'The yard will inspect every installed system. Faults beyond its diagnostic grade will be isolated to a component and severity but remain unnamed.' },
-          { kind: 'kv', label: 'Diagnostic grade', value: shop.diagnosticGrade },
+          { kind: 'text', text: 'The yard will inspect every installed system. Faults beyond its diagnostic capability will be isolated to a component and severity but remain unnamed.' },
           { kind: 'kv', label: 'Inspection labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -1992,7 +1991,7 @@ export class Game {
           label: system.name,
           rightText: quote.laborHours ? formatCredits(quote.credits) : undefined,
           rightDetail: quote.laborHours ? formatLaborHours(quote.laborHours) : undefined,
-          detail: quote.laborHours === 0 ? 'No installed equipment in this system.' : needsService ? `Restore service condition at Work Quality ${shop.workQualityGrade}.` : 'Already at this shop’s serviced condition.',
+          detail: quote.laborHours === 0 ? 'No installed equipment in this system.' : needsService ? 'Restore this system to the shop’s serviced condition.' : 'Already at this shop’s serviced condition.',
           action: `maintenanceServiceConfirm:${shop.id}:${system.id}`,
           disabled: !local || quote.laborHours === 0 || !needsService,
           tone: needsService ? 'primary' as const : 'muted' as const,
@@ -2003,7 +2002,6 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           { kind: 'text', text: 'Service is ordered per system. It restores service protection but does not repair persistent HP damage or clear faults.' },
-          { kind: 'kv', label: 'Work quality', value: shop.workQualityGrade },
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2019,7 +2017,6 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           { kind: 'kv', label: 'System', value: system?.name ?? state.maintenanceSystemId },
-          { kind: 'kv', label: 'Work quality', value: shop.workQualityGrade },
           { kind: 'kv', label: 'Labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -2085,7 +2082,7 @@ export class Game {
           ],
         };
       }
-      const repairUnavailable = fault.severity === 'total' ? 'Total failure requires replacement.' : !confirmed ? 'Fault remains unknown at this diagnostic grade.' : definition ? `Grade ${definition.workGrade} repair exceeds this Grade ${shop.workQualityGrade} shop.` : 'Repair definition unavailable.';
+      const repairUnavailable = fault.severity === 'total' ? 'Total failure requires replacement.' : !confirmed ? 'Fault remains unknown at this shop’s diagnostic capability.' : definition ? 'This repair exceeds the shop’s capabilities.' : 'Repair definition unavailable.';
       return {
         title: component.name.toUpperCase(),
         subtitle: shopSubtitle,
@@ -2094,11 +2091,10 @@ export class Game {
           ...(confirmed && fault.locationId ? [{ kind: 'kv' as const, label: 'Location', value: fault.locationId }] : []),
           ...(restrictions.length ? [{ kind: 'kv' as const, label: 'Restrictions', value: restrictions.join('; '), valueLineCount: 2 as const, tone: 'warning' as const }] : []),
           { kind: 'kv', label: 'Current grade', value: componentState.grade },
-          { kind: 'kv', label: 'Shop components', value: `${shop.componentGradeBest}–${shop.componentGradeWorst}` },
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          { label: repair ? repair.repair : 'Repair Unavailable', rightText: repair ? formatCredits(repair.credits) : undefined, rightDetail: repair ? formatLaborHours(repair.laborHours) : undefined, detail: repair ? `Grade ${repair.workGrade} repair; services this component only.` : repairUnavailable, action: `maintenanceWorkConfirm:${shop.id}:${component.id}:repair`, tone: repair ? 'primary' : 'muted', disabled: !repair },
+          { label: repair ? repair.repair : 'Repair Unavailable', rightText: repair ? formatCredits(repair.credits) : undefined, rightDetail: repair ? formatLaborHours(repair.laborHours) : undefined, detail: repair ? 'Repair and service this component only.' : repairUnavailable, action: `maintenanceWorkConfirm:${shop.id}:${component.id}:repair`, tone: repair ? 'primary' : 'muted', disabled: !repair },
           ...(replacement ? [{ label: `Replace Component — Grade ${replacement.grade}`, rightText: formatCredits(replacement.credits), rightDetail: formatLaborHours(replacement.laborHours), detail: replacement.exact ? `Exact Grade ${componentState.grade} replacement is stocked.` : `Exact Grade ${componentState.grade} is unavailable; closest stocked grade is ${replacement.grade}.`, action: `maintenanceWorkConfirm:${shop.id}:${component.id}:replace`, tone: replacement.exact ? 'primary' as const : 'warning' as const }] : []),
           { label: 'Back to Fault List', detail: 'Review other components.', action: `maintenanceFaults:${shop.id}`, tone: 'back' },
         ],
@@ -2127,15 +2123,12 @@ export class Game {
       subtitle: `${locationPath}   CASH: ${cash}`,
       bodyRows: [
         { kind: 'text', text: shop.description },
-        { kind: 'kv', label: 'Diagnostic grade', value: shop.diagnosticGrade },
-        { kind: 'kv', label: 'Work quality', value: shop.workQualityGrade },
-        { kind: 'kv', label: 'Components min–max', value: `${shop.componentGradeBest}–${shop.componentGradeWorst}` },
+        { kind: 'text', text: `SHOP LEVEL — ${shop.levelDescription}` },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
-        { kind: 'kv', label: 'Current faults', value: `${faulted.length}`, tone: faulted.length ? 'warning' : 'success' },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
-        { label: 'Diagnostic Inspection', detail: `Grade ${shop.diagnosticGrade} full-rig inspection and written report.`, action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: 'primary', disabled: !local },
+        { label: 'Diagnostic Inspection', detail: 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: 'primary', disabled: !local },
         { label: 'Routine Service', detail: 'Order service by system.', action: `maintenanceServiceList:${shop.id}`, tone: 'primary', disabled: !local },
         { label: 'Repairs and Replacement', detail: faulted.length ? 'Review faulted components and available work.' : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: faulted.length ? 'primary' : 'muted', disabled: !local || !faulted.length },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
@@ -2308,8 +2301,9 @@ export class Game {
               && !hasTeamsterCertification(this.career, entry.tutorialUntilCertification);
             return {
               label: entry.name,
-              tag: tutorialEntry ? 'TUTORIAL' : entry.maintenanceShopId ? 'SHOP' : entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
+              tag: tutorialEntry ? 'TUTORIAL' : entry.maintenanceShopId ? undefined : entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
               tagTone: tutorialEntry ? 'story' as InteractiveTone : undefined,
+              leftIcon: entry.maintenanceShopId ? 'wrench' as const : undefined,
               rightText: entry.organizationName,
               rightDetail: access === 'remote' ? 'REMOTE COMMS' : 'LOCAL',
               detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
@@ -2715,7 +2709,7 @@ export class Game {
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceSystemAtShop(this.career.rig, shop, systemId, completionTime);
       saveCareerProfile(this.career);
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceReceipt', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced at Work Quality ${shop.workQualityGrade}. Charged ${formatCredits(quote.credits)} for ${formatLaborHours(quote.laborHours)}.` } };
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceReceipt', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced. Charged ${formatCredits(quote.credits)} for ${formatLaborHours(quote.laborHours)}.` } };
       return;
     }
     if (action.startsWith('maintenanceFaults:')) {

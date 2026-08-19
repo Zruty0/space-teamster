@@ -17,6 +17,7 @@ export interface MaintenanceShopDef {
   partsMarkup: number;
   turnaroundMultiplier: number;
   description: string;
+  levelDescription: string;
 }
 
 export interface MaintenanceQuote {
@@ -39,6 +40,7 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   partsMarkup: 1,
   turnaroundMultiplier: 1,
   description: 'A licensed outer-spec service yard operating under the Accord of Oathmark. Its crews handle ordinary diagnosis, line maintenance, standardized repairs, and complete component exchanges.',
+  levelDescription: 'Standard, Teamster-licensed outfitter and maintenance shop',
 };
 
 export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [SERRAT_DOMAIN_SHIPYARD_SHOP];
