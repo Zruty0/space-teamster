@@ -408,7 +408,7 @@ Telemetry produces a separate baseline expected-strike weight for each of the se
 adjustedWeight[system] = baseWeight[system] × product(activeFaultMultipliers[system])
 ```
 
-For example, `1.25×` and `1.50×` Body and Frame modifiers combine to `1.875×`. A system with zero telemetry-derived weight remains at zero. The adjusted per-system weights feed the random strike-count distribution, preserving the difference between gentle and abusive flights. Direct fault effects such as disabled high thrust, passenger restrictions, or grounding remain available where appropriate. The approved additive telemetry coefficients, distorted-player-time rule, Poisson strike count, and weighted system selection are defined in `rig-maintenance-telemetry.md`. Mission/retry commit timing remains to be defined.
+For example, `1.25×` and `1.50×` Body and Frame modifiers combine to `1.875×`. A system with zero telemetry-derived weight remains at zero. The adjusted per-system weights feed the random strike-count distribution, preserving the difference between gentle and abusive flights. Direct fault effects such as disabled high thrust, passenger restrictions, or grounding remain available where appropriate. The approved additive telemetry coefficients, distorted-player-time rule, Poisson strike count, and weighted system selection are defined in `rig-maintenance-telemetry.md`. Persistent state, retry snapshots, atomic settlement, servicing, restriction enforcement, tests, and Tilde-only Mechanic and Telemetry Ledger debug views are sequenced in `rig-maintenance-implementation-plan.md`.
 
 ### Component and shop grades
 
