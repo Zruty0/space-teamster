@@ -214,7 +214,7 @@ Below restrictions, show an **Optional Equipment** list for separately purchased
 
 Ship Status is inspection-only. Service, diagnosis, repair, replacement, and purchasing belong to maintenance-shop postings.
 
-Do not add seven system-specific icons. Show no icon for `OK`; show a yellow exclamation mark in a black warning triangle for `WARNING`, and a white exclamation mark in a red triangle for `ALERT`. The Station Terminal's `Ship Status` option shows the same highest active warning/alert icon beside its label. Severity colors supplement rather than replace the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
+Do not add seven system-specific icons. Show no icon for `OK`; show a yellow exclamation mark in a black warning triangle immediately beside the `WARNING` status text, and a white exclamation mark in a red triangle immediately beside the `ALERT` status text—not beside the system name. The Station Terminal's `Ship Status` option shows the same highest active warning/alert icon beside its label. Severity colors supplement rather than replace the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
 
 ## 11. Maintenance-shop BBS postings
 

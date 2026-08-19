@@ -2214,7 +2214,7 @@ export class Game {
       value: system.notEquipped ? 'NOT EQUIPPED' : system.status.toUpperCase(),
       valueLineCount: 1 as const,
       tone: system.notEquipped ? 'warning' as const : system.status === 'alert' ? 'danger' as const : system.status === 'warning' ? 'warning' as const : 'success' as const,
-      icon: system.notEquipped ? undefined : system.status === 'alert' ? 'alert' as const : system.status === 'warning' ? 'warning' as const : undefined,
+      valueIcon: system.notEquipped ? undefined : system.status === 'alert' ? 'alert' as const : system.status === 'warning' ? 'warning' as const : undefined,
     }));
     const restrictions = playerRestrictionLabels(this.career.rig);
     const optionalEquipment = playerOptionalEquipmentNames(this.career.rig);

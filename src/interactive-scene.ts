@@ -11,7 +11,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -318,18 +318,22 @@ export function drawInteractiveScene(
         ctx.fillText(row.label.toUpperCase(), x + (row.icon ? 40 : 22), y);
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
-        const valueWidth = boxW - labelW - 54;
+        const valueX = x + 22 + labelW;
+        const valueIconWidth = row.valueIcon ? 20 : 0;
+        const valueWidth = boxW - labelW - 54 - valueIconWidth;
+        if (row.valueIcon) drawInteractiveIcon(ctx, row.valueIcon, valueX, y);
+        const valueTextX = valueX + valueIconWidth;
         if (row.valueSegments) {
-          drawRichTextSegments(ctx, row.valueSegments, x + 22 + labelW, y, valueWidth, row.valueLineCount ?? 1);
+          drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, row.valueLineCount ?? 1);
           y += row.valueLineCount === 2 ? 40 : 22;
         } else if (row.valueLineCount === 2) {
           const wrapped = wrapText(ctx, row.value, valueWidth);
           const valueLines = wrapped.slice(0, 2);
           if (wrapped.length > 2) valueLines[1] = middleEllipsis(ctx, `${valueLines[1]}…`, valueWidth);
-          valueLines.forEach((line, index) => ctx.fillText(line, x + 22 + labelW, y + index * 18));
+          valueLines.forEach((line, index) => ctx.fillText(line, valueTextX, y + index * 18));
           y += 40;
         } else {
-          ctx.fillText(middleEllipsis(ctx, row.value, valueWidth), x + 22 + labelW, y);
+          ctx.fillText(middleEllipsis(ctx, row.value, valueWidth), valueTextX, y);
           y += 22;
         }
         continue;
