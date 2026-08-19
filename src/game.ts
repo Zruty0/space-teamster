@@ -69,10 +69,11 @@ import { appendMissionProfile, createMissionProfileEntry, installMissionProfileC
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveIcon, type InteractiveScene, type InteractiveSceneBodyRow, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById, validateMaintenanceCatalog } from './maintenance/catalog';
+import { fabricatedFaultById } from './maintenance/fabricated-faults';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
-import { diagnosisQuote, diagnoseRigAtShop, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
+import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabel, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
@@ -126,6 +127,7 @@ interface InteractiveScenePhaseState {
   maintenanceShopId?: string;
   maintenanceSystemId?: MaintenanceSystemId;
   maintenanceComponentId?: string;
+  maintenanceFabricatedFaultId?: string;
   maintenanceWorkKind?: 'repair' | 'replace';
   maintenanceReceipt?: string;
   bodyScrollOffset?: number;
@@ -2021,6 +2023,10 @@ export class Game {
     if (inspection) inspection.creditRemaining = 0;
   }
 
+  private maintenanceFabricatedFault(shopId: string, claimId: string) {
+    return this.career.maintenanceShopInspections[shopId]?.fabricatedFaults.find(claim => claim.id === claimId);
+  }
+
   private maintenanceShopScene(state: InteractiveScenePhaseState, shop: MaintenanceShopDef, locationPath: string): InteractiveScene {
     const local = this.maintenanceShopIsLocal(shop);
     const diagnosedHere = this.maintenanceShopDiagnosed(shop.id);
@@ -2037,6 +2043,14 @@ export class Game {
       const component = maintenanceComponentById(componentId);
       return componentState.installed && componentState.fault && component ? [{ component, state: componentState, fault: componentState.fault }] : [];
     });
+    const fabricatedFaulted = (this.career.maintenanceShopInspections[shop.id]?.fabricatedFaults ?? []).flatMap(claim => {
+      const component = maintenanceComponentById(claim.componentId);
+      const definition = fabricatedFaultById(claim.faultId);
+      return component && definition && component.systemId === claim.systemId && this.career.rig.components[component.id]?.installed
+        ? [{ claim, component, definition }]
+        : [];
+    });
+    const actionableFaultCount = faulted.length + fabricatedFaulted.length;
     const restrictionsByComponent = new Map<string, string[]>();
     for (const restriction of deriveRestrictions(this.career.rig)) {
       if (!restriction.componentId) continue;
@@ -2069,21 +2083,32 @@ export class Game {
       return {
         title: 'DIAGNOSTIC REPORT',
         subtitle: shopSubtitle,
+        bodyLabelWidth: 100,
         bodyMaxHeight: 420,
         bodyRows: [
-          ...(faulted.length ? faulted.flatMap(({ component, state: componentState, fault }) => {
-            const definition = componentFaultById(component, fault.faultId);
-            const confirmed = fault.diagnosis === 'confirmed';
-            const restrictions = restrictionsByComponent.get(component.id) ?? [];
-            return [
-              { kind: 'kv' as const, label: component.name, value: confirmed ? `${fault.severity.toUpperCase()} — ${definition?.name ?? 'Replacement required'}${fault.locationId ? ` @ ${fault.locationId}` : ''}` : `${fault.severity.toUpperCase()} UNKNOWN FAULT`, valueLineCount: 2 as const, tone: fault.severity === 'minor' ? 'warning' as const : 'danger' as const, valueIcon: fault.severity === 'minor' ? 'warning' as const : 'alert' as const },
-              ...(restrictions.length ? [{ kind: 'text' as const, text: `Restrictions: ${restrictions.join('; ')}`, tone: 'warning' as const }] : []),
-            ];
-          }) : [{ kind: 'text' as const, text: 'No actionable faults found.', tone: 'success' as const }]),
+          ...(actionableFaultCount ? [
+            ...faulted.flatMap(({ component, fault }) => {
+              const definition = componentFaultById(component, fault.faultId);
+              const confirmed = fault.diagnosis === 'confirmed';
+              const restrictions = restrictionsByComponent.get(component.id) ?? [];
+              return [
+                { kind: 'kv' as const, label: component.name, value: confirmed ? `${fault.severity.toUpperCase()} — ${definition?.name ?? 'Replacement required'}${fault.locationId ? ` @ ${fault.locationId}` : ''}` : `${fault.severity.toUpperCase()} UNKNOWN FAULT`, valueLineCount: 2 as const, tone: fault.severity === 'minor' ? 'warning' as const : 'danger' as const, valueIcon: fault.severity === 'minor' ? 'warning' as const : 'alert' as const },
+                ...(restrictions.length ? [{ kind: 'text' as const, text: `Restrictions: ${restrictions.join('; ')}`, tone: 'warning' as const }] : []),
+              ];
+            }),
+            ...fabricatedFaulted.map(({ claim, component, definition }) => ({
+              kind: 'kv' as const,
+              label: component.name,
+              value: `MINOR — ${definition.name}${claim.locationId ? ` @ ${claim.locationId}` : ''}`,
+              valueLineCount: 2 as const,
+              tone: 'warning' as const,
+              valueIcon: 'warning' as const,
+            })),
+          ] : [{ kind: 'text' as const, text: 'No actionable faults found.', tone: 'success' as const }]),
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          ...(faulted.length ? [{ label: 'Review Repairs and Replacements', detail: 'Review diagnosed and unknown component faults.', action: `maintenanceFaults:${shop.id}`, tone: 'primary' as const }] : []),
+          ...(actionableFaultCount ? [{ label: 'Review Repairs and Replacements', detail: 'Review diagnosed and unknown component faults.', action: `maintenanceFaults:${shop.id}`, tone: 'primary' as const }] : []),
           { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
         ],
       };
@@ -2151,8 +2176,9 @@ export class Game {
         title: 'REPAIRS AND REPLACEMENTS',
         subtitle: shopSubtitle,
         bodyRows: [
-          ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: shop.copy.repairsBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.repairsBlurb) },
+          ...(state.maintenanceReceipt
+            ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }]
+            : [{ kind: 'text' as const, text: shop.copy.repairsBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.repairsBlurb) }]),
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2165,7 +2191,63 @@ export class Game {
             action: `maintenanceComponent:${shop.id}:${component.id}`,
             tone: fault.severity === 'minor' ? 'warning' as const : 'danger' as const,
           })),
+          ...fabricatedFaulted.map(({ claim, component, definition }) => ({
+            label: component.name,
+            tag: 'MINOR',
+            tagTone: 'warning' as const,
+            detail: definition.name,
+            action: `maintenanceFabricatedComponent:${shop.id}:${claim.id}`,
+            tone: 'warning' as const,
+          })),
           { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
+        ],
+      };
+    }
+
+    if ((state.id === 'maintenanceComponent' || state.id === 'maintenanceWorkConfirm') && state.maintenanceFabricatedFaultId) {
+      const claim = this.maintenanceFabricatedFault(shop.id, state.maintenanceFabricatedFaultId);
+      const component = claim ? maintenanceComponentById(claim.componentId) : undefined;
+      const componentState = component ? this.career.rig.components[component.id] : undefined;
+      const definition = claim ? fabricatedFaultById(claim.faultId) : undefined;
+      const quote = claim ? fabricatedRepairQuote(this.career.rig, shop, claim) : undefined;
+      if (!claim || !component || !componentState || !definition || !quote) {
+        return this.maintenanceShopScene({ id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shop.id }, shop, locationPath);
+      }
+      if (state.id === 'maintenanceWorkConfirm') {
+        const payment = this.maintenanceWorkPayment(shop.id, quote.credits);
+        return {
+          title: 'AUTHORIZE REPAIR',
+          subtitle: shopSubtitle,
+          bodyLabelWidth: 100,
+          bodyRows: [
+            { kind: 'kv', label: 'Component', value: component.name },
+            { kind: 'kv', label: 'Work', value: quote.repair, valueLineCount: 2 },
+            { kind: 'kv', label: 'Labor', value: formatLaborHours(quote.laborHours) },
+            { kind: 'kv', label: 'Work price', value: formatCredits(quote.credits), tone: 'warning' },
+            ...(payment.credit ? [{ kind: 'kv' as const, label: 'Service credit', value: `−${formatCredits(payment.credit)}`, tone: 'success' as const }] : []),
+            { kind: 'kv', label: 'Amount due', value: formatCredits(payment.due), tone: 'warning' },
+            { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - payment.due), tone: this.career.money >= payment.due ? 'success' : 'danger' },
+          ],
+          footer: 'Enter/Space: choose   Esc: start menu',
+          options: [
+            { label: `Authorize ${formatCredits(payment.due)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: 'Repair and service this component.', action: `maintenanceFabricatedWork:${shop.id}:${claim.id}`, tone: 'primary', disabled: !local || this.career.money < payment.due },
+            { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceFabricatedComponent:${shop.id}:${claim.id}`, tone: 'back' },
+          ],
+        };
+      }
+      return {
+        title: component.name.toUpperCase(),
+        subtitle: shopSubtitle,
+        bodyLabelWidth: 90,
+        bodyRows: [
+          { kind: 'kv', label: 'Diagnosis', value: `MINOR — ${definition.name}`, valueLineCount: 2, tone: 'warning', valueIcon: 'warning' },
+          ...(claim.locationId ? [{ kind: 'kv' as const, label: 'Location', value: claim.locationId }] : []),
+          { kind: 'kv', label: 'Current grade', value: componentState.grade },
+        ],
+        footer: 'Enter/Space: choose   Esc: start menu',
+        options: [
+          { label: quote.repair, labelLineCount: 2, rightText: formatCredits(quote.credits), rightDetail: formatLaborHours(quote.laborHours), detail: 'Repair and service this component only.', action: `maintenanceFabricatedWorkConfirm:${shop.id}:${claim.id}`, tone: 'primary' },
+          { label: 'Back to Fault List', detail: 'Review other components.', action: `maintenanceFaults:${shop.id}`, tone: 'back' },
         ],
       };
     }
@@ -2237,7 +2319,7 @@ export class Game {
       options: [
         { label: 'Diagnostic Inspection', detail: diagnosedHere ? 'Diagnostic inspection already completed.' : 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: diagnosedHere ? 'muted' : 'primary', disabled: !local || diagnosedHere },
         { label: 'Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
-        { label: 'Repairs and Replacements', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : faulted.length ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && faulted.length ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !faulted.length },
+        { label: 'Repairs and Replacements', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : actionableFaultCount ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && actionableFaultCount ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !actionableFaultCount },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
     };
@@ -2793,6 +2875,7 @@ export class Game {
       this.career.maintenanceShopInspections[shopId] = {
         diagnosedWorldTime: this.career.worldTime,
         creditRemaining: quote.credits,
+        fabricatedFaults: fabricateFaultClaimsAtShop(this.career.rig, shop),
       };
       saveCareerProfile(this.career);
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceDiagnosisReport', selectedIndex: 0, maintenanceShopId: shopId } };
@@ -2857,6 +2940,40 @@ export class Game {
       const shopId = action.slice('maintenanceFaults:'.length);
       if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId } };
+      return;
+    }
+    if (action.startsWith('maintenanceFabricatedComponent:')) {
+      const [, shopId, claimId] = action.split(':');
+      if (!this.maintenanceShopDiagnosed(shopId) || !this.maintenanceFabricatedFault(shopId, claimId)) return;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceComponent', selectedIndex: 0, maintenanceShopId: shopId, maintenanceFabricatedFaultId: claimId } };
+      return;
+    }
+    if (action.startsWith('maintenanceFabricatedWorkConfirm:')) {
+      const [, shopId, claimId] = action.split(':');
+      if (!this.maintenanceShopDiagnosed(shopId) || !this.maintenanceFabricatedFault(shopId, claimId)) return;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceWorkConfirm', selectedIndex: 0, maintenanceShopId: shopId, maintenanceFabricatedFaultId: claimId } };
+      return;
+    }
+    if (action.startsWith('maintenanceFabricatedWork:')) {
+      const [, shopId, claimId] = action.split(':');
+      const shop = maintenanceShopById(shopId);
+      const inspection = this.career.maintenanceShopInspections[shopId];
+      const claimIndex = inspection?.fabricatedFaults.findIndex(claim => claim.id === claimId) ?? -1;
+      const claim = claimIndex >= 0 ? inspection.fabricatedFaults[claimIndex] : undefined;
+      const quote = shop && claim ? fabricatedRepairQuote(this.career.rig, shop, claim) : undefined;
+      if (!shop || !inspection || !claim || !quote || !this.maintenanceShopIsLocal(shop)) return;
+      const payment = this.maintenanceWorkPayment(shopId, quote.credits);
+      if (this.career.money < payment.due) return;
+      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      const componentName = maintenanceComponentById(claim.componentId)?.name ?? claim.componentId;
+      this.career.money -= payment.due;
+      this.career.worldTime = completionTime;
+      this.worldTime = Math.max(this.worldTime, completionTime);
+      inspection.fabricatedFaults.splice(claimIndex, 1);
+      this.consumeMaintenanceDiagnosticCredit(shopId);
+      saveCareerProfile(this.career);
+      const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${componentName} repaired and serviced.${creditText} Charged ${formatCredits(payment.due)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceComponent:')) {

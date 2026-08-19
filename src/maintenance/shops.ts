@@ -1,7 +1,8 @@
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
+import { componentHasFabricatedFault, fabricatedFaultById, fabricatedFaultsForComponent } from './fabricated-faults';
 import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacementCost, componentServicedAp, shopCanPerform } from './grades';
 import { applyMechanicOperation } from './maintenance-service';
-import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
+import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type FabricatedFaultClaim, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
 
 export interface MaintenanceShopPerson {
   references: string[];
@@ -30,6 +31,7 @@ export interface MaintenanceShopDef {
   diagnosisHours: number;
   partsMarkup: number;
   turnaroundMultiplier: number;
+  honesty: number;
   copy: MaintenanceShopCopy;
 }
 
@@ -52,6 +54,7 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1,
   turnaroundMultiplier: 1,
+  honesty: 1,
   copy: {
     people: [
       { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
@@ -78,6 +81,7 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1,
   turnaroundMultiplier: 1,
+  honesty: 1,
   copy: {
     people: [
       { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
@@ -104,6 +108,7 @@ export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1,
   turnaroundMultiplier: 0.75,
+  honesty: 1,
   copy: {
     people: [
       { references: ['Anja Riedel', 'Anja'] },
@@ -129,6 +134,7 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1.35,
   turnaroundMultiplier: 1,
+  honesty: 0.5,
   copy: {
     people: [
       { references: ['“Honest” Lem Calder', 'Honest Lem', 'Lem Calder', 'Lem'] },
@@ -157,6 +163,63 @@ export function diagnosisQuote(shop: MaintenanceShopDef): MaintenanceQuote {
     credits: Math.round(shop.diagnosisHours * shop.laborRate),
     laborHours: shop.diagnosisHours,
     turnaroundHours: shop.diagnosisHours * shop.turnaroundMultiplier,
+  };
+}
+
+function unitRoll(value: number): number {
+  return Math.max(0, Math.min(0.9999999999999999, value));
+}
+
+export function fabricateFaultClaimsAtShop(
+  rig: CareerRigState,
+  shop: MaintenanceShopDef,
+  random: () => number = Math.random,
+): FabricatedFaultClaim[] {
+  const fabricationChance = 1 - Math.max(0, Math.min(1, shop.honesty));
+  if (fabricationChance <= 0) return [];
+  const claims: FabricatedFaultClaim[] = [];
+  for (const systemId of MAINTENANCE_SYSTEM_IDS) {
+    const system = maintenanceSystemById(systemId);
+    const faultedComponents = system.componentIds.flatMap(componentId => {
+      const component = maintenanceComponentById(componentId);
+      const state = rig.components[componentId];
+      return component && state?.installed && state.fault && fabricatedFaultsForComponent(component).length
+        ? [{ component, state }]
+        : [];
+    });
+    if (!faultedComponents.length || unitRoll(random()) >= fabricationChance) continue;
+    const selected = faultedComponents[Math.floor(unitRoll(random()) * faultedComponents.length)];
+    const faults = fabricatedFaultsForComponent(selected.component);
+    const fault = faults[Math.floor(unitRoll(random()) * faults.length)];
+    claims.push({
+      id: `fabricated-claim-${systemId}-${selected.component.id}-${fault.id}`,
+      systemId,
+      componentId: selected.component.id,
+      faultId: fault.id,
+      ...(selected.state.fault?.locationId ? { locationId: selected.state.fault.locationId } : {}),
+    });
+  }
+  return claims;
+}
+
+export function fabricatedRepairQuote(
+  rig: CareerRigState,
+  shop: MaintenanceShopDef,
+  claim: FabricatedFaultClaim,
+): (MaintenanceQuote & { repair: string; workGrade: WorkGrade }) | undefined {
+  const component = maintenanceComponentById(claim.componentId);
+  const state = rig.components[claim.componentId];
+  const fault = fabricatedFaultById(claim.faultId);
+  if (!component || component.systemId !== claim.systemId || !state?.installed || !fault
+    || !componentHasFabricatedFault(component, fault.id) || !shopCanPerform(shop.workQualityGrade, fault.workGrade)) return undefined;
+  const labor = fault.laborHours * shop.laborRate;
+  const parts = componentPartsCost(component, state.grade, 'minor') * shop.partsMarkup;
+  return {
+    repair: fault.repair,
+    workGrade: fault.workGrade,
+    credits: Math.round(labor + parts),
+    laborHours: fault.laborHours,
+    turnaroundHours: fault.laborHours * shop.turnaroundMultiplier,
   };
 }
 

@@ -124,6 +124,14 @@ export interface CareerRigState {
   optionalEquipment: OptionalEquipmentId[];
 }
 
+export interface FabricatedFaultClaim {
+  id: string;
+  systemId: MaintenanceSystemId;
+  componentId: ComponentId;
+  faultId: string;
+  locationId?: string;
+}
+
 export const RIG_RESTRICTION_IDS = [
   'grounded',
   'high-thrust-unavailable',

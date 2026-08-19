@@ -1,5 +1,5 @@
 import { createDefaultRigState, migrateRigState } from './maintenance/rig-state';
-import type { CareerRigState } from './maintenance/types';
+import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type FabricatedFaultClaim, type MaintenanceSystemId } from './maintenance/types';
 
 const CAREER_STORAGE_KEY = 'space-teamster.career.v1';
 
@@ -33,6 +33,7 @@ export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[
 export interface MaintenanceShopInspectionState {
   diagnosedWorldTime: number;
   creditRemaining: number;
+  fabricatedFaults: FabricatedFaultClaim[];
 }
 
 export interface CareerProfile {
@@ -54,6 +55,29 @@ function isTeamsterCertificationId(value: unknown): value is TeamsterCertificati
   return typeof value === 'string' && TEAMSTER_CERTIFICATION_IDS.includes(value as TeamsterCertificationId);
 }
 
+function migratedFabricatedFaults(value: unknown): FabricatedFaultClaim[] {
+  if (!Array.isArray(value)) return [];
+  const claims: FabricatedFaultClaim[] = [];
+  const ids = new Set<string>();
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue;
+    const claim = raw as Partial<FabricatedFaultClaim>;
+    if (typeof claim.id !== 'string' || !claim.id || ids.has(claim.id)
+      || typeof claim.systemId !== 'string' || !MAINTENANCE_SYSTEM_IDS.includes(claim.systemId as MaintenanceSystemId)
+      || typeof claim.componentId !== 'string' || !claim.componentId
+      || typeof claim.faultId !== 'string' || !claim.faultId) continue;
+    ids.add(claim.id);
+    claims.push({
+      id: claim.id,
+      systemId: claim.systemId as MaintenanceSystemId,
+      componentId: claim.componentId,
+      faultId: claim.faultId,
+      ...(typeof claim.locationId === 'string' && claim.locationId ? { locationId: claim.locationId } : {}),
+    });
+  }
+  return claims;
+}
+
 function migratedShopInspections(parsed: any): Record<string, MaintenanceShopInspectionState> {
   if (!parsed?.maintenanceShopInspections || typeof parsed.maintenanceShopInspections !== 'object') return {};
   return Object.fromEntries(Object.entries(parsed.maintenanceShopInspections).flatMap(([shopId, raw]) => {
@@ -62,7 +86,11 @@ function migratedShopInspections(parsed: any): Record<string, MaintenanceShopIns
     const creditRemaining = typeof inspection.creditRemaining === 'number' && Number.isFinite(inspection.creditRemaining)
       ? Math.max(0, Math.floor(inspection.creditRemaining))
       : 0;
-    return [[shopId, { diagnosedWorldTime: inspection.diagnosedWorldTime, creditRemaining }]];
+    return [[shopId, {
+      diagnosedWorldTime: inspection.diagnosedWorldTime,
+      creditRemaining,
+      fabricatedFaults: migratedFabricatedFaults(inspection.fabricatedFaults),
+    }]];
   }));
 }
 
