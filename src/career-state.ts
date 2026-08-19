@@ -34,6 +34,8 @@ export interface MaintenanceShopInspectionState {
   diagnosedWorldTime: number;
   creditRemaining: number;
   fabricatedFaults: FabricatedFaultClaim[];
+  fabricatedServiceComponentIds: string[];
+  pretendMaintainedComponentIds: string[];
 }
 
 export interface CareerProfile {
@@ -78,6 +80,11 @@ function migratedFabricatedFaults(value: unknown): FabricatedFaultClaim[] {
   return claims;
 }
 
+function migratedComponentIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((id): id is string => typeof id === 'string' && !!id))];
+}
+
 function migratedShopInspections(parsed: any): Record<string, MaintenanceShopInspectionState> {
   if (!parsed?.maintenanceShopInspections || typeof parsed.maintenanceShopInspections !== 'object') return {};
   return Object.fromEntries(Object.entries(parsed.maintenanceShopInspections).flatMap(([shopId, raw]) => {
@@ -90,6 +97,8 @@ function migratedShopInspections(parsed: any): Record<string, MaintenanceShopIns
       diagnosedWorldTime: inspection.diagnosedWorldTime,
       creditRemaining,
       fabricatedFaults: migratedFabricatedFaults(inspection.fabricatedFaults),
+      fabricatedServiceComponentIds: migratedComponentIds(inspection.fabricatedServiceComponentIds),
+      pretendMaintainedComponentIds: migratedComponentIds(inspection.pretendMaintainedComponentIds),
     }]];
   }));
 }

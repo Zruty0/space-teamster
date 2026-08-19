@@ -73,7 +73,7 @@ import { fabricatedFaultById } from './maintenance/fabricated-faults';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
-import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
+import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricateServiceComponentIdsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabel, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
@@ -2027,11 +2027,29 @@ export class Game {
     return this.career.maintenanceShopInspections[shopId]?.fabricatedFaults.find(claim => claim.id === claimId);
   }
 
+  private maintenanceFabricatedServiceComponentIds(shopId: string): string[] {
+    return this.career.maintenanceShopInspections[shopId]?.fabricatedServiceComponentIds ?? [];
+  }
+
+  private completeFabricatedService(shopId: string, componentIds: Iterable<string>): void {
+    const inspection = this.career.maintenanceShopInspections[shopId];
+    if (!inspection) return;
+    const completed = new Set(inspection.pretendMaintainedComponentIds);
+    const selected = new Set(componentIds);
+    inspection.fabricatedServiceComponentIds = inspection.fabricatedServiceComponentIds.filter(componentId => {
+      if (!selected.has(componentId)) return true;
+      completed.add(componentId);
+      return false;
+    });
+    inspection.pretendMaintainedComponentIds = [...completed];
+  }
+
   private maintenanceShopScene(state: InteractiveScenePhaseState, shop: MaintenanceShopDef, locationPath: string): InteractiveScene {
     const local = this.maintenanceShopIsLocal(shop);
     const diagnosedHere = this.maintenanceShopDiagnosed(shop.id);
     const diagnosticCreditAvailable = this.career.maintenanceShopInspections[shop.id]?.creditRemaining ?? 0;
-    const routineServiceQuote = rigServiceQuote(this.career.rig, shop);
+    const fabricatedServiceComponentIds = this.maintenanceFabricatedServiceComponentIds(shop.id);
+    const routineServiceQuote = rigServiceQuote(this.career.rig, shop, fabricatedServiceComponentIds);
     const routineServiceAvailable = diagnosedHere && routineServiceQuote.laborHours > 0;
     const diagnosisGatedScenes: InteractiveScenePhaseState['id'][] = ['maintenanceService', 'maintenanceServiceConfirm', 'maintenanceServiceAllConfirm', 'maintenanceFaults', 'maintenanceComponent', 'maintenanceWorkConfirm'];
     if ((!diagnosedHere && diagnosisGatedScenes.includes(state.id)) || (diagnosedHere && state.id === 'maintenanceDiagnosisConfirm')) {
@@ -2115,9 +2133,9 @@ export class Game {
     }
 
     if (state.id === 'maintenanceService') {
-      const allQuote = rigServiceQuote(this.career.rig, shop);
+      const allQuote = rigServiceQuote(this.career.rig, shop, fabricatedServiceComponentIds);
       const systemOptions = playerShipSystemStatuses(this.career.rig).map(system => {
-        const quote = systemServiceQuote(this.career.rig, shop, system.id);
+        const quote = systemServiceQuote(this.career.rig, shop, system.id, fabricatedServiceComponentIds);
         return {
           label: system.name,
           rightText: quote.laborHours ? formatCredits(quote.credits) : undefined,
@@ -2132,8 +2150,9 @@ export class Game {
         title: 'SERVICE',
         subtitle: shopSubtitle,
         bodyRows: [
-          ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: shop.copy.serviceBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.serviceBlurb) },
+          ...(state.maintenanceReceipt
+            ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }]
+            : [{ kind: 'text' as const, text: shop.copy.serviceBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.serviceBlurb) }]),
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
@@ -2149,7 +2168,9 @@ export class Game {
     if ((state.id === 'maintenanceServiceConfirm' && state.maintenanceSystemId) || state.id === 'maintenanceServiceAllConfirm') {
       const serviceAll = state.id === 'maintenanceServiceAllConfirm';
       const system = state.maintenanceSystemId ? playerShipSystemStatuses(this.career.rig).find(candidate => candidate.id === state.maintenanceSystemId) : undefined;
-      const quote = serviceAll ? rigServiceQuote(this.career.rig, shop) : systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId!);
+      const quote = serviceAll
+        ? rigServiceQuote(this.career.rig, shop, fabricatedServiceComponentIds)
+        : systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId!, fabricatedServiceComponentIds);
       const payment = this.maintenanceWorkPayment(shop.id, quote.credits);
       return {
         title: 'AUTHORIZE SERVICE',
@@ -2872,10 +2893,18 @@ export class Game {
       this.career.worldTime += quote.turnaroundHours * 3600;
       this.worldTime = Math.max(this.worldTime, this.career.worldTime);
       diagnoseRigAtShop(this.career.rig, shop);
+      const fabricatedFaults = fabricateFaultClaimsAtShop(this.career.rig, shop);
+      const fabricatedServiceComponentIds = fabricateServiceComponentIdsAtShop(
+        this.career.rig,
+        shop,
+        new Set(fabricatedFaults.map(claim => claim.componentId)),
+      );
       this.career.maintenanceShopInspections[shopId] = {
         diagnosedWorldTime: this.career.worldTime,
         creditRemaining: quote.credits,
-        fabricatedFaults: fabricateFaultClaimsAtShop(this.career.rig, shop),
+        fabricatedFaults,
+        fabricatedServiceComponentIds,
+        pretendMaintainedComponentIds: [],
       };
       saveCareerProfile(this.career);
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceDiagnosisReport', selectedIndex: 0, maintenanceShopId: shopId } };
@@ -2903,7 +2932,8 @@ export class Game {
       const shopId = action.slice('maintenanceServiceAll:'.length);
       const shop = maintenanceShopById(shopId);
       if (!shop || !this.maintenanceShopIsLocal(shop) || !this.maintenanceShopDiagnosed(shopId)) return;
-      const quote = rigServiceQuote(this.career.rig, shop);
+      const fabricatedServiceComponentIds = this.maintenanceFabricatedServiceComponentIds(shopId);
+      const quote = rigServiceQuote(this.career.rig, shop, fabricatedServiceComponentIds);
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (quote.laborHours === 0 || this.career.money < payment.due) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
@@ -2911,6 +2941,7 @@ export class Game {
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceRigAtShop(this.career.rig, shop, completionTime);
+      this.completeFabricatedService(shopId, fabricatedServiceComponentIds);
       this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
       const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
@@ -2922,7 +2953,8 @@ export class Game {
       const shop = maintenanceShopById(shopId);
       const systemId = rawSystemId as MaintenanceSystemId;
       if (!shop || !this.maintenanceShopIsLocal(shop) || !this.maintenanceShopDiagnosed(shopId)) return;
-      const quote = systemServiceQuote(this.career.rig, shop, systemId);
+      const fabricatedServiceComponentIds = this.maintenanceFabricatedServiceComponentIds(shopId);
+      const quote = systemServiceQuote(this.career.rig, shop, systemId, fabricatedServiceComponentIds);
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (quote.laborHours === 0 || this.career.money < payment.due) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
@@ -2930,6 +2962,7 @@ export class Game {
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceSystemAtShop(this.career.rig, shop, systemId, completionTime);
+      this.completeFabricatedService(shopId, maintenanceSystemById(systemId).componentIds);
       this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
       const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
@@ -2970,6 +3003,7 @@ export class Game {
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       inspection.fabricatedFaults.splice(claimIndex, 1);
+      this.completeFabricatedService(shopId, [claim.componentId]);
       this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
       const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
@@ -3005,6 +3039,7 @@ export class Game {
       this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
+      this.completeFabricatedService(shopId, [componentId]);
       this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
       const detail = workKind === 'repair'

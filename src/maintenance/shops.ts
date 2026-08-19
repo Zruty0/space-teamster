@@ -134,7 +134,7 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1.35,
   turnaroundMultiplier: 1,
-  honesty: 0.5,
+  honesty: 0,
   copy: {
     people: [
       { references: ['“Honest” Lem Calder', 'Honest Lem', 'Lem Calder', 'Lem'] },
@@ -180,15 +180,16 @@ export function fabricateFaultClaimsAtShop(
   const claims: FabricatedFaultClaim[] = [];
   for (const systemId of MAINTENANCE_SYSTEM_IDS) {
     const system = maintenanceSystemById(systemId);
-    const faultedComponents = system.componentIds.flatMap(componentId => {
+    const installedComponents = system.componentIds.flatMap(componentId => {
       const component = maintenanceComponentById(componentId);
       const state = rig.components[componentId];
-      return component && state?.installed && state.fault && fabricatedFaultsForComponent(component).length
+      return component && state?.installed && fabricatedFaultsForComponent(component).length
         ? [{ component, state }]
         : [];
     });
-    if (!faultedComponents.length || unitRoll(random()) >= fabricationChance) continue;
-    const selected = faultedComponents[Math.floor(unitRoll(random()) * faultedComponents.length)];
+    if (!installedComponents.length || installedComponents.some(({ state }) => !!state.fault)
+      || unitRoll(random()) >= fabricationChance) continue;
+    const selected = installedComponents[Math.floor(unitRoll(random()) * installedComponents.length)];
     const faults = fabricatedFaultsForComponent(selected.component);
     const fault = faults[Math.floor(unitRoll(random()) * faults.length)];
     claims.push({
@@ -196,10 +197,35 @@ export function fabricateFaultClaimsAtShop(
       systemId,
       componentId: selected.component.id,
       faultId: fault.id,
-      ...(selected.state.fault?.locationId ? { locationId: selected.state.fault.locationId } : {}),
     });
   }
   return claims;
+}
+
+export function fabricateServiceComponentIdsAtShop(
+  rig: CareerRigState,
+  shop: MaintenanceShopDef,
+  excludedComponentIds: ReadonlySet<ComponentId> = new Set(),
+  random: () => number = Math.random,
+): ComponentId[] {
+  const fabricationChance = 1 - Math.max(0, Math.min(1, shop.honesty));
+  if (fabricationChance <= 0) return [];
+  const fabricated: ComponentId[] = [];
+  for (const systemId of MAINTENANCE_SYSTEM_IDS) {
+    const system = maintenanceSystemById(systemId);
+    const candidates = system.componentIds.flatMap(componentId => {
+      const component = maintenanceComponentById(componentId);
+      const state = rig.components[componentId];
+      return component && state?.installed && !state.fault && !excludedComponentIds.has(componentId)
+        && !componentNeedsService(rig, shop, componentId)
+        ? [{ componentId, cost: componentReplacementCost(component, state.grade) }]
+        : [];
+    });
+    if (!candidates.length || unitRoll(random()) >= fabricationChance) continue;
+    candidates.sort((a, b) => b.cost - a.cost);
+    fabricated.push(candidates[0].componentId);
+  }
+  return fabricated;
 }
 
 export function fabricatedRepairQuote(
@@ -249,11 +275,17 @@ export function componentNeedsService(rig: CareerRigState, shop: MaintenanceShop
   return !!component && !!state?.installed && state.ap < componentServicedAp(component, state.grade, shop.workQualityGrade);
 }
 
-export function systemServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId): MaintenanceQuote {
+export function systemServiceQuote(
+  rig: CareerRigState,
+  shop: MaintenanceShopDef,
+  systemId: MaintenanceSystemId,
+  fabricatedServiceComponentIds: readonly ComponentId[] = [],
+): MaintenanceQuote {
   const system = maintenanceSystemById(systemId);
+  const fabricated = new Set(fabricatedServiceComponentIds);
   const laborHours = system.componentIds.reduce((sum, componentId) => {
     const component = maintenanceComponentById(componentId);
-    return sum + (component && componentNeedsService(rig, shop, componentId) ? component.serviceHours : 0);
+    return sum + (component && (componentNeedsService(rig, shop, componentId) || fabricated.has(componentId)) ? component.serviceHours : 0);
   }, 0);
   return {
     credits: Math.round(laborHours * shop.laborRate),
@@ -262,9 +294,9 @@ export function systemServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef
   };
 }
 
-export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef): MaintenanceQuote {
+export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef, fabricatedServiceComponentIds: readonly ComponentId[] = []): MaintenanceQuote {
   return MAINTENANCE_SYSTEM_IDS.reduce((total, systemId) => {
-    const quote = systemServiceQuote(rig, shop, systemId);
+    const quote = systemServiceQuote(rig, shop, systemId, fabricatedServiceComponentIds);
     total.credits += quote.credits;
     total.laborHours += quote.laborHours;
     total.turnaroundHours += quote.turnaroundHours;
@@ -272,9 +304,10 @@ export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef): 
   }, { credits: 0, laborHours: 0, turnaroundHours: 0 });
 }
 
-export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId): boolean {
+export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId, fabricatedServiceComponentIds: readonly ComponentId[] = []): boolean {
   const system = maintenanceSystemById(systemId);
-  return system.componentIds.some(componentId => componentNeedsService(rig, shop, componentId));
+  const fabricated = new Set(fabricatedServiceComponentIds);
+  return system.componentIds.some(componentId => componentNeedsService(rig, shop, componentId) || fabricated.has(componentId));
 }
 
 export function repairQuote(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): (MaintenanceQuote & { repair: string; workGrade: WorkGrade }) | undefined {
