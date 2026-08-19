@@ -994,7 +994,20 @@ export class Game {
         if (this.shouldHoldLaunchOnPad(p, input)) {
           this.clampLaunchShipToPad(p);
         } else {
+          const dvBefore = p.ship.dvUsed;
           updateShip(p.ship, input, PHYSICS_DT, this.time);
+          const dvDelta = Math.max(0, p.ship.dvUsed - dvBefore);
+          const mainDriveDv = p.ship.thrustFiring ? Math.min(dvDelta, p.ship.thrustVisualLevel * config.mainEngineAccel * PHYSICS_DT) : 0;
+          const sasDv = Math.max(0, dvDelta - mainDriveDv);
+          accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
+            wallDt: PHYSICS_DT,
+            passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+            standardMainDriveDv: input.shiftHeld ? 0 : mainDriveDv,
+            highMainDriveDv: input.shiftHeld ? mainDriveDv : 0,
+            mainDriveFiring: mainDriveDv > 0,
+            standardManeuverDv: sasDv,
+            sasFiring: p.ship.sas && sasDv > 0,
+          });
           const landingThrust: IntegrityThrustLevel = p.ship.thrustFiring
             ? (input.shiftHeld ? 'high' : 'standard')
             : 'none';
@@ -1019,6 +1032,13 @@ export class Game {
             this.activeManifestCondition.comfort,
             landingComfortLoss(score.vSpeed, score.hSpeed, config.landingMaxVSpeed, config.landingMaxHSpeed),
           );
+          const touchdownRatio = Math.max(
+            Math.abs(score.vSpeed) / Math.max(0.001, config.landingMaxVSpeed),
+            Math.abs(score.hSpeed) / Math.max(0.001, config.landingMaxHSpeed),
+            Math.abs(score.angle) / Math.max(0.001, config.landingMaxAngle),
+          );
+          this.activeMaintenanceTelemetry.touchdownStress += Math.max(0, Math.min(1, (touchdownRatio - 0.2) / 0.8)) ** 2;
+          this.activeMaintenanceTelemetry.surfaceCycles += 1;
           this.completePhase(
             p,
             this.finishRunTransition().run,
@@ -1034,6 +1054,7 @@ export class Game {
         if (p.launchGuidance && p.state === 'flying') {
           const alt = p.ship.y - landingReferenceHeight(p.level, p.terrain, p.ship.x);
           if (alt >= p.launchGuidance.targetAltitude && p.ship.vy >= 0) {
+            this.activeMaintenanceTelemetry.surfaceCycles += 1;
             const transition = this.transitionLandingToApproach(p);
             if (transition) this.completeTransition(p, transition);
             else p.state = 'crashed';
@@ -1123,7 +1144,9 @@ export class Game {
     this.accumulator += frameTime;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'docking') {
+        const dvBefore = p.ds.dvUsed;
         updateDocking(p.ds, input, p.level, PHYSICS_DT);
+        const dvDelta = Math.max(0, p.ds.dvUsed - dvBefore);
         input.toggleSAS = false;
         const manualDockingThrust = p.ds.thrustUp || p.ds.thrustDown || p.ds.thrustLeft || p.ds.thrustRight;
         const assistedDockingThrust = p.ds.sasUp || p.ds.sasDown || p.ds.sasLeft || p.ds.sasRight;
@@ -1132,12 +1155,22 @@ export class Game {
           : manualDockingThrust || assistedDockingThrust
             ? 'standard'
             : 'none';
+        accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
+          wallDt: PHYSICS_DT,
+          passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          standardManeuverDv: p.ds.highThrust && manualDockingThrust ? 0 : dvDelta,
+          highManeuverDv: p.ds.highThrust && manualDockingThrust ? dvDelta : 0,
+          sasFiring: assistedDockingThrust,
+        });
+        if (p.ds.collisionImpactSpeed > 0) this.activeMaintenanceTelemetry.dockingCollisionStress += (p.ds.collisionImpactSpeed / 5) ** 2;
         applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, dockingThrust);
         applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, dockingThrust);
         applyIntegrityDamage(this.activeManifestCondition.integrity, dockingIntegrityDamage(p.ds.collisionImpactSpeed));
         applyComfortLoss(this.activeManifestCondition.comfort, dockingComfortLoss(p.ds.collisionImpactSpeed));
         if (!p.ds.alive) p.state = 'crashed';
         if (p.ds.delivered) {
+          this.activeMaintenanceTelemetry.dockingCycles += 1;
+          if (p.ds.beamActive) this.activeMaintenanceTelemetry.tractorCaptures += 1;
           p.state = 'delivered';
           const isFinal = !p.level.orbitalLevelId && !p.level.clusterLevelId;
           const transition = p.level.clusterLevelId
@@ -1150,6 +1183,7 @@ export class Game {
           return;
         }
         if (p.ds.exitComplete) {
+          this.activeMaintenanceTelemetry.dockingCycles += 1;
           const transition = p.level.clusterLevelId ? this.transitionDockingToCluster(p) : this.transitionDockingToOrbital(p);
           if (transition) this.completeTransition(p, transition);
           else p.state = 'crashed';
@@ -1205,7 +1239,9 @@ export class Game {
     this.accumulator += effectiveFrameTime;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'flying') {
+        const dvBefore = p.cs.dvUsed;
         updateCluster(p.cs, input, p.level, PHYSICS_DT);
+        const dvDelta = Math.max(0, p.cs.dvUsed - dvBefore);
         input.toggleSAS = false;
         const manualClusterThrust = p.cs.thrustForward !== 0 || p.cs.thrustBackward !== 0 || p.cs.thrustLeft !== 0 || p.cs.thrustRight !== 0;
         const assistedClusterThrust = p.cs.sasForward !== 0 || p.cs.sasBackward !== 0 || p.cs.sasLeft !== 0 || p.cs.sasRight !== 0;
@@ -1215,6 +1251,14 @@ export class Game {
             ? 'standard'
             : 'none';
         const clusterControlDt = PHYSICS_DT / Math.max(1, p.level.baseTimeScale * p.cs.timeWarp);
+        accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
+          wallDt: clusterControlDt,
+          userWarp: p.cs.timeWarp,
+          passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          standardManeuverDv: p.cs.highThrust && manualClusterThrust ? 0 : dvDelta,
+          highManeuverDv: p.cs.highThrust && manualClusterThrust ? dvDelta : 0,
+          sasFiring: assistedClusterThrust,
+        });
         applyIntegrityExposure(this.activeManifestCondition.integrity, clusterControlDt, clusterThrust);
         applyComfortExposure(this.activeManifestCondition.comfort, clusterControlDt, clusterThrust, false, 0, p.cs.timeWarp);
         if (!p.cs.alive) p.state = 'crashed';
@@ -1328,12 +1372,25 @@ export class Game {
           vy: p.os.vy,
           time: p.os.time,
         };
+        const dvBefore = p.os.dvUsed;
         updateOrbital(p.os, input, p.level, PHYSICS_DT);
+        const dvDelta = Math.max(0, p.os.dvUsed - dvBefore);
         const orbitalThrust: IntegrityThrustLevel = p.os.thrusting === 'none'
           ? 'none'
           : p.os.highThrust
             ? 'high'
             : 'standard';
+        accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
+          wallDt: PHYSICS_DT,
+          userWarp: p.os.timeWarp,
+          passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          standardMainDriveDv: p.os.highThrust ? 0 : dvDelta,
+          highMainDriveDv: p.os.highThrust ? dvDelta : 0,
+          mainDriveFiring: dvDelta > 0,
+          atmospheric: p.os.inAtmo,
+          temperature: p.os.temperature,
+          aerodynamicAcceleration: p.os.maintenanceAeroAcceleration ?? 0,
+        });
         applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, orbitalThrust);
         applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, orbitalThrust, false, p.os.temperature, p.os.timeWarp);
         // Clear edge triggers after first step
@@ -1710,13 +1767,30 @@ export class Game {
     let edgeConsumed = false;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'approaching') {
+        const dvBefore = p.as.dvUsed;
+        const wingAngleBefore = p.as.wingsDeployed ? p.as.wingAngle : 0;
         updateApproach(p.as, input, p.level, PHYSICS_DT, this.time);
+        const dvDelta = Math.max(0, p.as.dvUsed - dvBefore);
+        const wingAngleAfter = p.as.wingsDeployed ? p.as.wingAngle : 0;
         const approachFiring = p.as.throttle > 0.01 || p.as.retroFiring;
         const approachThrust: IntegrityThrustLevel = approachFiring
           ? (p.as.highThrust ? 'high' : 'standard')
           : 'none';
         const approachControlDt = PHYSICS_DT / Math.max(1, p.as.timeWarp);
         const activeTurbulence = approachInTurbulence(p.as.y, p.level, this.time);
+        accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
+          wallDt: approachControlDt,
+          userWarp: p.as.timeWarp,
+          passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          standardMainDriveDv: p.as.highThrust ? 0 : dvDelta,
+          highMainDriveDv: p.as.highThrust ? dvDelta : 0,
+          mainDriveFiring: dvDelta > 0,
+          atmospheric: p.level.body.atmosphere !== null,
+          temperature: p.as.temperature,
+          aerodynamicAcceleration: p.as.maintenanceAeroAcceleration,
+          turbulence: activeTurbulence,
+          wingTravelRadians: Math.abs(wingAngleAfter - wingAngleBefore),
+        });
         applyIntegrityExposure(
           this.activeManifestCondition.integrity,
           approachControlDt,

@@ -165,6 +165,7 @@ export interface OrbitalState {
   alive: boolean;
   enteredAtmo: boolean;
   temperature: number; // 0..1, for display
+  maintenanceAeroAcceleration?: number;
 
   // Trail (ring buffer of recent positions, using wall-clock time)
   trail: { x: number; y: number; t: number }[];
@@ -1282,6 +1283,7 @@ export function updateOrbital(
   s: OrbitalState, input: InputState, level: OrbitalLevel, dt: number,
 ): void {
   if (!s.alive || s.enteredAtmo || s.docked) return;
+  s.maintenanceAeroAcceleration = 0;
 
   // Track wall-clock time (for trail)
   s.realTime += dt;
@@ -1379,6 +1381,7 @@ export function updateOrbital(
       // Aero forces (AoA-dependent drag + lift)
       const displayAoA = s.inAtmo ? s.targetAoA : level.highAtmoAoA;
       const aero = aeroForces(s.x, s.y, s.vx, s.vy, aoaDisplayToPhysical(displayAoA, s.x, s.y, s.vx, s.vy), level);
+      s.maintenanceAeroAcceleration = Math.max(s.maintenanceAeroAcceleration ?? 0, Math.hypot(aero.ax, aero.ay));
       ax += aero.ax;
       ay += aero.ay;
 

@@ -108,6 +108,7 @@ export interface ApproachState {
   wingsDeployed: boolean;
   wingAngle: number;
   temperature: number;
+  maintenanceAeroAcceleration: number;
   alive: boolean;
   gateReached: boolean;
   gateSpeed: number;
@@ -390,6 +391,7 @@ export function createApproachState(
     worldX, worldY, worldVX, worldVY, localDir,
     throttle: 0, fuel: 0, dvUsed: 0,
     wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
+    maintenanceAeroAcceleration: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
     timeWarp: 1, timeWarpLevel: 0,
     _foldTimer: 0, _deployTimer: 0,
@@ -636,6 +638,7 @@ export function updateApproach(
   s: ApproachState, input: InputState, level: ApproachLevel, dt: number, time: number,
 ): void {
   if (!s.alive || s.gateReached) return;
+  s.maintenanceAeroAcceleration = 0;
 
   // --- High thrust toggle ---
   s.highThrust = input.toggleHighThrust; // hold Shift for high thrust
@@ -733,6 +736,7 @@ export function updateApproach(
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
       s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level,
     );
+    s.maintenanceAeroAcceleration = Math.hypot(aeroAx, aeroAy);
     let ax = aeroAx;
     let ay = -level.gravity + aeroAy;
 
