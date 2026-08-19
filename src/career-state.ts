@@ -30,22 +30,40 @@ export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[
   { certificationId: 'passenger', name: 'Passenger License', price: 25_000, requiresCertification: 'basic-3' },
 ];
 
+export interface MaintenanceShopInspectionState {
+  diagnosedWorldTime: number;
+  creditRemaining: number;
+}
+
 export interface CareerProfile {
   locationId: string;
   money: number;
   worldTime: number;
   certifications: TeamsterCertificationId[];
   rig: CareerRigState;
+  maintenanceShopInspections: Record<string, MaintenanceShopInspectionState>;
 }
 
 export const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
 
 export function defaultCareerProfile(): CareerProfile {
-  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false) };
+  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false), maintenanceShopInspections: {} };
 }
 
 function isTeamsterCertificationId(value: unknown): value is TeamsterCertificationId {
   return typeof value === 'string' && TEAMSTER_CERTIFICATION_IDS.includes(value as TeamsterCertificationId);
+}
+
+function migratedShopInspections(parsed: any): Record<string, MaintenanceShopInspectionState> {
+  if (!parsed?.maintenanceShopInspections || typeof parsed.maintenanceShopInspections !== 'object') return {};
+  return Object.fromEntries(Object.entries(parsed.maintenanceShopInspections).flatMap(([shopId, raw]) => {
+    const inspection = raw as Partial<MaintenanceShopInspectionState> | null;
+    if (!inspection || typeof inspection.diagnosedWorldTime !== 'number' || !Number.isFinite(inspection.diagnosedWorldTime)) return [];
+    const creditRemaining = typeof inspection.creditRemaining === 'number' && Number.isFinite(inspection.creditRemaining)
+      ? Math.max(0, Math.floor(inspection.creditRemaining))
+      : 0;
+    return [[shopId, { diagnosedWorldTime: inspection.diagnosedWorldTime, creditRemaining }]];
+  }));
 }
 
 function migratedCertifications(parsed: any): TeamsterCertificationId[] {
@@ -75,6 +93,7 @@ export function loadCareerProfile(): CareerProfile {
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
       certifications,
       rig: migrateRigState(parsed.rig, certifications.includes('thin-atmosphere') || certifications.includes('thick-atmosphere')),
+      maintenanceShopInspections: migratedShopInspections(parsed),
     };
   } catch {
     return defaultCareerProfile();

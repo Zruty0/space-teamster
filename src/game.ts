@@ -1928,8 +1928,29 @@ export class Game {
     return shop.locationIds.some(locationId => scope.has(locationId));
   }
 
+  private maintenanceShopDiagnosed(shopId: string): boolean {
+    return this.career.maintenanceShopInspections[shopId] !== undefined;
+  }
+
+  private maintenanceWorkPayment(shopId: string, grossCredits: number): { credit: number; due: number } {
+    const available = this.career.maintenanceShopInspections[shopId]?.creditRemaining ?? 0;
+    const credit = Math.min(Math.max(0, grossCredits), available);
+    return { credit, due: Math.max(0, grossCredits - credit) };
+  }
+
+  private consumeMaintenanceDiagnosticCredit(shopId: string): void {
+    const inspection = this.career.maintenanceShopInspections[shopId];
+    if (inspection) inspection.creditRemaining = 0;
+  }
+
   private maintenanceShopScene(state: InteractiveScenePhaseState, shop: MaintenanceShopDef, locationPath: string): InteractiveScene {
     const local = this.maintenanceShopIsLocal(shop);
+    const diagnosedHere = this.maintenanceShopDiagnosed(shop.id);
+    const diagnosticCreditAvailable = this.career.maintenanceShopInspections[shop.id]?.creditRemaining ?? 0;
+    const diagnosisGatedScenes: InteractiveScenePhaseState['id'][] = ['maintenanceService', 'maintenanceServiceConfirm', 'maintenanceServiceAllConfirm', 'maintenanceFaults', 'maintenanceComponent', 'maintenanceWorkConfirm'];
+    if (!diagnosedHere && diagnosisGatedScenes.includes(state.id)) {
+      return this.maintenanceShopScene({ id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shop.id }, shop, locationPath);
+    }
     const cash = formatCredits(this.career.money);
     const shopSubtitle = `${shop.organizationName ?? shop.name}   CASH: ${cash}`;
     const faulted = Object.entries(this.career.rig.components).flatMap(([componentId, componentState]) => {
@@ -2007,7 +2028,8 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: 'Routine service is always available. It restores service protection but does not repair persistent HP damage or clear faults.' },
+          { kind: 'text', text: 'Routine service restores service protection but does not repair persistent HP damage or clear faults.' },
+          ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2023,6 +2045,7 @@ export class Game {
       const serviceAll = state.id === 'maintenanceServiceAllConfirm';
       const system = state.maintenanceSystemId ? playerShipSystemStatuses(this.career.rig).find(candidate => candidate.id === state.maintenanceSystemId) : undefined;
       const quote = serviceAll ? rigServiceQuote(this.career.rig, shop) : systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId!);
+      const payment = this.maintenanceWorkPayment(shop.id, quote.credits);
       return {
         title: 'AUTHORIZE ROUTINE SERVICE',
         subtitle: shopSubtitle,
@@ -2030,12 +2053,14 @@ export class Game {
         bodyRows: [
           { kind: 'kv', label: 'Work order', value: serviceAll ? 'Service Everything' : system?.name ?? state.maintenanceSystemId! },
           { kind: 'kv', label: 'Labor', value: formatWorkHours(quote.laborHours) },
-          { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
-          { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
+          { kind: 'kv', label: 'Work price', value: formatCredits(quote.credits), tone: 'warning' },
+          ...(payment.credit ? [{ kind: 'kv' as const, label: 'Service credit', value: `−${formatCredits(payment.credit)}`, tone: 'success' as const }] : []),
+          { kind: 'kv', label: 'Amount due', value: formatCredits(payment.due), tone: 'warning' },
+          { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - payment.due), tone: this.career.money >= payment.due ? 'success' : 'danger' },
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          { label: `Authorize ${formatCredits(quote.credits)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: serviceAll ? 'Service every installed component.' : 'Service every installed component in this system.', action: serviceAll ? `maintenanceServiceAll:${shop.id}` : `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || quote.laborHours === 0 || this.career.money < quote.credits },
+          { label: `Authorize ${formatCredits(payment.due)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: serviceAll ? 'Service every installed component.' : 'Service every installed component in this system.', action: serviceAll ? `maintenanceServiceAll:${shop.id}` : `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || quote.laborHours === 0 || this.career.money < payment.due },
           { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceServiceList:${shop.id}`, tone: 'back' },
         ],
       };
@@ -2047,6 +2072,7 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
+          ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'text', text: faulted.length ? 'Select a faulted component. Unknown faults cannot be repaired here, but the complete component can still be replaced.' : 'No actionable faults are present.', tone: faulted.length ? undefined : 'success' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2077,6 +2103,7 @@ export class Game {
       if (state.id === 'maintenanceWorkConfirm' && state.maintenanceWorkKind && replacement) {
         const quote = state.maintenanceWorkKind === 'repair' ? repair : replacement;
         if (!quote) return this.maintenanceShopScene({ id: 'maintenanceComponent', selectedIndex: 0, maintenanceShopId: shop.id, maintenanceComponentId: component.id }, shop, locationPath);
+        const payment = this.maintenanceWorkPayment(shop.id, quote.credits);
         return {
           title: state.maintenanceWorkKind === 'repair' ? 'AUTHORIZE REPAIR' : 'AUTHORIZE REPLACEMENT',
           subtitle: shopSubtitle,
@@ -2085,12 +2112,14 @@ export class Game {
             { kind: 'kv', label: 'Work', value: state.maintenanceWorkKind === 'repair' ? repair?.repair ?? 'Repair' : `Install Grade ${replacement.grade} component` },
             ...(state.maintenanceWorkKind === 'replace' && !replacement.exact ? [{ kind: 'text' as const, text: `Exact Grade ${componentState.grade} replacement is not available. Closest stocked component is Grade ${replacement.grade}.`, tone: 'warning' as const }] : []),
             { kind: 'kv', label: 'Labor', value: formatLaborHours(quote.laborHours) },
-            { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
-            { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
+            { kind: 'kv', label: 'Work price', value: formatCredits(quote.credits), tone: 'warning' },
+            ...(payment.credit ? [{ kind: 'kv' as const, label: 'Service credit', value: `−${formatCredits(payment.credit)}`, tone: 'success' as const }] : []),
+            { kind: 'kv', label: 'Amount due', value: formatCredits(payment.due), tone: 'warning' },
+            { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - payment.due), tone: this.career.money >= payment.due ? 'success' : 'danger' },
           ],
           footer: 'Enter/Space: choose   Esc: start menu',
           options: [
-            { label: `Authorize ${formatCredits(quote.credits)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: state.maintenanceWorkKind === 'repair' ? 'Repair and service this component.' : `Install the Grade ${replacement.grade} replacement.`, action: `maintenanceWork:${shop.id}:${component.id}:${state.maintenanceWorkKind}`, tone: 'primary', disabled: !local || this.career.money < quote.credits },
+            { label: `Authorize ${formatCredits(payment.due)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: state.maintenanceWorkKind === 'repair' ? 'Repair and service this component.' : `Install the Grade ${replacement.grade} replacement.`, action: `maintenanceWork:${shop.id}:${component.id}:${state.maintenanceWorkKind}`, tone: 'primary', disabled: !local || this.career.money < payment.due },
             { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceComponent:${shop.id}:${component.id}`, tone: 'back' },
           ],
         };
@@ -2126,8 +2155,8 @@ export class Game {
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
         { label: 'Diagnostic Inspection', detail: 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: 'primary', disabled: !local },
-        { label: 'Routine Service', detail: 'Order service by system or for all installed equipment.', action: `maintenanceServiceList:${shop.id}`, tone: 'primary', disabled: !local },
-        { label: 'Repairs and Replacement', detail: faulted.length ? 'Review faulted components and available work.' : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: faulted.length ? 'primary' : 'muted', disabled: !local || !faulted.length },
+        { label: 'Routine Service', detail: diagnosedHere ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'This shop must inspect the rig before accepting service work.', action: `maintenanceServiceList:${shop.id}`, tone: diagnosedHere ? 'primary' : 'muted', disabled: !local || !diagnosedHere },
+        { label: 'Repairs and Replacement', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : faulted.length ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && faulted.length ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !faulted.length },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
     };
@@ -2679,92 +2708,111 @@ export class Game {
       this.career.worldTime += quote.turnaroundHours * 3600;
       this.worldTime = Math.max(this.worldTime, this.career.worldTime);
       diagnoseRigAtShop(this.career.rig, shop);
+      this.career.maintenanceShopInspections[shopId] = {
+        diagnosedWorldTime: this.career.worldTime,
+        creditRemaining: quote.credits,
+      };
       saveCareerProfile(this.career);
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceDiagnosisReport', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
     if (action.startsWith('maintenanceServiceList:')) {
       const shopId = action.slice('maintenanceServiceList:'.length);
+      if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
     if (action.startsWith('maintenanceServiceAllConfirm:')) {
       const shopId = action.slice('maintenanceServiceAllConfirm:'.length);
+      if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceServiceAllConfirm', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
     if (action.startsWith('maintenanceServiceConfirm:')) {
       const [, shopId, systemId] = action.split(':');
+      if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceServiceConfirm', selectedIndex: 0, maintenanceShopId: shopId, maintenanceSystemId: systemId as MaintenanceSystemId } };
       return;
     }
     if (action.startsWith('maintenanceServiceAll:')) {
       const shopId = action.slice('maintenanceServiceAll:'.length);
       const shop = maintenanceShopById(shopId);
-      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      if (!shop || !this.maintenanceShopIsLocal(shop) || !this.maintenanceShopDiagnosed(shopId)) return;
       const quote = rigServiceQuote(this.career.rig, shop);
-      if (quote.laborHours === 0 || this.career.money < quote.credits) return;
+      const payment = this.maintenanceWorkPayment(shopId, quote.credits);
+      if (quote.laborHours === 0 || this.career.money < payment.due) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
-      this.career.money -= quote.credits;
+      this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceRigAtShop(this.career.rig, shop, completionTime);
+      this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `All installed equipment serviced. Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
+      const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `All installed equipment serviced.${creditText} Charged ${formatCredits(payment.due)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceService:')) {
       const [, shopId, rawSystemId] = action.split(':');
       const shop = maintenanceShopById(shopId);
       const systemId = rawSystemId as MaintenanceSystemId;
-      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      if (!shop || !this.maintenanceShopIsLocal(shop) || !this.maintenanceShopDiagnosed(shopId)) return;
       const quote = systemServiceQuote(this.career.rig, shop, systemId);
-      if (quote.laborHours === 0 || this.career.money < quote.credits) return;
+      const payment = this.maintenanceWorkPayment(shopId, quote.credits);
+      if (quote.laborHours === 0 || this.career.money < payment.due) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
-      this.career.money -= quote.credits;
+      this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceSystemAtShop(this.career.rig, shop, systemId, completionTime);
+      this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced. Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
+      const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced.${creditText} Charged ${formatCredits(payment.due)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceFaults:')) {
       const shopId = action.slice('maintenanceFaults:'.length);
+      if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
     if (action.startsWith('maintenanceComponent:')) {
       const [, shopId, componentId] = action.split(':');
+      if (!this.maintenanceShopDiagnosed(shopId)) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceComponent', selectedIndex: 0, maintenanceShopId: shopId, maintenanceComponentId: componentId } };
       return;
     }
     if (action.startsWith('maintenanceWorkConfirm:')) {
       const [, shopId, componentId, workKind] = action.split(':');
-      if (workKind !== 'repair' && workKind !== 'replace') return;
+      if (!this.maintenanceShopDiagnosed(shopId) || (workKind !== 'repair' && workKind !== 'replace')) return;
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceWorkConfirm', selectedIndex: 0, maintenanceShopId: shopId, maintenanceComponentId: componentId, maintenanceWorkKind: workKind } };
       return;
     }
     if (action.startsWith('maintenanceWork:')) {
       const [, shopId, componentId, workKind] = action.split(':');
       const shop = maintenanceShopById(shopId);
-      if (!shop || !this.maintenanceShopIsLocal(shop) || (workKind !== 'repair' && workKind !== 'replace')) return;
+      if (!shop || !this.maintenanceShopIsLocal(shop) || !this.maintenanceShopDiagnosed(shopId) || (workKind !== 'repair' && workKind !== 'replace')) return;
       const quote = workKind === 'repair' ? repairQuote(this.career.rig, shop, componentId) : replacementQuote(this.career.rig, shop, componentId);
-      if (!quote || this.career.money < quote.credits) return;
+      if (!quote) return;
+      const payment = this.maintenanceWorkPayment(shopId, quote.credits);
+      if (this.career.money < payment.due) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
       const componentName = maintenanceComponentById(componentId)?.name ?? componentId;
       const changed = workKind === 'repair'
         ? repairComponentAtShop(this.career.rig, shop, componentId, completionTime)
         : replaceComponentAtShop(this.career.rig, shop, componentId);
       if (!changed) return;
-      this.career.money -= quote.credits;
+      this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
+      this.consumeMaintenanceDiagnosticCredit(shopId);
       saveCareerProfile(this.career);
       const detail = workKind === 'repair'
         ? `${componentName} repaired and serviced.`
         : `${componentName} replaced with Grade ${'grade' in quote ? quote.grade : '—'} equipment.`;
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${detail} Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
+      const creditText = payment.credit ? ` Applied ${formatCredits(payment.credit)} service credit.` : '';
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${detail}${creditText} Charged ${formatCredits(payment.due)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }
