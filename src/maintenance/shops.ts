@@ -65,7 +65,36 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   },
 };
 
-export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [SERRAT_DOMAIN_SHIPYARD_SHOP];
+export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
+  id: 'vilar-herald-gate-outfitter',
+  name: 'Vilar’s Outfitter at Herald Gate',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xc-transit-refuel'],
+  diagnosticGrade: 'C',
+  workQualityGrade: 'D',
+  componentGradeBest: 'D',
+  componentGradeWorst: 'D',
+  laborRate: 500,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 1,
+  copy: {
+    people: [
+      { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
+      { references: ['Dame Leonor Falcão', 'Dame Leonor'] },
+    ],
+    profileBlurb: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. Baron Estêvão Vilar’s local concession is governed by Dame Leonor Falcão, a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
+    levelBlurb: 'Standard Wells outfitter in Baron Vilar’s chartered network',
+    diagnosisBlurb: '“House Vilar welcomes you to Herald Gate, Teamster. I am Dame Leonor Falcão, and nothing beneath this roof escapes a proper accounting.” (She glances down into the service gallery.) “That scanner is three degrees out. Correct it before I decide your eyes are ornamental.” (Her attention returns to you.) “Your rig shall be examined with considerably greater care.”',
+    serviceBlurb: '“A working rig deserves to leave my gallery looking newly issued. House Vilar shall see every serviceable fitting restored accordingly.” (Dame Leonor taps the gallery rail with one gloved finger.) “Must I explain the purpose of a tool cart, or will someone bring it before the Teamster dies of age?” (She offers you a composed smile.) “They become remarkably efficient under proper supervision.”',
+    repairsBlurb: '“Damage is distasteful, but never embarrassing when placed in competent hands. We shall return your rig to honorable service.” (Dame Leonor looks down toward the bays.) “If I see that component struck with a hammer, the next object fitted to the test stand will be the mechanic.” (She inclines her head to you.) “House Vilar does not confuse improvisation with craftsmanship.”',
+  },
+};
+
+export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
+  SERRAT_DOMAIN_SHIPYARD_SHOP,
+  VILAR_HERALD_GATE_SHOP,
+];
 
 export function maintenanceShopById(id: string): MaintenanceShopDef | undefined {
   return MAINTENANCE_SHOPS.find(shop => shop.id === id);

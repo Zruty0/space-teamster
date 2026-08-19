@@ -421,8 +421,21 @@ export const SERRAT_DOMAIN_SERVICE_YARD: LocalOfficeDef = {
   actions: [],
 };
 
+export const VILAR_HERALD_GATE_OUTFITTER: LocalOfficeDef = {
+  kind: 'office',
+  id: 'vilar-herald-gate-outfitter-office',
+  name: 'Vilar’s Outfitter at Herald Gate',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xc-transit-refuel'],
+  summary: 'House Vilar network outfitter.',
+  description: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. Baron Estêvão Vilar’s local concession is governed by Dame Leonor Falcão, a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
+  maintenanceShopId: 'vilar-herald-gate-outfitter',
+  actions: [],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   SERRAT_DOMAIN_SERVICE_YARD,
+  VILAR_HERALD_GATE_OUTFITTER,
   OLD_NELL_PASSAGE_OFFICE,
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,
