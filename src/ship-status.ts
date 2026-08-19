@@ -47,6 +47,10 @@ export function overallPlayerShipStatus(rig: CareerRigState): RigSystemStatus {
   return 'ok';
 }
 
+export function playerRestrictionLabel(id: RigRestrictionId): string {
+  return PLAYER_RESTRICTION_LABELS[id];
+}
+
 export function playerRestrictionLabels(rig: CareerRigState): string[] {
   const ids = new Set(deriveRestrictions(rig).map(restriction => restriction.id));
   return Object.entries(PLAYER_RESTRICTION_LABELS)

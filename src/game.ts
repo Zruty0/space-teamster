@@ -75,6 +75,7 @@ import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyI
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
+import { contractEquipmentRestrictionLabels } from './mission-restrictions';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
@@ -188,7 +189,7 @@ function contractOptionTone(contract: CareerContract): InteractiveTone {
   return 'normal';
 }
 
-function contractMissingRequirements(contract: CareerContract, career: CareerProfile): string[] {
+function contractMissingQualifications(contract: CareerContract, career: CareerProfile): string[] {
   const missing: string[] = [];
   const requiresLineAuthority = contract.category !== 'certification'
     && contract.travelMode !== 'old-nell'
@@ -1971,7 +1972,9 @@ export class Game {
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
           ...contracts.map(contract => {
-            const missingRequirements = contractMissingRequirements(contract, this.career);
+            const missingQualifications = contractMissingQualifications(contract, this.career);
+            const equipmentRestrictions = contractEquipmentRestrictionLabels(contract, this.career.rig);
+            const lockingReasons = [...missingQualifications, ...equipmentRestrictions];
             const routeDetail = `${contract.issuerName ?? 'Unknown issuer'} | FROM ${contract.sourceName} | ${careerContractClassLabel(contract.routeClass)} | ${contract.quote.cargoMassTons}t | PAR ${contract.quote.parDv.toFixed(0)} m/s`;
             return {
               label: contract.title,
@@ -1981,9 +1984,9 @@ export class Game {
               leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
               rightText: contractPublishedPay(contract.quote),
               rightDetail: `NET AT PAR ${contractMarginSummary(contract.quote)}`,
-              statusText: missingRequirements.length ? 'LOCKED' : undefined,
-              detail: missingRequirements.length ? `REQUIRES ${missingRequirements.join(' + ')} | ${routeDetail}` : routeDetail,
-              detailLineCount: missingRequirements.length ? 2 as const : 1 as const,
+              statusText: lockingReasons.length ? 'LOCKED' : undefined,
+              detail: lockingReasons.length ? `LOCKED: ${lockingReasons.join(' + ')} | ${routeDetail}` : routeDetail,
+              detailLineCount: lockingReasons.length ? 2 as const : 1 as const,
               action: `contract:${contract.id}`,
               tone: contractOptionTone(contract),
             };
@@ -2071,16 +2074,24 @@ export class Game {
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
-          ...contactContracts.map(contract => ({
-            label: contract.title,
-            labelLineCount: 2 as const,
-            tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
-            tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
-            leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
-            detail: `${contract.sourceName} → ${contract.destinationName}`,
-            action: `contactContract:${contract.id}`,
-            tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
-          })),
+          ...contactContracts.map(contract => {
+            const lockingReasons = [
+              ...contractMissingQualifications(contract, this.career),
+              ...contractEquipmentRestrictionLabels(contract, this.career.rig),
+            ];
+            return {
+              label: contract.title,
+              labelLineCount: 2 as const,
+              tag: contract.tutorial ? 'TUTORIAL' : contract.category === 'certification' ? 'CERT' : contract.travelMode === 'old-nell' ? 'PASSAGE' : 'WORK',
+              tagTone: contract.tutorial ? 'story' as InteractiveTone : undefined,
+              leftIcon: contract.category === 'passenger' ? 'passenger' as const : contract.cargo.fragile ? 'fragile' as const : undefined,
+              statusText: lockingReasons.length ? 'LOCKED' : undefined,
+              detail: lockingReasons.length ? `LOCKED: ${lockingReasons.join(' + ')}` : `${contract.sourceName} → ${contract.destinationName}`,
+              detailLineCount: lockingReasons.length ? 2 as const : 1 as const,
+              action: `contactContract:${contract.id}`,
+              tone: contract.tutorial ? 'warning' as InteractiveTone : 'primary' as InteractiveTone,
+            };
+          }),
           ...entry.actions.map(action => {
             const tutorialAction = action.tag === 'TUTORIAL' && tutorialCertificationIncomplete;
             const purchase = action.purchaseCertification;
@@ -2139,7 +2150,9 @@ export class Game {
       }
       const quote = contract.quote;
       const contactPosting = state.board === 'contact';
-      const missingRequirements = contractMissingRequirements(contract, this.career);
+      const missingQualifications = contractMissingQualifications(contract, this.career);
+      const equipmentRestrictions = contractEquipmentRestrictionLabels(contract, this.career.rig);
+      const lockingReasons = [...missingQualifications, ...equipmentRestrictions];
       const juniorPassage = contract.templateId?.startsWith('old-nell-passage-') === true;
       const transfer = contract.selectedTransfer;
       const transferSummary = transfer
@@ -2166,7 +2179,8 @@ export class Game {
           ...(contract.templateId === 'line-certification-roadstead-checkride' ? [
             { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
           ] : []),
-          ...(missingRequirements.length ? [{ kind: 'kv' as const, label: 'Missing requirements', value: missingRequirements.join(' + '), valueLineCount: 2 as const, tone: 'danger' as const }] : []),
+          ...(missingQualifications.length ? [{ kind: 'kv' as const, label: 'Missing requirements', value: missingQualifications.join(' + '), valueLineCount: 2 as const, tone: 'danger' as const }] : []),
+          ...(equipmentRestrictions.length ? [{ kind: 'kv' as const, label: 'Equipment restrictions', value: equipmentRestrictions.join(' + '), valueLineCount: 2 as const, tone: 'danger' as const }] : []),
           { kind: 'kv', label: 'Destination', value: contract.destinationName },
           { kind: 'kv', label: 'Location', value: contract.destinationPath, valueSegments: contractLocationSegments(locationPath, contract.destinationPath), valueLineCount: 2 },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
@@ -2187,7 +2201,19 @@ export class Game {
         ],
         footer: contactPosting ? 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contact' : 'W/S or ↑↓: select   Enter/Space: choose   Esc: back to contract board',
         options: [
-          { label: missingRequirements.length ? 'Requirements Not Met' : contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract', detail: missingRequirements.length ? `Requires ${missingRequirements.join(' and ')} before this posting can be accepted.` : contract.travelMode === 'old-nell' ? `Use the no-charge Guild berth and travel to ${contract.destinationName}.` : 'Accept these terms and begin the run.', action: 'acceptContract', tone: missingRequirements.length ? 'warning' : 'primary', disabled: missingRequirements.length > 0 },
+          {
+            label: lockingReasons.length ? 'Mission Locked' : contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract',
+            detail: equipmentRestrictions.length
+              ? `Blocked by current equipment restrictions: ${equipmentRestrictions.join(' and ')}.`
+              : missingQualifications.length
+                ? `Requires ${missingQualifications.join(' and ')} before this posting can be accepted.`
+                : contract.travelMode === 'old-nell'
+                  ? `Use the no-charge Guild berth and travel to ${contract.destinationName}.`
+                  : 'Accept these terms and begin the run.',
+            action: 'acceptContract',
+            tone: lockingReasons.length ? 'warning' : 'primary',
+            disabled: lockingReasons.length > 0,
+          },
           { label: contactPosting ? 'Back to Certification Officer' : contract.category === 'passenger' ? 'Back to Passenger Board' : 'Back to Contract Board', detail: 'Return without accepting.', action: contactPosting && state.directoryEntryId ? `directoryContact:${state.directoryEntryId}:${state.directoryParentEntryId ?? ''}` : contract.category === 'passenger' ? 'browsePassengerContracts' : 'browseContracts', tone: 'back' },
         ],
       };
@@ -2359,7 +2385,8 @@ export class Game {
     if (action === 'acceptContract') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
       if (!contract) return;
-      if (contractMissingRequirements(contract, this.career).length) return;
+      if (contractMissingQualifications(contract, this.career).length
+        || contractEquipmentRestrictionLabels(contract, this.career.rig).length) return;
       const selectedTransfer = contract.selectedTransfer;
       const startWorldTime = contract.scheduledStartWorldTime ?? selectedTransfer?.waitTime ?? this.career.worldTime;
       if (contract.travelMode === 'old-nell') {

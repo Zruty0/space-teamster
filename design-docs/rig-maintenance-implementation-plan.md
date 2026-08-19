@@ -192,6 +192,8 @@ After state/settlement is stable, enforce derived restrictions at both acceptanc
 - high thrust, braking SAS, and wings are disabled in controls when unavailable
 - Atmospheric Package absence/Total blocks atmospheric work only; if an unequipped rig nevertheless reaches any atmospheric density in orbital flight, including an aerobraking pass, entry immediately crashes the rig
 
+Contract boards mark incompatible missions `LOCKED` but keep their rows inspectable. Contract acceptance separately lists missing qualifications and current equipment restrictions, disables the final acceptance action, and repeats the player-safe blocking reasons. The mission restriction matrix checks grounding for every ordinary flight; freight/passenger capability by contract category; surface-landing or station-docking capability from destination placement; and atmospheric capability for atmospheric surface destinations. Old Nell carrier passage performs no player flight operation and is exempt. Recheck all requirements in the acceptance action so stale UI cannot bypass the lock.
+
 Show a specific reason wherever an action is blocked. Do not silently remove money, time, location, or wear on failed launch attempts.
 
 ## 10. Player-facing Ship Status
