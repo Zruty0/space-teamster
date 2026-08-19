@@ -207,18 +207,30 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void
 function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save();
   ctx.strokeStyle = '#4ddcff';
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  // Upright open-end wrench: split jaws above a straight handle.
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = 'square';
+  ctx.lineJoin = 'miter';
+
+  // Four upper edges of the outer and inner hexagons.
   ctx.beginPath();
-  ctx.moveTo(x + 1, y - 11);
-  ctx.lineTo(x + 4, y - 7);
-  ctx.lineTo(x + 6, y - 6);
+  ctx.moveTo(x + 1, y - 6);
+  ctx.lineTo(x + 1, y - 10);
+  ctx.lineTo(x + 6, y - 13);
+  ctx.lineTo(x + 11, y - 10);
+  ctx.lineTo(x + 11, y - 6);
+  ctx.moveTo(x + 4, y - 7);
+  ctx.lineTo(x + 4, y - 9);
+  ctx.lineTo(x + 6, y - 10);
+  ctx.lineTo(x + 8, y - 9);
   ctx.lineTo(x + 8, y - 7);
-  ctx.lineTo(x + 11, y - 11);
-  ctx.moveTo(x + 6, y - 6);
-  ctx.lineTo(x + 6, y + 2);
+
+  // The omitted lower hex edges flow into the handle outline.
+  ctx.moveTo(x + 1, y - 6);
+  ctx.lineTo(x + 4, y - 4);
+  ctx.lineTo(x + 4, y + 2);
+  ctx.lineTo(x + 8, y + 2);
+  ctx.lineTo(x + 8, y - 4);
+  ctx.lineTo(x + 11, y - 6);
   ctx.stroke();
   ctx.restore();
 }
