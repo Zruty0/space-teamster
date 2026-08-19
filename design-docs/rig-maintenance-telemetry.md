@@ -45,7 +45,7 @@ Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V do
 
 | Telemetry | One unit | Weight added per unit |
 |---|---|---|
-| Flight duration | 10 distorted player minutes in flight phases | Cab and Controls `0.10`; Auxiliary Systems `0.15` |
+| Flight duration | 10 distorted player minutes in flight phases | Cab and Controls `0.05`; Auxiliary Systems `0.08` |
 | Passenger occupancy | 10 distorted player minutes with passengers aboard | Auxiliary Systems `0.05` |
 | Loaded thrust stress | `(manifest mass / 30 t) × (total thrust Delta-V / 1,000 m/s)` | Body and Frame `0.05`; Auxiliary Systems `0.03` |
 | Freight handling cycle | One completed pickup-to-delivery cycle | Body and Frame `0.01`; Auxiliary Systems `0.05` |
@@ -53,6 +53,25 @@ Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V do
 | Communications cycle | One completed mission | Auxiliary Systems `0.02` |
 
 Empty-flight manifest mass is zero. Container tare is included in freight manifest mass.
+
+## Stellar radiation
+
+Stellar radiation is a distance-sensitive time integral with no shadowing, line-of-sight test, atmospheric attenuation, or station shielding:
+
+```text
+relativeFlux = (2,650,000,000 m / stellarDistance)^2
+stellarRadiationUnits = integral(relativeFlux × distortedDt) / 600 seconds
+```
+
+The reference distance is Oathmark's parent orbit around Estella, so one unit is ten distorted player minutes at that distance. During star-system transfer, telemetry uses the rig's star-centric distance. In planetary orbital flight it combines the parent body's star-centric position with the rig's local position. Surface, approach, docking, and local-cluster phases use the associated body's stellar distance; local offsets are included where already available and are otherwise negligible at the system scale.
+
+| Telemetry | One unit | Weight added per unit |
+|---|---|---|
+| Stellar radiation | Ten Oathmark-equivalent distorted player minutes | Cab and Controls `0.02`; Auxiliary Systems `0.01` |
+
+Radiation represents accumulated exposure of controls, computers, sensors, displays, communications, and their electrical support. It does not directly wear structural, landing, or atmospheric hardware. Equipment hardening may later modify downstream strike susceptibility; it does not alter recorded environmental telemetry.
+
+The ordinary duration coefficients were reduced from a combined `0.25` to `0.13` while radiation adds `0.03` per Oathmark-equivalent unit. The first 11 exported career ledgers averaged approximately four Oathmark-equivalent flux at their route endpoints. Using endpoint-average flux as a historical estimate changes their means by about `−0.037` to `+0.018`, preserving the observed aggregate expectation while making inner-system exposure materially different from outer-system exposure.
 
 ## Atmospheric flight
 
@@ -118,7 +137,8 @@ main drive              0.139
 firing duration         0.080
 maneuvering             0.340
 braking SAS             0.025
-flight duration         0.250
+flight duration         0.130
+stellar radiation       0.120
 loaded thrust stress    0.088
 freight handling        0.060
 dock + undock           0.140

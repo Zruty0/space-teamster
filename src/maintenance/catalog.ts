@@ -41,12 +41,12 @@ const EFFECTS: Record<ComponentId, { multipliers?: FaultMultiplierDefinition[]; 
   'landing-docking-coupler': { multipliers: [multiplier(['dockingOperation', 'dockingCollision'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['station-docking-unavailable'], total: ['grounded'] } },
   'landing-tractor-capture-receiver': { multipliers: [multiplier(['tractorCapture'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['station-docking-unavailable'], total: ['grounded'] } },
   'cab-driver-controls': { multipliers: [multiplier(CONTROL_USE, 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
-  'cab-flight-computer': { multipliers: [multiplier(['flightDuration'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
-  'cab-navigation-instruments': { multipliers: [multiplier(['flightDuration'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
-  'cab-instrument-panel': { multipliers: [multiplier(['flightDuration'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
+  'cab-flight-computer': { multipliers: [multiplier(['flightDuration', 'stellarRadiation'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
+  'cab-navigation-instruments': { multipliers: [multiplier(['flightDuration', 'stellarRadiation'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
+  'cab-instrument-panel': { multipliers: [multiplier(['flightDuration', 'stellarRadiation'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
   'auxiliary-service-power': { multipliers: [multiplier('all', 'auxiliary-systems', 1.25, 1.75), multiplier('all', 'cab-controls', 1.25, 1.25)], restrictions: { major: ['grounded'], total: ['grounded'] } },
   'auxiliary-environmental-control': { multipliers: [multiplier(['flightDuration', 'passengerOccupancy'], 'auxiliary-systems', 1.25, 1.75)], restrictions: { major: ['passenger-unavailable'], total: ['grounded'] } },
-  'auxiliary-communications': { multipliers: [multiplier(['communications'], 'auxiliary-systems', 1.25, 1.75)], restrictions: { total: ['grounded'] } },
+  'auxiliary-communications': { multipliers: [multiplier(['communications', 'stellarRadiation'], 'auxiliary-systems', 1.25, 1.75)], restrictions: { total: ['grounded'] } },
   'auxiliary-cargo-handling': { multipliers: [multiplier(['freightHandling'], 'auxiliary-systems', 1.25, 1.75)], restrictions: { major: ['freight-unavailable'], total: ['grounded'] } },
 };
 

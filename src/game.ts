@@ -32,7 +32,7 @@ import {
   clusterLevelById, clusterMemberById, createClusterState, createClusterCamera, targetPort,
   updateCluster, updateClusterCamera, renderCluster, drawClusterHUD,
 } from './cluster';
-import { bodyById, bodyStateRelativeToParent } from './world';
+import { bodyById, bodyStateRelativeToParent, stellarDistanceFromBody } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
@@ -1019,6 +1019,18 @@ export class Game {
     this.completePhase(p, transition.run, completionText, { ...transitionExtra, ...extra });
   }
 
+  private dockingStellarDistance(level: DockingLevel): number | undefined {
+    if (level.orbitalLevelId !== undefined) {
+      const orbitalLevel = orbitalLevelById(level.orbitalLevelId);
+      if (orbitalLevel) return stellarDistanceFromBody(orbitalLevel.bodyId, this.worldTime);
+    }
+    if (level.clusterLevelId !== undefined) {
+      const clusterBodyId = clusterLevelById(level.clusterLevelId)?.clusterBodyId;
+      if (clusterBodyId) return stellarDistanceFromBody(clusterBodyId, this.worldTime);
+    }
+    return undefined;
+  }
+
   // --- Landing phase ---
 
   private handleLanding(input: InputState, frameTime: number): void {
@@ -1054,6 +1066,7 @@ export class Game {
           accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
             wallDt: PHYSICS_DT,
             passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+            stellarDistance: stellarDistanceFromBody(p.level.body.id, this.worldTime),
             standardMainDriveDv: input.shiftHeld ? 0 : mainDriveDv,
             highMainDriveDv: input.shiftHeld ? mainDriveDv : 0,
             mainDriveFiring: mainDriveDv > 0,
@@ -1210,6 +1223,7 @@ export class Game {
         accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
           wallDt: PHYSICS_DT,
           passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          stellarDistance: this.dockingStellarDistance(p.level),
           standardManeuverDv: p.ds.highThrust && manualDockingThrust ? 0 : dvDelta,
           highManeuverDv: p.ds.highThrust && manualDockingThrust ? dvDelta : 0,
           sasFiring: assistedDockingThrust,
@@ -1307,6 +1321,7 @@ export class Game {
           wallDt: clusterControlDt,
           userWarp: p.cs.timeWarp,
           passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          stellarDistance: p.level.clusterBodyId ? stellarDistanceFromBody(p.level.clusterBodyId, this.worldTime) : undefined,
           standardManeuverDv: p.cs.highThrust && manualClusterThrust ? 0 : dvDelta,
           highManeuverDv: p.cs.highThrust && manualClusterThrust ? dvDelta : 0,
           sasFiring: assistedClusterThrust,
@@ -1437,6 +1452,7 @@ export class Game {
           wallDt: PHYSICS_DT,
           userWarp: p.os.timeWarp,
           passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          stellarDistance: stellarDistanceFromBody(p.level.bodyId, p.os.time, p.os.x, p.os.y),
           standardMainDriveDv: p.os.highThrust ? 0 : dvDelta,
           highMainDriveDv: p.os.highThrust ? dvDelta : 0,
           mainDriveFiring: dvDelta > 0,
@@ -1848,6 +1864,7 @@ export class Game {
           wallDt: approachControlDt,
           userWarp: p.as.timeWarp,
           passengerOccupied: this.activeMaintenanceContext?.manifestKind === 'passenger',
+          stellarDistance: stellarDistanceFromBody(p.level.body.id, this.worldTime, p.as.worldX, p.as.worldY),
           standardMainDriveDv: p.as.highThrust ? 0 : dvDelta,
           highMainDriveDv: p.as.highThrust ? dvDelta : 0,
           mainDriveFiring: dvDelta > 0,

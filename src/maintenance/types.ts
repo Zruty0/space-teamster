@@ -32,6 +32,7 @@ export const TELEMETRY_SOURCE_IDS = [
   'freightHandling',
   'passengerService',
   'communications',
+  'stellarRadiation',
   'heatExposure',
   'severeHeatExposure',
   'aerodynamicLoading',
@@ -159,6 +160,7 @@ export interface MaintenanceTelemetryAccumulator {
   distortedSasSeconds: number;
   distortedFlightSeconds: number;
   distortedPassengerSeconds: number;
+  stellarRadiationIntegral: number;
   heatIntegral: number;
   severeHeatIntegral: number;
   aerodynamicLoadIntegral: number;

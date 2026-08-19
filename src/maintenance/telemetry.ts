@@ -20,6 +20,7 @@ export function createMaintenanceTelemetry(): MaintenanceTelemetryAccumulator {
     distortedSasSeconds: 0,
     distortedFlightSeconds: 0,
     distortedPassengerSeconds: 0,
+    stellarRadiationIntegral: 0,
     heatIntegral: 0,
     severeHeatIntegral: 0,
     aerodynamicLoadIntegral: 0,
@@ -46,10 +47,19 @@ export function warpDistortion(userWarp: number): number {
   return 1 + 0.5 * Math.log10(Math.max(1, userWarp));
 }
 
+/** Oathmark's parent orbit around Estella; one radiation unit is ten distorted minutes at this distance. */
+export const STELLAR_RADIATION_REFERENCE_DISTANCE = 2_650_000_000;
+
+export function relativeStellarRadiationFlux(stellarDistance: number): number {
+  if (!Number.isFinite(stellarDistance) || stellarDistance <= 0) return 0;
+  return (STELLAR_RADIATION_REFERENCE_DISTANCE / Math.max(1, stellarDistance)) ** 2;
+}
+
 export interface FlightTelemetryStep {
   wallDt: number;
   userWarp?: number;
   passengerOccupied?: boolean;
+  stellarDistance?: number;
   standardMainDriveDv?: number;
   highMainDriveDv?: number;
   mainDriveFiring?: boolean;
@@ -70,6 +80,9 @@ export function accumulateFlightTelemetry(accumulator: MaintenanceTelemetryAccum
   accumulator.wallFlightSeconds += wallDt;
   accumulator.distortedFlightSeconds += distortedDt;
   if (step.passengerOccupied) accumulator.distortedPassengerSeconds += distortedDt;
+  if (step.stellarDistance !== undefined) {
+    accumulator.stellarRadiationIntegral += relativeStellarRadiationFlux(step.stellarDistance) * distortedDt;
+  }
   accumulator.observedWarpMin = Math.min(accumulator.observedWarpMin, userWarp);
   accumulator.observedWarpMax = Math.max(accumulator.observedWarpMax, userWarp);
   accumulator.standardMainDriveDv += Math.max(0, step.standardMainDriveDv ?? 0);
@@ -97,12 +110,13 @@ const COEFFICIENTS: Readonly<Partial<Record<TelemetrySourceId, Partial<Record<Ma
   standardManeuvering: { 'body-frame': 0.02, 'steering-thrusters': 0.25, 'cab-controls': 0.07 },
   highManeuvering: { 'body-frame': 0.04, 'steering-thrusters': 0.50, 'cab-controls': 0.12 },
   brakingSas: { 'steering-thrusters': 0.04, 'cab-controls': 0.01 },
-  flightDuration: { 'cab-controls': 0.10, 'auxiliary-systems': 0.15 },
+  flightDuration: { 'cab-controls': 0.05, 'auxiliary-systems': 0.08 },
   passengerOccupancy: { 'auxiliary-systems': 0.05 },
   loadedThrustStress: { 'body-frame': 0.05, 'auxiliary-systems': 0.03 },
   freightHandling: { 'body-frame': 0.01, 'auxiliary-systems': 0.05 },
   passengerService: { 'auxiliary-systems': 0.04 },
   communications: { 'auxiliary-systems': 0.02 },
+  stellarRadiation: { 'cab-controls': 0.02, 'auxiliary-systems': 0.01 },
   heatExposure: { 'body-frame': 0.01, powertrain: 0.02, 'atmospheric-package': 0.10, 'auxiliary-systems': 0.01 },
   severeHeatExposure: { 'body-frame': 0.05, powertrain: 0.10, 'atmospheric-package': 0.30, 'cab-controls': 0.05, 'auxiliary-systems': 0.05 },
   aerodynamicLoading: { 'body-frame': 0.03, 'steering-thrusters': 0.02, 'atmospheric-package': 0.08 },
@@ -137,6 +151,7 @@ export function normalizeTelemetry(raw: MaintenanceTelemetryAccumulator, context
     freightHandling: includeSettlementCycles && context.manifestKind === 'freight' ? 1 : 0,
     passengerService: includeSettlementCycles && context.manifestKind === 'passenger' ? 1 : 0,
     communications: includeSettlementCycles ? 1 : 0,
+    stellarRadiation: (raw.stellarRadiationIntegral ?? 0) / 600,
     heatExposure: raw.heatIntegral / 30,
     severeHeatExposure: raw.severeHeatIntegral / 10,
     aerodynamicLoading: raw.aerodynamicLoadIntegral / 30,
@@ -203,6 +218,8 @@ export function cleanTelemetryFixture(): { raw: MaintenanceTelemetryAccumulator;
   raw.standardManeuverDv = 100;
   raw.distortedSasSeconds = 30;
   raw.distortedFlightSeconds = 600;
+  // Four Oathmark-equivalent units approximate the exposure mix in the first exported career ledgers.
+  raw.stellarRadiationIntegral = 2_400;
   raw.surfaceCycles = 0;
   raw.dockingCycles = 2;
   raw.tractorCaptures = 1;

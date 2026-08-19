@@ -243,6 +243,26 @@ export function bodyStateRelativeToParent(bodyId: string, time: number): { x: nu
   return circularOrbitState(parent.gm, body.orbit, time);
 }
 
+/** Resolve a body's state in the root star's frame by summing its authored orbit chain. */
+export function bodyStateRelativeToSystemRoot(bodyId: string, time: number): { x: number; y: number; vx: number; vy: number } {
+  const body = bodyById(bodyId);
+  if (!body.orbit) return { x: 0, y: 0, vx: 0, vy: 0 };
+  const local = bodyStateRelativeToParent(bodyId, time);
+  const parent = bodyStateRelativeToSystemRoot(body.orbit.parentBodyId, time);
+  return {
+    x: parent.x + local.x,
+    y: parent.y + local.y,
+    vx: parent.vx + local.vx,
+    vy: parent.vy + local.vy,
+  };
+}
+
+/** Stellar distance for a position expressed in the named body's ordinary orbital frame. */
+export function stellarDistanceFromBody(bodyId: string, time: number, relativeX = 0, relativeY = 0): number {
+  const body = bodyStateRelativeToSystemRoot(bodyId, time);
+  return Math.hypot(body.x + relativeX, body.y + relativeY);
+}
+
 export function stationState(stationId: string, time: number): { x: number; y: number; vx: number; vy: number } {
   const poi = stationPoiById(stationId);
   const body = bodyById(poi.bodyId);
