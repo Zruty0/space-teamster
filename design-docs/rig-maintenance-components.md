@@ -2,6 +2,8 @@
 
 Confirmed component catalog for the persistent rig maintenance system. Global HP/AP, grade, strike, threshold, service, repair, and replacement rules are defined in `non-flight-interaction-plan.md`.
 
+Minor-fault tables also include shop-fabricated findings tagged `[Fake]`. These are diagnosis material for dishonest shops, never real component faults and never eligible for telemetry fault selection. Each fault list contains one impossible-physics or paradoxical fake and one anthropomorphic, childish, or magical fake. All fabricated work is Grade F.
+
 Routine service is ordered per system. Component service time uses half-hour increments with a minimum of `0.5 hours`. Installed component labor is additive within the selected system; absent optional components add no time or cost. The complete rig with Atmospheric Package totals `20.0 hours`, or `10,000 cr` at a standard `500 cr/hour` shop.
 
 | System | Component service times | System total |
@@ -43,6 +45,8 @@ Minor faults:
 | Frame rail stress cracking | Stop-drill and reinforce frame rail | 5 hours | C |
 | Cab cradle shifted | Reset and align cab cradle | 4 hours | D |
 | Cargo-spine joint fretting | Rebed and secure cargo-spine joint | 4 hours | D |
+| [Fake] Chassis wider inside | Choose one side and retorque chassis | 2 hours | F |
+| [Fake] Cargo spine fears freight | Reassure and secure cargo-spine joint | 2 hours | F |
 
 Major faults:
 
@@ -148,6 +152,8 @@ Minor faults:
 | Thrust-transfer collar out of alignment | Align and lock thrust-transfer collar | 5 hours | C |
 | Core support preload relaxed | Reset and secure core support preload | 3 hours | F |
 | Fuel injector plate uneven | Clean, match, and calibrate injector plate | 4 hours | D |
+| [Fake] Core output precedes fuel | Delay output and clean reaction face | 3 hours | F |
+| [Fake] Converter lattice wants bedtime story | Read story and rebalance converter lattice | 3 hours | F |
 
 Major faults:
 
@@ -470,6 +476,8 @@ Minor faults:
 | Control-return spring weak | Replace and balance return spring | 2 hours | E |
 | Control-input calibration drift | Calibrate and certify control input | 2 hours | E |
 | Input sensor producing noise | Replace and calibrate input sensor | 3 hours | E |
+| [Fake] Throttle at both endpoints | Select one endpoint and calibrate throttle | 1.5 hours | F |
+| [Fake] Steering control sulking leftward | Apologize and lubricate steering control | 2 hours | F |
 
 Major faults:
 
@@ -640,6 +648,8 @@ Minor faults:
 | Nozzle throat erosion beginning | Dress and recoat nozzle throat | 3 hours | E |
 | Nozzle alignment drift | Align and lock maneuvering nozzle | 4 hours | D |
 | Thruster-mount preload relaxed | Reset and secure thruster-mount preload | 3 hours | E |
+| [Fake] Exhaust precedes ignition | Delay exhaust and clean injector face | 2 hours | F |
+| [Fake] Thruster cluster fears space | Reassure and align thruster cluster | 2 hours | F |
 
 Major faults:
 
@@ -662,6 +672,8 @@ Minor faults:
 | Coil preload relaxed | Reset and secure coil preload | 4 hours | E |
 | Winding insulation abraded | Reinsulate and test affected winding | 5 hours | D |
 | Coil segment alignment drift | Align and lock coil segment | 6 hours | C |
+| [Fake] Coil missing south pole | Install missing south pole and retest | 2 hours | F |
+| [Fake] Coil segment jealous | Reassure and realign coil segment | 2 hours | F |
 
 Major faults:
 
@@ -684,6 +696,8 @@ Minor faults:
 | Load sharing uneven | Balance regulator channels | 4 hours | D |
 | Mode-transfer timing late | Adjust and certify mode-transfer timing | 5 hours | C |
 | Phase setpoint wandering | Recalibrate phase setpoint | 4 hours | D |
+| [Fake] Output exceeds infinite input | Reduce infinity and recalibrate output trim | 3 hours | F |
+| [Fake] Current limiter refuses to share | Teach manners and balance regulator channels | 3 hours | F |
 
 Major faults:
 
@@ -706,6 +720,8 @@ Minor faults:
 | Winch cable beginning to fray | Replace and proof-test winch cable | 3 hours | E |
 | Cargo-clamp preload low | Reset and certify clamp preload | 3 hours | E |
 | Cargo-interface alignment drift | Align and certify cargo interface | 4 hours | D |
+| [Fake] Lock secures future freight | Release future cargo and clean lock | 2 hours | F |
+| [Fake] Winch cable fears straight lines | Calm cable and rewind winch drum | 2 hours | F |
 
 Major faults:
 
@@ -728,6 +744,8 @@ Minor faults:
 | Antenna coupler out of tune | Tune and certify antenna coupler | 2 hours | E |
 | Beacon-power calibration drift | Calibrate and certify beacon output | 2 hours | E |
 | Transceiver thermal contact poor | Renew and seat transceiver thermal interface | 2 hours | E |
+| [Fake] Reply precedes transmission | Delay reply and retune beacon output | 1.5 hours | F |
+| [Fake] Antenna coupler gossips | Scold and retune antenna coupler | 1.5 hours | F |
 
 Major faults:
 
@@ -750,6 +768,8 @@ Minor faults:
 | Oxygen-mix calibration drift | Calibrate and certify atmosphere mix | 2 hours | E |
 | Humidity separator fouled | Clean and service humidity separator | 2 hours | E |
 | Cabin-air sensor biased | Calibrate and certify cabin-air sensor | 2 hours | E |
+| [Fake] Filter removes nonexistent air | Return excess air and replace filter | 1.5 hours | F |
+| [Fake] Oxygen mixer fears breathing | Reassure and calibrate oxygen mixer | 1.5 hours | F |
 
 Major faults:
 
@@ -772,6 +792,8 @@ Minor faults:
 | Circulation-fan bearing noisy | Replace and align fan bearing | 3 hours | E |
 | Cooling valve responding slowly | Clean and calibrate cooling valve | 3 hours | E |
 | Airflow damper out of tolerance | Calibrate and certify airflow damper | 3 hours | D |
+| [Fake] Cabin below absolute zero | Remove negative heat and calibrate heater | 2 hours | F |
+| [Fake] Circulation fan feels dizzy | Offer rest and align fan bearing | 2 hours | F |
 
 Major faults:
 
@@ -794,6 +816,8 @@ Minor faults:
 | Charge-controller calibration drift | Calibrate and certify charge controller | 2 hours | E |
 | Converter thermal interface compressed | Renew and seat converter thermal interface | 2 hours | E |
 | Converter output ripple high | Replace filter stage and calibrate converter | 3 hours | D |
+| [Fake] Charge exceeds infinite capacity | Remove infinity and balance battery cells | 1.5 hours | F |
+| [Fake] Converter refuses afternoon electricity | Offer snack and recalibrate converter output | 1.5 hours | F |
 
 Major faults:
 
@@ -816,6 +840,8 @@ Minor faults:
 | Circuit breaker nuisance-tripping | Replace and certify circuit breaker | 2 hours | E |
 | Harness insulation chafed | Repair insulation and secure harness | 3 hours | E |
 | Ground reference noisy | Clean and restore ground bonding | 3 hours | D |
+| [Fake] Current flowing backward through time | Restore forward time and certify bus connection | 1.5 hours | F |
+| [Fake] Circuit breaker fears numbers | Reassure and test circuit breaker | 1.5 hours | F |
 
 Major faults:
 
@@ -838,6 +864,8 @@ Minor faults:
 | Alarm speaker distorted | Replace and test alarm speaker | 1.5 hours | F |
 | Display calibration drifting | Calibrate and certify display output | 2 hours | E |
 | Display row dropping out | Replace and test display module | 2 hours | E |
+| [Fake] Display shows tomorrow early | Reset tomorrow and certify display timing | 1 hour | F |
+| [Fake] Warning indicator cries unwatched | Comfort and test warning indicator | 1 hour | F |
 
 Major faults:
 
@@ -860,6 +888,8 @@ Minor faults:
 | Atmospheric sensor biased | Calibrate atmospheric sensor package | 2 hours | E |
 | Attitude reference producing vibration noise | Isolate and recalibrate attitude reference | 3 hours | D |
 | Rangefinder phase alignment skewed | Align and certify rangefinder channels | 3 hours | D |
+| [Fake] Rangefinder reports negative distance | Turn distance positive and recalibrate rangefinder | 1.5 hours | F |
+| [Fake] Inertial reference fears spinning | Reassure and recalibrate inertial reference | 1.5 hours | F |
 
 Major faults:
 
@@ -882,6 +912,8 @@ Minor faults:
 | Control-mixer calibration drift | Recalibrate and validate control mixer | 2 hours | E |
 | Guidance scheduler timing jitter | Retune and verify guidance scheduler | 2 hours | D |
 | Transfer solver validation errors | Reinstall and certify transfer-solver library | 2 hours | D |
+| [Fake] Solution precedes its request | Delay guidance solution until request arrives | 1 hour | F |
+| [Fake] Scheduler needs afternoon nap | Provide snack and restart guidance scheduler | 1 hour | F |
 
 Major faults:
 
@@ -904,6 +936,8 @@ Minor faults:
 | Sensing input biased | Calibrate control sensing input | 3 hours | E |
 | Gate-driver timing drift | Calibrate gate-driver timing | 4 hours | D |
 | Board thermal contact poor | Renew control-board thermal interface | 3 hours | E |
+| [Fake] Output precedes control input | Delay output and reseat control connector | 2 hours | F |
+| [Fake] Control board envies backup | Reassure board and reflash calibration memory | 2 hours | F |
 
 Major faults:
 
@@ -926,6 +960,8 @@ Minor faults:
 | Working fluid contaminated | Flush and polish fluid circuit | 3 hours | E |
 | Local flow pressure uneven | Balance and test local flow path | 4 hours | D |
 | Pressure fluctuation detected | Stabilize and test local fluid circuit | 2 hours | E |
+| [Fake] Passage contains negative volume | Remove negative volume and flush circuit | 1.5 hours | F |
+| [Fake] Propellant line feels thirsty | Offer drink and reseal line union | 1.5 hours | F |
 
 Major faults:
 
@@ -948,6 +984,8 @@ Minor faults:
 | Check element leaking back | Replace check-element cartridge | 2 hours | F |
 | Flow-control mechanism running rough | Service and align flow-control mechanism | 4 hours | D |
 | Flow actuator travel out of tolerance | Calibrate flow-actuator travel | 3 hours | D |
+| [Fake] Inlet draws tomorrow's fluid | Return tomorrow's fluid and reseal inlet | 2 hours | F |
+| [Fake] Metering element rejects vegetables | Encourage and reward metering element | 2 hours | F |
 
 Major faults:
 
@@ -970,6 +1008,8 @@ Minor faults:
 | Internal thermal passage scaled | Descale and flush thermal passage | 3 hours | E |
 | Thermal contact uneven | Rebed and secure thermal-transfer contact | 4 hours | D |
 | Heat-transfer flow unbalanced | Balance and test local heat-transfer flow | 4 hours | D |
+| [Fake] Exchanger beats absolute zero | Return forbidden heat and clean exchanger | 2 hours | F |
+| [Fake] Thermal interface fears warmth | Reassure and reseat thermal interface | 2 hours | F |
 
 Major faults:
 
@@ -992,6 +1032,8 @@ Minor faults:
 | Flux-guide alignment drift | Align and lock flux guide | 3 hours | E |
 | Field-coupling gap uneven | Set and certify field-coupling gap | 4 hours | D |
 | Receiver-panel isolator compressed | Replace and balance panel isolator | 3 hours | E |
+| [Fake] Receiver captures negative mass | Release negative mass and clean receiver | 2 hours | F |
+| [Fake] Flux guide envies tractor | Reassure and align flux guide | 2 hours | F |
 
 Major faults:
 
@@ -1014,6 +1056,8 @@ Minor faults:
 | Capture-spring preload low | Reset and certify capture-spring preload | 3 hours | E |
 | Coupler face out of true | Align and certify coupler-face section | 4 hours | D |
 | Locking-collar segment worn | Dress and calibrate locking-collar segment | 4 hours | D |
+| [Fake] Capture precedes physical contact | Delay capture and polish capture guide | 2 hours | F |
+| [Fake] Locking dog refuses to sit | Offer treat and adjust locking dog | 2 hours | F |
 
 Major faults:
 
@@ -1036,6 +1080,8 @@ Minor faults:
 | Suspension preload uneven | Reset and balance suspension preload | 3 hours | E |
 | Rebound valve responding slowly | Clean and calibrate rebound valve | 3 hours | D |
 | Shock-mount bushing worn | Replace and align shock-mount bushing | 3 hours | E |
+| [Fake] Rebound precedes landing impact | Delay rebound and bleed landing damper | 2 hours | F |
+| [Fake] Suspension fears the ground | Reassure and balance suspension preload | 2 hours | F |
 
 Major faults:
 
@@ -1058,6 +1104,8 @@ Minor faults:
 | Travel stop out of tolerance | Reset and certify actuator travel stop | 3 hours | E |
 | Linkage preload uneven | Balance and secure linkage preload | 4 hours | D |
 | Position coupling loose | Secure and calibrate position coupling | 3 hours | D |
+| [Fake] Actuator reaches both stops | Choose one stop and lubricate actuator | 2 hours | F |
+| [Fake] Linkage refuses to bend | Encourage and lubricate linkage joint | 2 hours | F |
 
 Major faults:
 
@@ -1080,6 +1128,8 @@ Minor faults:
 | Surface skin wrinkled | Tension and secure surface skin | 3 hours | E |
 | Trailing edge out of true | Align and lock trailing edge | 3 hours | D |
 | Surface balance shifted | Rebalance and certify aerodynamic surface | 4 hours | D |
+| [Fake] Lift points every direction | Choose upward lift and align surface | 1.5 hours | F |
+| [Fake] Leading edge fears first | Reassure and straighten leading edge | 1.5 hours | F |
 
 Major faults:
 
@@ -1102,6 +1152,8 @@ Minor faults:
 | Char layer uneven | Dress and recoat shield surface | 3 hours | E |
 | Heat-spreader contact poor | Rebed and secure heat spreader | 4 hours | D |
 | Shield surface crazed | Seal and recoat crazed shield area | 4 hours | D |
+| [Fake] Shield colder than absolute zero | Return forbidden heat and seal tile | 2 hours | F |
+| [Fake] Thermal tile thinks it's lava | Correct tile and renew ablative coating | 2 hours | F |
 
 Major faults:
 
@@ -1124,6 +1176,8 @@ Minor faults:
 | Panel fasteners relaxed | Retorque and lock panel fasteners | 1.5 hours | F |
 | Adhesive void detected | Inject and cure panel adhesive | 3 hours | E |
 | Panel joint binding | Clean, reset, and lubricate panel joint | 3 hours | E |
+| [Fake] Bond precedes adhesive application | Reverse causality and rebond panel strip | 1.5 hours | F |
+| [Fake] Panel fasteners hide | Find and retorque panel fasteners | 1.5 hours | F |
 
 Major faults:
 
@@ -1146,6 +1200,8 @@ Minor faults:
 | Pressure-cycle fatigue found | Stop-drill and reinforce fatigued area | 6 hours | C |
 | Pressure structure out of plane | Square and brace pressure structure | 7 hours | C |
 | Reinforcement member shifted | Reset and secure reinforcement member | 5 hours | D |
+| [Fake] Interior exceeds surrounding universe | Fold interior smaller and certify vessel | 4 hours | F |
+| [Fake] Pressure skin fears vacuum | Reassure and brace pressure skin | 4 hours | F |
 
 Major faults:
 
@@ -1168,6 +1224,8 @@ Minor faults:
 | Feedthrough gasket weeping | Renew gasket and pressure-test feedthrough | 2.5 hours | F |
 | Penetration collar out of seat | Reset and lock penetration collar | 3 hours | E |
 | Sealant bed cracked | Strip and renew sealant bed | 4 hours | E |
+| [Fake] Seal leaks against infinite pressure | Reverse infinity and repack penetration seal | 2 hours | F |
+| [Fake] Feedthrough gasket fears confinement | Reassure and reseat feedthrough gasket | 2 hours | F |
 
 Major faults:
 
@@ -1190,6 +1248,8 @@ Minor faults:
 | Fatigue crack initiated | Stop-drill and plate fatigued area | 6 hours | C |
 | Web stiffener working loose | Secure and reinforce web stiffener | 3 hours | E |
 | Load path out of alignment | Jig and align load-bearing structure | 6 hours | C |
+| [Fake] Load exceeds infinite mass | Remove infinity and straighten load member | 3 hours | F |
+| [Fake] Web stiffener feels tired | Offer rest and secure web stiffener | 3 hours | F |
 
 Major faults:
 
@@ -1212,6 +1272,8 @@ Minor faults:
 | Joint faces fretting | Dress and rebed joint faces | 4 hours | E |
 | Joint bushings worn | Replace joint bushings | 3 hours | E |
 | Joint pin working in bore | Refit joint pin and restore bore fit | 5 hours | D |
+| [Fake] Pin occupies exclusive bores | Choose one bore and refit joint pin | 1.5 hours | F |
+| [Fake] Fasteners argue clockwise | Settle argument and retorque fastener group | 1.5 hours | F |
 
 Major faults:
 
@@ -1234,6 +1296,8 @@ Minor faults:
 | Protective strip dented | Straighten and secure protective strip | 2 hours | E |
 | Exterior panel buckled | Straighten and brace exterior panel | 3 hours | E |
 | Panel seam opened | Dress, close, and reseal panel seam | 3 hours | E |
+| [Fake] Panel located inside itself | Move panel outside and secure fasteners | 1 hour | F |
+| [Fake] Protective strip feels embarrassed | Reassure and straighten protective strip | 1 hour | F |
 
 Major faults:
 
@@ -1256,6 +1320,8 @@ Minor faults:
 | Mounted assembly shifted | Realign and secure mounted assembly | 3 hours | E |
 | Mount bushing worn | Replace mount bushing | 3 hours | E |
 | Support bracket cracked | Stop-drill and reinforce support bracket | 4 hours | D |
+| [Fake] Bracket outside all dimensions | Restore dimensions and retorque mounting bolts | 1.5 hours | F |
+| [Fake] Isolator cannot stop dancing | Calm and reseat vibration isolator | 1.5 hours | F |
 
 Major faults:
 
