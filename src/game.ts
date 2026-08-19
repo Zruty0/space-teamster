@@ -9,7 +9,7 @@ import {
 import { TerrainData, checkLandingCollision as checkTerrainCollision, generateTerrain, landingReferenceHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay, type PhaseFinancialLine } from './hud';
-import { createDevPanel, toggleDevPanel, setDevPanelMode } from './dev-panel';
+import { createDevPanel, toggleDevPanel, setDevPanelMode, updateDevPanel } from './dev-panel';
 import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
@@ -68,6 +68,9 @@ import {
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
+import { validateMaintenanceCatalog } from './maintenance/catalog';
+import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
+import type { MaintenanceDebugSnapshot } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
   drawOperationsManualArticle,
@@ -237,13 +240,22 @@ export class Game {
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
     this.ctx = ctx;
-    createDevPanel();
+    createDevPanel(() => this.maintenanceDebugSnapshot());
     installMissionProfileConsoleTools();
   }
 
   start(): void {
     this.lastFrameTime = performance.now() / 1000;
     requestAnimationFrame(this.loop);
+  }
+
+  private maintenanceDebugSnapshot(): MaintenanceDebugSnapshot {
+    return {
+      rig: this.career.rig,
+      validationWarnings: [...validateMaintenanceCatalog(), ...validateRigState(this.career.rig)],
+      restrictions: deriveRestrictions(this.career.rig),
+      committedLedgers: [],
+    };
   }
 
   // --- Level loading ---
@@ -2333,5 +2345,6 @@ export class Game {
         this.phaseCompletion.financialLines,
       );
     }
+    updateDevPanel();
   }
 }
