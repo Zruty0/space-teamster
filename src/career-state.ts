@@ -1,3 +1,6 @@
+import { createDefaultRigState, migrateRigState } from './maintenance/rig-state';
+import type { CareerRigState } from './maintenance/types';
+
 const CAREER_STORAGE_KEY = 'space-teamster.career.v1';
 
 export const TEAMSTER_CERTIFICATION_IDS = [
@@ -32,12 +35,13 @@ export interface CareerProfile {
   money: number;
   worldTime: number;
   certifications: TeamsterCertificationId[];
+  rig: CareerRigState;
 }
 
 export const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
 
 export function defaultCareerProfile(): CareerProfile {
-  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [] };
+  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false) };
 }
 
 function isTeamsterCertificationId(value: unknown): value is TeamsterCertificationId {
@@ -64,11 +68,13 @@ export function loadCareerProfile(): CareerProfile {
     if (!raw) return defaultCareerProfile();
     const parsed = JSON.parse(raw);
     if (typeof parsed?.locationId !== 'string' || typeof parsed?.money !== 'number') return defaultCareerProfile();
+    const certifications = migratedCertifications(parsed);
     return {
       locationId: parsed.locationId,
       money: parsed.money,
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
-      certifications: migratedCertifications(parsed),
+      certifications,
+      rig: migrateRigState(parsed.rig, certifications.includes('thin-atmosphere') || certifications.includes('thick-atmosphere')),
     };
   } catch {
     return defaultCareerProfile();
