@@ -458,6 +458,8 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | **Coimbra** / Estella XIf | Small airless AI-development moon with commercial compute/electronics front | XIf.1 Daedalus Server Farm · XIf.2 Daedalus Systems Campus · XIf.3 Project Icarus |
 | **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | The Thieves' Guild · Academy of Sublime Measures · The Black Exchange · Chapel of Virtues |
 
+Macao uses an authored `1,240 km` gameplay SOI, twice its original derived `620 km` boundary, to leave adequate room for local approach and departure operations.
+
 ## Manticore — Estella XII, the cold outer giant
 
 Neptune-flavored. Sparse and cold. The bridge to the Reach.

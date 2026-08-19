@@ -3613,12 +3613,13 @@ function drawOrbitalMarkers(
 ): void {
   if (s.inAtmo) return;
   const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
-  if (!(elem.a > 0) || !Number.isFinite(elem.a) || elem.e < 0.03 || elem.e >= 1) return;
-  if (!Number.isFinite(elem.periapsis) || !Number.isFinite(elem.apoapsis)) return;
+  if (!Number.isFinite(elem.e) || elem.e < 0.03 || !Number.isFinite(elem.periapsis)) return;
 
   const markers = [
     { kind: 'pe' as const, r: elem.periapsis, angle: elem.omega },
-    { kind: 'ap' as const, r: elem.apoapsis, angle: elem.omega + Math.PI },
+    ...(elem.e < 1 && Number.isFinite(elem.apoapsis)
+      ? [{ kind: 'ap' as const, r: elem.apoapsis, angle: elem.omega + Math.PI }]
+      : []),
   ];
 
   ctx.save();

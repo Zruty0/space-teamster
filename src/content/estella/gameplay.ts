@@ -56,6 +56,7 @@ const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['t
   'estella-vii': { patchRadius: 2_500_000, displayPatchRadius: 2_500_000 },
   'estella-viii': { patchRadius: 12_000_000, displayPatchRadius: 12_000_000 },
   'estella-ix': { patchRadius: 4_000_000, displayPatchRadius: 4_000_000 },
+  'estella-xic': { patchRadius: 1_240_000, displayPatchRadius: 1_240_000 },
 };
 
 function derivedMoonTransferGameplay(id: string): NonNullable<BodyDef['transferGameplay']> {
