@@ -20,7 +20,7 @@ Create `src/maintenance/` with narrow modules:
 - `rig-state.ts` — default state, migration, derived severity, restrictions, grounding, validation
 - `telemetry.ts` — mission accumulator, distorted-time integration, channel coefficients, source-specific fault multipliers
 - `strike-resolution.ts` — seeded Poisson roll, weighted system selection, uniform component selection, AP/HP resolution, threshold crossing, fault/location generation
-- `maintenance-service.ts` — service, repair, replacement, quotes, and shop capability
+- `maintenance-service.ts` — service, repair, replacement, quotes, work complexity, and shop-quality effects
 - `maintenance-ledger.ts` — immutable current/pending/committed audit records and debug-log persistence
 - `index.ts` — public maintenance API
 
@@ -175,7 +175,7 @@ Implement pure operations used by future shop UI and simulation tests:
 - `serviceRig(rig, shopGrade)` — refresh all selected installed AP using component grade plus nonstacking shop modifier; never restore HP or clear faults
 - `quoteRepair(component, fault, shop)` — grade-adjusted parts percentage plus labor/markup
 - `repairComponent(...)` — require capable work grade; restore full HP and shop-serviced AP; clear fault
-- `replaceComponent(...)` — always F work; install selected grade at full HP and shop-serviced AP
+- `replaceComponent(...)` — replacement has F-grade work complexity, so every shop can perform it; F does not describe replacement quality. Install the purchased component grade at full HP, then derive installation/service AP from the replacing shop's grade.
 - `deriveRestrictions(rig)` — grounding, high-thrust, SAS, wing, freight, passenger, surface, and docking restrictions
 
 Minor faults remain legal to leave active. Major faults can remain active when their restriction does not block the intended operation. Total always requires replacement. Shop-policy simulations choose when and what to transact; they do not alter these core rules.
@@ -259,7 +259,8 @@ The panel should widen responsively for ledger tables and support vertical and h
 
 - catalog IDs, library references, thresholds, and universal fault/location compatibility
 - grade HP/AP/cost derivation and shop AP modifiers
-- work-grade capability and repair/replacement quotes
+- work-grade complexity versus shop-grade quality, including F-complexity replacements whose serviced AP is determined by the replacing shop
+- repair/replacement quotes
 - sub-threshold HP persistence
 - threshold crossing and Minor/Major/Total supersession
 - source-specific multiplicative fault weights
