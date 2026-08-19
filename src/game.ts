@@ -77,7 +77,7 @@ import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './mainte
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabel, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
 import { contractEquipmentRestrictionLabels } from './mission-restrictions';
-import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
+import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement, RigRestrictionId } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
   drawOperationsManualArticle,
@@ -1040,6 +1040,9 @@ export class Game {
 
   private handleLanding(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'landing' }>;
+    const restrictions = this.activeRigRestrictionIds();
+    this.blockHighThrustInput(input, restrictions);
+    this.blockBrakingSasInput(input, restrictions, () => { p.ship.sas = false; });
 
     if (input.reset) { this.reloadPhase(p); return; }
     if (input.levelSelect) { this.openFlightMenu(p); return; }
@@ -1204,6 +1207,9 @@ export class Game {
 
   private handleDocking(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'docking' }>;
+    const restrictions = this.activeRigRestrictionIds();
+    this.blockHighThrustInput(input, restrictions);
+    this.blockBrakingSasInput(input, restrictions, () => { p.ds.sas = false; });
 
     if (input.reset) { this.reloadPhase(p); return; }
     if (input.levelSelect) { this.openFlightMenu(p); return; }
@@ -1289,6 +1295,9 @@ export class Game {
 
   private handleCluster(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'cluster' }>;
+    const restrictions = this.activeRigRestrictionIds();
+    this.blockHighThrustInput(input, restrictions);
+    this.blockBrakingSasInput(input, restrictions, () => { p.cs.sas = false; });
 
     if (input.reset) { this.reloadPhase(p); return; }
     if (input.levelSelect) { this.openFlightMenu(p); return; }
@@ -1427,6 +1436,7 @@ export class Game {
 
   private handleOrbital(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
+    this.blockHighThrustInput(input, this.activeRigRestrictionIds());
 
     if (input.reset) { this.reloadPhase(p); return; }
     if (input.levelSelect) { this.openFlightMenu(p); return; }
@@ -1827,6 +1837,9 @@ export class Game {
 
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
+    const restrictions = this.activeRigRestrictionIds();
+    this.blockHighThrustInput(input, restrictions);
+    this.blockWingInput(input, restrictions, p.as.wingsDeployed, () => { p.as.wingsDeployed = false; });
 
     if (input.reset) { this.reloadPhase(p); return; }
     if (input.levelSelect) { this.openFlightMenu(p); return; }
@@ -1919,6 +1932,36 @@ export class Game {
     }
 
     updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
+  }
+
+  private activeRigRestrictionIds(): Set<RigRestrictionId> {
+    return new Set(deriveRestrictions(this.career.rig).map(restriction => restriction.id));
+  }
+
+  private blockHighThrustInput(input: InputState, restrictions: Set<RigRestrictionId>): void {
+    if (!restrictions.has('high-thrust-unavailable')) return;
+    const attempted = input.shiftHeld || input.toggleHighThrust;
+    input.shiftHeld = false;
+    input.toggleHighThrust = false;
+    if (attempted) this.showGuidance('HIGH THRUST UNAVAILABLE');
+  }
+
+  private blockBrakingSasInput(input: InputState, restrictions: Set<RigRestrictionId>, disableActiveSas: () => void): void {
+    if (!restrictions.has('braking-sas-unavailable')) return;
+    const attempted = input.toggleSAS;
+    input.toggleSAS = false;
+    disableActiveSas();
+    if (attempted) this.showGuidance('BRAKING SAS UNAVAILABLE');
+  }
+
+  private blockWingInput(input: InputState, restrictions: Set<RigRestrictionId>, wingsDeployed: boolean, disableWings: () => void): void {
+    if (!restrictions.has('wings-unavailable')) return;
+    const attempted = input.toggleWings || input.wingAngleUp || wingsDeployed;
+    input.toggleWings = false;
+    input.wingAngleUp = false;
+    input.wingAngleDown = false;
+    disableWings();
+    if (attempted) this.showGuidance('WINGS UNAVAILABLE');
   }
 
   // --- Station terminal / BBS scenes ---
