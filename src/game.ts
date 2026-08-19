@@ -2014,10 +2014,11 @@ export class Game {
     if (state.id === 'maintenanceDiagnosisConfirm') {
       const quote = diagnosisQuote(shop);
       return {
-        title: 'AUTHORIZE DIAGNOSTIC INSPECTION',
+        title: 'DIAGNOSTIC INSPECTION',
         subtitle: shopSubtitle,
         bodyRows: [
-          { kind: 'text', text: 'The yard will inspect every installed system. Faults beyond its diagnostic capability will be isolated to a component and severity but remain unnamed.' },
+          { kind: 'text', text: shop.copy.diagnosisBlurb },
+          { kind: 'text', text: 'The shop will inspect every installed system. Faults beyond its diagnostic capability will be isolated to a component and severity but remain unnamed.' },
           { kind: 'kv', label: 'Inspection labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -2048,7 +2049,7 @@ export class Game {
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          ...(faulted.length ? [{ label: 'Review Repairs and Replacement', detail: 'Review diagnosed and unknown component faults.', action: `maintenanceFaults:${shop.id}`, tone: 'primary' as const }] : []),
+          ...(faulted.length ? [{ label: 'Review Repairs and Replacements', detail: 'Review diagnosed and unknown component faults.', action: `maintenanceFaults:${shop.id}`, tone: 'primary' as const }] : []),
           { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
         ],
       };
@@ -2069,11 +2070,12 @@ export class Game {
         };
       });
       return {
-        title: 'ROUTINE SERVICE',
+        title: 'SERVICE',
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: 'Routine service restores service protection but does not repair persistent HP damage or clear faults. Quotes include only components that benefit from maintenance.' },
+          { kind: 'text', text: shop.copy.serviceBlurb },
+          { kind: 'text', text: 'Service restores service protection but does not repair persistent HP damage or clear faults. Quotes include only components that benefit from maintenance.' },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
@@ -2092,7 +2094,7 @@ export class Game {
       const quote = serviceAll ? rigServiceQuote(this.career.rig, shop) : systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId!);
       const payment = this.maintenanceWorkPayment(shop.id, quote.credits);
       return {
-        title: 'AUTHORIZE ROUTINE SERVICE',
+        title: 'AUTHORIZE SERVICE',
         subtitle: shopSubtitle,
         bodyLabelWidth: 110,
         bodyRows: [
@@ -2113,10 +2115,11 @@ export class Game {
 
     if (state.id === 'maintenanceFaults') {
       return {
-        title: 'REPAIRS AND REPLACEMENT',
+        title: 'REPAIRS AND REPLACEMENTS',
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
+          { kind: 'text', text: shop.copy.repairsBlurb },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'text', text: faulted.length ? 'Select a faulted component. Unknown faults cannot be repaired here, but the complete component can still be replaced.' : 'No actionable faults are present.', tone: faulted.length ? undefined : 'success' },
         ],
@@ -2193,15 +2196,15 @@ export class Game {
       subtitle: `${locationPath}   CASH: ${cash}`,
       bodyLabelWidth: 120,
       bodyRows: [
-        { kind: 'text', text: shop.description },
-        { kind: 'kv', label: 'Shop level', value: shop.levelDescription, valueLineCount: 4 },
+        { kind: 'text', text: shop.copy.profileBlurb },
+        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueLineCount: 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
         { label: 'Diagnostic Inspection', detail: diagnosedHere ? 'Diagnostic inspection already completed.' : 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: diagnosedHere ? 'muted' : 'primary', disabled: !local || diagnosedHere },
-        { label: 'Routine Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
-        { label: 'Repairs and Replacement', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : faulted.length ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && faulted.length ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !faulted.length },
+        { label: 'Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
+        { label: 'Repairs and Replacements', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : faulted.length ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && faulted.length ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !faulted.length },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
     };

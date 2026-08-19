@@ -3,6 +3,14 @@ import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacem
 import { applyMechanicOperation } from './maintenance-service';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
 
+export interface MaintenanceShopCopy {
+  profileBlurb: string;
+  levelBlurb: string;
+  diagnosisBlurb: string;
+  serviceBlurb: string;
+  repairsBlurb: string;
+}
+
 export interface MaintenanceShopDef {
   id: string;
   name: string;
@@ -16,8 +24,7 @@ export interface MaintenanceShopDef {
   diagnosisHours: number;
   partsMarkup: number;
   turnaroundMultiplier: number;
-  description: string;
-  levelDescription: string;
+  copy: MaintenanceShopCopy;
 }
 
 export interface MaintenanceQuote {
@@ -28,8 +35,8 @@ export interface MaintenanceQuote {
 
 export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   id: 'serrat-domain-shipyard-service-yard',
-  name: 'Serrat Domain Shipyard Service Yard',
-  organizationName: 'Serrat Domain Shipyard',
+  name: 'Baron Vilar’s Outfitter',
+  organizationName: 'House Vilar',
   locationIds: ['estella-xie-outer-spec-drydock'],
   diagnosticGrade: 'C',
   workQualityGrade: 'D',
@@ -39,8 +46,13 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   diagnosisHours: 2,
   partsMarkup: 1,
   turnaroundMultiplier: 1,
-  description: 'A licensed outer-spec service yard operating under the Accord of Oathmark. Its crews handle ordinary diagnosis, line maintenance, standardized repairs, and complete component exchanges.',
-  levelDescription: 'Standard, Teamster-licensed outfitter and maintenance shop',
+  copy: {
+    profileBlurb: 'A lacquered household crest presides over a thoroughly ordinary Wells outfitting bay. Its proprietor, the minor noble Baron Estêvão Vilar, personally oversees licensed journeymen and the bonded serf crews who service Teamster rigs beneath his viewing gallery.',
+    levelBlurb: 'Standard Wells outfitter under a minor noble’s household charter',
+    diagnosisBlurb: '“Splendid! Leave your rig to me, Teamster, and I shall have every system examined from frame to antenna. You there—stop gawping and bring up the inspection cradle before our guest grows old!”',
+    serviceBlurb: '“Your rig deserves the civilized attentions of my house. Choose the systems and my people will restore every scrap of protection worth restoring. Serfs! Clean hands, quick tools, and no excuses in front of a paying Teamster!”',
+    repairsBlurb: '“Now we come to the heroic work: what is broken, my crews shall mend—or replace entire, should prudence demand it. Move, you idle wretches! Our honored Teamster did not dock here to watch you breathe.”',
+  },
 };
 
 export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [SERRAT_DOMAIN_SHIPYARD_SHOP];

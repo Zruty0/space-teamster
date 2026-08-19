@@ -412,11 +412,11 @@ export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
 export const SERRAT_DOMAIN_SERVICE_YARD: LocalOfficeDef = {
   kind: 'office',
   id: 'serrat-domain-service-yard',
-  name: 'Serrat Domain Shipyard Service Yard',
-  organizationName: 'Serrat Domain Shipyard',
+  name: 'Baron Vilar’s Outfitter',
+  organizationName: 'House Vilar',
   locationIds: ['estella-xie-outer-spec-drydock'],
-  summary: 'Licensed diagnosis, routine servicing, repair, and component exchange at Oathmark.',
-  description: 'The service desk overlooks a pressurized line of inspection cradles, field-alignment rigs, and component transfer rails. Accord inspectors certify the licensed work crews; a brass board posts today’s labor rate and available component grades.',
+  summary: 'Licensed diagnosis, service, repair, and common-grade component exchange under House Vilar.',
+  description: 'A lacquered household crest presides over a thoroughly ordinary Wells outfitting bay. Its proprietor, the minor noble Baron Estêvão Vilar, personally oversees licensed journeymen and the bonded serf crews who service Teamster rigs beneath his viewing gallery.',
   maintenanceShopId: 'serrat-domain-shipyard-service-yard',
   actions: [],
 };
