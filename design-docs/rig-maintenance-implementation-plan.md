@@ -349,7 +349,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 - threshold crossing and Minor/Major/Total supersession
 - source-specific multiplicative fault weights
 - distorted time: `1× -> 1`, `10× -> 1.5`, `100× -> 2`
-- clean telemetry fixture totals exactly `0.994`
+- clean telemetry fixture totals exactly `0.9562`
 - seeded Poisson/system/component/AP-HP/fault/location resolution
 
 ### Integration tests
@@ -392,7 +392,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 2. Career rig state, migration, deterministic RNG, and derived status/restrictions.
 3. Read-only Mechanic developer view.
 4. Telemetry accumulator, distorted time, and phase retry snapshots.
-5. Flight-model instrumentation and clean `0.994` fixture.
+5. Flight-model instrumentation and clean `0.9562` fixture.
 6. Weight calculation, pending ledger, strike/fault resolution, and atomic delivery commit.
 7. Detailed Telemetry Ledger developer view and debug history.
 8. Service/repair/replacement engine and quote tests.

@@ -32,14 +32,14 @@ Thus `1×` warp counts at `1×`, `10×` at `1.5×`, and `100×` at `2×`. Fixed 
 
 | Telemetry | One unit | Weight added per unit |
 |---|---|---|
-| Standard main-drive thrust | `1,000 m/s` standard-thrust Delta-V | Body and Frame `0.04`; Powertrain `0.14`; Cab and Controls `0.02` |
-| High main-drive thrust | `1,000 m/s` high-thrust Delta-V | Body and Frame `0.08`; Powertrain `0.30`; Cab and Controls `0.03` |
+| Standard main-drive thrust | `1,000 m/s` standard-thrust Delta-V | Body and Frame `0.10`; Powertrain `0.028`; Cab and Controls `0.04` |
+| High main-drive thrust | `1,000 m/s` high-thrust Delta-V | Body and Frame `0.20`; Powertrain `0.06`; Cab and Controls `0.06` |
 | Sustained main-drive operation | 5 distorted player minutes with the main drive firing | Powertrain `0.06`; Auxiliary Systems `0.02` |
 | Standard maneuvering thrust | `100 m/s` maneuvering-thruster Delta-V | Body and Frame `0.02`; Steering and Thrusters `0.10`; Cab and Controls `0.02` |
 | High maneuvering thrust | `100 m/s` high-thrust maneuvering Delta-V | Body and Frame `0.04`; Steering and Thrusters `0.20`; Cab and Controls `0.02` |
 | Braking SAS operation | 60 distorted player seconds of active SAS firing | Steering and Thrusters `0.04`; Cab and Controls `0.01` |
 
-Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V does not also receive the standard-thrust row.
+Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V does not also receive the standard-thrust row. Main-drive Powertrain coefficients retain approximately the same standard/high ratio while remaining one-fifth of their original values. The displaced wear is assigned primarily to Body and Frame, then Cab and Controls, because ordinary hauling thrust is expected to stress the rig's load path and controls more often than it damages the main powerplant.
 
 ## Duration and manifest load
 
@@ -114,7 +114,7 @@ Each collision-stress unit adds Body and Frame `0.45`, Powertrain `0.05`, Steeri
 A clean station freight mission with `900 m/s` standard main-drive Delta-V, `100 m/s` high-thrust Delta-V, five distorted drive-firing minutes, `100 m/s` standard maneuvering Delta-V, 30 distorted SAS seconds, ten distorted flight minutes, 30 tonnes of freight, one freight cycle, an undocking and docking, one tractor capture, and no collision produces:
 
 ```text
-main drive              0.221
+main drive              0.183
 firing duration         0.080
 maneuvering             0.140
 braking SAS             0.025
@@ -125,5 +125,5 @@ dock + undock           0.140
 tractor capture         0.080
 communications          0.020
                         -----
-mission mean            0.994 strikes
+mission mean            0.956 strikes
 ```
