@@ -1,8 +1,58 @@
-import { maintenanceComponentById, maintenanceSystemById } from './catalog';
+import { componentFaults, maintenanceComponentById, maintenanceSystemById } from './catalog';
 import { componentBaseAp, componentMaxHp, componentServicedAp } from './grades';
+import { severityForHp } from './rig-state';
 import type { CareerRigState, ComponentGrade, ComponentId, MaintenanceSystemId, ShopGrade } from './types';
 
 export type MechanicOperation = 'repair' | 'service' | 'exchange';
+export type MechanicDamagePool = 'hp' | 'ap';
+
+export interface MechanicDamageRolls {
+  faultRoll: number;
+  locationRoll: number;
+}
+
+function unitRoll(value: number): number {
+  return Math.max(0, Math.min(0.9999999999999999, value));
+}
+
+export function applyMechanicComponentDamage(
+  rig: CareerRigState,
+  componentId: ComponentId,
+  pool: MechanicDamagePool,
+  rolls: MechanicDamageRolls = { faultRoll: Math.random(), locationRoll: Math.random() },
+): boolean {
+  const component = maintenanceComponentById(componentId);
+  const state = rig.components[componentId];
+  if (!component || !state?.installed) return false;
+  if (pool === 'ap') {
+    if (state.ap <= 0) return false;
+    state.ap--;
+    return true;
+  }
+  if (state.hp <= 0) return false;
+
+  const beforeSeverity = severityForHp(componentId, state.hp);
+  state.hp--;
+  const afterSeverity = severityForHp(componentId, state.hp);
+  if (!afterSeverity || afterSeverity === beforeSeverity) return true;
+
+  let faultId: string | undefined;
+  let locationId: string | undefined;
+  if (afterSeverity !== 'total') {
+    const faults = componentFaults(component, afterSeverity);
+    if (faults.length) faultId = faults[Math.floor(unitRoll(rolls.faultRoll) * faults.length)].id;
+    if (component.locations.length) locationId = component.locations[Math.floor(unitRoll(rolls.locationRoll) * component.locations.length)];
+  }
+  state.fault = {
+    severity: afterSeverity,
+    faultId,
+    locationId,
+    diagnosis: 'unknown',
+    generatedMission: rig.completedMaintenanceMissions + 1,
+    generatedStrike: 0,
+  };
+  return true;
+}
 
 function recordService(rig: CareerRigState, componentId: ComponentId, shopGrade: ShopGrade, worldTime: number): boolean {
   const component = maintenanceComponentById(componentId);

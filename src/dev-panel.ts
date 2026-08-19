@@ -1,6 +1,6 @@
 import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS } from './maintenance/catalog';
 import { COMPONENT_GRADES, componentMaxHp, componentReplacementCost } from './maintenance/grades';
-import type { MechanicOperation } from './maintenance/maintenance-service';
+import type { MechanicDamagePool, MechanicOperation } from './maintenance/maintenance-service';
 import { systemStatus } from './maintenance/rig-state';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId } from './maintenance/types';
 
@@ -10,6 +10,7 @@ let selectedTab: 'mechanic' | 'ledger' = 'mechanic';
 let snapshotProvider: (() => MaintenanceDebugSnapshot) | undefined;
 let mechanicActionHandler: ((systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void) | undefined;
 let mechanicRemoveHandler: ((systemId: MaintenanceSystemId) => void) | undefined;
+let mechanicDamageHandler: ((componentId: string, pool: MechanicDamagePool) => void) | undefined;
 let pendingMechanicAction: { systemId: MaintenanceSystemId; operation: MechanicOperation } | undefined;
 let lastRefresh = 0;
 let dirty = true;
@@ -19,14 +20,26 @@ export function createDevPanel(
   provider?: () => MaintenanceDebugSnapshot,
   onMechanicAction?: (systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void,
   onMechanicRemove?: (systemId: MaintenanceSystemId) => void,
+  onMechanicDamage?: (componentId: string, pool: MechanicDamagePool) => void,
 ): void {
   panel = document.getElementById('dev-panel');
   snapshotProvider = provider;
   mechanicActionHandler = onMechanicAction;
   mechanicRemoveHandler = onMechanicRemove;
+  mechanicDamageHandler = onMechanicDamage;
   if (panel) {
     panel.addEventListener('click', event => {
       const target = event.target as HTMLElement;
+      const damageButton = target.closest<HTMLButtonElement>('[data-mechanic-damage]');
+      if (damageButton && !damageButton.disabled) {
+        const componentId = damageButton.dataset.componentId;
+        const pool = damageButton.dataset.mechanicDamage as MechanicDamagePool | undefined;
+        if (componentId && (pool === 'hp' || pool === 'ap')) mechanicDamageHandler?.(componentId, pool);
+        pendingMechanicAction = undefined;
+        dirty = true;
+        rebuildPanel();
+        return;
+      }
       const removeButton = target.closest<HTMLButtonElement>('[data-mechanic-remove]');
       if (removeButton) {
         const systemId = removeButton.dataset.systemId as MaintenanceSystemId | undefined;
@@ -99,6 +112,13 @@ function num(value: number, digits = 3): string {
   return Number.isFinite(value) ? value.toFixed(digits).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1') : '—';
 }
 
+function renderComponentDamageControls(componentId: string, hp: number, ap: number, installed: boolean): string {
+  return `<span class="dev-component-damage">
+    <button data-mechanic-damage="hp" data-component-id="${componentId}" title="Remove 1 HP and roll a threshold fault" ${!installed || hp <= 0 ? 'disabled' : ''}>-1HP</button>
+    <button data-mechanic-damage="ap" data-component-id="${componentId}" title="Remove 1 AP" ${!installed || ap <= 0 ? 'disabled' : ''}>-1AP</button>
+  </span>`;
+}
+
 function renderMechanicControls(systemId: MaintenanceSystemId): string {
   if (pendingMechanicAction?.systemId === systemId) {
     const operationLabel = pendingMechanicAction.operation === 'repair' ? 'Repair' : pendingMechanicAction.operation === 'service' ? 'Service' : 'Exchange';
@@ -125,7 +145,7 @@ function renderMechanic(snapshot: MaintenanceDebugSnapshot): string {
       const component = MAINTENANCE_COMPONENTS.find(candidate => candidate.id === componentId)!;
       const state = snapshot.rig.components[componentId];
       if (!state?.installed) {
-        return `<tr class="dev-absent"><td>${escapeHtml(component.name)}</td><td colspan="7">NOT INSTALLED</td></tr>`;
+        return `<tr class="dev-absent"><td>${escapeHtml(component.name)} ${renderComponentDamageControls(component.id, 0, 0, false)}</td><td colspan="7">NOT INSTALLED</td></tr>`;
       }
       const maxHp = componentMaxHp(component, state.grade);
       const fault = state.fault;
@@ -138,7 +158,7 @@ function renderMechanic(snapshot: MaintenanceDebugSnapshot): string {
         : [];
       const activeEffects = [...(restrictionByComponent.get(componentId) ?? []), ...activeMultipliers];
       return `<tr>
-        <td>${escapeHtml(component.name)}</td>
+        <td>${escapeHtml(component.name)} ${renderComponentDamageControls(component.id, state.hp, state.ap, true)}</td>
         <td>${state.grade}</td>
         <td>${state.hp}/${maxHp}</td>
         <td>${state.ap}/${component.baseAp}</td>
@@ -229,9 +249,16 @@ export function markDevPanelDirty(): void {
 
 export function updateDevPanel(): void {
   if (!visible || !panel) return;
-  const focused = document.activeElement;
-  if (focused instanceof HTMLSelectElement && panel.contains(focused)) return;
-  if (dirty || performance.now() - lastRefresh >= 500) rebuildPanel();
+  if (dirty) {
+    rebuildPanel();
+    return;
+  }
+  // Replacing the whole panel while a pointer is over it can remove a button between
+  // pointer-down and click. Mechanic state changes only through explicit actions, so it
+  // needs no polling. Keep ledger telemetry live only while the panel is not in use.
+  if (selectedTab === 'ledger'
+    && !panel.matches(':hover')
+    && performance.now() - lastRefresh >= 500) rebuildPanel();
 }
 
 export function isDevPanelVisible(): boolean {

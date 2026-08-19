@@ -70,7 +70,7 @@ import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type Interactive
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { validateMaintenanceCatalog } from './maintenance/catalog';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
-import { applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicOperation } from './maintenance/maintenance-service';
+import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
@@ -264,6 +264,7 @@ export class Game {
       () => this.maintenanceDebugSnapshot(),
       (systemId, operation, grade) => this.applyMechanicAction(systemId, operation, grade),
       systemId => this.removeMechanicSystem(systemId),
+      (componentId, pool) => this.damageMechanicComponent(componentId, pool),
     );
     installMissionProfileConsoleTools();
   }
@@ -301,6 +302,15 @@ export class Game {
       removeOptionalMaintenanceSystem(this.pendingMaintenanceSettlement.resultingRig, systemId);
     }
     if (changed) saveCareerProfile(this.career);
+  }
+
+  private damageMechanicComponent(componentId: string, pool: MechanicDamagePool): void {
+    const rolls = { faultRoll: Math.random(), locationRoll: Math.random() };
+    const changed = applyMechanicComponentDamage(this.career.rig, componentId, pool, rolls);
+    const pendingChanged = this.pendingMaintenanceSettlement
+      ? applyMechanicComponentDamage(this.pendingMaintenanceSettlement.resultingRig, componentId, pool, rolls)
+      : false;
+    if (changed || pendingChanged) saveCareerProfile(this.career);
   }
 
   // --- Level loading ---
