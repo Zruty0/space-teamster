@@ -173,6 +173,8 @@ export function markDevPanelDirty(): void {
 
 export function updateDevPanel(): void {
   if (!visible || !panel) return;
+  const focused = document.activeElement;
+  if (focused instanceof HTMLSelectElement && panel.contains(focused)) return;
   if (dirty || performance.now() - lastRefresh >= 500) rebuildPanel();
 }
 
