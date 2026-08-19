@@ -450,7 +450,9 @@ export function drawInteractiveScene(
     if (hasTagColumn) textX += 82;
     ctx.fillStyle = toneColor(tone, selected);
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
-    const rightTextWidth = option.rightText ? 300 : 190;
+    const rightTextWidth = option.rightText
+      ? (boxW >= 600 ? 300 : 100)
+      : (boxW >= 600 ? 190 : 30);
     const labelWidth = boxW - (textX - x) - rightTextWidth;
     const labelPrefix = selected ? '▶ ' : '  ';
     const labelLines = option.labelLineCount === 2
@@ -465,11 +467,11 @@ export function drawInteractiveScene(
       ctx.fillStyle = toneColor(tone, selected);
       ctx.font = selected ? 'bold 14px monospace' : '14px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(middleEllipsis(ctx, option.rightText, 280), x + boxW - 24, y);
+      ctx.fillText(middleEllipsis(ctx, option.rightText, rightTextWidth - 20), x + boxW - 24, y);
       if (option.rightDetail) {
         ctx.fillStyle = toneColor(tone, selected);
         ctx.font = selected ? 'bold 12px monospace' : '12px monospace';
-        ctx.fillText(middleEllipsis(ctx, option.rightDetail, 280), x + boxW - 24, y + 19);
+        ctx.fillText(middleEllipsis(ctx, option.rightDetail, rightTextWidth - 20), x + boxW - 24, y + 19);
       }
       ctx.textAlign = 'left';
     }
@@ -481,7 +483,9 @@ export function drawInteractiveScene(
       ctx.font = '12px monospace';
       const detailX = option.tagColumn ? textX : x + 46;
       const detailIndent = detailX - (x + 46);
-      const detailWidth = (option.rightText ? boxW - 360 : boxW - 66) - detailIndent;
+      const detailWidth = option.rightText
+        ? boxW - (detailX - x) - rightTextWidth - 20
+        : boxW - 66 - detailIndent;
       const maxLines = option.detailLineCount ?? 1;
       const detailY = y + 19 + (option.labelLineCount === 2 ? 18 : 0);
       const wrapped = wrapText(ctx, option.detail, detailWidth);

@@ -72,7 +72,7 @@ import { componentFaultById, maintenanceComponentById, maintenanceSystemById, va
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
-import { diagnosisQuote, diagnoseRigAtShop, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, serviceSystemAtShop, systemNeedsService, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
+import { diagnosisQuote, diagnoseRigAtShop, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabel, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
@@ -115,7 +115,7 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceReceipt';
+  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm';
   selectedIndex: number;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
@@ -162,6 +162,11 @@ function contractMarginSummary(quote: MissionCostQuote): string {
 
 function formatLaborHours(hours: number): string {
   return `${hours.toFixed(hours % 1 === 0 ? 0 : 1)}h`;
+}
+
+function formatWorkHours(hours: number): string {
+  const value = hours.toFixed(hours % 1 === 0 ? 0 : 1);
+  return `${value} ${hours === 1 ? 'hour' : 'hours'}`;
 }
 
 function contractFixedReward(quote: MissionCostQuote): number {
@@ -1953,7 +1958,7 @@ export class Game {
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Authorize Inspection', detail: `Pay ${formatCredits(quote.credits)} and advance ${formatLaborHours(quote.turnaroundHours)}.`, action: `maintenanceDiagnose:${shop.id}`, tone: 'primary', disabled: !local || this.career.money < quote.credits },
+          { label: `Authorize ${formatCredits(quote.credits)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: 'Inspect every installed system and issue a written report.', action: `maintenanceDiagnose:${shop.id}`, tone: 'primary', disabled: !local || this.career.money < quote.credits },
           { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
         ],
       };
@@ -1984,46 +1989,53 @@ export class Game {
     }
 
     if (state.id === 'maintenanceService') {
+      const allQuote = rigServiceQuote(this.career.rig, shop);
       const systemOptions = playerShipSystemStatuses(this.career.rig).map(system => {
         const quote = systemServiceQuote(this.career.rig, shop, system.id);
-        const needsService = systemNeedsService(this.career.rig, shop, system.id);
         return {
           label: system.name,
           rightText: quote.laborHours ? formatCredits(quote.credits) : undefined,
           rightDetail: quote.laborHours ? formatLaborHours(quote.laborHours) : undefined,
-          detail: quote.laborHours === 0 ? 'No installed equipment in this system.' : needsService ? 'Restore this system to the shop’s serviced condition.' : 'Already at this shop’s serviced condition.',
+          detail: quote.laborHours === 0 ? 'No installed equipment in this system.' : 'Service every installed component in this system.',
           action: `maintenanceServiceConfirm:${shop.id}:${system.id}`,
-          disabled: !local || quote.laborHours === 0 || !needsService,
-          tone: needsService ? 'primary' as const : 'muted' as const,
+          disabled: !local || quote.laborHours === 0,
+          tone: quote.laborHours ? 'primary' as const : 'muted' as const,
         };
       });
       return {
         title: 'ROUTINE SERVICE',
         subtitle: shopSubtitle,
         bodyRows: [
-          { kind: 'text', text: 'Service is ordered per system. It restores service protection but does not repair persistent HP damage or clear faults.' },
+          ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
+          { kind: 'text', text: 'Routine service is always available. It restores service protection but does not repair persistent HP damage or clear faults.' },
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
-        options: [...systemOptions, { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' }],
+        options: [
+          { label: 'Service Everything', rightText: formatCredits(allQuote.credits), rightDetail: formatLaborHours(allQuote.laborHours), detail: 'Service every installed component in one work order.', action: `maintenanceServiceAllConfirm:${shop.id}`, tone: 'primary', disabled: !local || allQuote.laborHours === 0 },
+          ...systemOptions,
+          { label: 'Back to Service Desk', detail: 'Return to shop services.', action: `maintenanceShop:${shop.id}`, tone: 'back' },
+        ],
       };
     }
 
-    if (state.id === 'maintenanceServiceConfirm' && state.maintenanceSystemId) {
-      const system = playerShipSystemStatuses(this.career.rig).find(candidate => candidate.id === state.maintenanceSystemId);
-      const quote = systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId);
+    if ((state.id === 'maintenanceServiceConfirm' && state.maintenanceSystemId) || state.id === 'maintenanceServiceAllConfirm') {
+      const serviceAll = state.id === 'maintenanceServiceAllConfirm';
+      const system = state.maintenanceSystemId ? playerShipSystemStatuses(this.career.rig).find(candidate => candidate.id === state.maintenanceSystemId) : undefined;
+      const quote = serviceAll ? rigServiceQuote(this.career.rig, shop) : systemServiceQuote(this.career.rig, shop, state.maintenanceSystemId!);
       return {
         title: 'AUTHORIZE ROUTINE SERVICE',
         subtitle: shopSubtitle,
+        bodyLabelWidth: 110,
         bodyRows: [
-          { kind: 'kv', label: 'System', value: system?.name ?? state.maintenanceSystemId },
-          { kind: 'kv', label: 'Labor', value: formatLaborHours(quote.laborHours) },
+          { kind: 'kv', label: 'Work order', value: serviceAll ? 'Service Everything' : system?.name ?? state.maintenanceSystemId! },
+          { kind: 'kv', label: 'Labor', value: formatWorkHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
         ],
         footer: 'Enter/Space: choose   Esc: start menu',
         options: [
-          { label: 'Authorize Service', detail: `Advance ${formatLaborHours(quote.turnaroundHours)} and service every installed component in this system.`, action: `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || this.career.money < quote.credits || !systemNeedsService(this.career.rig, shop, state.maintenanceSystemId) },
+          { label: `Authorize ${formatCredits(quote.credits)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: serviceAll ? 'Service every installed component.' : 'Service every installed component in this system.', action: serviceAll ? `maintenanceServiceAll:${shop.id}` : `maintenanceService:${shop.id}:${state.maintenanceSystemId}`, tone: 'primary', disabled: !local || quote.laborHours === 0 || this.career.money < quote.credits },
           { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceServiceList:${shop.id}`, tone: 'back' },
         ],
       };
@@ -2034,6 +2046,7 @@ export class Game {
         title: 'REPAIRS AND REPLACEMENT',
         subtitle: shopSubtitle,
         bodyRows: [
+          ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
           { kind: 'text', text: faulted.length ? 'Select a faulted component. Unknown faults cannot be repaired here, but the complete component can still be replaced.' : 'No actionable faults are present.', tone: faulted.length ? undefined : 'success' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2077,7 +2090,7 @@ export class Game {
           ],
           footer: 'Enter/Space: choose   Esc: start menu',
           options: [
-            { label: state.maintenanceWorkKind === 'repair' ? 'Authorize Repair' : `Authorize Grade ${replacement.grade} Replacement`, detail: `Advance ${formatLaborHours(quote.turnaroundHours)} and complete the work.`, action: `maintenanceWork:${shop.id}:${component.id}:${state.maintenanceWorkKind}`, tone: 'primary', disabled: !local || this.career.money < quote.credits },
+            { label: `Authorize ${formatCredits(quote.credits)} and ${formatWorkHours(quote.laborHours)} of work`, labelLineCount: 2, detail: state.maintenanceWorkKind === 'repair' ? 'Repair and service this component.' : `Install the Grade ${replacement.grade} replacement.`, action: `maintenanceWork:${shop.id}:${component.id}:${state.maintenanceWorkKind}`, tone: 'primary', disabled: !local || this.career.money < quote.credits },
             { label: 'Cancel', detail: 'Return without spending money or time.', action: `maintenanceComponent:${shop.id}:${component.id}`, tone: 'back' },
           ],
         };
@@ -2101,23 +2114,6 @@ export class Game {
       };
     }
 
-    if (state.id === 'maintenanceReceipt') {
-      return {
-        title: 'SERVICE RECEIPT',
-        subtitle: shopSubtitle,
-        bodyRows: [
-          { kind: 'text', text: state.maintenanceReceipt ?? 'Work completed.', tone: 'success' },
-          { kind: 'kv', label: 'Cash remaining', value: cash, tone: this.career.money >= 0 ? 'success' : 'danger' },
-          { kind: 'kv', label: 'Current time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
-        ],
-        footer: 'Enter/Space: choose   Esc: start menu',
-        options: [
-          { label: 'Return to Service Desk', detail: 'Review additional work.', action: `maintenanceShop:${shop.id}`, tone: 'primary' },
-          { label: 'Return to Local Directory', detail: 'Leave the service yard.', action: 'localDirectory', tone: 'back' },
-        ],
-      };
-    }
-
     return {
       title: shop.name.toUpperCase(),
       subtitle: `${locationPath}   CASH: ${cash}`,
@@ -2130,7 +2126,7 @@ export class Game {
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
         { label: 'Diagnostic Inspection', detail: 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: 'primary', disabled: !local },
-        { label: 'Routine Service', detail: 'Order service by system.', action: `maintenanceServiceList:${shop.id}`, tone: 'primary', disabled: !local },
+        { label: 'Routine Service', detail: 'Order service by system or for all installed equipment.', action: `maintenanceServiceList:${shop.id}`, tone: 'primary', disabled: !local },
         { label: 'Repairs and Replacement', detail: faulted.length ? 'Review faulted components and available work.' : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: faulted.length ? 'primary' : 'muted', disabled: !local || !faulted.length },
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
@@ -2692,25 +2688,45 @@ export class Game {
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }
+    if (action.startsWith('maintenanceServiceAllConfirm:')) {
+      const shopId = action.slice('maintenanceServiceAllConfirm:'.length);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceServiceAllConfirm', selectedIndex: 0, maintenanceShopId: shopId } };
+      return;
+    }
     if (action.startsWith('maintenanceServiceConfirm:')) {
       const [, shopId, systemId] = action.split(':');
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceServiceConfirm', selectedIndex: 0, maintenanceShopId: shopId, maintenanceSystemId: systemId as MaintenanceSystemId } };
+      return;
+    }
+    if (action.startsWith('maintenanceServiceAll:')) {
+      const shopId = action.slice('maintenanceServiceAll:'.length);
+      const shop = maintenanceShopById(shopId);
+      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      const quote = rigServiceQuote(this.career.rig, shop);
+      if (quote.laborHours === 0 || this.career.money < quote.credits) return;
+      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      this.career.money -= quote.credits;
+      this.career.worldTime = completionTime;
+      this.worldTime = Math.max(this.worldTime, completionTime);
+      serviceRigAtShop(this.career.rig, shop, completionTime);
+      saveCareerProfile(this.career);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `All installed equipment serviced. Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceService:')) {
       const [, shopId, rawSystemId] = action.split(':');
       const shop = maintenanceShopById(shopId);
       const systemId = rawSystemId as MaintenanceSystemId;
-      if (!shop || !this.maintenanceShopIsLocal(shop) || !systemNeedsService(this.career.rig, shop, systemId)) return;
+      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
       const quote = systemServiceQuote(this.career.rig, shop, systemId);
-      if (this.career.money < quote.credits) return;
+      if (quote.laborHours === 0 || this.career.money < quote.credits) return;
       const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
       this.career.money -= quote.credits;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
       serviceSystemAtShop(this.career.rig, shop, systemId, completionTime);
       saveCareerProfile(this.career);
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceReceipt', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced. Charged ${formatCredits(quote.credits)} for ${formatLaborHours(quote.laborHours)}.` } };
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceService', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${maintenanceSystemById(systemId).name} serviced. Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceFaults:')) {
@@ -2748,7 +2764,7 @@ export class Game {
       const detail = workKind === 'repair'
         ? `${componentName} repaired and serviced.`
         : `${componentName} replaced with Grade ${'grade' in quote ? quote.grade : '—'} equipment.`;
-      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceReceipt', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${detail} Charged ${formatCredits(quote.credits)} for ${formatLaborHours(quote.laborHours)}.` } };
+      this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceFaults', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${detail} Charged ${formatCredits(quote.credits)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action === 'careerStatus') { this.phase = { kind: 'interactiveScene', scene: { id: 'careerStatus', selectedIndex: 0 } }; return; }

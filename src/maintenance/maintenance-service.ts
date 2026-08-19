@@ -58,7 +58,7 @@ function recordService(rig: CareerRigState, componentId: ComponentId, shopGrade:
   const component = maintenanceComponentById(componentId);
   const state = rig.components[componentId];
   if (!component || !state?.installed) return false;
-  state.ap = componentServicedAp(component, state.grade, shopGrade);
+  state.ap = Math.max(state.ap, componentServicedAp(component, state.grade, shopGrade));
   state.lastServiceWorldTime = worldTime;
   state.lastServiceMission = rig.completedMaintenanceMissions;
   return true;

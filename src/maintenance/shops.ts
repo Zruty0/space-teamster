@@ -1,7 +1,7 @@
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
 import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacementCost, componentServicedAp, shopCanPerform } from './grades';
 import { applyMechanicOperation } from './maintenance-service';
-import type { CareerRigState, ComponentGrade, ComponentId, MaintenanceSystemId, ShopGrade, WorkGrade } from './types';
+import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
 
 export interface MaintenanceShopDef {
   id: string;
@@ -90,6 +90,16 @@ export function systemServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef
   };
 }
 
+export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef): MaintenanceQuote {
+  return MAINTENANCE_SYSTEM_IDS.reduce((total, systemId) => {
+    const quote = systemServiceQuote(rig, shop, systemId);
+    total.credits += quote.credits;
+    total.laborHours += quote.laborHours;
+    total.turnaroundHours += quote.turnaroundHours;
+    return total;
+  }, { credits: 0, laborHours: 0, turnaroundHours: 0 });
+}
+
 export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId): boolean {
   const system = maintenanceSystemById(systemId);
   return system.componentIds.some(componentId => {
@@ -149,6 +159,12 @@ export function serviceSystemAtShop(rig: CareerRigState, shop: MaintenanceShopDe
   const system = maintenanceSystemById(systemId);
   let changed = false;
   for (const componentId of system.componentIds) changed = applyMechanicOperation(rig, componentId, 'service', shop.workQualityGrade, worldTime) || changed;
+  return changed;
+}
+
+export function serviceRigAtShop(rig: CareerRigState, shop: MaintenanceShopDef, worldTime: number): boolean {
+  let changed = false;
+  for (const systemId of MAINTENANCE_SYSTEM_IDS) changed = serviceSystemAtShop(rig, shop, systemId, worldTime) || changed;
   return changed;
 }
 
