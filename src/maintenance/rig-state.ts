@@ -12,7 +12,7 @@ import type {
   RigSystemStatus,
   RigValidationWarning,
 } from './types';
-import { RIG_RESTRICTION_IDS } from './types';
+import { OPTIONAL_EQUIPMENT_IDS, RIG_RESTRICTION_IDS } from './types';
 
 export const DEFAULT_MAINTENANCE_RNG_SEED = 0x6d2b79f5;
 const COMPONENT_GRADES = new Set<ComponentGrade>(['A', 'B', 'C', 'D', 'E', 'F']);
@@ -33,6 +33,7 @@ export function createDefaultRigState(includeAtmosphericPackage = false): Career
     rngState: DEFAULT_MAINTENANCE_RNG_SEED,
     completedMaintenanceMissions: 0,
     components,
+    optionalEquipment: [],
   };
 }
 
@@ -72,6 +73,9 @@ export function migrateRigState(raw: unknown, includeAtmosphericPackage = false)
     rngState: finiteInteger(parsed.rngState, DEFAULT_MAINTENANCE_RNG_SEED) >>> 0 || DEFAULT_MAINTENANCE_RNG_SEED,
     completedMaintenanceMissions: mission,
     components: {},
+    optionalEquipment: Array.isArray(parsed.optionalEquipment)
+      ? OPTIONAL_EQUIPMENT_IDS.filter(id => parsed.optionalEquipment.includes(id))
+      : [],
   };
   for (const component of MAINTENANCE_COMPONENTS) {
     const source = parsed.components?.[component.id];
@@ -105,6 +109,7 @@ export function cloneRigState(rig: CareerRigState): CareerRigState {
       ...state,
       fault: state.fault ? { ...state.fault } : undefined,
     }])),
+    optionalEquipment: [...rig.optionalEquipment],
   };
 }
 

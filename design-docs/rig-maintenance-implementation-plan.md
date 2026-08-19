@@ -206,13 +206,15 @@ Show exactly the seven approved systems in their approved order. Each system has
 
 Do not expose component rows or component-detail scenes. Ship Status does not show component grade, HP/AP numbers, thresholds, fault names, fault locations, service age, repair prices, RNG, hidden diagnosis truth, or raw telemetry.
 
-Below the seven indicators, show the derived equipment-based restrictions as a plain list with specific reasons, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. If no restriction is active, show `No equipment restrictions`.
+Below the seven indicators, show the derived equipment-based restrictions as a plain player-safe list, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. Do not leak component names through internal restriction reasons. Missing Atmospheric Package uses the same list as every other restriction and reads `No atmospheric flight`. If no restriction is active, show `No equipment restrictions`.
 
 An absent optional Atmospheric Package is not itself a damaged-system alert. Show the package as `OK — not equipped`, while the restriction list states that atmospheric work is unavailable because the package is not installed.
 
+Below restrictions, show an **Optional Equipment** list for separately purchased rig modules. The persistent list starts empty and displays `None installed`. Heavy Heat Shielding is the first defined future module, but it is not initially installed.
+
 Ship Status is inspection-only. Service, diagnosis, repair, replacement, and purchasing belong to maintenance-shop postings.
 
-Add compact status icons for the seven systems and use severity colors only as a supplement to the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
+Do not add seven system-specific icons. Show no icon for `OK`; show a yellow exclamation mark in a black warning triangle for `WARNING`, and a white exclamation mark in a red triangle for `ALERT`. The Station Terminal's `Ship Status` option shows the same highest active warning/alert icon beside its label. Severity colors supplement rather than replace the `OK`, `WARNING`, and `ALERT` text. Use existing `InteractiveScene` body scrolling so the scene works on narrow/mobile viewports.
 
 ## 11. Maintenance-shop BBS postings
 
@@ -368,7 +370,9 @@ The Mechanic view always shows actual hidden state, including component conditio
 - Station Terminal Ship Status shows the seven systems in the approved order
 - each system displays only `OK`, `WARNING`, or `ALERT`; AP depletion and sub-threshold HP wear remain `OK`, Minor faults produce `WARNING`, and Major/Total faults produce `ALERT`
 - Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
-- absent Atmospheric Package displays `OK — not equipped` while atmospheric unavailability appears in the restrictions list
+- absent Atmospheric Package displays `OK — not equipped` while `No atmospheric flight` appears in the ordinary restrictions list
+- Ship Status and its Station Terminal option show only the approved warning/alert triangle when a named fault is active
+- Optional Equipment displays `None installed` for a migrated/default rig
 - the Maintenance Services board lists only locally reachable authored shops
 - selecting a shop never enters contract acceptance or flight launch flow
 - quote selection previews correct component grade, shop-quality AP, parts, labor, service price, and turnaround

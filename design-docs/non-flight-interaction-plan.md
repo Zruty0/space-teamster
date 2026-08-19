@@ -410,6 +410,12 @@ adjustedWeight[system] = baseWeight[system] × product(activeFaultMultipliers[sy
 
 For example, `1.25×` and `1.50×` Body and Frame modifiers combine to `1.875×`. A system with zero telemetry-derived weight remains at zero. The adjusted per-system weights feed the random strike-count distribution, preserving the difference between gentle and abusive flights. Direct fault effects such as disabled high thrust, passenger restrictions, or grounding remain available where appropriate. The approved additive telemetry coefficients, distorted-player-time rule, Poisson strike count, and weighted system selection are defined in `rig-maintenance-telemetry.md`. Persistent state, retry snapshots, atomic settlement, servicing, restriction enforcement, tests, and Tilde-only Mechanic and Telemetry Ledger debug views are sequenced in `rig-maintenance-implementation-plan.md`.
 
+### Optional equipment
+
+Separately purchased rig modules appear in a distinct **Optional Equipment** list on Ship Status rather than becoming additional top-level maintenance systems. The persistent list starts empty.
+
+**Heavy Heat Shielding** is the first planned optional module. It augments the Atmospheric Package and provides roughly four times the effective heat resistance of the normal package. Current atmospheric flight survivability is the heavy-shielding level; the eventual unaugmented package should have approximately one quarter of that resistance. Activate this thermal difference together with an authored acquisition path so a new career is not trapped without a way to buy the module.
+
 ### Component and shop grades
 
 Component grade, shop grade, and repair work grade all use A–F but are distinct qualified values. Grade D is the authored component baseline. Component grade modifies maximum HP, serviced baseline AP, and cost:

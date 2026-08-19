@@ -7,7 +7,7 @@ export interface InteractiveTextSegment {
   tone?: InteractiveTone;
 }
 
-export type InteractiveIcon = 'fragile' | 'passenger';
+export type InteractiveIcon = 'fragile' | 'passenger' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
@@ -187,9 +187,29 @@ function drawPassengerIcon(ctx: CanvasRenderingContext2D, x: number, y: number):
   ctx.restore();
 }
 
+function drawStatusTriangle(ctx: CanvasRenderingContext2D, x: number, y: number, alert: boolean): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y - 12);
+  ctx.lineTo(x + 13, y + 2);
+  ctx.lineTo(x - 1, y + 2);
+  ctx.closePath();
+  ctx.fillStyle = alert ? '#e32636' : '#050706';
+  ctx.strokeStyle = alert ? '#e32636' : COL_WARNING;
+  ctx.lineWidth = 1.5;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = alert ? '#ffffff' : COL_WARNING;
+  ctx.font = 'bold 11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('!', x + 6, y);
+  ctx.restore();
+}
+
 function drawInteractiveIcon(ctx: CanvasRenderingContext2D, icon: InteractiveIcon, x: number, y: number): void {
   if (icon === 'fragile') drawFragileIcon(ctx, x, y);
-  else drawPassengerIcon(ctx, x, y);
+  else if (icon === 'passenger') drawPassengerIcon(ctx, x, y);
+  else drawStatusTriangle(ctx, x, y, icon === 'alert');
 }
 
 function bodyRows(scene: InteractiveScene): InteractiveSceneBodyRow[] {

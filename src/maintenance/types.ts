@@ -16,6 +16,9 @@ export type FaultSeverity = 'minor' | 'major' | 'total';
 export type FaultDiagnosis = 'unknown' | 'suspected' | 'confirmed';
 export type ComponentId = string;
 
+export const OPTIONAL_EQUIPMENT_IDS = ['heavy-heat-shielding'] as const;
+export type OptionalEquipmentId = typeof OPTIONAL_EQUIPMENT_IDS[number];
+
 export const TELEMETRY_SOURCE_IDS = [
   'standardMainDrive',
   'highMainDrive',
@@ -113,6 +116,7 @@ export interface CareerRigState {
   rngState: number;
   completedMaintenanceMissions: number;
   components: Record<ComponentId, InstalledComponentState>;
+  optionalEquipment: OptionalEquipmentId[];
 }
 
 export const RIG_RESTRICTION_IDS = [

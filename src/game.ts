@@ -74,6 +74,7 @@ import { applyMechanicSystemOperation, type MechanicOperation } from './maintena
 import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
+import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
@@ -1853,6 +1854,7 @@ export class Game {
     const tutorialCertificationIncomplete = !hasTeamsterCertification(this.career, 'line');
     const currentTeamsterRank = teamsterRank(this.career);
     const ordinaryWorkAuthorized = hasTeamsterCertification(this.career, 'basic-3');
+    const overallShipStatus = overallPlayerShipStatus(this.career.rig);
     const localEntries = localDirectoryEntriesAt(this.career.locationId, this.career.certifications);
     const tutorialCheckrideAvailableHere = tutorialCertificationIncomplete
       && tutorialCertificationAvailableAt(this.career.locationId, this.career.certifications);
@@ -1873,7 +1875,13 @@ export class Game {
           { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Local Directory', tag: tutorialCheckrideAvailableHere ? 'TUTORIAL' : undefined, tagTone: tutorialCheckrideAvailableHere ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
-          { label: 'Ship Status', detail: 'Read-only shipboard status terminal. Not installed yet.', action: 'shipStatus', tone: 'warning' },
+          {
+            label: 'Ship Status',
+            detail: overallShipStatus === 'alert' ? 'Equipment alert active. Review ship condition and restrictions.' : overallShipStatus === 'warning' ? 'Equipment warning active. Review ship condition and restrictions.' : 'Review ship condition, restrictions, and optional equipment.',
+            action: 'shipStatus',
+            tone: overallShipStatus === 'alert' ? 'danger' : overallShipStatus === 'warning' ? 'warning' : undefined,
+            leftIcon: overallShipStatus === 'alert' ? 'alert' : overallShipStatus === 'warning' ? 'warning' : undefined,
+          },
           { label: 'Back to Start Menu', detail: 'Leave the station terminal.', action: 'startMenu', tone: 'back' },
         ],
       };
@@ -2177,15 +2185,35 @@ export class Game {
       };
     }
 
+    const systemRows = playerShipSystemStatuses(this.career.rig).map(system => ({
+      kind: 'kv' as const,
+      label: system.name,
+      value: `${system.status.toUpperCase()}${system.notEquipped ? ' — NOT EQUIPPED' : ''}`,
+      valueLineCount: system.notEquipped ? 2 as const : 1 as const,
+      tone: system.status === 'alert' ? 'danger' as const : system.status === 'warning' ? 'warning' as const : 'success' as const,
+      icon: system.status === 'alert' ? 'alert' as const : system.status === 'warning' ? 'warning' as const : undefined,
+    }));
+    const restrictions = playerRestrictionLabels(this.career.rig);
+    const optionalEquipment = playerOptionalEquipmentNames(this.career.rig);
     return {
       title: 'SHIP STATUS',
-      subtitle: 'Shipboard terminal placeholder',
+      subtitle: 'Shipboard condition monitor',
+      bodyMaxHeight: 420,
       bodyRows: [
-        { kind: 'text', text: 'Ship status terminal is not installed yet.', tone: 'warning' },
-        { kind: 'text', text: 'Future read-only rig inspection will live here.' },
+        ...systemRows,
+        { kind: 'separator' },
+        { kind: 'text', text: 'EQUIPMENT RESTRICTIONS', tone: restrictions.length ? 'warning' : 'success' },
+        ...(restrictions.length
+          ? restrictions.map(label => ({ kind: 'text' as const, text: `• ${label}`, tone: 'warning' as const }))
+          : [{ kind: 'text' as const, text: 'No equipment restrictions', tone: 'success' as const }]),
+        { kind: 'separator' },
+        { kind: 'text', text: 'OPTIONAL EQUIPMENT', tone: 'primary' },
+        ...(optionalEquipment.length
+          ? optionalEquipment.map(name => ({ kind: 'text' as const, text: `• ${name}`, tone: 'success' as const }))
+          : [{ kind: 'text' as const, text: 'None installed', tone: 'muted' as const }]),
       ],
-      footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
-      options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],
+      footer: 'Enter/Space: back   Esc: start menu',
+      options: [{ label: 'Back', detail: 'Return to the Station Terminal.', action: 'stationTerminal', tone: 'back' }],
     };
   }
 
