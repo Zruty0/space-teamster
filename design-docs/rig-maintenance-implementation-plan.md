@@ -206,7 +206,7 @@ Show exactly the seven approved systems in their approved order. Each system has
 - `WARNING` — at least one active Minor fault and no Major/Total fault
 - `ALERT` — at least one active Major or Total fault
 
-Do not expose component rows or component-detail scenes. Ship Status does not show component grade, HP/AP numbers, thresholds, fault names, fault locations, service age, repair prices, RNG, hidden diagnosis truth, or raw telemetry.
+Before diagnosis, a faulted system remains coarse and reads `WARNING — VISIT A SHOP FOR DIAGNOSIS` or `ALERT — VISIT A SHOP FOR DIAGNOSIS`. After a shop confirms a fault, replace that coarse system row with one line per confirmed faulted component showing only the warning/alert icon and component name. If confirmed and unconfirmed faults coexist, retain the coarse diagnosis-required row and list the confirmed components beneath it. Ship Status never shows component grade, HP/AP numbers, thresholds, fault names, fault locations, service age, repair prices, RNG, hidden diagnosis truth, or raw telemetry.
 
 Below the seven indicators, show the derived equipment-based restrictions as a plain player-safe list, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. Do not leak component names through internal restriction reasons. Missing Atmospheric Package uses the same list as every other restriction and reads `No atmospheric flight`. If no restriction is active, show `No equipment restrictions`.
 
@@ -268,7 +268,7 @@ Selecting a posting opens a shop scene rather than a flight contract. Required s
 
 Replacement retains F-grade work complexity at every shop. Work Quality Grade determines both repair capability and installed/service AP quality. The selected replacement part retains its purchased component grade. Replacement remains available for an unknown fault and at every shop.
 
-The standard licensed shop is Diagnostic C / Work D / Components D–D, normally at `500 cr/hour`. A complete installed baseline rig including Atmospheric Package has `20.0` authored service hours and therefore costs about `10,000 cr` there. Component service time uses half-hour increments, with `0.5 hours` as the smallest task.
+The standard licensed shop is Diagnostic C / Work D / Components D–D, normally at `500 cr/hour`. Serrat Domain Shipyard Service Yard is the first implemented standard shop, locally accessible through the Serrat Domain Shipyard directory. It charges two hours / `1,000 cr` for full-rig diagnosis. A complete installed baseline rig including Atmospheric Package has `20.0` authored service hours and therefore costs about `10,000 cr` there. Component service time uses half-hour increments, with `0.5 hours` as the smallest task.
 
 The unofficial-mechanic archetype is Diagnostic E / Work F / Components F–F. Most remote locations should provide one when no licensed shop is locally reachable; this guarantees diagnosis of only easy faults and universal standardized replacement, usually with an explicit downgrade to Grade F.
 
@@ -345,7 +345,7 @@ The panel should widen responsively for ledger tables and support vertical and h
 
 ### Debug/player separation
 
-The Mechanic view always shows actual hidden state, including component condition, true faults, and locations. Player Ship Status shows only seven coarse system indicators and derived equipment restrictions. Diagnosis and component-specific work appear only in maintenance-shop scenes. The Telemetry Ledger remains developer-only and never appears in Ship Status or maintenance-shop scenes.
+The Mechanic view always shows actual hidden state, including component condition, true faults, and locations. Player Ship Status begins with seven coarse system indicators and derived equipment restrictions; after confirmed diagnosis it may show only the affected component name and severity icon. Fault names, locations, grades, and repair detail appear only in maintenance-shop scenes. The Telemetry Ledger remains developer-only and never appears in Ship Status or maintenance-shop scenes.
 
 ## 13. Tests and verification
 
@@ -377,7 +377,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 
 - Station Terminal Ship Status shows the seven systems in the approved order
 - each system displays only `OK`, `WARNING`, or `ALERT`; AP depletion and sub-threshold HP wear remain `OK`, Minor faults produce `WARNING`, and Major/Total faults produce `ALERT`
-- Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
+- Ship Status shows safe restrictions; unknown faults remain coarse while confirmed faults expose only component name and severity icon, never fault/location/grade/condition/RNG/telemetry detail
 - absent Atmospheric Package displays orange `NOT EQUIPPED` without `OK` or a status icon, while `No atmospheric flight` appears in the ordinary restrictions list
 - an unprotected orbital atmospheric entry or aerobraking pass immediately crashes and uses a red trajectory/fatal-entry text presentation without a triangle icon
 - planned surface impacts within 50 km of the authored target do not show the blinking `IMPACT TRAJECTORY` text

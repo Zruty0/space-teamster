@@ -52,6 +52,9 @@ export interface FaultDefinition {
   id: string;
   name: string;
   severity: Exclude<FaultSeverity, 'total'>;
+  repair: string;
+  laborHours: number;
+  workGrade: WorkGrade;
 }
 
 export interface FaultMultiplierDefinition {

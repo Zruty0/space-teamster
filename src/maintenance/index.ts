@@ -6,3 +6,4 @@ export * from './telemetry';
 export * from './strike-resolution';
 export * from './maintenance-ledger';
 export * from './maintenance-service';
+export * from './shops';

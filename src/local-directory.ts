@@ -27,6 +27,7 @@ interface LocalDirectoryEntryBase {
   tutorialUntilCertification?: TeamsterCertificationId;
   /** Hide this listing until the named credential is earned. */
   requiresCertification?: TeamsterCertificationId;
+  maintenanceShopId?: string;
   actions: LocalDirectoryActionDef[];
 }
 
@@ -408,7 +409,20 @@ export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
   actions: [],
 };
 
+export const SERRAT_DOMAIN_SERVICE_YARD: LocalOfficeDef = {
+  kind: 'office',
+  id: 'serrat-domain-service-yard',
+  name: 'Serrat Domain Shipyard Service Yard',
+  organizationName: 'Serrat Domain Shipyard',
+  locationIds: ['estella-xie-outer-spec-drydock'],
+  summary: 'Licensed diagnosis, routine servicing, repair, and component exchange at Oathmark.',
+  description: 'The service desk overlooks a pressurized line of inspection cradles, field-alignment rigs, and component transfer rails. Accord inspectors certify the licensed work crews; a brass board posts today’s labor rate and available component grades.',
+  maintenanceShopId: 'serrat-domain-shipyard-service-yard',
+  actions: [],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
+  SERRAT_DOMAIN_SERVICE_YARD,
   OLD_NELL_PASSAGE_OFFICE,
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,
