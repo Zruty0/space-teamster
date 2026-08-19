@@ -321,7 +321,12 @@ export function drawInteractiveScene(
 
   ctx.textAlign = 'center';
   ctx.fillStyle = COL_TITLE;
-  ctx.font = 'bold 28px monospace';
+  let titleSize = 28;
+  ctx.font = `bold ${titleSize}px monospace`;
+  while (titleSize > 18 && ctx.measureText(scene.title).width > W - 40) {
+    titleSize--;
+    ctx.font = `bold ${titleSize}px monospace`;
+  }
   ctx.fillText(scene.title, W / 2, 42);
   if (scene.subtitle) {
     ctx.fillStyle = COL_HUD_DIM;

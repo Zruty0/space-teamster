@@ -35,7 +35,7 @@ export interface MaintenanceQuote {
 
 export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   id: 'serrat-domain-shipyard-service-yard',
-  name: 'Baron Vilar’s Outfitter',
+  name: 'Vilar’s Outfitter at Oathmark',
   organizationName: 'House Vilar',
   locationIds: ['estella-xie-outer-spec-drydock'],
   diagnosticGrade: 'C',
@@ -47,11 +47,11 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   partsMarkup: 1,
   turnaroundMultiplier: 1,
   copy: {
-    profileBlurb: 'A lacquered household crest presides over a thoroughly ordinary Wells outfitting bay. Its proprietor, the minor noble Baron Estêvão Vilar, personally oversees licensed journeymen and the bonded serf crews who service Teamster rigs beneath his viewing gallery.',
-    levelBlurb: 'Standard Wells outfitter under a minor noble’s household charter',
-    diagnosisBlurb: '“Splendid! Leave your rig to me, Teamster, and I shall have every system examined from frame to antenna. You there—stop gawping and bring up the inspection cradle before our guest grows old!”',
-    serviceBlurb: '“Your rig deserves the civilized attentions of my house. Choose the systems and my people will restore every scrap of protection worth restoring. Serfs! Clean hands, quick tools, and no excuses in front of a paying Teamster!”',
-    repairsBlurb: '“Now we come to the heroic work: what is broken, my crews shall mend—or replace entire, should prudence demand it. Move, you idle wretches! Our honored Teamster did not dock here to watch you breathe.”',
+    profileBlurb: 'A gilt House Vilar badge marks this as one shop in Baron Estêvão Vilar’s network of outfitter shops. The Oathmark concession is governed by Sir Tomás Barreto, a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
+    levelBlurb: 'Standard Wells outfitter in Baron Vilar’s chartered network',
+    diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” (Sir Tomás turns and shouts down the gallery.) “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” (He turns back with a broad smile.) “Your rig shall receive my personal attention.”',
+    serviceBlurb: '“A prudent choice, Teamster! My people shall restore every serviceable fitting to mint condition.” (Sir Tomás snaps his fingers toward the bays.) “What are you gawping at? Get to work!” (He faces you again.) “House Vilar takes uncommon pride in the care of a working rig.”',
+    repairsBlurb: '“Ah, the serious work—the kind by which lesser shops expose themselves. House Vilar does not send a Teamster away with a rig held together by prayers and invoice paper.” (Sir Tomás calls down to the bays.) “Fetch the proper tools, not whatever rubbish you abandoned under a bench!” (He offers you an expansive bow.) “We shall put matters right.”',
   },
 };
 

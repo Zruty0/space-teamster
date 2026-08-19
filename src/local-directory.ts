@@ -412,11 +412,11 @@ export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
 export const SERRAT_DOMAIN_SERVICE_YARD: LocalOfficeDef = {
   kind: 'office',
   id: 'serrat-domain-service-yard',
-  name: 'Baron Vilar’s Outfitter',
+  name: 'Vilar’s Outfitter at Oathmark',
   organizationName: 'House Vilar',
   locationIds: ['estella-xie-outer-spec-drydock'],
-  summary: 'Licensed diagnosis, service, repair, and common-grade component exchange under House Vilar.',
-  description: 'A lacquered household crest presides over a thoroughly ordinary Wells outfitting bay. Its proprietor, the minor noble Baron Estêvão Vilar, personally oversees licensed journeymen and the bonded serf crews who service Teamster rigs beneath his viewing gallery.',
+  summary: 'House Vilar network outfitter.',
+  description: 'A gilt House Vilar badge marks this as one shop in Baron Estêvão Vilar’s network of outfitter shops. The Oathmark concession is governed by Sir Tomás Barreto, a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
   maintenanceShopId: 'serrat-domain-shipyard-service-yard',
   actions: [],
 };

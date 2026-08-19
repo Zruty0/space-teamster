@@ -2018,7 +2018,6 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           { kind: 'text', text: shop.copy.diagnosisBlurb },
-          { kind: 'text', text: 'The shop will inspect every installed system. Faults beyond its diagnostic capability will be isolated to a component and severity but remain unnamed.' },
           { kind: 'kv', label: 'Inspection labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -2075,7 +2074,6 @@ export class Game {
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
           { kind: 'text', text: shop.copy.serviceBlurb },
-          { kind: 'text', text: 'Service restores service protection but does not repair persistent HP damage or clear faults. Quotes include only components that benefit from maintenance.' },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
@@ -2121,7 +2119,6 @@ export class Game {
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
           { kind: 'text', text: shop.copy.repairsBlurb },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
-          { kind: 'text', text: faulted.length ? 'Select a faulted component. Unknown faults cannot be repaired here, but the complete component can still be replaced.' : 'No actionable faults are present.', tone: faulted.length ? undefined : 'success' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [
