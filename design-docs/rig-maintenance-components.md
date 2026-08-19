@@ -399,8 +399,8 @@ Severity impacts:
 
 Severity impacts:
 
-- **Minor — Coupler wear:** Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
-- **Major — Capture integrity compromised:** Station docking is unavailable; surface landing remains available. Docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
+- **Minor — Coupler wear:** Docking-operation and docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.25×`.
+- **Major — Capture integrity compromised:** Station docking is unavailable; surface landing remains available. Docking-operation and docking-contact-derived Landing and Docking strike likelihood is multiplied by `1.75×`.
 - **Total — Docking coupler failure:** The rig is grounded until the coupler is replaced.
 
 ### Tractor Capture Receiver

@@ -38,7 +38,7 @@ const EFFECTS: Record<ComponentId, { multipliers?: FaultMultiplierDefinition[]; 
   'atmospheric-surfaces': { multipliers: [multiplier(['aerodynamicLoading'], 'atmospheric-package', 1.25, 1.75)], restrictions: { major: ['wings-unavailable'], total: ['atmospheric-work-unavailable'] } },
   'atmospheric-surface-actuators': { multipliers: [multiplier(['wingOperation'], 'atmospheric-package', 1.25, 1.75)], restrictions: { major: ['wings-unavailable'], total: ['atmospheric-work-unavailable'] } },
   'landing-gear-assembly': { multipliers: [multiplier(['touchdownStress'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['surface-landing-unavailable'], total: ['grounded'] } },
-  'landing-docking-coupler': { multipliers: [multiplier(['dockingCollision'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['station-docking-unavailable'], total: ['grounded'] } },
+  'landing-docking-coupler': { multipliers: [multiplier(['dockingOperation', 'dockingCollision'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['station-docking-unavailable'], total: ['grounded'] } },
   'landing-tractor-capture-receiver': { multipliers: [multiplier(['tractorCapture'], 'landing-docking', 1.25, 1.75)], restrictions: { major: ['station-docking-unavailable'], total: ['grounded'] } },
   'cab-driver-controls': { multipliers: [multiplier(CONTROL_USE, 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
   'cab-flight-computer': { multipliers: [multiplier(['flightDuration'], 'cab-controls', 1.25, 1.75)], restrictions: { major: ['grounded'], total: ['grounded'] } },
