@@ -32,20 +32,20 @@ Thus `1×` warp counts at `1×`, `10×` at `1.5×`, and `100×` at `2×`. Fixed 
 
 | Telemetry | One unit | Weight added per unit |
 |---|---|---|
-| Standard main-drive thrust | `1,000 m/s` standard-thrust Delta-V | Body and Frame `0.10`; Powertrain `0.028`; Cab and Controls `0.04` |
-| High main-drive thrust | `1,000 m/s` high-thrust Delta-V | Body and Frame `0.20`; Powertrain `0.06`; Cab and Controls `0.06` |
+| Standard main-drive thrust | `1,000 m/s` standard-thrust Delta-V | Body and Frame `0.06`; Powertrain `0.028`; Cab and Controls `0.04` |
+| High main-drive thrust | `1,000 m/s` high-thrust Delta-V | Body and Frame `0.12`; Powertrain `0.06`; Cab and Controls `0.06` |
 | Sustained main-drive operation | 5 distorted player minutes with the main drive firing | Powertrain `0.06`; Auxiliary Systems `0.02` |
-| Standard maneuvering thrust | `100 m/s` maneuvering-thruster Delta-V | Body and Frame `0.02`; Steering and Thrusters `0.10`; Cab and Controls `0.02` |
-| High maneuvering thrust | `100 m/s` high-thrust maneuvering Delta-V | Body and Frame `0.04`; Steering and Thrusters `0.20`; Cab and Controls `0.02` |
+| Standard maneuvering thrust | `100 m/s` maneuvering-thruster Delta-V | Body and Frame `0.02`; Steering and Thrusters `0.25`; Cab and Controls `0.07` |
+| High maneuvering thrust | `100 m/s` high-thrust maneuvering Delta-V | Body and Frame `0.04`; Steering and Thrusters `0.50`; Cab and Controls `0.12` |
 | Braking SAS operation | 60 distorted player seconds of active SAS firing | Steering and Thrusters `0.04`; Cab and Controls `0.01` |
 
-Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V does not also receive the standard-thrust row. Main-drive Powertrain coefficients retain approximately the same standard/high ratio while remaining one-fifth of their original values. The displaced wear is assigned primarily to Body and Frame, then Cab and Controls, because ordinary hauling thrust is expected to stress the rig's load path and controls more often than it damages the main powerplant.
+Standard and high-thrust Delta-V are recorded separately; high-thrust Delta-V does not also receive the standard-thrust row. Main-drive Powertrain coefficients retain approximately the same standard/high ratio while remaining one-fifth of their original values. Direct main-drive Body wear is deliberately smaller than the first ledger calibration; loaded-thrust stress still represents cargo load-path strain. The displaced expectation targets maneuvering hardware, controls, and ordinary duration so thrust-heavy missions retain similar total means without making Body and Frame the dominant main-drive sink.
 
 ## Duration and manifest load
 
 | Telemetry | One unit | Weight added per unit |
 |---|---|---|
-| Flight duration | 10 distorted player minutes in flight phases | Cab and Controls `0.06`; Auxiliary Systems `0.08` |
+| Flight duration | 10 distorted player minutes in flight phases | Cab and Controls `0.10`; Auxiliary Systems `0.15` |
 | Passenger occupancy | 10 distorted player minutes with passengers aboard | Auxiliary Systems `0.05` |
 | Loaded thrust stress | `(manifest mass / 30 t) × (total thrust Delta-V / 1,000 m/s)` | Body and Frame `0.05`; Auxiliary Systems `0.03` |
 | Freight handling cycle | One completed pickup-to-delivery cycle | Body and Frame `0.01`; Auxiliary Systems `0.05` |
@@ -114,16 +114,16 @@ Each collision-stress unit adds Body and Frame `0.45`, Powertrain `0.05`, Steeri
 A clean station freight mission with `900 m/s` standard main-drive Delta-V, `100 m/s` high-thrust Delta-V, five distorted drive-firing minutes, `100 m/s` standard maneuvering Delta-V, 30 distorted SAS seconds, ten distorted flight minutes, 30 tonnes of freight, one freight cycle, an undocking and docking, one tractor capture, and no collision produces:
 
 ```text
-main drive              0.183
+main drive              0.139
 firing duration         0.080
-maneuvering             0.140
+maneuvering             0.340
 braking SAS             0.025
-flight duration         0.140
+flight duration         0.250
 loaded thrust stress    0.088
 freight handling        0.060
 dock + undock           0.140
 tractor capture         0.080
 communications          0.020
                         -----
-mission mean            0.956 strikes
+mission mean            1.222 strikes
 ```

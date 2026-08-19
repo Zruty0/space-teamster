@@ -91,13 +91,13 @@ export function accumulateFlightTelemetry(accumulator: MaintenanceTelemetryAccum
 }
 
 const COEFFICIENTS: Readonly<Partial<Record<TelemetrySourceId, Partial<Record<MaintenanceSystemId, number>>>>> = {
-  standardMainDrive: { 'body-frame': 0.10, powertrain: 0.028, 'cab-controls': 0.04 },
-  highMainDrive: { 'body-frame': 0.20, powertrain: 0.06, 'cab-controls': 0.06 },
+  standardMainDrive: { 'body-frame': 0.06, powertrain: 0.028, 'cab-controls': 0.04 },
+  highMainDrive: { 'body-frame': 0.12, powertrain: 0.06, 'cab-controls': 0.06 },
   driveFiringDuration: { powertrain: 0.06, 'auxiliary-systems': 0.02 },
-  standardManeuvering: { 'body-frame': 0.02, 'steering-thrusters': 0.10, 'cab-controls': 0.02 },
-  highManeuvering: { 'body-frame': 0.04, 'steering-thrusters': 0.20, 'cab-controls': 0.02 },
+  standardManeuvering: { 'body-frame': 0.02, 'steering-thrusters': 0.25, 'cab-controls': 0.07 },
+  highManeuvering: { 'body-frame': 0.04, 'steering-thrusters': 0.50, 'cab-controls': 0.12 },
   brakingSas: { 'steering-thrusters': 0.04, 'cab-controls': 0.01 },
-  flightDuration: { 'cab-controls': 0.06, 'auxiliary-systems': 0.08 },
+  flightDuration: { 'cab-controls': 0.10, 'auxiliary-systems': 0.15 },
   passengerOccupancy: { 'auxiliary-systems': 0.05 },
   loadedThrustStress: { 'body-frame': 0.05, 'auxiliary-systems': 0.03 },
   freightHandling: { 'body-frame': 0.01, 'auxiliary-systems': 0.05 },
