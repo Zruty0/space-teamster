@@ -11,7 +11,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'war
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; segments?: InteractiveTextSegment[]; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {

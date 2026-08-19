@@ -444,10 +444,22 @@ export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   actions: [],
 };
 
+export const RED_DUST_MECHANICAL: LocalOfficeDef = {
+  kind: 'office',
+  id: 'red-dust-mechanical-reclamation-office',
+  name: 'Red Dust Mechanical & Reclamation',
+  locationIds: ['estella-v-capital-settlement'],
+  summary: 'Notorious mechanical and reclaimed-parts shop that keeps regaining and again losing the Guild certification.',
+  description: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. “Honest” Lem Calder staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
+  maintenanceShopId: 'red-dust-mechanical-reclamation',
+  actions: [],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   SERRAT_DOMAIN_SERVICE_YARD,
   VILAR_HERALD_GATE_OUTFITTER,
   BRUCKNER_CENTRAL_SERVICE_HALL,
+  RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,

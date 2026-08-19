@@ -2218,11 +2218,11 @@ export class Game {
     return {
       title: shop.name.toUpperCase(),
       subtitle: `${locationPath}   CASH: ${cash}`,
-      bodyLabelWidth: 120,
-      bodyMaxHeight: 340,
+      bodyLabelWidth: shop.id === 'red-dust-mechanical-reclamation' ? 100 : 120,
+      bodyMaxHeight: 440,
       bodyRows: [
         { kind: 'text', text: shop.copy.profileBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.profileBlurb) },
-        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueSegments: maintenanceShopCopySegments(shop, shop.copy.levelBlurb), valueLineCount: 4 },
+        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueSegments: maintenanceShopCopySegments(shop, shop.copy.levelBlurb), valueLineCount: shop.id === 'red-dust-mechanical-reclamation' ? 6 : 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
