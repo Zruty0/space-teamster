@@ -1,6 +1,6 @@
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING } from './hud-layout';
 
-export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'danger' | 'warning' | 'success' | 'story' | 'muted';
+export type InteractiveTone = 'normal' | 'primary' | 'back' | 'disabled' | 'danger' | 'warning' | 'success' | 'story' | 'muted' | 'person' | 'contact';
 
 export interface InteractiveTextSegment {
   text: string;
@@ -10,7 +10,7 @@ export interface InteractiveTextSegment {
 export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =
-  | { kind: 'text'; text: string; tone?: InteractiveTone }
+  | { kind: 'text'; text: string; segments?: InteractiveTextSegment[]; tone?: InteractiveTone }
   | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 }
   | { kind: 'separator' };
 
@@ -47,7 +47,8 @@ export interface InteractiveScene {
 
 function toneColor(tone: InteractiveTone | undefined, selected = false): string {
   if (tone === 'primary' || tone === 'success') return selected ? '#ffffff' : COL_SUCCESS;
-  if (tone === 'warning') return COL_WARNING;
+  if (tone === 'warning' || tone === 'person') return COL_WARNING;
+  if (tone === 'contact') return '#4ddcff';
   if (tone === 'story') return '#c58cff';
   if (tone === 'danger') return COL_DANGER;
   if (tone === 'back' || tone === 'muted') return selected ? COL_HUD : COL_HUD_DIM;
@@ -120,7 +121,7 @@ function drawRichTextSegments(
   x: number,
   y: number,
   maxWidth: number,
-  maxLines: 1 | 2 | 3 | 4,
+  maxLines: number,
 ): void {
   let line = 0;
   let cursorX = x;
@@ -399,10 +400,17 @@ export function drawInteractiveScene(
       ctx.textAlign = 'left';
       ctx.font = '13px monospace';
       ctx.fillStyle = toneColor(row.tone);
-      for (const line of wrapText(ctx, row.text, boxW - 44)) {
-        if (y > bottom) break;
-        ctx.fillText(line, x + 22, y);
-        y += 18;
+      const textWidth = boxW - 44;
+      const wrappedLines = wrapText(ctx, row.text, textWidth);
+      if (row.segments) {
+        drawRichTextSegments(ctx, row.segments, x + 22, y, textWidth, wrappedLines.length);
+        y += wrappedLines.length * 18;
+      } else {
+        for (const line of wrappedLines) {
+          if (y > bottom) break;
+          ctx.fillText(line, x + 22, y);
+          y += 18;
+        }
       }
       y += 2;
     }

@@ -195,6 +195,33 @@ function contractLocationSegments(currentPath: string, destinationPath: string):
   }));
 }
 
+function maintenanceShopCopySegments(shop: MaintenanceShopDef, text: string): InteractiveTextSegment[] {
+  const references = shop.copy.people.flatMap(person => person.references.map(reference => ({
+    reference,
+    tone: person.contact ? 'contact' as const : 'person' as const,
+  })));
+  const segments: InteractiveTextSegment[] = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    let next: { index: number; reference: string; tone: 'person' | 'contact' } | undefined;
+    for (const candidate of references) {
+      const index = text.indexOf(candidate.reference, cursor);
+      if (index < 0) continue;
+      if (!next || index < next.index || (index === next.index && candidate.reference.length > next.reference.length)) {
+        next = { index, ...candidate };
+      }
+    }
+    if (!next) {
+      segments.push({ text: text.slice(cursor) });
+      break;
+    }
+    if (next.index > cursor) segments.push({ text: text.slice(cursor, next.index) });
+    segments.push({ text: next.reference, tone: next.tone });
+    cursor = next.index + next.reference.length;
+  }
+  return segments;
+}
+
 function contractOptionTone(contract: CareerContract): InteractiveTone {
   const netAtPar = contract.quote.expectedMargin;
   const marginRatio = contractMarginRatio(contract.quote);
@@ -2017,7 +2044,7 @@ export class Game {
         title: 'DIAGNOSTIC INSPECTION',
         subtitle: shopSubtitle,
         bodyRows: [
-          { kind: 'text', text: shop.copy.diagnosisBlurb },
+          { kind: 'text', text: shop.copy.diagnosisBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.diagnosisBlurb) },
           { kind: 'kv', label: 'Inspection labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -2073,7 +2100,7 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: shop.copy.serviceBlurb },
+          { kind: 'text', text: shop.copy.serviceBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.serviceBlurb) },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
@@ -2117,7 +2144,7 @@ export class Game {
         subtitle: shopSubtitle,
         bodyRows: [
           ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }, { kind: 'separator' as const }] : []),
-          { kind: 'text', text: shop.copy.repairsBlurb },
+          { kind: 'text', text: shop.copy.repairsBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.repairsBlurb) },
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2193,8 +2220,8 @@ export class Game {
       subtitle: `${locationPath}   CASH: ${cash}`,
       bodyLabelWidth: 120,
       bodyRows: [
-        { kind: 'text', text: shop.copy.profileBlurb },
-        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueLineCount: 4 },
+        { kind: 'text', text: shop.copy.profileBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.profileBlurb) },
+        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueSegments: maintenanceShopCopySegments(shop, shop.copy.levelBlurb), valueLineCount: 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',

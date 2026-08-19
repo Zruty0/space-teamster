@@ -3,7 +3,13 @@ import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacem
 import { applyMechanicOperation } from './maintenance-service';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
 
+export interface MaintenanceShopPerson {
+  references: string[];
+  contact?: boolean;
+}
+
 export interface MaintenanceShopCopy {
+  people: MaintenanceShopPerson[];
   profileBlurb: string;
   levelBlurb: string;
   diagnosisBlurb: string;
@@ -47,6 +53,10 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   partsMarkup: 1,
   turnaroundMultiplier: 1,
   copy: {
+    people: [
+      { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
+      { references: ['Sir Tomás Barreto', 'Sir Tomás'] },
+    ],
     profileBlurb: 'A gilt House Vilar badge marks this as one shop in Baron Estêvão Vilar’s network of outfitter shops. The Oathmark concession is governed by Sir Tomás Barreto, a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
     levelBlurb: 'Standard Wells outfitter in Baron Vilar’s chartered network',
     diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” (Sir Tomás turns and shouts down the gallery.) “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” (He turns back with a broad smile.) “Your rig shall receive my personal attention.”',
