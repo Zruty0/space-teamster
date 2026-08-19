@@ -53,6 +53,7 @@ export const ESTELLA_LAYOUTS: Partial<Record<string, LayoutOverride>> = {
   'estella-xia-orbital-chem-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
   'estella-xic-research-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
   'estella-xid-main-port-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
+  'estella-xie-outer-spec-drydock-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
   'estella-xii-observation-post-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
   'estella-xiib-transit-station': { layoutId: 'medieval-station', autoRotate: false, rotationDegrees: 0 },
 

@@ -480,7 +480,6 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-xid-services-outfitter-hangar': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xid-customs-transit': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xid-specialty-cargo': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
-  'estella-xie-outer-spec-drydock': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xie-component-fabrication': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xie-rare-alloy-extraction': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xie-oathmark-academy': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
