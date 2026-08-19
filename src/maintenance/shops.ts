@@ -91,9 +91,35 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
   },
 };
 
+export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
+  id: 'bruckner-central-service-hall',
+  name: 'Bruckner Central Service Hall',
+  organizationName: 'Bruckner Field Services',
+  locationIds: ['estella-viii-harder-approach-station'],
+  diagnosticGrade: 'A',
+  workQualityGrade: 'A',
+  componentGradeBest: 'A',
+  componentGradeWorst: 'D',
+  laborRate: 1_200,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 0.75,
+  copy: {
+    people: [
+      { references: ['Anja Riedel', 'Anja'] },
+    ],
+    profileBlurb: 'Bruckner’s central Estella service floor is bright, quiet, and divided into numbered clean bays. VHM-certified diagnostic frames stand beside locked civilian parts cages and a glass-fronted warranty office. Depot Service Director Anja Riedel runs the floor by headset; every removed component is tagged before it touches a cart.',
+    levelBlurb: 'Advanced VHM-authorized precision service and civilian parts depot',
+    diagnosisBlurb: '“Put the rig on cradle four and leave the flight recorder live, Teamster. Weymark’s latest-generation diagnostic frames are operated by Bruckner’s senior VHM-certified engineers.” Anja Riedel checks the custody seal on the diagnostic terminal. “You’ll receive a complete finding, the applicable warranty status, and the available work options. In that order.”',
+    serviceBlurb: '“Preventive service is cheaper than an incident board, and considerably shorter. We’ll bring the selected systems to Bruckner service standard and return every recorded adjustment with the rig.”',
+    repairsBlurb: '“You have already brought it to the best-equipped civilian service depot in Estella, Teamster. The certified alignment frames, sealed test benches, and VHM tooling are here at Weymark. If the component can be returned to specification, we have the equipment to do it. If it cannot, we will fit the proper replacement.”',
+  },
+};
+
 export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   SERRAT_DOMAIN_SHIPYARD_SHOP,
   VILAR_HERALD_GATE_SHOP,
+  BRUCKNER_WEYMARK_SERVICE_HALL,
 ];
 
 export function maintenanceShopById(id: string): MaintenanceShopDef | undefined {

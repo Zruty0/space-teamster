@@ -2219,6 +2219,7 @@ export class Game {
       title: shop.name.toUpperCase(),
       subtitle: `${locationPath}   CASH: ${cash}`,
       bodyLabelWidth: 120,
+      bodyMaxHeight: 340,
       bodyRows: [
         { kind: 'text', text: shop.copy.profileBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.profileBlurb) },
         { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueSegments: maintenanceShopCopySegments(shop, shop.copy.levelBlurb), valueLineCount: 4 },

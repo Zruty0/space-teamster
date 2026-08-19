@@ -433,9 +433,21 @@ export const VILAR_HERALD_GATE_OUTFITTER: LocalOfficeDef = {
   actions: [],
 };
 
+export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
+  kind: 'office',
+  id: 'bruckner-central-service-hall-office',
+  name: 'Bruckner Central Service Hall',
+  locationIds: ['estella-viii-harder-approach-station'],
+  summary: 'Advanced VHM-authorized precision service and civilian parts depot.',
+  description: 'Bruckner’s central Estella service floor is bright, quiet, and divided into numbered clean bays. VHM-certified diagnostic frames stand beside locked civilian parts cages and a glass-fronted warranty office. Depot Service Director Anja Riedel runs the floor by headset; every removed component is tagged before it touches a cart.',
+  maintenanceShopId: 'bruckner-central-service-hall',
+  actions: [],
+};
+
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   SERRAT_DOMAIN_SERVICE_YARD,
   VILAR_HERALD_GATE_OUTFITTER,
+  BRUCKNER_CENTRAL_SERVICE_HALL,
   OLD_NELL_PASSAGE_OFFICE,
   TEAMSTERS_GUILD_CERTIFICATION_OFFICE,
   NELLS_REST_CERTIFICATION_OFFICE,
