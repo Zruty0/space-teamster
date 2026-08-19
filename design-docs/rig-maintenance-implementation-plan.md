@@ -1,6 +1,6 @@
 # Rig Maintenance Implementation Plan
 
-Implementation plan for the approved component catalog, telemetry weights, persistent condition, faults, servicing, repair, replacement, operational restrictions, and developer inspection views.
+Implementation plan for the approved component catalog, telemetry weights, persistent condition, faults, servicing, repair, replacement, operational restrictions, player-facing Ship Status scenes, maintenance-shop BBS postings, and developer inspection views.
 
 Source design:
 
@@ -21,6 +21,7 @@ Create `src/maintenance/` with narrow modules:
 - `telemetry.ts` — mission accumulator, distorted-time integration, channel coefficients, source-specific fault multipliers
 - `strike-resolution.ts` — seeded Poisson roll, weighted system selection, uniform component selection, AP/HP resolution, threshold crossing, fault/location generation
 - `maintenance-service.ts` — service, repair, replacement, quotes, work complexity, and shop-quality effects
+- `shops.ts` — authored shop definitions, local availability, stock, diagnosis, capability, labor, markup, and turnaround
 - `maintenance-ledger.ts` — immutable current/pending/committed audit records and debug-log persistence
 - `index.ts` — public maintenance API
 
@@ -51,6 +52,7 @@ interface ActiveFaultState {
   severity: 'minor' | 'major' | 'total';
   faultId?: string;
   locationId?: string;
+  diagnosis: 'unknown' | 'suspected' | 'confirmed';
   generatedMission: number;
   generatedStrike: number;
 }
@@ -192,7 +194,89 @@ After state/settlement is stable, enforce derived restrictions at both acceptanc
 
 Show a specific reason wherever an action is blocked. Do not silently remove money, time, location, or wear on failed launch attempts.
 
-## 10. Tilde developer views
+## 10. Player-facing Ship Status
+
+Replace the existing Station Terminal `Ship Status` placeholder with an `InteractiveScene` hierarchy:
+
+- `shipStatus` — all seven confirmed systems with status icon, severity, and short restriction summary
+- `shipStatusSystem` — installed and absent components in the selected system
+- `shipStatusComponent` — one component's condition and known maintenance information
+
+The system root uses exactly the seven approved names and order. It shows overall spaceworthiness, active operational restrictions, and whether optional equipment such as the Atmospheric Package is absent.
+
+Component rows show player-known information:
+
+- component name and grade
+- current/max HP and current serviced AP
+- Minor/Major/Total thresholds
+- status (`OK`, `WORN`, `MINOR`, `MAJOR`, `TOTAL`, or `NOT INSTALLED`)
+- confirmed fault and location, or `Diagnosis required` when unknown
+- service age and whether AP is below the component/shop-independent grade baseline
+- current restrictions caused by that component
+
+Ship Status is inspection-only. It does not perform service, repair, replacement, or purchasing. Those actions belong to maintenance-shop postings. Do not expose RNG rolls, hidden diagnosis truth, raw telemetry weights, or dishonest-shop metadata in this player view.
+
+Add compact status icons for the seven systems and severity colors with text labels. Use existing `InteractiveScene` body scrolling and option navigation so the scenes work on narrow/mobile viewports.
+
+## 11. Maintenance-shop BBS postings
+
+Add a third station-terminal board beside freight and passenger work:
+
+- terminal option: **Browse Maintenance Services**
+- scene title: **MAINTENANCE SERVICES**
+- only shops serving the current terminal scope are posted
+- remote directory contacts may advertise a shop, but transactions require local physical access
+
+Define authored shops with stable IDs:
+
+```ts
+interface MaintenanceShopDef {
+  id: string;
+  name: string;
+  organizationName?: string;
+  locationIds: string[];
+  shopGrade: ShopGrade;
+  laborRate: number;
+  servicePrice: number;
+  partsMarkup: number;
+  honesty: number;
+  turnaroundMultiplier: number;
+  stockedComponentGrades: ComponentGrade[];
+  description: string;
+}
+```
+
+BBS rows show only player-legible commercial information:
+
+- shop name and organization tag
+- local location
+- shop grade
+- full-service price
+- labor rate
+- short capability/stock summary
+- `CLOSED`, `UNAVAILABLE`, or restriction text when appropriate
+
+Selecting a posting opens a shop scene rather than a flight contract. Required scene flow:
+
+1. **Shop profile** — grade, rates, description, current rig summary, and request-inspection action.
+2. **Diagnosis/quote** — full service plus actual or claimed Minor/Major/Total line items.
+3. **Work selection** — toggle service, repairs, replacements, and stocked replacement component grade.
+4. **Confirmation** — total credits, labor/turnaround time, resulting AP quality, replaced component grade, and restrictions cleared or remaining.
+5. **Receipt** — atomically apply cash, world time, rig state, diagnosis state, service time, and replacement/repair results.
+
+Replacement retains F-grade work complexity at every shop. The selected replacement part retains its purchased component grade, while the shop grade determines installed/service AP quality.
+
+Implement an honest-shop baseline first. Then add diagnosis quality and honesty:
+
+- actual fault truth remains in rig state
+- player knowledge advances from unknown/suspected to confirmed
+- honest shops quote real work
+- dishonest shops may invent, exaggerate, or recommend unnecessary work using the existing `necessary`, `fake`, and `exaggerated` quote fields
+- declining a quote changes no money, time, HP, AP, or fault state
+
+Shop transactions use the same quote and mutation engine as tests. Save money, world time, and rig state atomically. Keep freight/passenger contract generation and maintenance-shop listings separate; shops are authored local services, not generated hauling contracts.
+
+## 12. Tilde developer views
 
 The existing `Backquote`/F2 `dev-panel.ts` remains the only entry point. Add no main-menu, station-terminal, BBS, or Ship Status navigation to these views.
 
@@ -253,7 +337,11 @@ Persist a debug-only ring of the latest 20 committed ledgers under a separate ve
 
 The panel should widen responsively for ledger tables and support vertical and horizontal scrolling without changing canvas layout.
 
-## 11. Tests and verification
+### Debug/player separation
+
+The Mechanic view always shows actual hidden state, including the true fault and location. Player Ship Status shows only the current diagnosis state. The Telemetry Ledger remains developer-only and never appears in Ship Status or maintenance-shop scenes.
+
+## 13. Tests and verification
 
 ### Unit tests
 
@@ -279,6 +367,19 @@ The panel should widen responsively for ledger tables and support vertical and h
 - operational restrictions block only authored work
 - service restores AP only; repair restores HP/AP; replacement handles Total
 
+### Player/shop integration tests
+
+- Station Terminal Ship Status opens the seven systems in the approved order
+- player scenes show diagnosed information but never hidden fault truth, RNG, or raw telemetry
+- absent Atmospheric Package displays `NOT INSTALLED`
+- the Maintenance Services board lists only locally reachable authored shops
+- selecting a shop never enters contract acceptance or flight launch flow
+- quote selection previews correct component grade, shop-quality AP, parts, labor, service price, and turnaround
+- insufficient funds, declined quotes, and unavailable work leave career and rig state unchanged
+- confirmed work updates money, world time, rig, diagnosis, and restrictions in one save
+- replacement is available at every shop as F-complexity work while AP quality still follows shop grade
+- shop rows and Ship Status remain usable at narrow/mobile viewport sizes
+
 ### Browser/debug smoke tests
 
 - Tilde and F2 open both tabs during flight, completion overlay, terminal, and start menu
@@ -288,7 +389,7 @@ The panel should widen responsively for ledger tables and support vertical and h
 - pending and committed ledgers show identical strike results
 - panel remains usable at narrow/mobile viewport sizes
 
-## 12. Delivery order
+## 14. Delivery order
 
 1. Types, grades, typed catalog, and validation tests.
 2. Career rig state, migration, deterministic RNG, and derived status/restrictions.
@@ -299,6 +400,10 @@ The panel should widen responsively for ledger tables and support vertical and h
 7. Detailed Telemetry Ledger developer view and debug history.
 8. Service/repair/replacement engine and quote tests.
 9. Operational restriction enforcement.
-10. Browser smoke tests, seeded 100-mission regression scenarios, and balancing pass.
+10. Player Ship Status root, seven system scenes, component details, and status icons.
+11. Authored shop catalog and local Maintenance Services BBS board.
+12. Honest diagnosis, quote selection, confirmation, receipt, and atomic shop transactions.
+13. Dishonest diagnosis/quote behavior and replacement-grade stock.
+14. Browser smoke tests, seeded 100-mission regression scenarios, mobile checks, and balancing pass.
 
-Keep each stage buildable and commit it separately. Do not add player-facing maintenance menus or shop scenes until the persistent state, ledger, and restriction core are verified.
+Keep each stage buildable and commit it separately. The developer Mechanic and Telemetry Ledger views remain Tilde/F2-only; the player-facing Ship Status and maintenance-shop BBS scenes begin only after persistent state, ledger, restriction, and transaction rules are verified.
