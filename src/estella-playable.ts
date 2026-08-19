@@ -560,12 +560,14 @@ function sourceStartOrbit(sourceId: string): { radius: number; epochAngle: numbe
 }
 
 export function generatedEstellaDepartureTarget(destinationId: string, sourceId?: string): GeneratedDepartureTarget {
+  // Atmospheric-corridor handoff is a property of the departure body. The eventual
+  // parking/station target may be much higher, but that burn belongs to orbital mode.
   if ((sourceId && centralBodyIdForPoi(sourceId) !== centralBodyIdForPoi(destinationId)) || playableKind(destinationId) !== 'dock') {
     const bodyId = sourceId ? centralBodyIdForPoi(sourceId) : centralBodyIdForPoi(destinationId);
     const profile = surfaceDepartureProfileForPoi(sourceId);
     const targetOrbitAltitude = profile?.targetOrbitAltitude ?? lowOrbitAltitude(bodyId);
     return {
-      thresholdApoapsisAltitude: apoapsisThresholdForTarget(bodyId, targetOrbitAltitude),
+      thresholdApoapsisAltitude: departureThresholdForLowOrbit(bodyId),
       targetOrbitAltitude,
       orbitDir: 1,
     };
@@ -579,7 +581,7 @@ export function generatedEstellaDepartureTarget(destinationId: string, sourceId?
   // and require RIGHTward launch guidance, so these signs intentionally invert.
   const orbitDir = target.orbit.orbitSense === -1 ? 1 : -1;
   return {
-    thresholdApoapsisAltitude: apoapsisThresholdForTarget(target.bodyId, targetAltitude),
+    thresholdApoapsisAltitude: departureThresholdForLowOrbit(target.bodyId),
     targetOrbitAltitude: targetAltitude,
     orbitDir,
   };
