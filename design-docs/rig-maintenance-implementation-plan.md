@@ -208,7 +208,7 @@ Do not expose component rows or component-detail scenes. Ship Status does not sh
 
 Below the seven indicators, show the derived equipment-based restrictions as a plain player-safe list, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. Do not leak component names through internal restriction reasons. Missing Atmospheric Package uses the same list as every other restriction and reads `No atmospheric flight`. If no restriction is active, show `No equipment restrictions`.
 
-An absent optional Atmospheric Package is not itself a damaged-system alert. Show only orange `NOT EQUIPPED`, without `OK` and without a warning/alert status icon, while the ordinary restriction list states `No atmospheric flight`. In orbital mode, any predicted atmospheric segment is red, atmospheric-entry markers and notices use the red alert triangle rather than a warning sign, and actual atmospheric exposure immediately crashes the rig—even when the trajectory would otherwise aerobrake and exit.
+An absent optional Atmospheric Package is not itself a damaged-system alert. Show only orange `NOT EQUIPPED`, without `OK` and without a warning/alert status icon, while the ordinary restriction list states `No atmospheric flight`. In orbital mode, any predicted unprotected atmospheric segment is red and receives a red fatal-entry text notice, but no triangle icon; actual atmospheric exposure immediately crashes the rig—even when the trajectory would otherwise aerobrake and exit. Impact prediction uses only the red X at the predicted impact point plus the original text warning. Suppress the blinking `IMPACT TRAJECTORY` text when predicted surface impact is within 50 km along the surface of the authored target.
 
 Below restrictions, show an **Optional Equipment** list for separately purchased rig modules. The persistent list starts empty and displays `None installed`. Heavy Heat Shielding is the first defined future module, but it is not initially installed.
 
@@ -371,7 +371,8 @@ The Mechanic view always shows actual hidden state, including component conditio
 - each system displays only `OK`, `WARNING`, or `ALERT`; AP depletion and sub-threshold HP wear remain `OK`, Minor faults produce `WARNING`, and Major/Total faults produce `ALERT`
 - Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
 - absent Atmospheric Package displays orange `NOT EQUIPPED` without `OK` or a status icon, while `No atmospheric flight` appears in the ordinary restrictions list
-- an unprotected orbital atmospheric entry or aerobraking pass immediately crashes and uses red trajectory/alert presentation
+- an unprotected orbital atmospheric entry or aerobraking pass immediately crashes and uses a red trajectory/fatal-entry text presentation without a triangle icon
+- planned surface impacts within 50 km of the authored target do not show the blinking `IMPACT TRAJECTORY` text
 - Ship Status and its Station Terminal option show only the approved warning/alert triangle when a named fault is active
 - Optional Equipment displays `None installed` for a migrated/default rig
 - the Maintenance Services board lists only locally reachable authored shops

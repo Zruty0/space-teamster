@@ -3382,45 +3382,12 @@ function drawManeuverMarker(
 }
 
 // --- Orbit prediction (numerical, with aerobraking) ---
-function drawOrbitalStatusTriangle(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  alert: boolean,
-  size = 8,
-): void {
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x, y - size);
-  ctx.lineTo(x + size, y + size);
-  ctx.lineTo(x - size, y + size);
-  ctx.closePath();
-  ctx.fillStyle = alert ? '#e32636' : '#050706';
-  ctx.strokeStyle = alert ? '#e32636' : COL_WARNING;
-  ctx.lineWidth = 1.5;
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = alert ? '#ffffff' : COL_WARNING;
-  ctx.font = `bold ${Math.max(10, size + 3)}px monospace`;
-  ctx.textAlign = 'center';
-  ctx.fillText('!', x, y + size * 0.65);
-  ctx.restore();
-}
-
-function drawOrbitalNotice(
-  ctx: CanvasRenderingContext2D,
-  canvasWidth: number,
-  y: number,
-  text: string,
-  alert: boolean,
-): void {
-  ctx.font = 'bold 16px monospace';
-  const textWidth = ctx.measureText(text).width;
-  const startX = canvasWidth / 2 - (textWidth + 26) / 2;
-  drawOrbitalStatusTriangle(ctx, startX + 8, y - 5, alert, 8);
-  ctx.textAlign = 'left';
-  ctx.fillStyle = alert ? COL_DANGER : COL_WARNING;
-  ctx.fillText(text, startX + 24, y);
+export function surfaceDistanceFromLandingTarget(level: OrbitalLevel, x: number, y: number): number {
+  const impactAngle = Math.atan2(y, x);
+  let angleDiff = impactAngle - level.landingSiteAngle;
+  while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+  while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+  return Math.abs(angleDiff) * level.planetRadius;
 }
 
 function drawOrbitPrediction(
@@ -3523,18 +3490,14 @@ function drawOrbitPrediction(
     }
   }
 
-  // Atmospheric entry is an alert rather than a navigational warning when unprotected.
-  if (pred.atmoEntry) {
-    if (atmosphericPackageInstalled) {
-      drawEventArrow(
-        pred.atmoEntry.x, pred.atmoEntry.y,
-        pred.atmoEntry.vx, pred.atmoEntry.vy,
-        '#ffdd00', true, 8,
-      );
-    } else {
-      const [mx, my] = ws(pred.atmoEntry.x, pred.atmoEntry.y, cam, W, H);
-      drawOrbitalStatusTriangle(ctx, mx, my, true, 8);
-    }
+  // Protected atmospheric entry keeps the original yellow navigational marker.
+  // Unprotected trajectories are already red and fatal; do not add a triangle icon.
+  if (pred.atmoEntry && atmosphericPackageInstalled) {
+    drawEventArrow(
+      pred.atmoEntry.x, pred.atmoEntry.y,
+      pred.atmoEntry.vx, pred.atmoEntry.vy,
+      '#ffdd00', true, 8,
+    );
   }
 
   // A fatal unprotected entry has no meaningful aerobraking exit marker.
@@ -3575,23 +3538,6 @@ function drawOrbitPrediction(
       ctx.moveTo(mx - 5, my - 5); ctx.lineTo(mx + 5, my + 5);
       ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
       ctx.stroke();
-    } else {
-      const margin = 38;
-      const cx = Math.max(margin, Math.min(W - margin, mx));
-      const cy = Math.max(margin, Math.min(H - margin, my));
-      const dx = mx - cx, dy = my - cy;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      if (len > 1) {
-        const nx = dx / len, ny = dy / len;
-        const as = 10;
-        ctx.beginPath();
-        ctx.moveTo(cx + nx * as, cy + ny * as);
-        ctx.lineTo(cx - nx * 4 - ny * as * 0.5, cy - ny * 4 + nx * as * 0.5);
-        ctx.lineTo(cx - nx * 4 + ny * as * 0.5, cy - ny * 4 - nx * as * 0.5);
-        ctx.closePath();
-        ctx.fillStyle = '#ff2200';
-        ctx.fill();
-      }
     }
 
     // Distance from LZ short/long (only for landing missions)
@@ -3600,7 +3546,7 @@ function drawOrbitPrediction(
       let angleDiff = impactAngle - level.landingSiteAngle;
       while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
       while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-      const arcDist = Math.abs(angleDiff) * level.planetRadius / 1000;
+      const arcDist = surfaceDistanceFromLandingTarget(level, pred.impact.x, pred.impact.y) / 1000;
       const elem = computeElements(s.x, s.y, s.vx, s.vy, level.planetGM);
       const isShort = elem.h < 0 ? angleDiff > 0 : angleDiff < 0;
       const distLabel = arcDist < 1 ? 'ON TARGET' :
@@ -4096,6 +4042,10 @@ export function drawOrbitalHUD(
   const escapeApsis = level.escapeSOIRadius ? elem.apoapsis >= level.escapeSOIRadius : false;
   const pred = getCachedPrediction(s, level);
   const predictedImpact = pred.impact !== null;
+  const impactWithinTargetTolerance = !!pred.impact
+    && !level.station
+    && level.showLandingSite !== false
+    && surfaceDistanceFromLandingTarget(level, pred.impact.x, pred.impact.y) <= 50_000;
   const rho = level.atmoHeight > 0 ? atmoDensity(Math.max(0, altMeters), level) : 0;
   const rhoFracStd = rho / EARTH_STANDARD_SURFACE_DENSITY;
   const rhoCol = rhoFracStd > 0.3 ? COL_WARNING : rhoFracStd > 0.05 ? COL_HUD : COL_HUD_DIM;
@@ -4167,13 +4117,24 @@ export function drawOrbitalHUD(
 
   let warnY = 30;
   if (predictedImpact && state === 'orbiting') {
-    if (Math.sin(Date.now() * 0.012) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'IMPACT TRAJECTORY', true);
-    warnY += 22;
+    if (!impactWithinTargetTolerance) {
+      ctx.font = 'bold 16px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = COL_DANGER;
+      if (Math.sin(Date.now() * 0.012) > -0.3) ctx.fillText('⚠ IMPACT TRAJECTORY', W / 2, warnY);
+      warnY += 22;
+    }
   } else if (!atmosphericPackageInstalled && pred.atmoEntry && state === 'orbiting') {
-    if (Math.sin(Date.now() * 0.012) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'FATAL ATMOSPHERIC ENTRY', true);
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COL_DANGER;
+    if (Math.sin(Date.now() * 0.012) > -0.3) ctx.fillText('FATAL ATMOSPHERIC ENTRY', W / 2, warnY);
     warnY += 22;
   } else if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
-    if (Math.sin(Date.now() * 0.008) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'AEROBRAKE TRAJECTORY', false);
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COL_WARNING;
+    if (Math.sin(Date.now() * 0.008) > -0.3) ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
     warnY += 22;
   }
 
