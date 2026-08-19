@@ -1,5 +1,5 @@
 import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS } from './maintenance/catalog';
-import { componentMaxHp, componentReplacementCost, componentServicedAp, SHOP_GRADES } from './maintenance/grades';
+import { componentMaxHp, componentReplacementCost } from './maintenance/grades';
 import { systemStatus } from './maintenance/rig-state';
 import type { MaintenanceDebugSnapshot, MaintenanceLedger } from './maintenance/types';
 
@@ -69,29 +69,32 @@ function renderMechanic(snapshot: MaintenanceDebugSnapshot): string {
       const component = MAINTENANCE_COMPONENTS.find(candidate => candidate.id === componentId)!;
       const state = snapshot.rig.components[componentId];
       if (!state?.installed) {
-        return `<tr class="dev-absent"><td>${escapeHtml(component.name)}<small>${escapeHtml(component.id)}</small></td><td colspan="8">NOT INSTALLED</td></tr>`;
+        return `<tr class="dev-absent"><td>${escapeHtml(component.name)}</td><td colspan="7">NOT INSTALLED</td></tr>`;
       }
       const maxHp = componentMaxHp(component, state.grade);
       const fault = state.fault;
       const faultDefinition = componentFaultById(component, fault?.faultId);
-      const serviceValues = SHOP_GRADES.map(shop => `${shop}:${componentServicedAp(component, state.grade, shop)}`).join(' ');
-      const multipliers = component.faultMultipliers.map(effect => `${effect.sourceIds === 'all' ? 'all' : effect.sourceIds.join('+')}→${effect.targetSystemId} ${effect.minor}×/${effect.major}×`).join('; ') || 'none';
-      const restrictions = restrictionByComponent.get(componentId)?.join('; ') ?? 'none';
+      const activeMultipliers = fault && fault.severity !== 'total'
+        ? component.faultMultipliers.flatMap(effect => {
+          const value = fault.severity === 'minor' ? effect.minor : effect.major;
+          return value === 1 ? [] : [`${effect.sourceIds === 'all' ? 'all' : effect.sourceIds.join('+')}→${effect.targetSystemId} ${value}×`];
+        })
+        : [];
+      const activeEffects = [...(restrictionByComponent.get(componentId) ?? []), ...activeMultipliers];
       return `<tr>
-        <td>${escapeHtml(component.name)}<small>${escapeHtml(component.id)}</small></td>
+        <td>${escapeHtml(component.name)}</td>
         <td>${state.grade}</td>
         <td>${state.hp}/${maxHp}</td>
-        <td>${state.ap}<small>${escapeHtml(serviceValues)}</small></td>
-        <td>Mi ${component.minorThreshold}<br>Ma ${component.majorThreshold}<br>To 0</td>
+        <td>${state.ap}/${component.baseAp}</td>
         <td>${fault ? `${fault.severity.toUpperCase()}<small>${escapeHtml(faultDefinition?.name ?? fault.faultId ?? 'replacement required')}${fault.locationId ? ` @ ${escapeHtml(fault.locationId)}` : ''}</small>` : 'none'}</td>
         <td>${state.lastServiceMission ?? '—'}<small>${state.lastServiceWorldTime === undefined ? 'time —' : `${num(state.lastServiceWorldTime / 86400, 2)}d`}</small></td>
         <td>${componentReplacementCost(component, state.grade).toLocaleString()} cr</td>
-        <td><small>${escapeHtml(restrictions)}<br>${escapeHtml(multipliers)}</small></td>
+        <td><small>${activeEffects.map(escapeHtml).join('<br>')}</small></td>
       </tr>`;
     }).join('');
     return `<section class="dev-system">
       <h3>${escapeHtml(system.name)} <span class="dev-status dev-${systemStatus(snapshot.rig, system.id)}">${systemStatus(snapshot.rig, system.id).toUpperCase()}</span></h3>
-      <table><thead><tr><th>Component</th><th>Gr</th><th>HP</th><th>AP / shop AP</th><th>Thresholds</th><th>Fault / location</th><th>Service</th><th>Replacement</th><th>Restrictions / multipliers</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>Component</th><th>Gr</th><th>HP</th><th>AP / Base AP</th><th>Fault / location</th><th>Service</th><th>Replacement</th><th>Active restrictions / multipliers</th></tr></thead><tbody>${rows}</tbody></table>
     </section>`;
   }).join('');
   const globalRestrictions = snapshot.restrictions.length
