@@ -123,6 +123,25 @@ const LIGHT_EQUIPMENT: CargoOption[] = [
   { label: 'sealed export-lien packets', massClass: 'light', pay: PAPER_PAY },
 ];
 
+const GALE_SURVEY_EXPORTS: CargoOption[] = [
+  { label: 'storm-forecast data', massClass: 'light', pay: PAPER_PAY },
+  { label: 'atmospheric survey logs', massClass: 'light', pay: PAPER_PAY },
+  { label: 'quota reports', massClass: 'light', pay: PAPER_PAY },
+];
+
+const GALE_SURVEY_RETURN_LANE: Lane = {
+  sourceId: GALE_SURVEY,
+  destinationIds: [ROADSTEAD],
+  cargo: GALE_SURVEY_EXPORTS,
+  likelihood: 0.8,
+};
+
+const GALE_SURVEY_BROKER: Broker = {
+  name: 'Gale Survey Supply',
+  slug: 'gale-survey-supply',
+  lanes: [GALE_SURVEY_RETURN_LANE],
+};
+
 const LANES: Lane[] = [
   { sourceId: HAMMER, destinationIds: [ROADSTEAD, CINDERHOOK, DAWES_CUT, PIKE_STRIP_MINE, PIKE_ORBITAL_DEPOT, ...WELLS_HEAVY_MACHINERY_DESTINATIONS], cargo: HEAVY_EQUIPMENT, likelihood: 0.55 },
   { sourceId: ANVIL, destinationIds: [ROADSTEAD, CONCORD, CINDERHOOK, GALE_SURVEY, PIKE_MINER_HAB, ...WELLS_SPECIALIST_MACHINERY_DESTINATIONS], cargo: LIGHT_EQUIPMENT, likelihood: 0.55 },
@@ -181,6 +200,13 @@ function candidate(broker: Broker, lane: Lane, destinationId: string, option: Ca
 function generateMachineryContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   const day = Math.floor(ctx.worldTime / 86_400);
+
+  if (ctx.sourceId === GALE_SURVEY) {
+    for (const destinationId of GALE_SURVEY_RETURN_LANE.destinationIds) {
+      const options = seededSample(GALE_SURVEY_EXPORTS, 1, hashString(`${GALE_SURVEY_BROKER.slug}:${GALE_SURVEY}->${destinationId}:${day}`));
+      for (const option of options) out.push(candidate(GALE_SURVEY_BROKER, GALE_SURVEY_RETURN_LANE, destinationId, option));
+    }
+  }
 
   for (const broker of ROSTER) {
     for (const lane of broker.lanes) {
