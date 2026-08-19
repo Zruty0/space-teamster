@@ -69,8 +69,11 @@ import { appendMissionProfile, createMissionProfileEntry, installMissionProfileC
 import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveScene, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { validateMaintenanceCatalog } from './maintenance/catalog';
+import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
-import type { MaintenanceDebugSnapshot } from './maintenance/types';
+import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
+import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
+import type { MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceTelemetryAccumulator, MissionTelemetryContext, PendingMaintenanceSettlement } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
   drawOperationsManualArticle,
@@ -87,6 +90,7 @@ const MAX_FRAME_TIME = 0.1;
 
 interface GameplayPhaseConditionBase {
   manifestConditionStart: ManifestConditionState;
+  maintenanceTelemetryStart: MaintenanceTelemetryAccumulator;
 }
 
 type GameplayPhase = (
@@ -236,6 +240,11 @@ export class Game {
   private career: CareerProfile = loadCareerProfile();
   private phaseCompletion: PhaseCompletion | null = null;
   private contractBoardLoadGeneration = 0;
+  private activeMaintenanceTelemetry = createMaintenanceTelemetry();
+  private activeMaintenanceContext: MissionTelemetryContext | null = null;
+  private pendingMaintenanceSettlement: PendingMaintenanceSettlement | null = null;
+  private committedMaintenanceLedgers: MaintenanceLedger[] = loadCommittedMaintenanceLedgers();
+  private maintenanceRetryNote: string | undefined;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
@@ -254,7 +263,11 @@ export class Game {
       rig: this.career.rig,
       validationWarnings: [...validateMaintenanceCatalog(), ...validateRigState(this.career.rig)],
       restrictions: deriveRestrictions(this.career.rig),
-      committedLedgers: [],
+      currentLedger: this.activeMaintenanceContext
+        ? currentMaintenanceLedger(this.activeMaintenanceTelemetry, this.activeMaintenanceContext, this.career.rig, this.maintenanceRetryNote)
+        : undefined,
+      pendingLedger: this.pendingMaintenanceSettlement?.ledger,
+      committedLedgers: this.committedMaintenanceLedgers,
     };
   }
 
@@ -300,7 +313,7 @@ export class Game {
     const camera = createCamera();
     updateCamera(camera, ship, landingReferenceHeight(level, terrain, ship.x), 0);
     this.phaseCompletion = null;
-    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
+    const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = landingPhase;
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
@@ -317,7 +330,7 @@ export class Game {
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
+    const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = approachPhase;
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
@@ -339,7 +352,7 @@ export class Game {
     const cam = createDockingCamera();
     updateDockingCamera(cam, ds, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
+    const dockingPhase: Extract<GameplayPhase, { kind: 'docking' }> = { kind: 'docking', level, ds, cam, state: 'docking', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = dockingPhase;
     this.showGuidance(level.exitMode ? 'CLEAR THE STATION' : 'DELIVER TO TARGET BAY');
     this.time = 0;
@@ -353,7 +366,7 @@ export class Game {
     const cam = createClusterCamera(level);
     updateClusterCamera(cam, cs, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
-    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
+    const clusterPhase: Extract<GameplayPhase, { kind: 'cluster' }> = { kind: 'cluster', level, cs, cam, state: 'flying', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = clusterPhase;
     this.showGuidance(level.escapeToOrbitalLevelId ? 'LOCAL TRAFFIC: EXIT VOLUME ON ESCAPE VECTOR' : 'LOCAL TRAFFIC: FLY TO ASSIGNED BERTH');
     this.time = 0;
@@ -487,7 +500,7 @@ export class Game {
       }
     }
     this.phaseCompletion = null;
-    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition) };
+    const orbitalPhase: Extract<GameplayPhase, { kind: 'orbital' }> = { kind: 'orbital', level, os, cam, state: 'orbiting', initOverride: effectiveInit, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = orbitalPhase;
     const guidance = level.station ? 'RENDEZVOUS WITH TARGET'
       : level.targetBodyId ? 'INTERCEPT TARGET BODY'
@@ -691,6 +704,10 @@ export class Game {
     this.activeMissionDestinationId = null;
     this.activeCareerContract = null;
     this.activeManifestCondition = createManifestConditionState(null, null);
+    this.activeMaintenanceTelemetry = createMaintenanceTelemetry();
+    this.activeMaintenanceContext = null;
+    this.pendingMaintenanceSettlement = null;
+    this.maintenanceRetryNote = undefined;
     this.shownOperationsManualTutorials.clear();
   }
 
@@ -781,8 +798,12 @@ export class Game {
 
   private reloadPhase(p: GameplayPhase): void {
     this.phaseCompletion = null;
+    this.pendingMaintenanceSettlement = null;
     this.missionDvUsed = p.missionDvStart;
     this.activeManifestCondition = cloneManifestConditionState(p.manifestConditionStart);
+    this.activeMaintenanceTelemetry = cloneMaintenanceTelemetry(p.maintenanceTelemetryStart);
+    if (this.activeMaintenanceContext) this.activeMaintenanceContext = { ...this.activeMaintenanceContext, attempt: this.activeMaintenanceContext.attempt + 1 };
+    this.maintenanceRetryNote = `Phase retry restored ${p.kind} telemetry snapshot`;
     if (p.kind === 'landing') this.loadLanding(p.level, p.initOverride, p.launchGuidance, p.worldTimeStart);
     else if (p.kind === 'approach') this.loadApproach(p.level, p.initOverride, p.worldTimeStart);
     else if (p.kind === 'orbital') this.loadOrbital(p.level, p.initOverride, p.worldTimeStart);
@@ -830,6 +851,14 @@ export class Game {
     }
     const detailText = detailLines.join('\n');
     this.guidanceText = '';
+    if (completionText && this.activeCareerContract && this.activeMaintenanceContext && !this.pendingMaintenanceSettlement) {
+      this.pendingMaintenanceSettlement = resolveMaintenanceSettlement(
+        this.activeMaintenanceTelemetry,
+        this.activeMaintenanceContext,
+        this.career.rig,
+        this.worldTime,
+      );
+    }
     const finalContractTitle = completionText && this.activeCareerContract ? this.activeCareerContract.title : undefined;
     this.phaseCompletion = {
       title: finalContractTitle ?? extra.title ?? this.phaseTitle(p),
@@ -844,7 +873,10 @@ export class Game {
         this.phaseCompletion = null;
         onContinue();
       },
-      onRetry: () => this.reloadPhase(p),
+      onRetry: () => {
+        this.pendingMaintenanceSettlement = null;
+        this.reloadPhase(p);
+      },
     };
     this.accumulator = 0;
   }
@@ -866,7 +898,11 @@ export class Game {
     if (contract.certificationOnSuccess !== undefined) {
       awardTeamsterCertification(this.career, contract.certificationOnSuccess);
     }
+    const committedSettlement = this.pendingMaintenanceSettlement;
+    if (committedSettlement) this.career.rig = committedSettlement.resultingRig;
     saveCareerProfile(this.career);
+    if (committedSettlement) this.committedMaintenanceLedgers = appendCommittedMaintenanceLedger(committedSettlement.ledger);
+    this.pendingMaintenanceSettlement = null;
     this.loadStationTerminal();
   }
 
@@ -2254,6 +2290,21 @@ export class Game {
       this.activeMissionLayoutSeed = Math.floor(Math.random() * 0x1_0000_0000);
     }
     const generated = createPlayableEstellaMission(sourceId, destinationId, selectedTransfer, this.activeMissionLayoutSeed);
+    const missionId = this.activeCareerContract?.id ?? `${sourceId}->${destinationId}:${Math.floor(startWorldTime)}`;
+    const previousAttempt = this.activeMaintenanceContext?.missionId === missionId ? this.activeMaintenanceContext.attempt : 0;
+    this.activeMaintenanceTelemetry = createMaintenanceTelemetry();
+    this.activeMaintenanceContext = {
+      missionId,
+      title: this.activeCareerContract?.title ?? 'Generated Estella mission',
+      sourceId,
+      destinationId,
+      manifestKind: this.activeCareerContract?.category === 'passenger' ? 'passenger' : this.activeMissionQuote ? 'freight' : 'empty',
+      manifestMassTons: this.activeMissionQuote?.cargoMassTons ?? 0,
+      attempt: previousAttempt + 1,
+      startWorldTime,
+    };
+    this.pendingMaintenanceSettlement = null;
+    this.maintenanceRetryNote = previousAttempt > 0 ? 'Whole-mission retry restored empty telemetry' : undefined;
     this.phaseCompletion = null;
     this.activeMissionSourceId = sourceId;
     this.activeMissionDestinationId = destinationId;
