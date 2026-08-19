@@ -317,7 +317,7 @@ export function drawHUD(
     }
   }
 
-  if (altitude < 80 && !ship.gearDeployed) {
+  if (!launchGuidance && altitude < 80 && !ship.gearDeployed) {
     warnings.push({ text: '⚠ GEAR', color: COL_WARNING });
   }
   if (altitude < 100 && Math.abs(ship.angle) > config.landingMaxAngle) {
