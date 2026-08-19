@@ -2616,6 +2616,7 @@ function ws(wx: number, wy: number, cam: OrbitalCamera, W: number, H: number): [
 export function renderOrbital(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel, time: number,
+  atmosphericPackageInstalled = true,
 ): void {
   const W = canvas.width, H = canvas.height;
 
@@ -2642,7 +2643,7 @@ export function renderOrbital(
   if (!level.surfaceMarkers && !level.station && level.showLandingSite !== false) drawLandingSite(ctx, cam, level, W, H);
   if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
-    drawOrbitPrediction(ctx, cam, s, level, W, H);
+    drawOrbitPrediction(ctx, cam, s, level, W, H, atmosphericPackageInstalled);
     drawTrail(ctx, cam, s, W, H);
     drawOrbitalMarkers(ctx, cam, s, level, W, H);
   }
@@ -3381,9 +3382,51 @@ function drawManeuverMarker(
 }
 
 // --- Orbit prediction (numerical, with aerobraking) ---
+function drawOrbitalStatusTriangle(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  alert: boolean,
+  size = 8,
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x, y - size);
+  ctx.lineTo(x + size, y + size);
+  ctx.lineTo(x - size, y + size);
+  ctx.closePath();
+  ctx.fillStyle = alert ? '#e32636' : '#050706';
+  ctx.strokeStyle = alert ? '#e32636' : COL_WARNING;
+  ctx.lineWidth = 1.5;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = alert ? '#ffffff' : COL_WARNING;
+  ctx.font = `bold ${Math.max(10, size + 3)}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('!', x, y + size * 0.65);
+  ctx.restore();
+}
+
+function drawOrbitalNotice(
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  y: number,
+  text: string,
+  alert: boolean,
+): void {
+  ctx.font = 'bold 16px monospace';
+  const textWidth = ctx.measureText(text).width;
+  const startX = canvasWidth / 2 - (textWidth + 26) / 2;
+  drawOrbitalStatusTriangle(ctx, startX + 8, y - 5, alert, 8);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = alert ? COL_DANGER : COL_WARNING;
+  ctx.fillText(text, startX + 24, y);
+}
+
 function drawOrbitPrediction(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+  atmosphericPackageInstalled: boolean,
 ): void {
   const pred = getCachedPrediction(s, level);
   const points = pred.points;
@@ -3409,9 +3452,12 @@ function drawOrbitPrediction(
       const frac = i / points.length;
       const alpha = 0.2 + 0.8 * (1 - frac); // 1.0 ahead → 0.2 at full orbit
 
-      // Color: green=vacuum, yellow=in atmo, orange=below critical altitude
+      // Color: green=vacuum, yellow=in atmo, orange=below critical altitude.
+      // Without an Atmospheric Package, every atmospheric segment is fatal and red.
       let r = 0, g = 255, b = 100; // green
-      if (pt.belowCritical) {
+      if (!atmosphericPackageInstalled && (pt.inAtmo || pt.belowCritical)) {
+        r = 255; g = 35; b = 45;    // red
+      } else if (pt.belowCritical) {
         r = 255; g = 160; b = 0;    // orange
       } else if (pt.inAtmo) {
         r = 255; g = 220; b = 0;    // yellow
@@ -3477,17 +3523,22 @@ function drawOrbitPrediction(
     }
   }
 
-  // Atmo entry: yellow arrow diving in
+  // Atmospheric entry is an alert rather than a navigational warning when unprotected.
   if (pred.atmoEntry) {
-    drawEventArrow(
-      pred.atmoEntry.x, pred.atmoEntry.y,
-      pred.atmoEntry.vx, pred.atmoEntry.vy,
-      '#ffdd00', true, 8,
-    );
+    if (atmosphericPackageInstalled) {
+      drawEventArrow(
+        pred.atmoEntry.x, pred.atmoEntry.y,
+        pred.atmoEntry.vx, pred.atmoEntry.vy,
+        '#ffdd00', true, 8,
+      );
+    } else {
+      const [mx, my] = ws(pred.atmoEntry.x, pred.atmoEntry.y, cam, W, H);
+      drawOrbitalStatusTriangle(ctx, mx, my, true, 8);
+    }
   }
 
-  // Atmo exit: yellow arrow with upward kick
-  if (pred.atmoExit) {
+  // A fatal unprotected entry has no meaningful aerobraking exit marker.
+  if (pred.atmoExit && atmosphericPackageInstalled) {
     drawEventArrow(
       pred.atmoExit.x, pred.atmoExit.y,
       pred.atmoExit.vx, pred.atmoExit.vy,
@@ -3496,7 +3547,7 @@ function drawOrbitPrediction(
   }
 
   // Approach start: orange arrow, slightly larger
-  if (pred.approachStart) {
+  if (pred.approachStart && atmosphericPackageInstalled) {
     drawEventArrow(
       pred.approachStart.x, pred.approachStart.y,
       pred.approachStart.vx, pred.approachStart.vy,
@@ -3910,6 +3961,7 @@ function orbitalTargetPanel(
   pred: PredictionResult,
   peAlt: number,
   apAlt: number,
+  atmosphericPackageInstalled: boolean,
 ): { name: string; rows: { label: string; value: string; color?: string }[]; guidance: string } {
   if (level.station) {
     const stationName = orbitalStationName(level);
@@ -4008,8 +4060,10 @@ function orbitalTargetPanel(
   const approachLevel = level.reentryApproachLevelId !== undefined ? approachLevelById(level.reentryApproachLevelId) : undefined;
   return {
     name: approachLevel?.poi.name ?? orbitalBodyName(level),
-    rows: [{ label: 'PeA', value: `${peAlt.toFixed(1)} km < ${(level.transitionAltitude / 1000).toFixed(1)} km`, color: peAlt * 1000 <= level.transitionAltitude ? COL_SUCCESS : COL_WARNING }],
-    guidance: level.atmoHeight > 0 ? 'Deorbit and land near the LZ.' : 'Descend and enter approach near the target site.',
+    rows: [{ label: 'PeA', value: `${peAlt.toFixed(1)} km < ${(level.transitionAltitude / 1000).toFixed(1)} km`, color: level.atmoHeight > 0 && !atmosphericPackageInstalled && peAlt < level.atmoHeight / 1000 ? COL_DANGER : peAlt * 1000 <= level.transitionAltitude ? COL_SUCCESS : COL_WARNING }],
+    guidance: level.atmoHeight > 0
+      ? atmosphericPackageInstalled ? 'Deorbit and land near the LZ.' : 'Atmospheric entry is fatal: Atmospheric Package not equipped.'
+      : 'Descend and enter approach near the target site.',
   };
 }
 
@@ -4023,6 +4077,8 @@ export function drawOrbitalHUD(
   missionDvUsed: number = 0,
   missionParDv: number = 0,
   suppressStateOverlays = false,
+  atmosphericPackageInstalled = true,
+  crashReason?: string,
 ): number {
   const W = canvas.width, H = canvas.height;
   const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
@@ -4060,9 +4116,9 @@ export function drawOrbitalHUD(
 
   drawHudLabel(ctx, lx, ly, 'ALT', `${altKm.toFixed(1)} km`, COL_HUD); ly += lh;
   drawHudLabel(ctx, lx, ly, 'SPD', `${speed.toFixed(0)} m/s`, COL_HUD); ly += lh;
-  const peCol = peBelowCrit ? '#ff8844' : peInAtmo ? '#ffdd00' : COL_HUD;
+  const peCol = !atmosphericPackageInstalled && peInAtmo ? COL_DANGER : peBelowCrit ? '#ff8844' : peInAtmo ? '#ffdd00' : COL_HUD;
   drawHudLabel(ctx, lx, ly, 'PeA', `${peAlt.toFixed(1)} km`, peCol); ly += lh;
-  const apCol = (apAlt === Infinity || escapeApsis) ? COL_WARNING : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
+  const apCol = (apAlt === Infinity || escapeApsis) ? COL_WARNING : !atmosphericPackageInstalled && apInAtmo ? COL_DANGER : apBelowCrit ? '#ff8844' : apInAtmo ? '#ffdd00' : COL_HUD;
   const apStr = (apAlt === Infinity || escapeApsis) ? 'ESCAPE' : `${apAlt.toFixed(1)} km`;
   drawHudLabel(ctx, lx, ly, 'ApA', apStr, apCol); ly += lh;
   if (level.atmoHeight > 0) {
@@ -4081,7 +4137,7 @@ export function drawOrbitalHUD(
   drawHudLabel(ctx, lx, ly, 'MIS ΔV', `${missionDvUsed.toFixed(0)} m/s`, COL_HUD); ly += lh;
   if (missionParDv > 0) drawHudLabel(ctx, lx, ly, 'PAR ΔV', `${missionParDv.toFixed(0)} m/s`, missionDvUsed <= missionParDv ? COL_SUCCESS : COL_WARNING), ly += lh;
 
-  const targetPanel = orbitalTargetPanel(s, level, pred, peAlt, apAlt);
+  const targetPanel = orbitalTargetPanel(s, level, pred, peAlt, apAlt, atmosphericPackageInstalled);
   const destinationPanel = drawHudInfoPanel(ctx, canvas, {
     title: 'DESTINATION',
     name: level.finalDestinationName ?? destinationName ?? targetPanel.name,
@@ -4101,9 +4157,9 @@ export function drawOrbitalHUD(
       const entryAngle = Math.abs(Math.atan2(-vr, vh)) * 180 / Math.PI;
       ly += 4;
       ctx.font = '13px "Courier New", monospace';
-      ctx.fillStyle = '#885544';
+      ctx.fillStyle = atmosphericPackageInstalled ? '#885544' : COL_DANGER;
       ctx.fillText('ENTRY', lx, ly);
-      ctx.fillStyle = '#ff8844';
+      ctx.fillStyle = atmosphericPackageInstalled ? '#ff8844' : COL_DANGER;
       ctx.fillText(`${entrySpeed.toFixed(0)} m/s  ${entryAngle.toFixed(1)}°`, lx + 56, ly);
       ly += lh;
     }
@@ -4111,16 +4167,13 @@ export function drawOrbitalHUD(
 
   let warnY = 30;
   if (predictedImpact && state === 'orbiting') {
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = COL_DANGER;
-    if (Math.sin(Date.now() * 0.012) > -0.3) ctx.fillText('⚠ IMPACT TRAJECTORY', W / 2, warnY);
+    if (Math.sin(Date.now() * 0.012) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'IMPACT TRAJECTORY', true);
+    warnY += 22;
+  } else if (!atmosphericPackageInstalled && pred.atmoEntry && state === 'orbiting') {
+    if (Math.sin(Date.now() * 0.012) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'FATAL ATMOSPHERIC ENTRY', true);
     warnY += 22;
   } else if (peInAtmo && level.atmoHeight > 0 && state === 'orbiting') {
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = COL_WARNING;
-    if (Math.sin(Date.now() * 0.008) > -0.3) ctx.fillText('⚠ AEROBRAKE TRAJECTORY', W / 2, warnY);
+    if (Math.sin(Date.now() * 0.008) > -0.3) drawOrbitalNotice(ctx, W, warnY, 'AEROBRAKE TRAJECTORY', false);
     warnY += 22;
   }
 
@@ -4193,8 +4246,8 @@ export function drawOrbitalHUD(
 
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_DANGER;
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText('IMPACT', W / 2, H / 2 - 15);
+    ctx.font = 'bold 24px monospace';
+    ctx.fillText(crashReason ?? 'IMPACT', W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';
     ctx.fillText('BACKSPACE: Retry  |  Esc: Flight Menu', W / 2, H / 2 + 25);

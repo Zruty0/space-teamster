@@ -414,7 +414,7 @@ For example, `1.25×` and `1.50×` Body and Frame modifiers combine to `1.875×`
 
 Separately purchased rig modules appear in a distinct **Optional Equipment** list on Ship Status rather than becoming additional top-level maintenance systems. The persistent list starts empty.
 
-**Heavy Heat Shielding** is the first planned optional module. It augments the Atmospheric Package and provides roughly four times the effective heat resistance of the normal package. Current atmospheric flight survivability is the heavy-shielding level; the eventual unaugmented package should have approximately one quarter of that resistance. Activate this thermal difference together with an authored acquisition path so a new career is not trapped without a way to buy the module.
+**Heavy Heat Shielding** is the first planned optional module. It augments the Atmospheric Package and provides roughly four times the effective heat resistance of the normal package. Current atmospheric flight survivability is the heavy-shielding level; the eventual unaugmented package should have approximately one quarter of that resistance. Activate this thermal difference together with an authored acquisition path so a new career is not trapped without a way to buy the module. A rig with no Atmospheric Package has zero atmospheric survivability: crossing into any atmospheric density, including on a trajectory that would otherwise aerobrake and return to space, immediately crashes.
 
 ### Component and shop grades
 

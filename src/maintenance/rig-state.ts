@@ -134,6 +134,15 @@ const RESTRICTION_LABELS: Record<RigRestrictionId, string> = {
   'atmospheric-work-unavailable': 'Atmospheric work is unavailable',
 };
 
+export function maintenanceSystemFullyInstalled(rig: CareerRigState, systemId: MaintenanceSystemId): boolean {
+  const system = MAINTENANCE_SYSTEMS.find(candidate => candidate.id === systemId);
+  return !!system && system.componentIds.every(componentId => rig.components[componentId]?.installed);
+}
+
+export function atmosphericExposureIsFatal(rig: CareerRigState, atmosphericExposure: boolean): boolean {
+  return atmosphericExposure && !maintenanceSystemFullyInstalled(rig, 'atmospheric-package');
+}
+
 export function deriveRestrictions(rig: CareerRigState): RigRestriction[] {
   const restrictions: RigRestriction[] = [];
   const seen = new Set<string>();
@@ -143,8 +152,7 @@ export function deriveRestrictions(rig: CareerRigState): RigRestriction[] {
     seen.add(key);
     restrictions.push({ id, componentId, reason });
   };
-  const atmosphericInstalled = MAINTENANCE_SYSTEMS.find(system => system.id === 'atmospheric-package')!.componentIds
-    .every(componentId => rig.components[componentId]?.installed);
+  const atmosphericInstalled = maintenanceSystemFullyInstalled(rig, 'atmospheric-package');
   if (!atmosphericInstalled) add('atmospheric-work-unavailable', undefined, 'Atmospheric work is unavailable: Atmospheric Package is not installed');
 
   for (const component of MAINTENANCE_COMPONENTS) {

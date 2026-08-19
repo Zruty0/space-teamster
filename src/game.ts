@@ -71,7 +71,7 @@ import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryA
 import { validateMaintenanceCatalog } from './maintenance/catalog';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicOperation } from './maintenance/maintenance-service';
-import { deriveRestrictions, validateRigState } from './maintenance/rig-state';
+import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
@@ -98,7 +98,7 @@ interface GameplayPhaseConditionBase {
 type GameplayPhase = (
   | { kind: 'landing'; level: LevelDef; ship: ShipState; terrain: TerrainData; camera: Camera; state: GameState; score: LandingScore | null; initOverride?: { x: number; y: number; vx: number; vy: number; facingSign?: 1 | -1 }; launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number }; worldTimeStart: number; missionDvStart: number }
   | { kind: 'approach'; level: ApproachLevel; as: ApproachState; cam: ApproachCamera; state: 'approaching' | 'approachSuccess' | 'approachFailed'; initOverride?: ApproachInitOverride; worldTimeStart: number; missionDvStart: number }
-  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
+  | { kind: 'orbital'; level: OrbitalLevel; os: OrbitalState; cam: OrbitalCamera; state: 'orbiting' | 'enteredAtmo' | 'crashed' | 'docked'; crashReason?: string; initOverride?: OrbitalInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'docking'; level: DockingLevel; ds: DockingState; cam: DockingCamera; state: 'docking' | 'delivered' | 'crashed'; initOverride?: DockingInitOverride; worldTimeStart: number; missionDvStart: number }
   | { kind: 'cluster'; level: ClusterLevel; cs: ClusterState; cam: ClusterCamera; state: 'flying' | 'arrived' | 'crashed'; initOverride?: ClusterInitOverride; worldTimeStart: number; missionDvStart: number }
 ) & GameplayPhaseConditionBase;
@@ -1388,6 +1388,7 @@ export class Game {
     this.accumulator += frameTime;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'orbiting') {
+        const wasInAtmosphere = p.os.inAtmo;
         const prevOrbitalState = {
           x: p.os.x,
           y: p.os.y,
@@ -1420,7 +1421,20 @@ export class Game {
         input.warpUp = false;
         input.warpDown = false;
 
-        if (!p.os.alive) p.state = 'crashed';
+        const enteredUnprotectedAtmosphere = atmosphericExposureIsFatal(
+          this.career.rig,
+          p.level.atmoHeight > 0 && (wasInAtmosphere || p.os.inAtmo || p.os.enteredAtmo),
+        );
+        if (enteredUnprotectedAtmosphere) {
+          p.os.alive = false;
+          p.state = 'crashed';
+          p.crashReason = 'UNSHIELDED ATMOSPHERIC ENTRY';
+          break;
+        }
+        if (!p.os.alive) {
+          p.state = 'crashed';
+          break;
+        }
         if (p.os.docked) {
           if (p.level.dockingLevelId) {
             const transition = this.transitionOrbitalToDocking(p);
@@ -2197,10 +2211,10 @@ export class Game {
     const systemRows = playerShipSystemStatuses(this.career.rig).map(system => ({
       kind: 'kv' as const,
       label: system.name,
-      value: `${system.status.toUpperCase()}${system.notEquipped ? ' — NOT EQUIPPED' : ''}`,
-      valueLineCount: system.notEquipped ? 2 as const : 1 as const,
-      tone: system.status === 'alert' ? 'danger' as const : system.status === 'warning' ? 'warning' as const : 'success' as const,
-      icon: system.status === 'alert' ? 'alert' as const : system.status === 'warning' ? 'warning' as const : undefined,
+      value: system.notEquipped ? 'NOT EQUIPPED' : system.status.toUpperCase(),
+      valueLineCount: 1 as const,
+      tone: system.notEquipped ? 'warning' as const : system.status === 'alert' ? 'danger' as const : system.status === 'warning' ? 'warning' as const : 'success' as const,
+      icon: system.notEquipped ? undefined : system.status === 'alert' ? 'alert' as const : system.status === 'warning' ? 'warning' as const : undefined,
     }));
     const restrictions = playerRestrictionLabels(this.career.rig);
     const optionalEquipment = playerOptionalEquipmentNames(this.career.rig);
@@ -2467,8 +2481,9 @@ export class Game {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
       rightHudBottom = drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
-      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time);
-      rightHudBottom = drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
+      const atmosphericPackageInstalled = maintenanceSystemFullyInstalled(this.career.rig, 'atmospheric-package');
+      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time, atmosphericPackageInstalled);
+      rightHudBottom = drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays, atmosphericPackageInstalled, p.crashReason);
     } else if (p.kind === 'docking') {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
       rightHudBottom = drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);

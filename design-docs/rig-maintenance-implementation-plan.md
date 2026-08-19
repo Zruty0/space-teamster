@@ -190,7 +190,7 @@ After state/settlement is stable, enforce derived restrictions at both acceptanc
 - freight/passenger restrictions filter or disable incompatible postings
 - station/surface destination requirements check docking and landing capability
 - high thrust, braking SAS, and wings are disabled in controls when unavailable
-- Atmospheric Package absence/Total blocks atmospheric work only
+- Atmospheric Package absence/Total blocks atmospheric work only; if an unequipped rig nevertheless reaches any atmospheric density in orbital flight, including an aerobraking pass, entry immediately crashes the rig
 
 Show a specific reason wherever an action is blocked. Do not silently remove money, time, location, or wear on failed launch attempts.
 
@@ -208,7 +208,7 @@ Do not expose component rows or component-detail scenes. Ship Status does not sh
 
 Below the seven indicators, show the derived equipment-based restrictions as a plain player-safe list, including grounding and unavailable freight, passenger, high-thrust, braking-SAS, docking, landing, wing, surface, or atmospheric work. Do not leak component names through internal restriction reasons. Missing Atmospheric Package uses the same list as every other restriction and reads `No atmospheric flight`. If no restriction is active, show `No equipment restrictions`.
 
-An absent optional Atmospheric Package is not itself a damaged-system alert. Show the package as `OK — not equipped`, while the restriction list states that atmospheric work is unavailable because the package is not installed.
+An absent optional Atmospheric Package is not itself a damaged-system alert. Show only orange `NOT EQUIPPED`, without `OK` and without a warning/alert status icon, while the ordinary restriction list states `No atmospheric flight`. In orbital mode, any predicted atmospheric segment is red, atmospheric-entry markers and notices use the red alert triangle rather than a warning sign, and actual atmospheric exposure immediately crashes the rig—even when the trajectory would otherwise aerobrake and exit.
 
 Below restrictions, show an **Optional Equipment** list for separately purchased rig modules. The persistent list starts empty and displays `None installed`. Heavy Heat Shielding is the first defined future module, but it is not initially installed.
 
@@ -370,7 +370,8 @@ The Mechanic view always shows actual hidden state, including component conditio
 - Station Terminal Ship Status shows the seven systems in the approved order
 - each system displays only `OK`, `WARNING`, or `ALERT`; AP depletion and sub-threshold HP wear remain `OK`, Minor faults produce `WARNING`, and Major/Total faults produce `ALERT`
 - Ship Status shows derived equipment restrictions with specific reasons and no component details, diagnosis, RNG, or raw telemetry
-- absent Atmospheric Package displays `OK — not equipped` while `No atmospheric flight` appears in the ordinary restrictions list
+- absent Atmospheric Package displays orange `NOT EQUIPPED` without `OK` or a status icon, while `No atmospheric flight` appears in the ordinary restrictions list
+- an unprotected orbital atmospheric entry or aerobraking pass immediately crashes and uses red trajectory/alert presentation
 - Ship Status and its Station Terminal option show only the approved warning/alert triangle when a named fault is active
 - Optional Equipment displays `None installed` for a migrated/default rig
 - the Maintenance Services board lists only locally reachable authored shops
