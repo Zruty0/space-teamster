@@ -11,7 +11,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'war
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -40,6 +40,7 @@ export interface InteractiveScene {
   bodyLines?: string[];
   bodyRows?: InteractiveSceneBodyRow[];
   bodyMaxHeight?: number;
+  bodyLabelWidth?: number;
   options: InteractiveSceneOption[];
   footer?: string;
 }
@@ -119,7 +120,7 @@ function drawRichTextSegments(
   x: number,
   y: number,
   maxWidth: number,
-  maxLines: 1 | 2,
+  maxLines: 1 | 2 | 3 | 4,
 ): void {
   let line = 0;
   let cursorX = x;
@@ -206,18 +207,18 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void
 function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save();
   ctx.strokeStyle = '#4ddcff';
-  ctx.lineWidth = 1.6;
+  ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  // Upright open-end wrench: split jaws above a straight handle.
   ctx.beginPath();
   ctx.moveTo(x + 1, y - 11);
-  ctx.lineTo(x + 4, y - 8);
-  ctx.lineTo(x + 7, y - 10);
-  ctx.moveTo(x + 4, y - 8);
-  ctx.lineTo(x + 10, y - 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(x + 10, y - 2, 2, 0, Math.PI * 2);
+  ctx.lineTo(x + 4, y - 7);
+  ctx.lineTo(x + 6, y - 6);
+  ctx.lineTo(x + 8, y - 7);
+  ctx.lineTo(x + 11, y - 11);
+  ctx.moveTo(x + 6, y - 6);
+  ctx.lineTo(x + 6, y + 2);
   ctx.stroke();
   ctx.restore();
 }
@@ -262,11 +263,18 @@ function sceneBodyMetrics(
   scene: InteractiveScene,
 ): { contentHeight: number; viewportHeight: number } {
   const boxW = Math.min(920, canvas.width - 80);
+  const labelW = scene.bodyLabelWidth ?? 165;
   const rows = bodyRows(scene);
   ctx.font = '13px monospace';
   const contentHeight = rows.reduce((height, row) => {
     if (row.kind === 'separator') return height + 14;
-    if (row.kind === 'kv') return height + (row.valueLineCount === 2 ? 40 : 22);
+    if (row.kind === 'kv') {
+      const maxLines = row.valueLineCount ?? 1;
+      const valueIconWidth = row.valueIcon ? 20 : 0;
+      const valueWidth = boxW - labelW - 54 - valueIconWidth;
+      const lineCount = row.valueSegments ? maxLines : Math.max(1, Math.min(maxLines, wrapText(ctx, row.value, valueWidth).length));
+      return height + 22 + (lineCount - 1) * 18;
+    }
     return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
   }, 0);
   const requestedHeight = rows.length ? Math.min(scene.bodyMaxHeight ?? 260, 24 + contentHeight) : 0;
@@ -318,7 +326,7 @@ export function drawInteractiveScene(
   const x = W / 2 - boxW / 2;
   const bodyY = 92;
   const rows = bodyRows(scene);
-  const labelW = 165;
+  const labelW = scene.bodyLabelWidth ?? 165;
   const { contentHeight: bodyContentH, viewportHeight: bodyH } = sceneBodyMetrics(ctx, canvas, scene);
   const maxBodyScroll = Math.max(0, bodyContentH + 24 - bodyH);
   const bodyScrollOffset = Math.max(0, Math.min(maxBodyScroll, requestedBodyScrollOffset));
@@ -360,15 +368,16 @@ export function drawInteractiveScene(
         const valueWidth = boxW - labelW - 54 - valueIconWidth;
         if (row.valueIcon) drawInteractiveIcon(ctx, row.valueIcon, valueX, y);
         const valueTextX = valueX + valueIconWidth;
+        const maxValueLines = row.valueLineCount ?? 1;
         if (row.valueSegments) {
-          drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, row.valueLineCount ?? 1);
-          y += row.valueLineCount === 2 ? 40 : 22;
-        } else if (row.valueLineCount === 2) {
+          drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, maxValueLines);
+          y += 22 + (maxValueLines - 1) * 18;
+        } else if (maxValueLines > 1) {
           const wrapped = wrapText(ctx, row.value, valueWidth);
-          const valueLines = wrapped.slice(0, 2);
-          if (wrapped.length > 2) valueLines[1] = middleEllipsis(ctx, `${valueLines[1]}…`, valueWidth);
+          const valueLines = wrapped.slice(0, maxValueLines);
+          if (wrapped.length > maxValueLines) valueLines[maxValueLines - 1] = middleEllipsis(ctx, `${valueLines[maxValueLines - 1]}…`, valueWidth);
           valueLines.forEach((line, index) => ctx.fillText(line, valueTextX, y + index * 18));
-          y += 40;
+          y += 22 + (Math.max(1, valueLines.length) - 1) * 18;
         } else {
           ctx.fillText(middleEllipsis(ctx, row.value, valueWidth), valueTextX, y);
           y += 22;

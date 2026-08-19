@@ -2121,9 +2121,10 @@ export class Game {
     return {
       title: shop.name.toUpperCase(),
       subtitle: `${locationPath}   CASH: ${cash}`,
+      bodyLabelWidth: 120,
       bodyRows: [
         { kind: 'text', text: shop.description },
-        { kind: 'text', text: `SHOP LEVEL — ${shop.levelDescription}` },
+        { kind: 'kv', label: 'Shop level', value: shop.levelDescription, valueLineCount: 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
