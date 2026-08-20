@@ -506,6 +506,17 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: LocalOfficeDef = {
   actions: [],
 };
 
+export const KEELWRIGHT_WORKS_SECONDS_GATE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'keelwright-works-seconds-gate-directory',
+  name: 'The Seconds Gate at Keelwright Works',
+  locationIds: ['estella-xie-rare-alloy-extraction'],
+  summary: 'Rapid factory service and proofed production-overrun components.',
+  description: 'The Seconds Gate occupies a receiving hall beside Keelwright Works’ final proofing floor. Its tall racks hold pristine drive housings in rival House colors, frame members with obsolete crests milled away, and actuator sets marked thirteen of twelve. Every component carries a production pedigree and a visible proof stamp. At each shift bell, carts, crews, and visiting rigs advance together through the exchange line under Proofmaster Tomé Avelar’s ear.',
+  maintenanceShopId: 'keelwright-works-seconds-gate',
+  actions: [],
+};
+
 export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   kind: 'office',
   id: 'bruckner-central-service-hall-office',
@@ -537,6 +548,7 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   CADIZ_ARMORIAL_SHIPWRIGHTS,
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
+  KEELWRIGHT_WORKS_SECONDS_GATE,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,

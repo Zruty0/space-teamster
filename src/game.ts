@@ -2597,7 +2597,7 @@ export class Game {
               && !hasTeamsterCertification(this.career, entry.tutorialUntilCertification);
             return {
               label: entry.name,
-              labelLineCount: entry.name.length > 36 ? 2 as const : undefined,
+              labelLineCount: entry.name.length >= 36 ? 2 as const : undefined,
               tag: tutorialEntry ? 'TUTORIAL' : entry.maintenanceShopId ? undefined : entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
               tagTone: tutorialEntry ? 'story' as InteractiveTone : undefined,
               leftIcon: entry.maintenanceShopId ? 'wrench' as const : undefined,

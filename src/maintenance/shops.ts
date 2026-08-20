@@ -221,6 +221,29 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
   },
 };
 
+export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
+  id: 'keelwright-works-seconds-gate',
+  name: 'The Seconds Gate at Keelwright Works',
+  organizationName: 'Keelwright Works',
+  locationIds: ['estella-xie-rare-alloy-extraction'],
+  diagnosticGrade: 'B',
+  workQualityGrade: 'C',
+  componentGradeBest: 'B',
+  componentGradeWorst: 'C',
+  laborRate: 1_600,
+  diagnosisHours: 2,
+  partsMarkup: 0.85,
+  laborHoursMultiplier: 0.5,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The Seconds Gate occupies a receiving hall beside Keelwright Works’ final proofing floor. Its tall racks hold pristine drive housings in rival House colors, frame members with obsolete crests milled away, and actuator sets marked thirteen of twelve. Every component carries a production pedigree and a visible proof stamp. At each shift bell, carts, crews, and visiting rigs advance together through the exchange line under [person]Proofmaster Tomé Avelar[/person]’s ear.',
+    levelBlurb: 'Rapid factory exchange using proofed production overruns and cosmetic seconds',
+    diagnosisBlurb: '“Bring the rig beneath proof frame six.” [person]Proofmaster Tomé Avelar[/person] raises one hand, and a single bell stroke moves three inspection crews into position. “We will load the structure, run the machinery at works tolerance, and test the controls against production references. One hour. Then you’ll know what holds, what can be machined here, and which proofed exchange assemblies fit.”',
+    serviceBlurb: '“Keelwright builds by rhythm, and maintenance belongs in the same rhythm.” [person]Tomé Avelar[/person] sounds a short sequence on the shift bell. Tool carts turn, acceptance benches open, and the service hands take their stations. “Select the systems. The line will renew protection, set clearances, and run each assembly across its acceptance bench before the next bell.”',
+    repairsBlurb: '“Every part in this hall passed proof. It is here because a lord changed his crest, a contract ordered twelve and the line made thirteen, or a polishing gauge offended somebody with a title.” [person]Tomé Avelar[/person] taps the visible acceptance stamp. “Metal does not become weaker because a herald changed his mind. Authorize the work. Certified repairs go to the machinists, exchanges come straight from the proof racks, and your rig leaves on this shift.”',
+  },
+};
+
 export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   id: 'bruckner-central-service-hall',
   name: 'Bruckner Central Service Hall',
@@ -276,6 +299,7 @@ const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   CADIZ_ARMORIAL_SHIPWRIGHTS,
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
+  KEELWRIGHT_WORKS_SECONDS_GATE,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
 ];
