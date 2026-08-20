@@ -481,6 +481,18 @@ export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: LocalOfficeDef = {
   actions: [],
 };
 
+export const CADIZ_ARMORIAL_SHIPWRIGHTS: LocalOfficeDef = {
+  kind: 'office',
+  id: 'cadiz-armorial-shipwrights-office',
+  name: 'The Armorial Shipwrights at Shipwright Keep',
+  organizationName: 'The Armorial Shipwrights',
+  locationIds: ['estella-xid-services-outfitter-hangar'],
+  summary: 'Heraldic repair court and noble outfitter.',
+  description: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a yard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. Sir Afonso de Lacerda, Keeper of the Yard Seal, presides over the work.',
+  maintenanceShopId: 'cadiz-armorial-shipwrights',
+  actions: [],
+};
+
 export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   kind: 'office',
   id: 'bruckner-central-service-hall-office',
@@ -510,6 +522,7 @@ export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   VILAR_HYDRA_MAW_OUTFITTER,
   VILAR_MACAO_PALACE_OUTFITTER,
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
+  CADIZ_ARMORIAL_SHIPWRIGHTS,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,

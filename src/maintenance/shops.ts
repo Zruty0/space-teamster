@@ -24,7 +24,7 @@ export interface MaintenanceShopDef {
   laborRate: number;
   diagnosisHours: number;
   partsMarkup: number;
-  turnaroundMultiplier: number;
+  laborHoursMultiplier: number;
   honesty: number;
   copy: MaintenanceShopCopy;
 }
@@ -32,7 +32,6 @@ export interface MaintenanceShopDef {
 export interface MaintenanceQuote {
   credits: number;
   laborHours: number;
-  turnaroundHours: number;
 }
 
 export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
@@ -47,7 +46,7 @@ export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'A gilt House Vilar badge spans the entrance to a glass-fronted service gallery high in Gryphon Aerie. [person]Sir Tomás Barreto[/person] governs the concession from a balcony above the bays, welcoming Teamsters with courtly warmth while licensed journeymen drive rows of serf mechanics through the work below.',
@@ -70,7 +69,7 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. [person]Baron Estêvão Vilar[/person]’s local concession is governed by [person]Dame Leonor Falcão[/person], a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
@@ -93,7 +92,7 @@ export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
   laborRate: 600,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'Vilar’s Outfitter at Cadiz Highport occupies a full commercial pier: six numbered service bays, a two-level parts warehouse, and an executive gallery hung with expansion plans beside a purchased baronial crest. [person]Baron Estêvão Vilar[/person] built the chain before buying the title with its proceeds, and still walks the floor with a founder’s eye for idle hands, slow inventory, and missed opportunity.',
@@ -116,7 +115,7 @@ export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'House Vilar’s Hydra Maw concession occupies an armored service gallery between the skim tenders and the station’s pressure refuge. [person]Dame Inês Moura[/person], a former gas-skimmer chief, runs the bays like a flight deck: sealed carts, clipped commands, exact turnaround boards, and journeymen trained to hear a pressure leak through the machinery.',
@@ -139,7 +138,7 @@ export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'The Macao Palace concession resembles a private gaming salon built around a spotless service floor. [person]Sir Gaspar Seixas[/person] receives Teamsters beneath lacquered House Vilar screens while mechanics, parts clerks, debt advocates, and contract brokers move through the galleries at signals from his jeweled hand. He remembers every patron’s wagers, obligations, and preferred manner of being addressed.',
@@ -162,7 +161,7 @@ export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
     profileBlurb: 'The gilt Vilar badge hangs at the entrance where the commercial charter requires it. Inside, the older silver-and-black arms of House Noronha dominate two warm, meticulously ordered service bays beneath Manticore Observatory’s long-watch decks. [person]Sir Lourenço Noronha[/person] accepted command of the concession without conceding social equality to its proprietor. His lineage is older and more renowned than [person]Baron Vilar[/person]’s purchased title, a distinction he introduces before business has properly begun.',
@@ -170,6 +169,29 @@ export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
     diagnosisBlurb: '“House Noronha bore arms before [person]Baron Vilar[/person] learned what one cost.” [person]Sir Lourenço Noronha[/person] regards you with austere patience. “The distinction will mean little to a Teamster of common birth. What should matter to you is that my honor stands behind this inspection. Every finding will be complete, exact, and properly witnessed.”',
     serviceBlurb: '“Maintenance is stewardship: the preservation of what has been entrusted to one’s care.” [person]Sir Lourenço Noronha[/person] surveys the waiting journeymen. “It is a principle old houses learn early. My people will service the selected systems under my eye, and every adjustment will satisfy the obligations of my name.”',
     repairsBlurb: '“Damage is a regrettable disorder, Teamster, but its correction is honorable work.” [person]Sir Lourenço Noronha[/person] rests one hand upon the silver tower worked into his coat. “Though this concession bears [person]Baron Vilar[/person]’s freshly gilded name, my own honor governs the floor. Authorize the work. It will be completed to an excellent standard, as befits the supervision of a noble knight.”',
+  },
+};
+
+export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
+  id: 'cadiz-armorial-shipwrights',
+  name: 'The Armorial Shipwrights at Shipwright Keep',
+  organizationName: 'The Armorial Shipwrights',
+  locationIds: ['estella-xid-services-outfitter-hangar'],
+  diagnosticGrade: 'B',
+  workQualityGrade: 'C',
+  componentGradeBest: 'C',
+  componentGradeWorst: 'D',
+  laborRate: 600,
+  diagnosisHours: 2,
+  partsMarkup: 2,
+  laborHoursMultiplier: 2,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a yard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. [person]Sir Afonso de Lacerda[/person], Keeper of the Yard Seal, presides over the work.',
+    levelBlurb: 'Ancient armorial repair court, rumored to offer ordinary workmanship with twice the ceremony',
+    diagnosisBlurb: '“Before a tool touches your rig, its condition will be entered in the yard book and properly witnessed.” [person]Sir Afonso de Lacerda[/person] gestures toward the framed parchment. “Our Guild certification bears wax because an oath deserves a physical seal. You will receive the finding beneath the arms of Shipwright Keep.”',
+    serviceBlurb: '“Maintenance is stewardship, and stewardship is among the oldest duties of rank.” [person]Sir Afonso de Lacerda[/person] surveys the assembled craftsmen. “Two journeymen will oversee each selected system. [person]Young Dom Rui[/person] is completing his yard rotation this month; if a squire’s hand assists the work, a master’s eye will follow it. Our cadenced keel will mark every completed adjustment.”',
+    repairsBlurb: '“Damage shall be corrected with the ceremony due to a working rig.” [person]Sir Afonso de Lacerda[/person] selects a small heraldic punch from its fitted case. “When the repair passes inspection, the responsible journeyman will strike his device beside the crowned keel of this court. Those marks are our lineage, our warranty, and our answer to anyone who questions the work.”',
   },
 };
 
@@ -182,10 +204,10 @@ export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   workQualityGrade: 'A',
   componentGradeBest: 'A',
   componentGradeWorst: 'D',
-  laborRate: 1_200,
+  laborRate: 1_600,
   diagnosisHours: 2,
   partsMarkup: 1,
-  turnaroundMultiplier: 0.75,
+  laborHoursMultiplier: 0.75,
   honesty: 1,
   copy: {
     profileBlurb: 'Bruckner’s central Estella service floor is bright, quiet, and divided into numbered clean bays. VHM-certified diagnostic frames stand beside locked civilian parts cages and a glass-fronted warranty office. Depot Service Director [person]Anja Riedel[/person] runs the floor by headset; every removed component is tagged before it touches a cart.',
@@ -208,7 +230,7 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   laborRate: 500,
   diagnosisHours: 2,
   partsMarkup: 1.35,
-  turnaroundMultiplier: 1,
+  laborHoursMultiplier: 1,
   honesty: 0,
   copy: {
     profileBlurb: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. [person]Abraham “Honest Abe” Calder[/person] staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
@@ -226,6 +248,7 @@ export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   VILAR_HYDRA_MAW_OUTFITTER,
   VILAR_MACAO_PALACE_OUTFITTER,
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
+  CADIZ_ARMORIAL_SHIPWRIGHTS,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
 ];
@@ -234,11 +257,15 @@ export function maintenanceShopById(id: string): MaintenanceShopDef | undefined 
   return MAINTENANCE_SHOPS.find(shop => shop.id === id);
 }
 
+function laborHoursAtShop(shop: MaintenanceShopDef, authoredHours: number): number {
+  return authoredHours * shop.laborHoursMultiplier;
+}
+
 export function diagnosisQuote(shop: MaintenanceShopDef): MaintenanceQuote {
+  const laborHours = laborHoursAtShop(shop, shop.diagnosisHours);
   return {
-    credits: Math.round(shop.diagnosisHours * shop.laborRate),
-    laborHours: shop.diagnosisHours,
-    turnaroundHours: shop.diagnosisHours * shop.turnaroundMultiplier,
+    credits: Math.round(laborHours * shop.laborRate),
+    laborHours,
   };
 }
 
@@ -316,14 +343,14 @@ export function fabricatedRepairQuote(
   const fault = fabricatedFaultById(claim.faultId);
   if (!component || component.systemId !== claim.systemId || !state?.installed || !fault
     || !componentHasFabricatedFault(component, fault.id) || !shopCanPerform(shop.workQualityGrade, fault.workGrade)) return undefined;
-  const labor = fault.laborHours * shop.laborRate;
+  const laborHours = laborHoursAtShop(shop, fault.laborHours);
+  const labor = laborHours * shop.laborRate;
   const parts = componentPartsCost(component, state.grade, 'minor') * shop.partsMarkup;
   return {
     repair: fault.repair,
     workGrade: fault.workGrade,
     credits: Math.round(labor + parts),
-    laborHours: fault.laborHours,
-    turnaroundHours: fault.laborHours * shop.turnaroundMultiplier,
+    laborHours,
   };
 }
 
@@ -361,14 +388,14 @@ export function systemServiceQuote(
 ): MaintenanceQuote {
   const system = maintenanceSystemById(systemId);
   const fabricated = new Set(fabricatedServiceComponentIds);
-  const laborHours = system.componentIds.reduce((sum, componentId) => {
+  const authoredHours = system.componentIds.reduce((sum, componentId) => {
     const component = maintenanceComponentById(componentId);
     return sum + (component && (componentNeedsService(rig, shop, componentId) || fabricated.has(componentId)) ? component.serviceHours : 0);
   }, 0);
+  const laborHours = laborHoursAtShop(shop, authoredHours);
   return {
     credits: Math.round(laborHours * shop.laborRate),
     laborHours,
-    turnaroundHours: laborHours * shop.turnaroundMultiplier,
   };
 }
 
@@ -377,9 +404,8 @@ export function rigServiceQuote(rig: CareerRigState, shop: MaintenanceShopDef, f
     const quote = systemServiceQuote(rig, shop, systemId, fabricatedServiceComponentIds);
     total.credits += quote.credits;
     total.laborHours += quote.laborHours;
-    total.turnaroundHours += quote.turnaroundHours;
     return total;
-  }, { credits: 0, laborHours: 0, turnaroundHours: 0 });
+  }, { credits: 0, laborHours: 0 });
 }
 
 export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, systemId: MaintenanceSystemId, fabricatedServiceComponentIds: readonly ComponentId[] = []): boolean {
@@ -394,14 +420,14 @@ export function repairQuote(rig: CareerRigState, shop: MaintenanceShopDef, compo
   if (!component || !state?.installed || !state.fault || state.fault.severity === 'total' || state.fault.diagnosis !== 'confirmed') return undefined;
   const fault = componentFaultById(component, state.fault.faultId);
   if (!fault || !shopCanPerform(shop.workQualityGrade, fault.workGrade)) return undefined;
-  const labor = fault.laborHours * shop.laborRate;
+  const laborHours = laborHoursAtShop(shop, fault.laborHours);
+  const labor = laborHours * shop.laborRate;
   const parts = componentPartsCost(component, state.grade, state.fault.severity) * shop.partsMarkup;
   return {
     repair: fault.repair,
     workGrade: fault.workGrade,
     credits: Math.round(labor + parts),
-    laborHours: fault.laborHours,
-    turnaroundHours: fault.laborHours * shop.turnaroundMultiplier,
+    laborHours,
   };
 }
 
@@ -424,13 +450,13 @@ export function replacementQuote(rig: CareerRigState, shop: MaintenanceShopDef, 
   const state = rig.components[componentId];
   if (!component || !state?.installed || !state.fault) return undefined;
   const replacement = replacementGradeAtShop(shop, state.grade);
-  const labor = component.replacementLaborHours * shop.laborRate;
+  const laborHours = laborHoursAtShop(shop, component.replacementLaborHours);
+  const labor = laborHours * shop.laborRate;
   const parts = componentReplacementCost(component, replacement.grade) * shop.partsMarkup;
   return {
     ...replacement,
     credits: Math.round(labor + parts),
-    laborHours: component.replacementLaborHours,
-    turnaroundHours: component.replacementLaborHours * shop.turnaroundMultiplier,
+    laborHours,
   };
 }
 

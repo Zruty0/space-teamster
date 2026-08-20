@@ -21,7 +21,7 @@ Create `src/maintenance/` with narrow modules:
 - `telemetry.ts` — mission accumulator, distorted-time integration, channel coefficients, source-specific fault multipliers
 - `strike-resolution.ts` — seeded Poisson roll, weighted system selection, uniform component selection, AP/HP resolution, threshold crossing, fault/location generation
 - `maintenance-service.ts` — service, repair, replacement, quotes, work complexity, and shop-quality effects
-- `shops.ts` — authored shop definitions, local availability, stock, diagnosis, capability, labor, markup, and turnaround
+- `shops.ts` — authored shop definitions, local availability, stock, diagnosis, capability, labor rates and hour multipliers, and markup
 - `maintenance-ledger.ts` — immutable current/pending/committed audit records and debug-log persistence
 - `index.ts` — public maintenance API
 
@@ -256,8 +256,8 @@ interface MaintenanceShopDef {
   laborRate: number;
   diagnosisHours: number;
   partsMarkup: number;
+  laborHoursMultiplier: number;
   honesty: number;
-  turnaroundMultiplier: number;
   copy: MaintenanceShopCopy;
 }
 ```
@@ -278,7 +278,7 @@ Selecting a posting opens a shop scene rather than a flight contract. Required s
 2. **Diagnosis/quote** — actual or claimed Minor/Major/Total line items plus every active restriction. Diagnostic capability compares against the fault's work grade. A fault above that capability identifies the component and severity as, for example, `Major unknown fault`, but does not reveal its fault or location.
 3. **Work selection** — toggle per-system service, repairs, and replacements. Repair services only the repaired component. System service adds every installed component's authored service time and skips absent optional equipment.
 4. **Replacement selection** — use the component's current grade when it lies within the shop's inclusive stock range. Otherwise state that an exact replacement is unavailable, show the resulting grade change, and offer only the closest stocked boundary grade or cancellation.
-5. **Confirmation** — total credits, labor/turnaround time, resulting service quality, replaced component grade, and restrictions cleared or remaining.
+5. **Confirmation** — total credits, displayed labor time, resulting service quality, replaced component grade, and restrictions cleared or remaining.
 6. **Receipt** — atomically apply cash, world time, rig state, diagnosis state, service time, and replacement/repair results.
 
 Replacement retains F-grade work complexity at every shop. Work Quality Grade determines both repair capability and installed/service AP quality. The selected replacement part retains its purchased component grade. Replacement remains available for an unknown fault and at every shop.
@@ -287,7 +287,11 @@ The standard licensed shop is Diagnostic C / Work D / Components D–D, normally
 
 Vilar’s Outfitter at Cadiz Highport is the chain flagship, personally operated by its self-made founder. Baron Vilar built the business before purchasing his baronial title, admires the Hearth’s smooth CEOs, and affects a brisk business-leader manner beneath Wells noble presentation. The larger Cadiz floor is Diagnostic B / Work C / Components C–D at `600 cr/hour`; its two-hour diagnosis costs `1,200 cr`. Other Vilar branches charge `1,000 cr` for the same two hours.
 
-Shop profile blurbs use third-person scene setting; diagnosis, service, and repairs use separately authored character speech. Generic instructional paragraphs are omitted because prices, findings, and actions carry the required information. Explicit `[person]...[/person]` and `[contact]...[/contact]` markup controls human-name colors; names are never inferred from aliases. Service, repair, and replacement remain locked until that specific shop diagnoses the rig. The diagnostic fee persists as a one-use, nonstacking Service Credit against the first successful later work order at the same shop and never creates a cash refund. House Vilar inspections and credits remain branch-specific. Lists retain gross prices, while authorization shows the credit deduction. A fully depleted installed baseline rig including Atmospheric Package has `20.0` authored service hours and costs about `10,000 cr` at a standard Vilar branch or `12,000 cr` at Cadiz. After diagnosis, service quotes include only components that gain AP at that shop. No-benefit system rows are disabled with `This system is already maintained.`; full-rig and profile actions use `All systems are already maintained.` A completed **Diagnostic Inspection** action remains disabled. Component service times use half-hour increments with a `0.5 hour` minimum.
+The Armorial Shipwrights at Shipwright Keep provide Diagnostic B / Work C / Components C–D capability and ordinary Work-C serviced AP within an ancient, extravagant repair-court tradition. Their `2×` labor-hours multiplier makes every authored task display, bill, and advance world time at twice its base hours while retaining a `600 cr/hour` rate. Their `2×` parts markup doubles base parts prices as well. A diagnosis is therefore `4 hours / 2,400 cr`, and full service of a depleted 20-hour baseline rig is `40 hours / 24,000 cr`. Journeymen, apprentices, and supervised squires work beneath heraldic rolls; completed work receives armorial marks; their physical Guild parchment and wax seal are displayed behind crystal. Sir Afonso de Lacerda, Keeper of the Yard Seal, presides. Player-facing Shop Level calls it an ancient armorial repair court rumored to offer ordinary workmanship with twice the ceremony.
+
+There is no separate shop-turnaround value. `laborHoursMultiplier` scales authored hours before they are displayed, billed, and applied to world time. Bruckner’s former hidden `0.75×` turnaround is now a visible `0.75×` labor-hours multiplier; its rate rises from `1,200` to `1,600 cr/hour`, preserving existing gross labor prices while showing the shorter time. Standard shops use `1×`.
+
+Shop profile blurbs use third-person scene setting; diagnosis, service, and repairs use separately authored character speech. Generic instructional paragraphs are omitted because prices, findings, and actions carry the required information. Explicit `[person]...[/person]` and `[contact]...[/contact]` markup controls human-name colors; names are never inferred from aliases. Service, repair, and replacement remain locked until that specific shop diagnoses the rig. The diagnostic fee persists as a one-use, nonstacking Service Credit against the first successful later work order at the same shop and never creates a cash refund. House Vilar inspections and credits remain branch-specific. Lists retain gross prices, while authorization shows the credit deduction. A fully depleted installed baseline rig including Atmospheric Package has `20.0` authored service hours and costs about `10,000 cr` at a standard Vilar branch or `12,000 cr` at Cadiz. After diagnosis, service quotes include only components that gain AP at that shop. No-benefit system rows are disabled with `This system is already maintained.`; full-rig and profile actions use `All systems are already maintained.` A completed **Diagnostic Inspection** action remains disabled. Authored component service times use half-hour increments with a `0.5 hour` minimum before the shop labor-hours multiplier; displayed, billed, and elapsed time uses the scaled result.
 
 The unofficial-mechanic archetype is Diagnostic E / Work F / Components F–F. Most remote locations should provide one when no licensed shop is locally reachable; this guarantees diagnosis of only easy faults and universal standardized replacement, usually with an explicit downgrade to Grade F.
 
@@ -404,7 +408,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 - Optional Equipment displays `None installed` for a migrated/default rig
 - Local Directory shop entries transact only when locally reachable
 - selecting a shop never enters contract acceptance or flight launch flow
-- quote selection previews correct component grade, shop-quality AP, parts, labor, service price, and turnaround
+- quote selection previews correct component grade, shop-quality AP, parts, scaled labor time, and service price
 - insufficient funds, declined quotes, and unavailable work leave career and rig state unchanged
 - confirmed work updates money, world time, rig, diagnosis, and restrictions in one save
 - replacement is available at every shop as F-complexity work while AP quality still follows shop grade

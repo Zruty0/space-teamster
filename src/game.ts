@@ -163,13 +163,16 @@ function contractMarginSummary(quote: MissionCostQuote): string {
   return `${formatCredits(quote.expectedMargin)} (${formatSignedPercent(contractMarginRatio(quote))})`;
 }
 
+function formatHourValue(hours: number): string {
+  return hours.toFixed(3).replace(/\.?0+$/, '');
+}
+
 function formatLaborHours(hours: number): string {
-  return `${hours.toFixed(hours % 1 === 0 ? 0 : 1)}h`;
+  return `${formatHourValue(hours)}h`;
 }
 
 function formatWorkHours(hours: number): string {
-  const value = hours.toFixed(hours % 1 === 0 ? 0 : 1);
-  return `${value} ${hours === 1 ? 'hour' : 'hours'}`;
+  return `${formatHourValue(hours)} ${hours === 1 ? 'hour' : 'hours'}`;
 }
 
 function contractFixedReward(quote: MissionCostQuote): number {
@@ -2066,7 +2069,6 @@ export class Game {
       repairCount: real.length + fabricated.length,
       credits: [...real, ...fabricated].reduce((sum, item) => sum + item.quote.credits, 0),
       laborHours: [...real, ...fabricated].reduce((sum, item) => sum + item.quote.laborHours, 0),
-      turnaroundHours: [...real, ...fabricated].reduce((sum, item) => sum + item.quote.turnaroundHours, 0),
     };
   }
 
@@ -2966,7 +2968,7 @@ export class Game {
       const quote = diagnosisQuote(shop);
       if (this.career.money < quote.credits) return;
       this.career.money -= quote.credits;
-      this.career.worldTime += quote.turnaroundHours * 3600;
+      this.career.worldTime += quote.laborHours * 3600;
       this.worldTime = Math.max(this.worldTime, this.career.worldTime);
       diagnoseRigAtShop(this.career.rig, shop);
       const fabricatedFaults = fabricateFaultClaimsAtShop(this.career.rig, shop);
@@ -3013,7 +3015,7 @@ export class Game {
       const quote = rigServiceQuote(this.career.rig, shop, fabricatedServiceComponentIds);
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (quote.laborHours === 0 || this.career.money < payment.due) return;
-      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      const completionTime = this.career.worldTime + quote.laborHours * 3600;
       this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
@@ -3034,7 +3036,7 @@ export class Game {
       const quote = systemServiceQuote(this.career.rig, shop, systemId, fabricatedServiceComponentIds);
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (quote.laborHours === 0 || this.career.money < payment.due) return;
-      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      const completionTime = this.career.worldTime + quote.laborHours * 3600;
       this.career.money -= payment.due;
       this.career.worldTime = completionTime;
       this.worldTime = Math.max(this.worldTime, completionTime);
@@ -3066,7 +3068,7 @@ export class Game {
       const work = this.maintenanceRepairEverythingQuote(shop);
       const payment = this.maintenanceWorkPayment(shopId, work.credits);
       if (!work.repairCount || this.career.money < payment.due) return;
-      const completionTime = this.career.worldTime + work.turnaroundHours * 3600;
+      const completionTime = this.career.worldTime + work.laborHours * 3600;
       const resultingRig = structuredClone(this.career.rig);
       for (const item of work.real) {
         if (!repairComponentAtShop(resultingRig, shop, item.componentId, completionTime)) return;
@@ -3111,7 +3113,7 @@ export class Game {
       if (!shop || !inspection || !claim || !quote || !this.maintenanceShopIsLocal(shop)) return;
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (this.career.money < payment.due) return;
-      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      const completionTime = this.career.worldTime + quote.laborHours * 3600;
       const componentName = maintenanceComponentById(claim.componentId)?.name ?? claim.componentId;
       this.career.money -= payment.due;
       this.career.worldTime = completionTime;
@@ -3144,7 +3146,7 @@ export class Game {
       if (!quote) return;
       const payment = this.maintenanceWorkPayment(shopId, quote.credits);
       if (this.career.money < payment.due) return;
-      const completionTime = this.career.worldTime + quote.turnaroundHours * 3600;
+      const completionTime = this.career.worldTime + quote.laborHours * 3600;
       const componentName = maintenanceComponentById(componentId)?.name ?? componentId;
       const changed = workKind === 'repair'
         ? repairComponentAtShop(this.career.rig, shop, componentId, completionTime)

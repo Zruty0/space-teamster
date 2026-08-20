@@ -523,7 +523,7 @@ interface MaintenanceShopDef {
   partsMarkup: number;
   honesty: number;
   workGrade: ShopGrade;
-  turnaroundMultiplier: number;
+  laborHoursMultiplier: number;
 }
 ```
 
