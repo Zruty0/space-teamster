@@ -89,6 +89,8 @@ const APPROACH_WARP_SPEEDS = [1, 2, 5];
 const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
 const STANDARD_TRAJECTORY_PREDICTION_TIME = 180;
 const DENSE_ATMOSPHERE_TRAJECTORY_PREDICTION_TIME = 600;
+const WIND_FULL_EFFECT_SPEED = 200;
+const WIND_ZERO_EFFECT_SPEED = 350;
 
 export interface ApproachState {
   x: number;
@@ -505,7 +507,7 @@ function weatherActivity(item: { activeStart?: number; activeEnd?: number; fadeT
   return Math.min(fadeIn, fadeOut);
 }
 
-/** Get horizontal air-mass velocity at altitude (m/s). Time-evolving. */
+/** Get horizontal weather acceleration at altitude (m/s²). Time-evolving. */
 function getWind(y: number, level: ApproachLevel, time: number = 0): number {
   let wind = 0;
   const volatility = level.poi.weatherProfile?.volatility ?? 1;
@@ -528,6 +530,13 @@ function getWind(y: number, level: ApproachLevel, time: number = 0): number {
     }
   }
   return wind;
+}
+
+function windInfluenceForSpeed(speed: number): number {
+  if (speed <= WIND_FULL_EFFECT_SPEED) return 1;
+  if (speed >= WIND_ZERO_EFFECT_SPEED) return 0;
+  const t = (speed - WIND_FULL_EFFECT_SPEED) / (WIND_ZERO_EFFECT_SPEED - WIND_FULL_EFFECT_SPEED);
+  return 1 - t * t * (3 - 2 * t);
 }
 
 /** Get current wind layer params for rendering (time-evolved). */
@@ -579,20 +588,15 @@ function aeroForces(
   x: number, y: number, vx: number, vy: number,
   angle: number, wingAngle: number,
   level: ApproachLevel,
-  airVx: number = 0,
 ): { ax: number; ay: number; heatRate: number; aoa: number } {
-  // Aerodynamic forces depend on velocity relative to the moving air mass. Wind
-  // is not a free acceleration: drag can only pull the rig toward air speed.
-  const relativeVX = vx - airVx;
-  const relativeVY = vy;
-  const speed = Math.sqrt(relativeVX * relativeVX + relativeVY * relativeVY);
+  const speed = Math.sqrt(vx * vx + vy * vy);
   const rho = density(y, level);
   let ax = 0, ay = 0, heatRate = 0, aoa = 0;
 
   if (speed < 1 || rho < 1e-7) return { ax, ay, heatRate, aoa };
 
   // AoA: angle between velocity and ship nose
-  const velAngle = Math.atan2(relativeVX, relativeVY);
+  const velAngle = Math.atan2(vx, vy);
   aoa = velAngle - angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
   while (aoa < -Math.PI) aoa += 2 * Math.PI;
@@ -609,8 +613,8 @@ function aeroForces(
 
   // Drag
   const dragA = q * Cd;
-  ax -= (relativeVX / speed) * dragA;
-  ay -= (relativeVY / speed) * dragA;
+  ax -= (vx / speed) * dragA;
+  ay -= (vy / speed) * dragA;
 
   // Lift: body (always) + wings (when deployed)
   const Cl = level.liftBody + wingAngle * level.liftWingPerRad;
@@ -621,7 +625,7 @@ function aeroForces(
     // Lift direction: component of nose perpendicular to velocity
     const noseX = Math.sin(angle);
     const noseY = Math.cos(angle);
-    const vdx = relativeVX / speed, vdy = relativeVY / speed;
+    const vdx = vx / speed, vdy = vy / speed;
     const dot = noseX * vdx + noseY * vdy;
     let px = noseX - dot * vdx;
     let py = noseY - dot * vdy;
@@ -738,12 +742,12 @@ export function updateApproach(
     s.vy = local.vy;
   } else {
     const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
-    const windVx = getWind(s.y, level, time);
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
-      s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level, windVx,
+      s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level,
     );
     s.maintenanceAeroAcceleration = Math.hypot(aeroAx, aeroAy);
-    let ax = aeroAx;
+    const speed = Math.hypot(s.vx, s.vy);
+    let ax = aeroAx + getWind(s.y, level, time) * windInfluenceForSpeed(speed);
     let ay = -level.gravity + aeroAy;
     angAccel += getTurbulenceTorque(s.x, s.y, time, level);
 
@@ -861,8 +865,9 @@ export function predictTrajectory(
   let prevX = x, prevY = y;
 
   for (let t = 0; t < maxTime; t += step) {
-    const windVx = includeWind ? getWind(y, level, predTime + t) : 0;
-    const { ax, ay: aeroAy, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level, windVx);
+    const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level);
+    const speed = Math.hypot(vx, vy);
+    const ax = aeroAx + (includeWind ? getWind(y, level, predTime + t) * windInfluenceForSpeed(speed) : 0);
     const ay = -level.gravity + aeroAy;
 
     temp += (heatRate / level.heatCapacity - level.dissipation * temp) * step;
@@ -1228,7 +1233,7 @@ function drawWindLayers(
       ctx.font = '10px monospace';
       ctx.fillStyle = isHead ? 'rgba(80, 140, 255, 0.6)' : 'rgba(255, 200, 80, 0.6)';
       ctx.textAlign = 'left';
-      const label = isHead ? `← ${Math.abs(w.strength).toFixed(0)} m/s` : `→ ${w.strength.toFixed(0)} m/s`;
+      const label = isHead ? `← ${Math.abs(w.strength).toFixed(0)} m/s²` : `→ ${w.strength.toFixed(0)} m/s²`;
       ctx.fillText(label, 8, syLabel + 3);
     }
   }
@@ -1865,14 +1870,14 @@ function drawApproachHUD(
     }
   }
 
-  const windSpeed = getWind(s.y, level, time);
-  if (Math.abs(windSpeed) > 1) {
+  const windAccel = getWind(s.y, level, time) * windInfluenceForSpeed(Math.hypot(s.vx, s.vy));
+  if (Math.abs(windAccel) > 1) {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    const windDir = windSpeed > 0 ? '→' : '←';
-    const windCol = Math.abs(windSpeed) > 8 ? COL_WARNING : '#5588cc';
+    const windDir = windAccel > 0 ? '→' : '←';
+    const windCol = Math.abs(windAccel) > 8 ? COL_WARNING : '#5588cc';
     ctx.fillStyle = windCol;
-    ctx.fillText(`WIND ${windDir} ${Math.abs(windSpeed).toFixed(0)} m/s`, W / 2, warnY);
+    ctx.fillText(`WIND ${windDir} ${Math.abs(windAccel).toFixed(0)} m/s²`, W / 2, warnY);
     warnY += 22;
   }
 

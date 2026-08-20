@@ -153,7 +153,8 @@ const HARTWELL_CLEAR_WEATHER: WeatherProfileDef = {
 const CONCORD_WEATHER: WeatherProfileDef = {
   volatility: 0.8,
   windLayers: [
-    { altitudeCenter: 14_000, altitudeWidth: 10_000, strength: 250, probability: 1, altitudeJitter: 1_000, widthJitter: 0.1, strengthJitter: 0.1 },
+    { altitudeCenter: 18_000, altitudeWidth: 1_200, strength: 12, probability: 1, altitudeJitter: 500, widthJitter: 0.15, strengthJitter: 0.2 },
+    { altitudeCenter: 6_000, altitudeWidth: 800, strength: -8, probability: 1, altitudeJitter: 300, widthJitter: 0.15, strengthJitter: 0.2 },
   ],
   turbulence: HARTWELL_CLEAR_WEATHER.turbulence,
 };
