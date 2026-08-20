@@ -2825,7 +2825,7 @@ export class Game {
     return {
       title: 'SHIP STATUS',
       subtitle: 'Shipboard condition monitor',
-      bodyLabelWidth: 132,
+      bodyLabelWidth: 140,
       bodyMaxHeight: 420,
       bodyRows: [
         ...systemRows,
