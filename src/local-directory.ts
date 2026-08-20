@@ -409,15 +409,15 @@ export const OLD_NELL_PASSAGE_OFFICE: LocalOfficeDef = {
   actions: [],
 };
 
-export const SERRAT_DOMAIN_SERVICE_YARD: LocalOfficeDef = {
+export const VILAR_GRYPHON_AERIE_OUTFITTER: LocalOfficeDef = {
   kind: 'office',
-  id: 'serrat-domain-service-yard',
-  name: 'Vilar’s Outfitter at Oathmark',
+  id: 'vilar-gryphon-aerie-outfitter-office',
+  name: 'Vilar’s Outfitter at Gryphon Aerie',
   organizationName: 'House Vilar',
-  locationIds: ['estella-xie-outer-spec-drydock'],
+  locationIds: ['estella-x-observation-skim-hub'],
   summary: 'House Vilar network outfitter.',
-  description: 'A gilt House Vilar badge marks this as one shop in Baron Estêvão Vilar’s network of outfitter shops. The Oathmark concession is governed by Sir Tomás Barreto, a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
-  maintenanceShopId: 'serrat-domain-shipyard-service-yard',
+  description: 'A gilt House Vilar badge spans the entrance to a glass-fronted service gallery high in Gryphon Aerie. Sir Tomás Barreto governs the concession from a balcony above the bays, welcoming Teamsters with courtly warmth while licensed journeymen drive rows of serf mechanics through the work below.',
+  maintenanceShopId: 'vilar-gryphon-aerie-outfitter',
   actions: [],
 };
 
@@ -430,6 +430,54 @@ export const VILAR_HERALD_GATE_OUTFITTER: LocalOfficeDef = {
   summary: 'House Vilar network outfitter.',
   description: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. Baron Estêvão Vilar’s local concession is governed by Dame Leonor Falcão, a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
   maintenanceShopId: 'vilar-herald-gate-outfitter',
+  actions: [],
+};
+
+export const VILAR_CADIZ_HIGHPORT_OUTFITTER: LocalOfficeDef = {
+  kind: 'office',
+  id: 'vilar-cadiz-highport-outfitter-office',
+  name: 'Vilar’s Outfitter at Cadiz Highport',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xid-main-port'],
+  summary: 'House Vilar flagship outfitter.',
+  description: 'Vilar’s Outfitter at Cadiz Highport occupies a full commercial pier: six numbered service bays, a two-level parts warehouse, and an executive gallery hung with expansion plans beside a purchased baronial crest. Baron Estêvão Vilar built the chain before buying the title with its proceeds, and still walks the floor with a founder’s eye for idle hands, slow inventory, and missed opportunity.',
+  maintenanceShopId: 'vilar-cadiz-highport-outfitter',
+  actions: [],
+};
+
+export const VILAR_HYDRA_MAW_OUTFITTER: LocalOfficeDef = {
+  kind: 'office',
+  id: 'vilar-hydra-maw-outfitter-office',
+  name: 'Vilar’s Outfitter at Hydra Maw Orbital',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xi-skim-hub'],
+  summary: 'House Vilar industrial outfitter.',
+  description: 'House Vilar’s Hydra Maw concession occupies an armored service gallery between the skim tenders and the station’s pressure refuge. Dame Inês Moura, a former gas-skimmer chief, runs the bays like a flight deck: sealed carts, clipped commands, exact turnaround boards, and journeymen trained to hear a pressure leak through the machinery.',
+  maintenanceShopId: 'vilar-hydra-maw-outfitter',
+  actions: [],
+};
+
+export const VILAR_MACAO_PALACE_OUTFITTER: LocalOfficeDef = {
+  kind: 'office',
+  id: 'vilar-macao-palace-outfitter-office',
+  name: 'Vilar’s Outfitter at Macao Palace',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xic-research-station-poi'],
+  summary: 'House Vilar palace outfitter.',
+  description: 'The Macao Palace concession resembles a private gaming salon built around a spotless service floor. Sir Gaspar Seixas receives Teamsters beneath lacquered House Vilar screens while mechanics, parts clerks, debt advocates, and contract brokers move through the galleries at signals from his jeweled hand. He remembers every patron’s wagers, obligations, and preferred manner of being addressed.',
+  maintenanceShopId: 'vilar-macao-palace-outfitter',
+  actions: [],
+};
+
+export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: LocalOfficeDef = {
+  kind: 'office',
+  id: 'vilar-manticore-observatory-outfitter-office',
+  name: 'Vilar’s Outfitter at Manticore Observatory',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xii-observation-post'],
+  summary: 'House Vilar outer-Wells outfitter.',
+  description: 'The gilt Vilar badge hangs at the entrance where the commercial charter requires it. Inside, the older silver-and-black arms of House Noronha dominate two warm, meticulously ordered service bays beneath Manticore Observatory’s long-watch decks. Sir Lourenço Noronha accepted command of the concession without conceding social equality to its proprietor. His lineage is older and more renowned than Baron Vilar’s purchased title, a distinction he introduces before business has properly begun.',
+  maintenanceShopId: 'vilar-manticore-observatory-outfitter',
   actions: [],
 };
 
@@ -456,8 +504,12 @@ export const RED_DUST_MECHANICAL: LocalOfficeDef = {
 };
 
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
-  SERRAT_DOMAIN_SERVICE_YARD,
+  VILAR_GRYPHON_AERIE_OUTFITTER,
   VILAR_HERALD_GATE_OUTFITTER,
+  VILAR_CADIZ_HIGHPORT_OUTFITTER,
+  VILAR_HYDRA_MAW_OUTFITTER,
+  VILAR_MACAO_PALACE_OUTFITTER,
+  VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,

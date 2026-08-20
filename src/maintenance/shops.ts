@@ -35,11 +35,11 @@ export interface MaintenanceQuote {
   turnaroundHours: number;
 }
 
-export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
-  id: 'serrat-domain-shipyard-service-yard',
-  name: 'Vilar’s Outfitter at Oathmark',
+export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
+  id: 'vilar-gryphon-aerie-outfitter',
+  name: 'Vilar’s Outfitter at Gryphon Aerie',
   organizationName: 'House Vilar',
-  locationIds: ['estella-xie-outer-spec-drydock'],
+  locationIds: ['estella-x-observation-skim-hub'],
   diagnosticGrade: 'C',
   workQualityGrade: 'D',
   componentGradeBest: 'D',
@@ -50,11 +50,11 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   turnaroundMultiplier: 1,
   honesty: 1,
   copy: {
-    profileBlurb: 'A gilt House Vilar badge marks this as one shop in [person]Baron Estêvão Vilar[/person]’s network of outfitter shops. The Oathmark concession is governed by [person]Sir Tomás Barreto[/person], a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
+    profileBlurb: 'A gilt House Vilar badge spans the entrance to a glass-fronted service gallery high in Gryphon Aerie. [person]Sir Tomás Barreto[/person] governs the concession from a balcony above the bays, welcoming Teamsters with courtly warmth while licensed journeymen drive rows of serf mechanics through the work below.',
     levelBlurb: 'Standard Wells outfitter in [person]Baron Vilar[/person]’s chartered network',
-    diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” ([person]Sir Tomás[/person] turns and shouts down the gallery.) “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” (He turns back with a broad smile.) “Your rig shall receive my personal attention.”',
-    serviceBlurb: '“A prudent choice, Teamster! My people shall restore every serviceable fitting to mint condition.” ([person]Sir Tomás[/person] snaps his fingers toward the bays.) “What are you gawping at? Get to work!” (He faces you again.) “House Vilar takes uncommon pride in the care of a working rig.”',
-    repairsBlurb: '“Ah, the serious work—the kind by which lesser shops expose themselves. House Vilar does not send a Teamster away with a rig held together by prayers and invoice paper.” ([person]Sir Tomás[/person] calls down to the bays.) “Fetch the proper tools, not whatever rubbish you abandoned under a bench!” (He offers you an expansive bow.) “We shall put matters right.”',
+    diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” [person]Sir Tomás Barreto[/person] turns and shouts down the gallery. “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” He turns back with a broad smile. “Your rig shall receive my personal attention.”',
+    serviceBlurb: '“A prudent choice, Teamster! My people shall restore every serviceable fitting to mint condition.” [person]Sir Tomás Barreto[/person] snaps his fingers toward the bays. “What are you gawping at? Get to work!” He faces you again. “House Vilar takes uncommon pride in the care of a working rig.”',
+    repairsBlurb: '“Ah, the serious work—the kind that proves the value of a proper shop. House Vilar shall return your rig sound, aligned, and fit for the road ahead.” [person]Sir Tomás Barreto[/person] calls down to the bays. “Fetch the proper tools, not whatever rubbish you abandoned under a bench!” He offers you an expansive bow. “We shall put matters right.”',
   },
 };
 
@@ -78,6 +78,98 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
     diagnosisBlurb: '“House Vilar welcomes you to Herald Gate, Teamster. I am [person]Dame Leonor Falcão[/person], and nothing beneath this roof escapes a proper accounting.” (She glances down into the service gallery.) “That scanner is three degrees out. Correct it before I decide your eyes are ornamental.” (Her attention returns to you.) “Your rig shall be examined with considerably greater care.”',
     serviceBlurb: '“A working rig deserves to leave my gallery looking newly issued. House Vilar shall see every serviceable fitting restored accordingly.” ([person]Dame Leonor[/person] taps the gallery rail with one gloved finger.) “Must I explain the purpose of a tool cart, or will someone bring it before the Teamster dies of age?” (She offers you a composed smile.) “They become remarkably efficient under proper supervision.”',
     repairsBlurb: '“Damage is distasteful, but never embarrassing when placed in competent hands. We shall return your rig to honorable service.” ([person]Dame Leonor[/person] looks down toward the bays.) “If I see that component struck with a hammer, the next object fitted to the test stand will be the mechanic.” (She inclines her head to you.) “Do not be concerned, Teamster. My people understand the cost of disappointing me.”',
+  },
+};
+
+export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
+  id: 'vilar-cadiz-highport-outfitter',
+  name: 'Vilar’s Outfitter at Cadiz Highport',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xid-main-port'],
+  diagnosticGrade: 'B',
+  workQualityGrade: 'C',
+  componentGradeBest: 'C',
+  componentGradeWorst: 'D',
+  laborRate: 600,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 1,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'Vilar’s Outfitter at Cadiz Highport occupies a full commercial pier: six numbered service bays, a two-level parts warehouse, and an executive gallery hung with expansion plans beside a purchased baronial crest. [person]Baron Estêvão Vilar[/person] built the chain before buying the title with its proceeds, and still walks the floor with a founder’s eye for idle hands, slow inventory, and missed opportunity.',
+    levelBlurb: 'House Vilar flagship outfitter and regional service works',
+    diagnosisBlurb: '“Every idle hour belongs on somebody’s ledger.” [person]Baron Estêvão Vilar[/person] studies the arriving rig from the gallery rail. “My senior diagnosticians will give you the finding, the available parts, and the work order. While they work, tell me what you’ve heard from the Hearth. Which firms are expanding? Who has found new capital? What are the serious people buying?”',
+    serviceBlurb: '“Service protects earning time. That is the whole proposition.” [person]Baron Estêvão Vilar[/person] taps the work schedule on his tablet. “I recruited journeymen with the highest credentials and certifications I could find in the Camps and the Belt. Select the systems, and my floor will document every adjustment and turn your rig back toward revenue.”',
+    repairsBlurb: '“Teamster, you have my sincere sympathy. A damaged rig is lost earning time, and that is painful to see.” [person]Baron Estêvão Vilar[/person] straightens his coat and attempts the brisk, polished cadence he associates with Hearth boardrooms. “Still, this is a business opportunity for both of us. You need the rig restored; I have the most modern tools anywhere beyond the Belt and the people certified to use them. Authorize the order, and we both improve our position.”',
+  },
+};
+
+export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
+  id: 'vilar-hydra-maw-outfitter',
+  name: 'Vilar’s Outfitter at Hydra Maw Orbital',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xi-skim-hub'],
+  diagnosticGrade: 'C',
+  workQualityGrade: 'D',
+  componentGradeBest: 'D',
+  componentGradeWorst: 'D',
+  laborRate: 500,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 1,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'House Vilar’s Hydra Maw concession occupies an armored service gallery between the skim tenders and the station’s pressure refuge. [person]Dame Inês Moura[/person], a former gas-skimmer chief, runs the bays like a flight deck: sealed carts, clipped commands, exact turnaround boards, and journeymen trained to hear a pressure leak through the machinery.',
+    levelBlurb: 'Standard Wells outfitter for industrial and skim traffic',
+    diagnosisBlurb: '“Pressure board is steady. Put the rig in bay two and leave the access panels closed until my people mark them.” [person]Dame Inês Moura[/person] watches the station gauges settle. “Hydra punishes guesses. My senior journeymen will trace each load path, pressure-test the sealed systems, and give you a finding you can act on.”',
+    serviceBlurb: '“Preventive work buys margin when the well and weather both turn against you.” [person]Dame Inês Moura[/person] checks the maintenance board. “We’ll service the selected systems to Vilar standard and return the adjustment record with the rig.”',
+    repairsBlurb: '“Parts team forward. Clear the main lift.” [person]Dame Inês Moura[/person] studies the next quiet band in Hydra’s weather. “I have a disciplined floor and a clean work plan. Authorize it, and we’ll put the rig back together properly.”',
+  },
+};
+
+export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
+  id: 'vilar-macao-palace-outfitter',
+  name: 'Vilar’s Outfitter at Macao Palace',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xic-research-station-poi'],
+  diagnosticGrade: 'C',
+  workQualityGrade: 'D',
+  componentGradeBest: 'D',
+  componentGradeWorst: 'D',
+  laborRate: 500,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 1,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The Macao Palace concession resembles a private gaming salon built around a spotless service floor. [person]Sir Gaspar Seixas[/person] receives Teamsters beneath lacquered House Vilar screens while mechanics, parts clerks, debt advocates, and contract brokers move through the galleries at signals from his jeweled hand. He remembers every patron’s wagers, obligations, and preferred manner of being addressed.',
+    levelBlurb: 'Standard Wells outfitter for palace and contract traffic',
+    diagnosisBlurb: '“Every machine tells the truth once the right questions are asked.” [person]Sir Gaspar Seixas[/person] beckons his chief diagnostician forward as though opening a private table. “My people will turn the cards faceup one system at a time. You shall have the finding, the available options, and the exact stakes.”',
+    serviceBlurb: '“The favorable wager is the one settled before the odds move.” [person]Sir Gaspar Seixas[/person] presents the service options with a practiced sweep of his hand. “Preserve the rig’s margin now, and leave Macao with the advantage.”',
+    repairsBlurb: '“The table is set: trained hands, proper tooling, and the required parts behind the cage.” [person]Sir Gaspar Seixas[/person] inclines his head toward the authorization terminal. “Place the order, Teamster, and House Vilar will play it through to completion.”',
+  },
+};
+
+export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
+  id: 'vilar-manticore-observatory-outfitter',
+  name: 'Vilar’s Outfitter at Manticore Observatory',
+  organizationName: 'House Vilar',
+  locationIds: ['estella-xii-observation-post'],
+  diagnosticGrade: 'C',
+  workQualityGrade: 'D',
+  componentGradeBest: 'D',
+  componentGradeWorst: 'D',
+  laborRate: 500,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  turnaroundMultiplier: 1,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The gilt Vilar badge hangs at the entrance where the commercial charter requires it. Inside, the older silver-and-black arms of House Noronha dominate two warm, meticulously ordered service bays beneath Manticore Observatory’s long-watch decks. [person]Sir Lourenço Noronha[/person] accepted command of the concession without conceding social equality to its proprietor. His lineage is older and more renowned than [person]Baron Vilar[/person]’s purchased title, a distinction he introduces before business has properly begun.',
+    levelBlurb: 'Standard outer-Wells outfitter under knightly supervision',
+    diagnosisBlurb: '“House Noronha bore arms before [person]Baron Vilar[/person] learned what one cost.” [person]Sir Lourenço Noronha[/person] regards you with austere patience. “The distinction will mean little to a Teamster of common birth. What should matter to you is that my honor stands behind this inspection. Every finding will be complete, exact, and properly witnessed.”',
+    serviceBlurb: '“Maintenance is stewardship: the preservation of what has been entrusted to one’s care.” [person]Sir Lourenço Noronha[/person] surveys the waiting journeymen. “It is a principle old houses learn early. My people will service the selected systems under my eye, and every adjustment will satisfy the obligations of my name.”',
+    repairsBlurb: '“Damage is a regrettable disorder, Teamster, but its correction is honorable work.” [person]Sir Lourenço Noronha[/person] rests one hand upon the silver tower worked into his coat. “Though this concession bears [person]Baron Vilar[/person]’s freshly gilded name, my own honor governs the floor. Authorize the work. It will be completed to an excellent standard, as befits the supervision of a noble knight.”',
   },
 };
 
@@ -128,8 +220,12 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
 };
 
 export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
-  SERRAT_DOMAIN_SHIPYARD_SHOP,
+  VILAR_GRYPHON_AERIE_OUTFITTER,
   VILAR_HERALD_GATE_SHOP,
+  VILAR_CADIZ_HIGHPORT_OUTFITTER,
+  VILAR_HYDRA_MAW_OUTFITTER,
+  VILAR_MACAO_PALACE_OUTFITTER,
+  VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
 ];

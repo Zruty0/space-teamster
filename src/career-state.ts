@@ -87,15 +87,20 @@ function migratedComponentIds(value: unknown): string[] {
   return [...new Set(value.filter((id): id is string => typeof id === 'string' && !!id))];
 }
 
+const MAINTENANCE_SHOP_ID_MIGRATIONS: Readonly<Record<string, string>> = {
+  'serrat-domain-shipyard-service-yard': 'vilar-gryphon-aerie-outfitter',
+};
+
 function migratedShopInspections(parsed: any): Record<string, MaintenanceShopInspectionState> {
   if (!parsed?.maintenanceShopInspections || typeof parsed.maintenanceShopInspections !== 'object') return {};
   return Object.fromEntries(Object.entries(parsed.maintenanceShopInspections).flatMap(([shopId, raw]) => {
+    const migratedShopId = MAINTENANCE_SHOP_ID_MIGRATIONS[shopId] ?? shopId;
     const inspection = raw as Partial<MaintenanceShopInspectionState> | null;
     if (!inspection || typeof inspection.diagnosedWorldTime !== 'number' || !Number.isFinite(inspection.diagnosedWorldTime)) return [];
     const creditRemaining = typeof inspection.creditRemaining === 'number' && Number.isFinite(inspection.creditRemaining)
       ? Math.max(0, Math.floor(inspection.creditRemaining))
       : 0;
-    return [[shopId, {
+    return [[migratedShopId, {
       diagnosedWorldTime: inspection.diagnosedWorldTime,
       creditRemaining,
       dishonestyRevision: typeof inspection.dishonestyRevision === 'number' && Number.isFinite(inspection.dishonestyRevision)
