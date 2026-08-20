@@ -13,6 +13,7 @@ import { HARTWELL_MACHINERY_BROKERS_PROVIDER } from './hartwell-machinery-contra
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { HARTWELL_SHIPPING_COMPANIES_PROVIDER } from './hartwell-shipping-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
+import { OATHMARK_ACCORD_AUTHORITY_PROVIDER } from './oathmark-accord-contracts';
 import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
 import { ROADSTEAD_EXPORT_BROKERS_PROVIDER } from './roadstead-export-contracts';
 import { STEEL_COMBINE_PROVIDER } from './steel-combine-contracts';
@@ -106,6 +107,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   HARTWELL_MACHINERY_BROKERS_PROVIDER,
   HARTWELL_SHIPPING_COMPANIES_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
+  OATHMARK_ACCORD_AUTHORITY_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 

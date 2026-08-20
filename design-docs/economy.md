@@ -586,6 +586,22 @@ BFS cargo palette:
 - Bruckner field technician teams
 - drive alignment crews
 
+## Faction: Oathmark Accord Authority
+
+The Oathmark Accord Authority is the neutral operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. It issues grey-sealed single-leg warrants through Serrat Domain Yard Dispatch, the Keelwright Works Warrant Office, the Oathmark Academy Registrar, and the Accord Custody Office. Banner Forge and overt House military traffic are excluded pending the separate House Mendes provider.
+
+Core flows:
+
+- Keelwright Works → Serrat Domain Shipyard: proofed structural stock, actuator assemblies, calibration kits, control cabinets, and other production output.
+- Serrat Domain Shipyard → Keelwright Works: failed service returns, rework lots, quarantined controllers, spent tooling, and specification archives.
+- Shipyard/Keelwright → Oathmark Academy: referee telemetry, training drones, and verdict material.
+- Oathmark Academy → the shipyard, Wells courts, and tournament sites: certified telemetry packages, drone packs, and verdict rolls.
+- Shipyard/Keelwright → Svarog, Veles Terminal, Hammer, Mosaic, Cadiz, and major Wells orbital facilities: certified refit and component exports.
+- Oathmark Academy → neutral examinations and dispute sites: referees, review boards, technical parties, appraisers, and arbitration counsel.
+- Rare Emergency Mediation Warrants carry Accord arbitrators, seal clerks, truce witnesses, charter-combat referees, succession mediators, and evidence registrars to Wells courts, castles, and arenas.
+
+Routine terms use `0.15` generosity plus `0.85` actual-fuel compensation capped at twice par. Flat warrant fees are `6,000 cr` for internal freight, `12,000 cr` for exports, `10,000 cr` for ordinary neutral passengers, and `20,000 cr` for emergency mediation. Courier work and multi-hop mission sequences remain future design candidates; the initial provider uses ordinary single-leg settlement only.
+
 ## Faction: Wells Noble Houses
 
 Minor Wells nobility is represented by one combined provider. The three senior Houses remain separate future providers because Alvares, Mendes, and Nunes are in active conflict; counts, marquises, and lesser households share this minor-noble charter traffic.
@@ -600,7 +616,7 @@ Scope:
 - Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues.
 - Minor houses do not charter ordinary economic cargo and do not usually route to Daedalus or Covenant sites. Macao, Oathmark, and the shipyard are acceptable noble destinations.
 
-Current source/destination pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, Banner Forge, Manticore Observatory, and selected Hearth elite destinations.
+Current source pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Manticore Observatory, and selected Hearth elite origins. Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, and Banner Forge remain eligible noble destinations but no longer originate generic Wells Noble Houses work.
 
 Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilt-yard drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 

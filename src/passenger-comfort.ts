@@ -14,18 +14,22 @@ export const COMFORT_EXPECTATIONS: Readonly<Record<ComfortExpectation, { name: s
 
 /** Explicit passenger-manifest catalog. Expectations are never inferred from label text. */
 const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
+  'Accord arbitrator and seal clerks': 'elevated',
   'assay auditors': 'standard',
   'bonded contractor crew': 'standard',
   'Bruckner field technician team': 'standard',
   'certified duel referees': 'elevated',
+  'charter-combat referees': 'elevated',
   'claims office passenger party': 'standard',
   'commissioning engineer team': 'standard',
   'completed long-term shift returnees': 'standard',
   'custody processing passengers': 'minimal',
   'custody transfer passengers': 'minimal',
+  'damage assessor and evidence registrar': 'elevated',
   'dealer compliance auditors': 'standard',
   'drive alignment crew': 'standard',
   'duelists, seconds, and armor squires': 'elevated',
+  'emergency mediation panelists': 'elevated',
   'emergency propulsion service crew': 'standard',
   'executive and supervisor staff': 'elevated',
   'executive delegation': 'prestige',
@@ -49,6 +53,7 @@ const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
   'medical return passengers': 'elevated',
   'metallurgical experts': 'elevated',
   'metric-drive audit team': 'elevated',
+  'neutral truce witnesses': 'elevated',
   'owner representative party': 'elevated',
   'personnel transfers': 'standard',
   'petition counsel and clerks': 'elevated',
@@ -64,6 +69,7 @@ const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
   'shift crews': 'standard',
   'shift rotations': 'standard',
   'shipwright witnesses and appraisers': 'elevated',
+  'succession hearing mediators': 'elevated',
   'surface labor allocation': 'minimal',
   'technical specialist party': 'standard',
   'VHM factory engineer delegation': 'elevated',
@@ -73,6 +79,7 @@ const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
   'work rotations': 'standard',
   'workforce transfer group': 'minimal',
   'yard arbitration counsel': 'elevated',
+  'yard-lien examiner and valuation counsel': 'elevated',
 };
 
 export function passengerComfortTerms(label: string): PassengerComfortTerms {
