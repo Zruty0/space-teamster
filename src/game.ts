@@ -2027,6 +2027,12 @@ export class Game {
     return Object.values(this.career.maintenanceShopInspections).flatMap(inspection => inspection.fabricatedFaults);
   }
 
+  private clearSupersededFabricatedFaults(): void {
+    for (const inspection of Object.values(this.career.maintenanceShopInspections)) {
+      inspection.fabricatedFaults = [];
+    }
+  }
+
   private maintenanceFabricatedServiceComponentIds(shopId: string): string[] {
     return this.career.maintenanceShopInspections[shopId]?.fabricatedServiceComponentIds ?? [];
   }
@@ -2972,6 +2978,7 @@ export class Game {
       this.career.worldTime += quote.laborHours * 3600;
       this.worldTime = Math.max(this.worldTime, this.career.worldTime);
       diagnoseRigAtShop(this.career.rig, shop);
+      this.clearSupersededFabricatedFaults();
       const fabricatedFaults = fabricateFaultClaimsAtShop(this.career.rig, shop);
       const fabricatedServiceComponentIds = fabricateServiceComponentIdsAtShop(
         this.career.rig,
