@@ -25,6 +25,7 @@ export interface OrbitModeDef {
 export interface WindLayerDef {
   altitudeCenter: number;
   altitudeWidth: number;
+  /** Horizontal air-mass velocity in local approach coordinates (m/s). */
   strength: number;
   probability?: number;
   altitudeJitter?: number;

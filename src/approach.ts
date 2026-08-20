@@ -505,7 +505,7 @@ function weatherActivity(item: { activeStart?: number; activeEnd?: number; fadeT
   return Math.min(fadeIn, fadeOut);
 }
 
-/** Get wind acceleration at altitude (horizontal, m/s²). Time-evolving. */
+/** Get horizontal air-mass velocity at altitude (m/s). Time-evolving. */
 function getWind(y: number, level: ApproachLevel, time: number = 0): number {
   let wind = 0;
   const volatility = level.poi.weatherProfile?.volatility ?? 1;
@@ -579,15 +579,20 @@ function aeroForces(
   x: number, y: number, vx: number, vy: number,
   angle: number, wingAngle: number,
   level: ApproachLevel,
+  airVx: number = 0,
 ): { ax: number; ay: number; heatRate: number; aoa: number } {
-  const speed = Math.sqrt(vx * vx + vy * vy);
+  // Aerodynamic forces depend on velocity relative to the moving air mass. Wind
+  // is not a free acceleration: drag can only pull the rig toward air speed.
+  const relativeVX = vx - airVx;
+  const relativeVY = vy;
+  const speed = Math.sqrt(relativeVX * relativeVX + relativeVY * relativeVY);
   const rho = density(y, level);
   let ax = 0, ay = 0, heatRate = 0, aoa = 0;
 
   if (speed < 1 || rho < 1e-7) return { ax, ay, heatRate, aoa };
 
   // AoA: angle between velocity and ship nose
-  const velAngle = Math.atan2(vx, vy);
+  const velAngle = Math.atan2(relativeVX, relativeVY);
   aoa = velAngle - angle;
   while (aoa > Math.PI) aoa -= 2 * Math.PI;
   while (aoa < -Math.PI) aoa += 2 * Math.PI;
@@ -604,8 +609,8 @@ function aeroForces(
 
   // Drag
   const dragA = q * Cd;
-  ax -= (vx / speed) * dragA;
-  ay -= (vy / speed) * dragA;
+  ax -= (relativeVX / speed) * dragA;
+  ay -= (relativeVY / speed) * dragA;
 
   // Lift: body (always) + wings (when deployed)
   const Cl = level.liftBody + wingAngle * level.liftWingPerRad;
@@ -616,7 +621,7 @@ function aeroForces(
     // Lift direction: component of nose perpendicular to velocity
     const noseX = Math.sin(angle);
     const noseY = Math.cos(angle);
-    const vdx = vx / speed, vdy = vy / speed;
+    const vdx = relativeVX / speed, vdy = relativeVY / speed;
     const dot = noseX * vdx + noseY * vdy;
     let px = noseX - dot * vdx;
     let py = noseY - dot * vdy;
@@ -733,14 +738,13 @@ export function updateApproach(
     s.vy = local.vy;
   } else {
     const effectiveWing = s.wingsDeployed ? s.wingAngle : 0;
+    const windVx = getWind(s.y, level, time);
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
-      s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level,
+      s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level, windVx,
     );
     s.maintenanceAeroAcceleration = Math.hypot(aeroAx, aeroAy);
     let ax = aeroAx;
     let ay = -level.gravity + aeroAy;
-
-    ax += getWind(s.y, level, time);
     angAccel += getTurbulenceTorque(s.x, s.y, time, level);
 
     if (s.throttle > 0.01 && canBurn) {
@@ -857,9 +861,9 @@ export function predictTrajectory(
   let prevX = x, prevY = y;
 
   for (let t = 0; t < maxTime; t += step) {
-    const { ax: aax, ay: aay, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level);
-    let ax = aax + (includeWind ? getWind(y, level, predTime) : 0);
-    const ay = -level.gravity + aay;
+    const windVx = includeWind ? getWind(y, level, predTime + t) : 0;
+    const { ax, ay: aeroAy, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level, windVx);
+    const ay = -level.gravity + aeroAy;
 
     temp += (heatRate / level.heatCapacity - level.dissipation * temp) * step;
     const tooHotForWings = temp >= level.wingsMaxTemp;
@@ -1861,14 +1865,14 @@ function drawApproachHUD(
     }
   }
 
-  const windAccel = getWind(s.y, level, time);
-  if (Math.abs(windAccel) > 1) {
+  const windSpeed = getWind(s.y, level, time);
+  if (Math.abs(windSpeed) > 1) {
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    const windDir = windAccel > 0 ? '→' : '←';
-    const windCol = Math.abs(windAccel) > 8 ? COL_WARNING : '#5588cc';
+    const windDir = windSpeed > 0 ? '→' : '←';
+    const windCol = Math.abs(windSpeed) > 8 ? COL_WARNING : '#5588cc';
     ctx.fillStyle = windCol;
-    ctx.fillText(`WIND ${windDir} ${Math.abs(windAccel).toFixed(0)} m/s²`, W / 2, warnY);
+    ctx.fillText(`WIND ${windDir} ${Math.abs(windSpeed).toFixed(0)} m/s`, W / 2, warnY);
     warnY += 22;
   }
 
