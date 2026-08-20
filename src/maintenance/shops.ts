@@ -137,13 +137,13 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   honesty: 0,
   copy: {
     people: [
-      { references: ['“Honest” Lem Calder', 'Honest Lem', 'Lem Calder', 'Lem'] },
+      { references: ['Abraham “Honest Abe” Calder', 'Honest Abe', 'Abraham Calder', 'Abe Calder', 'Abraham', 'Abe'] },
     ],
-    profileBlurb: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. “Honest” Lem Calder staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
+    profileBlurb: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. Abraham “Honest Abe” Calder staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
     levelBlurb: 'Notorious mechanical and reclaimed-parts shop that keeps regaining and again losing the Guild certification',
-    diagnosisBlurb: '“Set her over the pit and come inside, Teamster. My daughter-in-law Marta has stew on, and nobody studies a repair estimate properly on an empty stomach.” “Honest” Lem Calder ushers you toward the family table while his sons-in-law set the scanner beneath the rig. He beckons one of them over with a curl of one finger. “By the time we’ve eaten, young Eli here will have found everything worth discussing.”',
-    serviceBlurb: '“Service only?” Lem’s smile dims by exactly one degree. “Certainly. The boys will clear the dust, refresh the compounds, tighten the mounts, and give the finish a proper polish.” He glances toward the closed panels. “The deeper concerns will keep until you’re ready to give them the attention they deserve.”',
-    repairsBlurb: '“Excellent. The Calders believe serious work deserves a full turnout.” Beyond the office glass, Lem’s sons, in-laws, and cousins line up beside loaded tool carts, waiting for the authorization light. Gasket sits at the front with a rag in his mouth. “Sign the order, Teamster, and the whole family goes to work.”',
+    diagnosisBlurb: '“Set her over the pit and come inside, Teamster. My daughter-in-law Marta has stew on, and nobody studies a repair estimate properly on an empty stomach.” Abraham “Honest Abe” Calder ushers you toward the family table while his sons-in-law set the scanner beneath the rig. He beckons one of them over with a curl of one finger. “By the time we’ve eaten, young Eli here will have found everything worth discussing.”',
+    serviceBlurb: '“Service only?” Abe’s smile dims by exactly one degree. “Certainly. The boys will clear the dust, refresh the compounds, tighten the mounts, and give the finish a proper polish.” He glances toward the closed panels. “The deeper concerns will keep until you’re ready to give them the attention they deserve.”',
+    repairsBlurb: '“Excellent. The Calders believe serious work deserves a full turnout.” Beyond the office glass, Abe’s sons, in-laws, and cousins line up beside loaded tool carts, waiting for the authorization light. Gasket sits at the front with a rag in his mouth. “Sign the order, Teamster, and the whole family goes to work.”',
   },
 };
 
