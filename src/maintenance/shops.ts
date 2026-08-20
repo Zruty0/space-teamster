@@ -198,6 +198,29 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
   },
 };
 
+export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
+  id: 'serrat-domain-civil-refit-office',
+  name: 'Serrat Domain Civil Refit Office',
+  organizationName: 'Serrat Domain Yard Office',
+  locationIds: ['estella-xie-outer-spec-drydock'],
+  diagnosticGrade: 'A',
+  workQualityGrade: 'A',
+  componentGradeBest: 'C',
+  componentGradeWorst: 'D',
+  laborRate: 1_000,
+  diagnosisHours: 2,
+  partsMarkup: 1,
+  laborHoursMultiplier: 1,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. [person]Master Shipwright Beatriz Correia[/person] commands the civilian watch from the main dock board, assigning visiting craft among the yard’s structures, machinery, and electrical teams.',
+    levelBlurb: 'Domain shipyard diagnostics and full-complexity civilian repair',
+    diagnosisBlurb: '“Bring the rig onto line seven and give my surveyors clear access from the cargo spine forward.” [person]Master Shipwright Beatriz Correia[/person] marks three teams onto the dock board. “Structures, machinery, and controls will inspect in parallel. You’ll receive one consolidated finding, the work we can certify here, and the available replacement grades.”',
+    serviceBlurb: '“Service work takes the same discipline as a major refit. The machine only cares whether the measurement is right.” [person]Beatriz Correia[/person] studies the selected systems. “My watch will renew the protective treatments, align the moving gear, test every adjusted circuit under load, and release the rig when each value holds.”',
+    repairsBlurb: '“Your rig is compact enough to finish in one bay and important enough to finish correctly.” [person]Beatriz Correia[/person] opens the work packages across the dock board. “Yard welders, machinists, electronics hands, and alignment crews are on this watch. Authorize the order, and the same people who build these systems will return yours to specification.”',
+  },
+};
+
 export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   id: 'bruckner-central-service-hall',
   name: 'Bruckner Central Service Hall',
@@ -252,6 +275,7 @@ const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   VILAR_MACAO_PALACE_OUTFITTER,
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   CADIZ_ARMORIAL_SHIPWRIGHTS,
+  SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
 ];

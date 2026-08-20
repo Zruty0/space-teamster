@@ -494,6 +494,18 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: LocalOfficeDef = {
   actions: [],
 };
 
+export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'serrat-domain-civil-refit-office-directory',
+  name: 'Serrat Domain Civil Refit Office',
+  organizationName: 'Serrat Domain Yard Office',
+  locationIds: ['estella-xie-outer-spec-drydock'],
+  summary: 'High-capability civilian diagnostics, repair, and refit.',
+  description: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. Master Shipwright Beatriz Correia commands the civilian watch from the main dock board, assigning visiting craft among the yard’s structures, machinery, and electrical teams.',
+  maintenanceShopId: 'serrat-domain-civil-refit-office',
+  actions: [],
+};
+
 export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   kind: 'office',
   id: 'bruckner-central-service-hall-office',
@@ -524,6 +536,7 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   VILAR_MACAO_PALACE_OUTFITTER,
   VILAR_MANTICORE_OBSERVATORY_OUTFITTER,
   CADIZ_ARMORIAL_SHIPWRIGHTS,
+  SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,
