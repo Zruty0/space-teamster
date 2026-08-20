@@ -33,6 +33,7 @@ export interface CareerContract {
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
+  briefing?: string;
   completionMessage: string;
 }
 
@@ -56,10 +57,15 @@ function rand(seed: number): number {
   return (x >>> 0) / 0xffffffff;
 }
 
-function weightedPick<T extends { likelihood: number }>(items: T[], count: number, seed: number): T[] {
+function weightedPick<T extends { likelihood: number; boardPriority?: boolean }>(items: T[], count: number, seed: number): T[] {
   const pool = items.filter(item => item.likelihood > 0);
-  const picked: T[] = [];
-  for (let i = 0; i < count && pool.length > 0; i++) {
+  const priority = pool.filter(item => item.boardPriority);
+  const prioritySet = new Set(priority);
+  const picked: T[] = priority.slice(0, count);
+  for (let i = pool.length - 1; i >= 0; i--) {
+    if (prioritySet.has(pool[i])) pool.splice(i, 1);
+  }
+  for (let i = picked.length; i < count && pool.length > 0; i++) {
     const total = pool.reduce((sum, item) => sum + item.likelihood, 0);
     let roll = rand(seed + i * 0x7f4a7c15) * total;
     let idx = 0;
@@ -162,7 +168,9 @@ function scheduledStartForDestinationLead(candidate: FactionContractCandidate, n
 function makeFactionContract(candidate: FactionContractCandidate, index: number, startWorldTime: number): CareerContract {
   const scheduledStartWorldTime = scheduledStartForDestinationLead(candidate, startWorldTime);
   const mission = generateEstellaMission(candidate.sourceId, candidate.destinationId, scheduledStartWorldTime ?? startWorldTime);
-  const selectedTransfer = preferredContractTransfer(mission.transferOptions);
+  const selectedTransfer = candidate.preferredTransferId
+    ? mission.transferOptions.find(option => option.id === candidate.preferredTransferId) ?? preferredContractTransfer(mission.transferOptions)
+    : preferredContractTransfer(mission.transferOptions);
   const pay = makePayTerms({
     generosity: candidate.generosity,
     flatReward: candidate.flatReward,
@@ -197,6 +205,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
+    briefing: candidate.briefing,
     completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
   };
 }

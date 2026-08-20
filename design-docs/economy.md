@@ -588,7 +588,7 @@ BFS cargo palette:
 
 ## Faction: Oathmark Accord Authority
 
-The Oathmark Accord Authority is the neutral operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. It issues grey-sealed single-leg warrants through Serrat Domain Yard Dispatch, the Keelwright Works Warrant Office, the Oathmark Academy Registrar, and the Accord Custody Office. Banner Forge and overt House military traffic are excluded pending the separate House Mendes provider.
+The Oathmark Accord Authority is the neutral operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. It issues grey-sealed single-leg warrants through Serrat Domain Yard Dispatch, the Keelwright Works Warrant Office, the Oathmark Academy Registrar, and the Accord Custody Office. Banner Forge and overt House military traffic belong to the separate House Mendes provider.
 
 Core flows:
 
@@ -602,9 +602,19 @@ Core flows:
 
 Routine terms use `0.15` generosity plus `0.85` actual-fuel compensation capped at twice par. Flat warrant fees are `6,000 cr` for internal freight, `12,000 cr` for exports, `10,000 cr` for ordinary neutral passengers, and `20,000 cr` for emergency mediation. Courier work and multi-hop mission sequences remain future design candidates; the initial provider uses ordinary single-leg settlement only.
 
+## Faction: House Mendes
+
+House Mendes operates the Wells muster-logistics network from Banner Forge. Lord Marshal Vasco Mendes directs its warrants from the House Mendes Marshalcy at Castle Mendes. Banner Forge stages both material and personnel: proofed armor, shock lances, robotic destriers, target automata, field fortifications, command equipment, guard inspectors, captains, surgeons, adjudicators, clerks, and logistics officers.
+
+The generator allocates a named muster to every favorable Hydra→Gryphon and Hydra→Manticore transfer opportunity. A fixed three-day allowance covers escape from Hydra before the parent-SOI transfer. Gryphon and Manticore mobilizations remain simultaneous when their windows overlap; either one suppresses new Hydra-local outbound muster postings. In their absence, Banner Forge supports rotating Almaden, Marisma, Macao, and Cadiz musters. This timing is internal: player-facing postings name the muster and Lord Marshal but never expose a receiving period or muster calendar.
+
+Each muster later produces independent return work. Equipment, telemetry, damaged armor, target automata, and after-action records return to Banner Forge; inspectors, captains, surgeons, adjudicators, clerks, and logistics officers return to Castle Mendes. Outer returns use favorable reverse transfers. Return postings do not require the player to have flown an outbound contract and remain ordinary single-leg missions.
+
+Muster titles remain `Deliver X to Y` or `Transport X to Y`. Details and completion text always name both the muster and Lord Marshal Vasco Mendes. Terms use `0.40` generosity plus `0.60` actual-fuel compensation capped at twice par, with a `25,000 cr` outbound muster fee and `15,000 cr` return fee. Future Mendes reputation should make muster deliveries the House’s strongest repeatable source of standing; the planned weights are `+3` for Hydra outbound, `+4` for outer outbound, and `+2` for return work.
+
 ## Faction: Wells Noble Houses
 
-Minor Wells nobility is represented by one combined provider. The three senior Houses remain separate future providers because Alvares, Mendes, and Nunes are in active conflict; counts, marquises, and lesser households share this minor-noble charter traffic.
+Minor Wells nobility is represented by one combined provider. House Mendes has its dedicated muster provider; Alvares and Nunes remain separate future providers because the three senior Houses are in active conflict. Counts, marquises, and lesser households share this minor-noble charter traffic.
 
 Scope:
 

@@ -2739,6 +2739,7 @@ export class Game {
         ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
+          ...(contract.briefing ? [{ kind: 'text' as const, text: contract.briefing, tone: 'primary' as const }] : []),
           ...(contract.templateId === 'line-certification-roadstead-checkride' ? [
             { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
           ] : []),

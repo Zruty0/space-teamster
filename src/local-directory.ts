@@ -528,6 +528,17 @@ export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: LocalOfficeDef = {
   actions: [],
 };
 
+export const HOUSE_MENDES_MARSHALCY: LocalOfficeDef = {
+  kind: 'office',
+  id: 'house-mendes-marshalcy',
+  name: 'House Mendes Marshalcy',
+  organizationName: 'House Mendes',
+  locationIds: ['estella-xc-castle-mendes'],
+  summary: 'Muster command office',
+  description: '[contact]Lord Marshal Vasco Mendes[/contact] directs the House’s muster warrants from Castle Mendes. His office coordinates Banner Forge deployments, guard inspections, and the return of personnel from the Wells.',
+  actions: [],
+};
+
 export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   kind: 'office',
   id: 'bruckner-central-service-hall-office',
@@ -561,6 +572,7 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   KEELWRIGHT_WORKS_SECONDS_GATE,
   OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
+  HOUSE_MENDES_MARSHALCY,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,

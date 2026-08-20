@@ -12,6 +12,7 @@ import { HALLORAN_PROVIDER } from './halloran-contracts';
 import { HARTWELL_MACHINERY_BROKERS_PROVIDER } from './hartwell-machinery-contracts';
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { HARTWELL_SHIPPING_COMPANIES_PROVIDER } from './hartwell-shipping-contracts';
+import { HOUSE_MENDES_PROVIDER } from './mendes-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
 import { OATHMARK_ACCORD_AUTHORITY_PROVIDER } from './oathmark-accord-contracts';
 import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
@@ -77,6 +78,12 @@ export interface FactionContractCandidate {
   travelMode?: 'old-nell';
   /** Schedule the run when an orbiting destination is this far ahead of its surface source. */
   destinationLeadAngleFromSource?: number;
+  /** Optional authored context shown in the posting detail. */
+  briefing?: string;
+  /** Prefer a specific generated transfer option for event-timed work. */
+  preferredTransferId?: 'now' | 'soon' | 'best';
+  /** Reserve board representation for an active event before weighted filling. */
+  boardPriority?: boolean;
   /** Message shown on successful delivery. */
   completionMessage?: string;
 }
@@ -108,6 +115,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   HARTWELL_SHIPPING_COMPANIES_PROVIDER,
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
   OATHMARK_ACCORD_AUTHORITY_PROVIDER,
+  HOUSE_MENDES_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 
