@@ -475,7 +475,7 @@ export function drawInteractiveScene(
       ctx.strokeRect(x + 10, y - 18, boxW - 20, rowH - 5);
     }
 
-    const labelX = x + 28;
+    const labelX = x + (option.leftIcon ? 31 : 28);
     if (option.leftIcon) drawInteractiveIcon(ctx, option.leftIcon, x + 13, y);
     const hasTagColumn = !!option.tag || option.tagColumn === true;
     let textX = labelX;
@@ -487,16 +487,18 @@ export function drawInteractiveScene(
     if (hasTagColumn) textX += 82;
     ctx.fillStyle = toneColor(tone, selected);
     ctx.font = selected ? 'bold 15px monospace' : '15px monospace';
+    const cursorWidth = ctx.measureText('▶ ').width;
+    if (selected) ctx.fillText('▶', textX, y);
+    textX += cursorWidth;
     const rightTextWidth = option.rightText
       ? (boxW >= 600 ? 300 : 100)
       : (boxW >= 600 ? 190 : 30);
     const labelWidth = boxW - (textX - x) - rightTextWidth;
-    const labelPrefix = selected ? '▶ ' : '  ';
     const labelLines = option.labelLineCount === 2
-      ? wrapText(ctx, `${labelPrefix}${option.label}`, labelWidth).slice(0, 2)
-      : [`${labelPrefix}${middleEllipsis(ctx, option.label, labelWidth - ctx.measureText(labelPrefix).width)}`];
+      ? wrapText(ctx, option.label, labelWidth).slice(0, 2)
+      : [middleEllipsis(ctx, option.label, labelWidth)];
     if (option.labelLineCount === 2) {
-      const allLabelLines = wrapText(ctx, `${labelPrefix}${option.label}`, labelWidth);
+      const allLabelLines = wrapText(ctx, option.label, labelWidth);
       if (allLabelLines.length > 2) labelLines[1] = middleEllipsis(ctx, `${labelLines[1]}…`, labelWidth);
     }
     labelLines.forEach((line, lineIndex) => ctx.fillText(line, textX, y + lineIndex * 18));
@@ -518,7 +520,7 @@ export function drawInteractiveScene(
     if (option.detail) {
       ctx.fillStyle = COL_HUD_DIM;
       ctx.font = '12px monospace';
-      const detailX = option.tagColumn ? textX : x + 46;
+      const detailX = option.tagColumn ? textX : x + (option.leftIcon ? 49 : 46);
       const detailIndent = detailX - (x + 46);
       const detailWidth = option.rightText
         ? boxW - (detailX - x) - rightTextWidth - 20
