@@ -228,29 +228,17 @@ function drawLockIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void
   ctx.restore();
 }
 
-function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-  ctx.save();
-  ctx.strokeStyle = '#4ddcff';
-  ctx.lineWidth = 1.5;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+// Exact 512×512 path from the operator-provided wrench.svg, scaled to the UI glyph box.
+const WRENCH_ICON_PATH_DATA = 'M511.804,133.197c-0.521-10.112-6.946-18.97-16.393-22.596c-2.987-1.143-6.093-1.707-9.173-1.707c-6.673,0-13.218,2.611-18.116,7.509l-59.81,59.861l-60.868-11.58l-11.571-60.911l59.81-59.861c7.151-7.159,9.421-17.86,5.803-27.307c-3.627-9.446-12.467-15.88-22.571-16.41C376.397,0.068,373.871,0,371.345,0c-37.743,0-73.037,14.515-99.379,40.875c-41.728,41.762-52.582,103.518-29.295,156.169L75.537,364.314L33.51,406.374c-17.63,17.647-54.323,54.366-18.108,90.615C27.801,509.397,40.747,512,49.425,512c23.415,0,41.003-17.604,56.525-33.135l209.186-209.357c17.783,7.808,37.06,11.878,56.704,11.878c37.521,0,72.798-14.618,99.319-41.156C499.08,212.292,513.894,173.278,511.804,133.197zM453.052,222.106c-22.443,22.46-51.814,33.656-81.212,33.656c-21.367,0-42.743-5.914-61.483-17.715C230.4,318.071,125.064,423.484,87.834,460.74c-12.809,12.817-25.609,25.634-38.417,25.634c-5.299,0-10.607-2.202-15.915-7.509c-18.108-18.125,0-36.25,18.108-54.366C88.84,387.243,194.167,281.83,274.133,201.805C246.127,157.252,251.307,97.792,290.065,59c22.451-22.468,51.84-33.365,81.271-33.365c2.082,0,4.156,0.051,6.238,0.162l-69.393,69.444l17.357,91.366l91.298,17.374l69.393-69.453C487.876,166.025,477.09,198.042,453.052,222.106z';
+let wrenchIconPath: Path2D | undefined;
 
-  // Compact upright open-end wrench outline.
-  ctx.beginPath();
-  ctx.moveTo(x + 2, y - 13);
-  ctx.quadraticCurveTo(x - 1, y - 10, x + 1, y - 6);
-  ctx.quadraticCurveTo(x + 2, y - 5, x + 3, y - 5);
-  ctx.lineTo(x + 4, y + 1);
-  ctx.quadraticCurveTo(x + 4, y + 3, x + 6, y + 3);
-  ctx.quadraticCurveTo(x + 8, y + 3, x + 8, y + 1);
-  ctx.lineTo(x + 9, y - 5);
-  ctx.quadraticCurveTo(x + 10, y - 5, x + 11, y - 6);
-  ctx.quadraticCurveTo(x + 13, y - 10, x + 10, y - 13);
-  ctx.lineTo(x + 8, y - 9);
-  ctx.lineTo(x + 6, y - 7);
-  ctx.lineTo(x + 4, y - 9);
-  ctx.closePath();
-  ctx.stroke();
+function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  wrenchIconPath ??= new Path2D(WRENCH_ICON_PATH_DATA);
+  ctx.save();
+  ctx.translate(x - 2, y - 13);
+  ctx.scale(1 / 32, 1 / 32);
+  ctx.fillStyle = '#4ddcff';
+  ctx.fill(wrenchIconPath);
   ctx.restore();
 }
 
