@@ -130,6 +130,7 @@ export interface FabricatedFaultClaim {
   componentId: ComponentId;
   faultId: string;
   locationId?: string;
+  statusActive: boolean;
 }
 
 export const RIG_RESTRICTION_IDS = [

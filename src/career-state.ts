@@ -33,6 +33,7 @@ export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[
 export interface MaintenanceShopInspectionState {
   diagnosedWorldTime: number;
   creditRemaining: number;
+  dishonestyRevision: number;
   fabricatedFaults: FabricatedFaultClaim[];
   fabricatedServiceComponentIds: string[];
   pretendMaintainedComponentIds: string[];
@@ -75,6 +76,7 @@ function migratedFabricatedFaults(value: unknown): FabricatedFaultClaim[] {
       componentId: claim.componentId,
       faultId: claim.faultId,
       ...(typeof claim.locationId === 'string' && claim.locationId ? { locationId: claim.locationId } : {}),
+      statusActive: claim.statusActive !== false,
     });
   }
   return claims;
@@ -96,6 +98,9 @@ function migratedShopInspections(parsed: any): Record<string, MaintenanceShopIns
     return [[shopId, {
       diagnosedWorldTime: inspection.diagnosedWorldTime,
       creditRemaining,
+      dishonestyRevision: typeof inspection.dishonestyRevision === 'number' && Number.isFinite(inspection.dishonestyRevision)
+        ? Math.max(0, Math.floor(inspection.dishonestyRevision))
+        : 0,
       fabricatedFaults: migratedFabricatedFaults(inspection.fabricatedFaults),
       fabricatedServiceComponentIds: migratedComponentIds(inspection.fabricatedServiceComponentIds),
       pretendMaintainedComponentIds: migratedComponentIds(inspection.pretendMaintainedComponentIds),

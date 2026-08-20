@@ -11,7 +11,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'war
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; segments?: InteractiveTextSegment[]; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6 }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6; fullWidthValue?: boolean }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -279,8 +279,8 @@ function sceneBodyMetrics(
     if (row.kind === 'kv') {
       const maxLines = row.valueLineCount ?? 1;
       const valueIconWidth = row.valueIcon ? 20 : 0;
-      const valueWidth = boxW - labelW - 54 - valueIconWidth;
-      const lineCount = row.valueSegments ? maxLines : Math.max(1, Math.min(maxLines, wrapText(ctx, row.value, valueWidth).length));
+      const valueWidth = boxW - (row.fullWidthValue ? 54 : labelW + 54) - valueIconWidth;
+      const lineCount = Math.max(1, Math.min(maxLines, wrapText(ctx, row.value, valueWidth).length));
       return height + 22 + (lineCount - 1) * 18;
     }
     return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
@@ -376,15 +376,16 @@ export function drawInteractiveScene(
         ctx.fillText(row.label.toUpperCase(), x + (row.icon ? 40 : 22), y);
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
-        const valueX = x + 22 + labelW;
+        const valueX = x + 22 + (row.fullWidthValue ? 0 : labelW);
         const valueIconWidth = row.valueIcon ? 20 : 0;
-        const valueWidth = boxW - labelW - 54 - valueIconWidth;
+        const valueWidth = boxW - (row.fullWidthValue ? 54 : labelW + 54) - valueIconWidth;
         if (row.valueIcon) drawInteractiveIcon(ctx, row.valueIcon, valueX, y);
         const valueTextX = valueX + valueIconWidth;
         const maxValueLines = row.valueLineCount ?? 1;
         if (row.valueSegments) {
-          drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, maxValueLines);
-          y += 22 + (maxValueLines - 1) * 18;
+          const valueLineCount = Math.max(1, Math.min(maxValueLines, wrapText(ctx, row.value, valueWidth).length));
+          drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, valueLineCount);
+          y += 22 + (valueLineCount - 1) * 18;
         } else if (maxValueLines > 1) {
           const wrapped = wrapText(ctx, row.value, valueWidth);
           const valueLines = wrapped.slice(0, maxValueLines);

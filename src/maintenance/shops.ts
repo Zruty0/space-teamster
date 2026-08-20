@@ -187,9 +187,10 @@ export function fabricateFaultClaimsAtShop(
         ? [{ component, state }]
         : [];
     });
-    if (!installedComponents.length || installedComponents.some(({ state }) => !!state.fault)
+    const healthyComponents = installedComponents.filter(({ state }) => !state.fault);
+    if (!installedComponents.some(({ state }) => !!state.fault) || !healthyComponents.length
       || unitRoll(random()) >= fabricationChance) continue;
-    const selected = installedComponents[Math.floor(unitRoll(random()) * installedComponents.length)];
+    const selected = healthyComponents[Math.floor(unitRoll(random()) * healthyComponents.length)];
     const faults = fabricatedFaultsForComponent(selected.component);
     const fault = faults[Math.floor(unitRoll(random()) * faults.length)];
     claims.push({
@@ -197,6 +198,7 @@ export function fabricateFaultClaimsAtShop(
       systemId,
       componentId: selected.component.id,
       faultId: fault.id,
+      statusActive: true,
     });
   }
   return claims;

@@ -4,6 +4,7 @@ import type {
   CareerRigState,
   MaintenanceSystemId,
   OptionalEquipmentId,
+  FabricatedFaultClaim,
   FaultSeverity,
   RigRestrictionId,
   RigSystemStatus,
@@ -40,22 +41,33 @@ const OPTIONAL_EQUIPMENT_NAMES: Record<OptionalEquipmentId, string> = {
   'heavy-heat-shielding': 'Heavy Heat Shielding',
 };
 
-export function playerShipSystemStatuses(rig: CareerRigState): PlayerShipSystemStatus[] {
+export function playerShipSystemStatuses(rig: CareerRigState, fabricatedFaults: readonly FabricatedFaultClaim[] = []): PlayerShipSystemStatus[] {
   return MAINTENANCE_SYSTEMS.map(system => {
     const faultedComponents = system.componentIds.flatMap(componentId => {
       const state = rig.components[componentId];
       const component = MAINTENANCE_COMPONENTS.find(candidate => candidate.id === componentId);
       return state?.installed && state.fault && component ? [{ state, component }] : [];
     });
+    const diagnosedFaults: PlayerDiagnosedComponentFault[] = faultedComponents.flatMap(({ state, component }) => state.fault?.diagnosis === 'confirmed'
+      ? [{ componentId: component.id, componentName: component.name, severity: state.fault.severity }]
+      : []);
+    if (faultedComponents.length) {
+      diagnosedFaults.push(...fabricatedFaults.flatMap(claim => {
+        if (!claim.statusActive || claim.systemId !== system.id) return [];
+        const component = MAINTENANCE_COMPONENTS.find(candidate => candidate.id === claim.componentId);
+        return component && component.systemId === system.id && rig.components[component.id]?.installed
+          ? [{ componentId: component.id, componentName: component.name, severity: 'minor' as const }]
+          : [];
+      }));
+    }
+    diagnosedFaults.sort((a, b) => a.componentId.localeCompare(b.componentId));
     return {
       id: system.id,
       name: system.name,
       status: systemStatus(rig, system.id),
       notEquipped: system.optional && system.componentIds.every(componentId => !rig.components[componentId]?.installed),
       diagnosisRequired: faultedComponents.some(({ state }) => state.fault?.diagnosis !== 'confirmed'),
-      diagnosedFaults: faultedComponents.flatMap(({ state, component }) => state.fault?.diagnosis === 'confirmed'
-        ? [{ componentId: component.id, componentName: component.name, severity: state.fault.severity }]
-        : []),
+      diagnosedFaults,
     };
   });
 }
