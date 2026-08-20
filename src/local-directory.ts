@@ -449,7 +449,7 @@ export const RED_DUST_MECHANICAL: LocalOfficeDef = {
   id: 'red-dust-mechanical-reclamation-office',
   name: 'Red Dust Mechanical & Reclamation',
   locationIds: ['estella-v-capital-settlement'],
-  summary: 'Notorious mechanical and reclaimed-parts shop that keeps regaining and again losing the Guild certification.',
+  summary: 'Family maintenance shop',
   description: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. “Honest” Lem Calder staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
   maintenanceShopId: 'red-dust-mechanical-reclamation',
   actions: [],

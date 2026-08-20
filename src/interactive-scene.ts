@@ -11,7 +11,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'war
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; segments?: InteractiveTextSegment[]; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6; fullWidthValue?: boolean }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; labelLineCount?: 1 | 2 | 3; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6; fullWidthValue?: boolean }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -277,12 +277,18 @@ function sceneBodyMetrics(
   const contentHeight = rows.reduce((height, row) => {
     if (row.kind === 'separator') return height + 14;
     if (row.kind === 'kv') {
-      const maxLines = row.valueLineCount ?? 1;
+      ctx.font = '11px monospace';
+      const labelWidth = labelW - (row.icon ? 18 : 0);
+      const labelLineCount = row.fullWidthValue
+        ? 1
+        : Math.max(1, Math.min(row.labelLineCount ?? 1, wrapText(ctx, row.label.toUpperCase(), labelWidth).length));
+      ctx.font = '13px monospace';
       const valueIconWidth = row.valueIcon ? 20 : 0;
       const valueWidth = boxW - (row.fullWidthValue ? 54 : labelW + 54) - valueIconWidth;
-      const lineCount = Math.max(1, Math.min(maxLines, wrapText(ctx, row.value, valueWidth).length));
-      return height + 22 + (lineCount - 1) * 18;
+      const valueLineCount = Math.max(1, Math.min(row.valueLineCount ?? 1, wrapText(ctx, row.value, valueWidth).length));
+      return height + 22 + (Math.max(labelLineCount, valueLineCount) - 1) * 18;
     }
+    ctx.font = '13px monospace';
     return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
   }, 0);
   const requestedHeight = rows.length ? Math.min(scene.bodyMaxHeight ?? 260, 24 + contentHeight) : 0;
@@ -373,7 +379,12 @@ export function drawInteractiveScene(
         ctx.font = '11px monospace';
         ctx.fillStyle = COL_HUD_DIM;
         if (row.icon) drawInteractiveIcon(ctx, row.icon, x + 22, y);
-        ctx.fillText(row.label.toUpperCase(), x + (row.icon ? 40 : 22), y);
+        const labelWidth = labelW - (row.icon ? 18 : 0);
+        const maxLabelLines = row.fullWidthValue ? 1 : row.labelLineCount ?? 1;
+        const wrappedLabel = wrapText(ctx, row.label.toUpperCase(), labelWidth);
+        const labelLines = wrappedLabel.slice(0, maxLabelLines);
+        if (wrappedLabel.length > maxLabelLines) labelLines[maxLabelLines - 1] = middleEllipsis(ctx, `${labelLines[maxLabelLines - 1]}…`, labelWidth);
+        labelLines.forEach((line, index) => ctx.fillText(line, x + (row.icon ? 40 : 22), y + index * 18));
         ctx.font = row.tone === 'primary' || row.tone === 'success' || row.tone === 'warning' ? 'bold 13px monospace' : '13px monospace';
         ctx.fillStyle = toneColor(row.tone);
         const valueX = x + 22 + (row.fullWidthValue ? 0 : labelW);
@@ -382,20 +393,18 @@ export function drawInteractiveScene(
         if (row.valueIcon) drawInteractiveIcon(ctx, row.valueIcon, valueX, y);
         const valueTextX = valueX + valueIconWidth;
         const maxValueLines = row.valueLineCount ?? 1;
+        const wrappedValue = wrapText(ctx, row.value, valueWidth);
+        const valueLineCount = Math.max(1, Math.min(maxValueLines, wrappedValue.length));
         if (row.valueSegments) {
-          const valueLineCount = Math.max(1, Math.min(maxValueLines, wrapText(ctx, row.value, valueWidth).length));
           drawRichTextSegments(ctx, row.valueSegments, valueTextX, y, valueWidth, valueLineCount);
-          y += 22 + (valueLineCount - 1) * 18;
         } else if (maxValueLines > 1) {
-          const wrapped = wrapText(ctx, row.value, valueWidth);
-          const valueLines = wrapped.slice(0, maxValueLines);
-          if (wrapped.length > maxValueLines) valueLines[maxValueLines - 1] = middleEllipsis(ctx, `${valueLines[maxValueLines - 1]}…`, valueWidth);
+          const valueLines = wrappedValue.slice(0, maxValueLines);
+          if (wrappedValue.length > maxValueLines) valueLines[maxValueLines - 1] = middleEllipsis(ctx, `${valueLines[maxValueLines - 1]}…`, valueWidth);
           valueLines.forEach((line, index) => ctx.fillText(line, valueTextX, y + index * 18));
-          y += 22 + (Math.max(1, valueLines.length) - 1) * 18;
         } else {
           ctx.fillText(middleEllipsis(ctx, row.value, valueWidth), valueTextX, y);
-          y += 22;
         }
+        y += 22 + (Math.max(Math.max(1, labelLines.length), valueLineCount) - 1) * 18;
         continue;
       }
       ctx.textAlign = 'left';

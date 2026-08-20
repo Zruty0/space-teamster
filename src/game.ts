@@ -2123,11 +2123,15 @@ export class Game {
     });
     const actionableFaultCount = faulted.length + fabricatedFaulted.length;
     const systemOrder = new Map(MAINTENANCE_SYSTEM_IDS.map((systemId, index) => [systemId, index]));
+    const subsystemOrder = new Map<string, number>();
+    for (const systemId of MAINTENANCE_SYSTEM_IDS) {
+      maintenanceSystemById(systemId).componentIds.forEach((componentId, index) => subsystemOrder.set(componentId, index));
+    }
     const sortedFindings = [
       ...faulted.map(finding => ({ kind: 'real' as const, ...finding })),
       ...fabricatedFaulted.map(finding => ({ kind: 'fabricated' as const, ...finding })),
     ].sort((a, b) => (systemOrder.get(a.component.systemId) ?? 99) - (systemOrder.get(b.component.systemId) ?? 99)
-      || a.component.id.localeCompare(b.component.id));
+      || (subsystemOrder.get(a.component.id) ?? 99) - (subsystemOrder.get(b.component.id) ?? 99));
     const repairEverything = this.maintenanceRepairEverythingQuote(shop);
     const restrictionsByComponent = new Map<string, string[]>();
     for (const restriction of deriveRestrictions(this.career.rig)) {
@@ -2165,19 +2169,29 @@ export class Game {
         bodyMaxHeight: 420,
         bodyRows: [
           ...(actionableFaultCount ? sortedFindings.flatMap(finding => {
-            if (finding.kind === 'fabricated') return [{
-              kind: 'kv' as const,
-              label: finding.component.name,
-              value: `MINOR — ${finding.definition.name}`,
-              valueLineCount: 2 as const,
-              tone: 'warning' as const,
-              valueIcon: 'warning' as const,
-            }];
+            if (finding.kind === 'fabricated') return [
+              { kind: 'text' as const, text: finding.component.name },
+              {
+                kind: 'kv' as const,
+                label: '',
+                value: `MINOR - ${finding.claim.locationId ? `${finding.claim.locationId} - ` : ''}${finding.definition.name}`,
+                valueLineCount: 3 as const,
+                fullWidthValue: true,
+                tone: 'warning' as const,
+                valueIcon: 'warning' as const,
+              },
+            ];
             const definition = componentFaultById(finding.component, finding.fault.faultId);
             const confirmed = finding.fault.diagnosis === 'confirmed';
+            const severity = finding.fault.severity.toUpperCase();
+            const problem = definition?.name ?? 'Replacement required';
+            const diagnosis = confirmed
+              ? `${severity} - ${finding.fault.locationId ? `${finding.fault.locationId} - ` : ''}${problem}`
+              : `${severity} - UNKNOWN FAULT`;
             const restrictions = restrictionsByComponent.get(finding.component.id) ?? [];
             return [
-              { kind: 'kv' as const, label: finding.component.name, value: confirmed ? `${finding.fault.severity.toUpperCase()} — ${definition?.name ?? 'Replacement required'}${finding.fault.locationId ? ` @ ${finding.fault.locationId}` : ''}` : `${finding.fault.severity.toUpperCase()} UNKNOWN FAULT`, valueLineCount: 2 as const, tone: finding.fault.severity === 'minor' ? 'warning' as const : 'danger' as const, valueIcon: finding.fault.severity === 'minor' ? 'warning' as const : 'alert' as const },
+              { kind: 'text' as const, text: finding.component.name },
+              { kind: 'kv' as const, label: '', value: diagnosis, valueLineCount: 3 as const, fullWidthValue: true, tone: finding.fault.severity === 'minor' ? 'warning' as const : 'danger' as const, valueIcon: finding.fault.severity === 'minor' ? 'warning' as const : 'alert' as const },
               ...(restrictions.length ? [{ kind: 'text' as const, text: `Restrictions: ${restrictions.join('; ')}`, tone: 'warning' as const }] : []),
             ];
           }) : [{ kind: 'text' as const, text: 'No actionable faults found.', tone: 'success' as const }]),
@@ -2293,17 +2307,15 @@ export class Game {
             tone: 'primary' as const,
           }] : []),
           ...sortedFindings.map(finding => finding.kind === 'fabricated' ? ({
-            label: finding.component.name,
-            tag: 'MINOR',
-            tagTone: 'warning' as const,
+            label: `[MINOR] ${finding.component.name}${finding.claim.locationId ? ` - ${finding.claim.locationId}` : ''}`,
+            labelLineCount: 2 as const,
             detail: finding.definition.name,
             action: `maintenanceFabricatedComponent:${shop.id}:${finding.claim.id}`,
             tone: 'warning' as const,
           }) : ({
-            label: finding.component.name,
-            tag: finding.fault.severity.toUpperCase(),
-            tagTone: finding.fault.severity === 'minor' ? 'warning' as const : 'danger' as const,
-            detail: finding.fault.diagnosis === 'confirmed' ? componentFaultById(finding.component, finding.fault.faultId)?.name ?? 'Replacement required' : `${finding.fault.severity.toUpperCase()} unknown fault`,
+            label: `[${finding.fault.severity.toUpperCase()}] ${finding.component.name}${finding.fault.diagnosis === 'confirmed' && finding.fault.locationId ? ` - ${finding.fault.locationId}` : ''}`,
+            labelLineCount: 2 as const,
+            detail: finding.fault.diagnosis === 'confirmed' ? componentFaultById(finding.component, finding.fault.faultId)?.name ?? 'Replacement required' : 'Unknown fault',
             action: `maintenanceComponent:${shop.id}:${finding.component.id}`,
             tone: finding.fault.severity === 'minor' ? 'warning' as const : 'danger' as const,
           })),
@@ -2802,36 +2814,31 @@ export class Game {
       if (system.notEquipped || system.status === 'ok') return [{
         kind: 'kv' as const,
         label: system.name,
+        labelLineCount: 2 as const,
         value: system.notEquipped ? 'NOT EQUIPPED' : 'OK',
-        valueLineCount: 1 as const,
+        valueLineCount: 2 as const,
         tone: system.notEquipped ? 'warning' as const : 'success' as const,
       }];
-      const systemHeading = { kind: 'text' as const, text: system.name };
-      const diagnosedRows = system.diagnosedFaults.map(fault => ({
+      const findings: Array<{ value: string; severity: 'minor' | 'major' }> = [
+        ...(system.diagnosisRequired ? [{ value: `${system.status.toUpperCase()} — VISIT A SHOP FOR DIAGNOSIS`, severity: system.status === 'alert' ? 'major' as const : 'minor' as const }] : []),
+        ...system.diagnosedFaults.map(fault => ({ value: fault.componentName, severity: fault.severity === 'minor' ? 'minor' as const : 'major' as const })),
+      ];
+      return findings.map((finding, index) => ({
         kind: 'kv' as const,
-        label: '',
-        value: fault.componentName,
-        valueLineCount: 1 as const,
-        fullWidthValue: true,
-        tone: fault.severity === 'minor' ? 'warning' as const : 'danger' as const,
-        valueIcon: fault.severity === 'minor' ? 'warning' as const : 'alert' as const,
+        label: index === 0 ? system.name : '',
+        labelLineCount: 2 as const,
+        value: finding.value,
+        valueLineCount: 4 as const,
+        tone: finding.severity === 'minor' ? 'warning' as const : 'danger' as const,
+        valueIcon: finding.severity === 'minor' ? 'warning' as const : 'alert' as const,
       }));
-      if (!system.diagnosisRequired) return [systemHeading, ...diagnosedRows];
-      return [systemHeading, {
-        kind: 'kv' as const,
-        label: '',
-        value: `${system.status.toUpperCase()} — VISIT A SHOP FOR DIAGNOSIS`,
-        valueLineCount: 2 as const,
-        fullWidthValue: true,
-        tone: system.status === 'alert' ? 'danger' as const : 'warning' as const,
-        valueIcon: system.status === 'alert' ? 'alert' as const : 'warning' as const,
-      }, ...diagnosedRows];
     });
     const restrictions = playerRestrictionLabels(this.career.rig);
     const optionalEquipment = playerOptionalEquipmentNames(this.career.rig);
     return {
       title: 'SHIP STATUS',
       subtitle: 'Shipboard condition monitor',
+      bodyLabelWidth: 132,
       bodyMaxHeight: 420,
       bodyRows: [
         ...systemRows,
