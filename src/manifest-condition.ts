@@ -214,7 +214,7 @@ export function integrityPenalty(state: IntegrityState | null): number {
 
 export function integrityConditionSummary(state: IntegrityState): string {
   const intactPercent = Math.round(state.baseRemaining / state.baseMax * 100);
-  return `${intactPercent}% integrity`;
+  return `Fragile cargo integrity: ${intactPercent}%`;
 }
 
 export function comfortPenalty(state: ComfortState | null): number {
@@ -225,7 +225,7 @@ export function comfortPenalty(state: ComfortState | null): number {
 
 export function comfortConditionSummary(state: ComfortState): string {
   const remainingPercent = Math.round(state.baseRemaining / state.baseMax * 100);
-  return `${remainingPercent}% comfort`;
+  return `Passenger comfort: ${remainingPercent}%`;
 }
 
 export function drawIntegrityMeter(

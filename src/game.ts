@@ -1150,7 +1150,7 @@ export class Game {
             this.finishRunTransition().run,
             this.currentMissionCompletionText(),
             {
-              ratingText: score.rating,
+              ratingText: `${score.rating} LANDING`,
               ratingColor: ratingColors[score.rating],
               detailText: `V/S: ${score.vSpeed.toFixed(1)}  H/S: ${score.hSpeed.toFixed(1)}  Angle: ${(score.angle * 180 / Math.PI).toFixed(1)}°  Offset: ${score.distFromCenter.toFixed(1)}m`,
             },
