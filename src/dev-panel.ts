@@ -197,7 +197,7 @@ function renderLedgerSummary(ledger: MaintenanceLedger): string {
   const strikeRows = ledger.strikes.length ? ledger.strikes.map(strike => `<tr>
     <td>${strike.index}</td><td>${num(strike.systemRoll, 8)}<small>${escapeHtml(strike.systemId)}</small></td>
     <td>${num(strike.componentRoll, 8)}<small>${escapeHtml(strike.componentId)}</small></td>
-    <td>${num(strike.apHitProbability, 6)}<small>roll ${num(strike.apHpRoll, 8)}</small></td>
+    <td>${num(strike.apHitProbability, 6)}<small>roll ${strike.hpAfter < strike.hpBefore ? `<span class="dev-hp-hit">${num(strike.apHpRoll, 8)}</span>` : num(strike.apHpRoll, 8)}</small></td>
     <td>HP ${strike.hpBefore}→${strike.hpAfter}<br>AP ${strike.apBefore}→${strike.apAfter}</td>
     <td>${escapeHtml(strike.crossedThreshold ?? '—')}<small>${strike.faultRoll === undefined ? '' : `fault roll ${num(strike.faultRoll, 8)} · `}${escapeHtml(strike.faultName ?? strike.faultId ?? '')}${strike.locationRoll === undefined ? '' : `<br>location roll ${num(strike.locationRoll, 8)} · `}${strike.locationId ? escapeHtml(strike.locationId) : ''}</small></td>
   </tr>`).join('') : '<tr><td colspan="6">No strikes.</td></tr>';
