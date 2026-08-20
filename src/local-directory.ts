@@ -1,6 +1,7 @@
 import { PURCHASABLE_TEAMSTER_LICENSES, type TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaSelectableNavTargets } from './content/estella/navigation';
+import { WELLS_FRONTIER_OUTFITTER_COPY, WELLS_FRONTIER_OUTFITTER_NAME, WELLS_FRONTIER_OUTFITTER_SUMMARY } from './frontier-outfitter-content';
 
 export interface LocalDirectoryActionDef {
   id: string;
@@ -515,7 +516,7 @@ export const RED_DUST_MECHANICAL: LocalOfficeDef = {
   actions: [],
 };
 
-export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
+const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   VILAR_GRYPHON_AERIE_OUTFITTER,
   VILAR_HERALD_GATE_OUTFITTER,
   VILAR_CADIZ_HIGHPORT_OUTFITTER,
@@ -538,6 +539,31 @@ export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   MANTICORE_LICENSING_OFFICE,
   REACH_LICENSING_OFFICE,
   GIDEON_BELL,
+];
+
+const AUTHORED_OUTFITTER_LOCATION_IDS = new Set(AUTHORED_LOCAL_DIRECTORY_ENTRIES
+  .filter(entry => entry.maintenanceShopId)
+  .flatMap(entry => entry.locationIds));
+
+export const WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES: readonly LocalOfficeDef[] = estellaSelectableNavTargets()
+  .filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === 'wells' && !AUTHORED_OUTFITTER_LOCATION_IDS.has(target.id))
+  .map(target => {
+    const maintenanceShopId = `wells-frontier-outfitter-${target.id}`;
+    return {
+      kind: 'office',
+      id: `${maintenanceShopId}-office`,
+      name: WELLS_FRONTIER_OUTFITTER_NAME,
+      locationIds: [target.id],
+      summary: WELLS_FRONTIER_OUTFITTER_SUMMARY,
+      description: WELLS_FRONTIER_OUTFITTER_COPY.profileBlurb,
+      maintenanceShopId,
+      actions: [],
+    };
+  });
+
+export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
+  ...AUTHORED_LOCAL_DIRECTORY_ENTRIES,
+  ...WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES,
 ];
 
 export type LocalDirectoryAccess = 'local' | 'remote';

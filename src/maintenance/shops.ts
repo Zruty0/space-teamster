@@ -1,3 +1,6 @@
+import { ESTELLA_NODES_BY_ID } from '../content/estella';
+import { estellaSelectableNavTargets } from '../content/estella/navigation';
+import { WELLS_FRONTIER_OUTFITTER_COPY, WELLS_FRONTIER_OUTFITTER_NAME } from '../frontier-outfitter-content';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
 import { componentHasFabricatedFault, fabricatedFaultById, fabricatedFaultsForComponent } from './fabricated-faults';
 import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacementCost, componentServicedAp, shopCanPerform } from './grades';
@@ -241,7 +244,7 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   },
 };
 
-export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
+const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   VILAR_GRYPHON_AERIE_OUTFITTER,
   VILAR_HERALD_GATE_SHOP,
   VILAR_CADIZ_HIGHPORT_OUTFITTER,
@@ -251,6 +254,32 @@ export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   CADIZ_ARMORIAL_SHIPWRIGHTS,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
+];
+
+const AUTHORED_MAINTENANCE_LOCATION_IDS = new Set(AUTHORED_MAINTENANCE_SHOPS.flatMap(shop => shop.locationIds));
+
+export const WELLS_FRONTIER_OUTFITTERS: readonly MaintenanceShopDef[] = estellaSelectableNavTargets()
+  .filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === 'wells' && !AUTHORED_MAINTENANCE_LOCATION_IDS.has(target.id))
+  .map(target => ({
+    id: `wells-frontier-outfitter-${target.id}`,
+    name: WELLS_FRONTIER_OUTFITTER_NAME,
+    organizationName: 'Unofficial local mechanic',
+    locationIds: [target.id],
+    diagnosticGrade: 'E',
+    workQualityGrade: 'F',
+    componentGradeBest: 'F',
+    componentGradeWorst: 'F',
+    laborRate: 250,
+    diagnosisHours: 2,
+    partsMarkup: 1.5,
+    laborHoursMultiplier: 1,
+    honesty: 0.25,
+    copy: WELLS_FRONTIER_OUTFITTER_COPY,
+  }));
+
+export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
+  ...AUTHORED_MAINTENANCE_SHOPS,
+  ...WELLS_FRONTIER_OUTFITTERS,
 ];
 
 export function maintenanceShopById(id: string): MaintenanceShopDef | undefined {

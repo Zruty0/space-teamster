@@ -2591,13 +2591,14 @@ export class Game {
               && !hasTeamsterCertification(this.career, entry.tutorialUntilCertification);
             return {
               label: entry.name,
+              labelLineCount: entry.name.length > 36 ? 2 as const : undefined,
               tag: tutorialEntry ? 'TUTORIAL' : entry.maintenanceShopId ? undefined : entry.kind === 'office' ? 'OFFICE' : 'CONTACT',
               tagTone: tutorialEntry ? 'story' as InteractiveTone : undefined,
               leftIcon: entry.maintenanceShopId ? 'wrench' as const : undefined,
               rightText: entry.organizationName,
               rightDetail: access === 'remote' ? 'REMOTE COMMS' : 'LOCAL',
               detail: entry.kind === 'contact' ? `${entry.title} — ${entry.summary}` : entry.summary,
-              detailLineCount: entry.kind === 'contact' ? 2 as const : 1 as const,
+              detailLineCount: entry.kind === 'contact' || entry.summary.length > 46 ? 2 as const : 1 as const,
               action: `directoryEntry:${entry.id}`,
               tone: 'primary' as InteractiveTone,
             };

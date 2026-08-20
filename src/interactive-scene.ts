@@ -353,7 +353,7 @@ export function drawInteractiveScene(
   ctx.fillStyle = COL_TITLE;
   let titleSize = 28;
   ctx.font = `bold ${titleSize}px monospace`;
-  while (titleSize > 18 && ctx.measureText(scene.title).width > W - 40) {
+  while (titleSize > 12 && ctx.measureText(scene.title).width > W - 40) {
     titleSize--;
     ctx.font = `bold ${titleSize}px monospace`;
   }
