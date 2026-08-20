@@ -89,6 +89,7 @@ const APPROACH_WARP_SPEEDS = [1, 2, 5];
 const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
 const STANDARD_TRAJECTORY_PREDICTION_TIME = 180;
 const DENSE_ATMOSPHERE_TRAJECTORY_PREDICTION_TIME = 600;
+const LOW_SPEED_WIND_DRAG_REFERENCE = 160;
 
 export interface ApproachState {
   x: number;
@@ -607,8 +608,14 @@ function aeroForces(
 
   const q = 0.5 * rho * speed * speed;
 
-  // Drag
-  const dragA = q * Cd;
+  // The main coefficients are calibrated for high-speed approach flight, where
+  // quadratic drag dominates. Blend in bounded linear drag at low airspeed so
+  // authored winds still bend takeoff/landing trajectories visibly. This force
+  // remains opposite relative airflow and vanishes when the rig matches the air.
+  const windBlend = clamp(Math.abs(airVx) / 8, 0, 1);
+  const lowSpeedReference = windBlend * LOW_SPEED_WIND_DRAG_REFERENCE
+    / (1 + (speed / LOW_SPEED_WIND_DRAG_REFERENCE) ** 2);
+  const dragA = 0.5 * rho * speed * (speed + lowSpeedReference) * Cd;
   ax -= (relativeVX / speed) * dragA;
   ay -= (relativeVY / speed) * dragA;
 
@@ -1228,7 +1235,7 @@ function drawWindLayers(
       ctx.font = '10px monospace';
       ctx.fillStyle = isHead ? 'rgba(80, 140, 255, 0.6)' : 'rgba(255, 200, 80, 0.6)';
       ctx.textAlign = 'left';
-      const label = isHead ? `← ${Math.abs(w.strength).toFixed(0)} m/s²` : `→ ${w.strength.toFixed(0)} m/s²`;
+      const label = isHead ? `← ${Math.abs(w.strength).toFixed(0)} m/s` : `→ ${w.strength.toFixed(0)} m/s`;
       ctx.fillText(label, 8, syLabel + 3);
     }
   }
