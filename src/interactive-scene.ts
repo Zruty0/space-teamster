@@ -238,8 +238,8 @@ function drawWrenchIcon(ctx: CanvasRenderingContext2D, x: number, y: number): vo
   ctx.beginPath();
   ctx.rect(x - 2, y - 13, 16, 16);
   ctx.clip();
-  ctx.translate(x - 18, y - 13);
-  ctx.scale(1 / 16, 1 / 16);
+  ctx.translate(x - 10, y - 13);
+  ctx.scale(3 / 64, 3 / 64);
   ctx.fillStyle = '#4ddcff';
   ctx.fill(wrenchIconPath);
   ctx.restore();
