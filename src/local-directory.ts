@@ -517,6 +517,17 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: LocalOfficeDef = {
   actions: [],
 };
 
+export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: LocalOfficeDef = {
+  kind: 'office',
+  id: 'oathmark-academy-high-pennant-yard-directory',
+  name: 'The High Pennant Yard at Oathmark Academy',
+  locationIds: ['estella-xie-oathmark-academy'],
+  summary: 'Discreet private-vessel maintenance under Oathmark Academy protocol.',
+  description: 'The High Pennant Yard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. Dames Margarida and Madalena de Sá operate the yard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
+  maintenanceShopId: 'oathmark-academy-high-pennant-yard',
+  actions: [],
+};
+
 export const BRUCKNER_CENTRAL_SERVICE_HALL: LocalOfficeDef = {
   kind: 'office',
   id: 'bruckner-central-service-hall-office',
@@ -549,6 +560,7 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   CADIZ_ARMORIAL_SHIPWRIGHTS,
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   KEELWRIGHT_WORKS_SECONDS_GATE,
+  OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
   OLD_NELL_PASSAGE_OFFICE,

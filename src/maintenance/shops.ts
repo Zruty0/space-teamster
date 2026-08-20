@@ -244,6 +244,29 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
   },
 };
 
+export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
+  id: 'oathmark-academy-high-pennant-yard',
+  name: 'The High Pennant Yard at Oathmark Academy',
+  organizationName: 'Oathmark Academy',
+  locationIds: ['estella-xie-oathmark-academy'],
+  diagnosticGrade: 'C',
+  workQualityGrade: 'D',
+  componentGradeBest: 'D',
+  componentGradeWorst: 'D',
+  laborRate: 500,
+  diagnosisHours: 2,
+  partsMarkup: 1.5,
+  laborHoursMultiplier: 1.5,
+  honesty: 1,
+  copy: {
+    profileBlurb: 'The High Pennant Yard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. [person]Dames Margarida and Madalena de Sá[/person] operate the yard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
+    levelBlurb: 'Standard maintenance with private-yacht discretion, ceremonial scheduling, and noble-client pricing',
+    diagnosisBlurb: '“A working rig among the pleasure craft. How refreshing.” One of [person]the de Sá twins[/person] accepts the authorization while her sister seals the salon display. “The production floor will inspect every installed system under Academy protocol.” They exchange desks while the appointment clerk looks down. “Three hours. Your findings will return in a sealed folio.” Neither woman offers a name.',
+    serviceBlurb: '“Service may proceed.” The twin seated on the left reviews the selected systems while her sister closes the privacy screen. By the time the screen seals, they have exchanged chairs. “The rig will pass behind the bulkhead. Each selected system will be maintained, tested, and presented at reception after the floor has been cleared.”',
+    repairsBlurb: '“The work order is settled.” One twin closes the folio while the other signs it in an identical hand: M. de Sá. “Our floor will complete every authorized repair to Academy standard and fit production-grade parts wherever replacement is required. Your rig will return through the presentation lock cleaned, sealed, and ready to depart.” Neither signature clarifies which sister authorized the work.',
+  },
+};
+
 export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   id: 'bruckner-central-service-hall',
   name: 'Bruckner Central Service Hall',
@@ -300,6 +323,7 @@ const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   CADIZ_ARMORIAL_SHIPWRIGHTS,
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   KEELWRIGHT_WORKS_SECONDS_GATE,
+  OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
 ];
