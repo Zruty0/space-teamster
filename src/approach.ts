@@ -89,7 +89,6 @@ const APPROACH_WARP_SPEEDS = [1, 2, 5];
 const EARTH_STANDARD_SURFACE_DENSITY = 1.225;
 const STANDARD_TRAJECTORY_PREDICTION_TIME = 180;
 const DENSE_ATMOSPHERE_TRAJECTORY_PREDICTION_TIME = 600;
-const LOW_SPEED_WIND_DRAG_REFERENCE = 160;
 
 export interface ApproachState {
   x: number;
@@ -608,14 +607,8 @@ function aeroForces(
 
   const q = 0.5 * rho * speed * speed;
 
-  // The main coefficients are calibrated for high-speed approach flight, where
-  // quadratic drag dominates. Blend in bounded linear drag at low airspeed so
-  // authored winds still bend takeoff/landing trajectories visibly. This force
-  // remains opposite relative airflow and vanishes when the rig matches the air.
-  const windBlend = clamp(Math.abs(airVx) / 8, 0, 1);
-  const lowSpeedReference = windBlend * LOW_SPEED_WIND_DRAG_REFERENCE
-    / (1 + (speed / LOW_SPEED_WIND_DRAG_REFERENCE) ** 2);
-  const dragA = 0.5 * rho * speed * (speed + lowSpeedReference) * Cd;
+  // Drag
+  const dragA = q * Cd;
   ax -= (relativeVX / speed) * dragA;
   ay -= (relativeVY / speed) * dragA;
 

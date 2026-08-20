@@ -150,6 +150,14 @@ const HARTWELL_CLEAR_WEATHER: WeatherProfileDef = {
   ],
 };
 
+const CONCORD_WEATHER: WeatherProfileDef = {
+  volatility: 0.8,
+  windLayers: [
+    { altitudeCenter: 14_000, altitudeWidth: 10_000, strength: 250, probability: 1, altitudeJitter: 1_000, widthJitter: 0.1, strengthJitter: 0.1 },
+  ],
+  turbulence: HARTWELL_CLEAR_WEATHER.turbulence,
+};
+
 const HARTWELL_STORM_WEATHER: WeatherProfileDef = {
   volatility: 2.4,
   windLayers: [
@@ -181,6 +189,7 @@ function weatherProfileForPoi(id: string, bodyId: string): WeatherProfileDef | u
   if (explicit) return explicit;
   if (id === 'estella-ii-nimbus-crucible') return ACHERON_ACID_CLOUD_WEATHER;
   if (id === 'estella-ii-pandemonium') return ACHERON_ACID_CLOUD_WEATHER;
+  if (id === 'estella-v-capital-settlement') return CONCORD_WEATHER;
   if (id === 'estella-v-storm-research') return HARTWELL_STORM_WEATHER;
   if (id === 'estella-iv-climate-poi-1') return { ...DAHAI_WEATHER, volatility: 2.0 };
   if (id === 'estella-vi-polar-weather-research') return { ...KUZNIA_WEATHER, volatility: 2.1 };
