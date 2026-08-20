@@ -4,13 +4,7 @@ import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacem
 import { applyMechanicOperation } from './maintenance-service';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type ComponentGrade, type ComponentId, type FabricatedFaultClaim, type MaintenanceSystemId, type ShopGrade, type WorkGrade } from './types';
 
-export interface MaintenanceShopPerson {
-  references: string[];
-  contact?: boolean;
-}
-
 export interface MaintenanceShopCopy {
-  people: MaintenanceShopPerson[];
   profileBlurb: string;
   levelBlurb: string;
   diagnosisBlurb: string;
@@ -56,15 +50,11 @@ export const SERRAT_DOMAIN_SHIPYARD_SHOP: MaintenanceShopDef = {
   turnaroundMultiplier: 1,
   honesty: 1,
   copy: {
-    people: [
-      { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
-      { references: ['Sir Tomás Barreto', 'Sir Tomás'] },
-    ],
-    profileBlurb: 'A gilt House Vilar badge marks this as one shop in Baron Estêvão Vilar’s network of outfitter shops. The Oathmark concession is governed by Sir Tomás Barreto, a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
-    levelBlurb: 'Standard Wells outfitter in Baron Vilar’s chartered network',
-    diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” (Sir Tomás turns and shouts down the gallery.) “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” (He turns back with a broad smile.) “Your rig shall receive my personal attention.”',
-    serviceBlurb: '“A prudent choice, Teamster! My people shall restore every serviceable fitting to mint condition.” (Sir Tomás snaps his fingers toward the bays.) “What are you gawping at? Get to work!” (He faces you again.) “House Vilar takes uncommon pride in the care of a working rig.”',
-    repairsBlurb: '“Ah, the serious work—the kind by which lesser shops expose themselves. House Vilar does not send a Teamster away with a rig held together by prayers and invoice paper.” (Sir Tomás calls down to the bays.) “Fetch the proper tools, not whatever rubbish you abandoned under a bench!” (He offers you an expansive bow.) “We shall put matters right.”',
+    profileBlurb: 'A gilt House Vilar badge marks this as one shop in [person]Baron Estêvão Vilar[/person]’s network of outfitter shops. The Oathmark concession is governed by [person]Sir Tomás Barreto[/person], a knight-overseer who directs its licensed journeymen and serf work crews from a lavish gallery above the service bays.',
+    levelBlurb: 'Standard Wells outfitter in [person]Baron Vilar[/person]’s chartered network',
+    diagnosisBlurb: '“Welcome, Teamster! Entrust your rig to House Vilar and I shall see it examined from frame to antenna.” ([person]Sir Tomás[/person] turns and shouts down the gallery.) “Inspection cradle three! Move, you witless sluggards—the rig will not inspect itself!” (He turns back with a broad smile.) “Your rig shall receive my personal attention.”',
+    serviceBlurb: '“A prudent choice, Teamster! My people shall restore every serviceable fitting to mint condition.” ([person]Sir Tomás[/person] snaps his fingers toward the bays.) “What are you gawping at? Get to work!” (He faces you again.) “House Vilar takes uncommon pride in the care of a working rig.”',
+    repairsBlurb: '“Ah, the serious work—the kind by which lesser shops expose themselves. House Vilar does not send a Teamster away with a rig held together by prayers and invoice paper.” ([person]Sir Tomás[/person] calls down to the bays.) “Fetch the proper tools, not whatever rubbish you abandoned under a bench!” (He offers you an expansive bow.) “We shall put matters right.”',
   },
 };
 
@@ -83,15 +73,11 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
   turnaroundMultiplier: 1,
   honesty: 1,
   copy: {
-    people: [
-      { references: ['Baron Estêvão Vilar', 'Baron Vilar'] },
-      { references: ['Dame Leonor Falcão', 'Dame Leonor'] },
-    ],
-    profileBlurb: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. Baron Estêvão Vilar’s local concession is governed by Dame Leonor Falcão, a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
-    levelBlurb: 'Standard Wells outfitter in Baron Vilar’s chartered network',
-    diagnosisBlurb: '“House Vilar welcomes you to Herald Gate, Teamster. I am Dame Leonor Falcão, and nothing beneath this roof escapes a proper accounting.” (She glances down into the service gallery.) “That scanner is three degrees out. Correct it before I decide your eyes are ornamental.” (Her attention returns to you.) “Your rig shall be examined with considerably greater care.”',
-    serviceBlurb: '“A working rig deserves to leave my gallery looking newly issued. House Vilar shall see every serviceable fitting restored accordingly.” (Dame Leonor taps the gallery rail with one gloved finger.) “Must I explain the purpose of a tool cart, or will someone bring it before the Teamster dies of age?” (She offers you a composed smile.) “They become remarkably efficient under proper supervision.”',
-    repairsBlurb: '“Damage is distasteful, but never embarrassing when placed in competent hands. We shall return your rig to honorable service.” (Dame Leonor looks down toward the bays.) “If I see that component struck with a hammer, the next object fitted to the test stand will be the mechanic.” (She inclines her head to you.) “Do not be concerned, Teamster. My people understand the cost of disappointing me.”',
+    profileBlurb: 'The crimson-and-gold badge of House Vilar hangs above a vaulted service gallery built into Herald Gate’s commercial ring. [person]Baron Estêvão Vilar[/person]’s local concession is governed by [person]Dame Leonor Falcão[/person], a knight-overseer whose immaculate licensed journeymen direct rows of grey-clad serf mechanics below.',
+    levelBlurb: 'Standard Wells outfitter in [person]Baron Vilar[/person]’s chartered network',
+    diagnosisBlurb: '“House Vilar welcomes you to Herald Gate, Teamster. I am [person]Dame Leonor Falcão[/person], and nothing beneath this roof escapes a proper accounting.” (She glances down into the service gallery.) “That scanner is three degrees out. Correct it before I decide your eyes are ornamental.” (Her attention returns to you.) “Your rig shall be examined with considerably greater care.”',
+    serviceBlurb: '“A working rig deserves to leave my gallery looking newly issued. House Vilar shall see every serviceable fitting restored accordingly.” ([person]Dame Leonor[/person] taps the gallery rail with one gloved finger.) “Must I explain the purpose of a tool cart, or will someone bring it before the Teamster dies of age?” (She offers you a composed smile.) “They become remarkably efficient under proper supervision.”',
+    repairsBlurb: '“Damage is distasteful, but never embarrassing when placed in competent hands. We shall return your rig to honorable service.” ([person]Dame Leonor[/person] looks down toward the bays.) “If I see that component struck with a hammer, the next object fitted to the test stand will be the mechanic.” (She inclines her head to you.) “Do not be concerned, Teamster. My people understand the cost of disappointing me.”',
   },
 };
 
@@ -110,12 +96,9 @@ export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   turnaroundMultiplier: 0.75,
   honesty: 1,
   copy: {
-    people: [
-      { references: ['Anja Riedel', 'Anja'] },
-    ],
-    profileBlurb: 'Bruckner’s central Estella service floor is bright, quiet, and divided into numbered clean bays. VHM-certified diagnostic frames stand beside locked civilian parts cages and a glass-fronted warranty office. Depot Service Director Anja Riedel runs the floor by headset; every removed component is tagged before it touches a cart.',
+    profileBlurb: 'Bruckner’s central Estella service floor is bright, quiet, and divided into numbered clean bays. VHM-certified diagnostic frames stand beside locked civilian parts cages and a glass-fronted warranty office. Depot Service Director [person]Anja Riedel[/person] runs the floor by headset; every removed component is tagged before it touches a cart.',
     levelBlurb: 'Advanced VHM-authorized precision service and civilian parts depot',
-    diagnosisBlurb: '“Put the rig on cradle four and leave the flight recorder live, Teamster. Weymark’s latest-generation diagnostic frames are operated by Bruckner’s senior VHM-certified engineers.” Anja Riedel checks the custody seal on the diagnostic terminal. “You’ll receive a complete finding, the applicable warranty status, and the available work options. In that order.”',
+    diagnosisBlurb: '“Put the rig on cradle four and leave the flight recorder live, Teamster. Weymark’s latest-generation diagnostic frames are operated by Bruckner’s senior VHM-certified engineers.” [person]Anja Riedel[/person] checks the custody seal on the diagnostic terminal. “You’ll receive a complete finding, the applicable warranty status, and the available work options. In that order.”',
     serviceBlurb: '“Preventive service is cheaper than an incident board, and considerably shorter. We’ll bring the selected systems to Bruckner service standard and return every recorded adjustment with the rig.”',
     repairsBlurb: '“You have already brought it to the best-equipped civilian service depot in Estella, Teamster. The certified alignment frames, sealed test benches, and VHM tooling are here at Weymark. If the component can be returned to specification, we have the equipment to do it. If it cannot, we will fit the proper replacement.”',
   },
@@ -136,14 +119,11 @@ export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
   turnaroundMultiplier: 1,
   honesty: 0,
   copy: {
-    people: [
-      { references: ['Abraham “Honest Abe” Calder', 'Honest Abe', 'Abraham Calder', 'Abe Calder', 'Abraham', 'Abe'] },
-    ],
-    profileBlurb: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. Abraham “Honest Abe” Calder staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
+    profileBlurb: 'Red Dust Mechanical & Reclamation occupies Concord’s former contractor motor pool, with four enclosed service bays and a crowded reclaimed-parts warehouse. [person]Abraham “Honest Abe” Calder[/person] staffs the enterprise entirely with his sons, in-laws, cousins, and whichever other relatives need work that season. Estimates are discussed around the family table in the office, while Gasket, the Calder family dog, sleeps underneath and wakes for every arriving rig.',
     levelBlurb: 'Notorious mechanical and reclaimed-parts shop that keeps regaining and again losing the Guild certification',
-    diagnosisBlurb: '“Set her over the pit and come inside, Teamster. My daughter-in-law Marta has stew on, and nobody studies a repair estimate properly on an empty stomach.” Abraham “Honest Abe” Calder ushers you toward the family table while his sons-in-law set the scanner beneath the rig. He beckons one of them over with a curl of one finger. “By the time we’ve eaten, young Eli here will have found everything worth discussing.”',
-    serviceBlurb: '“Service only?” Abe’s smile dims by exactly one degree. “Certainly. The boys will clear the dust, refresh the compounds, tighten the mounts, and give the finish a proper polish.” He glances toward the closed panels. “The deeper concerns will keep until you’re ready to give them the attention they deserve.”',
-    repairsBlurb: '“Excellent. The Calders believe serious work deserves a full turnout.” Beyond the office glass, Abe’s sons, in-laws, and cousins line up beside loaded tool carts, waiting for the authorization light. Gasket sits at the front with a rag in his mouth. “Sign the order, Teamster, and the whole family goes to work.”',
+    diagnosisBlurb: '“Set her over the pit and come inside, Teamster. My daughter-in-law Marta has stew on, and nobody studies a repair estimate properly on an empty stomach.” [person]Abraham “Honest Abe” Calder[/person] ushers you toward the family table while his sons-in-law set the scanner beneath the rig. He beckons one of them over with a curl of one finger. “By the time we’ve eaten, young Eli here will have found everything worth discussing.”',
+    serviceBlurb: '“Service only?” [person]Abe[/person]’s smile dims by exactly one degree. “Certainly. The boys will clear the dust, refresh the compounds, tighten the mounts, and give the finish a proper polish.” He glances toward the closed panels. “The deeper concerns will keep until you’re ready to give them the attention they deserve.”',
+    repairsBlurb: '“Excellent. The Calders believe serious work deserves a full turnout.” Beyond the office glass, [person]Abe[/person]’s sons, in-laws, and cousins line up beside loaded tool carts, waiting for the authorization light. Gasket sits at the front with a rag in his mouth. “Sign the order, Teamster, and the whole family goes to work.”',
   },
 };
 

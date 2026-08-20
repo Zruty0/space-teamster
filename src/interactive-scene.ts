@@ -7,6 +7,29 @@ export interface InteractiveTextSegment {
   tone?: InteractiveTone;
 }
 
+export interface InteractiveMarkedText {
+  text: string;
+  segments: InteractiveTextSegment[];
+}
+
+export function parseInteractiveTextMarkup(markup: string): InteractiveMarkedText {
+  const segments: InteractiveTextSegment[] = [];
+  const pattern = /\[(person|contact)\]([\s\S]*?)\[\/\1\]/g;
+  let text = '';
+  let cursor = 0;
+  for (let match = pattern.exec(markup); match; match = pattern.exec(markup)) {
+    const leading = markup.slice(cursor, match.index);
+    if (leading) segments.push({ text: leading });
+    segments.push({ text: match[2], tone: match[1] as 'person' | 'contact' });
+    text += leading + match[2];
+    cursor = match.index + match[0].length;
+  }
+  const trailing = markup.slice(cursor);
+  if (trailing) segments.push({ text: trailing });
+  text += trailing;
+  return { text, segments };
+}
+
 export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'warning' | 'alert';
 
 export type InteractiveSceneBodyRow =

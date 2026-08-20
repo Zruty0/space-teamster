@@ -66,7 +66,7 @@ import {
   type ManifestConditionState,
 } from './manifest-condition';
 import { appendMissionProfile, createMissionProfileEntry, installMissionProfileConsoleTools } from './mission-profile-log';
-import { drawInteractiveScene, interactiveSceneBodyScrollLimit, type InteractiveIcon, type InteractiveScene, type InteractiveSceneBodyRow, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit, parseInteractiveTextMarkup, type InteractiveIcon, type InteractiveScene, type InteractiveSceneBodyRow, type InteractiveTextSegment, type InteractiveTone } from './interactive-scene';
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById, validateMaintenanceCatalog } from './maintenance/catalog';
 import { fabricatedFaultById } from './maintenance/fabricated-faults';
@@ -196,33 +196,6 @@ function contractLocationSegments(currentPath: string, destinationPath: string):
     text: `${index > 0 ? ' -> ' : ''}${part}`,
     tone: index < shared ? 'success' : 'warning',
   }));
-}
-
-function maintenanceShopCopySegments(shop: MaintenanceShopDef, text: string): InteractiveTextSegment[] {
-  const references = shop.copy.people.flatMap(person => person.references.map(reference => ({
-    reference,
-    tone: person.contact ? 'contact' as const : 'person' as const,
-  })));
-  const segments: InteractiveTextSegment[] = [];
-  let cursor = 0;
-  while (cursor < text.length) {
-    let next: { index: number; reference: string; tone: 'person' | 'contact' } | undefined;
-    for (const candidate of references) {
-      const index = text.indexOf(candidate.reference, cursor);
-      if (index < 0) continue;
-      if (!next || index < next.index || (index === next.index && candidate.reference.length > next.reference.length)) {
-        next = { index, ...candidate };
-      }
-    }
-    if (!next) {
-      segments.push({ text: text.slice(cursor) });
-      break;
-    }
-    if (next.index > cursor) segments.push({ text: text.slice(cursor, next.index) });
-    segments.push({ text: next.reference, tone: next.tone });
-    cursor = next.index + next.reference.length;
-  }
-  return segments;
 }
 
 function contractOptionTone(contract: CareerContract): InteractiveTone {
@@ -2110,6 +2083,11 @@ export class Game {
     }
     const cash = formatCredits(this.career.money);
     const shopSubtitle = `${shop.organizationName ?? shop.name}   CASH: ${cash}`;
+    const profileCopy = parseInteractiveTextMarkup(shop.copy.profileBlurb);
+    const levelCopy = parseInteractiveTextMarkup(shop.copy.levelBlurb);
+    const diagnosisCopy = parseInteractiveTextMarkup(shop.copy.diagnosisBlurb);
+    const serviceCopy = parseInteractiveTextMarkup(shop.copy.serviceBlurb);
+    const repairsCopy = parseInteractiveTextMarkup(shop.copy.repairsBlurb);
     const faulted = Object.entries(this.career.rig.components).flatMap(([componentId, componentState]) => {
       const component = maintenanceComponentById(componentId);
       return componentState.installed && componentState.fault && component ? [{ component, state: componentState, fault: componentState.fault }] : [];
@@ -2148,7 +2126,7 @@ export class Game {
         title: 'DIAGNOSTIC INSPECTION',
         subtitle: shopSubtitle,
         bodyRows: [
-          { kind: 'text', text: shop.copy.diagnosisBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.diagnosisBlurb) },
+          { kind: 'text', text: diagnosisCopy.text, segments: diagnosisCopy.segments },
           { kind: 'kv', label: 'Inspection labor', value: formatLaborHours(quote.laborHours) },
           { kind: 'kv', label: 'Price', value: formatCredits(quote.credits), tone: 'warning' },
           { kind: 'kv', label: 'Cash after', value: formatCredits(this.career.money - quote.credits), tone: this.career.money >= quote.credits ? 'success' : 'danger' },
@@ -2224,7 +2202,7 @@ export class Game {
         bodyRows: [
           ...(state.maintenanceReceipt
             ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }]
-            : [{ kind: 'text' as const, text: shop.copy.serviceBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.serviceBlurb) }]),
+            : [{ kind: 'text' as const, text: serviceCopy.text, segments: serviceCopy.segments }]),
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
           { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
         ],
@@ -2293,7 +2271,7 @@ export class Game {
         bodyRows: [
           ...(state.maintenanceReceipt
             ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }]
-            : [{ kind: 'text' as const, text: shop.copy.repairsBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.repairsBlurb) }]),
+            : [{ kind: 'text' as const, text: repairsCopy.text, segments: repairsCopy.segments }]),
           ...(diagnosticCreditAvailable ? [{ kind: 'kv' as const, label: 'Service credit', value: formatCredits(diagnosticCreditAvailable), tone: 'success' as const }] : []),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2431,9 +2409,9 @@ export class Game {
       bodyLabelWidth: shop.id === 'red-dust-mechanical-reclamation' ? 100 : 120,
       bodyMaxHeight: 440,
       bodyRows: [
-        { kind: 'text', text: shop.copy.profileBlurb, segments: maintenanceShopCopySegments(shop, shop.copy.profileBlurb) },
+        { kind: 'text', text: profileCopy.text, segments: profileCopy.segments },
         { kind: 'text', text: '' },
-        { kind: 'kv', label: 'Shop level', value: shop.copy.levelBlurb, valueSegments: maintenanceShopCopySegments(shop, shop.copy.levelBlurb), valueLineCount: shop.id === 'red-dust-mechanical-reclamation' ? 6 : 4 },
+        { kind: 'kv', label: 'Shop level', value: levelCopy.text, valueSegments: levelCopy.segments, valueLineCount: shop.id === 'red-dust-mechanical-reclamation' ? 6 : 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
