@@ -62,7 +62,16 @@ const TRANSFER_GAMEPLAY_OVERRIDES: Partial<Record<string, NonNullable<BodyDef['t
   'estella-x': { patchRadius: 96_000_000, displayPatchRadius: 96_000_000 },
   'estella-xi': { patchRadius: 120_000_000, displayPatchRadius: 120_000_000 },
   'estella-xii': { patchRadius: 80_000_000, displayPatchRadius: 80_000_000 },
+  // Inner giant moons with strong local gravity otherwise cross their derived
+  // patches much faster than the rest of the system. These boundaries set a
+  // roughly 90-second minimum parabolic escape coast at standard 50× time.
+  'estella-xa': { patchRadius: 1_270_000, displayPatchRadius: 1_270_000 },
+  'estella-xb': { patchRadius: 1_000_000, displayPatchRadius: 1_000_000 },
+  'estella-xia': { patchRadius: 1_170_000, displayPatchRadius: 1_170_000 },
+  'estella-xib': { patchRadius: 1_910_000, displayPatchRadius: 1_910_000 },
   'estella-xic': { patchRadius: 1_240_000, displayPatchRadius: 1_240_000 },
+  'estella-xiia': { patchRadius: 1_290_000, displayPatchRadius: 1_290_000 },
+  'estella-xiib': { patchRadius: 450_000, displayPatchRadius: 450_000 },
 };
 
 function derivedMoonTransferGameplay(id: string): NonNullable<BodyDef['transferGameplay']> {

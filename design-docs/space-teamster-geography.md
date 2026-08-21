@@ -460,7 +460,7 @@ Jupiter-flavored. The largest, the most exotic, the busiest. Where most Wells wo
 | **Coimbra** / Estella XIf | Small airless AI-development moon with commercial compute/electronics front | XIf.1 Daedalus Server Farm · XIf.2 Daedalus Systems Campus · XIf.3 Project Icarus |
 | **Four captured** | Asteroids in Hydra's SOI, no SOI of their own (mixed C/I class) | The Thieves' Guild · Academy of Sublime Measures · The Black Exchange · Chapel of Virtues |
 
-Macao uses an authored `1,240 km` gameplay SOI, twice its original derived `620 km` boundary, to leave adequate room for local approach and departure operations.
+Moon gameplay SOIs normally derive from the rounded Laplace boundary with `320 km` and three-body-radius floors. Seven inner-giant exceptions prevent unusually strong local gravity from collapsing departure play: Beira `1,270 km`, Tinto `1,000 km`, Almaden `1,170 km`, Marisma `1,910 km`, Macao `1,240 km`, Mercy `1,290 km`, and Vigil `450 km`. The six newer overrides establish roughly a 90-second minimum parabolic escape coast at standard `50×` simulation time; Macao retains its earlier doubled boundary.
 
 ## Manticore — Estella XII, the cold outer giant
 
