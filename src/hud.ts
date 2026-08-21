@@ -5,6 +5,7 @@ import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
 import { LevelDef } from './levels';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel, wrapHudText } from './hud-layout';
+import { parseInteractiveTextMarkup, type InteractiveTone } from './interactive-scene';
 
 export type GameState = 'flying' | 'landed' | 'crashed';
 
@@ -454,6 +455,62 @@ function formatSignedCredits(value: number): string {
   return `${sign}${Math.abs(rounded).toLocaleString('en-US')} cr`;
 }
 
+interface MarkedCompletionWord {
+  text: string;
+  tone?: InteractiveTone;
+  width: number;
+}
+
+function completionMarkupColor(tone: InteractiveTone | undefined): string {
+  if (tone === 'contact') return '#4ddcff';
+  if (tone === 'person') return COL_WARNING;
+  return '#88aa88';
+}
+
+function drawMarkedCompletionText(
+  ctx: CanvasRenderingContext2D,
+  markup: string,
+  centerX: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number,
+): void {
+  const marked = parseInteractiveTextMarkup(markup);
+  const words: MarkedCompletionWord[] = marked.segments.flatMap(segment => segment.text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(text => ({ text, tone: segment.tone, width: ctx.measureText(text).width })));
+  const spaceWidth = ctx.measureText(' ').width;
+  const lines: MarkedCompletionWord[][] = [];
+  let line: MarkedCompletionWord[] = [];
+  let lineWidth = 0;
+  for (const word of words) {
+    const nextWidth = lineWidth + (line.length ? spaceWidth : 0) + word.width;
+    if (line.length && nextWidth > maxWidth) {
+      lines.push(line);
+      line = [word];
+      lineWidth = word.width;
+    } else {
+      line.push(word);
+      lineWidth = nextWidth;
+    }
+  }
+  if (line.length) lines.push(line);
+
+  ctx.textAlign = 'left';
+  lines.forEach((wordsInLine, lineIndex) => {
+    const width = wordsInLine.reduce((sum, word, index) => sum + word.width + (index ? spaceWidth : 0), 0);
+    let x = centerX - width / 2;
+    for (const [index, word] of wordsInLine.entries()) {
+      if (index) x += spaceWidth;
+      ctx.fillStyle = completionMarkupColor(word.tone);
+      ctx.fillText(word.text, x, startY + lineIndex * lineHeight);
+      x += word.width;
+    }
+  });
+  ctx.textAlign = 'center';
+}
+
 export function drawPhaseCompleteOverlay(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
@@ -524,22 +581,8 @@ export function drawPhaseCompleteOverlay(
   if (detailText || financialLines.length) y += 4;
 
   if (completionText) {
-    ctx.fillStyle = '#88aa88';
     ctx.font = '12px monospace';
-    const maxW = 500;
-    const words = completionText.split(' ');
-    let line = '';
-    for (const word of words) {
-      const test = line ? `${line} ${word}` : word;
-      if (ctx.measureText(test).width > maxW) {
-        ctx.fillText(line, W / 2, y);
-        line = word;
-        y += 16;
-      } else {
-        line = test;
-      }
-    }
-    if (line) ctx.fillText(line, W / 2, y);
+    drawMarkedCompletionText(ctx, completionText, W / 2, y, 500, 16);
   }
 
   ctx.fillStyle = COL_HUD_DIM;
