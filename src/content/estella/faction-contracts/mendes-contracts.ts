@@ -9,6 +9,8 @@ const LORD_MARSHAL = '[contact]Lord Marshal Vasco Mendes[/contact]';
 
 const BANNER_FORGE = 'estella-xie-component-fabrication';
 const CASTLE_MENDES = 'estella-xc-castle-mendes';
+const SERRAT_DOMAIN_SHIPYARD = 'estella-xie-outer-spec-drydock';
+const CADIZ_HIGHPORT = 'estella-xid-main-port';
 const GRYPHON = 'estella-x';
 const HYDRA = 'estella-xi';
 const MANTICORE = 'estella-xii';
@@ -114,6 +116,13 @@ const RETURN_FREIGHT: readonly CargoOption[] = [
 ];
 
 const RETURN_PASSENGERS: readonly CargoOption[] = OUTBOUND_PASSENGERS;
+
+const FORGE_INTAKE: readonly CargoOption[] = [
+  { label: 'armor-grade plate lots', massClass: 'heavy' },
+  { label: 'instrument-grade alloy blanks', massClass: 'standard' },
+  { label: 'machine-tool stock', massClass: 'standard' },
+  { label: 'carbon-fiber structural rolls', massClass: 'standard' },
+];
 
 function hashString(text: string): number {
   let hash = 2166136261;
@@ -377,6 +386,31 @@ function locationName(id: string): string {
   return names[id] ?? id;
 }
 
+function forgeIntakeCandidates(sourceId: string, worldTime: number): FactionContractCandidate[] {
+  if (sourceId !== SERRAT_DOMAIN_SHIPYARD && sourceId !== CADIZ_HIGHPORT) return [];
+  return seededSample(FORGE_INTAKE, 2, hashString(`forge-intake:${sourceId}:${Math.floor(worldTime / DAY)}`)).map((option, index) => {
+    const templateId = `forge-intake:${sourceId}:${slug(option.label)}`;
+    return {
+      factionId: MENDES_ID,
+      factionName: MENDES_NAME,
+      factionTag: MENDES_TAG,
+      templateId,
+      sourceId,
+      destinationId: BANNER_FORGE,
+      cargo: cargoSpec(option, templateId),
+      likelihood: index === 0 ? 8 : 3,
+      boardPriority: index === 0,
+      generosity: GENEROSITY,
+      flatReward: RETURN_MUSTER_FEE,
+      compensationRatio: COMPENSATION_RATIO,
+      maxCompAllowance: MAX_COMP_ALLOWANCE,
+      issuerId: 'banner-forge-ordnance-office',
+      issuerName: 'Banner Forge Ordnance Office',
+      completionMessage: `Banner Forge receives the ${option.label} into its production stores. The Ordnance Office closes the release and clears your rig.`,
+    };
+  });
+}
+
 function outboundCandidates(event: MusterEvent, worldTime: number): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   event.theater.destinationIds.forEach((destinationId, destinationIndex) => {
@@ -411,7 +445,7 @@ function generateMendesContracts(ctx: FactionContractContext): FactionContractCa
 
   const outerReturns = recentOuterMusters(ctx.worldTime).flatMap(event => returnCandidates(event, ctx.sourceId, ctx.worldTime));
   const localReturns = recentLocalMusters(ctx.worldTime).flatMap(event => returnCandidates(event, ctx.sourceId, ctx.worldTime));
-  return [...outerReturns, ...localReturns];
+  return [...forgeIntakeCandidates(ctx.sourceId, ctx.worldTime), ...outerReturns, ...localReturns];
 }
 
 export const HOUSE_MENDES_PROVIDER: FactionContractProvider = {
