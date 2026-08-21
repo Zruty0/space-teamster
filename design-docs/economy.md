@@ -614,9 +614,19 @@ Each muster later produces independent return work. Equipment, telemetry, damage
 
 Muster titles remain `Deliver X to Y` or `Transport X to Y`. Details and completion text always name both the muster and Lord Marshal Vasco Mendes. Terms use `0.40` generosity plus `0.60` actual-fuel compensation capped at twice par, with a `25,000 cr` outbound muster fee and `15,000 cr` return fee. Future Mendes reputation should make muster deliveries the House’s strongest repeatable source of standing; the planned weights are `+3` for Hydra outbound, `+4` for outer outbound, and `+2` for return work.
 
+## Faction: House Alvares
+
+House Alvares hires Teamsters for the bulk physical consequences of liege authority rather than documents, couriers, ordinary commerce, or wealthy principals. The Ducal Weights Office collects in-kind dues; the Governor’s Reserve releases public allotments; and the Court of Escheat removes and reassigns property under judgment. Goods may be physically ordinary ice, metal, hydrocarbons, isotopes, machinery, or infrastructure, but their source and destination have already been determined by assessment, grant, or court order.
+
+Each assessed producer emits one Herald Gate due and one direct assigned levy, with daily priority alternating between the two. Herald Gate emits four grants, and five selected commercial/industrial sites emit escheat removals to auction, public, or court-authorized recipients. This gives `48%` of generated dues/grants/escheat candidates a Herald Gate endpoint, meeting the target of roughly half while preserving direct assignments. Herald Gate hosts the Governor’s Reserve and Ducal Weights Office directory listing.
+
+A separate Office of Investitures and Public Occasions operates at Castle Alvares and Serratine. Deterministic occasions rotate among weddings, birth presentations, comings of age, investitures, succession recognitions, and public-works dedications at lesser House seats. The Office sends official delegations and feast apparatus from Castle Alvares or Serratine, subsidizes passenger movement for three less-wealthy household retinues, and later offers independent passenger and reusable-equipment returns. Senior nobles and ordinary couriers still use House craft; Teamster passages move complete delegations, support households, and bulky feast installations.
+
+Dues, grants, and routine assigned levies use `0.25 + 0.75` with `15,000 cr` flat pay; heavy escheat uses `25,000 cr`. Occasion freight and subsidized/return passages use `0.30 + 0.70` with `20,000 cr`; official Alvares delegations use `25,000 cr`. Titles remain ordinary `Deliver X to Y` / `Transport X to Y`, while authored details identify the obligation or occasion.
+
 ## Faction: Wells Noble Houses
 
-Minor Wells nobility is represented by one combined provider. House Mendes has its dedicated muster provider; Alvares and Nunes remain separate future providers because the three senior Houses are in active conflict. Counts, marquises, and lesser households share this minor-noble charter traffic.
+Minor Wells nobility is represented by one combined provider. Houses Mendes and Alvares have dedicated providers; Nunes remains a separate future provider because the three senior Houses are in active conflict. Counts, marquises, and lesser households share this minor-noble charter traffic.
 
 Scope:
 
@@ -625,7 +635,7 @@ Scope:
 - Manticore is sparse for minor-noble traffic, so Castle Teide mostly routes through Manticore Observatory plus cross-SOI/Hearth work until more Manticore minor seats exist.
 - Seat-to-seat traffic is the majority and may be funded by either the source or destination household office.
 - Occasional routes touch the Hearth: capital, finance, resort, or historic/pilgrimage destinations.
-- Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues.
+- Nobles do not normally travel by Teamster. Incognito noble movement appears as private researchers, pilgrim scholars, or other titled-adjacent parties with unusually lavish retinues; the explicit exception is Alvares-subsidized formal passage for complete lesser-household retinues attending public occasions.
 - Minor houses do not charter ordinary economic cargo and do not usually route to Daedalus or Covenant sites. Macao, Oathmark, and the shipyard are acceptable noble destinations.
 
 Current source pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Manticore Observatory, and selected Hearth elite origins. Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, and Banner Forge remain eligible noble destinations but no longer originate generic Wells Noble Houses work.

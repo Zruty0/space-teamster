@@ -9,6 +9,7 @@ import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
 import { HALLORAN_PROVIDER } from './halloran-contracts';
+import { HOUSE_ALVARES_PROVIDER } from './alvares-contracts';
 import { HARTWELL_MACHINERY_BROKERS_PROVIDER } from './hartwell-machinery-contracts';
 import { HARTWELL_LABOR_EXCHANGE_PROVIDER } from './hartwell-labor-contracts';
 import { HARTWELL_SHIPPING_COMPANIES_PROVIDER } from './hartwell-shipping-contracts';
@@ -116,6 +117,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   HARTWELL_LABOR_EXCHANGE_PROVIDER,
   OATHMARK_ACCORD_AUTHORITY_PROVIDER,
   HOUSE_MENDES_PROVIDER,
+  HOUSE_ALVARES_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 

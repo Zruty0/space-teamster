@@ -528,6 +528,28 @@ export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: LocalOfficeDef = {
   actions: [],
 };
 
+export const GOVERNORS_RESERVE_AND_DUCAL_WEIGHTS_OFFICE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'governors-reserve-ducal-weights-office',
+  name: 'Governor’s Reserve and Ducal Weights Office',
+  organizationName: 'House Alvares',
+  locationIds: ['estella-xc-transit-refuel'],
+  summary: 'Ducal assessments, public allotments, and bonded custody',
+  description: 'The Governor’s Reserve occupies a fortified run of bonded holds beside Herald Gate’s principal freight axis. The Ducal Weights Office shares its public counter, where assessed cargo is weighed into House obligations and released again as grants, common burdens, and court-ordered assignments.',
+  actions: [],
+};
+
+export const OFFICE_OF_INVESTITURES_AND_PUBLIC_OCCASIONS: LocalOfficeDef = {
+  kind: 'office',
+  id: 'office-of-investitures-public-occasions',
+  name: 'Office of Investitures and Public Occasions',
+  organizationName: 'House Alvares',
+  locationIds: ['estella-xc-castle-alvares', 'estella-xc-main-outpost'],
+  summary: 'Official recognition, ceremonial delegations, and public feasts',
+  description: 'The Office prepares House Alvares representation for weddings, births, comings of age, investitures, and other occasions requiring formal recognition. Its stewards arrange official delegations, subsidized household attendance, feast apparatus, and the return of every person and reusable fitting afterward.',
+  actions: [],
+};
+
 export const HOUSE_MENDES_MARSHALCY: LocalOfficeDef = {
   kind: 'office',
   id: 'house-mendes-marshalcy',
@@ -572,6 +594,8 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   SERRAT_DOMAIN_CIVIL_REFIT_OFFICE,
   KEELWRIGHT_WORKS_SECONDS_GATE,
   OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
+  GOVERNORS_RESERVE_AND_DUCAL_WEIGHTS_OFFICE,
+  OFFICE_OF_INVESTITURES_AND_PUBLIC_OCCASIONS,
   HOUSE_MENDES_MARSHALCY,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
