@@ -2723,13 +2723,15 @@ export class Game {
         : contract.scheduledStartWorldTime !== undefined
           ? `Scheduled local departure | wait ${(Math.max(0, contract.scheduledStartWorldTime - this.career.worldTime) / 3600).toFixed(1)}h`
           : 'immediate/local routing';
+      const detailsMarkup = contract.details ?? contract.briefing;
+      const details = detailsMarkup ? parseInteractiveTextMarkup(detailsMarkup) : undefined;
       return {
         title: contract.category === 'passenger' ? 'PASSENGER POSTING' : contract.category === 'certification' ? 'CERTIFICATION MISSION' : 'CONTRACT POSTING',
         subtitle: 'Review route and terms before accepting.',
         bodyMaxHeight: 360,
         bodyRows: contract.travelMode === 'old-nell' ? [
           { kind: 'kv', label: 'Mission', value: contract.title, valueLineCount: 2, tone: 'success' },
-          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
+          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer', valueLineCount: 2 },
           { kind: 'kv', label: 'Boarding', value: contract.sourcePath },
           { kind: 'kv', label: 'Arrival', value: contract.destinationPath },
           { kind: 'separator' },
@@ -2738,8 +2740,8 @@ export class Game {
           { kind: 'kv', label: 'Schedule', value: transferSummary },
         ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
-          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer' },
-          ...(contract.briefing ? [{ kind: 'text' as const, text: contract.briefing, tone: 'primary' as const }] : []),
+          { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer', valueLineCount: 2 },
+          ...(details ? [{ kind: 'kv' as const, label: 'Details', value: details.text, valueSegments: details.segments, valueLineCount: 6 as const }] : []),
           ...(contract.templateId === 'line-certification-roadstead-checkride' ? [
             { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
           ] : []),

@@ -308,7 +308,7 @@ function candidate(args: {
   flatReward: number;
   issuerId: string;
   issuerName: string;
-  briefing: string;
+  details: string;
   completionMessage: string;
   priority?: boolean;
 }): FactionContractCandidate {
@@ -327,7 +327,7 @@ function candidate(args: {
     flatReward: args.flatReward,
     issuerId: args.issuerId,
     issuerName: args.issuerName,
-    briefing: args.briefing,
+    details: args.details,
     completionMessage: args.completionMessage,
     ...pay,
   };
@@ -353,7 +353,7 @@ function assessmentCandidates(ctx: FactionContractContext): FactionContractCandi
       flatReward: ROUTINE_LIEGE_FEE,
       issuerId: 'ducal-weights-office',
       issuerName: 'Ducal Weights Office',
-      briefing: `The Ducal Weights Office entered the ${option.label} as ${sourceName}’s assessed due. Delivery to Herald Gate will close the obligation.`,
+      details: `The Ducal Weights Office entered the ${option.label} as ${sourceName}’s assessed due. Delivery to Herald Gate will close the obligation.`,
       completionMessage: `At Herald Gate, the Ducal Weights Office weighs the ${option.label} against ${sourceName}’s assessment. The certified total closes the obligation and releases your rig.`,
     }),
     candidate({
@@ -367,7 +367,7 @@ function assessmentCandidates(ctx: FactionContractContext): FactionContractCandi
       flatReward: ROUTINE_LIEGE_FEE,
       issuerId: 'ducal-weights-office',
       issuerName: 'Ducal Weights Office',
-      briefing: `The Ducal Weights Office assigned ${sourceName}’s ${option.label} directly to ${locationName(beneficiary)}. One certified delivery will satisfy the due and the grant.`,
+      details: `The Ducal Weights Office assigned ${sourceName}’s ${option.label} directly to ${locationName(beneficiary)}. One certified delivery will satisfy the due and the grant.`,
       completionMessage: `At ${locationName(beneficiary)}, receiving crews enter the ${option.label} into the assigned allotment under a Guild-certified weight. The Alvares terminal closes both the originating due and the recipient grant.`,
     }),
   ];
@@ -390,7 +390,7 @@ function grantCandidates(ctx: FactionContractContext): FactionContractCandidate[
       flatReward: ROUTINE_LIEGE_FEE,
       issuerId: 'governors-reserve',
       issuerName: 'Governor’s Reserve',
-      briefing: `The Governor’s Reserve released the ${option.label} to ${locationName(destinationId)} under House Alvares authority.`,
+      details: `The Governor’s Reserve released the ${option.label} to ${locationName(destinationId)} under House Alvares authority.`,
       completionMessage: `${locationName(destinationId)} takes custody of the ${option.label} from the Governor’s Reserve. The receiving officer posts the allotment under the Governor’s Seal and clears your manifest.`,
     });
   });
@@ -412,7 +412,7 @@ function escheatCandidates(ctx: FactionContractContext): FactionContractCandidat
     flatReward: ESCHEAT_FEE,
     issuerId: 'court-of-escheat',
     issuerName: 'Court of Escheat',
-    briefing: `The Court of Escheat ordered the ${option.label} removed from ${locationName(source.id)} and delivered to ${locationName(destinationId)} under public custody.`,
+    details: `The Court of Escheat ordered the ${option.label} removed from ${locationName(source.id)} and delivered to ${locationName(destinationId)} under public custody.`,
     completionMessage: `At ${locationName(destinationId)}, the Court of Escheat’s receiver takes custody of the ${option.label}. The removal is entered against the judgment, and your warrant is closed.`,
   })];
 }
@@ -467,7 +467,7 @@ function occasionOutboundCandidates(ctx: FactionContractContext, event: Occasion
       flatReward: OFFICIAL_DELEGATION_FEE,
       issuerId: 'office-of-public-occasions',
       issuerName: 'Office of Investitures and Public Occasions',
-      briefing: `The Office of Investitures and Public Occasions assigned the ${delegation.label} to represent House Alvares at the ${event.type} at ${hostName}.`,
+      details: `The Office of Investitures and Public Occasions assigned the ${delegation.label} to represent House Alvares at the ${event.type} at ${hostName}.`,
       completionMessage: `At ${hostName}, the ${delegation.label} disembark into the formal company of the ${event.type}. The presiding steward announces the Alvares delegation and releases your passenger receipt.`,
     }));
     const freight = seededSample(feastPool(event.type), 2, hashString(`${event.id}:freight:${day}`));
@@ -482,7 +482,7 @@ function occasionOutboundCandidates(ctx: FactionContractContext, event: Occasion
       flatReward: OCCASION_FEE,
       issuerId: 'office-of-public-occasions',
       issuerName: 'Office of Investitures and Public Occasions',
-      briefing: `The Office of Investitures and Public Occasions committed the ${option.label} to the ${event.type} at ${hostName}.`,
+      details: `The Office of Investitures and Public Occasions committed the ${option.label} to the ${event.type} at ${hostName}.`,
       completionMessage: `At ${hostName}, feast stewards take the ${option.label} directly into preparation for the ${event.type}. The Office records the contribution under House Alvares patronage.`,
     })));
   }
@@ -500,7 +500,7 @@ function occasionOutboundCandidates(ctx: FactionContractContext, event: Occasion
       flatReward: OCCASION_FEE,
       issuerId: 'office-of-public-occasions',
       issuerName: 'Office of Investitures and Public Occasions',
-      briefing: `House Alvares granted the ${option.label} passage to the ${event.type} at ${hostName}. Their attendance enters the formal company under the Governor’s patronage.`,
+      details: `House Alvares granted the ${option.label} passage to the ${event.type} at ${hostName}. Their attendance enters the formal company under the Governor’s patronage.`,
       completionMessage: `The ${option.label} arrive at ${hostName} with their household colors properly displayed. An Alvares steward welcomes them into the ${event.type} and closes their passage warrant.`,
     }));
   }
@@ -524,7 +524,7 @@ function occasionReturnCandidates(ctx: FactionContractContext, event: OccasionEv
     flatReward: OCCASION_FEE,
     issuerId: 'office-of-public-occasions',
     issuerName: 'Office of Investitures and Public Occasions',
-    briefing: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${delegation.label} to return to ${locationName(event.officialSourceId)}.`,
+    details: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${delegation.label} to return to ${locationName(event.officialSourceId)}.`,
     completionMessage: `The ${delegation.label} disembark at ${locationName(event.officialSourceId)} after the ${event.type}. Their household steward signs the returning roll and releases your rig.`,
   }));
   event.retinueSourceIds.forEach((destinationId, index) => {
@@ -540,7 +540,7 @@ function occasionReturnCandidates(ctx: FactionContractContext, event: OccasionEv
       flatReward: OCCASION_FEE,
       issuerId: 'office-of-public-occasions',
       issuerName: 'Office of Investitures and Public Occasions',
-      briefing: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${option.label} to return to ${locationName(destinationId)}.`,
+      details: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${option.label} to return to ${locationName(destinationId)}.`,
       completionMessage: `The ${option.label} disembark at ${locationName(destinationId)} after the ${event.type}. Their household steward signs the returning roll and releases your rig.`,
     }));
   });
@@ -556,7 +556,7 @@ function occasionReturnCandidates(ctx: FactionContractContext, event: OccasionEv
     flatReward: OCCASION_FEE,
     issuerId: 'office-of-public-occasions',
     issuerName: 'Office of Investitures and Public Occasions',
-    briefing: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${option.label} to return to ${locationName(event.officialSourceId)}.`,
+    details: `The ${event.type} at ${sourceName} has concluded. The Office of Investitures and Public Occasions assigned the ${option.label} to return to ${locationName(event.officialSourceId)}.`,
     completionMessage: `The Office receives the ${option.label} at ${locationName(event.officialSourceId)} after the ${event.type}. Each reusable piece is entered back into ceremonial stores before your manifest closes.`,
   })));
   return out;

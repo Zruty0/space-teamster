@@ -33,6 +33,8 @@ export interface CareerContract {
   cargo: MissionCargoSpec;
   quote: MissionCostQuote;
   selectedTransfer?: EstellaTransferOption;
+  details?: string;
+  /** Legacy persisted name for details authored before the labeled field existed. */
   briefing?: string;
   completionMessage: string;
 }
@@ -205,7 +207,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     cargo: candidate.cargo,
     quote,
     selectedTransfer,
-    briefing: candidate.briefing,
+    details: candidate.details,
     completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
   };
 }

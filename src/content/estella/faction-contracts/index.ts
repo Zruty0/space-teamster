@@ -79,8 +79,8 @@ export interface FactionContractCandidate {
   travelMode?: 'old-nell';
   /** Schedule the run when an orbiting destination is this far ahead of its surface source. */
   destinationLeadAngleFromSource?: number;
-  /** Optional authored context shown in the posting detail. */
-  briefing?: string;
+  /** Optional authored context shown in the posting's labeled Details row. */
+  details?: string;
   /** Prefer a specific generated transfer option for event-timed work. */
   preferredTransferId?: 'now' | 'soon' | 'best';
   /** Reserve board representation for an active event before weighted filling. */

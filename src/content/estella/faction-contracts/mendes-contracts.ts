@@ -350,7 +350,7 @@ function makeCandidate(
     maxCompAllowance: MAX_COMP_ALLOWANCE,
     issuerId: kind === 'return-passenger' ? 'house-mendes-marshalcy' : 'banner-forge-ordnance-office',
     issuerName: kind === 'return-passenger' ? 'House Mendes Marshalcy' : 'Banner Forge Ordnance Office',
-    briefing: assignmentText(kind, option.label, event.name, seed),
+    details: assignmentText(kind, option.label, event.name, seed),
     completionMessage: completionText(kind, option.label, locationName(destinationId), event.name, seed >>> 1),
     preferredTransferId: event.giantId === HYDRA && kind.startsWith('outbound') ? undefined : 'best',
   };
