@@ -239,7 +239,7 @@ Small airless shipyard moon of Kuznia, named for the Slavic forge god.
 | Estella VIa.4 | Black Vein Mine | High-spec rare alloy and refractory dopant extraction |
 
 ### Kalyna
-Bright red airless specialty / pharma moon of Kuznia. Hematite-rich regolith gives Kalyna a viburnum-red / rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding.
+Bright red airless specialty / pharma moon of Kuznia, owned and underwritten by Merren Conservatory. Hematite-rich regolith gives Kalyna a viburnum-red / rust color from orbit; the biotech, horticulture, and aquaculture sites are sealed facilities under local regolith shielding. Its agriculturally minded Udarniki communities maintain reciprocal work pilgrimages with Kuznia through the Merren Work Union and Steel Combine.
 
 | ID | Type | Description |
 |---|---|---|

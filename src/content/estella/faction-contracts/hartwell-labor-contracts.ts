@@ -47,7 +47,8 @@ const GAIA_DAHAI_NODES = [
 ];
 
 // Passenger traffic to Kuznia proper stops at Anvil; the Steel Combine handles all
-// surface distribution. Svarog, Kalyna, and Tessera remain independent destinations.
+// surface distribution. Svarog and Tessera remain independent destinations. Kalyna’s
+// deliberately narrow passenger network belongs to Merren Conservatory.
 const CAMPS_WORK_NODES = [
   'estella-v-storm-research',
   'estella-va-strip-mine',
@@ -58,10 +59,6 @@ const CAMPS_WORK_NODES = [
   'estella-via-component-supply-station',
   'estella-via-surface-anchor',
   'estella-via-rare-alloy-extraction',
-  'estella-vib-cold-chain-station',
-  'estella-vib-vat-protein',
-  'estella-vib-pharma-horticulture',
-  'estella-vib-aquaculture',
   'estella-vii-transit-export',
   'estella-vii-high-vacuum-factory',
   'estella-vii-feedstock-mine',

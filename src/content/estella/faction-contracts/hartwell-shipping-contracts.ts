@@ -3,9 +3,8 @@ import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-ut
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 // Hartwell shipping houses live on route arbitrage: Wells raw/resource lots into Camps demand,
-// basic Hartwell/Kuznia life-support backhauls into all Wells destinations, industrial
-// consumables into Wells worksites, and Kalyna luxury supply to noble/elite Wells markets.
-// They are carriers and speculators, not machinery financiers.
+// basic Hartwell/Kuznia life-support backhauls into all Wells destinations, and industrial
+// consumables into Wells worksites. They are carriers and speculators, not machinery financiers.
 const HARTWELL_SHIPPING_ID = 'hartwell-shipping-companies';
 
 const ROADSTEAD = 'estella-v-transit-customs';
@@ -17,7 +16,6 @@ const VELES_TERMINAL = 'estella-via-component-supply-station';
 const KALYNA_ORBITAL = 'estella-vib-cold-chain-station';
 const TETERIV = 'estella-vib-vat-protein';
 const ZHITOMIR = 'estella-vib-pharma-horticulture';
-const DNIPRO = 'estella-vib-aquaculture';
 const MOSAIC = 'estella-vii-high-vacuum-factory';
 const CADIZ_HIGHPORT = 'estella-xid-main-port';
 
@@ -25,9 +23,7 @@ const ROUTINE_PAY = { generosity: 0.75, compensationRatio: 0.4, maxCompAllowance
 const CERTIFIED_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const ISOTOPE_PAY = { generosity: 0.95, compensationRatio: 0.3, maxCompAllowance: 2 } as const;
 const BACKHAUL_PAY = { generosity: 0.7, compensationRatio: 0.45, maxCompAllowance: 2 } as const;
-const LUXURY_PAY = { generosity: 0.9, compensationRatio: 0.35, maxCompAllowance: 2 } as const;
-
-type Pay = typeof ROUTINE_PAY | typeof CERTIFIED_PAY | typeof ISOTOPE_PAY | typeof BACKHAUL_PAY | typeof LUXURY_PAY;
+type Pay = typeof ROUTINE_PAY | typeof CERTIFIED_PAY | typeof ISOTOPE_PAY | typeof BACKHAUL_PAY;
 
 interface CargoOption {
   label: string;
@@ -178,21 +174,6 @@ const WELLS_LIFE_SUPPORT_DESTINATIONS: WeightedDestination[] = [
   destination('estella-xif-sealed-research-outpost', 0.25),
 ];
 
-const WELLS_ELITE_MARKETS = [
-  'estella-xc-main-outpost',
-  'estella-xc-transit-refuel',
-  'estella-xid-customs-transit',
-  'estella-xic-research-station-poi',
-  'estella-xb-luxury-retreat',
-  'estella-xa-volatiles-transit',
-  'estella-xb-worker-hab',
-  'estella-xd-proving-grounds',
-  'estella-xia-sealed-worker-hab',
-  'estella-xib-science-settlement',
-  'estella-xid-services-outfitter-hangar',
-  'estella-xiic-castle-teide',
-];
-
 const BEIRA_VOLATILES: CargoOption[] = [
   { label: 'Beira ice blocks', massClass: 'heavy' },
   { label: 'bonded water tanks', massClass: 'heavy' },
@@ -265,16 +246,6 @@ const INDUSTRIAL_CONSUMABLES: CargoOption[] = [
   { label: 'bulk worker supply pallets', massClass: 'standard' },
 ];
 
-const KALYNA_LUXURY: CargoOption[] = [
-  { label: 'boutique aquaculture trays', massClass: 'light' },
-  { label: 'cultured game-bird cuts', massClass: 'light' },
-  { label: 'noble-table protein lots', massClass: 'standard' },
-  { label: 'pharmaceutical horticulture crates', massClass: 'light' },
-  { label: 'sealed floral conservatory stock', massClass: 'light' },
-  { label: 'status banquet cold-chain', massClass: 'standard' },
-  { label: 'bespoke medical nutriments', massClass: 'light' },
-];
-
 const LANES: Lane[] = [
   { laneId: 'beira-volatiles-to-camps', sourceIds: ['estella-xa-deep-ice-mine'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: BEIRA_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
   { laneId: 'macao-volatiles-to-camps', sourceIds: ['estella-xic-ice-mining'], destinationIds: [CADIZ_HIGHPORT, HAMMER, ANVIL, KALYNA_ORBITAL], consolidationHubId: CADIZ_HIGHPORT, cargo: MACAO_VOLATILES, likelihood: 0.55, pay: ROUTINE_PAY },
@@ -286,7 +257,6 @@ const LANES: Lane[] = [
   { laneId: 'oathmark-surplus-to-camps', sourceIds: ['estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock'], destinationIds: [CADIZ_HIGHPORT, SVAROG_SHIPYARD, VELES_TERMINAL, MOSAIC], consolidationHubId: CADIZ_HIGHPORT, cargo: YARD_SURPLUS, likelihood: 0.28, pay: CERTIFIED_PAY },
   { laneId: 'hartwell-life-support-to-wells', sourceIds: [ROADSTEAD, CONCORD, ANVIL], destinationPool: WELLS_LIFE_SUPPORT_DESTINATIONS, destinationCount: 12, cargo: LIFE_SUPPORT, likelihood: 0.42, pay: BACKHAUL_PAY },
   { laneId: 'kuznia-consumables-to-wells', sourceIds: [HAMMER, ANVIL, VELES_TERMINAL], destinationIds: WELLS_WORKS, cargo: INDUSTRIAL_CONSUMABLES, likelihood: 0.38, pay: BACKHAUL_PAY },
-  { laneId: 'kalyna-luxury-to-wells', sourceIds: [KALYNA_ORBITAL, TETERIV, ZHITOMIR, DNIPRO], destinationIds: WELLS_ELITE_MARKETS, cargo: KALYNA_LUXURY, likelihood: 0.32, pay: LUXURY_PAY },
   { laneId: 'cadiz-consolidated-wells-exports', sourceIds: [CADIZ_HIGHPORT], destinationIds: [HAMMER, ANVIL, SVAROG_SHIPYARD, VELES_TERMINAL, KALYNA_ORBITAL, ZHITOMIR, TETERIV, MOSAIC], cargo: [...VOLATILES, ...GAS_PRODUCTS, ...SULFUR_CHEMICALS, ...HYDROCARBONS, ...METALS, ...ISOTOPES, ...YARD_SURPLUS], likelihood: 0.6, pay: ROUTINE_PAY },
 ];
 

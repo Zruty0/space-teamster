@@ -33,6 +33,8 @@ const MOKOSH = 'estella-vi-agricultural-lowlands'; // VI.6
 const KOPANKA = 'estella-vi-mountain-mining'; // VI.8
 const MORANA = 'estella-vi-polar-weather-research'; // VI.7
 const STRIBOG = 'estella-vi-spaceport'; // VI.5
+const KALYNA_ORBITAL = 'estella-vib-cold-chain-station';
+const KALYNA_SURFACE = ['estella-vib-vat-protein', 'estella-vib-pharma-horticulture', 'estella-vib-aquaculture'] as const;
 
 // Likely external feedstock sources (imports) and finished-goods buyers (exports).
 const NEW_CANAAN_DOCKS = ['harlan-dock', 'mercer-dock'];
@@ -284,6 +286,78 @@ function candidateFor(lane: SteelLane, sourceId: string, destinationId: string, 
   };
 }
 
+function combinePilgrimageCandidate(
+  sourceId: string,
+  destinationId: string,
+  option: CargoOption,
+  details: string,
+  completionMessage: string,
+  returning: boolean,
+): FactionContractCandidate {
+  const templateId = `kalyna-work-pilgrimage:${returning ? 'return' : 'outbound'}:${sourceId}->${destinationId}`;
+  return {
+    factionId: STEEL_COMBINE_ID,
+    factionName: STEEL_COMBINE_NAME,
+    factionTag: STEEL_COMBINE_TAG,
+    templateId,
+    sourceId,
+    destinationId,
+    cargo: {
+      label: option.label,
+      massClass: option.massClass,
+      massTons: cargoMassForClass(option.massClass, `${STEEL_COMBINE_ID}:${templateId}:${option.label}`),
+    },
+    likelihood: 7,
+    boardPriority: true,
+    issuerId: 'steel-combine-foreign-trade-committee',
+    issuerName: FOREIGN_TRADE_COMMITTEE,
+    generosity: 0,
+    compensationRatio: 1,
+    maxCompAllowance: MAX_COMP_ALLOWANCE,
+    flatReward: 0,
+    category: 'passenger',
+    details,
+    completionMessage,
+  };
+}
+
+function generateKalynaWorkPilgrimages(ctx: FactionContractContext): FactionContractCandidate[] {
+  const day = Math.floor(ctx.worldTime / 86_400);
+  const surfaceDestination = KALYNA_SURFACE[hashString(`steel:kalyna-pilgrimage-surface:${day}`) % KALYNA_SURFACE.length];
+  const outbound: CargoOption = { label: 'Kuznia Udarniki work pilgrims', massClass: 'standard' };
+  const returning: CargoOption = { label: 'returning Kuznia work pilgrims', massClass: 'standard' };
+  if (ctx.sourceId === ANVIL) {
+    return [KALYNA_ORBITAL, surfaceDestination].map(destinationId => combinePilgrimageCandidate(
+      ANVIL,
+      destinationId,
+      outbound,
+      destinationId === KALYNA_ORBITAL
+        ? `The Steel Combine assigned the ${outbound.label} to a reciprocal work pilgrimage on Kalyna. The Foreign Trade Committee will reimburse the full fuel cost of their passage.`
+        : `The Steel Combine assigned the ${outbound.label} to a reciprocal work pilgrimage at ${ESTELLA_LOCATION_NAMES[destinationId]}. The producer hall has prepared a place for them in Kalyna’s working company.`,
+      `The ${outbound.label} enter Kalyna’s working company at ${ESTELLA_LOCATION_NAMES[destinationId]}. A producer-hall delegate signs the exchange roll and releases your passenger receipt.`,
+      false,
+    ));
+  }
+  if (ctx.sourceId === KALYNA_ORBITAL || ctx.sourceId === surfaceDestination) {
+    return [combinePilgrimageCandidate(
+      ctx.sourceId,
+      ANVIL,
+      returning,
+      `The ${returning.label} completed their Kalyna work pilgrimage. The Foreign Trade Committee assigned their fully reimbursed return to Anvil.`,
+      `At Anvil, the ${returning.label} rejoin the Combine’s homeward distribution. The Foreign Trade Committee marks their pilgrimage complete.`,
+      true,
+    )];
+  }
+  return [];
+}
+
+const ESTELLA_LOCATION_NAMES: Record<string, string> = {
+  [KALYNA_ORBITAL]: 'Kalyna Orbital',
+  'estella-vib-vat-protein': 'Teteriv Broiler Farm',
+  'estella-vib-pharma-horticulture': 'Zhitomir Hydroponics',
+  'estella-vib-aquaculture': 'Dnipro Pools',
+};
+
 function generateSteelCombineContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const out: FactionContractCandidate[] = [];
   const day = Math.floor(ctx.worldTime / 86_400);
@@ -304,6 +378,6 @@ export const STEEL_COMBINE_PROVIDER: FactionContractProvider = {
   id: STEEL_COMBINE_ID,
   name: STEEL_COMBINE_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateSteelCombineContracts(ctx);
+    return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx)];
   },
 };

@@ -27,6 +27,7 @@ Current implementation:
 - Cinderhook refining houses generator: `src/content/estella/faction-contracts/cinderhook-refiners-contracts.ts`
 - Roadstead export brokers generator: `src/content/estella/faction-contracts/roadstead-export-contracts.ts`
 - Hartwell machinery brokers generator: `src/content/estella/faction-contracts/hartwell-machinery-contracts.ts`
+- Merren Conservatory generator: `src/content/estella/faction-contracts/merren-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -182,8 +183,8 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Wells -> Camps sources: Gryphon Aerie, The Count's Well, Red Vein Works, Ember Court Foundry, Marcher Wells, Alembic Ring, Hydra Maw Orbital, Yellow Pit, Almaden Orbital, Cinnabar Cut, Coldgate, Blue Fen Refinery, Marisma Cauldron, Blackwater Fields, Bottom Court, Bluefire Mine, Castle Teide's isotope office, Serrat Domain Shipyard, and Keelwright Works.
 - Wells -> Camps destinations: roughly 80% of Wells resource/export freight first goes to Cadiz Highport for consolidation; roughly 20% posts as direct buyer legs to Hammer Station, Anvil Station for light/bonded lots, Svarog Shipyard, Veles Terminal, Kalyna Orbital for cold-chain/industrial inputs, Zhitomir Hydroponics for specialty chemical inputs, Teteriv Broiler Farm for organic inputs, and Mosaic Assembly Lab for precision feedstock/isotopes. Cadiz Highport then posts consolidated Wells export lots onward to those Camps buyers.
 - Hartwell/Kuznia -> Wells backhaul: Roadstead, Concord, and Anvil send life-support filter pallets, pressure-suit consumables, frontier ration lockers, medical clinic lockers, scrubber beds, and habitat sealant to all Wells destinations, weighted toward population and traffic hubs such as Cadiz Highport, Serratine Goods Exchange, Serratine, Herald Gate, and Macao Palace. Hammer, Anvil, and Veles Terminal send compressor cartridges, cryo-safe valves, lubricants, worksite batteries, and worker supply pallets to Wells industrial works and Cadiz/Serratine Goods Exchange.
-- Kalyna -> Wells elite supply: Kalyna Orbital, Teteriv Broiler Farm, Zhitomir Hydroponics, and Dnipro Pools send boutique aquaculture, cultured game-bird cuts, noble-table protein, pharmaceutical horticulture, conservatory stock, banquet cold-chain, and medical nutriments to Serratine, Herald Gate, Serratine Goods Exchange, Macao Palace, Velvet City, and selected castle seats. Kalyna is not a bulk-food source.
-- Pay: routine resource/bulk arbitrage uses `0.75 + 0.40` (+15% at par), certified/rare lots use `0.85 + 0.40` (+25%), isotopes use `0.95 + 0.30` (+25% with more fuel risk), basic backhaul uses `0.70 + 0.45` (+15%), and Kalyna luxury uses `0.90 + 0.35` (+25%).
+- Distinctive Kalyna exports belong to Merren Conservatory rather than generic Hartwell carriers. Hartwell companies retain ordinary third-party procurement and inbound arbitrage into Kalyna.
+- Pay: routine resource/bulk arbitrage uses `0.75 + 0.40` (+15% at par), certified/rare lots use `0.85 + 0.40` (+25%), isotopes use `0.95 + 0.30` (+25% with more fuel risk), and basic backhaul uses `0.70 + 0.45` (+15%).
 
 ## Passenger board: Hartwell Labor Exchange
 
@@ -191,13 +192,23 @@ Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers
 - Board: passenger contracts only; freight board excludes them.
 - Core nodes: Roadstead Customs and Concord.
 - Model: Hartwell is a frontier finance, charter, and labor-export world. It sends crews, contractors, specialists, claim-office parties, and return rotations through the system rather than posting profitable freight.
-- Coverage: Camps work sites, Belt work sites, Wells hubs, and a limited set of non-noble Wells work sites: Marcher Wells, Yellow Pit, Blackwater Fields, Keelwright Works, and Bluefire Mine. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog, Kalyna, and Tessera remain direct passenger destinations.
+- Coverage: Camps work sites, Belt work sites, Wells hubs, and a limited set of non-noble Wells work sites: Marcher Wells, Yellow Pit, Blackwater Fields, Keelwright Works, and Bluefire Mine. Passenger traffic to Kuznia proper terminates at Anvil Station; the Steel Combine handles surface distribution. Svarog and Tessera remain direct passenger destinations. Kalyna is excluded because Merren and the Work Union control its narrow passenger network.
 - Hearth/Hartwell traffic is special: not ordinary worksite crew blocks, but long-term shift cohorts, completed shift returnees, claim-office parties, and executive/supervisor staff moving into Hartwell.
 - Pay: connectivity work, not profit work. Special passenger postings use `generosity 0.4`, `compensationRatio 0.6`, `maxCompAllowance 2`, so par breaks even. Regular Hartwell crew transfers use `generosity 0.45`, `compensationRatio 0.5`, `maxCompAllowance 2`, so par is about -5% and 1.5× par fuel use is about -30%.
 
 Current passenger families: Hartwell worksite crew blocks, bonded contractor crews, technical specialist parties, Hartwell return rotations, medical return passengers, long-term Hartwell shift cohorts, executive/supervisor staff, completed shift returnees, and claims-office passenger parties.
 
 Other factions can also post passenger-board work when the manifested load is people rather than freight: Cerberus workforce/custody/labor/delegation groups; BFS technician and inspection crews; VHM engineers/auditors/commissioning parties; Kisaragi shipwright, inspector, representative, and rotation parties; Steel Combine Anvil work/shift/personnel movements; Glitterfield shift crews; and Halloran refinery crews, experts, executives, and delegations. Most are low-margin connectivity work; VHM and Kisaragi are exceptions that pay fixed premium rates with no reimbursement.
+
+## Faction: Merren Conservatory
+
+Merren Conservatory, formerly Merren Colonial, owns independent Kalyna and underwrites the moon’s Udarniki producer communities. Its economy is biological, condition-sensitive, and vertically integrated. Teteriv Broiler Farm, Zhitomir Hydroponics, and Dnipro Pools send inspected cultures, specialty foods, pharmaceutical botanicals, conservatory stock, and aquaculture to Kalyna Orbital. Orbital distributes controlled inputs back to the surface and is the sole external freight gateway. Long-haul output consists of pre-sold medical, living, culinary, conservatory, off-system, and stewardship orders; it is not speculative bulk food.
+
+External procurement brings clean volatiles, organic feedstock, environmental equipment, cold-chain hardware, and certified biological reference cultures into Kalyna Orbital. Customer sites independently return reusable cassettes, culture racks, transport frames, and quarantine samples. Existing customer-authored purchases and ordinary third-party Hartwell imports remain, but the former generic Kalyna luxury-export lane is removed.
+
+Passenger traffic is deliberately narrow. Merren sponsors permanent worker-household immigration from Roadstead and Concord. Biological, clinical, aquaculture, quarantine, and conservatory specialists travel only between Kalyna and Gaia/Dahai. Generic Hartwell Labor traffic no longer serves Kalyna. Reciprocal Udarniki work pilgrimages use a global route mix of 50% Anvil↔Kalyna Orbital, 25% Anvil↔a Kalyna surface producer, and 25% Kalyna Orbital↔a Kuznia surface worksite. The Combine explicitly grants these exchange parties direct surface access. Combine-funded Kuznia cohorts and returns use `0.00 + 1.00`; Merren Work Union-funded Kalyna cohorts and returns use `0.10 + 0.90`. Both are zero-flat, `2×`-cap, near-zero-profit connectivity work.
+
+All Merren contracts have zero flat award. Internal movement, procurement, and reusable returns use `0.25 + 0.80` (+5% at par); standard exports use `0.30 + 0.75` (+5%); premium biological cargo, immigration, and specialists use `0.40 + 0.70` (+10%). Kalyna Orbital hosts the Merren Conservatory Export House, while all four Kalyna locations host Merren Work Union Passage Halls.
 
 ## Faction: The Teamsters' Guild
 

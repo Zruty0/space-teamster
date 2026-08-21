@@ -71,7 +71,7 @@ The bright red, hematite-dusted specialty moon (VIb) — and a genuine third pat
 
 Its population today is mostly the descendants of the **more agriculturally-minded Udarniki**, communal in spirit but genuinely fond of the company that never gave them reason to rise. They regard Merren as a kind of benign father, and they regard Kalyna as **Estella's garden in the making** — not bulk food, but **specialty, luxury, art, and beauty**: pharmaceutical horticulture at **Zhitomir Hydroponics** (VIb.3), cultured protein at **Teteriv Broiler Farm** (VIb.2), and boutique luxury aquaculture at **Dnipro Pools** (VIb.4), all sealed beneath the red regolith and handled through **Kalyna Orbital** (VIb.1), the moon's single cold-chain, inspection, and transfer station.
 
-> **Writer's note:** *Merren Conservatory* (formerly Merren Colonial) is a provisional name and Kalyna's fuller treatment is deferred. The load-bearing facts: benevolent former Ostrander minor partner, agriculturally-minded Udarnik population, thriving, garden-of-refinement identity.
+Merren Conservatory hires Teamsters through Kalyna Orbital for controlled procurement, internal consolidation, commissioned biological exports, sponsored household settlement, and specialist exchange. The Merren Work Union and Steel Combine jointly maintain reciprocal Udarniki work pilgrimages between Kalyna and Kuznia, including specially cleared direct surface exchanges. Merren’s defining facts remain its origin as Ostrander’s benevolent minor partner, Kalyna’s agriculturally minded Udarniki population, and the moon’s thriving garden-of-refinement identity.
 
 ## Kuznia and the system
 

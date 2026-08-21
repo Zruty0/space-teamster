@@ -550,6 +550,28 @@ export const OFFICE_OF_INVESTITURES_AND_PUBLIC_OCCASIONS: LocalOfficeDef = {
   actions: [],
 };
 
+export const MERREN_CONSERVATORY_EXPORT_HOUSE: LocalOfficeDef = {
+  kind: 'office',
+  id: 'merren-conservatory-export-house',
+  name: 'Merren Conservatory Export House',
+  organizationName: 'Merren Conservatory',
+  locationIds: ['estella-vib-cold-chain-station'],
+  summary: 'Cold-chain inspection, commissioned exports, and sponsored settlement',
+  description: 'Merren’s Export House surrounds Kalyna Orbital’s cold-chain floor with glass offices, sealed sample rooms, and red-painted dispatch counters. Surface producer halls deliver every outbound lot under their own seals. The adjoining settlement desk receives Merren-sponsored households and directs them toward prepared homes and work placements across Kalyna.',
+  actions: [],
+};
+
+export const MERREN_WORK_UNION_PASSAGE_HALL: LocalOfficeDef = {
+  kind: 'office',
+  id: 'merren-work-union-passage-hall',
+  name: 'Merren Work Union Passage Hall',
+  organizationName: 'Merren Work Union',
+  locationIds: ['estella-vib-cold-chain-station', 'estella-vib-vat-protein', 'estella-vib-pharma-horticulture', 'estella-vib-aquaculture'],
+  summary: 'Udarniki work pilgrimages and collective passage',
+  description: 'The Passage Hall is maintained by the growers, pool stewards, culture technicians, and household delegates of the Merren Work Union. Its boards organize reciprocal Udarniki work pilgrimages with Kuznia and receive returning parties under the same collective account.',
+  actions: [],
+};
+
 export const HOUSE_MENDES_MARSHALCY: LocalOfficeDef = {
   kind: 'office',
   id: 'house-mendes-marshalcy',
@@ -596,6 +618,8 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
   GOVERNORS_RESERVE_AND_DUCAL_WEIGHTS_OFFICE,
   OFFICE_OF_INVESTITURES_AND_PUBLIC_OCCASIONS,
+  MERREN_CONSERVATORY_EXPORT_HOUSE,
+  MERREN_WORK_UNION_PASSAGE_HALL,
   HOUSE_MENDES_MARSHALCY,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,
