@@ -1,3 +1,4 @@
+import type { NunesInquirySnapshot } from './content/estella/faction-contracts/nunes-inquiries';
 import type { ContractBoardWorkerRequest, ContractBoardWorkerResponse, PreparedContractBoards } from './contract-board-worker-types';
 
 const BOARD_CACHE_LIMIT = 12;
@@ -12,8 +13,9 @@ const pendingById = new Map<number, {
 let worker: Worker | undefined;
 let nextRequestId = 1;
 
-function boardKey(sourceId: string, worldTime: number): string {
-  return `${sourceId}@${worldTime}`;
+function boardKey(sourceId: string, worldTime: number, nunesInquiries: NunesInquirySnapshot): string {
+  const inquiryKey = nunesInquiries.active.map(inquiry => `${inquiry.instanceId}:${Math.floor(inquiry.progress)}`).join(',');
+  return `${sourceId}@${worldTime}@${inquiryKey}`;
 }
 
 function cacheBoards(key: string, boards: PreparedContractBoards): void {
@@ -57,12 +59,12 @@ function contractWorker(): Worker {
   return worker;
 }
 
-export function preparedContractBoards(sourceId: string, worldTime: number): PreparedContractBoards | undefined {
-  return cache.get(boardKey(sourceId, worldTime));
+export function preparedContractBoards(sourceId: string, worldTime: number, nunesInquiries: NunesInquirySnapshot): PreparedContractBoards | undefined {
+  return cache.get(boardKey(sourceId, worldTime, nunesInquiries));
 }
 
-export function prepareContractBoards(sourceId: string, worldTime: number): Promise<PreparedContractBoards> {
-  const key = boardKey(sourceId, worldTime);
+export function prepareContractBoards(sourceId: string, worldTime: number, nunesInquiries: NunesInquirySnapshot): Promise<PreparedContractBoards> {
+  const key = boardKey(sourceId, worldTime, nunesInquiries);
   const ready = cache.get(key);
   if (ready) return Promise.resolve(ready);
   const pending = pendingByKey.get(key);
@@ -78,7 +80,7 @@ export function prepareContractBoards(sourceId: string, worldTime: number): Prom
   pendingById.set(requestId, { key, resolve: resolveRequest, reject: rejectRequest });
   pendingByKey.set(key, promise);
   try {
-    const request: ContractBoardWorkerRequest = { requestId, sourceId, worldTime };
+    const request: ContractBoardWorkerRequest = { requestId, sourceId, worldTime, nunesInquiries };
     contractWorker().postMessage(request);
   } catch (error) {
     pendingById.delete(requestId);

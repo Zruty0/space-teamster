@@ -1,4 +1,5 @@
 import type { TeamsterCertificationId } from './career-state';
+import type { NunesInquirySnapshot } from './content/estella/faction-contracts/nunes-inquiries';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContactContractCandidates, generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
@@ -36,6 +37,7 @@ export interface CareerContract {
   details?: string;
   /** Legacy persisted name for details authored before the labeled field existed. */
   briefing?: string;
+  nunesInquiry?: { instanceId: string; contribution: number };
   completionMessage: string;
 }
 
@@ -208,17 +210,18 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     quote,
     selectedTransfer,
     details: candidate.details,
+    nunesInquiry: candidate.nunesInquiry,
     completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
   };
 }
 
-export function generateCareerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
+export function generateCareerContracts(sourceId: string, startWorldTime: number = 0, nunesInquiries?: NunesInquirySnapshot): CareerContract[] {
   const seed = hashString(`career-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
   const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
   const contracts: CareerContract[] = [];
 
-  const factionCandidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime }))
+  const factionCandidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries }))
     .filter(candidate => (candidate.category ?? 'freight') === 'freight')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
   const factionCount = Math.min(MAX_FACTION_CONTRACTS, factionCandidates.length);
@@ -261,11 +264,11 @@ export function generateDirectoryEntryContracts(entryId: string, sourceId: strin
 
 const MAX_PASSENGER_CONTRACTS = 18;
 
-export function generatePassengerContracts(sourceId: string, startWorldTime: number = 0): CareerContract[] {
+export function generatePassengerContracts(sourceId: string, startWorldTime: number = 0, nunesInquiries?: NunesInquirySnapshot): CareerContract[] {
   const seed = hashString(`passenger-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
   const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
-  const candidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime }))
+  const candidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries }))
     .filter(candidate => candidate.category === 'passenger')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
   return weightedPick(candidates, MAX_PASSENGER_CONTRACTS, seed ^ 0x9a55e67).map((candidate, index) => makeFactionContract(candidate, index, startWorldTime));

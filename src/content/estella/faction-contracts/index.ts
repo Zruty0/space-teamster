@@ -1,4 +1,5 @@
 import type { TeamsterCertificationId } from '../../../career-state';
+import type { NunesInquirySnapshot } from './nunes-inquiries';
 import type { MissionCargoSpec } from '../../../mission-cost';
 import { classifyMissionCargo } from '../../../cargo-handling';
 import { passengerComfortTerms } from '../../../passenger-comfort';
@@ -16,6 +17,7 @@ import { HARTWELL_SHIPPING_COMPANIES_PROVIDER } from './hartwell-shipping-contra
 import { HOUSE_MENDES_PROVIDER } from './mendes-contracts';
 import { MERREN_CONSERVATORY_PROVIDER } from './merren-contracts';
 import { NEW_CANAAN_MINERS_MUTUAL_PROVIDER } from './miners-mutual-contracts';
+import { HOUSE_NUNES_PROVIDER } from './nunes-contracts';
 import { OATHMARK_ACCORD_AUTHORITY_PROVIDER } from './oathmark-accord-contracts';
 import { PIKE_MINERS_PROVIDER } from './pike-miners-contracts';
 import { ROADSTEAD_EXPORT_BROKERS_PROVIDER } from './roadstead-export-contracts';
@@ -27,6 +29,7 @@ import { WELLS_NOBLE_HOUSES_PROVIDER } from './wells-noble-contracts';
 export interface FactionContractContext {
   sourceId: string;
   worldTime: number;
+  nunesInquiries?: NunesInquirySnapshot;
 }
 
 export interface FactionMissionIssuer {
@@ -86,6 +89,8 @@ export interface FactionContractCandidate {
   preferredTransferId?: 'now' | 'soon' | 'best';
   /** Reserve board representation for an active event before weighted filling. */
   boardPriority?: boolean;
+  /** Persistent House Nunes Inquiry advanced by successful delivery. */
+  nunesInquiry?: { instanceId: string; contribution: number };
   /** Message shown on successful delivery. */
   completionMessage?: string;
 }
@@ -120,6 +125,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   OATHMARK_ACCORD_AUTHORITY_PROVIDER,
   HOUSE_MENDES_PROVIDER,
   HOUSE_ALVARES_PROVIDER,
+  HOUSE_NUNES_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 

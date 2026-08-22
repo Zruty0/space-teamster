@@ -572,6 +572,50 @@ export const MERREN_WORK_UNION_PASSAGE_HALL: LocalOfficeDef = {
   actions: [],
 };
 
+export const HOUSE_NUNES_CHAMBER_OF_INQUIRY: LocalOfficeDef = {
+  kind: 'office',
+  id: 'house-nunes-chamber-of-inquiry',
+  name: 'House Nunes Chamber of Inquiry',
+  organizationName: 'House Nunes',
+  locationIds: ['estella-xiid-black-project-exile'],
+  summary: 'Learned patronage, outer wardenship, and sealed custody',
+  description: 'The Chamber records every open Inquiry under the private seal of House Nunes. Its clerks grant instruments, passage, and field expenses to the learned houses of the Wells, while adjoining offices administer the outer watch, quarantine warrants, recoveries, and matters committed to sealed custody.',
+  actions: [{ id: 'review-open-inquiries', label: 'Review the Open Inquiries', detail: 'Read the current slate, principal institutions, and progress entered by the Chamber.' }],
+};
+
+export const HOUSE_NUNES_PATRONAGE_HALL: LocalOfficeDef = {
+  kind: 'office',
+  id: 'house-nunes-patronage-hall',
+  name: 'House Nunes Patronage Hall',
+  organizationName: 'House Nunes',
+  locationIds: ['estella-xi-science-waypoint-poi'],
+  summary: 'Open Inquiries and passage for the learned estate',
+  description: 'House Nunes maintains this vaulted hall among the Academy’s workshops and disputation chambers. Magisters, apprentices, physicians, alchemists, and celestial philosophers receive their assignments here before carrying instruments and arguments across the Wells.',
+  actions: [{ id: 'review-open-inquiries', label: 'Review the Open Inquiries', detail: 'Read the current slate, principal institutions, and progress entered by the Chamber.' }],
+};
+
+export const BLACKGLASS_OFFICE_OF_OBSERVANCES: LocalOfficeDef = {
+  kind: 'office',
+  id: 'blackglass-office-of-observances',
+  name: 'Blackglass Office of Observances',
+  organizationName: 'House Nunes',
+  locationIds: ['estella-xiid-blackglass-observatory'],
+  summary: 'Deep observations, field trials, and private archives',
+  description: 'The Office receives celestial instruments, sealed recorder vaults, and the findings of distant observances. Blackglass Magisters compare each result against the private Nunes archive before releasing selected measures to the Academy.',
+  actions: [],
+};
+
+export const MIRROR_CLINIC_QUIET_REGISTRY: LocalOfficeDef = {
+  kind: 'office',
+  id: 'mirror-clinic-quiet-registry',
+  name: 'Mirror Clinic Quiet Registry',
+  organizationName: 'House Nunes',
+  locationIds: ['estella-xiid-mirror-clinic'],
+  summary: 'Physic, quarantine, and protected passage',
+  description: 'The Quiet Registry arranges controlled passage for physicians, altered patients, protected witnesses, and recovery parties. Its custody clerks receive sealed medical apparatus and preserve the chosen identity of every person entered under the Clinic’s seal.',
+  actions: [],
+};
+
 export const HOUSE_MENDES_MARSHALCY: LocalOfficeDef = {
   kind: 'office',
   id: 'house-mendes-marshalcy',
@@ -620,6 +664,10 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   OFFICE_OF_INVESTITURES_AND_PUBLIC_OCCASIONS,
   MERREN_CONSERVATORY_EXPORT_HOUSE,
   MERREN_WORK_UNION_PASSAGE_HALL,
+  HOUSE_NUNES_CHAMBER_OF_INQUIRY,
+  HOUSE_NUNES_PATRONAGE_HALL,
+  BLACKGLASS_OFFICE_OF_OBSERVANCES,
+  MIRROR_CLINIC_QUIET_REGISTRY,
   HOUSE_MENDES_MARSHALCY,
   BRUCKNER_CENTRAL_SERVICE_HALL,
   RED_DUST_MECHANICAL,

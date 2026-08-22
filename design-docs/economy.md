@@ -28,6 +28,7 @@ Current implementation:
 - Roadstead export brokers generator: `src/content/estella/faction-contracts/roadstead-export-contracts.ts`
 - Hartwell machinery brokers generator: `src/content/estella/faction-contracts/hartwell-machinery-contracts.ts`
 - Merren Conservatory generator: `src/content/estella/faction-contracts/merren-contracts.ts`
+- House Nunes generator and Inquiry state: `src/content/estella/faction-contracts/nunes-contracts.ts`, `nunes-inquiries.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -635,9 +636,19 @@ A separate Office of Investitures and Public Occasions operates at Castle Alvare
 
 Dues, grants, and routine assigned levies use `0.25 + 0.75` with `15,000 cr` flat pay; heavy escheat uses `25,000 cr`. Occasion freight and subsidized/return passages use `0.30 + 0.70` with `20,000 cr`; official Alvares delegations use `25,000 cr`. Titles remain ordinary `Deliver X to Y` / `Transport X to Y`, while authored details identify the obligation or occasion.
 
+## Faction: House Nunes
+
+House Nunes expresses Rodrigo Serrat’s inherited “watch”: Manticore and Reach wardenship, outer relays, recovery, quarantine, exile administration, private archives, sensitive custody, hidden medicine, and patronage of the Wells’ sparse learned institutions. It does not absorb Oathmark martial work, Covenant internal traffic, Coimbra AI research, smuggling, ordinary commerce, or the public authority of Alvares and Mendes.
+
+The learned estate uses medieval categories rather than modern academic disciplines. Common-born and lesser-cadet Magisters practice natural and celestial philosophy, alchemy, physic and physiology, optics, cosmography, and occult or magisterial arts as universalists. Nunes patronage circulates apparatus, specimens, recorder vaults, field parties, and disputing Magisters among the Academy of Sublime Measures, Blackglass Observatory, Mirror Clinic, Frostglass Collegium, Teide Survey Collegium, Manticore Observatory, the Far Bell Tower, and practical alchemical houses. Patronage does not imply House ownership.
+
+Three persistent **Inquiries** remain open at once. Each has an authored subject, principal institution, ordinal, and `100` progress. It gains `0.25` progress per elapsed game-world day and `8` from each successfully delivered Inquiry contract. Retries and abandoned contracts add nothing. An accepted contract remains attached to its Inquiry through delivery even if passive progress would otherwise close it. Closure records a short history and opens the next catalog Inquiry; repeated names gain ordinals such as `4th Inquiry of Captive Stone`. Contract prose rotates among `in furtherance of`, `for the learned advancement of`, and `in service of the observations and proofs belonging to` the named Inquiry. The economy does not evolve with progress: all Inquiry legs use `0.25 + 0.75`, `20,000 cr`, and a `2×` cap.
+
+Routine Outer Ward work uses `0.20 + 0.80` plus `15,000 cr`; recovery and quarantine use `0.10 + 0.90` plus `35,000 cr`; quiet custody uses `0.25 + 0.75` plus `30,000 cr`. Four Local Directory offices represent the Chamber of Inquiry, Academy patronage, Blackglass observations, and Mirror Clinic custody. The first two provide a live Open Inquiries view.
+
 ## Faction: Wells Noble Houses
 
-Minor Wells nobility is represented by one combined provider. Houses Mendes and Alvares have dedicated providers; Nunes remains a separate future provider because the three senior Houses are in active conflict. Counts, marquises, and lesser households share this minor-noble charter traffic.
+Minor Wells nobility is represented by one combined provider. Houses Mendes, Alvares, and Nunes have dedicated providers because the three senior Houses are in active conflict. Counts, marquises, and lesser households share this minor-noble charter traffic.
 
 Scope:
 

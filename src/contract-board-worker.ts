@@ -7,11 +7,11 @@ const workerScope = globalThis as unknown as {
 };
 
 workerScope.onmessage = (event): void => {
-  const { requestId, sourceId, worldTime } = event.data;
+  const { requestId, sourceId, worldTime, nunesInquiries } = event.data;
   try {
     // Keep both boards in one worker so shared transfer-window calculations are reused.
-    const freight = generateCareerContracts(sourceId, worldTime);
-    const passenger = generatePassengerContracts(sourceId, worldTime);
+    const freight = generateCareerContracts(sourceId, worldTime, nunesInquiries);
+    const passenger = generatePassengerContracts(sourceId, worldTime, nunesInquiries);
     workerScope.postMessage({
       requestId,
       boards: { sourceId, worldTime, freight, passenger },

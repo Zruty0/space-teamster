@@ -38,6 +38,7 @@ import { estellaDisplayPath } from './content/estella/navigation';
 import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
+import { contributeToNunesInquiry, formatNunesInquiryTitle, nunesInquiryCatalogEntry, nunesInquirySnapshot, nunesInquiryWillClose } from './content/estella/faction-contracts/nunes-inquiries';
 import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
 import type { PreparedContractBoards } from './contract-board-worker-types';
 import { CAREER_START_LOCATION_ID, awardTeamsterCertification, hasTeamsterCertification, loadCareerProfile, resetCareerProfile, saveCareerProfile, teamsterCertificationName, teamsterRank, type CareerProfile } from './career-state';
@@ -473,9 +474,13 @@ export class Game {
     this.accumulator = 0;
   }
 
+  private currentNunesInquirySnapshot() {
+    return nunesInquirySnapshot(this.career.nunesInquiries, this.career.worldTime);
+  }
+
   private prewarmContractBoards(): void {
     if (!hasTeamsterCertification(this.career, 'basic-3')) return;
-    void prepareContractBoards(this.career.locationId, this.career.worldTime).catch(() => undefined);
+    void prepareContractBoards(this.career.locationId, this.career.worldTime, this.currentNunesInquirySnapshot()).catch(() => undefined);
   }
 
   private loadStationTerminal(selectedIndex = 0): void {
@@ -510,7 +515,8 @@ export class Game {
     this.worldTime = this.career.worldTime;
     const sourceId = this.career.locationId;
     const worldTime = this.career.worldTime;
-    const ready = preparedContractBoards(sourceId, worldTime);
+    const inquirySnapshot = this.currentNunesInquirySnapshot();
+    const ready = preparedContractBoards(sourceId, worldTime, inquirySnapshot);
     if (ready) {
       this.showPreparedContractBoard(board, ready, selectedIndex);
       return;
@@ -520,7 +526,7 @@ export class Game {
     this.phase = { kind: 'interactiveScene', scene: { id: 'contractBoardLoading', selectedIndex: 0, board } };
     this.time = 0;
     this.accumulator = 0;
-    void prepareContractBoards(sourceId, worldTime).then(boards => {
+    void prepareContractBoards(sourceId, worldTime, inquirySnapshot).then(boards => {
       if (generation !== this.contractBoardLoadGeneration
         || this.career.locationId !== sourceId
         || this.career.worldTime !== worldTime
@@ -856,7 +862,19 @@ export class Game {
   }
 
   private currentMissionCompletionText(): string {
-    if (this.activeCareerContract) return this.activeCareerContract.completionMessage;
+    const contract = this.activeCareerContract;
+    if (contract?.nunesInquiry) {
+      const closingInquiry = nunesInquiryWillClose(
+        this.career.nunesInquiries,
+        contract.nunesInquiry.instanceId,
+        contract.nunesInquiry.contribution,
+        this.worldTime,
+      );
+      if (closingInquiry) {
+        return `${contract.completionMessage}\n\nThe Chamber records the final measure. The ${closingInquiry} is closed, and its findings pass into the Nunes archive.`;
+      }
+    }
+    if (contract) return contract.completionMessage;
     return 'Delivery complete. Dispatch closes the manifest and posts the run to your log.';
   }
 
@@ -990,6 +1008,14 @@ export class Game {
     }
     const committedSettlement = this.pendingMaintenanceSettlement;
     if (committedSettlement) this.career.rig = committedSettlement.resultingRig;
+    if (contract.nunesInquiry) {
+      contributeToNunesInquiry(
+        this.career.nunesInquiries,
+        contract.nunesInquiry.instanceId,
+        contract.nunesInquiry.contribution,
+        this.worldTime,
+      );
+    }
     saveCareerProfile(this.career);
     if (committedSettlement) this.committedMaintenanceLedgers = appendCommittedMaintenanceLedger(committedSettlement.ledger);
     this.pendingMaintenanceSettlement = null;
@@ -1024,12 +1050,6 @@ export class Game {
   }
 
   private finishRunTransition(): PhaseTransition {
-    const arrivalContract = this.activeCareerContract;
-    const boardsAuthorizedOnArrival = hasTeamsterCertification(this.career, 'basic-3')
-      || arrivalContract?.certificationOnSuccess === 'basic-3';
-    if (arrivalContract && boardsAuthorizedOnArrival) {
-      void prepareContractBoards(arrivalContract.destinationId, this.worldTime).catch(() => undefined);
-    }
     return this.makeTransition('success', () => {
       this.logSuccessfulGeneratedRun();
       if (this.activeCareerContract) {
@@ -2690,6 +2710,32 @@ export class Game {
     if (state.id === 'localDirectoryAction') {
       const entry = state.directoryEntryId ? localDirectoryEntryById(state.directoryEntryId) : undefined;
       const action = entry?.actions.find(candidate => candidate.id === state.directoryActionId);
+      if (entry && action?.id === 'review-open-inquiries') {
+        const snapshot = this.currentNunesInquirySnapshot();
+        const history = this.career.nunesInquiries.history.slice(-3).reverse();
+        return {
+          title: 'OPEN INQUIRIES',
+          subtitle: `${entry.name} — House Nunes`,
+          bodyRows: [
+            ...snapshot.active.flatMap(inquiry => {
+              const catalog = nunesInquiryCatalogEntry(inquiry.catalogId);
+              return [
+                { kind: 'separator' as const },
+                { kind: 'text' as const, text: formatNunesInquiryTitle(inquiry), tone: 'success' as const },
+                { kind: 'kv' as const, label: 'Principal House', value: catalog.principalInstitution },
+                { kind: 'kv' as const, label: 'Progress', value: `${Math.min(100, inquiry.progress).toFixed(0)}%` },
+                { kind: 'text' as const, text: catalog.summary },
+              ];
+            }),
+            ...(history.length ? [
+              { kind: 'separator' as const },
+              { kind: 'text' as const, text: `Recently closed: ${history.map(inquiry => formatNunesInquiryTitle(inquiry)).join(' · ')}` },
+            ] : []),
+          ],
+          footer: 'Enter/Space: return to office',
+          options: [{ label: `Back to ${entry.name}`, detail: 'Return to the patronage office.', action: `directoryEntry:${entry.id}`, tone: 'back' }],
+        };
+      }
       if (!entry || !action?.response) return this.buildInteractiveScene({ id: 'localDirectory', selectedIndex: 0 });
       const backAction = state.directoryParentEntryId
         ? `directoryContact:${entry.id}:${state.directoryParentEntryId}`

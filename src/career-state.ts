@@ -1,3 +1,4 @@
+import { createDefaultNunesInquiryState, migrateNunesInquiryState, type NunesInquiryState } from './content/estella/faction-contracts/nunes-inquiries';
 import { createDefaultRigState, migrateRigState } from './maintenance/rig-state';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type FabricatedFaultClaim, type MaintenanceSystemId } from './maintenance/types';
 
@@ -46,12 +47,13 @@ export interface CareerProfile {
   certifications: TeamsterCertificationId[];
   rig: CareerRigState;
   maintenanceShopInspections: Record<string, MaintenanceShopInspectionState>;
+  nunesInquiries: NunesInquiryState;
 }
 
 export const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
 
 export function defaultCareerProfile(): CareerProfile {
-  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false), maintenanceShopInspections: {} };
+  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false), maintenanceShopInspections: {}, nunesInquiries: createDefaultNunesInquiryState(0) };
 }
 
 function isTeamsterCertificationId(value: unknown): value is TeamsterCertificationId {
@@ -141,6 +143,7 @@ export function loadCareerProfile(): CareerProfile {
       certifications,
       rig: migrateRigState(parsed.rig, certifications.includes('thin-atmosphere') || certifications.includes('thick-atmosphere')),
       maintenanceShopInspections: migratedShopInspections(parsed),
+      nunesInquiries: migrateNunesInquiryState(parsed.nunesInquiries, typeof parsed.worldTime === 'number' ? parsed.worldTime : 0),
     };
   } catch {
     return defaultCareerProfile();
