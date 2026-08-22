@@ -18,6 +18,8 @@ const TETERIV = 'estella-vib-vat-protein';
 const ZHITOMIR = 'estella-vib-pharma-horticulture';
 const MOSAIC = 'estella-vii-high-vacuum-factory';
 const CADIZ_HIGHPORT = 'estella-xid-main-port';
+const PILGRIM_GATE = 'estella-xiia-volatiles-transit';
+const REACH_MAIN_PORT = 'estella-xiii-main-port';
 
 const ROUTINE_PAY = { generosity: 0.75, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
 const CERTIFIED_PAY = { generosity: 0.85, compensationRatio: 0.4, maxCompAllowance: 2 } as const;
@@ -315,6 +317,25 @@ const ROSTER: ShippingCompany[] = seededSample(NAME_POOL, 18, hashString('hartwe
   return { name, slug: slug(name), lanes: seededSample(LANES, laneCount, h ^ 0x514c1a6e) };
 });
 
+// Estella generally shuns Covenant commerce. A few Hartwell factors still buy the enclave's
+// excellent cold-service work at Pilgrim Gate and accept the reputational risk of selling it on.
+// Keep this lane outside LANES so adding it does not reshuffle every company's established roster.
+const COVENANT_EXPORT_LANE: Lane = {
+  laneId: 'pilgrim-gate-unpopular-manufactures',
+  sourceIds: [PILGRIM_GATE],
+  destinationIds: [CADIZ_HIGHPORT, ROADSTEAD, HAMMER, ANVIL, REACH_MAIN_PORT],
+  cargo: [
+    { label: 'chapter-built cryogenic valve blocks', massClass: 'standard' },
+    { label: 'proofed pressure-door assemblies', massClass: 'heavy' },
+    { label: 'cold-rated habitat fittings', massClass: 'standard' },
+    { label: 'remanufactured relay cooling plants', massClass: 'heavy' },
+    { label: 'ice-work pump sets', massClass: 'heavy' },
+  ],
+  likelihood: 0.08,
+  pay: ROUTINE_PAY,
+};
+const COVENANT_EXPORT_COMPANIES = seededSample(ROSTER, 4, hashString('hartwell-covenant-export-buyers-v1'));
+
 function makeCargo(option: CargoOption, seedKey: string): MissionCargoSpec {
   return { label: option.label, massClass: option.massClass, massTons: cargoMassForClass(option.massClass, `${HARTWELL_SHIPPING_ID}:${seedKey}:${option.label}`) };
 }
@@ -358,6 +379,13 @@ function generateHartwellShippingContracts(ctx: FactionContractContext): Faction
         const options = seededSample(lane.cargo, lane.sampleCount ?? 1, hashString(`${company.slug}:${lane.laneId}:${ctx.sourceId}->${destinationId}:${day}`));
         for (const option of options) out.push(candidate(company, lane, ctx.sourceId, destinationId, option));
       }
+    }
+  }
+  if (ctx.sourceId === PILGRIM_GATE) {
+    for (const company of COVENANT_EXPORT_COMPANIES) {
+      const destinationId = seededSample(COVENANT_EXPORT_LANE.destinationIds ?? [], 1, hashString(`${company.slug}:covenant-buyer:${day}`))[0];
+      const option = seededSample(COVENANT_EXPORT_LANE.cargo, 1, hashString(`${company.slug}:covenant-cargo:${day}`))[0];
+      if (destinationId && option) out.push(candidate(company, COVENANT_EXPORT_LANE, PILGRIM_GATE, destinationId, option));
     }
   }
   return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));

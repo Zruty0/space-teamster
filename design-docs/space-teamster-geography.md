@@ -469,11 +469,23 @@ Neptune-flavored. Sparse and cold. The bridge to the Reach.
 | Body | Type | POIs |
 |---|---|---|
 | **Manticore** / Estella XII (gas giant) | cold; light skim possible | XII.1 Manticore Observatory |
-| **Mercy** / Estella XIIa | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Monastery of Sacred Toil · XIIa.2 Pilgrim Gate · XIIa.3 Cathedral of Holy Rapture |
+| **Mercy** / Estella XIIa | Large icy Covenant remnant enclave, thin nitrogen atmo (flavor only) | XIIa.1 Preceptory of Toil · XIIa.2 Pilgrim Gate · XIIa.3 Cathedral of Testimony |
 | **Vigil** / Estella XIIb | Small airless Covenant remnant enclave | XIIb.1 Vigil Keep · XIIb.2 Vigil Gate |
 | **Teide** / Estella XIIc | Captured comet/KBO-like airless isotope-prospecting county | XIIc.1 Bluefire Mine · XIIc.2 Teide Survey Collegium · XIIc.3 Castle Teide |
 | **Ceuta** / Estella XIId | Small airless House Nunes seat: research, espionage, leverage, and hidden augmentation | XIId.1 Castle Nunes · XIId.2 Blackglass Observatory · XIId.3 Mirror Clinic |
 | **Two captured** | Asteroids/comets in Manticore's SOI, no SOI of their own (ES-I-NNNN class, icy) | Rookery of Knives · The Far Bell Tower (telescope, comm relay, intercept post) |
+
+### The Covenant remnants
+
+The Ark carried a complete extrasolar society joined through neural implants. Ordinary **Seals** provide medical, mnemonic, vocational, and communications benefits while suppressing fundamental dissent and making their bearers genuinely happy to belong to the Covenant. Outsiders consequently distrust the apparently sincere contentment of the people they call *chipheads*. Four unique **Grandmaster implants** governed the Seal network through the Holy Orders of **Toil** (industry, production, material science, and farming), **Vigil** (enforcement, exploration, and war), **Genesis** (medicine, biology, genetics, and implant creation), and **Testimony** (collective memory, literacy, diplomacy, propaganda, and information control). Each Grandmaster implant retains much of its previous bearers' personality and reshapes its successor, making the office a controlled form of reincarnation.
+
+Mercy and Vigil were sparse holdings of Nunes cadet branches when the Covenant made them its first contested footholds. Fighting remained active on both moons when Arkfall destroyed the Covenant capital and the Grandmaster of Genesis disappeared with the machinery and authority required to create new Seals or Grandmaster implants. The surviving Covenant first sued for peace through Alvares, then bypassed it and made a direct compact with Nunes. Nunes used its Manticore property and wardship privileges to protect the Holy Orders legally, sacrificing damaged cadet holdings in exchange for material dues, medical and research service, and expected access to Covenant knowledge. The maneuver ended Mendes's rare wartime supremacy, denied Alvares control of the peace, and angered much of Estella. It paid poorly: the Covenant preserved its secrets and interpreted research collaboration narrowly.
+
+Arkfall survivors evacuated a reserve sufficient for roughly a million ordinary Seals. Genesis experts later developed risky extraction and reimplantation, so a deceased bearer's Seal commonly passes to a younger not-yet-Professed relative rather than an already implanted eldest child. Failed succession can destroy the Seal, injure the recipient, or both. Covenant capacity is therefore capped and slowly declining, but available Seals still greatly outnumber willing Estella recruits. Because post-implant consent proves nothing, the peace requires prospective Postulants to make cumbersome notarized declarations while unsealed and outside Covenant custody before traveling to Mercy.
+
+The refugees transformed Mercy's damaged works into a closed communal homeland. The **Preceptory of Toil** is its industrial chapterhouse; **Pilgrim Gate** is the sole legal trade and passenger membrane, seat of the Prior, and receiving point for notarized Postulants; the **Cathedral of Testimony** is its principal family settlement, archive, and information authority. Vigil Keep and Vigil Gate preserve the military Order's frontier role. Genesis survives as a leaderless medical Order without a dedicated seat.
+
+Estella generally avoids Covenant trade. The enclave legally imports essentials, primarily through Wells sellers and less often from Camps or Belt intermediaries, but receives everything at Pilgrim Gate. Toil's high-quality cold-service goods attract few open buyers; occasional Hartwell shipping factors purchase them at the Gate and carry them under their own names. The only regular institutional relationship is Nunes: Toil pays compact dues in manufactured goods, while Genesis sends physicians and researchers to Mirror Clinic. Smugglers also frequent Pilgrim Gate, but their traffic is separate from the Covenant's public contracts.
 
 ---
 

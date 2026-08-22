@@ -6,6 +6,7 @@ import { passengerComfortTerms } from '../../../passenger-comfort';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { CINDERHOOK_REFINERS_PROVIDER } from './cinderhook-refiners-contracts';
+import { COVENANT_REMNANTS_PROVIDER } from './covenant-contracts';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from './kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from './kisaragi-estella-contracts';
 import { GLITTERFIELD_MINERS_PROVIDER } from './glitterfield-miners-contracts';
@@ -126,6 +127,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   HOUSE_MENDES_PROVIDER,
   HOUSE_ALVARES_PROVIDER,
   HOUSE_NUNES_PROVIDER,
+  COVENANT_REMNANTS_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
 ];
 

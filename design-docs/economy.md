@@ -29,6 +29,7 @@ Current implementation:
 - Hartwell machinery brokers generator: `src/content/estella/faction-contracts/hartwell-machinery-contracts.ts`
 - Merren Conservatory generator: `src/content/estella/faction-contracts/merren-contracts.ts`
 - House Nunes generator and Inquiry state: `src/content/estella/faction-contracts/nunes-contracts.ts`, `nunes-inquiries.ts`
+- Covenant remnants generator: `src/content/estella/faction-contracts/covenant-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -70,6 +71,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Cinderhook refining houses | refined exports 0.80 + 0.40 (+20%) | Roadstead staging 0.75 + 0.40 (+15%); certified shipyard/Tessera lots 0.85 + 0.35 (+20%) |
 | Roadstead export brokers | brokered metal exports 0.75 + 0.40 (+15%) | certified lots 0.80 + 0.35 (+15%) |
 | Hartwell machinery brokers | routine machinery 0.75 + 0.45 (+20%) | heavy equipment 0.85 + 0.40 (+25%); finance/legal packets 0.70 + 0.45 (+15%) |
+| Covenant remnants | essential imports 0.25 + 0.80 (+5%) | Nunes dues 0.20 + 0.85 (+5%); compact service 0.25 + 0.80 (+5%); Postulants/pilgrims 0.15 + 0.90 (+5%); no flat rewards |
 
 ## Faction: The Steel Combine
 
@@ -645,6 +647,19 @@ The learned estate uses medieval categories rather than modern academic discipli
 Three persistent **Inquiries** remain open at once. Each has an authored subject, principal institution, ordinal, and `100` progress. It gains `0.25` progress per elapsed game-world day and `8` from each successfully delivered Inquiry contract. Retries and abandoned contracts add nothing. An accepted contract remains attached to its Inquiry through delivery even if passive progress would otherwise close it. Closure records a short history and opens the next catalog Inquiry; repeated names gain ordinals such as `4th Inquiry of Captive Stone`. Contract prose rotates among `in furtherance of`, `for the learned advancement of`, and `in service of the observations and proofs belonging to` the named Inquiry. The economy does not evolve with progress: all Inquiry legs use `0.25 + 0.75`, `20,000 cr`, and a `2×` cap.
 
 Routine Outer Ward work uses `0.20 + 0.80` plus `15,000 cr`; recovery and quarantine use `0.10 + 0.90` plus `35,000 cr`; quiet custody uses `0.25 + 0.75` plus `30,000 cr`. Four Local Directory offices represent the Chamber of Inquiry, Academy patronage, Blackglass observations, and Mirror Clinic custody. The first two provide a live Open Inquiries view.
+
+## Faction: Covenant Remnants
+
+The `[COVENANT]` provider is deliberately narrow. Estella generally shuns Covenant commerce, internal Mercy/Vigil distribution stays off the public board, and ordinary-Seal succession is reserved for a future quest line. The Covenant itself posts only four legal lanes:
+
+- Essential imports from Wells sources to Pilgrim Gate, with lower-volume Camps and Belt procurement. Cargo rotates among clinic stores, biological reference cultures, implant-compatible pharmaceuticals, neural-interface media, cultivation inputs, environmental controls, machine-tool stock, ceramics, and power-conditioning assemblies.
+- In-kind compact dues from Pilgrim Gate to Castle Nunes: high-quality Toil valve blocks, pressure doors, habitat fittings, relay cooling plants, and ice-work pumps.
+- Genesis physicians and neural researchers from Pilgrim Gate to Mirror Clinic for the research and medical service promised to Nunes after Arkfall.
+- Sparse notarized Postulant and sanctioned-pilgrim passage to Pilgrim Gate. Postulants have made the required declarations while unsealed and outside Covenant custody; the manifest explicitly carries the matched notarial and household-sponsorship record.
+
+Pilgrim Gate is the sole public trade membrane. Procurement uses `0.25 + 0.80`; material dues use `0.20 + 0.85`; compact service uses `0.25 + 0.80`; passage uses `0.15 + 0.90`. All have a `2×` fuel-compensation cap and no flat reward.
+
+Covenant production does not become a Covenant export lane. Four deterministic Hartwell shipping factors occasionally buy unpopular but excellent Toil goods directly at Pilgrim Gate and move them under their own company contracts at low likelihood to Cadiz, Hartwell/Kuznia, or the Reach. Smuggling through Pilgrim Gate belongs to the future smuggler provider, not this one. Public work excludes weapons, Second Crusade preparation, Seal freight, command authority, Arkfall recovery, and forced recruitment.
 
 ## Faction: Wells Noble Houses
 
