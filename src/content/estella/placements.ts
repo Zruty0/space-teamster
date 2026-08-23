@@ -460,7 +460,7 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-xid-main-port-station': { kind: 'orbit', parentId: 'estella-xid', usage: 'low', orbit: { kind: 'circular', radius: 285_000, altitude: 85_000, epochAngle: 0.75, epochTime: 0, orbitSense: -1 } },
   'estella-xie-outer-spec-drydock-station': { kind: 'orbit', parentId: 'estella-xie', usage: 'low', orbit: { kind: 'circular', radius: 148_000, altitude: 60_000, epochAngle: 0.35, epochTime: 0, orbitSense: -1 } },
   'estella-xi-captive-smuggler-deaddrop': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 65_000_000, epochAngle: 0.4, epochTime: 0, orbitSense: -1 } },
-  'estella-xi-captive-science-waypoint': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 75_000_000, epochAngle: 1.7, epochTime: 0, orbitSense: -1 } },
+  'estella-xi-captive-science-waypoint': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 47_000_000, epochAngle: 1.7, epochTime: 0, orbitSense: -1 } },
   'estella-xi-captive-fence': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 86_000_000, epochAngle: -1.15, epochTime: 0, orbitSense: -1 } },
   'estella-xi-captive-religious-retreat': { kind: 'orbit', parentId: 'estella-xi', usage: 'high', orbit: { kind: 'circular', radius: 98_000_000, epochAngle: -2.6, epochTime: 0, orbitSense: -1 } },
   'estella-xia-sulfur-mine': { kind: 'surface', parentId: 'estella-xia', angle: 0.2, side: 'equatorial' },
