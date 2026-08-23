@@ -30,6 +30,7 @@ Current implementation:
 - Merren Conservatory generator: `src/content/estella/faction-contracts/merren-contracts.ts`
 - House Nunes generator and Inquiry state: `src/content/estella/faction-contracts/nunes-contracts.ts`, `nunes-inquiries.ts`
 - Covenant remnants generator: `src/content/estella/faction-contracts/covenant-contracts.ts`
+- Daedalus Systems generator: `src/content/estella/faction-contracts/daedalus-contracts.ts`
 - Pay model and cost estimation: `src/mission-cost.ts`
 - Board/cost integration: `src/career-contracts.ts`
 - BBS display: `src/game.ts`
@@ -72,6 +73,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Roadstead export brokers | brokered metal exports 0.75 + 0.40 (+15%) | certified lots 0.80 + 0.35 (+15%) |
 | Hartwell machinery brokers | routine machinery 0.75 + 0.45 (+20%) | heavy equipment 0.85 + 0.40 (+25%); finance/legal packets 0.70 + 0.45 (+15%) |
 | Covenant remnants | essential imports 0.25 + 0.80 (+5%) | Nunes dues 0.20 + 0.85 (+5%); compact service 0.25 + 0.80 (+5%); Postulants/pilgrims 0.15 + 0.90 (+5%); no flat rewards |
+| Daedalus Systems | procurement/products 0.70 + 0.45 (+15%) | validation/data 0.80 + 0.40 (+20%); personnel 0.55 + 0.60 (+15%); Icarus intake 0.75 + 0.50 plus 20,000 cr (+25% + fee) |
 
 ## Faction: The Steel Combine
 
@@ -660,6 +662,20 @@ The `[COVENANT]` provider is deliberately narrow. Estella generally shuns Covena
 Pilgrim Gate is the sole public trade membrane. Procurement uses `0.25 + 0.80`; material dues use `0.20 + 0.85`; compact service uses `0.25 + 0.80`; passage uses `0.15 + 0.90`. All have a `2×` fuel-compensation cap and no flat reward.
 
 Covenant production does not become a Covenant export lane. Four deterministic Hartwell shipping factors occasionally buy unpopular but excellent Toil goods directly at Pilgrim Gate and move them under their own company contracts at low likelihood to Cadiz, Hartwell/Kuznia, or the Reach. Smuggling through Pilgrim Gate belongs to the future smuggler provider, not this one. Public work excludes weapons, Second Crusade preparation, Seal freight, command authority, Arkfall recovery, and forced recruitment.
+
+## Faction: Daedalus Systems
+
+The `[DAEDALUS]` provider presents Coimbra as an ambitious human-run electronics and compute campus. Public contracts never mention autonomous general intelligence, machine governance, Icarus 3.0, alignment, personality simulation, or the project's deceptive progress layers. Institutional issuers are Daedalus Systems Procurement, Product Fulfillment, Field Validation, Research Personnel, and Research Administration; routine copy uses no named contacts.
+
+Physical topology is intentionally asymmetric:
+
+- External suppliers send processor wafers, hardened memory, optical interconnects, storage substrates, power hardware, radiators, cleanroom stores, fabrication stock, ceramics, sensors, and electronics consumables to Server Farm or Systems Campus.
+- Systems Campus exports navigation accelerators, industrial controllers, driver-stack appliances, predictive-maintenance processors, sensor-fusion cabinets, simulation modules, hardened flight computers, and automation interfaces to system-wide customers below VHM's proprietary metric-drive layer.
+- Campus sends prototype control hardware to selected field sites. Independent returns carry tested/failed units to Campus and physical telemetry, fault, environmental, and operator-response archives to Server Farm.
+- Narrow professional passengers move between Campus and external customer/research sites.
+- Icarus Lab rarely receives restricted compute from external suppliers or selected Daedalus research principals recalled directly from off-Coimbra assignments. It has no routine public output.
+
+No contract connects two Coimbra POIs; all same-body Campus/Server Farm/Icarus movement occurs locally off-board. Campus boards rotate three product destinations, two validation deployments, and one personnel assignment per world day. External procurement and independent field returns are source-specific. Procurement/products use `0.70 + 0.45`, validation/data `0.80 + 0.40`, ordinary personnel `0.55 + 0.60`, and Icarus intake `0.75 + 0.50` plus a `20,000 cr` restricted-transfer fee, all with `2×` fuel-compensation caps.
 
 ## Faction: Wells Noble Houses
 

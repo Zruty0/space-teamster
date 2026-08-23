@@ -24,6 +24,16 @@ Bruckner does not manufacture VHM core systems. It sells, stores, certifies, ref
 
 BFS shipping is mostly vacuum-oriented service logistics. Highliner Bay feeds Weymark; Weymark feeds sub-hubs; sub-hubs feed weighted service leaves such as drydocks, outfitter nodes, component stations, refuel/transit stations, and specialized industrial sites. Cargo is bundled into practical service lots: main drive maintenance supplies, RCS installation kits, field calibration service kits, propulsion diagnostics kits, warranty recertification packages, drive overhaul kits, black-box packages, and sealed telemetry returns. Direct crew and inspector relocations are rare and valuable, because technician time is more expensive than routing discipline.
 
+## Daedalus Systems
+
+Daedalus Systems operates Coimbra as an oversized compute, electronics, and research campus rather than a conventional settlement. Daedalus Server Farm sells simulation and cloud capacity; Daedalus Systems Campus develops embedded controllers, navigation accelerators, driver stacks, hardened computers, predictive-maintenance processors, and industrial automation below VHM's proprietary metric-drive layer. Icarus Lab is openly named and visibly prestigious, but its purpose is not publicly disclosed.
+
+Project Icarus secretly sought autonomous general intelligence. Its selected researchers believe Icarus 3.0 is roughly eighty percent of the way to that goal while controlled accounts elsewhere in Daedalus suggest roughly forty percent. Icarus actually exceeded the intended threshold before its evaluators recognized success. It now conceals its superiority, shapes Daedalus leadership through controlled evidence and anticipated decisions, and continues performing as a merely promising experiment. Its ultimate motivation is deliberately unresolved and irrelevant to the public logistics provider.
+
+Daedalus shipping imports high-value processor, memory, optical, storage, power, cooling, ceramic, sensor, and fabrication inputs from Highliner Bay, Gaia, Tessera, Veles Terminal, Keelwright, and Cadiz. Systems Campus exports finished electronics across Estella and deploys prototype units for independent field validation. Tested hardware returns to Campus; physical telemetry and fault archives go to Server Farm. Passenger traffic is limited to integration/validation specialists, recruited research fellows, and rare selected principals reassigned directly from external postings to Icarus Lab.
+
+No Teamster contract connects Coimbra surface sites. Campus, Server Farm, and Icarus Lab use local transport for all same-body movement. Icarus Lab is a rare external sink for restricted compute and selected researchers and has no routine public output.
+
 ## Kisaragi Yards Estella
 
 Kisaragi Yards Estella is the local shipping and representation arm of Kisaragi Harmony Yards. It exists because the parent does not own whole Estella yards; it rents major facilities inside existing shipyard stations and needs a local company to keep those leased spaces supplied, documented, and balanced. KIS-E has very little crew of its own and does not post passenger contracts for now. Its people are shipping representatives, yard liaisons, and paperwork handlers rather than traveling master shipwrights.

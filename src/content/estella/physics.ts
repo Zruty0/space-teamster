@@ -136,7 +136,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
   'estella-xic': { radius: 110_000, gm: 0.62 * 110_000 * 110_000, rotationPeriod: 48_000, notes: 'Airless icy licensed vice moon of Hydra.' },
   'estella-xid': { radius: 200_000, gm: 1.25 * 200_000 * 200_000, rotationPeriod: 57_000, notes: 'Rocky airless Wells hub moon of Hydra.' },
   'estella-xie': { radius: 88_000, gm: 0.45 * 88_000 * 88_000, rotationPeriod: 39_000, notes: 'Oathmark, small airless neutral drydock and martial academy moon of Hydra.' },
-  'estella-xif': { radius: 72_000, gm: 0.32 * 72_000 * 72_000, rotationPeriod: 37_000, notes: 'Small airless AI-governance research moon of Hydra.' },
+  'estella-xif': { radius: 72_000, gm: 0.32 * 72_000 * 72_000, rotationPeriod: 37_000, notes: 'Small airless Daedalus compute and AI-research moon of Hydra.' },
 
   'estella-xii': { radius: 720_000, gm: 15 * 720_000 * 720_000, rotationPeriod: 44_000, notes: 'Cold outer gas giant of the Wells; not landable.' },
   'estella-xiia': { radius: 190_000, gm: 0.95 * 190_000 * 190_000, rotationPeriod: 72_000, notes: 'Large icy Covenant remnant enclave moon of Manticore with thin nitrogen atmosphere.' },
