@@ -16,6 +16,7 @@ export type FaultSeverity = 'minor' | 'major' | 'total';
 export type FaultDiagnosis = 'unknown' | 'suspected' | 'confirmed';
 export type ComponentId = string;
 
+export type RigEquipmentId = 'atmospheric-package' | 'heavy-heat-shielding';
 export const OPTIONAL_EQUIPMENT_IDS = ['heavy-heat-shielding'] as const;
 export type OptionalEquipmentId = typeof OPTIONAL_EQUIPMENT_IDS[number];
 
@@ -117,7 +118,7 @@ export interface InstalledComponentState {
 }
 
 export interface CareerRigState {
-  schemaVersion: 1;
+  schemaVersion: 2;
   rngState: number;
   completedMaintenanceMissions: number;
   components: Record<ComponentId, InstalledComponentState>;

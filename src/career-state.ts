@@ -136,7 +136,7 @@ export function loadCareerProfile(): CareerProfile {
     const parsed = JSON.parse(raw);
     if (typeof parsed?.locationId !== 'string' || typeof parsed?.money !== 'number') return defaultCareerProfile();
     const certifications = migratedCertifications(parsed);
-    return {
+    const profile: CareerProfile = {
       locationId: parsed.locationId,
       money: parsed.money,
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
@@ -145,6 +145,12 @@ export function loadCareerProfile(): CareerProfile {
       maintenanceShopInspections: migratedShopInspections(parsed),
       nunesInquiries: migrateNunesInquiryState(parsed.nunesInquiries, typeof parsed.worldTime === 'number' ? parsed.worldTime : 0),
     };
+    if (parsed.rig?.schemaVersion !== profile.rig.schemaVersion) {
+      // Persist the one-time thermal-equipment migration without losing a loaded
+      // career if browser storage is temporarily unavailable.
+      try { saveCareerProfile(profile); } catch { /* retry on the next career save */ }
+    }
+    return profile;
   } catch {
     return defaultCareerProfile();
   }

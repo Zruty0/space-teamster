@@ -316,7 +316,7 @@ Severity impacts:
 | Atmospheric Surfaces | Provides aerodynamic lift, drag, and stability through deployable wings and control surfaces. | `3/1` | `60,000 cr` |
 | Surface Actuators | Deploys, angles, and locks the atmospheric surfaces in response to flight controls. | `3/2` | `30,000 cr` |
 
-The complete Atmospheric Package is optional equipment purchased and installed later rather than standard rig equipment. An uninstalled package appears as not installed rather than damaged. Its components receive no telemetry strike weight outside atmospheric flight, so vacuum and airless missions cannot damage them. Atmospheric work requires the package.
+The complete Atmospheric Package is optional equipment purchased and installed later rather than standard rig equipment. The implemented shop Equipment flow offers the package at `120,000 cr` grade-D parts plus `19h` installation before shop modifiers; Heavy Heat Shielding adds `60,000 cr` plus `6h`. See [rig-equipment.md](rig-equipment.md). An uninstalled package appears as not installed rather than damaged. Its components receive no telemetry strike weight outside atmospheric flight, so vacuum and airless missions cannot damage them. Atmospheric work requires the package.
 
 ### Heat Shielding
 

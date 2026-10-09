@@ -1,5 +1,6 @@
 import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS, maintenanceComponentById } from './catalog';
 import { componentBaseAp, componentMaxHp } from './grades';
+import { HEAVY_SHIELD_HEAT_MULTIPLIER, NORMAL_SHIELD_HEAT_MULTIPLIER } from '../thermal';
 import type {
   ActiveFaultState,
   CareerRigState,
@@ -29,7 +30,7 @@ export function createDefaultRigState(includeAtmosphericPackage = false): Career
     };
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     rngState: DEFAULT_MAINTENANCE_RNG_SEED,
     completedMaintenanceMissions: 0,
     components,
@@ -65,11 +66,15 @@ function migrateFault(raw: any, componentId: string, hp: number, mission: number
 
 export function migrateRigState(raw: unknown, includeAtmosphericPackage = false): CareerRigState {
   const defaults = createDefaultRigState(includeAtmosphericPackage);
-  if (!raw || typeof raw !== 'object') return defaults;
+  if (!raw || typeof raw !== 'object') {
+    // Pre-rig careers with atmospheric endorsements keep their old survivability.
+    if (includeAtmosphericPackage) defaults.optionalEquipment.push('heavy-heat-shielding');
+    return defaults;
+  }
   const parsed = raw as any;
   const mission = Math.max(0, finiteInteger(parsed.completedMaintenanceMissions, 0));
   const rig: CareerRigState = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     rngState: finiteInteger(parsed.rngState, DEFAULT_MAINTENANCE_RNG_SEED) >>> 0 || DEFAULT_MAINTENANCE_RNG_SEED,
     completedMaintenanceMissions: mission,
     components: {},
@@ -97,12 +102,18 @@ export function migrateRigState(raw: unknown, includeAtmosphericPackage = false)
     if (typeof source.lastServiceMission === 'number' && Number.isFinite(source.lastServiceMission)) state.lastServiceMission = Math.max(0, Math.floor(source.lastServiceMission));
     rig.components[component.id] = state;
   }
+  if (!maintenanceSystemFullyInstalled(rig, 'atmospheric-package')) {
+    rig.optionalEquipment = rig.optionalEquipment.filter(id => id !== 'heavy-heat-shielding');
+  } else if (parsed.schemaVersion !== 2 && !rig.optionalEquipment.includes('heavy-heat-shielding')) {
+    // One-time migration only; buying a package on a v2 career never grants the upgrade.
+    rig.optionalEquipment.push('heavy-heat-shielding');
+  }
   return rig;
 }
 
 export function cloneRigState(rig: CareerRigState): CareerRigState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     rngState: rig.rngState >>> 0,
     completedMaintenanceMissions: rig.completedMaintenanceMissions,
     components: Object.fromEntries(Object.entries(rig.components).map(([id, state]) => [id, {
@@ -137,6 +148,12 @@ const RESTRICTION_LABELS: Record<RigRestrictionId, string> = {
 export function maintenanceSystemFullyInstalled(rig: CareerRigState, systemId: MaintenanceSystemId): boolean {
   const system = MAINTENANCE_SYSTEMS.find(candidate => candidate.id === systemId);
   return !!system && system.componentIds.every(componentId => rig.components[componentId]?.installed);
+}
+
+export function rigAtmosphericHeatMultiplier(rig: CareerRigState): number {
+  return maintenanceSystemFullyInstalled(rig, 'atmospheric-package') && rig.optionalEquipment.includes('heavy-heat-shielding')
+    ? HEAVY_SHIELD_HEAT_MULTIPLIER
+    : NORMAL_SHIELD_HEAT_MULTIPLIER;
 }
 
 export function atmosphericExposureIsFatal(rig: CareerRigState, atmosphericExposure: boolean): boolean {

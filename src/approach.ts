@@ -3,6 +3,7 @@
 
 import { APPROACH_PHASES, ORBITAL_PHASES, type ApproachPhaseDef } from './campaign-content';
 import { config } from './config';
+import { advanceTemperature } from './thermal';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
 import { landingLevelByPoiId } from './levels';
@@ -41,6 +42,7 @@ export interface ApproachLevel {
   heatCoeff: number;
   dissipation: number;
   heatCapacity: number;
+  thermalLoadMultiplier?: number;
   wingsMaxTemp: number;
   maxWingAngle: number;
   wingAngleRate: number;
@@ -79,6 +81,7 @@ export interface ApproachInitOverride {
   wvx?: number;
   wvy?: number;
   localDir?: 1 | -1;
+  temperature?: number;
 }
 
 export type WindLayer = WindLayerDef;
@@ -112,6 +115,7 @@ export interface ApproachState {
   temperature: number;
   maintenanceAeroAcceleration: number;
   alive: boolean;
+  crashReason?: string;
   gateReached: boolean;
   gateSpeed: number;
   retroFiring: boolean;
@@ -392,7 +396,7 @@ export function createApproachState(
     angle: init.angle, angularVel: 0,
     worldX, worldY, worldVX, worldVY, localDir,
     throttle: 0, fuel: 0, dvUsed: 0,
-    wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: 0,
+    wingsDeployed: false, wingAngle: MIN_WING_ANGLE, temperature: override?.temperature ?? 0,
     maintenanceAeroAcceleration: 0,
     alive: true, gateReached: false, gateSpeed: 0, retroFiring: false, highThrust: false,
     timeWarp: 1, timeWarpLevel: 0,
@@ -766,8 +770,7 @@ export function updateApproach(
       s.retroFiring = true;
     }
 
-    s.temperature += (heatRate / level.heatCapacity - level.dissipation * s.temperature) * dt;
-    s.temperature = clamp(s.temperature, 0, 1.5);
+    s.temperature = advanceTemperature(s.temperature, heatRate / level.heatCapacity, level.dissipation, dt, level.thermalLoadMultiplier);
     if (s.temperature >= 1.0) { s.alive = false; return; }
 
     s.angularVel += angAccel * dt;
@@ -870,7 +873,7 @@ export function predictTrajectory(
     const ax = aeroAx + (includeWind ? getWind(y, level, predTime + t) * windInfluenceForSpeed(speed) : 0);
     const ay = -level.gravity + aeroAy;
 
-    temp += (heatRate / level.heatCapacity - level.dissipation * temp) * step;
+    temp = advanceTemperature(temp, heatRate / level.heatCapacity, level.dissipation, step, level.thermalLoadMultiplier);
     const tooHotForWings = temp >= level.wingsMaxTemp;
     if (wingFoldIdx < 0) {
       if (points.length === 0) {
@@ -1919,7 +1922,7 @@ function drawApproachHUD(
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_DANGER;
     ctx.font = 'bold 28px monospace';
-    const msg = s.temperature >= 1 ? 'BURNED UP' : 'IMPACT';
+    const msg = s.crashReason ?? (s.temperature >= 1 ? 'BURNED UP' : 'IMPACT');
     ctx.fillText(msg, W / 2, H / 2 - 15);
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '14px monospace';

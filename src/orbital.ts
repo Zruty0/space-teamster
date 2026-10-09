@@ -6,6 +6,7 @@ import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfo
 import { InputState } from './input';
 import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
+import { advanceTemperature } from './thermal';
 import { bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
 
 // ===================== Types =====================
@@ -86,6 +87,7 @@ export interface OrbitalLevel {
   // Heat
   heatCoeff: number;
   heatDissipation: number;
+  thermalLoadMultiplier?: number;
 
   // Transition to approach phase
   transitionAltitude: number; // meters above surface — switch to approach when below this
@@ -211,6 +213,7 @@ export interface OrbitalInitOverride {
   vx: number;
   vy: number;
   time?: number;
+  temperature?: number;
 }
 
 // ===================== Constants =====================
@@ -1022,7 +1025,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     dvUsed: 0,
     alive: true,
     enteredAtmo: false,
-    temperature: 0,
+    temperature: override?.temperature ?? 0,
     trail: [],
     trailIdx: 0,
     time: initTime,
@@ -1091,6 +1094,7 @@ export function orbitalToApproachParams(
     wy: os.y,
     wvx: os.vx,
     wvy: os.vy,
+    temperature: os.temperature,
     localDir,
   };
 }
@@ -1394,8 +1398,7 @@ export function updateOrbital(
     const vacuumCoast = !boostHeld && !s.inAtmo && atmoDensity(alt, level) < 1e-10;
 
     if (vacuumCoast) {
-      s.temperature += (-level.heatDissipation * s.temperature) * subDt;
-      if (s.temperature < 0) s.temperature = 0;
+      s.temperature = advanceTemperature(s.temperature, 0, level.heatDissipation, subDt, level.thermalLoadMultiplier);
       const next = propagateTwoBodyState(s.x, s.y, s.vx, s.vy, level.planetGM, subDt);
       s.x = next.x;
       s.y = next.y;
@@ -1416,9 +1419,8 @@ export function updateOrbital(
       ay += aero.ay;
 
       // Heat
-      s.temperature += (aero.heatRate - level.heatDissipation * s.temperature) * subDt;
-      if (s.temperature < 0) s.temperature = 0;
-      if (s.temperature > 1.5) s.temperature = 1.5;
+      s.temperature = advanceTemperature(s.temperature, aero.heatRate, level.heatDissipation, subDt, level.thermalLoadMultiplier);
+      if (s.temperature >= 1) { s.alive = false; return; }
 
       // Thrust
       {
@@ -1648,6 +1650,8 @@ interface PredPoint {
   inAtmo: boolean;
   belowCritical: boolean;
   heatRate: number;
+  temperature?: number;
+  burnedUp?: boolean;
 }
 
 interface PredEvent {
@@ -2073,10 +2077,11 @@ function hybridizeApproachPrediction(
   pred: PredictionResult, level: OrbitalLevel,
 ): PredictionResult {
   if (!pred.approachStart || level.atmoHeight <= 0) return pred;
-  const approachLevel = level.reentryApproachLevelId !== undefined
+  const authoredApproach = level.reentryApproachLevelId !== undefined
     ? approachLevelById(level.reentryApproachLevelId)
     : APPROACH_LEVELS[level.approachLevelIdx];
-  if (!approachLevel || approachLevel.departure || approachLevel.body.id !== level.bodyId) return pred;
+  if (!authoredApproach || authoredApproach.departure || authoredApproach.body.id !== level.bodyId) return pred;
+  const approachLevel = { ...authoredApproach, thermalLoadMultiplier: level.thermalLoadMultiplier };
 
   const init = orbitalToApproachParams({
     x: pred.approachStart.x,
@@ -2087,7 +2092,7 @@ function hybridizeApproachPrediction(
     dvUsed: 0,
     alive: true,
     enteredAtmo: false,
-    temperature: 0,
+    temperature: pred.points[pred.approachStart.idx].temperature ?? 0,
     trail: [],
     trailIdx: 0,
     time: 0,
@@ -2129,6 +2134,7 @@ function hybridizeApproachPrediction(
 
   const prefix = pred.points.slice(0, pred.approachStart.idx + 1);
   const hybridTail: PredPoint[] = [];
+  const burnedBeforeApproach = prefix.some(point => point.burnedUp);
   let prevX = as.x, prevY = as.y, prevVX = as.vx, prevVY = as.vy;
   for (let i = 0; i < traj.points.length; i++) {
     const pt = traj.points[i];
@@ -2145,6 +2151,8 @@ function hybridizeApproachPrediction(
       inAtmo: true,
       belowCritical: w.alt < level.transitionAltitude,
       heatRate: 0,
+      temperature: pt.temp,
+      burnedUp: pt.burnedUp || burnedBeforeApproach,
     });
     prevX = pt.x; prevY = pt.y; prevVX = lvx; prevVY = lvy;
   }
@@ -2164,6 +2172,8 @@ function hybridizeApproachPrediction(
       inAtmo: true,
       belowCritical: true,
       heatRate: 0,
+      temperature: hybridTail[hybridTail.length - 1]?.temperature,
+      burnedUp: hybridTail.some(point => point.burnedUp),
     });
   }
 
@@ -2216,7 +2226,7 @@ function getCachedPrediction(s: OrbitalState, level: OrbitalLevel): PredictionRe
   return _cachedPred;
 }
 
-function predictOrbit(
+export function predictOrbit(
   s: OrbitalState, level: OrbitalLevel, maxPhysTime: number, stepSize: number,
   predAoA: number,
 ): PredPoint[] {
@@ -2230,7 +2240,11 @@ function predictOrbit(
     inAtmo: Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius < level.atmoHeight,
     belowCritical: Math.sqrt(s.x * s.x + s.y * s.y) - level.planetRadius < level.transitionAltitude,
     heatRate: 0,
+    temperature: s.temperature,
+    burnedUp: s.temperature >= 1,
   }];
+  let temperature = s.temperature;
+  let burnedUp = temperature >= 1;
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   const transferTarget = activeTransferTarget(level);
   const stagedEstellaTransfer = level.bodyId === 'estella' && !!transferTarget;
@@ -2247,13 +2261,14 @@ function predictOrbit(
     );
     const r0 = Math.sqrt(x * x + y * y);
     if (r0 < level.planetRadius) {
-      points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
+      points.push({ x, y, vx, vy, alt: r0 - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0, temperature, burnedUp });
       return points;
     }
     const alt0 = r0 - level.planetRadius;
     const vacuumCoast = atmoDensity(alt0, level) < 1e-10;
 
     if (vacuumCoast) {
+      temperature = advanceTemperature(temperature, 0, level.heatDissipation, dt, level.thermalLoadMultiplier);
       const next = propagateTwoBodyState(x, y, vx, vy, level.planetGM, dt);
       x = next.x;
       y = next.y;
@@ -2264,7 +2279,7 @@ function predictOrbit(
       for (let si = 0; si < subs; si++) {
         const r = Math.sqrt(x * x + y * y);
         if (r < level.planetRadius) {
-          points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0 });
+          points.push({ x, y, vx, vy, alt: r - level.planetRadius, t: s.time + elapsed, inAtmo: true, belowCritical: true, heatRate: 0, temperature, burnedUp });
           return points;
         }
         const alt = r - level.planetRadius;
@@ -2280,6 +2295,8 @@ function predictOrbit(
         const displayAoA = belowTransition ? level.lowAtmoAoA : predAoA;
         const useAoA = aoaDisplayToPhysical(displayAoA, x, y, vx, vy);
         const aero = aeroForces(x, y, vx, vy, useAoA, level);
+        temperature = advanceTemperature(temperature, aero.heatRate, level.heatDissipation, subDt, level.thermalLoadMultiplier);
+        burnedUp ||= temperature >= 1;
         ax += aero.ax;
         ay += aero.ay;
         vx += ax * subDt;
@@ -2298,6 +2315,8 @@ function predictOrbit(
       inAtmo: alt < level.atmoHeight,
       belowCritical: alt < level.transitionAltitude,
       heatRate: aero.heatRate,
+      temperature,
+      burnedUp,
     });
     const theta = Math.atan2(y, x);
     const dTheta = normalizeAngle(theta - prevTheta);
@@ -3452,7 +3471,7 @@ function drawOrbitPrediction(
       // Color: green=vacuum, yellow=in atmo, orange=below critical altitude.
       // Without an Atmospheric Package, every atmospheric segment is fatal and red.
       let r = 0, g = 255, b = 100; // green
-      if (!atmosphericPackageInstalled && (pt.inAtmo || pt.belowCritical)) {
+      if (pt.burnedUp || (!atmosphericPackageInstalled && (pt.inAtmo || pt.belowCritical))) {
         r = 255; g = 35; b = 45;    // red
       } else if (pt.belowCritical) {
         r = 255; g = 160; b = 0;    // orange

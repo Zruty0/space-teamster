@@ -33,7 +33,7 @@ Add the rig to `CareerProfile` so delivery economics and wear commit in the same
 
 ```ts
 interface CareerRigState {
-  schemaVersion: 1;
+  schemaVersion: 2;
   rngState: number;
   completedMaintenanceMissions: number;
   components: Record<ComponentId, InstalledComponentState>;
@@ -212,7 +212,7 @@ Below the seven indicators, show the derived equipment-based restrictions as a p
 
 An absent optional Atmospheric Package is not itself a damaged-system alert. Show only orange `NOT EQUIPPED`, without `OK` and without a warning/alert status icon, while the ordinary restriction list states `No atmospheric flight`. In orbital mode, any predicted unprotected atmospheric segment is red and receives a red fatal-entry text notice, but no triangle icon; actual atmospheric exposure immediately crashes the rig—even when the trajectory would otherwise aerobrake and exit. Impact prediction uses only the red X at the predicted impact point plus the original text warning. Suppress the blinking `IMPACT TRAJECTORY` text when predicted surface impact is within 50 km along the surface of the authored target.
 
-Below restrictions, show an **Optional Equipment** list for separately purchased rig modules. The persistent list starts empty and displays `None installed`. Heavy Heat Shielding is the first defined future module, but it is not initially installed.
+Below restrictions, show an **Optional Equipment** list for separately purchased rig modules. The persistent list starts empty and displays `None installed`. Heavy Heat Shielding is purchasable through participating shops' Equipment menus and augments the normal package's thermal resistance by `4×`. It is absent from new careers; schema-1 rigs with a full Atmospheric Package receive it once on migration. See [rig-equipment.md](rig-equipment.md) for implemented purchases, thermal behavior, and regression coverage.
 
 Ship Status is inspection-only. Service, diagnosis, repair, replacement, and purchasing belong to maintenance-shop postings.
 
@@ -405,7 +405,7 @@ The Mechanic view always shows actual hidden state, including component conditio
 - an unprotected orbital atmospheric entry or aerobraking pass immediately crashes and uses a red trajectory/fatal-entry text presentation without a triangle icon
 - planned surface impacts within 50 km of the authored target do not show the blinking `IMPACT TRAJECTORY` text
 - Ship Status and its Station Terminal option show only the approved warning/alert triangle when a named fault is active
-- Optional Equipment displays `None installed` for a migrated/default rig
+- Optional Equipment displays `None installed` for a new default rig; migrated schema-1 rigs with a full Atmospheric Package list Heavy Heat Shielding
 - Local Directory shop entries transact only when locally reachable
 - selecting a shop never enters contract acceptance or flight launch flow
 - quote selection previews correct component grade, shop-quality AP, parts, scaled labor time, and service price

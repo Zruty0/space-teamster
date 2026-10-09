@@ -19,7 +19,7 @@ import {
 import {
   ORBITAL_LEVELS, OrbitalLevel, OrbitalState, OrbitalCamera, OrbitalInitOverride,
   createOrbitalState, createOrbitalCamera, updateOrbital,
-  updateOrbitalCamera, renderOrbital, drawOrbitalHUD,
+  updateOrbitalCamera, renderOrbital, drawOrbitalHUD, invalidatePrediction,
   orbitalLevelById, orbitalToApproachParams, getTransferBody, transferBodyState, currentEscapeVector, fuzzyArrivalStateFromEntry,
 } from './orbital';
 import {
@@ -71,15 +71,18 @@ import { drawInteractiveScene, interactiveSceneBodyScrollLimit, parseInteractive
 import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryAccess, localDirectoryEntryById, localTerminalScopeIds, tutorialCertificationAvailableAt } from './local-directory';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById, validateMaintenanceCatalog } from './maintenance/catalog';
 import { fabricatedFaultById } from './maintenance/fabricated-faults';
+import { equipmentScene } from './equipment-scene';
+import { RIG_EQUIPMENT, equipmentQuote, purchaseEquipment } from './maintenance/equipment';
+import { COMPONENT_GRADES } from './maintenance/grades';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
-import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, validateRigState } from './maintenance/rig-state';
+import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, rigAtmosphericHeatMultiplier, validateRigState } from './maintenance/rig-state';
 import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricateServiceComponentIdsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
 import { overallPlayerShipStatus, playerOptionalEquipmentNames, playerRestrictionLabel, playerRestrictionLabels, playerShipSystemStatuses } from './ship-status';
 import { contractEquipmentRestrictionLabels } from './mission-restrictions';
-import { MAINTENANCE_SYSTEM_IDS, type ComponentGrade, type FabricatedFaultClaim, type MaintenanceDebugSnapshot, type MaintenanceLedger, type MaintenanceSystemId, type MaintenanceTelemetryAccumulator, type MissionTelemetryContext, type PendingMaintenanceSettlement, type RigRestrictionId } from './maintenance/types';
+import { MAINTENANCE_SYSTEM_IDS, type ComponentGrade, type FabricatedFaultClaim, type MaintenanceDebugSnapshot, type MaintenanceLedger, type MaintenanceSystemId, type MaintenanceTelemetryAccumulator, type MissionTelemetryContext, type PendingMaintenanceSettlement, type RigEquipmentId, type RigRestrictionId } from './maintenance/types';
 import {
   OPERATIONS_MANUAL_ENTRIES,
   drawOperationsManualArticle,
@@ -118,7 +121,7 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm';
+  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm' | 'equipmentList' | 'equipmentConfirm';
   selectedIndex: number;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
@@ -132,6 +135,7 @@ interface InteractiveScenePhaseState {
   maintenanceFabricatedFaultId?: string;
   maintenanceWorkKind?: 'repair' | 'replace';
   maintenanceReceipt?: string;
+  equipmentSelection?: { id: RigEquipmentId; grade: ComponentGrade };
   bodyScrollOffset?: number;
   loadingError?: string;
 }
@@ -416,6 +420,7 @@ export class Game {
   }
 
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
+    level = { ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) };
     applyApproachWeather(level, worldTimeStart);
     const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
@@ -582,6 +587,7 @@ export class Game {
   }
 
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
+    level = { ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) };
     const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : this.dynamicOrbitalStart(level, worldTimeStart);
     const os = createOrbitalState(level, effectiveInit);
     const cam = createOrbitalCamera(level);
@@ -1489,6 +1495,11 @@ export class Game {
 
   private handleOrbital(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'orbital' }>;
+    const thermalMultiplier = rigAtmosphericHeatMultiplier(this.career.rig);
+    if (p.level.thermalLoadMultiplier !== thermalMultiplier) {
+      p.level.thermalLoadMultiplier = thermalMultiplier;
+      invalidatePrediction();
+    }
     this.blockHighThrustInput(input, this.activeRigRestrictionIds());
 
     if (input.reset) { this.reloadPhase(p); return; }
@@ -1545,6 +1556,7 @@ export class Game {
           break;
         }
         if (!p.os.alive) {
+          if (p.os.temperature >= 1) p.crashReason = 'BURNED UP';
           p.state = 'crashed';
           break;
         }
@@ -1615,6 +1627,7 @@ export class Game {
           vx: originState.vx + Math.cos(handoffAngle) * handoffVInf,
           vy: originState.vy + Math.sin(handoffAngle) * handoffVInf,
           time: p.os.time,
+          temperature: p.os.temperature,
         };
         const originName = bodyById(p.level.bodyId).name;
         const targetName = p.level.escapeTargetBodyId
@@ -1709,6 +1722,7 @@ export class Game {
         vx: arrival.vx,
         vy: arrival.vy,
         time: captureTime,
+        temperature: p.os.temperature,
       };
       const detail = arrivalLevel.finalDestinationName
         ? `Capture corridor established for ${arrivalLevel.finalDestinationName}.`
@@ -1808,6 +1822,7 @@ export class Game {
         y: as.worldY,
         vx: as.worldVX,
         vy: as.worldVY,
+        temperature: as.temperature,
       };
     }
 
@@ -1822,6 +1837,7 @@ export class Game {
       y: radY * r,
       vx: tanX * as.vx + radX * as.vy,
       vy: tanY * as.vx + radY * as.vy,
+      temperature: as.temperature,
     };
   }
 
@@ -1890,6 +1906,7 @@ export class Game {
 
   private handleApproach(input: InputState, frameTime: number): void {
     const p = this.phase as Extract<Phase, { kind: 'approach' }>;
+    p.level.thermalLoadMultiplier = rigAtmosphericHeatMultiplier(this.career.rig);
     const restrictions = this.activeRigRestrictionIds();
     this.blockHighThrustInput(input, restrictions);
     this.blockWingInput(input, restrictions, p.as.wingsDeployed, () => { p.as.wingsDeployed = false; });
@@ -1920,6 +1937,12 @@ export class Game {
     let edgeConsumed = false;
     while (this.accumulator >= PHYSICS_DT) {
       if (p.state === 'approaching') {
+        if (atmosphericExposureIsFatal(this.career.rig, !!p.level.body.atmosphere && p.as.y < p.level.body.atmosphere.height)) {
+          p.as.alive = false;
+          p.as.crashReason = 'UNSHIELDED ATMOSPHERIC ENTRY';
+          p.state = 'approachFailed';
+          break;
+        }
         const dvBefore = p.as.dvUsed;
         const wingAngleBefore = p.as.wingsDeployed ? p.as.wingAngle : 0;
         updateApproach(p.as, input, p.level, PHYSICS_DT, this.time);
@@ -2100,6 +2123,9 @@ export class Game {
 
   private maintenanceShopScene(state: InteractiveScenePhaseState, shop: MaintenanceShopDef, locationPath: string): InteractiveScene {
     const local = this.maintenanceShopIsLocal(shop);
+    if (state.id === 'equipmentList' || state.id === 'equipmentConfirm') {
+      return equipmentScene(this.career, shop, local, state.id === 'equipmentConfirm' ? state.equipmentSelection : undefined, state.maintenanceReceipt);
+    }
     const diagnosedHere = this.maintenanceShopDiagnosed(shop.id);
     const diagnosticCreditAvailable = this.career.maintenanceShopInspections[shop.id]?.creditRemaining ?? 0;
     const fabricatedServiceComponentIds = this.maintenanceFabricatedServiceComponentIds(shop.id);
@@ -2447,6 +2473,7 @@ export class Game {
         { label: 'Diagnostic Inspection', detail: diagnosedHere ? 'Diagnostic inspection already completed.' : 'Full-rig inspection and written report.', action: `maintenanceDiagnosisConfirm:${shop.id}`, tone: diagnosedHere ? 'muted' : 'primary', disabled: !local || diagnosedHere },
         { label: 'Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
         { label: 'Repairs and Replacements', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : actionableFaultCount ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && actionableFaultCount ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !actionableFaultCount },
+        ...(shop.equipmentIds?.length ? [{ label: 'Equipment', detail: 'Purchase and install rig equipment.', action: `equipmentList:${shop.id}`, tone: 'primary' as const, disabled: !local }] : []),
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
     };
@@ -3004,6 +3031,37 @@ export class Game {
         : []);
       const idx = contracts.findIndex(contract => contract.id === contractId);
       if (idx >= 0) this.openContractPosting(contracts, idx, 'contact', state.directoryEntryId, state.directoryParentEntryId);
+      return;
+    }
+    if (action.startsWith('equipmentList:')) {
+      const shopId = action.slice('equipmentList:'.length);
+      const shop = maintenanceShopById(shopId);
+      if (!shop?.equipmentIds?.length || !this.maintenanceShopIsLocal(shop)) return;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'equipmentList', selectedIndex: 0, maintenanceShopId: shopId } };
+      return;
+    }
+    if (action.startsWith('equipmentConfirm:') || action.startsWith('equipmentBuy:')) {
+      const [operation, shopId, rawId, rawGrade] = action.split(':');
+      if (rawId !== 'atmospheric-package' && rawId !== 'heavy-heat-shielding') return;
+      const grade = rawGrade as ComponentGrade;
+      if (!COMPONENT_GRADES.includes(grade)) return;
+      const shop = maintenanceShopById(shopId);
+      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      const quote = equipmentQuote(this.career.rig, shop, rawId, grade);
+      if (!quote) return;
+      if (operation === 'equipmentConfirm') {
+        this.phase = { kind: 'interactiveScene', scene: { id: 'equipmentConfirm', selectedIndex: 0, maintenanceShopId: shopId, equipmentSelection: { id: rawId, grade } } };
+        return;
+      }
+      const nextCareer = purchaseEquipment(this.career, shop, rawId, grade);
+      if (!nextCareer) return;
+      // Save once before publishing the new balance/rig; failed persistence leaves
+      // both the visible career and the work order untouched.
+      try { saveCareerProfile(nextCareer); } catch { this.showGuidance('Equipment purchase could not be saved.'); return; }
+      const charged = this.career.money - nextCareer.money;
+      this.career = nextCareer;
+      this.worldTime = Math.max(this.worldTime, nextCareer.worldTime);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'equipmentList', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${RIG_EQUIPMENT[rawId].name} installed. Charged ${formatCredits(charged)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
     if (action.startsWith('maintenanceShop:')) {
