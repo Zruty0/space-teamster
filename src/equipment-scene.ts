@@ -42,12 +42,12 @@ export function equipmentScene(profile: CareerProfile, shop: MaintenanceShopDef,
     options: [
       ...(shop.equipmentIds ?? []).flatMap(id => {
         const reason = equipmentUnavailableReason(profile.rig, shop, id);
-        const grades: ComponentGrade[] = id === 'atmospheric-package' && !reason ? stockedComponentGrades(shop) : ['D'];
+        const grades: ComponentGrade[] = id !== 'heavy-heat-shielding' && !reason ? stockedComponentGrades(shop) : ['D'];
         return grades.map(grade => {
           const quote = equipmentQuote(profile.rig, shop, id, grade);
           return {
-            label: `${RIG_EQUIPMENT[id].name}${id === 'atmospheric-package' && !reason ? ` — Grade ${grade}` : ''}`,
-            detail: reason ?? (id === 'atmospheric-package' ? 'Install missing package components.' : 'Install additional thermal protection.'),
+            label: `${RIG_EQUIPMENT[id].name}${id !== 'heavy-heat-shielding' && !reason ? ` — Grade ${grade}` : ''}`,
+            detail: reason ?? (id === 'atmospheric-package' ? 'Install missing package components.' : id === 'heavy-heat-shielding' ? 'Install additional thermal protection.' : RIG_EQUIPMENT[id].description),
             rightText: quote ? formatCredits(quote.credits) : undefined,
             rightDetail: quote ? hours(quote.laborHours) : undefined,
             action: `equipmentConfirm:${shop.id}:${id}:${grade}`,

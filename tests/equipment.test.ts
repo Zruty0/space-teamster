@@ -13,6 +13,7 @@ import { APPROACH_LEVELS, createApproachState, predictTrajectory, updateApproach
 import { ORBITAL_LEVELS, createOrbitalState, orbitalToApproachParams, predictOrbit, updateOrbital } from '../src/orbital';
 import { Game } from '../src/game';
 import { createPlayableEstellaMission } from '../src/estella-playable';
+import { runAuxiliaryEquipmentTests } from './auxiliary-equipment.test';
 import { createManifestConditionState } from '../src/manifest-condition';
 import type { InputState } from '../src/input';
 
@@ -113,7 +114,9 @@ assert(list.options.some(o => o.label === 'Heavy Heat Shielding' && o.disabled),
 const confirm = equipmentScene({ ...profile, money: 1 }, shop, true, { id: 'atmospheric-package', grade: 'D' });
 assert(confirm.options[0].disabled && confirm.options[0].label.includes('19h'), 'confirmation affordability and time');
 assert(!RIG_EQUIPMENT['atmospheric-package'].description.includes('endorsement'), 'approved shortened description');
-assert(equipmentScene(heavy, shop, true).options.slice(0, -1).every(o => o.disabled), 'installed equipment disabled');
+const heavyEquipmentOptions = equipmentScene(heavy, shop, true).options;
+assert(heavyEquipmentOptions.filter(o => o.label === 'Atmospheric Package' || o.label === 'Heavy Heat Shielding').every(o => o.disabled), 'installed atmospheric equipment disabled');
+assert(heavyEquipmentOptions.some(o => o.action.includes(':cargo-shock-absorbers:') && !o.disabled), 'unowned auxiliary equipment remains purchasable');
 
 // Exercise the actual game action handler, without constructing a canvas or touching real saves.
 const game: any = Object.create(Game.prototype);
@@ -217,4 +220,5 @@ for (const bodyId of ['estella-v', 'estella-vi', 'estella-iii']) {
   probes.push({ body: bodyId, normal: normal.temperature, heavy: shielded.temperature, seconds: elapsed });
 }
 console.log(JSON.stringify(probes, null, 2));
+assertions += runAuxiliaryEquipmentTests();
 console.log(`Equipment regression passed: ${assertions} assertions.`);

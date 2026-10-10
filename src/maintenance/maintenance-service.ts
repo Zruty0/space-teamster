@@ -85,6 +85,9 @@ export function applyMechanicOperation(
   }
 
   state.installed = true;
+  if (component.optionalEquipmentId && !rig.optionalEquipment.includes(component.optionalEquipmentId)) {
+    rig.optionalEquipment.push(component.optionalEquipmentId);
+  }
   state.grade = grade;
   state.hp = componentMaxHp(component, grade);
   state.ap = componentBaseAp(component, grade);

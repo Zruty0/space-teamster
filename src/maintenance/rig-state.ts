@@ -1,4 +1,4 @@
-import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS, maintenanceComponentById } from './catalog';
+import { componentFaultById, MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS, maintenanceComponentById, optionalEquipmentComponent } from './catalog';
 import { componentBaseAp, componentMaxHp } from './grades';
 import { HEAVY_SHIELD_HEAT_MULTIPLIER, NORMAL_SHIELD_HEAT_MULTIPLIER } from '../thermal';
 import type {
@@ -8,6 +8,7 @@ import type {
   FaultSeverity,
   InstalledComponentState,
   MaintenanceSystemId,
+  OptionalEquipmentId,
   RigRestriction,
   RigRestrictionId,
   RigSystemStatus,
@@ -21,7 +22,7 @@ const COMPONENT_GRADES = new Set<ComponentGrade>(['A', 'B', 'C', 'D', 'E', 'F'])
 export function createDefaultRigState(includeAtmosphericPackage = false): CareerRigState {
   const components: Record<string, InstalledComponentState> = {};
   for (const component of MAINTENANCE_COMPONENTS) {
-    const installed = component.systemId !== 'atmospheric-package' || includeAtmosphericPackage;
+    const installed = !component.optionalEquipmentId && (component.systemId !== 'atmospheric-package' || includeAtmosphericPackage);
     components[component.id] = {
       installed,
       grade: 'D',
@@ -91,7 +92,7 @@ export function migrateRigState(raw: unknown, includeAtmosphericPackage = false)
     const grade: ComponentGrade = COMPONENT_GRADES.has(source.grade) ? source.grade : 'D';
     const maxHp = componentMaxHp(component, grade);
     const maxServiceAp = componentBaseAp(component, grade) + 1;
-    const installedDefault = component.systemId !== 'atmospheric-package' || includeAtmosphericPackage;
+    const installedDefault = !component.optionalEquipmentId && (component.systemId !== 'atmospheric-package' || includeAtmosphericPackage);
     const installed = typeof source.installed === 'boolean' ? source.installed : installedDefault;
     const hp = installed ? Math.max(0, Math.min(maxHp, finiteInteger(source.hp, maxHp))) : 0;
     const ap = installed ? Math.max(0, Math.min(maxServiceAp, finiteInteger(source.ap, componentBaseAp(component, grade)))) : 0;
@@ -108,7 +109,18 @@ export function migrateRigState(raw: unknown, includeAtmosphericPackage = false)
     // One-time migration only; buying a package on a v2 career never grants the upgrade.
     rig.optionalEquipment.push('heavy-heat-shielding');
   }
+  rig.optionalEquipment = installedOptionalEquipmentIds(rig);
   return rig;
+}
+
+/** Component condition is authoritative for component-backed modules. Flags alone
+ * never install an upgrade or grant a benefit during migration. */
+export function installedOptionalEquipmentIds(rig: CareerRigState): OptionalEquipmentId[] {
+  return OPTIONAL_EQUIPMENT_IDS.filter(id => {
+    const component = optionalEquipmentComponent(id);
+    if (component) return rig.components[component.id]?.installed === true;
+    return rig.optionalEquipment.includes(id) && maintenanceSystemFullyInstalled(rig, 'atmospheric-package');
+  });
 }
 
 export function cloneRigState(rig: CareerRigState): CareerRigState {
@@ -120,7 +132,7 @@ export function cloneRigState(rig: CareerRigState): CareerRigState {
       ...state,
       fault: state.fault ? { ...state.fault } : undefined,
     }])),
-    optionalEquipment: [...rig.optionalEquipment],
+    optionalEquipment: installedOptionalEquipmentIds(rig),
   };
 }
 
@@ -147,7 +159,20 @@ const RESTRICTION_LABELS: Record<RigRestrictionId, string> = {
 
 export function maintenanceSystemFullyInstalled(rig: CareerRigState, systemId: MaintenanceSystemId): boolean {
   const system = MAINTENANCE_SYSTEMS.find(candidate => candidate.id === systemId);
-  return !!system && system.componentIds.every(componentId => rig.components[componentId]?.installed);
+  return !!system && system.componentIds
+    .filter(componentId => !maintenanceComponentById(componentId)?.optionalEquipmentId)
+    .every(componentId => rig.components[componentId]?.installed);
+}
+
+export function manifestEquipmentBufferUnits(rig: CareerRigState): { integrity: number; comfort: number } {
+  const units = (id: OptionalEquipmentId): number => {
+    const component = optionalEquipmentComponent(id);
+    const state = component && rig.components[component.id];
+    if (!component || !state?.installed || state.hp <= 0) return 0;
+    const severity = state.fault?.severity ?? severityForHp(component.id, state.hp);
+    return severity === 'major' || severity === 'total' ? 0 : severity === 'minor' ? 1 : 2;
+  };
+  return { integrity: units('cargo-shock-absorbers'), comfort: units('passenger-comfort-package') };
 }
 
 export function rigAtmosphericHeatMultiplier(rig: CareerRigState): number {

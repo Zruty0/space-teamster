@@ -1,5 +1,5 @@
 import { MAINTENANCE_COMPONENTS, MAINTENANCE_SYSTEMS } from './maintenance/catalog';
-import { deriveRestrictions, systemStatus } from './maintenance/rig-state';
+import { deriveRestrictions, installedOptionalEquipmentIds, systemStatus } from './maintenance/rig-state';
 import type {
   CareerRigState,
   MaintenanceSystemId,
@@ -39,6 +39,8 @@ const PLAYER_RESTRICTION_LABELS: Record<RigRestrictionId, string> = {
 
 const OPTIONAL_EQUIPMENT_NAMES: Record<OptionalEquipmentId, string> = {
   'heavy-heat-shielding': 'Heavy Heat Shielding',
+  'cargo-shock-absorbers': 'Cargo Shock Absorbers',
+  'passenger-comfort-package': 'Passenger Comfort Package',
 };
 
 export function playerShipSystemStatuses(rig: CareerRigState, fabricatedFaults: readonly FabricatedFaultClaim[] = []): PlayerShipSystemStatus[] {
@@ -91,5 +93,5 @@ export function playerRestrictionLabels(rig: CareerRigState): string[] {
 }
 
 export function playerOptionalEquipmentNames(rig: CareerRigState): string[] {
-  return rig.optionalEquipment.map(id => OPTIONAL_EQUIPMENT_NAMES[id]);
+  return installedOptionalEquipmentIds(rig).map(id => OPTIONAL_EQUIPMENT_NAMES[id]);
 }

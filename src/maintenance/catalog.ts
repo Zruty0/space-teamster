@@ -6,6 +6,7 @@ import type {
   FaultSeverity,
   MaintenanceSystemDefinition,
   MaintenanceSystemId,
+  RigEquipmentId,
   RestrictionDefinition,
   RigValidationWarning,
   TelemetrySourceId,
@@ -70,6 +71,10 @@ const SYSTEM_BY_ID = new Map(MAINTENANCE_SYSTEMS.map(system => [system.id, syste
 
 export function maintenanceComponentById(id: ComponentId): ComponentDefinition | undefined {
   return COMPONENT_BY_ID.get(id);
+}
+
+export function optionalEquipmentComponent(id: RigEquipmentId): ComponentDefinition | undefined {
+  return MAINTENANCE_COMPONENTS.find(component => component.optionalEquipmentId === id);
 }
 
 export function maintenanceSystemById(id: MaintenanceSystemId): MaintenanceSystemDefinition {

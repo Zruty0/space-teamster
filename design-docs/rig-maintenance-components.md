@@ -555,7 +555,34 @@ Severity impacts:
 | Communications Set | Provides voice, data, beacon, station, Guild, and BBS communications. | `3/1` | `20,000 cr` |
 | Cargo Handling Gear | Operates powered cargo locks, loading aids, winches, and cargo-interface hardware. | `3/1` | `30,000 cr` |
 
-Auxiliary Systems is also the home for optional installed equipment added later, including extra shock absorbers, passenger-comfort systems, and other specialized modules. These additions are not part of the baseline `140,000 cr` replacement value and will define their own condition and maintenance fields when designed.
+Auxiliary Systems also contains two optional purchased components, outside the baseline `140,000 cr` replacement value. Both are absent on new and migrated careers until installed. They share normal Auxiliary telemetry weights and uniform installed-component strike selection; neither introduces extra wear weights or work restrictions. See [rig-equipment.md](rig-equipment.md).
+
+| Optional component | Grade-D HP/AP | Grade-D cost | Install/replace | Service |
+|---|---:|---:|---:|---:|
+| Cargo Shock Absorbers | `3/2` | `40,000 cr` | `4h` | `0.5h` |
+| Passenger Comfort Package | `3/2` | `50,000 cr` | `5h` | `0.5h` |
+
+### Cargo Shock Absorbers (optional)
+
+- **ID:** `auxiliary-cargo-shock-absorbers`; equipment ID `cargo-shock-absorbers`.
+- **Function:** Additional cargo-mount dampers absorb vibration and handling shocks, giving fragile consignments extra protection during flight.
+- **Fault library:** Dampers and Suspension; locations: forward cargo damper, aft cargo damper. Shared damper repair wording is component-neutral rather than landing-specific.
+- **Healthy:** `+2` integrity buffer units, stacking with the cargo/container buffer.
+- **Minor (`2 HP`):** `+1` integrity buffer unit.
+- **Major (`1 HP`):** No equipment buffer bonus; freight work remains available.
+- **Total (`0 HP`):** No bonus; replacement required, without grounding the rig.
+
+### Passenger Comfort Package (optional)
+
+- **ID:** `auxiliary-passenger-comfort`; equipment ID `passenger-comfort-package`.
+- **Function:** Improved seating, acoustic isolation, and cabin amenities give passengers a more comfortable journey.
+- **Fault libraries:** Panel Bonding; Actuators and Linkages. No authored fault locations.
+- **Healthy:** `+2` comfort buffer units, stacking with the manifest expectation buffer.
+- **Minor (`2 HP`):** `+1` comfort buffer unit.
+- **Major (`1 HP`):** No equipment buffer bonus; passenger work remains available.
+- **Total (`0 HP`):** No bonus; replacement required, without grounding the rig.
+
+For both, grade changes HP/AP/cost only, not bonus size. AP loss and sub-threshold HP loss retain the healthy bonus. Service cannot restore a fault-degraded bonus; standard diagnosed repairs or replacement restore it. Effects are snapshotted when a mission begins; delivery-settled faults affect the next mission. Buffer consumption is not an extra component-damage channel.
 
 ### Service Power Unit
 
@@ -1075,7 +1102,7 @@ Minor faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Damper fluid low | Recharge and bleed landing damper | 2 hours | F |
+| Damper fluid low | Recharge and bleed damper | 2 hours | F |
 | Strut seal weeping | Replace seal and pressure-test strut | 2 hours | E |
 | Suspension preload uneven | Reset and balance suspension preload | 3 hours | E |
 | Rebound valve responding slowly | Clean and calibrate rebound valve | 3 hours | D |
@@ -1087,7 +1114,7 @@ Major faults:
 
 | Fault | Repair | Labor | Work grade |
 |---|---|---:|:---:|
-| Damper seal blown | Rebuild and pressure-test landing damper | 4 hours | D |
+| Damper seal blown | Rebuild and pressure-test damper | 4 hours | D |
 | Damper cylinder scored | Hone and rebuild damper cylinder | 5 hours | D |
 | Strut piston bent | Replace and align strut piston | 6 hours | C |
 | Energy absorber fractured | Replace and certify energy absorber | 6 hours | C |

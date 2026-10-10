@@ -40,7 +40,7 @@ export interface MaintenanceQuote {
 
 export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
   id: 'vilar-gryphon-aerie-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Gryphon Aerie',
   organizationName: 'House Vilar',
   locationIds: ['estella-x-observation-skim-hub'],
@@ -64,7 +64,7 @@ export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
 
 export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
   id: 'vilar-herald-gate-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Herald Gate',
   organizationName: 'House Vilar',
   locationIds: ['estella-xc-transit-refuel'],
@@ -88,7 +88,7 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
 
 export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
   id: 'vilar-cadiz-highport-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Cadiz Highport',
   organizationName: 'House Vilar',
   locationIds: ['estella-xid-main-port'],
@@ -112,7 +112,7 @@ export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
 
 export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
   id: 'vilar-hydra-maw-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Hydra Maw Orbital',
   organizationName: 'House Vilar',
   locationIds: ['estella-xi-skim-hub'],
@@ -136,7 +136,7 @@ export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
 
 export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
   id: 'vilar-macao-palace-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Macao Palace',
   organizationName: 'House Vilar',
   locationIds: ['estella-xic-research-station-poi'],
@@ -160,7 +160,7 @@ export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
 
 export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
   id: 'vilar-manticore-observatory-outfitter',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Manticore Observatory',
   organizationName: 'House Vilar',
   locationIds: ['estella-xii-observation-post'],
@@ -184,7 +184,7 @@ export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
 
 export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
   id: 'cadiz-armorial-shipwrights',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The Armorial Shipwrights at Shipwright Keep',
   organizationName: 'The Armorial Shipwrights',
   locationIds: ['estella-xid-services-outfitter-hangar'],
@@ -208,7 +208,7 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
 
 export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
   id: 'serrat-domain-civil-refit-office',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Serrat Domain Civil Refit Office',
   organizationName: 'Serrat Domain Yard Office',
   locationIds: ['estella-xie-outer-spec-drydock'],
@@ -232,7 +232,7 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
 
 export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
   id: 'keelwright-works-seconds-gate',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The Seconds Gate at Keelwright Works',
   organizationName: 'Keelwright Works',
   locationIds: ['estella-xie-rare-alloy-extraction'],
@@ -256,7 +256,7 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
 
 export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
   id: 'oathmark-academy-high-pennant-yard',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The High Pennant Yard at Oathmark Academy',
   organizationName: 'Oathmark Academy',
   locationIds: ['estella-xie-oathmark-academy'],
@@ -280,7 +280,7 @@ export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
 
 export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
   id: 'bruckner-central-service-hall',
-  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding'],
+  equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Bruckner Central Service Hall',
   organizationName: 'Bruckner Field Services',
   locationIds: ['estella-viii-harder-approach-station'],

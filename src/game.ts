@@ -72,11 +72,11 @@ import { localContactPresentation, localDirectoryEntriesAt, localDirectoryEntryA
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById, validateMaintenanceCatalog } from './maintenance/catalog';
 import { fabricatedFaultById } from './maintenance/fabricated-faults';
 import { equipmentScene } from './equipment-scene';
-import { RIG_EQUIPMENT, equipmentQuote, purchaseEquipment } from './maintenance/equipment';
+import { RIG_EQUIPMENT, equipmentQuote, isRigEquipmentId, purchaseEquipment } from './maintenance/equipment';
 import { COMPONENT_GRADES } from './maintenance/grades';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
-import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, rigAtmosphericHeatMultiplier, validateRigState } from './maintenance/rig-state';
+import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, manifestEquipmentBufferUnits, rigAtmosphericHeatMultiplier, validateRigState } from './maintenance/rig-state';
 import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricateServiceComponentIdsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
@@ -3042,7 +3042,7 @@ export class Game {
     }
     if (action.startsWith('equipmentConfirm:') || action.startsWith('equipmentBuy:')) {
       const [operation, shopId, rawId, rawGrade] = action.split(':');
-      if (rawId !== 'atmospheric-package' && rawId !== 'heavy-heat-shielding') return;
+      if (!isRigEquipmentId(rawId)) return;
       const grade = rawGrade as ComponentGrade;
       if (!COMPONENT_GRADES.includes(grade)) return;
       const shop = maintenanceShopById(shopId);
@@ -3354,9 +3354,12 @@ export class Game {
     const fixedPay = this.activeMissionQuote
       ? contractFixedPay(this.activeMissionQuote.pay, this.activeMissionQuote.parFuelCost)
       : 0;
+    // Snapshot installed protection once for the whole attempt. Delivery wear
+    // changes the next mission's bonus, never an in-flight buffer already in use.
+    const equipmentBuffers = manifestEquipmentBufferUnits(this.career.rig);
     this.activeManifestCondition = createManifestConditionState(
-      fragile && this.activeMissionQuote ? createIntegrityState(fragile, fixedPay) : null,
-      passengerComfort && this.activeMissionQuote ? createComfortState(passengerComfort, fixedPay) : null,
+      fragile && this.activeMissionQuote ? createIntegrityState(fragile, fixedPay, equipmentBuffers.integrity) : null,
+      passengerComfort && this.activeMissionQuote ? createComfortState(passengerComfort, fixedPay, equipmentBuffers.comfort) : null,
     );
     const sameMission = this.activeMissionSourceId === sourceId && this.activeMissionDestinationId === destinationId;
     if (!sameMission || this.activeMissionLayoutSeed === null) {

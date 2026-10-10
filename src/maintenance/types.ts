@@ -16,9 +16,9 @@ export type FaultSeverity = 'minor' | 'major' | 'total';
 export type FaultDiagnosis = 'unknown' | 'suspected' | 'confirmed';
 export type ComponentId = string;
 
-export type RigEquipmentId = 'atmospheric-package' | 'heavy-heat-shielding';
-export const OPTIONAL_EQUIPMENT_IDS = ['heavy-heat-shielding'] as const;
+export const OPTIONAL_EQUIPMENT_IDS = ['heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'] as const;
 export type OptionalEquipmentId = typeof OPTIONAL_EQUIPMENT_IDS[number];
+export type RigEquipmentId = 'atmospheric-package' | OptionalEquipmentId;
 
 export const TELEMETRY_SOURCE_IDS = [
   'standardMainDrive',
@@ -75,6 +75,7 @@ export interface RestrictionDefinition {
 export interface ComponentDefinition {
   id: ComponentId;
   systemId: MaintenanceSystemId;
+  optionalEquipmentId?: OptionalEquipmentId;
   name: string;
   function: string;
   baseHp: number;
