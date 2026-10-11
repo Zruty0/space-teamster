@@ -2048,7 +2048,8 @@ export class Game {
   }
 
   private maintenanceShopDiagnosed(shopId: string): boolean {
-    return this.career.maintenanceShopInspections[shopId] !== undefined;
+    return this.career.maintenanceShopInspections[shopId]?.diagnosedMaintenanceMission
+      === this.career.rig.completedMaintenanceMissions;
   }
 
   private maintenanceWorkPayment(shopId: string, grossCredits: number): { credit: number; due: number } {
@@ -2070,8 +2071,8 @@ export class Game {
     return Object.values(this.career.maintenanceShopInspections).flatMap(inspection => inspection.fabricatedFaults);
   }
 
-  private clearSupersededFabricatedFaults(): void {
-    for (const inspection of Object.values(this.career.maintenanceShopInspections)) {
+  private clearSupersededFabricatedFaults(profile: CareerProfile): void {
+    for (const inspection of Object.values(profile.maintenanceShopInspections)) {
       inspection.fabricatedFaults = [];
     }
   }
@@ -3081,26 +3082,30 @@ export class Game {
       if (!shop || !this.maintenanceShopIsLocal(shop) || this.maintenanceShopDiagnosed(shopId)) return;
       const quote = diagnosisQuote(shop);
       if (this.career.money < quote.credits) return;
-      this.career.money -= quote.credits;
-      this.career.worldTime += quote.laborHours * 3600;
-      this.worldTime = Math.max(this.worldTime, this.career.worldTime);
-      diagnoseRigAtShop(this.career.rig, shop);
-      this.clearSupersededFabricatedFaults();
-      const fabricatedFaults = fabricateFaultClaimsAtShop(this.career.rig, shop);
+      const nextCareer = structuredClone(this.career);
+      nextCareer.money -= quote.credits;
+      nextCareer.worldTime += quote.laborHours * 3600;
+      diagnoseRigAtShop(nextCareer.rig, shop);
+      this.clearSupersededFabricatedFaults(nextCareer);
+      const pretendMaintainedComponentIds = nextCareer.maintenanceShopInspections[shopId]?.pretendMaintainedComponentIds ?? [];
+      const fabricatedFaults = fabricateFaultClaimsAtShop(nextCareer.rig, shop);
       const fabricatedServiceComponentIds = fabricateServiceComponentIdsAtShop(
-        this.career.rig,
+        nextCareer.rig,
         shop,
-        new Set(fabricatedFaults.map(claim => claim.componentId)),
+        new Set([...fabricatedFaults.map(claim => claim.componentId), ...pretendMaintainedComponentIds]),
       );
-      this.career.maintenanceShopInspections[shopId] = {
-        diagnosedWorldTime: this.career.worldTime,
+      nextCareer.maintenanceShopInspections[shopId] = {
+        diagnosedWorldTime: nextCareer.worldTime,
+        diagnosedMaintenanceMission: nextCareer.rig.completedMaintenanceMissions,
         creditRemaining: quote.credits,
         dishonestyRevision: MAINTENANCE_DISHONESTY_REVISION,
         fabricatedFaults,
         fabricatedServiceComponentIds,
-        pretendMaintainedComponentIds: [],
+        pretendMaintainedComponentIds,
       };
-      saveCareerProfile(this.career);
+      try { saveCareerProfile(nextCareer); } catch { this.showGuidance('Diagnostic inspection could not be saved.'); return; }
+      this.career = nextCareer;
+      this.worldTime = Math.max(this.worldTime, nextCareer.worldTime);
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceDiagnosisReport', selectedIndex: 0, maintenanceShopId: shopId } };
       return;
     }

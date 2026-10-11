@@ -33,6 +33,8 @@ export const PURCHASABLE_TEAMSTER_LICENSES: readonly PurchasableTeamsterLicense[
 
 export interface MaintenanceShopInspectionState {
   diagnosedWorldTime: number;
+  // Missing on legacy reports: condition freshness cannot be established.
+  diagnosedMaintenanceMission?: number;
   creditRemaining: number;
   dishonestyRevision: number;
   fabricatedFaults: FabricatedFaultClaim[];
@@ -104,6 +106,9 @@ function migratedShopInspections(parsed: any): Record<string, MaintenanceShopIns
       : 0;
     return [[migratedShopId, {
       diagnosedWorldTime: inspection.diagnosedWorldTime,
+      ...(typeof inspection.diagnosedMaintenanceMission === 'number'
+        && Number.isSafeInteger(inspection.diagnosedMaintenanceMission) && inspection.diagnosedMaintenanceMission >= 0
+        ? { diagnosedMaintenanceMission: inspection.diagnosedMaintenanceMission } : {}),
       creditRemaining,
       dishonestyRevision: typeof inspection.dishonestyRevision === 'number' && Number.isFinite(inspection.dishonestyRevision)
         ? Math.max(0, Math.floor(inspection.dishonestyRevision))

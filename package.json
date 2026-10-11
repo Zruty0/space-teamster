@@ -7,6 +7,7 @@
     "build": "tsc && vite build",
     "test:equipment": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs",
     "test:par": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/mission-cost.test.ts",
+    "test:maintenance": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/maintenance-inspection.test.ts",
     "preview": "vite preview"
   },
   "devDependencies": {
