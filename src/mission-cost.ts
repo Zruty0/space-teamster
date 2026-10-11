@@ -414,16 +414,17 @@ function addParentChildTransfer(
   const destBody = safeBody(destBodyId);
   if (!sourceBody || !destBody) return false;
 
-  // Parent body -> child moon/body: stage in parent parking orbit, transfer to the child's orbit,
-  // arrive with child-frame v∞, then capture into child parking orbit.
+  // Parent frame -> child: depart from the actual station/captive orbit. Only
+  // surface launches need parent parking; never charge an inward parking detour.
   if (bodyParentId(destBodyId) === sourceBodyId && destBody.orbit) {
     const parent = sourceBody;
     const child = destBody;
     const childOrbit = destBody.orbit;
-    const parentParkR = parkingOrbitRadius(parent);
+    const departureRadius = !sourceSurface && sourceOrbit?.bodyId === parent.id
+      ? sourceOrbit.radius
+      : parkingOrbitRadius(parent);
     if (sourceSurface?.bodyId === parent.id) addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, parent, sourceSurface.altitude));
-    if (sourceOrbit?.bodyId === parent.id) addBreakdown(breakdown, 'Orbit transfer to parking', hohmannOrbitTransferDv(parent, sourceOrbit.radius, parentParkR));
-    const transfer = hohmannParts(parent, parentParkR, childOrbit.radius);
+    const transfer = hohmannParts(parent, departureRadius, childOrbit.radius);
     addBreakdown(breakdown, 'Parent-frame transfer to child', transfer.dv1 * ORBIT_TRANSFER_SLOP);
     const childVInf = Math.abs(transfer.vt2 - transfer.v2);
     addBreakdown(breakdown, 'Capture to child parking orbit', parkingEscapeOrCaptureDv(child, childVInf));
@@ -431,21 +432,23 @@ function addParentChildTransfer(
     return true;
   }
 
-  // Child moon/body -> parent body: get to child parking, escape with the parent-frame transfer v∞,
-  // match parent parking orbit, then transfer locally to destination.
+  // Child -> parent frame: escape with the transfer's departure v∞ and match
+  // the destination station/captive orbit directly (parking only for a surface arrival).
   if (bodyParentId(sourceBodyId) === destBodyId && sourceBody.orbit) {
     const child = sourceBody;
     const childOrbit = sourceBody.orbit;
     const parent = destBody;
     const childParkR = parkingOrbitRadius(child);
-    const parentParkR = parkingOrbitRadius(parent);
+    const arrivalRadius = !destSurface && destOrbit?.bodyId === parent.id
+      ? destOrbit.radius
+      : parkingOrbitRadius(parent);
     if (sourceSurface?.bodyId === child.id) addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, child, sourceSurface.altitude));
     if (sourceOrbit?.bodyId === child.id) addBreakdown(breakdown, 'Orbit transfer to parking', hohmannOrbitTransferDv(child, sourceOrbit.radius, childParkR));
-    const transfer = hohmannParts(parent, childOrbit.radius, parentParkR);
+    const transfer = hohmannParts(parent, childOrbit.radius, arrivalRadius);
     const departureVInf = Math.abs(transfer.vt1 - transfer.v1);
     addBreakdown(breakdown, 'Escape from child parking orbit', parkingEscapeOrCaptureDv(child, departureVInf));
-    addBreakdown(breakdown, 'Parent-frame capture to parking', transfer.dv2 * ORBIT_TRANSFER_SLOP);
-    addDestinationFromParking(breakdown, destinationId, parent, destOrbit, destSurface);
+    addBreakdown(breakdown, destSurface ? 'Parent-frame capture to parking' : 'Parent-frame rendezvous with destination', transfer.dv2 * ORBIT_TRANSFER_SLOP);
+    if (destSurface) addDestinationFromParking(breakdown, destinationId, parent, null, destSurface);
     return true;
   }
 
@@ -587,13 +590,14 @@ export function estimateEstellaMissionCost(
       const sourceBody = safeBody(selectedTransfer.sourceBodyId);
       if (sourceBody) {
         if (!nestedSourceDepartureToSelectedTransfer(breakdown, sourceId, sourceSurface, sourceOrbit, sourceBody, selectedTransfer.departureVInf)) {
-          const sourceParkingR = parkingOrbitRadius(sourceBody);
-          if (sourceSurface?.bodyId === selectedTransfer.sourceBodyId) {
-            addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, sourceBody, sourceSurface.altitude));
-          } else if (sourceOrbit?.bodyId === selectedTransfer.sourceBodyId) {
-            addBreakdown(breakdown, 'Orbit transfer to parking', hohmannOrbitTransferDv(sourceBody, sourceOrbit.radius, sourceParkingR));
+          if (!sourceSurface && sourceOrbit?.bodyId === sourceBody.id) {
+            addBreakdown(breakdown, 'Escape from departure orbit', escapeOrCaptureDvAtRadius(sourceBody, sourceOrbit.radius, selectedTransfer.departureVInf));
+          } else {
+            if (sourceSurface?.bodyId === sourceBody.id) {
+              addBreakdown(breakdown, `Launch to parking orbit: ${nodeName(sourceId)}`, departureToOrbitParDv(sourceId, sourceBody, sourceSurface.altitude));
+            }
+            addBreakdown(breakdown, 'Escape from parking orbit', parkingEscapeOrCaptureDv(sourceBody, selectedTransfer.departureVInf));
           }
-          addBreakdown(breakdown, 'Escape from parking orbit', parkingEscapeOrCaptureDv(sourceBody, selectedTransfer.departureVInf));
         }
       } else {
         addBreakdown(breakdown, 'SOI escape insertion', selectedTransfer.departureVInf * 1.18 + 45);
@@ -608,7 +612,9 @@ export function estimateEstellaMissionCost(
     } else {
       const destBody = safeBody(selectedTransfer.destinationBodyId);
       if (destBody) {
-        if (!addDirectGiantChildArrival(breakdown, destinationId, destBody, selectedTransfer.arrivalVInf, destSurface, destOrbit)) {
+        if (!destSurface && destOrbit?.bodyId === destBody.id) {
+          addBreakdown(breakdown, 'Capture to destination orbit', escapeOrCaptureDvAtRadius(destBody, destOrbit.radius, selectedTransfer.arrivalVInf));
+        } else if (!addDirectGiantChildArrival(breakdown, destinationId, destBody, selectedTransfer.arrivalVInf, destSurface, destOrbit)) {
           addBreakdown(breakdown, 'Capture to parking orbit', parkingEscapeOrCaptureDv(destBody, selectedTransfer.arrivalVInf));
           addDestinationAfterSelectedCapture(breakdown, destinationId, destBody, destSurface, destOrbit);
         }

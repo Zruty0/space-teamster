@@ -8,7 +8,7 @@ const dir = await mkdtemp(join(tmpdir(), 'space-teamster-equipment-'));
 try {
   const outfile = join(dir, 'equipment-test.mjs');
   await build({
-    entryPoints: ['tests/equipment.test.ts'], bundle: true, platform: 'node', format: 'esm', outfile,
+    entryPoints: [process.argv[2] ?? 'tests/equipment.test.ts'], bundle: true, platform: 'node', format: 'esm', outfile,
     banner: { js: 'globalThis.window = { addEventListener() {} };' },
     plugins: [{ name: 'svg-raw', setup(build) {
       build.onResolve({ filter: /\.svg\?raw$/ }, args => ({ path: resolve(args.resolveDir, args.path.replace(/\?raw$/, '')), namespace: 'svg-raw' }));
