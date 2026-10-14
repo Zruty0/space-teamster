@@ -1,4 +1,5 @@
 import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING } from './hud-layout';
+import { wrapMenuText, visibleMenuRange } from './menu-layout';
 import {
   estellaDisplayPath,
   estellaFolderEntries,
@@ -119,14 +120,20 @@ function drawEntryList(
     return;
   }
 
-  const visible = Math.min(12, entries.length);
-  let start = Math.max(0, selectedIndex - Math.floor(visible / 2));
-  start = Math.min(start, Math.max(0, entries.length - visible));
-  const rowH = 38;
-  for (let i = 0; i < visible; i++) {
-    const idx = start + i;
-    const entry = entries[idx];
-    const rowY = y + 30 + i * rowH;
+  const layouts = entries.map(entry => {
+    ctx.font = 'bold 15px monospace';
+    const labels = wrapMenuText(ctx, `${entry.kind === 'folder' ? '▸' : '•'} ${entry.label}`, w - 36);
+    ctx.font = '11px monospace';
+    const details = wrapMenuText(ctx, entry.detail, w - 58);
+    return { labels, details, height: 23 + labels.length * 18 + details.length * 15 };
+  });
+  const { start, end } = visibleMenuRange(layouts.map(layout => layout.height), selectedIndex, h - 30);
+  let offset = 0;
+  for (let idx = start; idx < end; idx++) {
+    const layout = layouts[idx];
+    const rowH = layout.height;
+    const rowY = y + 30 + offset;
+    offset += rowH;
     const sel = idx === selectedIndex;
     if (sel) {
       ctx.fillStyle = 'rgba(0, 255, 136, 0.16)';
@@ -135,11 +142,10 @@ function drawEntryList(
     ctx.fillStyle = sel ? '#ffffff' : COL_HUD;
     ctx.font = sel ? 'bold 15px monospace' : '15px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(`${entry.kind === 'folder' ? '▸' : '•'} ${entry.label}`, x + 18, rowY);
+    layout.labels.forEach((line, index) => ctx.fillText(line, x + 18, rowY + index * 18));
     ctx.fillStyle = COL_HUD_DIM;
     ctx.font = '11px monospace';
-    const detail = entry.detail.length > 100 ? `${entry.detail.slice(0, 97)}...` : entry.detail;
-    ctx.fillText(detail, x + 40, rowY + 15);
+    layout.details.forEach((line, index) => ctx.fillText(line, x + 40, rowY + layout.labels.length * 18 + index * 15));
   }
 }
 

@@ -35,7 +35,7 @@ import {
 import { bodyById, bodyStateRelativeToParent, stellarDistanceFromBody } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { estellaDisplayPath } from './content/estella/navigation';
-import { drawEstellaGeneratedMission, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
+import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
 import { contributeToNunesInquiry, formatNunesInquiryTitle, nunesInquiryCatalogEntry, nunesInquirySnapshot, nunesInquiryWillClose } from './content/estella/faction-contracts/nunes-inquiries';
@@ -3337,6 +3337,10 @@ export class Game {
   private handleEstellaGeneratedMission(input: InputState): void {
     const p = this.phase as Extract<Phase, { kind: 'estellaMission' }>;
     if (input.levelSelect) { this.phase = { kind: 'startMenu' }; return; }
+    if (input.pageUp || input.pageDown) {
+      const limit = interactiveSceneBodyScrollLimit(this.ctx, this.canvas, estellaGeneratedMissionScene(p.mission));
+      p.mission.bodyScrollOffset = Math.max(0, Math.min(limit, (p.mission.bodyScrollOffset ?? 0) + (input.pageDown ? 180 : -180)));
+    }
     if (p.mission.transferOptions.length) {
       if (input.menuLeft) p.mission.selectedTransferOption = (p.mission.selectedTransferOption - 1 + p.mission.transferOptions.length) % p.mission.transferOptions.length;
       if (input.menuRight) p.mission.selectedTransferOption = (p.mission.selectedTransferOption + 1) % p.mission.transferOptions.length;

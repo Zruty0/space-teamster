@@ -35,8 +35,8 @@ export function equipmentScene(profile: CareerProfile, shop: MaintenanceShopDef,
   return {
     title: 'EQUIPMENT', subtitle,
     bodyRows: [
+      { kind: 'text', text: 'Select an upgrade to view its details.' },
       ...(receipt ? [{ kind: 'text' as const, text: receipt, tone: 'success' as const }] : []),
-      ...(shop.equipmentIds ?? []).map(id => ({ kind: 'text' as const, text: `${RIG_EQUIPMENT[id].name}: ${RIG_EQUIPMENT[id].description}` })),
     ],
     footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
     options: [

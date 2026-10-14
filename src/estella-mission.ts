@@ -1,4 +1,4 @@
-import { COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING } from './hud-layout';
+import { drawInteractiveScene, type InteractiveScene, type InteractiveSceneBodyRow } from './interactive-scene';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaDisplayPath } from './content/estella/navigation';
 import { type Placement, type WorldNode } from './content/types';
@@ -33,6 +33,7 @@ export interface EstellaGeneratedMissionState {
   transferOptions: EstellaTransferOption[];
   selectedTransferOption: number;
   startWorldTime: number;
+  bodyScrollOffset?: number;
 }
 
 function nodeName(id: string): string {
@@ -273,55 +274,10 @@ function formatDuration(seconds: number): string {
   return `${(seconds / 86_400).toFixed(1)}d`;
 }
 
-export function drawEstellaGeneratedMission(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
-  mission: EstellaGeneratedMissionState,
-): void {
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.fillStyle = '#030611';
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = COL_TITLE;
-  ctx.font = 'bold 28px monospace';
-  ctx.fillText('ESTELLA GENERATED MISSION', W / 2, 42);
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '13px monospace';
-  ctx.fillText(mission.subtitle, W / 2, 66);
-
-  const x = Math.max(36, W / 2 - 460);
-  const y = 94;
-  const w = Math.min(920, W - 72);
-  const h = H - 150;
-  ctx.fillStyle = 'rgba(0, 120, 120, 0.05)';
-  ctx.strokeStyle = '#1b4a4a';
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeRect(x, y, w, h);
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = COL_SUCCESS;
-  ctx.font = 'bold 15px monospace';
-  ctx.fillText(mission.title, x + 18, y + 28);
-
+export function estellaGeneratedMissionScene(mission: EstellaGeneratedMissionState): InteractiveScene {
   const selectedTransfer = mission.transferOptions[mission.selectedTransferOption];
   const cargo = generateGenericCargoForRoute(mission.sourceId, mission.destinationId);
   const quote = estimateEstellaMissionCost(mission.sourceId, mission.destinationId, cargo, selectedTransfer);
-  const optionBlockH = mission.transferOptions.length ? 112 : 0;
-  const quoteY = y + 46;
-  const quoteBlockH = 68;
-  ctx.fillStyle = 'rgba(0, 255, 170, 0.06)';
-  ctx.fillRect(x + 18, quoteY - 14, w - 36, quoteBlockH);
-  ctx.strokeStyle = COL_SUCCESS;
-  ctx.strokeRect(x + 18, quoteY - 14, w - 36, quoteBlockH);
-  ctx.fillStyle = COL_SUCCESS;
-  ctx.font = 'bold 13px monospace';
-  ctx.fillText('CONTRACT COST ESTIMATE', x + 28, quoteY + 2);
-  ctx.fillStyle = COL_HUD;
-  ctx.font = '12px monospace';
-  ctx.fillText(`Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s`, x + 28, quoteY + 24);
-  ctx.fillText(`Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}`, x + 28, quoteY + 44);
 
   const transferCostLabels = new Set(['Cluster exit + escape vector', 'Cluster entry + local approach', 'SOI escape insertion', 'Escape from parking orbit', 'Capture to parking orbit', 'Midcourse correction reserve', 'Atmospheric entry targeting', 'Arrival/capture reserve', 'Transfer reserve']);
   const transferItems = quote.breakdown.filter(item => transferCostLabels.has(item.label));
@@ -340,53 +296,30 @@ export function drawEstellaGeneratedMission(
     legCostLines.set(transferLegIndex, transferItems.map(item => `${item.label} ${item.dv.toFixed(0)}m/s`));
   }
 
-  const rowH = 60;
-  const rowStartY = quoteY + quoteBlockH + 24;
-  const maxRows = Math.floor((y + h - optionBlockH - 16 - rowStartY) / rowH);
-  for (let i = 0; i < Math.min(maxRows, mission.legs.length); i++) {
-    const leg = mission.legs[i];
-    const rowY = rowStartY + i * rowH;
-    ctx.fillStyle = i === 0 || i === mission.legs.length - 1 ? COL_WARNING : COL_HUD;
-    ctx.font = 'bold 13px monospace';
-    ctx.fillText(`${(i + 1).toString().padStart(2, '0')}. ${leg.title}`, x + 24, rowY);
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '11px monospace';
-    const detail = leg.detail.length > 118 ? `${leg.detail.slice(0, 115)}...` : leg.detail;
-    ctx.fillText(detail, x + 54, rowY + 16);
-    const costLines = legCostLines.get(i);
-    if (costLines?.length) {
-      ctx.fillStyle = COL_SUCCESS;
-      const costText = costLines.join('  |  ');
-      ctx.fillText(costText.length > 118 ? `${costText.slice(0, 115)}...` : costText, x + 54, rowY + 34);
-    }
-  }
+  const legs: InteractiveSceneBodyRow[] = mission.legs.flatMap((leg, index) => [
+    { kind: 'text' as const, text: `${(index + 1).toString().padStart(2, '0')}. ${leg.title}`, tone: index === 0 || index === mission.legs.length - 1 ? 'warning' as const : 'normal' as const },
+    { kind: 'text' as const, text: leg.detail },
+    ...(legCostLines.get(index) ?? []).map(text => ({ kind: 'text' as const, text, tone: 'success' as const })),
+  ]);
+  return {
+    title: 'ESTELLA GENERATED MISSION', subtitle: mission.subtitle,
+    bodyMaxHeight: 440,
+    bodyRows: [
+      { kind: 'text', text: mission.title, tone: 'success' },
+      { kind: 'text', text: 'CONTRACT COST ESTIMATE', tone: 'success' },
+      { kind: 'text', text: `Cargo: ${quote.cargoLabel}, ${quote.cargoMassTons}t   Loaded mass: ${quote.loadedMassTons}t   Par ΔV: ${quote.parDv.toFixed(0)}m/s` },
+      { kind: 'text', text: `Par fuel: ${formatCredits(quote.parFuelCost)}   Pay @ ${quote.generosity.toFixed(2)}x: ${formatCredits(quote.grossPay)}   Expected margin: ${formatCredits(quote.expectedMargin)}` },
+      ...legs,
+    ],
+    options: mission.transferOptions.length ? mission.transferOptions.map(opt => ({
+      label: opt.label,
+      detail: `Wait ${formatDuration(Math.max(0, opt.waitTime - mission.startWorldTime))}   TOF ${formatDuration(opt.transferTime)}   dep ${opt.departureVInf.toFixed(0)}m/s   arr ${opt.arrivalVInf.toFixed(0)}m/s`,
+      rightText: `${opt.totalDeltaV.toFixed(0)}m/s`, action: opt.id, tone: 'primary' as const,
+    })) : [{ label: 'Start flying generated mission', action: 'launch', tone: 'primary' }],
+    footer: 'A/D: departure time   Enter: start flying generated mission   Esc: start menu',
+  };
+}
 
-  if (mission.transferOptions.length) {
-    const optY = y + h - optionBlockH + 16;
-    ctx.fillStyle = COL_SUCCESS;
-    ctx.font = 'bold 13px monospace';
-    ctx.fillText('TRANSFER WINDOW OPTIONS', x + 24, optY);
-    ctx.fillStyle = COL_HUD_DIM;
-    ctx.font = '11px monospace';
-    ctx.fillText('A/D: choose departure time. Estimates use approximate Lambert/porkchop sampling.', x + 250, optY);
-    for (let i = 0; i < mission.transferOptions.length; i++) {
-      const opt = mission.transferOptions[i];
-      const selected = i === mission.selectedTransferOption;
-      const rowY = optY + 24 + i * 22;
-      ctx.fillStyle = selected ? 'rgba(0, 255, 255, 0.10)' : 'rgba(0, 0, 0, 0.12)';
-      ctx.fillRect(x + 18, rowY - 13, w - 36, 18);
-      ctx.strokeStyle = selected ? COL_SUCCESS : '#1b4a4a';
-      ctx.strokeRect(x + 18, rowY - 13, w - 36, 18);
-      ctx.fillStyle = selected ? COL_SUCCESS : COL_HUD;
-      ctx.font = selected ? 'bold 12px monospace' : '12px monospace';
-      const waitDuration = Math.max(0, opt.waitTime - mission.startWorldTime);
-      const text = `${selected ? '▶' : ' '} ${opt.label.padEnd(18)} wait ${formatDuration(waitDuration).padStart(6)}  TOF ${formatDuration(opt.transferTime).padStart(6)}  ΔV ${(opt.totalDeltaV).toFixed(0)}m/s  dep ${(opt.departureVInf).toFixed(0)}  arr ${(opt.arrivalVInf).toFixed(0)}`;
-      ctx.fillText(text, x + 28, rowY);
-    }
-  }
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = COL_HUD_DIM;
-  ctx.font = '13px monospace';
-  ctx.fillText('Enter: start flying generated mission   Esc: start menu', W / 2, H - 24);
+export function drawEstellaGeneratedMission(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mission: EstellaGeneratedMissionState): void {
+  drawInteractiveScene(ctx, canvas, estellaGeneratedMissionScene(mission), mission.selectedTransferOption, mission.bodyScrollOffset);
 }

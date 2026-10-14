@@ -1,6 +1,6 @@
 # Non-Flight Interaction System Plan
 
-Updated: 2026-07-17
+Updated: 2026-10-13
 
 ## Goal
 
@@ -15,6 +15,15 @@ Unify all non-flying gameplay under one cursor-driven dialogue/BBS-style interac
 - Guild account/loan management
 
 Non-flight UI should feel like terminals, boards, briefings, and conversations, not separate bespoke menus.
+
+## Implemented text layout (2026-10-13)
+
+- Menu labels, descriptions, prices and side details wrap to measured width without ellipses; long unbroken words are split without deleting characters. Row heights and keyboard paging follow actual content. Existing option line-count hints are minimum spacing, not caps.
+- Right columns reserve measured space instead of a fixed 300px. Tags/icons retain separate gutters; details start below the complete label.
+- Subtitles and body key/value text wrap fully too. Long body reports retain PgUp/PgDn scrolling and person/contact colors; the body viewport leaves room for a complete selected option.
+- Equipment starts with `Select an upgrade to view its details.` rather than all product descriptions; full approved copy remains in individual details. Purchase receipts remain below the prompt.
+- Legacy Estella navigation wraps rows; the generated-mission preview uses the shared renderer and scrollable full route descriptions/costs, with existing A/D transfer selection and Enter launch controls.
+- `npm run test:menus`: headless desktop-metric audit of all shop variants, authored repair labels, directory entries/actions, all selectable locations' day-zero freight/passenger boards (including locked rows), handbook/status/start/flight menus and navigation folders. No browser/mobile/screenshot tests.
 
 ## Core Primitive
 

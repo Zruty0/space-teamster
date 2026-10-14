@@ -1,10 +1,10 @@
 # Rig equipment
 
-Updated: 2026-10-09
+Updated: 2026-10-13
 
 ## Implemented: atmospheric equipment
 
-Equipment is purchased through **Local Directory → shop → Equipment**. Ship Status remains inspection-only with seven systems and a separate Optional Equipment list.
+Equipment is purchased through **Local Directory → shop → Equipment**. Ship Status remains inspection-only with seven systems and a separate Optional Equipment list. The Equipment overview opens with `Select an upgrade to view its details.`; approved product descriptions remain on the individual detail/authorization pages. Menu names, grade suffixes, descriptions and price/time columns wrap without ellipses.
 
 | Equipment | Baseline parts | Authored installation | Behavior |
 |---|---:|---:|---|
