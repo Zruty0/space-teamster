@@ -62,6 +62,25 @@ function exitRoute(level: DockingLevel, start: { x: number; y: number }, angle: 
   }
   return undefined;
 }
+// Desktop camera geometry checks only; no browser/viewport emulation.
+function assertCameraFrame(camera: ReturnType<typeof createDockingCamera>, ship: { x: number; y: number }, level: DockingLevel, W: number, H: number): void {
+  const target = !level.exitMode ? level.bays.find(b => b.isTarget) : undefined;
+  const focus = target ? bayWorldPos(target, level.stationX, level.stationY) : ship;
+  for (const point of [ship, focus]) {
+    assert((Math.abs(point.x - camera.x) + 15) * camera.zoom <= W * 0.41 + 1e-7, 'rig and target footprint stay horizontally visible');
+    assert((Math.abs(point.y - camera.y) + 15) * camera.zoom <= H * 0.41 + 1e-7, 'rig and target footprint stay vertically visible');
+  }
+  assert(camera.zoom > 0 && camera.zoom <= 4, 'normal close zoom is the ceiling');
+}
+function assertTightCamera(camera: ReturnType<typeof createDockingCamera>, ship: { x: number; y: number }, level: DockingLevel, W: number, H: number): void {
+  assertCameraFrame(camera, ship, level, W, H);
+  if (camera.zoom === 4) return;
+  const target = level.bays.find(b => b.isTarget)!;
+  const focus = bayWorldPos(target, level.stationX, level.stationY);
+  const closerZoom = camera.zoom * 1.001;
+  assert((Math.abs(ship.x - focus.x) + 30) * closerZoom > W * 0.82
+    || (Math.abs(ship.y - focus.y) + 30) * closerZoom > H * 0.82, 'zoom out no farther than required to frame rig and berth');
+}
 const distances: Record<string, number> = {};
 for (const [berthId, randomSeed] of seeds) {
   for (const exitMode of [true, false]) {
@@ -94,9 +113,35 @@ for (const [berthId, randomSeed] of seeds) {
     assert(JSON.stringify(retry) === JSON.stringify(level), 'retry placement deterministic');
     const camera = createDockingCamera();
     const outside = createDockingState(level, { x: 0, y: level.exitDistance + 1, vx: 0, vy: 0, angle: 0 });
+    updateDockingCamera(camera, state, level, 0, 1024, 768);
+    assert(camera.zoom === 4, 'all berth-relative spawns retain normal close zoom');
+    assertTightCamera(camera, state, level, 1024, 768);
+    const enlarged = { ...level, localLayout: { ...layout, widthMeters: 5000, heightMeters: 5000 } };
+    const enlargedCamera = createDockingCamera();
+    updateDockingCamera(enlargedCamera, state, enlarged, 0, 1024, 768);
+    assert(JSON.stringify(enlargedCamera) === JSON.stringify(camera), 'station extent does not affect camera zoom or center');
     updateDockingCamera(camera, outside, level, 0, 1024, 768);
-    assert((layout.widthMeters / 2 + Math.abs(camera.x)) * camera.zoom <= 1024 / 2, 'large station stays in desktop view horizontally');
-    assert(Math.max(Math.abs(-layout.heightMeters / 2 - camera.y), Math.abs(outside.y - camera.y)) * camera.zoom < 768 / 2, 'departure and full station fit desktop view vertically');
+    assertTightCamera(camera, outside, level, 1024, 768);
+    if (exitMode) {
+      assert(camera.zoom === 4 && camera.x === outside.x && camera.y === outside.y, 'departure follows rig at close zoom, not station center');
+    } else {
+      // Opposite-side handoffs, movement, and desktop resizing must not let
+      // easing hide the target, even for the first positive-dt update.
+      const movingCamera = createDockingCamera();
+      for (let frame = 0; frame < 60; frame++) {
+        const radians = frame * Math.PI / 30;
+        const moving = { ...state, x: Math.cos(radians) * 440, y: Math.sin(radians) * 440 };
+        const W = frame < 20 ? 1024 : frame < 40 ? 920 : 1600;
+        const H = frame < 20 ? 768 : frame < 40 ? 650 : 900;
+        updateDockingCamera(movingCamera, moving, level, 1 / 60, W, H);
+        assertCameraFrame(movingCamera, moving, level, W, H);
+        const settled = createDockingCamera();
+        updateDockingCamera(settled, moving, level, 0, W, H);
+        assertTightCamera(settled, moving, level, W, H);
+      }
+      for (let frame = 0; frame < 240; frame++) updateDockingCamera(movingCamera, state, level, 1 / 60, 1024, 768);
+      assert(movingCamera.zoom > 3.999, 'arrival eases back to normal close zoom near berth');
+    }
     if (exitMode) {
       updateDocking(outside, input, level, 0);
       assert(outside.exitComplete, 'exit works outside enlarged boundary');
@@ -155,6 +200,15 @@ for (let degrees = 0; degrees < 360; degrees += 10) {
   transition.run();
   assert(dockingPoseIsClear(arrival, received.x, received.y, received.angle), 'real orbital handoff spawn clear');
   assert(received.vx === 3 && received.vy === -2, 'incoming relative velocity preserved');
+  const camera = createDockingCamera();
+  const arriving = createDockingState(arrival, received);
+  updateDockingCamera(camera, arriving, arrival, 0, 1024, 768);
+  assertTightCamera(camera, arriving, arrival, 1024, 768);
+  const proceduralCamera = createDockingCamera();
+  updateDockingCamera(proceduralCamera, arriving, { ...arrival, localLayout: undefined }, 0, 1024, 768);
+  assert(JSON.stringify(proceduralCamera) === JSON.stringify(camera), 'same task-focused framing for procedural stations');
+  updateDockingCamera(camera, arriving, arrival, 1 / 60, 0, 0);
+  assert(JSON.stringify(proceduralCamera) === JSON.stringify(camera), 'zero-size canvas cannot corrupt camera during resize');
 }
 const clusterInit = game.dockingInitFromCluster({ level: { targetPortId: 'test', members: [{ x: 100, y: 50, ports: [{ id: 'test', x: 0, y: 0 }] }] }, cs: { x: 200, y: 50, vx: -2, vy: 3, angle: 0 } }, arrival);
 assert(clusterInit && dockingPoseIsClear(arrival, clusterInit.x, clusterInit.y, clusterInit.angle), 'real cluster handoff clears oversized layout');

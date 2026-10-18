@@ -865,51 +865,34 @@ export function createDockingCamera(): DockingCamera {
 export function updateDockingCamera(
   cam: DockingCamera, s: DockingState, level: DockingLevel, dt: number, W: number, H: number,
 ): void {
+  if (W <= 0 || H <= 0) return;
   const smooth = dt <= 0 ? 1 : 1 - Math.exp(-3.0 * dt);
 
-  let targetX = s.x;
-  let targetY = s.y;
-  let targetZoom = 4;
-
-  if (level.localLayout) {
-    const halfWidth = level.localLayout.widthMeters / 2;
-    const halfHeight = level.localLayout.heightMeters / 2;
-    const cos = Math.abs(Math.cos(level.layoutRotation));
-    const sin = Math.abs(Math.sin(level.layoutRotation));
-    const rotatedHalfWidth = halfWidth * cos + halfHeight * sin;
-    const rotatedHalfHeight = halfWidth * sin + halfHeight * cos;
-    const shipMargin = 15;
-    const minX = Math.min(level.stationX - rotatedHalfWidth, s.x - shipMargin);
-    const maxX = Math.max(level.stationX + rotatedHalfWidth, s.x + shipMargin);
-    const minY = Math.min(level.stationY - rotatedHalfHeight, s.y - shipMargin);
-    const maxY = Math.max(level.stationY + rotatedHalfHeight, s.y + shipMargin);
-    targetX = (minX + maxX) / 2;
-    targetY = (minY + maxY) / 2;
-    targetZoom = Math.min(4, (W * 0.82) / (maxX - minX), (H * 0.82) / (maxY - minY));
-  } else if (level.exitMode) {
-    const dx = level.stationX - s.x;
-    const dy = level.stationY - s.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    targetX = (s.x + level.stationX) * 0.5;
-    targetY = (s.y + level.stationY) * 0.5;
-    targetZoom = Math.min(4, Math.max(1.8, Math.min((W * 0.7) / Math.max(dist, 40), (H * 0.7) / Math.max(dist, 40))));
-  } else {
-    const target = level.bays.find(b => b.isTarget);
-    if (target) {
-      const bp = bayWorldPos(target, level.stationX, level.stationY);
-      const dx = bp.x - s.x;
-      const dy = bp.y - s.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      targetX = (s.x + bp.x) * 0.5;
-      targetY = (s.y + bp.y) * 0.5;
-      const fitDist = Math.max(30, dist + 25);
-      targetZoom = Math.min(4, Math.max(2.0, Math.min((W * 0.7) / fitDist, (H * 0.7) / fitDist)));
-    }
-  }
+  // Frame the task, not the station: close ship-follow on departure, and
+  // only the rig + assigned berth on arrival. Use separate axis spans so a
+  // horizontal approach does not unnecessarily zoom out to fit the height.
+  const target = !level.exitMode ? level.bays.find(b => b.isTarget) : undefined;
+  const focus = target ? bayWorldPos(target, level.stationX, level.stationY) : s;
+  const margin = 15; // Full rig/berth footprint plus clearance, in metres.
+  const minX = Math.min(s.x, focus.x) - margin;
+  const maxX = Math.max(s.x, focus.x) + margin;
+  const minY = Math.min(s.y, focus.y) - margin;
+  const maxY = Math.max(s.y, focus.y) + margin;
+  const targetX = (minX + maxX) / 2;
+  const targetY = (minY + maxY) / 2;
+  const viewWidth = W * 0.82;
+  const viewHeight = H * 0.82;
+  const targetZoom = Math.min(4, viewWidth / (maxX - minX), viewHeight / (maxY - minY));
 
   cam.x += (targetX - cam.x) * smooth;
   cam.y += (targetY - cam.y) * smooth;
-  cam.zoom += (targetZoom - cam.zoom) * smooth;
+  // Zoom out immediately when required; ease back in. Clamp the smoothed
+  // center as well, so movement/resizing cannot temporarily hide the berth.
+  cam.zoom = Math.min(targetZoom, cam.zoom + (targetZoom - cam.zoom) * smooth);
+  const halfWidth = viewWidth / (2 * cam.zoom);
+  const halfHeight = viewHeight / (2 * cam.zoom);
+  cam.x = Math.max(maxX - halfWidth, Math.min(minX + halfWidth, cam.x));
+  cam.y = Math.max(maxY - halfHeight, Math.min(minY + halfHeight, cam.y));
 }
 
 // ===================== Rendering =====================
