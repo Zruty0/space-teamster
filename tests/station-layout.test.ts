@@ -65,18 +65,21 @@ function exitRoute(level: DockingLevel, start: { x: number; y: number }, angle: 
 // Desktop camera geometry checks only; no browser/viewport emulation.
 function assertCameraFrame(camera: ReturnType<typeof createDockingCamera>, ship: { x: number; y: number }, level: DockingLevel, W: number, H: number): void {
   const target = !level.exitMode ? level.bays.find(b => b.isTarget) : undefined;
-  const focus = target ? bayWorldPos(target, level.stationX, level.stationY) : ship;
+  const focus = level.exitMode ? { x: level.stationX, y: level.stationY }
+    : target ? bayWorldPos(target, level.stationX, level.stationY) : ship;
   for (const point of [ship, focus]) {
     assert((Math.abs(point.x - camera.x) + 15) * camera.zoom <= W * 0.41 + 1e-7, 'rig and target footprint stay horizontally visible');
     assert((Math.abs(point.y - camera.y) + 15) * camera.zoom <= H * 0.41 + 1e-7, 'rig and target footprint stay vertically visible');
   }
   assert(camera.zoom > 0 && camera.zoom <= 4, 'normal close zoom is the ceiling');
+  if (level.exitMode) assert(camera.zoom >= 1.5, 'departure zoom respects the floor');
 }
 function assertTightCamera(camera: ReturnType<typeof createDockingCamera>, ship: { x: number; y: number }, level: DockingLevel, W: number, H: number): void {
   assertCameraFrame(camera, ship, level, W, H);
   if (camera.zoom === 4) return;
-  const target = level.bays.find(b => b.isTarget)!;
-  const focus = bayWorldPos(target, level.stationX, level.stationY);
+  const target = level.bays.find(b => b.isTarget);
+  const focus = level.exitMode ? { x: level.stationX, y: level.stationY }
+    : bayWorldPos(target!, level.stationX, level.stationY);
   const closerZoom = camera.zoom * 1.001;
   assert((Math.abs(ship.x - focus.x) + 30) * closerZoom > W * 0.82
     || (Math.abs(ship.y - focus.y) + 30) * closerZoom > H * 0.82, 'zoom out no farther than required to frame rig and berth');
@@ -114,7 +117,7 @@ for (const [berthId, randomSeed] of seeds) {
     const camera = createDockingCamera();
     const outside = createDockingState(level, { x: 0, y: level.exitDistance + 1, vx: 0, vy: 0, angle: 0 });
     updateDockingCamera(camera, state, level, 0, 1024, 768);
-    assert(camera.zoom === 4, 'all berth-relative spawns retain normal close zoom');
+    if (!exitMode) assert(camera.zoom === 4, 'berth-relative arrivals retain normal close zoom');
     assertTightCamera(camera, state, level, 1024, 768);
     const enlarged = { ...level, localLayout: { ...layout, widthMeters: 5000, heightMeters: 5000 } };
     const enlargedCamera = createDockingCamera();
@@ -123,7 +126,25 @@ for (const [berthId, randomSeed] of seeds) {
     updateDockingCamera(camera, outside, level, 0, 1024, 768);
     assertTightCamera(camera, outside, level, 1024, 768);
     if (exitMode) {
-      assert(camera.zoom === 4 && camera.x === outside.x && camera.y === outside.y, 'departure follows rig at close zoom, not station center');
+      assert(camera.x === (outside.x + level.stationX) / 2 && camera.y === (outside.y + level.stationY) / 2, 'departure frames rig and station center');
+      const movingCamera = createDockingCamera();
+      for (let frame = 0; frame < 120; frame++) {
+        const radians = frame * Math.PI / 60;
+        const moving = { ...state, x: Math.cos(radians) * level.exitDistance, y: Math.sin(radians) * level.exitDistance };
+        updateDockingCamera(movingCamera, moving, level, 1 / 60, 1024, 768);
+        assertCameraFrame(movingCamera, moving, level, 1024, 768);
+      }
+      // A hard minimum wins if both endpoints cannot fit at that zoom.
+      // This extreme fixture is well beyond a normal completed departure.
+      const translated = { ...level, stationX: 120, stationY: -80 };
+      const distant = { ...state, x: 1120, y: 920 };
+      updateDockingCamera(camera, distant, translated, 1 / 60, 1024, 768);
+      assert(camera.zoom === 1.5 && camera.x === 620 && camera.y === 420, 'departure floor keeps midpoint when a fit is impossible');
+      camera.zoom = 0.2;
+      updateDockingCamera(camera, distant, translated, 1 / 60, 1024, 768);
+      assert(camera.zoom === 1.5, 'smoothing cannot violate departure minimum');
+      updateDockingCamera(camera, { ...state, x: 125, y: -75 }, translated, 0, 1024, 768);
+      assert(Math.abs(camera.zoom - 4) < 1e-12, 'departure maximum applies near reference point');
     } else {
       // Opposite-side handoffs, movement, and desktop resizing must not let
       // easing hide the target, even for the first positive-dt update.

@@ -868,11 +868,12 @@ export function updateDockingCamera(
   if (W <= 0 || H <= 0) return;
   const smooth = dt <= 0 ? 1 : 1 - Math.exp(-3.0 * dt);
 
-  // Frame the task, not the station: close ship-follow on departure, and
-  // only the rig + assigned berth on arrival. Use separate axis spans so a
-  // horizontal approach does not unnecessarily zoom out to fit the height.
+  // Frame the rig + reference point, not the whole station: station center
+  // on departure, assigned berth on arrival. Fit horizontal/vertical spans
+  // independently so a horizontal approach does not waste vertical space.
   const target = !level.exitMode ? level.bays.find(b => b.isTarget) : undefined;
-  const focus = target ? bayWorldPos(target, level.stationX, level.stationY) : s;
+  const focus = level.exitMode ? { x: level.stationX, y: level.stationY }
+    : target ? bayWorldPos(target, level.stationX, level.stationY) : s;
   const margin = 15; // Full rig/berth footprint plus clearance, in metres.
   const minX = Math.min(s.x, focus.x) - margin;
   const maxX = Math.max(s.x, focus.x) + margin;
@@ -882,17 +883,19 @@ export function updateDockingCamera(
   const targetY = (minY + maxY) / 2;
   const viewWidth = W * 0.82;
   const viewHeight = H * 0.82;
-  const targetZoom = Math.min(4, viewWidth / (maxX - minX), viewHeight / (maxY - minY));
+  const minZoom = level.exitMode ? 1.5 : 0;
+  const targetZoom = Math.max(minZoom, Math.min(4, viewWidth / (maxX - minX), viewHeight / (maxY - minY)));
 
   cam.x += (targetX - cam.x) * smooth;
   cam.y += (targetY - cam.y) * smooth;
-  // Zoom out immediately when required; ease back in. Clamp the smoothed
-  // center as well, so movement/resizing cannot temporarily hide the berth.
-  cam.zoom = Math.min(targetZoom, cam.zoom + (targetZoom - cam.zoom) * smooth);
+  // Zoom out immediately when required; ease back in. Constrain the smoothed
+  // center too. If the departure floor prevents a fit, keep the midpoint
+  // rather than biasing the camera toward one endpoint or violating the cap.
+  cam.zoom = Math.max(minZoom, Math.min(targetZoom, cam.zoom + (targetZoom - cam.zoom) * smooth));
   const halfWidth = viewWidth / (2 * cam.zoom);
   const halfHeight = viewHeight / (2 * cam.zoom);
-  cam.x = Math.max(maxX - halfWidth, Math.min(minX + halfWidth, cam.x));
-  cam.y = Math.max(maxY - halfHeight, Math.min(minY + halfHeight, cam.y));
+  cam.x = maxX - minX > halfWidth * 2 ? targetX : Math.max(maxX - halfWidth, Math.min(minX + halfWidth, cam.x));
+  cam.y = maxY - minY > halfHeight * 2 ? targetY : Math.max(maxY - halfHeight, Math.min(minY + halfHeight, cam.y));
 }
 
 // ===================== Rendering =====================
