@@ -360,6 +360,105 @@ function stationCollision(
   return null;
 }
 
+type DockPoint = { x: number; y: number };
+interface DockPolygon { points: DockPoint[]; minX: number; maxX: number; minY: number; maxY: number }
+const placementGeometry = new WeakMap<LocalLayout, DockPolygon[]>();
+
+function dockPolygon(points: DockPoint[]): DockPolygon {
+  return { points, minX: Math.min(...points.map(p => p.x)), maxX: Math.max(...points.map(p => p.x)), minY: Math.min(...points.map(p => p.y)), maxY: Math.max(...points.map(p => p.y)) };
+}
+
+function polygonsOverlap(a: DockPolygon, b: DockPolygon): boolean {
+  if (a.maxX < b.minX || b.maxX < a.minX || a.maxY < b.minY || b.maxY < a.minY) return false;
+  if (polygonCollision(a.points[0].x, a.points[0].y, b.points) || polygonCollision(b.points[0].x, b.points[0].y, a.points)) return true;
+  const cross = (p: DockPoint, q: DockPoint, r: DockPoint) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+  for (let i = 0; i < a.points.length; i++) {
+    const p = a.points[i], q = a.points[(i + 1) % a.points.length];
+    for (let j = 0; j < b.points.length; j++) {
+      const r = b.points[j], s = b.points[(j + 1) % b.points.length];
+      if (Math.max(p.x, q.x) < Math.min(r.x, s.x) || Math.max(r.x, s.x) < Math.min(p.x, q.x)
+        || Math.max(p.y, q.y) < Math.min(r.y, s.y) || Math.max(r.y, s.y) < Math.min(p.y, q.y)) continue;
+      if (cross(p, q, r) * cross(p, q, s) <= 0 && cross(r, s, p) * cross(r, s, q) <= 0) return true;
+    }
+  }
+  return false;
+}
+
+/** Full rig footprint versus authored fills, strokes and parked containers.
+ * Placement checks use polygon intersections, including thin obstacles between
+ * physics probes. Ordinary flight collision response is unchanged.
+ */
+export function dockingPoseIsClear(level: DockingLevel, x: number, y: number, angle: number, margin = 0.1, longitudinalMargin = margin): boolean {
+  const layout = level.localLayout;
+  if (!layout) return true;
+  let solids = placementGeometry.get(layout);
+  if (!solids) {
+    solids = layout.shapes.flatMap(shape => {
+      if (shape.paint.opacity <= 0) return [];
+      return [
+        ...(shape.paint.fill && shape.paint.fillOpacity > 0 && shape.collisionPolygon ? [shape.collisionPolygon] : []),
+        ...(shape.paint.stroke && shape.paint.strokeOpacity > 0 ? shape.strokeCollisionPolygons ?? [] : []),
+      ].map(dockPolygon);
+    });
+    placementGeometry.set(layout, solids);
+  }
+  const cos = Math.cos(angle), sin = Math.sin(angle);
+  const stationCos = Math.cos(level.layoutRotation), stationSin = Math.sin(level.layoutRotation);
+  const svgPoint = (wx: number, wy: number): DockPoint => {
+    const dx = wx - level.stationX, dy = wy - level.stationY;
+    return { x: layout.centerX + (dx * stationCos + dy * stationSin) * layout.svgUnitsPerMeter,
+      y: layout.centerY - (-dx * stationSin + dy * stationCos) * layout.svgUnitsPerMeter };
+  };
+  const rigRect = (x0: number, x1: number, halfWidth: number) => dockPolygon([
+    [x0 - longitudinalMargin, -halfWidth - margin], [x1 + longitudinalMargin, -halfWidth - margin],
+    [x1 + longitudinalMargin, halfWidth + margin], [x0 - longitudinalMargin, halfWidth + margin],
+  ].map(([px, py]) => svgPoint(x + px * cos - py * sin, y + px * sin + py * cos)));
+  const rig = level.hasContainer
+    ? [rigRect(-FRAME_W / 2, FRAME_W / 2, FRAME_H / 2), rigRect(FRAME_W / 2 + CAB_GAP, FRAME_W / 2 + CAB_GAP + CAB_W, CAB_H / 2)]
+    : [rigRect(-EMPTY_FRAME_W / 2, EMPTY_FRAME_W / 2, EMPTY_FRAME_H / 2)];
+  if (rig.some(polygon => solids!.some(solid => polygonsOverlap(polygon, solid)))) return false;
+  for (const bay of level.bays) {
+    if (!bay.filled || bay.isPlayerBay) continue;
+    const p = bayWorldPos(bay, level.stationX, level.stationY);
+    const c = Math.cos(p.angle), s = Math.sin(p.angle);
+    const container = dockPolygon([
+      [-CONTAINER_W / 2, -CONTAINER_H / 2], [CONTAINER_W / 2, -CONTAINER_H / 2],
+      [CONTAINER_W / 2, CONTAINER_H / 2], [-CONTAINER_W / 2, CONTAINER_H / 2],
+    ].map(([px, py]) => svgPoint(p.x + px * c - py * s, p.y + px * s + py * c)));
+    if (rig.some(polygon => polygonsOverlap(polygon, container))) return false;
+  }
+  return true;
+}
+
+/** Choose the farthest clear point up to the usual 70m, in the contiguous
+ * approach corridor from this berth. Never spawn on the far side of a wall.
+ * A half-metre sample with an extra quarter-metre longitudinal allowance covers
+ * the entire swept path, not only isolated clear endpoints.
+ */
+function setAuthoredArrivalSpawn(level: DockingLevel, bay: BayInfo): void {
+  const p = bayWorldPos(bay, level.stationX, level.stationY);
+  const angle = p.angle + Math.PI;
+  let distance = 0;
+  if (!dockingPoseIsClear(level, p.x, p.y, angle)) throw new Error(`Obstructed docking berth for ${level.name}: ${bay.layoutBerthId}`);
+  for (let end = 0.5; end <= 70; end += 0.5) {
+    const midpoint = end - 0.25;
+    if (!dockingPoseIsClear(level, p.x + Math.cos(angle) * midpoint, p.y + Math.sin(angle) * midpoint, angle, 0.1, 0.35)) break;
+    distance = end;
+  }
+  if (distance < 16) throw new Error(`No safe docking approach for ${level.name}: ${bay.layoutBerthId}`);
+  level.startX = p.x + Math.cos(angle) * distance;
+  level.startY = p.y + Math.sin(angle) * distance;
+  level.startAngle = angle;
+}
+
+/** Keep orbital/cluster handoffs outside large authored layouts while retaining
+ * their incoming direction and velocity. Small-station handoffs stay unchanged. */
+export function dockingArrivalRadius(level: DockingLevel, nominalRadius: number): number {
+  return level.localLayout && level.exitDistance > 140
+    ? level.exitDistance + Math.max(0, nominalRadius - 140)
+    : nominalRadius;
+}
+
 export function createGenericDockingLevel(opts: {
   id: number;
   name: string;
@@ -399,7 +498,9 @@ export function createGenericDockingLevel(opts: {
     subtitle: opts.subtitle,
     hasContainer: true,
     exitMode: opts.exitMode,
-    exitDistance: opts.exitDistance ?? 140,
+    // Enclose the complete authored station plus the rig and a clearance margin.
+    // The diagonal is rotation-invariant; existing small stations keep 140m.
+    exitDistance: Math.max(opts.exitDistance ?? 140, localLayout ? Math.ceil(Math.hypot(localLayout.widthMeters, localLayout.heightMeters) / 2 + 25) : 0),
     orbitalLevelId: opts.orbitalLevelId,
     clusterLevelId: opts.clusterLevelId,
     clusterMemberId: opts.clusterMemberId,
@@ -437,11 +538,7 @@ export function createGenericDockingLevel(opts: {
     level.startY = bp.y;
     level.startAngle = bp.angle + Math.PI;
   } else if (localLayout) {
-    const bp = bayWorldPos(assignedBay, level.stationX, level.stationY);
-    const noseAngle = bp.angle + Math.PI;
-    level.startX = bp.x + Math.cos(noseAngle) * 70;
-    level.startY = bp.y + Math.sin(noseAngle) * 70;
-    level.startAngle = noseAngle;
+    setAuthoredArrivalSpawn(level, assignedBay);
   }
   return level;
 }
@@ -788,7 +885,7 @@ export function updateDockingCamera(
     const maxY = Math.max(level.stationY + rotatedHalfHeight, s.y + shipMargin);
     targetX = (minX + maxX) / 2;
     targetY = (minY + maxY) / 2;
-    targetZoom = Math.min(4, Math.max(1.5, Math.min((W * 0.82) / (maxX - minX), (H * 0.82) / (maxY - minY))));
+    targetZoom = Math.min(4, (W * 0.82) / (maxX - minX), (H * 0.82) / (maxY - minY));
   } else if (level.exitMode) {
     const dx = level.stationX - s.x;
     const dy = level.stationY - s.y;

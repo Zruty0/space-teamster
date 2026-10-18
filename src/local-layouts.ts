@@ -1,6 +1,7 @@
 import medievalStationSvg from '../art/stations/medieval-station.svg?raw';
 import smallStation1Svg from '../art/stations/small-station-1.svg?raw';
 import smallStation2Svg from '../art/stations/small-station-2.svg?raw';
+import svarogShipyardSvg from '../art/stations/svarog-shipyard.svg?raw';
 
 export interface LocalLayoutPaint {
   fill?: string;
@@ -86,6 +87,7 @@ interface LocalLayoutAsset {
 
 const LOCAL_LAYOUT_ASSETS: Record<string, LocalLayoutAsset> = {
   'medieval-station': { id: 'medieval-station', svg: medievalStationSvg },
+  'svarog-shipyard': { id: 'svarog-shipyard', svg: svarogShipyardSvg },
   'small-station-1': { id: 'small-station-1', svg: smallStation1Svg },
   'small-station-2': { id: 'small-station-2', svg: smallStation2Svg },
 };

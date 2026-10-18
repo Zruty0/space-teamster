@@ -34,7 +34,7 @@ export const ESTELLA_LAYOUTS: Partial<Record<string, LayoutOverride>> = {
   'estella-va-ore-depot': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 104 },
   'estella-vi-main-dispatch': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 239 },
   'estella-vi-heavy-cargo-dispatch': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 36 },
-  'estella-via-drydock': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 169 },
+  'estella-via-drydock': { layoutId: 'svarog-shipyard', autoRotate: false, rotationDegrees: 0 },
   'estella-via-component-supply': { layoutId: 'small-station-2', autoRotate: false, rotationDegrees: 195 },
   'estella-vib-cold-chain-transit': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 114 },
   'estella-vii-transit-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 171 },

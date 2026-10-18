@@ -24,7 +24,7 @@ import {
 } from './orbital';
 import {
   DOCKING_LEVELS, DockingLevel, DockingState, DockingCamera, DockingInitOverride,
-  bayWorldPos, createDockingState, createDockingCamera, updateDocking,
+  bayWorldPos, dockingArrivalRadius, createDockingState, createDockingCamera, updateDocking,
   updateDockingCamera, renderDocking, drawDockingHUD,
 } from './docking';
 import {
@@ -1477,7 +1477,7 @@ export class Game {
     const relDist = Math.hypot(relX, relY);
     const ux = relDist > 1 ? relX / relDist : Math.cos(bp.angle);
     const uy = relDist > 1 ? relY / relDist : Math.sin(bp.angle);
-    const arrivalRingR = 180;
+    const arrivalRingR = dockingArrivalRadius(dockingLevel, 180);
     const relSpeed = Math.hypot(p.cs.vx, p.cs.vy);
     const radialSpeed = p.cs.vx * ux + p.cs.vy * uy;
     const safeVx = p.cs.vx - ux * Math.min(0, radialSpeed);
@@ -1891,10 +1891,10 @@ export class Game {
     const ux = relX / relDist;
     const uy = relY / relDist;
     const baseDist = dockingLevel.beamRange * 10;
-    const startDist = baseDist * (1 + Math.min(1, relDist / station.captureRadius));
+    const startDist = dockingArrivalRadius(dockingLevel, baseDist * (1 + Math.min(1, relDist / station.captureRadius)));
     const initOverride: DockingInitOverride = {
-      x: ux * startDist,
-      y: uy * startDist,
+      x: dockingLevel.stationX + ux * startDist,
+      y: dockingLevel.stationY + uy * startDist,
       vx: relVX,
       vy: relVY,
       angle: Math.atan2(-uy, -ux),
