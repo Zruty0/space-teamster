@@ -24,7 +24,7 @@ const layout = localLayoutById('svarog-shipyard')!;
 assert(layout.berths.length === 36, '36 shipyard berths');
 assert(layout.widthMeters > 500 && layout.heightMeters > 350, 'full shipyard scale retained');
 assert(!layout.shapes.some(shape => shape.id === 'rect535'), 'duplicate berth obstacle removed');
-const opts = { id: 999, name: 'Svarog Shipyard', subtitle: '', layoutId: 'svarog-shipyard', autoRotate: false, rotationDegrees: 0, fillPct: 1 };
+const opts = { id: 999, stationId: 'estella-via-drydock', name: 'Svarog Shipyard', subtitle: '', layoutId: 'svarog-shipyard', autoRotate: false, rotationDegrees: 0, fillPct: 1 };
 const seeds = new Map<string, number>();
 for (let seed = 1; seed <= 1000 && seeds.size < 36; seed++) {
   const level = createGenericDockingLevel({ ...opts, randomSeed: seed, exitMode: true });

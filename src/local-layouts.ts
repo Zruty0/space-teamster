@@ -2,6 +2,9 @@ import medievalStationSvg from '../art/stations/medieval-station.svg?raw';
 import smallStation1Svg from '../art/stations/small-station-1.svg?raw';
 import smallStation2Svg from '../art/stations/small-station-2.svg?raw';
 import svarogShipyardSvg from '../art/stations/svarog-shipyard.svg?raw';
+import smallShip1Svg from '../art/ships/small-ship-1.svg?raw';
+import smallShip2Svg from '../art/ships/small-ship-2.svg?raw';
+import smallShip3Svg from '../art/ships/small-ship-3.svg?raw';
 
 export interface LocalLayoutPaint {
   fill?: string;
@@ -69,6 +72,11 @@ export interface LocalLayoutBerth {
   noseAngle: number;
 }
 
+export interface LocalLayoutShipDock extends LocalLayoutBerth {
+  widthMeters: number;
+  lengthMeters: number;
+}
+
 export interface LocalLayout {
   id: string;
   centerX: number;
@@ -78,11 +86,16 @@ export interface LocalLayout {
   svgUnitsPerMeter: number;
   shapes: LocalLayoutShape[];
   berths: LocalLayoutBerth[];
+  shipDocks?: LocalLayoutShipDock[];
+  parkedShips?: { dockId: string; shipId?: string }[];
 }
 
 interface LocalLayoutAsset {
   id: string;
   svg: string;
+  // Standalone ship art has no cargo markers. Its native units are fitted to
+  // a dock later; station assets must still derive scale from cargo markers.
+  svgUnitsPerMeter?: number;
 }
 
 const LOCAL_LAYOUT_ASSETS: Record<string, LocalLayoutAsset> = {
@@ -92,6 +105,13 @@ const LOCAL_LAYOUT_ASSETS: Record<string, LocalLayoutAsset> = {
   'small-station-2': { id: 'small-station-2', svg: smallStation2Svg },
 };
 
+const SMALL_SHIP_ASSETS: LocalLayoutAsset[] = [
+  { id: 'small-ship-1', svg: smallShip1Svg, svgUnitsPerMeter: 1 },
+  { id: 'small-ship-2', svg: smallShip2Svg, svgUnitsPerMeter: 1 },
+  { id: 'small-ship-3', svg: smallShip3Svg, svgUnitsPerMeter: 1 },
+];
+const parsedShips = new Map<string, LocalLayout>();
+const populatedLayouts = new WeakMap<LocalLayout, Map<string, LocalLayout>>();
 const parsedLayouts = new Map<string, LocalLayout>();
 
 function finiteNumber(value: string | null, description: string): number {
@@ -439,6 +459,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
   if (parseError) throw new Error(`Invalid local-layout SVG ${asset.id}: ${parseError.textContent ?? 'parse error'}`);
   const shapes: LocalLayoutShape[] = [];
   const berthElements: BerthElement[] = [];
+  const shipElements: BerthElement[] = [];
   const bounds: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
 
   const visit = (element: Element, parentTransform: LocalLayoutTransform, inheritedPaint: LocalLayoutPaint): void => {
@@ -446,6 +467,12 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const transform = multiplyTransforms(parentTransform, parseTransform(element.getAttribute('transform')));
     const paint = parsePaint(element, inheritedPaint);
     const id = element.getAttribute('id') ?? '';
+    const shipMatch = /^ship-(.+)-nose-(left|right|up|down)$/.exec(id);
+    if (shipMatch) {
+      if (element.localName !== 'rect') throw new Error(`Local-layout ship dock ${id} must be a rectangle`);
+      shipElements.push({ id, element, direction: shipMatch[2], transform });
+      return; // Metadata only: no pink artwork, collision, or station bounds.
+    }
     const berthMatch = /^berth-(.+)-nose-(left|right|up|down)$/.exec(id);
     if (berthMatch) {
       if (element.localName !== 'rect') throw new Error(`Local-layout berth ${id} must be a rectangle`);
@@ -503,7 +530,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
 
   visit(document.documentElement, IDENTITY_TRANSFORM, DEFAULT_PAINT);
   if (!bounds.length) throw new Error(`Local layout ${asset.id} contains no renderable geometry`);
-  if (!berthElements.length) throw new Error(`Local layout ${asset.id} contains no named berths`);
+  if (!berthElements.length && asset.svgUnitsPerMeter === undefined) throw new Error(`Local layout ${asset.id} contains no named berths`);
   const markerScales = berthElements.map(({ id, element, direction, transform }) => {
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
     const height = finiteNumber(element.getAttribute('height'), `${id} height`);
@@ -516,7 +543,8 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     }
     return (longScale + shortScale) / 2;
   });
-  const svgUnitsPerMeter = markerScales[0];
+  const svgUnitsPerMeter = asset.svgUnitsPerMeter ?? markerScales[0];
+  if (!(svgUnitsPerMeter > 0)) throw new Error(`Invalid local-layout scale for ${asset.id}`);
   if (markerScales.some(scale => Math.abs(scale - svgUnitsPerMeter) > svgUnitsPerMeter * 0.01)) {
     throw new Error(`Local-layout berths in ${asset.id} do not use a consistent scale`);
   }
@@ -532,6 +560,17 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const center = transformPoint(transform, x + width / 2, y + height / 2);
     return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction) };
   });
+  const shipDocks: LocalLayoutShipDock[] = shipElements.map(({ id, element, direction, transform }) => {
+    const x = finiteNumber(element.getAttribute('x') ?? '0', `${id} x`);
+    const y = finiteNumber(element.getAttribute('y') ?? '0', `${id} y`);
+    const width = finiteNumber(element.getAttribute('width'), `${id} width`);
+    const height = finiteNumber(element.getAttribute('height'), `${id} height`);
+    const w = transformedVectorLength(transform, width, 0) / svgUnitsPerMeter;
+    const h = transformedVectorLength(transform, 0, height) / svgUnitsPerMeter;
+    if (width <= 0 || height <= 0 || Math.min(w, h) <= 0) throw new Error(`Invalid ship dock size: ${id}`);
+    const center = transformPoint(transform, x + width / 2, y + height / 2);
+    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction), widthMeters: Math.min(w, h), lengthMeters: Math.max(w, h) };
+  });
   return {
     id: asset.id,
     centerX: (minX + maxX) / 2,
@@ -541,7 +580,59 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     svgUnitsPerMeter,
     shapes,
     berths,
+    shipDocks,
   };
+}
+
+function shipDockHash(key: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) hash = Math.imul(hash ^ key.charCodeAt(i), 16777619);
+  // Mix the full hash, rather than using the low bit of adjacent dock letters.
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x85ebca6b);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 0xc2b2ae35);
+  hash ^= hash >>> 16;
+  return hash >>> 0;
+}
+
+/** Static yard population, keyed by station and dock, never mission seed/time.
+ * Occupancy and model draws are independent; large docks stay empty until
+ * suitable art is available. No save migration or frame-time random choices.
+ */
+export function populateLocalLayoutShips(layout: LocalLayout, stationId: string): LocalLayout {
+  if (!layout.shipDocks?.length) return layout;
+  let byStation = populatedLayouts.get(layout);
+  if (!byStation) { byStation = new Map(); populatedLayouts.set(layout, byStation); }
+  const cached = byStation.get(stationId);
+  if (cached) return cached;
+  const shapes = [...layout.shapes];
+  const parkedShips = layout.shipDocks.map(dock => {
+    const key = `${stationId}/${layout.id}/${dock.id}`;
+    if (dock.lengthMeters > 50 || shipDockHash(`${key}/occupied`) % 2 === 0) return { dockId: dock.id };
+    const asset = SMALL_SHIP_ASSETS[shipDockHash(`${key}/model`) % SMALL_SHIP_ASSETS.length];
+    let ship = parsedShips.get(asset.id);
+    if (!ship) { ship = parseLocalLayout(asset); parsedShips.set(asset.id, ship); }
+    // Supplied ships point up. Uniformly fit their painted bounds in the dock,
+    // then turn the nose to its authored direction (SVG y points down).
+    const scale = Math.min(dock.widthMeters / ship.widthMeters, dock.lengthMeters / ship.heightMeters) * layout.svgUnitsPerMeter;
+    const angle = Math.PI / 2 - dock.noseAngle;
+    const cos = Math.cos(angle) * scale, sin = Math.sin(angle) * scale;
+    const placement = { a: cos, b: sin, c: -sin, d: cos,
+      e: dock.svgCenterX - cos * ship.centerX + sin * ship.centerY,
+      f: dock.svgCenterY - sin * ship.centerX - cos * ship.centerY };
+    for (const shape of ship.shapes) {
+      shapes.push({ ...shape, id: `${dock.id}/${asset.id}/${shape.id}`,
+        transform: multiplyTransforms(placement, shape.transform),
+        collisionPolygon: shape.collisionPolygon?.map(p => transformPoint(placement, p.x, p.y)),
+        strokeCollisionPolygons: shape.strokeCollisionPolygons?.map(polygon => polygon.map(p => transformPoint(placement, p.x, p.y))),
+      });
+    }
+    return { dockId: dock.id, shipId: asset.id };
+  });
+  const populated = { ...layout, shapes, parkedShips };
+  byStation.set(stationId, populated);
+  return populated;
 }
 
 export function localLayoutById(id: string | undefined): LocalLayout | undefined {

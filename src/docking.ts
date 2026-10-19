@@ -3,7 +3,7 @@
 
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
-import { localLayoutById, type LocalLayout, type LocalLayoutShape } from './local-layouts';
+import { localLayoutById, populateLocalLayoutShips, type LocalLayout, type LocalLayoutShape } from './local-layouts';
 
 // ===================== Types =====================
 
@@ -471,6 +471,7 @@ export function createGenericDockingLevel(opts: {
   targetSide?: number;
   targetSlot?: number;
   fillPct?: number;
+  stationId?: string;
   layoutId?: string;
   autoRotate?: boolean;
   rotationDegrees?: number;
@@ -483,7 +484,8 @@ export function createGenericDockingLevel(opts: {
   const targetSpoke = opts.targetSpoke ?? 0;
   const targetSide = opts.targetSide ?? 1;
   const targetSlot = opts.targetSlot ?? 2;
-  const localLayout = localLayoutById(opts.layoutId);
+  const baseLayout = localLayoutById(opts.layoutId);
+  const localLayout = baseLayout ? populateLocalLayoutShips(baseLayout, opts.stationId ?? opts.name) : undefined;
   const randomSeed = opts.randomSeed ?? 42;
   const fixedRotation = ((((opts.rotationDegrees ?? 0) % 360) + 360) % 360) * Math.PI / 180;
   const layoutRotation = localLayout && opts.autoRotate
