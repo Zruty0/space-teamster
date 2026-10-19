@@ -27,11 +27,17 @@ assert(JSON.stringify(base) === original, 'shared base artwork not mutated');
 assert(yard.centerX === base.centerX && yard.centerY === base.centerY && yard.widthMeters === base.widthMeters && yard.heightMeters === base.heightMeters, 'population leaves full yard scale and center unchanged');
 
 function checkGeometry(layout: LocalLayout): void {
+  const baseShapes = layout.shapes.filter(s => !s.id.startsWith('ship-'));
+  assert(JSON.stringify(baseShapes.map(s => s.id)) === JSON.stringify(base.shapes.map(s => s.id)), 'station artwork keeps its original paint order');
   for (const record of layout.parkedShips!) {
     const dock = layout.shipDocks!.find(d => d.id === record.dockId)!;
     const shapes = layout.shapes.filter(s => s.id.startsWith(`${dock.id}/`));
     if (!record.shipId) { assert(shapes.length === 0, 'empty dock has no ship geometry'); continue; }
     assert(dock.lengthMeters <= 50 && shapes.length > 0, 'only supported small docks populated');
+    const first = layout.shapes.indexOf(shapes[0]);
+    const last = layout.shapes.indexOf(shapes[shapes.length - 1]);
+    if (dock.shapeIndex > 0) assert(layout.shapes.indexOf(baseShapes[dock.shapeIndex - 1]) < first, 'ship painted after artwork preceding its marker');
+    if (dock.shapeIndex < baseShapes.length) assert(last < layout.shapes.indexOf(baseShapes[dock.shapeIndex]), 'ship painted before artwork following its marker');
     const dx = Math.cos(dock.noseAngle), dy = -Math.sin(dock.noseAngle); // SVG y down
     const halfLength = dock.lengthMeters * layout.svgUnitsPerMeter / 2;
     const halfWidth = dock.widthMeters * layout.svgUnitsPerMeter / 2;
@@ -55,6 +61,18 @@ function checkGeometry(layout: LocalLayout): void {
   }
 }
 checkGeometry(yard);
+const cShapes = yard.shapes.filter(s => s.id.startsWith('ship-c-nose-down/'));
+const floorIndex = yard.shapes.findIndex(s => s.id === 'rect9');
+assert(yard.shapes[floorIndex].paint.fill === '#2c1111', 'dock interior stays authored dark red, not repainted black');
+for (const shape of cShapes) {
+  assert(floorIndex < yard.shapes.indexOf(shape), 'dock C floor below ship');
+  for (const rib of ['path98', 'path99']) assert(yard.shapes.indexOf(shape) < yard.shapes.findIndex(s => s.id === rib), 'dock C foreground ribs above every ship shape');
+}
+// Marker slots at either end also work; insertion is not tied to Svarog IDs.
+for (const shapeIndex of [0, base.shapes.length]) {
+  const moved = { ...base, shipDocks: base.shipDocks!.map(d => ({ ...d, shapeIndex })) };
+  checkGeometry(populateLocalLayoutShips(moved, stationId));
+}
 
 // Fixed deterministic sample: each dock independently supports empty and every
 // design. Occupancy uses a separate draw from the uniformly indexed model draw.

@@ -73,6 +73,7 @@ export interface LocalLayoutBerth {
 }
 
 export interface LocalLayoutShipDock extends LocalLayoutBerth {
+  shapeIndex: number; // Insert ship before this base shape, preserving SVG paint order.
   widthMeters: number;
   lengthMeters: number;
 }
@@ -459,7 +460,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
   if (parseError) throw new Error(`Invalid local-layout SVG ${asset.id}: ${parseError.textContent ?? 'parse error'}`);
   const shapes: LocalLayoutShape[] = [];
   const berthElements: BerthElement[] = [];
-  const shipElements: BerthElement[] = [];
+  const shipElements: (BerthElement & { shapeIndex: number })[] = [];
   const bounds: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
 
   const visit = (element: Element, parentTransform: LocalLayoutTransform, inheritedPaint: LocalLayoutPaint): void => {
@@ -470,7 +471,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const shipMatch = /^ship-(.+)-nose-(left|right|up|down)$/.exec(id);
     if (shipMatch) {
       if (element.localName !== 'rect') throw new Error(`Local-layout ship dock ${id} must be a rectangle`);
-      shipElements.push({ id, element, direction: shipMatch[2], transform });
+      shipElements.push({ id, element, direction: shipMatch[2], transform, shapeIndex: shapes.length });
       return; // Metadata only: no pink artwork, collision, or station bounds.
     }
     const berthMatch = /^berth-(.+)-nose-(left|right|up|down)$/.exec(id);
@@ -560,7 +561,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const center = transformPoint(transform, x + width / 2, y + height / 2);
     return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction) };
   });
-  const shipDocks: LocalLayoutShipDock[] = shipElements.map(({ id, element, direction, transform }) => {
+  const shipDocks: LocalLayoutShipDock[] = shipElements.map(({ id, element, direction, transform, shapeIndex }) => {
     const x = finiteNumber(element.getAttribute('x') ?? '0', `${id} x`);
     const y = finiteNumber(element.getAttribute('y') ?? '0', `${id} y`);
     const width = finiteNumber(element.getAttribute('width'), `${id} width`);
@@ -569,7 +570,7 @@ function parseLocalLayout(asset: LocalLayoutAsset): LocalLayout {
     const h = transformedVectorLength(transform, 0, height) / svgUnitsPerMeter;
     if (width <= 0 || height <= 0 || Math.min(w, h) <= 0) throw new Error(`Invalid ship dock size: ${id}`);
     const center = transformPoint(transform, x + width / 2, y + height / 2);
-    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction), widthMeters: Math.min(w, h), lengthMeters: Math.max(w, h) };
+    return { id, svgCenterX: center.x, svgCenterY: center.y, noseAngle: berthNoseAngle(direction), shapeIndex, widthMeters: Math.min(w, h), lengthMeters: Math.max(w, h) };
   });
   return {
     id: asset.id,
@@ -606,7 +607,7 @@ export function populateLocalLayoutShips(layout: LocalLayout, stationId: string)
   if (!byStation) { byStation = new Map(); populatedLayouts.set(layout, byStation); }
   const cached = byStation.get(stationId);
   if (cached) return cached;
-  const shapes = [...layout.shapes];
+  const insertions = new Map<number, LocalLayoutShape[]>();
   const parkedShips = layout.shipDocks.map(dock => {
     const key = `${stationId}/${layout.id}/${dock.id}`;
     if (dock.lengthMeters > 50 || shipDockHash(`${key}/occupied`) % 2 === 0) return { dockId: dock.id };
@@ -621,8 +622,10 @@ export function populateLocalLayoutShips(layout: LocalLayout, stationId: string)
     const placement = { a: cos, b: sin, c: -sin, d: cos,
       e: dock.svgCenterX - cos * ship.centerX + sin * ship.centerY,
       f: dock.svgCenterY - sin * ship.centerX - cos * ship.centerY };
+    const shipShapes = insertions.get(dock.shapeIndex) ?? [];
+    insertions.set(dock.shapeIndex, shipShapes);
     for (const shape of ship.shapes) {
-      shapes.push({ ...shape, id: `${dock.id}/${asset.id}/${shape.id}`,
+      shipShapes.push({ ...shape, id: `${dock.id}/${asset.id}/${shape.id}`,
         transform: multiplyTransforms(placement, shape.transform),
         collisionPolygon: shape.collisionPolygon?.map(p => transformPoint(placement, p.x, p.y)),
         strokeCollisionPolygons: shape.strokeCollisionPolygons?.map(polygon => polygon.map(p => transformPoint(placement, p.x, p.y))),
@@ -630,6 +633,14 @@ export function populateLocalLayoutShips(layout: LocalLayout, stationId: string)
     }
     return { dockId: dock.id, shipId: asset.id };
   });
+  // Replace each marker at its original paint position: dock floor first,
+  // ship next, then any authored foreground ribs/gantries. Never append ships
+  // above the whole station or reorder the station's original shapes.
+  const shapes: LocalLayoutShape[] = [];
+  for (let i = 0; i <= layout.shapes.length; i++) {
+    shapes.push(...(insertions.get(i) ?? []));
+    if (i < layout.shapes.length) shapes.push(layout.shapes[i]);
+  }
   const populated = { ...layout, shapes, parkedShips };
   byStation.set(stationId, populated);
   return populated;
