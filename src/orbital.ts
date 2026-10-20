@@ -2689,7 +2689,7 @@ export function renderOrbital(
     rendezvousZoomed = dist < 100_000 && relSpd < level.station.captureMaxSpeed * 10;
     drawStation(ctx, cam, s, level, W, H, rendezvousZoomed);
   }
-  if (!level.surfaceMarkers && !level.station && level.showLandingSite !== false) drawLandingSite(ctx, cam, level, W, H);
+  if (!level.surfaceMarkers && orbitalHasSurfaceObjective(level)) drawLandingSite(ctx, cam, level, W, H);
   if (level.escapeSOIRadius) drawEscapeGuidance(ctx, cam, s, level, W, H);
   if (!rendezvousZoomed) {
     drawOrbitPrediction(ctx, cam, s, level, W, H, atmosphericPackageInstalled);
@@ -3135,17 +3135,29 @@ function drawOrbitingPoiMarkers(
   }
 }
 
+/** Surface sites are local-navigation detail. Orbital flight only shows the
+ * active landing destination, never unrelated ground sites or escape fallbacks.
+ * This affects drawing only, not navigation choices or reentry mechanics.
+ */
+export function orbitalHasSurfaceObjective(level: OrbitalLevel): boolean {
+  return !level.station && level.showLandingSite !== false
+    && !level.targetBodyId && !level.escapeTargetBodyId
+    && level.escapeToOrbitalLevelId === undefined;
+}
+
+export function visibleOrbitalSurfaceMarkers(level: OrbitalLevel): NonNullable<OrbitalLevel['surfaceMarkers']> {
+  if (!orbitalHasSurfaceObjective(level)) return [];
+  const target = level.surfaceMarkers?.find(marker => Math.abs(normalizeAngle(marker.angle - level.landingSiteAngle)) < 1e-5);
+  return target ? [target] : [];
+}
+
 function drawSurfacePoiMarkers(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
   level: OrbitalLevel, W: number, H: number,
 ): void {
-  const markers = level.surfaceMarkers ?? [];
-  if (markers.length === 0) return;
-  for (const marker of markers) {
-    const isTarget = Math.abs(normalizeAngle(marker.angle - level.landingSiteAngle)) < 1e-5 && level.showLandingSite !== false && !level.station;
-    const col = isTarget ? '#00ffcc' : 'rgba(160, 170, 180, 0.75)';
+  for (const marker of visibleOrbitalSurfaceMarkers(level)) {
+    const col = '#00ffcc';
     const surfR = level.planetRadius + (marker.altitude ?? 0);
-    const showLabel = isTarget || marker.labelVisibility !== 'target';
     const labelR = Math.max(level.planetRadius * 0.72, surfR - Math.max(8_000, level.planetRadius * 0.12));
     const sx = surfR * Math.cos(marker.angle);
     const sy = surfR * Math.sin(marker.angle);
@@ -3157,26 +3169,24 @@ function drawSurfacePoiMarkers(
     ctx.beginPath();
     ctx.moveTo(ssx, ssy);
     ctx.lineTo(lsx, lsy);
-    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 204, 0.28)' : 'rgba(160, 170, 180, 0.14)';
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.28)';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 6]);
     ctx.stroke();
     ctx.setLineDash([]);
 
     ctx.beginPath();
-    ctx.arc(ssx, ssy, isTarget ? 4 : 3, 0, Math.PI * 2);
+    ctx.arc(ssx, ssy, 4, 0, Math.PI * 2);
     ctx.fillStyle = col;
     ctx.fill();
 
-    if (showLabel) {
-      const outwardX = lsx - W / 2;
-      ctx.font = isTarget ? 'bold 10px monospace' : '10px monospace';
-      ctx.fillStyle = col;
-      ctx.textAlign = outwardX >= 0 ? 'right' : 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(marker.name.toUpperCase(), lsx, lsy);
-      ctx.textBaseline = 'alphabetic';
-    }
+    const outwardX = lsx - W / 2;
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = col;
+    ctx.textAlign = outwardX >= 0 ? 'right' : 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(marker.name.toUpperCase(), lsx, lsy);
+    ctx.textBaseline = 'alphabetic';
   }
 }
 

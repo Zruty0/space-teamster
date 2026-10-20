@@ -9,6 +9,7 @@
     "test:par": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/mission-cost.test.ts",
     "test:maintenance": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/maintenance-inspection.test.ts",
     "test:acheron": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/acheron.test.ts",
+    "test:orbital-markers": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/orbital-markers.test.ts",
     "test:menus": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/menu-layout.test.ts",
     "test:stations": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/station-layout.test.ts && node tests/run-equipment.mjs tests/parked-ships.test.ts",
     "preview": "vite preview"
