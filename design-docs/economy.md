@@ -63,7 +63,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | New Canaan Miners Mutual | 0.60 + 0.45 (+5%) | emergency 0.85 + 0.45 (+30%); exports 0.70 + 0.35 (+5%) |
 | Teamsters' Guild | 0.85 + 0.40 (+25%) | paperwork 0.90 + 0.35 (+25%); staging 1.30 + 0.15 (+45%); skim 1.70 + 0 (+70%) |
 | Bruckner Field Services | 0.80 + 0.45 (+25%) | returns 1.20 + 0.25 (+45%); crew passengers 0.50 + 0.60 (+10%) |
-| Cerberus Human Resources | 0.85 + 0.40 (+25%) | rare-metal/corporate 1.20 + 0.25 (+45%); hydrogen/Pandemonium 1.25 + 0.20 (+45%); people 0.50 + 0.60 (+10%) |
+| Cerberus Human Resources | 0.85 + 0.40 (+25%) | rare-metal/corporate 1.20 + 0.25 (+45%); workforce manifests 1.25 + 0.20 (+45%); people 0.50 + 0.60 (+10%) |
 | Kisaragi Yards Estella | 0.80 + 0.45 (+25%) | freight-only |
 | Voss-Heinkel Metricwerke | 1.55 + 0 (+55%) | hazard returns 1.70 + 0 (+70%); people 1.15 + 0 (+15%) |
 | Kisaragi Harmony Yards | 1.50 + 0 (+50%) | Celadon 1.70 + 0 (+70%); people 1.20 + 0 (+20%) |
@@ -308,6 +308,8 @@ Cerberus Human Resources is a vertically integrated extraction, custody, and lab
 
 Acheron Commercial Hub and Olympos serve different business roles. The Commercial Hub is the offworld interface: customs, staging, brokerage, inspection, paperwork, and routine transshipment. Olympos is the city and headquarters: high-value direct delivery, CHR offices, Carbonvale production, Paradiso luxury demand, executive traffic, and the atmospheric interface to the Pandemonium chain. When CHR templates point at Acheron destinations, their intended destination mix is roughly 60% Commercial Hub, 30% Olympos, and 10% Pandemonium.
 
+Pandemonium's ordinary flight traffic is personnel and heavy equipment inbound, metals outbound. Its workers self-govern under Thomas Thorne; CHR controls resources from Olympos rather than staffing a surface prison. Hydrogen is strictly rationed and delivered by the Olympos tether, not public flight contracts. Nimbus supplies Olympos locally in background logistics; direct Nimbus–Pandemonium aid is reserved for a later vignette. CHR imports industrial H2 from Gryphon Aerie directly to Olympos through ordinary freight contracts, separate from Guild fuel. Avoid routine same-body surface-to-surface postings; orbital Hub–surface work remains valid.
+
 ### Business needs
 
 Inbound custody/workforce traffic:
@@ -319,8 +321,9 @@ Inbound custody/workforce traffic:
 
 Surface operations inputs:
 
-- surface hydrogen ration tanks
 - deep-pressure valve assemblies
+- mining cutting assemblies
+- industrial pressure seal crates
 - acid-rated lift bearings
 - executive medicine lockers
 - other pressure/chain/smelter equipment
@@ -350,7 +353,7 @@ Acheron-local transshipment:
 - rare-metal export staging pallets
 - Carbonvale export lots
 - pressure-chain equipment pallets
-- local hospitality, medicine, audit, hydrogen, and surface-labor staging
+- local hospitality, medicine, audit, and orbital custody staging
 
 ### Current route families
 
@@ -376,9 +379,9 @@ Custody/workforce destinations:
 
 Acheron-local traffic:
 
-- `estella-ii-commercial-hub-dock` -> `estella-ii-olympos`: custody processing passengers, pressure-chain equipment pallets, Paradiso hospitality cargo, executive medicine lockers, sealed audit records, surface hydrogen ration tanks
+- `estella-ii-commercial-hub-dock` -> `estella-ii-olympos`: custody processing passengers, pressure-chain equipment pallets, Paradiso hospitality cargo, executive medicine lockers, sealed audit records
 - `estella-ii-olympos` -> `estella-ii-commercial-hub-dock`: workforce transfer manifests, rare-metal export staging pallets, Carbonvale export lots, shareholder packets, sealed legal archives
-- `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-ii-pandemonium`: surface labor allocation and surface hydrogen ration tanks
+- `estella-ii-commercial-hub-dock` -> `estella-ii-pandemonium`: surface labor allocation (orbital intake, not a surface-to-surface shuttle)
 - `estella-ii-pandemonium` -> `estella-ii-commercial-hub-dock`: rare-metal export staging pallets
 
 Carbonvale and Olympos exports:
@@ -391,7 +394,7 @@ Carbonvale and Olympos exports:
 Rare-metal/surface exports:
 
 - Acheron surface-ops nodes -> `estella-iii-high-tech-city`: platinum-group metal ingots
-- Acheron surface-ops nodes -> Mosaic Assembly Lab (`estella-vii-high-vacuum-factory`): silica crystal stock
+- Acheron corporate nodes (Commercial Hub/Olympos) -> Mosaic Assembly Lab (`estella-vii-high-vacuum-factory`): silica crystal stock; not direct Pandemonium flight cargo
 - Acheron surface-ops nodes -> `estella-vi-heavy-cargo-station` (Kuznia membrane): pressure-mined rare metal pallets
 
 Surface operations inputs:
@@ -399,7 +402,12 @@ Surface operations inputs:
 - `estella-vi-heavy-cargo-station` (Kuznia membrane) -> Acheron surface-ops nodes: deep-pressure valve assemblies
 - `estella-via-component-supply-station` / `estella-via-drydock-station` -> `estella-ii-olympos`: acid-rated lift bearings
 - `estella-vib-cold-chain-station` -> `estella-ii-olympos` / `estella-ii-commercial-hub-dock`: executive medicine lockers
-- `estella-ii-nimbus-crucible` / `estella-ii-commercial-hub-dock` / `estella-ii-olympos` -> `estella-ii-pandemonium`: surface hydrogen ration tanks
+- Hammer Station -> Pandemonium: mining cutting assemblies
+- Hammer Station / Veles Terminal -> Pandemonium: industrial pressure seal crates
+- Gryphon Aerie (`estella-x-observation-skim-hub`) -> Olympos: industrial hydrogen tanks, ordinary CHR freight economics (`0.85+0.40`, cap2)
+- No public H2 flight to Pandemonium and no public Nimbus–Pandemonium route. Legitimate local hydrogen transfers are background logistics.
+
+Pandemonium arrivals use approved worker-led completion scenes: personnel, cutting assemblies, or industrial parts. Metal-export pickup prose appears in posting Details; offworld receiving messages remain at the destination. The terminal and catalog use the approved location introduction. Thorne is named in contact markup; no warden/compliance-officer reception or Renard-secret disclosure. Existing accepted contracts/history are not rewritten.
 
 Corporate/governance/luxury:
 

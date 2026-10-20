@@ -52,7 +52,7 @@ Pandemonium has no ability to produce hydrogen of its own. The only conceivable 
 
 This may seem unfair. That is the point. In this way, Olympos is able to maintain a profit margin on precious metal extraction that makes even asteroid-extraction companies blush, and all simply at the cost of matter that makes up nearly three-quarters of all matter in the universe -- except on Acheron of course.
 
-All transport to and from Pandemonium is done by this chain. Due to the adverse conditions, any starship traversals are nearly impossible -- except for the most skilled pilots. The CHR's control over access to Pandemonium is in this way almost absolute.
+The chain carries the bulk exchange, and all of CHR's strictly rationed hydrogen allocation descends from Olympos by this tether. Direct spacecraft access is extraordinarily difficult but remains available to skilled Teamsters: personnel and heavy equipment come in, metals go out. Ordinary contracts do not deliver hydrogen to Pandemonium. Its workers govern themselves under Thomas Thorne; their deprivation is maintained by CHR's control of necessary resources, not onsite wardens.
 
 Almost.
 
@@ -63,6 +63,8 @@ Far deeper in the atmosphere, indeed within the sulfuric acid clouds, one finds 
 It is a relatively "small" place. It is barely a kilometer across, mostly automated, and has a crew of only perhaps forty, ten of which are actual workers and the rest a staff of researchers under the direction of the administrator, Dr. Colette Renard, climatologist and planetologist.
 
 Dr. Renard's official mission is simple: see if Acheron can become another Earth-Like world with the correct support -- whether it will take an L1-shade, or whatever, the Union's goals are clear.
+
+Nimbus's legitimate hydrogen output supplies Olympos as background local logistics. Olympos also receives imported industrial hydrogen from Gryphon Aerie, the inner Wells gas-skimming hub, through CHR procurement contracts. These imports are distinct from Guild fuel. Ordinary same-body surface-to-surface shuttles are avoided; direct Nimbus–Pandemonium assistance belongs to a later special mission introducing the conflict, not the rotating public board.
 
 Nimbus Crucible is perhaps the simplest place of Acheron -- a research and resource gathering station. That's all it is. Honest.
 

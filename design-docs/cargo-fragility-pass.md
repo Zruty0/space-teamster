@@ -1,6 +1,6 @@
 # Estella Cargo Fragility Pass
 
-Inventory: 414 authored and generated cargo labels. Fragility applies independently of volatile/passenger handling.
+Original inventory: 414 authored and generated cargo labels, with later additions below. The live catalog is `src/cargo-handling.ts`. Fragility applies independently of volatile/passenger handling.
 
 | Cargo type | Classification | Condition-risk fraction | Modifier |
 |---|---|---:|---|
@@ -179,6 +179,8 @@ Inventory: 414 authored and generated cargo labels. Fragility applies independen
 | imported refractory feedstock | Ordinary | — | — |
 | incident review board | Ordinary | — | — |
 | incident review evidence crates | Fragile | 50% | in a shock-absorbing container |
+| industrial hydrogen tanks | Ordinary | — | — |
+| industrial pressure seal crates | Ordinary | — | — |
 | industrial lubricant drums | Ordinary | — | — |
 | industrial oxygen bottles | Ordinary | — | — |
 | industrial sulfur lots | Ordinary | — | — |
@@ -220,6 +222,7 @@ Inventory: 414 authored and generated cargo labels. Fragility applies independen
 | metric field coil cartridge | Fragile | 55% | in a shock-absorbing container |
 | metric-drive audit team | Ordinary | — | — |
 | metric-drive dealer inventory | Ordinary | — | — |
+| mining cutting assemblies | Ordinary | — | — |
 | mining supplies | Ordinary | — | — |
 | nickel concentrate | Ordinary | — | — |
 | nickel ingots | Ordinary | — | — |

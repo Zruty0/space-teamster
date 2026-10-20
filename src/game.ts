@@ -35,6 +35,7 @@ import {
 import { bodyById, bodyStateRelativeToParent, stellarDistanceFromBody } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { estellaDisplayPath } from './content/estella/navigation';
+import { ESTELLA_LOCATION_INTRODUCTIONS } from './content/estella/location-copy';
 import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
@@ -2494,11 +2495,13 @@ export class Game {
       if (shop) return this.maintenanceShopScene(state, shop, locationPath);
     }
     if (state.id === 'stationTerminal') {
+      const introduction = ESTELLA_LOCATION_INTRODUCTIONS[this.career.locationId];
       return {
         title: 'STATION TERMINAL',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
         bodyRows: [
           { kind: 'text', text: 'Teamsters’ Guild account authenticated.', tone: 'success' },
+          ...(introduction ? [{ kind: 'text' as const, text: introduction }] : []),
           { kind: 'kv', label: 'Location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
