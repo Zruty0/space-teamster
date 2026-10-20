@@ -63,7 +63,11 @@ function checkGeometry(layout: LocalLayout): void {
 checkGeometry(yard);
 const cShapes = yard.shapes.filter(s => s.id.startsWith('ship-c-nose-down/'));
 const floorIndex = yard.shapes.findIndex(s => s.id === 'rect9');
-assert(yard.shapes[floorIndex].paint.fill === '#2c1111', 'dock interior stays authored dark red, not repainted black');
+for (const id of ['rect1', 'rect8', 'rect9', 'rect10', 'rect11']) {
+  const interior = yard.shapes.find(s => s.id === id)!;
+  assert(interior.paint.fill === '#000000', 'all five external dock interiors are black');
+  assert(interior.paint.stroke === '#823131', 'external dock borders retain their authored color');
+}
 for (const shape of cShapes) {
   assert(floorIndex < yard.shapes.indexOf(shape), 'dock C floor below ship');
   for (const rib of ['path98', 'path99']) assert(yard.shapes.indexOf(shape) < yard.shapes.findIndex(s => s.id === rib), 'dock C foreground ribs above every ship shape');

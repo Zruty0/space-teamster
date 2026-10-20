@@ -959,7 +959,7 @@
        inkscape:original-d="m 371.33165,443.44158 v -220 h 100 v 20 h -30 v 20 h 30 v 20 h -30 v 20 h 30 v 20 h -30 v 20 h 30 v 20 h -30 v 20 h 30 v 20 h -30 v 20 h 30 v 20 z"
        transform="translate(-52.91667,211.66674)" />
     <rect
-       style="fill:#2c1111;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
        id="rect1"
        width="170.4847"
        height="64.457367"
@@ -967,7 +967,7 @@
        y="101.47492"
        ry="10" />
     <rect
-       style="fill:#2c1111;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
        id="rect8"
        width="170.4847"
        height="64.457367"
@@ -975,7 +975,7 @@
        y="101.47492"
        ry="10" />
     <rect
-       style="fill:#2c1111;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
        id="rect9"
        width="86.38353"
        height="55.232052"
@@ -984,7 +984,7 @@
        transform="rotate(-90)"
        ry="10" />
     <rect
-       style="fill:#2c1111;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
        id="rect10"
        width="101.67799"
        height="55.069271"
@@ -993,7 +993,7 @@
        transform="rotate(-90)"
        ry="10" />
     <rect
-       style="fill:#2c1111;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#823131;stroke-width:2.5;stroke-dasharray:none;stroke-opacity:1"
        id="rect11"
        width="86.38353"
        height="55.232052"
