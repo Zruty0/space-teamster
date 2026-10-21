@@ -177,6 +177,11 @@ for (const elapsed of [0, year / 4]) {
   const r = recorder();
   renderOrbital(r.ctx, game.canvas, createOrbitalCamera(systemVisit), systemState, systemVisit, elapsed);
   assert(r.calls.some(c => c[0] === 'rotate' && c[1] === -frozenAngle), 'system marker uses same static-entry rule');
+  const hint = r.calls.findIndex(c => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === '#ffb448');
+  assert(hint >= 0, 'tiny system marker retains orange Eye hint');
+  const hintStroke = r.calls.findIndex((c, i) => i > hint && c[0] === 'stroke');
+  const laterStroke = r.calls.findIndex((c, i) => i > hintStroke && c[0] === 'stroke');
+  assert(laterStroke < 0 || r.calls.slice(hintStroke + 1, laterStroke).some(c => c[0] === 'beginPath'), 'generic body border cannot repaint the orange Eye path white');
 }
 const beforeRendezvous = new Set(ORBITAL_LEVELS.map(l => l.id));
 createPlayableEstellaMission('estella-vi-heavy-cargo-station', 'estella-i-transit-customs', undefined, 602);

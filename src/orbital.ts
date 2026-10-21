@@ -2951,10 +2951,10 @@ function drawSystemBodies(
       ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
       ctx.fill();
       if (isGasGiantBodyId(body.id)) drawGasGiantBands(ctx, bx, by, br, body.color);
+      ctx.strokeStyle = `rgba(255,255,255,0.35)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
-    ctx.strokeStyle = `rgba(255,255,255,0.35)`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
 
     if (isTargetBody) {
       const patchR = (body.displayPatchRadius ?? body.patchRadius) * cam.zoom;
