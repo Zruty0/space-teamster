@@ -50,9 +50,11 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'low',
     orbit: { kind: 'circular', radius: 225_000, altitude: 75_000, epochAngle: 0.2, epochTime: 0, orbitSense: -1 },
   },
-  'estella-i-worker-hab': { kind: 'surface', parentId: 'estella-i', angle: -2.2, side: 'night' },
-  'estella-i-refractory-mine': { kind: 'surface', parentId: 'estella-i', angle: -0.2, side: 'terminator' },
-  'estella-i-hot-processing': { kind: 'surface', parentId: 'estella-i', angle: 0.35, side: 'terminator' },
+  // Balor longitudes are relative to the Eye (+X), oriented once per orbital
+  // visit. All three sites remain on solid ground; no continuously rotating LZ.
+  'estella-i-worker-hab': { kind: 'surface', parentId: 'estella-i', angle: -2.6, side: 'night' },
+  'estella-i-refractory-mine': { kind: 'surface', parentId: 'estella-i', angle: -0.35, side: 'day' },
+  'estella-i-hot-processing': { kind: 'surface', parentId: 'estella-i', angle: -1.65, side: 'terminator' },
 
   'estella-ii': {
     kind: 'orbit',

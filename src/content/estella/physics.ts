@@ -48,8 +48,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
   'estella-i': {
     radius: 150_000,
     gm: 3.7 * 150_000 * 150_000,
-    rotationPeriod: 42_000,
-    notes: 'Small hot inner airless world; Mercury-like surface gravity, gameplay-scaled.',
+    notes: 'Balor lava-eye world; Mercury-like surface gravity, gameplay-scaled. Sun-facing orientation is sampled on orbital entry and frozen for the visit; no continuous spin.',
   },
   'estella-ii': {
     radius: 320_000,

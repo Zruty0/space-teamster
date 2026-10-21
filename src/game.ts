@@ -1,6 +1,7 @@
 // Game loop, state machine, collision detection, level management.
 
 import { config } from './config';
+import { BALOR_BODY_ID, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from './balor-orientation';
 import { InputState, readInput } from './input';
 import {
   ShipState, createShip, updateShip,
@@ -588,7 +589,7 @@ export class Game {
   }
 
   private loadOrbital(level: OrbitalLevel, initOverride?: OrbitalInitOverride, worldTimeStart: number = this.worldTime): void {
-    level = { ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) };
+    level = orientBalorOrbitalVisit({ ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) }, initOverride?.time ?? worldTimeStart);
     const effectiveInit = initOverride ? { ...initOverride, time: initOverride.time ?? worldTimeStart } : this.dynamicOrbitalStart(level, worldTimeStart);
     const os = createOrbitalState(level, effectiveInit);
     const cam = createOrbitalCamera(level);
@@ -1808,9 +1809,10 @@ export class Game {
       : APPROACH_LEVELS[p.level.approachLevelIdx];
     if (!approachLevel || approachLevel.departure || approachLevel.body.id !== p.level.bodyId) return null;
     const params = orbitalToApproachParams(p.os, p.level);
+    const orientedApproach = orientBalorApproach(approachLevel, p.level.balorEyeAngle);
     return this.makeTransition(
       role,
-      () => this.loadApproach(approachLevel, params, p.os.time),
+      () => this.loadApproach(orientedApproach, params, p.os.time),
       role === 'contingency' ? (p.level.atmoHeight > 0 ? 'Entering atmosphere' : 'Entering approach') : 'Deorbit corridor acquired',
       role === 'contingency' ? 'This is not the primary objective for the current orbital phase.' : `Descending toward ${approachLevel.poi.name}.`,
     );
@@ -1845,10 +1847,17 @@ export class Game {
   private transitionApproachToOrbital(p: Extract<Phase, { kind: 'approach' }>, role: TransitionRole = 'success'): PhaseTransition | null {
     const orbitalLevelId = p.level.departure?.orbitalLevelId ?? p.level.returnToOrbital?.orbitalLevelId;
     if (!orbitalLevelId) return null;
-    const orbitalLevel = orbitalLevelById(orbitalLevelId);
+    let orbitalLevel = orbitalLevelById(orbitalLevelId);
     if (!orbitalLevel || orbitalLevel.bodyId !== p.level.body.id) return null;
-    const init = this.approachToOrbitalInit(p.level, p.as, orbitalLevel);
+    let init = this.approachToOrbitalInit(p.level, p.as, orbitalLevel);
     const worldTime = p.worldTimeStart + this.time;
+    if (p.level.body.id === BALOR_BODY_ID) {
+      orbitalLevel = orientBalorOrbitalVisit(orbitalLevel, worldTime, p.level.balorEyeAngle);
+      // First ascent was simulated in canonical ground coordinates. Enter the
+      // chosen inertial orientation once, preserving altitude, velocity and LZ
+      // offset. A return from descent already has that frame and must not turn.
+      if (p.level.balorEyeAngle === undefined) init = rotateBalorDeparture(init, orbitalLevel.balorEyeAngle!);
+    }
     return this.makeTransition(
       role,
       () => this.loadOrbital(orbitalLevel, init, worldTime),

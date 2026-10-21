@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Balor Eye — desktop rendering fixture</title>
+<style>body{margin:0;background:#080d15;color:#c4d0dd;font:14px monospace}h1{margin:24px 30px 8px;font-size:23px}p{margin:8px 30px}#views{display:flex;gap:16px;margin:22px 30px}canvas{display:block}h2{font-size:15px;font-weight:normal;color:#8fa0b4}#status{color:#ffbd4b}</style>
+<h1>BALOR — STATIC ENTRY-ORIENTED EYE</h1>
+<p>30° total surface arc (±15°). No animation, no atmospheric halo. Desktop-only visual fixture.</p>
+<p id="status">Loading…</p>
+<div id="views"><section><h2>ART / ORIENTATION / SMALL-MARKER DETAIL</h2><canvas id="art" width="580" height="690"></canvas></section><section><h2>PRODUCTION ORBITAL VIEW — SHADE APPROACH</h2><canvas id="orbit" width="580" height="690"></canvas></section></div>
+<script type="module">
+import { drawBalorDisc } from '/src/balor-appearance.ts';
+import { orientBalorOrbitalVisit } from '/src/balor-orientation.ts';
+import { createPlayableEstellaMission } from '/src/estella-playable.ts';
+import { ORBITAL_LEVELS, createOrbitalState, renderOrbital } from '/src/orbital.ts';
+try {
+  let checks = 0;
+  const assert = (ok, message) => { if (!ok) throw new Error(message); checks++; };
+  const probe = document.createElement('canvas'); probe.width = probe.height = 512;
+  const px = probe.getContext('2d');
+  for (const angle of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+    px.clearRect(0, 0, 512, 512);
+    drawBalorDisc(px, 256, 256, 220, angle);
+    const color = (r) => px.getImageData(Math.round(256 + r * Math.cos(angle)), Math.round(256 - r * Math.sin(angle)), 1, 1).data;
+    const hot = color(217), cold = color(-180), outside = color(227);
+    const inward = color(200);
+    assert(inward[0] < 100, 'lava confined to narrow sunward rim, not broad hemisphere');
+    assert(hot[0] > 180 && hot[0] > hot[1] && hot[1] > hot[2], 'sunward lava color');
+    assert(cold[0] < 65 && cold[1] < 65 && cold[2] < 65, 'charcoal night side');
+    assert(outside[3] === 0, 'no off-limb halo');
+    const before = px.getImageData(0, 0, 512, 512).data.slice();
+    px.clearRect(0, 0, 512, 512); drawBalorDisc(px, 256, 256, 220, angle);
+    const after = px.getImageData(0, 0, 512, 512).data;
+    assert(before.every((v,i) => v === after[i]), 'repeat pixels identical');
+  }
+  const art = document.querySelector('#art'), ctx = art.getContext('2d');
+  ctx.fillStyle = '#030308'; ctx.fillRect(0,0,580,690);
+  drawBalorDisc(ctx, 290, 245, 220, 0.45);
+  for (let i=0;i<4;i++) drawBalorDisc(ctx, 80 + i*140, 550, 48, i*Math.PI/2);
+  [3,5,8,12,18,28].forEach((r,i) => drawBalorDisc(ctx, 110+i*75, 650, r, 0.6));
+  createPlayableEstellaMission('estella-i-transit-customs','estella-i-worker-hab',undefined,777);
+  const raw = ORBITAL_LEVELS.find(l => l.bodyId === 'estella-i' && l.reentryApproachLevelId !== undefined);
+  const level = orientBalorOrbitalVisit(raw, 0);
+  const state = createOrbitalState(level, { x: 200000, y: 100000, vx: -250, vy: 500, time: 0 });
+  const canvas = document.querySelector('#orbit');
+  renderOrbital(canvas.getContext('2d'), canvas, { x: 0, y: 0, zoom: 0.00145 }, state, level, 0);
+  document.querySelector('#status').textContent = `PASS — ${checks} real-canvas pixel checks (orientation, color, clipping, determinism).`;
+  document.querySelector('#status').style.color = '#00ffcc';
+  window.balorPreview = { checks, passed: true };
+} catch (error) {
+  document.querySelector('#status').textContent = `FAIL — ${error.stack}`;
+  window.balorPreview = { passed: false, error: String(error) };
+  throw error;
+}
+</script>

@@ -4,6 +4,8 @@
 import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
+import { drawBalorDisc } from './balor-appearance';
+import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-orientation';
 import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 import { advanceTemperature } from './thermal';
@@ -46,6 +48,8 @@ export interface OrbitalLevel {
   atmoColor: [number, number, number]; // RGB for atmosphere tint
   planetFillColor?: string;
   planetStrokeColor?: string;
+  /** Frozen sun-facing angle for this orbital visit; also orients Balor's ground sites. */
+  balorEyeAngle?: number;
 
   // Time scaling: "1x" display = baseTimeScale × real physics rate
   // This makes orbits visually fast while keeping velocities realistic
@@ -175,6 +179,8 @@ export interface OrbitalState {
 
   // Time
   time: number;        // physics time
+  /** Entry-time snapshot, never advanced by physics or rendering. */
+  balorEyeAngle?: number;
   realTime: number;    // wall-clock time (for trail)
   timeWarp: number;    // user-controlled multiplier (displayed)
   timeWarpLevel: number; // index into WARP_SPEEDS
@@ -1029,6 +1035,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     trail: [],
     trailIdx: 0,
     time: initTime,
+    balorEyeAngle: level.balorEyeAngle ?? ((level.bodyId === BALOR_BODY_ID || level.systemBodies?.some(body => body.id === BALOR_BODY_ID)) ? balorEyeAngleAt(initTime) : undefined),
     realTime: 0,
     timeWarp: 1,
     timeWarpLevel: 0,
@@ -2081,7 +2088,7 @@ function hybridizeApproachPrediction(
     ? approachLevelById(level.reentryApproachLevelId)
     : APPROACH_LEVELS[level.approachLevelIdx];
   if (!authoredApproach || authoredApproach.departure || authoredApproach.body.id !== level.bodyId) return pred;
-  const approachLevel = { ...authoredApproach, thermalLoadMultiplier: level.thermalLoadMultiplier };
+  const approachLevel = { ...orientBalorApproach(authoredApproach, level.balorEyeAngle), thermalLoadMultiplier: level.thermalLoadMultiplier };
 
   const init = orbitalToApproachParams({
     x: pred.approachStart.x,
@@ -2673,7 +2680,7 @@ export function renderOrbital(
   ctx.fillRect(0, 0, W, H);
 
   drawStars(ctx, W, H);
-  drawPlanet(ctx, cam, level, W, H);
+  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle);
   drawAtmosphere(ctx, cam, level, W, H);
   if (level.systemBodies) drawSystemBodies(ctx, cam, s, level, W, H);
   else drawCentralBodyLabel(ctx, cam, level, W, H);
@@ -2752,9 +2759,13 @@ function drawGasGiantBands(ctx: CanvasRenderingContext2D, cx: number, cy: number
 
 function drawPlanet(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  level: OrbitalLevel, W: number, H: number,
+  level: OrbitalLevel, W: number, H: number, balorEyeAngle?: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
+  if (level.bodyId === BALOR_BODY_ID) {
+    drawBalorDisc(ctx, cx, cy, level.planetRadius * cam.zoom, level.balorEyeAngle ?? balorEyeAngle ?? 0);
+    return;
+  }
   const isStar = bodyById(level.bodyId).id === 'estella';
   const r = isStar ? Math.max(level.planetRadius * cam.zoom, 8) : level.planetRadius * cam.zoom;
 
@@ -2903,7 +2914,7 @@ function drawSystemBodies(
   s: OrbitalState, level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  drawPlanet(ctx, cam, level, W, H);
+  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle);
   drawCentralBodyLabel(ctx, cam, level, W, H);
   if (farSystemView(level)) drawFarSystemBands(ctx, cam, W, H);
   else drawAsteroidBelt(ctx, cam, level, W, H);
@@ -2932,11 +2943,15 @@ function drawSystemBodies(
       : body.gm === 0
         ? Math.min(8, Math.max(4, body.radius * cam.zoom))
         : Math.min(10, Math.max(3, body.radius * cam.zoom));
-    ctx.beginPath();
-    ctx.arc(bx, by, br, 0, Math.PI * 2);
-    ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
-    ctx.fill();
-    if (isGasGiantBodyId(body.id)) drawGasGiantBands(ctx, bx, by, br, body.color);
+    if (body.id === BALOR_BODY_ID) {
+      drawBalorDisc(ctx, bx, by, br, level.balorEyeAngle ?? s.balorEyeAngle ?? 0);
+    } else {
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+      ctx.fill();
+      if (isGasGiantBodyId(body.id)) drawGasGiantBands(ctx, bx, by, br, body.color);
+    }
     ctx.strokeStyle = `rgba(255,255,255,0.35)`;
     ctx.lineWidth = 1;
     ctx.stroke();

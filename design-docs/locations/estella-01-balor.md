@@ -4,7 +4,9 @@ Updated: 2026-10-20
 
 ## Approved identity
 
-Airless, tidally locked inner planet with a permanent substellar magma sea: the lava eye. Solid hotter terrain surrounds the eye, with cooler margins and a sheltered night side. Tidal locking alone does not melt the surface; sufficient stellar heating is part of the intended setting. The lava eye is Balor's main visual feature.
+Airless, tidally locked inner planet with a permanent substellar magma sea: the lava eye. Its visible surface arc is about30° total (±15° from the substellar point), not a molten hemisphere. Solid hotter terrain surrounds the eye, with cooler margins and a sheltered night side. Tidal locking alone does not melt the surface; sufficient stellar heating is part of the intended setting. The lava eye is Balor's main visual feature.
+
+Presentation rule: orient the Eye toward Estella when the orbital view is first entered, using entry world time, then freeze it for the visit. No continuous planet rotation or lava animation. Retry and a descent/return detour preserve the same snapshot. A fresh visit can have a different orientation.
 
 Industry and skim-work services define the inhabited planet. No observatory. The hostile environment contrasts with a competent, professional and rewarding place to work.
 
@@ -40,4 +42,6 @@ BAM operates both industrial sites. Detailed ownership/governance of Shade and B
 
 This pass implements names, site summaries/tags and the four-destination catalog. Existing Guild/Bruckner/VHM work resolves the renamed endpoints through unchanged IDs. The observatory node, placement and flight profile are removed; old career locations there resolve to Shade on load, preserving finances, rig, time, certifications and other state. Historical records are not rewritten; no live save is edited by the development tools.
 
-BAM contract provider, new cargo roster,50/50 routing distribution and detailed recruitment/dialogue copy are not implemented in this naming pass. Current rotation period42000s, surface coordinates and planet rendering are unchanged. Tidally locked orientation, lava-eye artwork and geographic alignment are the next planet-visuals discussion, not a claimed finished simulation.
+BAM contract provider, new cargo roster,50/50 routing distribution and detailed recruitment/dialogue copy remain unimplemented.
+
+The subsequent Eye pass adds a shared procedural Canvas appearance to local orbit and small system markers. The old42000s spin metadata is removed. Canonical site longitudes are now Eye-relative: Extraction One−0.35rad (solid ground just outside the small cap), Foundry One−1.65rad (cooler margin), Shade−2.6rad (night side). The entry snapshot rotates these markers and the landing reference together; descent inherits the frame, and first ascent transforms its canonical ship position/velocity once at orbital entry. No moving ground, angular surface velocity, new heat/collision rules or historical/save rewrites. See [Balor Eye rendering](../balor-eye.md).

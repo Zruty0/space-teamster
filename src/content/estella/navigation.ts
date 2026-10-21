@@ -71,7 +71,7 @@ function placementDetail(node: WorldNode): string {
   if (placement.kind === 'aboard') return `Aboard ${ESTELLA_NODES_BY_ID.get(placement.parentId)?.name ?? placement.parentId}`;
   if (placement.kind === 'surface') {
     const angle = placement.angle === undefined ? 'angle pending' : `${(placement.angle * 180 / Math.PI).toFixed(1)}°`;
-    return `Surface site, ${angle}`;
+    return `Surface site, ${angle}${placement.parentId === 'estella-i' ? ' from the Eye' : ''}`;
   }
   if (placement.kind === 'cluster-member') return `Cluster coordinates (${placement.x.toFixed(0)}, ${placement.y.toFixed(0)})`;
   if (placement.kind === 'orbit') {

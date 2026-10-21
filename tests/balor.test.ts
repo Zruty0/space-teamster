@@ -31,7 +31,7 @@ assert(estellaFolderEntries('node:estella-i').length === 4, 'planet folder conta
 assert(SURFACE_POIS.filter(p => p.bodyId === 'estella-i').length === 3, 'three gameplay surface sites');
 assert(!ESTELLA_NODES_BY_ID.has(retired) && !nav.some(n => n.id === retired) && !SURFACE_POIS.some(p => p.id === retired), 'observatory removed from all catalogs');
 assert(!ESTELLA_PLACEMENTS[retired] && !ESTELLA_SURFACE_FLIGHT_PROFILES[retired], 'no orphaned observatory overlays');
-assert(ESTELLA_BODY_PHYSICS['estella-i']?.rotationPeriod === 42000, 'rotation intentionally unchanged until planet-visuals work');
+assert(ESTELLA_BODY_PHYSICS['estella-i']?.rotationPeriod === undefined, 'Balor has no continuous-spin metadata; orientation is snapshotted on entry');
 const game: any = Object.create(Game.prototype);
 game.worldTime = 0;
 let boardRows = 0;

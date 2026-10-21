@@ -26,6 +26,8 @@ export interface ApproachLevel {
   body: BodyDef;
   poi: SurfacePoiDef;
   frame: ApproachFrame;
+  /** Inherited from the orbital visit so descent/return uses the same fixed ground. */
+  balorEyeAngle?: number;
   gravity: number;
   startX: number;
   startY: number;
