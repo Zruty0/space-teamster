@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { ESTELLA_NODES_BY_ID } from '..';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { SHADE } from '../balor-logistics';
+import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+
 const MERREN_ID = 'merren-conservatory';
 const MERREN_NAME = 'Merren Conservatory';
 const MERREN_TAG = 'MERREN';
@@ -558,6 +561,23 @@ function specialists(sourceId: string, day: number): FactionContractCandidate[] 
   })];
 }
 
+// Targeted Shade sales/returns, not a new passenger-network destination pool.
+const BALOR_LANES: BalorTradeLane[] = [
+  ...['cultured game-bird cuts', 'cultured delicacy stock', 'bespoke medical nutriments', 'rare medicinal cultivars', 'sealed floral conservatory stock'].map<BalorTradeLane>(label => ({
+    id: 'shade-export', surface: SHADE, externalId: KALYNA_ORBITAL, direction: 'in' as const,
+    label, massClass: 'light' as const, likelihood: 0.7, purpose: 'Shade food, clinic or sheltered-conservatory order.',
+  })),
+  { id: 'shade-cassette-return', surface: SHADE, externalId: KALYNA_ORBITAL, direction: 'out', label: 'reusable cold-chain cassettes', massClass: 'standard', likelihood: 0.5, purpose: 'Return packaging for sterilization and reuse.' },
+  { id: 'shade-frame-return', surface: SHADE, externalId: KALYNA_ORBITAL, direction: 'out', label: 'conservatory transport frames', massClass: 'standard', likelihood: 0.35, purpose: 'Return conservatory transport equipment.' },
+];
+function balorConservatoryContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+  return BALOR_LANES.flatMap(lane => balorTradeContracts(ctx, {
+    factionId: MERREN_ID, factionName: MERREN_NAME, factionTag: MERREN_TAG,
+    issuerName: lane.direction === 'out' ? 'Merren Conservatory Return Custody' : 'Merren Conservatory Export House',
+    ...(lane.direction === 'out' ? INTERNAL_PAY : PREMIUM_OUTPUT.some(c => c.label === lane.label) ? PREMIUM_PAY : STANDARD_PAY),
+  }, [lane]));
+}
+
 export const MERREN_CONSERVATORY_PROVIDER: FactionContractProvider = {
   id: MERREN_ID,
   name: MERREN_NAME,
@@ -572,6 +592,7 @@ export const MERREN_CONSERVATORY_PROVIDER: FactionContractProvider = {
       ...immigration(ctx.sourceId, day),
       ...workUnionPilgrims(ctx.sourceId, day),
       ...specialists(ctx.sourceId, day),
+      ...balorConservatoryContracts(ctx),
     ];
   },
 };

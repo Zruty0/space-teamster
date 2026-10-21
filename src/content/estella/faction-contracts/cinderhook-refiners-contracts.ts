@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_FOUNDRY } from '../balor-logistics';
+import { balorTradeContracts } from './balor-trade-contracts';
+
 // Cinderhook's small refining houses turn Hartwell/Pike feedstock into brokerable clean lots.
 // Inbound raw-feed work belongs to Pike/Dawes extractors; this provider handles Cinderhook output.
 const CINDERHOOK_REFINERS_ID = 'cinderhook-refining-houses';
@@ -138,6 +141,10 @@ export const CINDERHOOK_REFINERS_PROVIDER: FactionContractProvider = {
   id: CINDERHOOK_REFINERS_ID,
   name: 'Cinderhook Refining Houses',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateCinderhookContracts(ctx);
+    return [...generateCinderhookContracts(ctx), ...ROSTER.flatMap(company => company.lots
+      .filter(lot => lot.label === 'ceramic flux precursors' || lot.label === 'certified clean-metal lots')
+      .flatMap(lot => balorTradeContracts(ctx, {
+        factionId: CINDERHOOK_REFINERS_ID, factionName: company.name, ...ROUTINE_EXPORT_PAY,
+      }, [{ id: `${company.slug}:foundry-feedstock`, surface: BAM_FOUNDRY, externalId: CINDERHOOK, direction: 'in', label: lot.label, massClass: lot.massClass, likelihood: 0.35, purpose: 'Refined foundry feedstock sale.' }])))];
   },
 };

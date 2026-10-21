@@ -38,6 +38,12 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   //   },
   // },
 
+  // Reachable Guild working hubs inside Balor's 240,000 km stellar orbit.
+  // Gameplay-scaled radii; Alpha is the inner primary, Beta the outer backup.
+  // Coronal Observation Post remains an unauthored endgame reserve.
+  'skim-hub-alpha': { kind: 'orbit', parentId: 'estella', usage: 'very-inner', orbit: { kind: 'circular', radius: 120_000_000, epochAngle: 0.6, epochTime: 0, orbitSense: -1 } },
+  'skim-hub-beta': { kind: 'orbit', parentId: 'estella', usage: 'very-inner', orbit: { kind: 'circular', radius: 180_000_000, epochAngle: -1.8, epochTime: 0, orbitSense: -1 } },
+
   'estella-i': {
     kind: 'orbit',
     parentId: 'estella',

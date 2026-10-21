@@ -285,12 +285,39 @@ function candidatesFromTemplates(ctx: FactionContractContext): FactionContractCa
   return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
+// Skim-specific work is orbital-only, outside ordinary Balor 50/50 dispatch.
+// Crew rest onward to Shade is background handling, never a mandatory player leg.
+function balorSkimContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+  const out: FactionContractCandidate[] = [];
+  const post = (id: string, sourceId: string, destinationId: string, label: string, massClass: CargoMassClass,
+    category: 'freight' | 'passenger', details: string, requiredCertification?: TeamsterCertificationId) => {
+    if (sourceId !== ctx.sourceId) return;
+    const templateId = `balor-skim-${id}`;
+    out.push({
+      factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
+      templateId, sourceId, destinationId, category,
+      cargo: { label, massClass, massTons: cargoMassForClass(massClass, `${GUILD_ID}:${templateId}`) },
+      likelihood: category === 'passenger' ? 0.65 : 0.45,
+      generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO,
+      maxCompAllowance: GUILD_MAX_COMP_ALLOWANCE, requiredCertification, details,
+    });
+  };
+  for (const hub of ['skim-hub-alpha-precursor-dock', 'skim-hub-beta-precursor-dock']) {
+    post(`crew-out:${hub}`, SKIM_STAGING_DOCK, hub, 'Guild skim duty crews', 'standard', 'passenger', 'Scheduled skim duty rotation from Balor Orbital.');
+    post(`crew-recovery:${hub}`, hub, SKIM_STAGING_DOCK, 'returning Guild skim crews', 'standard', 'passenger', 'Skim recovery rotation; onward rest transfer to Shade arranged by the Guild.');
+    post(`thermal-stores:${hub}`, SKIM_STAGING_DOCK, hub, 'thermal tile lots', 'standard', 'freight', 'Skim support stock staged at Balor Orbital.');
+    post(`suit-stores:${hub}`, SKIM_STAGING_DOCK, hub, 'pressure-suit consumables', 'standard', 'freight', 'Skim crew equipment stores staged at Balor Orbital.');
+    post(`precursor-consolidation:${hub}`, hub, SKIM_STAGING_DOCK, 'sealed antimatter precursor canisters', 'dense', 'freight', 'Guild precursor consolidation at Balor Orbital; refining remains at the Still.', 'volatile-cargo');
+  }
+  return out;
+}
+
 export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
   id: GUILD_ID,
   name: GUILD_NAME,
   generosity: GUILD_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return candidatesFromTemplates(ctx);
+    return [...candidatesFromTemplates(ctx), ...balorSkimContracts(ctx)];
   },
   generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
     if (ctx.issuer.missionTags.includes('old-nell-passage')) return oldNellPassageCandidates(ctx);

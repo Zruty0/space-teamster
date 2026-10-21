@@ -169,9 +169,9 @@ The observatory is removed. Balor Advanced Materials (BAM) is an early-stage, su
 ### Inner-system Skim Infrastructure
 | ID | Type | Description |
 |---|---|---|
-| Skim Hub Alpha | Station, very inner solar orbit | Primary precursor receiving station, skim crew base |
-| Skim Hub Beta | Station, very inner solar orbit | Secondary / backup |
-| Coronal Observation Post | Station, innermost | Endgame operations. Survival rates are not officially published. |
+| Skim Hub Alpha | Station, very inner solar orbit | Primary precursor receiving station, skim crew base; playable clockwise stellar orbit at120,000km radius |
+| Skim Hub Beta | Station, very inner solar orbit | Secondary / backup; playable clockwise stellar orbit at180,000km radius |
+| Coronal Observation Post | Station, innermost | Endgame operations. Survival rates are not officially published. Exact orbit/gameplay still reserved. |
 
 ---
 

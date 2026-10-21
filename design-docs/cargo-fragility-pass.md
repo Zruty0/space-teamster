@@ -2,6 +2,17 @@
 
 Original inventory: 414 authored and generated cargo labels, with later additions below. The live catalog is `src/cargo-handling.ts`. Fragility applies independently of volatile/passenger handling.
 
+## Balor shipping expansion — 2026-10-21
+
+| Cargo type | Classification | Condition-risk fraction | Modifier |
+|---|---|---:|---|
+| returned automation interface units | Fragile |50%| in a shock-absorbing container |
+| refractory fit-out blanks | Ordinary |—|—|
+| Guild skim duty crews | Ordinary |—| Elevated passenger comfort |
+| returning Guild skim crews | Ordinary |—| Elevated passenger comfort |
+
+Other new routes reuse existing cargo classifications, including tier-normalized Silk-class thermal tiles. Guild precursor retains its existing volatile certification; no new heat/volatile damage model.
+
 ## BAM additions — 2026-10-20
 
 | Cargo type | Classification | Condition-risk fraction | Modifier |

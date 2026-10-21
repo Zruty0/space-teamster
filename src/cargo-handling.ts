@@ -16,6 +16,7 @@ export const FRAGILITY_LEVELS: Readonly<Record<FragilityLevel, { name: string; i
 };
 
 const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
+  'returned automation interface units': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.50 },
   'hot-zone sensor packages': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
   'anatomical culture cabinets': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.60 },
   'blackglass optical blanks': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.65 },
@@ -170,6 +171,9 @@ const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
 };
 
 const ORDINARY_CARGO = new Set<string>([
+  'refractory fit-out blanks',
+  'Guild skim duty crews',
+  'returning Guild skim crews',
   'hot-zone mining actuator sets',
   'refractory metal concentrates',
   'worn hot-zone actuator sets',

@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_FOUNDRY } from '../balor-logistics';
+import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+
 type KisaragiTier = 'Silk' | 'Porcelain' | 'Celadon';
 
 interface WeightedNode {
@@ -230,11 +233,23 @@ function generateKisEContracts(ctx: FactionContractContext): FactionContractCand
   return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
+const BALOR_YARD_ORDERS: BalorTradeLane[] = KISARAGI_FACILITIES.flatMap(facility => [
+  { label: 'Silk-class thermal tile lots', massClass: 'heavy' as const },
+  { label: 'refractory fit-out blanks', massClass: 'heavy' as const },
+  { label: 'prestige ceramic feedstock', massClass: 'heavy' as const },
+].map(cargo => ({
+  id: 'tenant-fit-out-purchase', surface: BAM_FOUNDRY, externalId: facility.id, direction: 'out' as const,
+  ...cargo, likelihood: 0.35, purpose: 'KIS-E tenant fit-out material purchase.',
+})));
+
 export const KISARAGI_YARDS_ESTELLA_PROVIDER: FactionContractProvider = {
   id: KIS_E_ID,
   name: KIS_E_NAME,
   generosity: KIS_E_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateKisEContracts(ctx);
+    return [...generateKisEContracts(ctx), ...balorTradeContracts(ctx, {
+      factionId: KIS_E_ID, factionName: KIS_E_NAME, factionTag: KIS_E_TAG,
+      generosity: KIS_E_BASE_GENEROSITY, compensationRatio: KIS_E_COMPENSATION_RATIO, maxCompAllowance: KIS_E_MAX_COMP_ALLOWANCE,
+    }, BALOR_YARD_ORDERS)];
   },
 };

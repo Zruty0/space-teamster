@@ -4,10 +4,12 @@ import { ESTELLA_FACTION_CONTRACT_PROVIDERS } from '../src/content/estella/facti
 import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts';
 import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
 
-// Optional pre-BAM baseline in this isolated audit process only; no file/save
-// mutation. Existing providers are otherwise unchanged by the BAM pass.
-const baseline = (globalThis as any).process?.env?.BALOR_AUDIT_BASELINE === '1';
-if (baseline) {
+// Optional current-network comparison without BAM, isolated to this process.
+// This is NOT a historical replay: other providers and station placements have
+// since expanded. The old BASELINE flag remains an alias for BAM-only omission.
+const env = (globalThis as any).process?.env;
+const withoutBam = env?.BALOR_AUDIT_WITHOUT_BAM === '1' || env?.BALOR_AUDIT_BASELINE === '1';
+if (withoutBam) {
   const index = ESTELLA_FACTION_CONTRACT_PROVIDERS.findIndex(p => p.id === 'balor-advanced-materials');
   if (index >= 0) ESTELLA_FACTION_CONTRACT_PROVIDERS.splice(index, 1);
 }
@@ -57,5 +59,5 @@ const byProviderRouting = providers.map(({provider}) => {
   const total = own.reduce((n,r)=>n+r.samples,0), hub = via.reduce((n,r)=>n+r.samples,0);
   return { provider, rawHubSamples: hub, rawDirectSamples: total-hub, hubFraction: total ? hub/total : 0 };
 });
-console.log(JSON.stringify({ baseline, rawEpochs: 120, boardEpochs: 12, boardEpochStep: 10, poiCount: pois.length, providerCount: ESTELLA_FACTION_CONTRACT_PROVIDERS.length, boardSources: boardSources.length, excludedUnselectableSources: [...sources].filter(id => !selectable.has(id)).map(name),
-  note: 'Distinct route/cargo/provider combinations are not freight tonnage or actual deliveries. Boards sampled without changing saves; player choices and other providers need not reproduce a provider routing ratio.', sites, providers, byProviderRouting }, null, 2));
+console.log(JSON.stringify({ withoutBam, rawEpochs: 120, boardEpochs: 12, boardEpochStep: 10, poiCount: pois.length, providerCount: ESTELLA_FACTION_CONTRACT_PROVIDERS.length, boardSources: boardSources.length, excludedUnselectableSources: [...sources].filter(id => !selectable.has(id)).map(name),
+  note: 'Current network only, not a historical replay. Distinct route/cargo/provider combinations are not freight tonnage or actual deliveries. Boards sampled without changing saves; player choices and other providers need not reproduce a provider routing ratio.', sites, providers, byProviderRouting }, null, 2));

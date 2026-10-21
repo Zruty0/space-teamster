@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { ESTELLA_NODES_BY_ID } from '..';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_EXTRACTION, BAM_FOUNDRY } from '../balor-logistics';
+import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+
 const DAEDALUS_ID = 'daedalus-systems';
 const DAEDALUS_NAME = 'Daedalus Systems';
 const DAEDALUS_TAG = 'DAEDALUS';
@@ -443,6 +446,22 @@ function researchPersonnelCandidates(ctx: FactionContractContext, day: number): 
   return out;
 }
 
+const BALOR_LANES: (BalorTradeLane & { pay: Pay; office: string })[] = [
+  { id: 'sensor-sale', surface: BAM_EXTRACTION, externalId: SYSTEMS_CAMPUS, direction: 'in', label: 'sensor-fusion cabinets', massClass: 'standard', likelihood: 0.55, purpose: 'Finished industrial sensing equipment.', pay: PRODUCT_PAY, office: 'Daedalus Product Fulfillment' },
+  { id: 'interface-sale', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'in', label: 'automation interface units', massClass: 'standard', likelihood: 0.55, purpose: 'Finished industrial automation equipment.', pay: PRODUCT_PAY, office: 'Daedalus Product Fulfillment' },
+  { id: 'isolated-hot-zone-trial', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'in', label: 'hardened automation processors', massClass: 'light', likelihood: 0.4, purpose: 'Isolated hot-environment test circuit with independent cutoff; production controls remain separate.', pay: VALIDATION_PAY, office: 'Daedalus Field Validation' },
+  { id: 'trial-hardware-return', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'out', label: 'field-tested controller units', massClass: 'standard', likelihood: 0.35, purpose: 'Return isolated-trial hardware for Campus examination.', pay: VALIDATION_PAY, office: 'Daedalus Field Validation' },
+  { id: 'trial-record-return', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'out', label: 'sealed validation telemetry', massClass: 'light', likelihood: 0.35, purpose: 'Return isolated hot-environment trial records.', pay: VALIDATION_PAY, office: 'Daedalus Field Validation' },
+  { id: 'interface-rma', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'out', label: 'returned automation interface units', massClass: 'standard', likelihood: 0.3, purpose: 'Customer hardware return for inspection and repair.', pay: PRODUCT_PAY, office: 'Daedalus Product Fulfillment' },
+  { id: 'ceramic-stock-purchase', surface: BAM_FOUNDRY, externalId: SYSTEMS_CAMPUS, direction: 'out', label: 'high-purity ceramic stock', massClass: 'standard', likelihood: 0.5, purpose: 'Campus electronics fabrication material order.', pay: PROCUREMENT_PAY, office: 'Daedalus Systems Procurement' },
+];
+function balorSystemsContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+  return BALOR_LANES.flatMap(lane => balorTradeContracts(ctx, {
+    factionId: DAEDALUS_ID, factionName: DAEDALUS_NAME, factionTag: DAEDALUS_TAG,
+    issuerName: lane.office, ...lane.pay,
+  }, [lane]));
+}
+
 function generateDaedalusContracts(ctx: FactionContractContext): FactionContractCandidate[] {
   const day = Math.floor(ctx.worldTime / DAY);
   return [
@@ -450,6 +469,7 @@ function generateDaedalusContracts(ctx: FactionContractContext): FactionContract
     ...campusOutboundCandidates(ctx, day),
     ...fieldReturnCandidates(ctx, day),
     ...researchPersonnelCandidates(ctx, day),
+    ...balorSystemsContracts(ctx),
   ];
 }
 

@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_FOUNDRY } from '../balor-logistics';
+import { balorTradeContracts } from './balor-trade-contracts';
+
 // Halloran Smelting House runs the Cupola Station refinery — the chokepoint all Glitterfield ore
 // passes through. It ships no metal itself: the miners and buyers move the ingots. Halloran only
 // brings in its own crews and refinery consumables, and rotates crews back to Hartwell.
@@ -125,6 +128,9 @@ export const HALLORAN_PROVIDER: FactionContractProvider = {
   id: HALLORAN_ID,
   name: HALLORAN_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateHalloranContracts(ctx);
+    return [...generateHalloranContracts(ctx), ...balorTradeContracts(ctx, {
+      factionId: HALLORAN_ID, factionName: HALLORAN_NAME, factionTag: HALLORAN_TAG,
+      generosity: GENEROSITY, compensationRatio: COMPENSATION_RATIO, maxCompAllowance: MAX_COMP_ALLOWANCE,
+    }, [{ id: 'cupola-shutdown-stores', surface: BAM_FOUNDRY, externalId: CUPOLA_INTAKE, direction: 'out', label: 'furnace consumables', massClass: 'standard', likelihood: 0.5, purpose: 'Cupola refractory maintenance stores; buyer-issued purchase.' }])];
   },
 };

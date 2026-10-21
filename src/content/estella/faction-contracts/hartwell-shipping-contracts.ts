@@ -2,9 +2,13 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_EXTRACTION, BAM_FOUNDRY, SHADE } from '../balor-logistics';
+import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+
 // Hartwell shipping houses live on route arbitrage: Wells raw/resource lots into Camps demand,
 // basic Hartwell/Kuznia life-support backhauls into all Wells destinations, and industrial
-// consumables into Wells worksites. They are carriers and speculators, not machinery financiers.
+// consumables into Wells worksites. Dedicated Balor lanes preserve that seeded core network.
+// They are carriers and speculators, not machinery financiers.
 const HARTWELL_SHIPPING_ID = 'hartwell-shipping-companies';
 
 const ROADSTEAD = 'estella-v-transit-customs';
@@ -336,6 +340,24 @@ const COVENANT_EXPORT_LANE: Lane = {
 };
 const COVENANT_EXPORT_COMPANIES = seededSample(ROSTER, 4, hashString('hartwell-covenant-export-buyers-v1'));
 
+// Dedicated contracts for a fixed subset of the established roster. Never add
+// these to LANES: that would reshuffle existing companies' Wells assignments.
+const BALOR_CARRIERS = seededSample(ROSTER, 4, hashString('hartwell-balor-carriers-v1'));
+const BALOR_LANES: BalorTradeLane[] = [
+  { id: 'life-support', surface: SHADE, externalId: ROADSTEAD, direction: 'in', label: 'life-support filter pallets', massClass: 'standard', likelihood: 0.55, purpose: 'Town supply order.' },
+  { id: 'suit-stores', surface: SHADE, externalId: CONCORD, direction: 'in', label: 'pressure-suit consumables', massClass: 'standard', likelihood: 0.5, purpose: 'Town workwear supply order.' },
+  { id: 'foundry-consumables', surface: BAM_FOUNDRY, externalId: HAMMER, direction: 'in', label: 'industrial lubricant drums', massClass: 'standard', likelihood: 0.55, purpose: 'Foundry consumables order.' },
+  { id: 'extraction-consumables', surface: BAM_EXTRACTION, externalId: VELES_TERMINAL, direction: 'in', label: 'worksite battery stacks', massClass: 'heavy', likelihood: 0.45, purpose: 'Extraction equipment stores.' },
+  { id: 'alloy-backhaul', surface: BAM_FOUNDRY, externalId: ROADSTEAD, direction: 'out', label: 'refractory alloy billets', massClass: 'dense', likelihood: 0.5, purpose: 'Brokered industrial backhaul.' },
+  { id: 'refractory-backhaul', surface: BAM_FOUNDRY, externalId: ANVIL, direction: 'out', label: 'refractory brick', massClass: 'heavy', likelihood: 0.45, purpose: 'Brokered industrial backhaul.' },
+];
+function balorCarrierContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+  return BALOR_LANES.flatMap((lane, index) => balorTradeContracts(ctx, {
+    factionId: HARTWELL_SHIPPING_ID, factionName: BALOR_CARRIERS[index % BALOR_CARRIERS.length].name,
+    ...(lane.direction === 'in' ? BACKHAUL_PAY : CERTIFIED_PAY),
+  }, [lane]));
+}
+
 function makeCargo(option: CargoOption, seedKey: string): MissionCargoSpec {
   return { label: option.label, massClass: option.massClass, massTons: cargoMassForClass(option.massClass, `${HARTWELL_SHIPPING_ID}:${seedKey}:${option.label}`) };
 }
@@ -395,6 +417,6 @@ export const HARTWELL_SHIPPING_COMPANIES_PROVIDER: FactionContractProvider = {
   id: HARTWELL_SHIPPING_ID,
   name: 'Hartwell Shipping Companies',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateHartwellShippingContracts(ctx);
+    return [...generateHartwellShippingContracts(ctx), ...balorCarrierContracts(ctx)];
   },
 };

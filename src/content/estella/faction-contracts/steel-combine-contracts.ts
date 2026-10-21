@@ -2,6 +2,9 @@ import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '.
 import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-utils';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { BAM_EXTRACTION, BAM_FOUNDRY } from '../balor-logistics';
+import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+
 const STEEL_COMBINE_ID = 'steel-combine';
 const STEEL_COMBINE_NAME = 'The Steel Combine';
 const STEEL_COMBINE_TAG = 'STEEL';
@@ -374,10 +377,24 @@ function generateSteelCombineContracts(ctx: FactionContractContext): FactionCont
   return out.map(candidate => ({ ...candidate, completionMessage: completionBlurbFrom(COMPLETION_BLURBS, candidate, ctx.worldTime) }));
 }
 
+const BALOR_TRADE_LANES: BalorTradeLane[] = [
+  { id: 'ore-purchase', surface: BAM_EXTRACTION, externalId: HAMMER, direction: 'out', label: 'refractory ore', massClass: 'dense', likelihood: 0.3, purpose: 'Foreign Trade Committee feedstock purchase.' },
+  { id: 'brick-purchase', surface: BAM_FOUNDRY, externalId: HAMMER, direction: 'out', label: 'refractory brick', massClass: 'heavy', likelihood: 0.3, purpose: 'Foreign Trade Committee furnace-material purchase.' },
+  { id: 'foundry-machine-tools', surface: BAM_FOUNDRY, externalId: HAMMER, direction: 'in', label: 'machine tools', massClass: 'heavy', likelihood: 0.3, purpose: 'Foreign Trade Committee machinery export.' },
+  { id: 'extraction-chassis', surface: BAM_EXTRACTION, externalId: HAMMER, direction: 'in', label: 'heavy vehicle chassis', massClass: 'heavy', likelihood: 0.25, purpose: 'Foreign Trade Committee extraction-vehicle export.' },
+];
+function balorCombineContracts(ctx: FactionContractContext): FactionContractCandidate[] {
+  return BALOR_TRADE_LANES.flatMap(lane => balorTradeContracts(ctx, {
+    factionId: STEEL_COMBINE_ID, factionName: STEEL_COMBINE_NAME, factionTag: STEEL_COMBINE_TAG,
+    issuerName: FOREIGN_TRADE_COMMITTEE,
+    generosity: lane.direction === 'in' ? EXPORT_GENEROSITY : 0, compensationRatio: 1, maxCompAllowance: MAX_COMP_ALLOWANCE,
+  }, [lane]));
+}
+
 export const STEEL_COMBINE_PROVIDER: FactionContractProvider = {
   id: STEEL_COMBINE_ID,
   name: STEEL_COMBINE_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx)];
+    return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx), ...balorCombineContracts(ctx)];
   },
 };

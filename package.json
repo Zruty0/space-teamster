@@ -11,6 +11,7 @@
     "test:acheron": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/acheron.test.ts",
     "test:balor": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor.test.ts && node tests/run-equipment.mjs tests/balor-eye.test.ts",
     "test:bam": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/bam-contracts.test.ts",
+    "test:balor-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor-expansion.test.ts",
     "audit:balor": "node tests/run-equipment.mjs tests/audit-balor-shipping.ts",
     "test:orbital-markers": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/orbital-markers.test.ts",
     "test:menus": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/menu-layout.test.ts",

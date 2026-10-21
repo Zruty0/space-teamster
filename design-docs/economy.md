@@ -79,6 +79,12 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Covenant remnants | essential imports 0.25 + 0.80 (+5%) | Nunes dues 0.20 + 0.85 (+5%); compact service 0.25 + 0.80 (+5%); Postulants/pilgrims 0.15 + 0.90 (+5%); no flat rewards |
 | Daedalus Systems | procurement/products 0.70 + 0.45 (+15%) | validation/data 0.80 + 0.40 (+20%); personnel 0.55 + 0.60 (+15%); Icarus intake 0.75 + 0.50 plus 20,000 cr (+25% + fee) |
 
+## Balor multi-provider shipping — 2026-10-21
+
+Hartwell Shipping (6 logical consignments), Merren (7), Daedalus (7), KIS-E (9), Steel Combine (4), Halloran (1), Cinderhook refiners (1) and Guild (10) now supplement BAM. Each retains its normal economics/role; Guild uses existing1.70+0 skim terms. Ordinary orders use paired50/50 Balor Orbital/direct handling; Guild skim work stays orbital. Existing seeded company rosters, Merren passenger distribution and pre-existing contracts remain unchanged. No forced second player leg, flat bounty or global board quota.
+
+Skim Alpha/Beta are now selectable/dockable in clockwise stellar orbits at120/180million metres. Coronal remains a reserved endgame site. New contracts use operational Details and neutral receipts, not new unreviewed narrative copy. Full routes, terms and current audit in [Balor shipping](balor-shipping-audit.md); regression `npm run test:balor-shipping`.
+
 ## Faction: Balor Advanced Materials (BAM)
 
 - ID `balor-advanced-materials`, tag `BAM`; engineer-led Balor operator, safety/competence and well-paid skilled labor are sincere.
@@ -88,7 +94,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 - Shade: food, medical lockers, water and scrubbers; rated specialist recruitment and paid leave/return rotations. Field/commissioning deployment and return also serve the industrial sites. Passenger manifests use elevated comfort; no coerced or cheap crew blocks.
 -18 external sites; Kuznia uses Hammer/Anvil, Kalyna uses its orbital hub, Daedalus uses Systems Campus (not Server Farm/Icarus). Yard and Still thermal-material orders do not manufacture Guild fuel or proprietary drives.
 - Each logical consignment has one posting per day, either consolidated at Balor Orbital or direct to its proper surface site. Two-day dispatch pairs assign one day to each route, with pair-specific deterministic hashing. This gives exactly50/50 over complete pairs by count AND likelihood, independently inbound/outbound and freight/passenger. Cargo mass is keyed to the logical order, not gateway/day. Posting details preserve the originating/receiving surface site and explain BAM-arranged local handling.
-- No extra player leg, self-route, local Balor shuttle or mine-to-foundry posting. Actual completed flights and capped boards are not constrained to50/50; other providers remain unchanged.
+- No extra player leg, self-route, local Balor shuttle or mine-to-foundry posting. Actual completed flights and capped boards are not constrained to50/50. The subsequent multi-provider expansion adds35 ordinary logical orders with the same paired dispatch policy and10 orbital-only Guild skim orders; existing candidate paths remain unchanged.
 - Existing shared neutral completion receipt used; bespoke narrative copy/recruitment slogans remain subject to approval. No new named contact, save schema, deadline or heat mechanic.
 
 `npm run test:bam` validates route completeness, routing balance/determinism, classification/comfort/licenses, payable boards and playable phases. `npm run audit:balor` audits120 raw epochs and12 sampled board epochs from selectable sources. See [Balor](locations/estella-01-balor.md) and [shipping audit](balor-shipping-audit.md).
@@ -248,7 +254,7 @@ Base routine formula is `generosity 0.85`, `compensationRatio 0.4` (+25% at par)
 
 ### Notes
 
-The marquee 1.7 skim-precursor runs currently post only at the near-star skim hubs, which are not yet selectable nav targets — so they are unreachable until those nodes become dockable. Reputation later should gate the skim and cert/insurance/debt work.
+The marquee1.7 skim-precursor runs at Alpha/Beta are now reachable: both hubs have exact stellar orbits and docking layouts. Additional1.7 skim duty/recovery rotations, supply runs and precursor consolidation connect them with Balor Orbital. Passengers get elevated comfort; precursor still requires volatile certification, and refining stays at the Still. Coronal remains an unauthored endgame reserve. Reputation later should gate the skim and cert/insurance/debt work.
 
 ## Faction: New Canaan Miners Mutual
 
