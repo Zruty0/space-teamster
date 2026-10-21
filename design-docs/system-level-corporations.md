@@ -1,5 +1,11 @@
 # System-Level Corporations and Institutions
 
+## Balor Advanced Materials (BAM)
+
+BAM operates Balor's BAM Extraction One and BAM Foundry One. It is an early-stage, already successful corporation led by engineers: professional and merit-based, with safety and competence paramount. Its high-pay/high-risk recruitment targets the highest-rated skilled tradespeople. “Hotheads” is a recruitment identity, not the company name. This is a sincere culture, not a cover for corporate abuse.
+
+Its industrial focus is refractory metals and specialised high-temperature materials, alongside the planet's skim-service economy. Shade is the resident-named recreation/recovery town; Balor Orbital handles skim operations and planetary trade. The agreed ordinary offworld routing target is50% orbital hub,50% direct surface. The names/site structure are implemented; BAM contract generation and that traffic distribution remain pending. See [Balor](locations/estella-01-balor.md).
+
 ## New Canaan Miners Mutual
 
 New Canaan Miners Mutual formed during the first Belt claim rush, when the New Canaan Field still looked like a promised land of titanium-bearing stone, member-owned concentrators, sponge furnaces, billet presses, and family claims. Its charter mixed business compact and frontier ethic: pooled stores, shared lawyers, emergency tugs, relief funds, and arbitration before outside law. Gaia-backed money stripped the best claims and left the Field with low-margin leftovers, but the Co-op survived because its members still needed someone to keep the heat, air, and books balanced.

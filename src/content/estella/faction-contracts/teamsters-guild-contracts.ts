@@ -42,7 +42,7 @@ const COMPLETION_BLURBS: CompletionBlurb[] = [
 ];
 
 // Guild flight-control / fuel-chain nodes. Guild work is only posted at these docks.
-// Precursor skim-in originates at the near-star skim hubs and Estella I staging.
+// Precursor skim-in originates at the near-star skim hubs and Balor Orbital.
 // Fuel distribution and hardware originate at the Still; paperwork at Guild offices.
 // Bulk fuel canisters move to high-throughput traffic hubs and Wells fuel-chain anchors.
 const SKIM_STAGING_DOCK = 'estella-i-transit-customs';

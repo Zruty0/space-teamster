@@ -53,7 +53,6 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-i-worker-hab': { kind: 'surface', parentId: 'estella-i', angle: -2.2, side: 'night' },
   'estella-i-refractory-mine': { kind: 'surface', parentId: 'estella-i', angle: -0.2, side: 'terminator' },
   'estella-i-hot-processing': { kind: 'surface', parentId: 'estella-i', angle: 0.35, side: 'terminator' },
-  'estella-i-deep-listening': { kind: 'surface', parentId: 'estella-i', angle: 2.55, side: 'night' },
 
   'estella-ii': {
     kind: 'orbit',

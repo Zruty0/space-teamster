@@ -77,6 +77,10 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Covenant remnants | essential imports 0.25 + 0.80 (+5%) | Nunes dues 0.20 + 0.85 (+5%); compact service 0.25 + 0.80 (+5%); Postulants/pilgrims 0.15 + 0.90 (+5%); no flat rewards |
 | Daedalus Systems | procurement/products 0.70 + 0.45 (+15%) | validation/data 0.80 + 0.40 (+20%); personnel 0.55 + 0.60 (+15%); Icarus intake 0.75 + 0.50 plus 20,000 cr (+25% + fee) |
 
+## Planned provider: Balor Advanced Materials (BAM)
+
+Balor's engineer-led industrial operator runs BAM Extraction One and BAM Foundry One. Planned ordinary offworld routing is50% through Balor Orbital and50% directly to/from the surface; Shade receives town/recovery supplies and personnel. Local mine/foundry distribution stays off-board. Existing Guild precursor staging and Bruckner/VHM service traffic retain their stable endpoint IDs and now display the approved Balor names. BAM's own provider, detailed manifest roster and50/50 route weighting are not implemented by the naming/location pass. See [Balor](locations/estella-01-balor.md).
+
 ## Faction: The Steel Combine
 
 - ID: `steel-combine`
@@ -224,7 +228,7 @@ All Merren contracts have zero flat award. Internal movement, procurement, and r
 - Public name: The Teamsters' Guild
 - Key nodes: the Still (`still-distribution-bay`, `still-guild-hq`, `still-skim-runner-berth-poi`), Skim Hubs (`skim-hub-alpha-precursor-dock`, `skim-hub-beta-precursor-dock`), Certification Authority (`caravanserai-certification-authority`)
 
-The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Estella I staging → the Still, hazard-premium pay), fuel distribution (the Still → high-traffic hubs and Wells fuel-chain anchors), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
+The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Balor Orbital → the Still, hazard-premium pay), fuel distribution (the Still → high-traffic hubs and Wells fuel-chain anchors), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
 
 ### Pay
 

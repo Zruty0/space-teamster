@@ -142,7 +142,9 @@ export function loadCareerProfile(): CareerProfile {
     if (typeof parsed?.locationId !== 'string' || typeof parsed?.money !== 'number') return defaultCareerProfile();
     const certifications = migratedCertifications(parsed);
     const profile: CareerProfile = {
-      locationId: parsed.locationId,
+      // The retired Balor observatory is no longer a destination. Resume old
+      // careers in Shade without resetting progress or rewriting their history.
+      locationId: parsed.locationId === 'estella-i-deep-listening' ? 'estella-i-worker-hab' : parsed.locationId,
       money: parsed.money,
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
       certifications,

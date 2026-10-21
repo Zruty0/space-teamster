@@ -398,7 +398,6 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-i-worker-hab': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-refractory-mine': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-i-hot-processing': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
-  'estella-i-deep-listening': ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE,
   'estella-ii-olympos': ESTELLA_II_OLYMPOS_PROFILE,
   'estella-ii-nimbus-crucible': ESTELLA_II_NIMBUS_CRUCIBLE_PROFILE,
   'estella-ii-pandemonium': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Deep-pressure surface approach to Pandemonium', labelVisibility: 'target' },

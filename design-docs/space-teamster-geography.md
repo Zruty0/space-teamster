@@ -105,24 +105,25 @@ Internal supply chains are dense and largely uninteresting to the outsider. The 
 
 | Catalogue | Type | Notes |
 |---|---|---|
-| **Estella I** | Mercury-like rocky planet, airless, hot | Innermost. Heavy refractory mining + stellar antimatter skim staging. Worker hab on dark side. |
+| **Balor** | Airless, tidally locked lava-eye planet | Catalogue Estella I. BAM refractory mining/foundry, Shade recreation/recovery town, orbital skim service and trade hub. |
 | **Estella II** | Venus-like, thick toxic atmosphere | Surface uninhabitable. Habitable cloud city in upper atmosphere. Iconic. Decadent. Possibly mysterious. |
 | **Gaia** | Earth-like, breathable atmosphere, weather | Catalogue Estella III. The civilization. Capital, government, the old money. Most-named place in the system. |
 | **Estella IIIa** | Large airless moon of Gaia | Heritage and helium-3. Where the first off-world colony was. |
 | **Dahai** | Breathable water planet, humid marine climate | Catalogue Estella IV. The rival or the relief, depending on who you ask. An ocean world where Gaia's children move when they want to feel like pioneers. |
 
-In addition, between Estella I and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
+In addition, between Balor and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
 
 ## The Hearth's POIs
 
-### Estella I (Mercury-like)
+### Balor (Estella I)
 | ID | Type | Description |
 |---|---|---|
-| Estella I.1 | Station, low orbit | Transit, customs, skim staging |
-| Estella I.2 | Surface (dark side) | Worker hab, sealed and climate-controlled |
-| Estella I.3 | Surface (terminator) | Refractory metal mining, heat-tolerant ops |
-| Estella I.4 | Surface (terminator) | Hot processing and refining |
-| Estella I.5 | Surface (dark side) | Observatory and deep-listening, star-shielded |
+| Estella I.1 | Station, low orbit | **Balor Orbital.** Skim servicing, crew/precursor handling and general planetary trade hub |
+| Estella I.2 | Surface (sheltered night side) | **Shade.** Resident-named recreation/recovery town and permanent community |
+| Estella I.3 | Surface (nearer lava eye) | **BAM Extraction One.** Mining hub on solid ground supporting hot-zone extraction |
+| Estella I.4 | Surface (cooler margin) | **BAM Foundry One.** Refined metals and specialised high-temperature materials |
+
+The observatory is removed. Balor Advanced Materials (BAM) is an early-stage, successful engineer-led corporation: professional, merit-based, with safety and competence paramount. It recruits top-rated skilled tradespeople for high pay and high-risk work; “hotheads” is a recruitment identity, not its name. Ordinary offworld traffic is intended to split roughly50% via Balor Orbital and50% direct to/from the surface; local distribution stays background logistics. See [Balor](locations/estella-01-balor.md) for approved direction and implementation boundaries.
 
 ### Acheron
 | ID | Type | Description |
