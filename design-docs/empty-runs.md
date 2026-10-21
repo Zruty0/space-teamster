@@ -1,7 +1,7 @@
 # Empty runs — proposed access roster
 
 Updated: 2026-10-21
-Status: design recommendation for review; no runtime implementation or access-policy changes yet.
+Status: access recommendation approved except abandoned/remote/cache destinations, now under review. No runtime implementation or access-policy changes yet.
 
 ## Requested mechanism
 
@@ -31,8 +31,8 @@ All ordinary commercial/civic destinations not excepted below, including:
 - Daedalus Systems Campus's commercial receiving area; not Server Farm or Icarus.
 - Pilgrim Gate and Vigil Gate as external trade/arrival interfaces; not unrestricted admission to the Covenant interiors.
 - Macao Palace and Great Arena; ordinary legal resorts/casinos, not invitation-only or hidden facilities.
-- Reach settlements, ordinary science cells, monasteries, prospector supply caches, beacon stations and Deepest Dock. Remote/isolated/mysterious does not automatically mean secret.
-- Known abandoned sites such as First Landing and Old Survey Camp. Visiting does not grant salvage rights.
+- Reach settlements and monasteries. The earlier proposal to include remote science cells, prospector caches, lone beacons and Deepest Dock is under review below.
+- First Landing and Old Survey Camp: public access is NOT approved; Pete is inclined to make abandoned sites unlisted/unknown.
 
 Public classifications do not manufacture missing placements: casino Concourse and civilian Main Observatory Dock should be public when playable, but unfinished placement chains remain unavailable.
 
@@ -78,4 +78,18 @@ Hide these from the public destination picker, including empty parent branches. 
 
 ## Review points
 
-These are recommendations, not settled new canon: unsponsored Kuznia/Kalyna surface restrictions; public receiving access at courts/academies, Covenant gates and Pandemonium; appointment-only Garden of Rebirth/Velvet City. Use this roster to implement only after review. No new general docking fees, debt rules, permits, faction reputation or exploration rewards in the initial version.
+Pete approved the recommendation except the 'known abandoned sites etc.' group and requested its list before deciding. Remaining review:
+
+| Site | ID | Existing description |
+|---|---|---|
+| First Landing | `estella-v-abandoned-colony` | Abandoned original Hartwell colony; historical/salvage site |
+| Old Survey Camp | `estella-viii-abandoned-site` | Abandoned Weymark survey camp |
+| Prospector Cache | `reach-comet-fragment-2-poi` | Reach comet fragment2 supply/salvage cache |
+| Lonely Beacon / Lone-Operator Station | `reach-rogue-lonely-beacon` | Isolated, inhabited station on the rogue KBO fragment |
+| The Deepest Dock | `deepest-dock-poi` | Writer-defined settled outer-limit dock; not explicitly abandoned |
+
+Adjacent review candidates from the broader remote/lore-site recommendation: Estella IX Geological Feature (`estella-ix-geological-feature`), Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
+
+Consider distinguishing unlisted/undiscovered from known-but-permission-restricted. Prospector Cache, Lonely Beacon and Deepest Dock already occur in BFS/VHM regular contract endpoint pools; hiding them from empty-run navigation alone does not make them genuinely unknown. Discovery/contact gating or removing public advertisements would be a separate decision, not silently included here.
+
+No new general docking fees, debt rules, permits, faction reputation or exploration rewards in the initial version.
