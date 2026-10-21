@@ -4,6 +4,7 @@ import type { MissionCargoSpec } from '../../../mission-cost';
 import { classifyMissionCargo } from '../../../cargo-handling';
 import { passengerComfortTerms } from '../../../passenger-comfort';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
+import { BALOR_ADVANCED_MATERIALS_PROVIDER } from './bam-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
 import { CINDERHOOK_REFINERS_PROVIDER } from './cinderhook-refiners-contracts';
 import { COVENANT_REMNANTS_PROVIDER } from './covenant-contracts';
@@ -108,6 +109,7 @@ export interface FactionContractProvider {
 
 export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   NEW_CANAAN_MINERS_MUTUAL_PROVIDER,
+  BALOR_ADVANCED_MATERIALS_PROVIDER,
   CERBERUS_HUMAN_RESOURCES_PROVIDER,
   BRUCKNER_FIELD_SERVICES_PROVIDER,
   VOSS_HEINKEL_METRICWERKE_PROVIDER,

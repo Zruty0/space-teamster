@@ -17,6 +17,7 @@ Current implementation:
 - Faction provider registry and shared types: `src/content/estella/faction-contracts/index.ts`
 - Miners Mutual generator: `src/content/estella/faction-contracts/miners-mutual-contracts.ts`
 - Cerberus generator: `src/content/estella/faction-contracts/cerberus-contracts.ts`
+- Balor Advanced Materials generator: `src/content/estella/faction-contracts/bam-contracts.ts`; paired dispatch routing: `src/content/estella/balor-logistics.ts`
 - Bruckner Field Services generator: `src/content/estella/faction-contracts/bruckner-contracts.ts`
 - Voss-Heinkel Metricwerke generator: `src/content/estella/faction-contracts/vhm-contracts.ts`
 - Kisaragi Yards Estella generator: `src/content/estella/faction-contracts/kisaragi-estella-contracts.ts`
@@ -64,6 +65,7 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Teamsters' Guild | 0.85 + 0.40 (+25%) | paperwork 0.90 + 0.35 (+25%); staging 1.30 + 0.15 (+45%); skim 1.70 + 0 (+70%) |
 | Bruckner Field Services | 0.80 + 0.45 (+25%) | returns 1.20 + 0.25 (+45%); crew passengers 0.50 + 0.60 (+10%) |
 | Cerberus Human Resources | 0.85 + 0.40 (+25%) | rare-metal/corporate 1.20 + 0.25 (+45%); workforce manifests 1.25 + 0.20 (+45%); people 0.50 + 0.60 (+10%) |
+| Balor Advanced Materials | 1.00 + 0.40 (+40%) | personnel 1.00 + 0.50 (+50%); cap2; no flat rewards |
 | Kisaragi Yards Estella | 0.80 + 0.45 (+25%) | freight-only |
 | Voss-Heinkel Metricwerke | 1.55 + 0 (+55%) | hazard returns 1.70 + 0 (+70%); people 1.15 + 0 (+15%) |
 | Kisaragi Harmony Yards | 1.50 + 0 (+50%) | Celadon 1.70 + 0 (+70%); people 1.20 + 0 (+20%) |
@@ -77,9 +79,19 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Covenant remnants | essential imports 0.25 + 0.80 (+5%) | Nunes dues 0.20 + 0.85 (+5%); compact service 0.25 + 0.80 (+5%); Postulants/pilgrims 0.15 + 0.90 (+5%); no flat rewards |
 | Daedalus Systems | procurement/products 0.70 + 0.45 (+15%) | validation/data 0.80 + 0.40 (+20%); personnel 0.55 + 0.60 (+15%); Icarus intake 0.75 + 0.50 plus 20,000 cr (+25% + fee) |
 
-## Planned provider: Balor Advanced Materials (BAM)
+## Faction: Balor Advanced Materials (BAM)
 
-Balor's engineer-led industrial operator runs BAM Extraction One and BAM Foundry One. Planned ordinary offworld routing is50% through Balor Orbital and50% directly to/from the surface; Shade receives town/recovery supplies and personnel. Local mine/foundry distribution stays off-board. Existing Guild precursor staging and Bruckner/VHM service traffic retain their stable endpoint IDs and now display the approved Balor names. BAM's own provider, detailed manifest roster and50/50 route weighting are not implemented by the naming/location pass. See [Balor](locations/estella-01-balor.md).
+- ID `balor-advanced-materials`, tag `BAM`; engineer-led Balor operator, safety/competence and well-paid skilled labor are sincere.
+-26 authored lane families,56 logical route/cargo consignments/day,27 cargo labels.13 labels newly classified (five ordinary freight, one fragile sensor package, seven elevated-comfort passenger manifests); others reuse existing classifications.
+- Extraction: cutters, hot-zone actuators/sensors and seals inbound; refractory concentrates and overhaul returns outbound.
+- Foundry: pumps, finished Daedalus controller racks/predictive-maintenance processors, Olympos graphite/oxygen inbound; refractory alloy billets, linings, thermal tiles, high-purity ceramics and rebuildable pumps outbound. No unqualified prototype hardware in ordinary production procurement.
+- Shade: food, medical lockers, water and scrubbers; rated specialist recruitment and paid leave/return rotations. Field/commissioning deployment and return also serve the industrial sites. Passenger manifests use elevated comfort; no coerced or cheap crew blocks.
+-18 external sites; Kuznia uses Hammer/Anvil, Kalyna uses its orbital hub, Daedalus uses Systems Campus (not Server Farm/Icarus). Yard and Still thermal-material orders do not manufacture Guild fuel or proprietary drives.
+- Each logical consignment has one posting per day, either consolidated at Balor Orbital or direct to its proper surface site. Two-day dispatch pairs assign one day to each route, with pair-specific deterministic hashing. This gives exactly50/50 over complete pairs by count AND likelihood, independently inbound/outbound and freight/passenger. Cargo mass is keyed to the logical order, not gateway/day. Posting details preserve the originating/receiving surface site and explain BAM-arranged local handling.
+- No extra player leg, self-route, local Balor shuttle or mine-to-foundry posting. Actual completed flights and capped boards are not constrained to50/50; other providers remain unchanged.
+- Existing shared neutral completion receipt used; bespoke narrative copy/recruitment slogans remain subject to approval. No new named contact, save schema, deadline or heat mechanic.
+
+`npm run test:bam` validates route completeness, routing balance/determinism, classification/comfort/licenses, payable boards and playable phases. `npm run audit:balor` audits120 raw epochs and12 sampled board epochs from selectable sources. See [Balor](locations/estella-01-balor.md) and [shipping audit](balor-shipping-audit.md).
 
 ## Faction: The Steel Combine
 

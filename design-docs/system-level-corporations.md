@@ -4,7 +4,7 @@
 
 BAM operates Balor's BAM Extraction One and BAM Foundry One. It is an early-stage, already successful corporation led by engineers: professional and merit-based, with safety and competence paramount. Its high-pay/high-risk recruitment targets the highest-rated skilled tradespeople. “Hotheads” is a recruitment identity, not the company name. This is a sincere culture, not a cover for corporate abuse.
 
-Its industrial focus is refractory metals and specialised high-temperature materials, alongside the planet's skim-service economy. Shade is the resident-named recreation/recovery town; Balor Orbital handles skim operations and planetary trade. The agreed ordinary offworld routing target is50% orbital hub,50% direct surface. The names/site structure are implemented; BAM contract generation and that traffic distribution remain pending. See [Balor](locations/estella-01-balor.md).
+Its industrial focus is refractory metals and specialised high-temperature materials, alongside the planet's skim-service economy. Shade is the resident-named recreation/recovery town; Balor Orbital handles skim operations and planetary trade. BAM now posts industrial procurement/products/overhaul returns, skilled-worker recruitment/deployment and leave rotations. Deterministic two-day dispatch pairs split its ordinary offworld consignments50% orbital hub,50% direct surface, with no mandatory second player leg. Freight terms1.00+0.40, personnel1.00+0.50, fuel-compensation cap2; passengers receive elevated comfort. Existing neutral receipts are used pending narrative-copy approval. Other providers' own routes are audited, not expanded in this pass. See [Balor](locations/estella-01-balor.md) and [shipping audit](balor-shipping-audit.md).
 
 ## New Canaan Miners Mutual
 

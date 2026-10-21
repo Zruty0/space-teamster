@@ -2,6 +2,28 @@
 
 Original inventory: 414 authored and generated cargo labels, with later additions below. The live catalog is `src/cargo-handling.ts`. Fragility applies independently of volatile/passenger handling.
 
+## BAM additions — 2026-10-20
+
+| Cargo type | Classification | Condition-risk fraction | Modifier |
+|---|---|---:|---|
+| hot-zone mining actuator sets | Ordinary | — | — |
+| hot-zone sensor packages | Fragile | 45% | in a shock-absorbing container |
+| refractory metal concentrates | Ordinary | — | — |
+| worn hot-zone actuator sets | Ordinary | — | — |
+| refractory alloy billets | Ordinary | — | — |
+| rebuildable coolant pump sets | Ordinary | — | — |
+| BAM-rated furnace crews | Ordinary | — | Elevated passenger comfort |
+| BAM-rated extraction crews | Ordinary | — | Elevated passenger comfort |
+| BAM field maintenance specialists | Ordinary | — | Elevated passenger comfort |
+| BAM precision commissioning crews | Ordinary | — | Elevated passenger comfort |
+| returning BAM specialists | Ordinary | — | Elevated passenger comfort |
+| BAM leave rotation | Ordinary | — | Elevated passenger comfort |
+| returning BAM leave rotation | Ordinary | — | Elevated passenger comfort |
+
+Elevated passenger comfort uses the existing50% service-risk fraction. BAM's other manifests reuse existing classifications; no additional heat-sensitive or volatile-cargo mechanic.
+
+## Existing inventory
+
 | Cargo type | Classification | Condition-risk fraction | Modifier |
 |---|---|---:|---|
 | academy verdict rolls | Ordinary | — | — |

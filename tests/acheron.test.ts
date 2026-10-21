@@ -94,6 +94,14 @@ for (let day = 0; day < 120; day++) {
     }
   }
 }
+// The rare deep-surface equipment postings compete on Hammer's capped board.
+// Additional actors can move their first appearance beyond the 120-day raw
+// audit window; check one year of that source, without forcing board priority.
+for (let day = 120; day < 365 && !boardSeen.has('mining-cutters-to-pandemonium'); day++) {
+  for (const c of generateCareerContracts(hammer, day * 86400)) {
+    if (c.factionId === chr.id && c.destinationId === pande) boardSeen.add(c.templateId!);
+  }
+}
 for (const id of ['hydrogen-to-olympos', 'mining-cutters-to-pandemonium', 'pressure-seals-to-pandemonium', 'local-surface-labor-processing']) assert(boardSeen.has(id), `route reaches real board selection: ${id}`);
 assert(pickupContract, 'metal export available');
 game.career.locationId = pande;

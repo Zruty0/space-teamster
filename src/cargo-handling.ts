@@ -16,6 +16,7 @@ export const FRAGILITY_LEVELS: Readonly<Record<FragilityLevel, { name: string; i
 };
 
 const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
+  'hot-zone sensor packages': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
   'anatomical culture cabinets': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.60 },
   'blackglass optical blanks': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.65 },
   'calibrated philosophical instruments': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.50 },
@@ -169,6 +170,18 @@ const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
 };
 
 const ORDINARY_CARGO = new Set<string>([
+  'hot-zone mining actuator sets',
+  'refractory metal concentrates',
+  'worn hot-zone actuator sets',
+  'refractory alloy billets',
+  'rebuildable coolant pump sets',
+  'BAM-rated furnace crews',
+  'BAM-rated extraction crews',
+  'BAM field maintenance specialists',
+  'BAM precision commissioning crews',
+  'returning BAM specialists',
+  'BAM leave rotation',
+  'returning BAM leave rotation',
   'academy verdict rolls',
   'Alvares ceremonial delegation',
   'banquet kitchen modules',

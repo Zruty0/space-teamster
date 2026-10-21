@@ -31,7 +31,7 @@ BAM operates both industrial sites. Detailed ownership/governance of Shade and B
 
 ## Economy direction
 
-- Main industrial business: refractory extraction, refining and specialised high-temperature materials. Potential products include metal billets, alloy feedstock, furnace linings, ceramics and thermal protection. Detailed manifest roster and individual routes still need authoring.
+- Main industrial business: refractory extraction, refining and specialised high-temperature materials. Authored products include refractory concentrates, alloy billets, linings, thermal tiles and high-purity ceramic packages. Procurement covers mining equipment, pumps, finished industrial electronics and consumables; worn actuators and pumps return for overhaul.
 - Inputs: specialised machinery, precision components, cooling equipment, seals, life-support supplies, food and volatiles. Hot processing is not free processing: heat rejection, maintenance and reliable equipment remain costly.
 - Services: skim staging, maintenance, inspection, crew changes, accommodation and recovery.
 - Preserve the Still's role as fuel-refining centre. Balor supports the upstream operation; it does not replace the Guild's fuel production.
@@ -42,6 +42,6 @@ BAM operates both industrial sites. Detailed ownership/governance of Shade and B
 
 This pass implements names, site summaries/tags and the four-destination catalog. Existing Guild/Bruckner/VHM work resolves the renamed endpoints through unchanged IDs. The observatory node, placement and flight profile are removed; old career locations there resolve to Shade on load, preserving finances, rig, time, certifications and other state. Historical records are not rewritten; no live save is edited by the development tools.
 
-BAM contract provider, new cargo roster,50/50 routing distribution and detailed recruitment/dialogue copy remain unimplemented.
+BAM contract provider, cargo roster and50/50 paired dispatch routing are now implemented:26 lane families,56 logical consignments/day,27 labels,18 external sites. Each logical order posts either orbital or direct handling on a given day, not duplicate alternatives. Complete two-day pairs balance count and weight; player choices/capped boards need not reproduce that ratio. Operational details explain the relevant surface site and background local transfer. Freight terms1.00+0.40, personnel1.00+0.50, cap2; elevated passenger comfort. Detailed narrative/recruitment copy still awaits review; the existing neutral completion receipt is used. See [economy](../economy.md) and [shipping audit](../balor-shipping-audit.md).
 
 The subsequent Eye pass adds a shared procedural Canvas appearance to local orbit and small system markers. The old42000s spin metadata is removed. Canonical site longitudes are now Eye-relative: Extraction One−0.35rad (solid ground just outside the small cap), Foundry One−1.65rad (cooler margin), Shade−2.6rad (night side). The entry snapshot rotates these markers and the landing reference together; descent inherits the frame, and first ascent transforms its canonical ship position/velocity once at orbital entry. No moving ground, angular surface velocity, new heat/collision rules or historical/save rewrites. See [Balor Eye rendering](../balor-eye.md).
