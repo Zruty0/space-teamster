@@ -35,7 +35,9 @@ import {
 } from './cluster';
 import { bodyById, bodyStateRelativeToParent, stellarDistanceFromBody } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
-import { estellaDisplayPath } from './content/estella/navigation';
+import { estellaDisplayPath, estellaFolderTitle, estellaParentFolder, type EstellaFolderKey } from './content/estella/navigation';
+import { canTravelEmpty, createEmptyRun, emptyRunDirectory } from './empty-runs';
+import { contactSummary, knownMissionContacts, learnMissionContacts } from './contact-knowledge';
 import { ESTELLA_LOCATION_INTRODUCTIONS } from './content/estella/location-copy';
 import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
@@ -123,8 +125,9 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm' | 'equipmentList' | 'equipmentConfirm';
+  id: 'stationTerminal' | 'emptyRunDirectory' | 'emptyRunConfirm' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm' | 'equipmentList' | 'equipmentConfirm';
   selectedIndex: number;
+  emptyFolder?: EstellaFolderKey;
   board?: 'freight' | 'passenger' | 'contact';
   contracts?: CareerContract[];
   contractIndex?: number;
@@ -957,7 +960,7 @@ export class Game {
       const fuelReimbursement = contractFuelCompensation(quote.pay, quote.parFuelCost, fuelCost);
       const total = fixedPay - handlingPenalty - passengerServicePenalty - fuelCost + fuelReimbursement;
       financialLines = [
-        { label: 'Contract completion', amount: fixedPay },
+        { label: this.activeCareerContract?.category === 'empty' ? 'Empty run pay' : 'Contract completion', amount: fixedPay },
         ...(handlingPenalty > 0 ? [{ label: 'Handling penalty', amount: -handlingPenalty }] : []),
         ...(passengerServicePenalty > 0 ? [{ label: 'Service penalty', amount: -passengerServicePenalty }] : []),
         { label: 'Fuel cost', amount: -fuelCost },
@@ -986,8 +989,15 @@ export class Game {
       detailText,
       financialLines,
       onContinue: () => {
+        const completion = this.phaseCompletion;
         this.phaseCompletion = null;
-        onContinue();
+        try { onContinue(); } catch (error) {
+          if (this.activeCareerContract?.category !== 'empty') throw error;
+          // Empty-run settlement saves before publishing. Keep the arrival
+          // screen available to retry a failed save without a second charge.
+          this.phaseCompletion = completion;
+          this.showGuidance('Arrival could not be saved. Please try again.');
+        }
       },
       onRetry: () => {
         this.pendingMaintenanceSettlement = null;
@@ -1005,6 +1015,22 @@ export class Game {
     const contract = this.activeCareerContract;
     const quote = this.activeMissionQuote;
     if (!contract || !quote) return;
+    if (contract.category === 'empty') {
+      const settlement = this.pendingMaintenanceSettlement;
+      const next: CareerProfile = {
+        ...this.career,
+        money: this.career.money - actualFuelCostForQuote(quote, this.missionDvUsed),
+        locationId: contract.destinationId, worldTime: this.worldTime,
+        rig: settlement?.resultingRig ?? this.career.rig,
+      };
+      saveCareerProfile(next);
+      this.career = next;
+      if (settlement) this.committedMaintenanceLedgers = appendCommittedMaintenanceLedger(settlement.ledger);
+      this.pendingMaintenanceSettlement = null;
+      try { this.logSuccessfulGeneratedRun(); } catch (error) { console.warn('Could not save empty-run flight log', error); }
+      this.loadStationTerminal();
+      return;
+    }
     this.career.money += contractPayoutForQuote(quote, this.missionDvUsed)
       - actualFuelCostForQuote(quote, this.missionDvUsed)
       - integrityPenalty(this.activeManifestCondition.integrity)
@@ -1059,7 +1085,7 @@ export class Game {
 
   private finishRunTransition(): PhaseTransition {
     return this.makeTransition('success', () => {
-      this.logSuccessfulGeneratedRun();
+      if (this.activeCareerContract?.category !== 'empty') this.logSuccessfulGeneratedRun();
       if (this.activeCareerContract) {
         this.finishCareerDelivery();
         return;
@@ -2490,6 +2516,11 @@ export class Game {
     };
   }
 
+  private rememberDirectoryContacts(ids: string[]): boolean {
+    try { this.career = learnMissionContacts(this.career, ids); return true; }
+    catch { this.showGuidance('Contact information could not be saved.'); return false; }
+  }
+
   private buildInteractiveScene(state: InteractiveScenePhaseState): InteractiveScene {
     const locationPath = estellaDisplayPath(this.career.locationId);
     const tutorialCertificationIncomplete = !hasTeamsterCertification(this.career, 'line');
@@ -2502,6 +2533,49 @@ export class Game {
     if (state.maintenanceShopId) {
       const shop = maintenanceShopById(state.maintenanceShopId);
       if (shop) return this.maintenanceShopScene(state, shop, locationPath);
+    }
+    if (state.id === 'emptyRunDirectory') {
+      const folder = state.emptyFolder ?? 'root';
+      const parent = estellaParentFolder(folder);
+      return {
+        title: 'PLAN EMPTY RUN', subtitle: `${estellaFolderTitle(folder)} — FROM ${locationPath}`,
+        bodyRows: [{ kind: 'text', text: 'Public destinations and sites with known mission contacts. No cargo, pay or fuel reimbursement.' }],
+        footer: 'Enter/Space: open or select   Esc: back',
+        options: [
+          ...emptyRunDirectory(this.career, folder).map(entry => ({
+            label: `${entry.kind === 'folder' ? '▸ ' : ''}${entry.label}`,
+            detail: entry.detail, rightText: entry.contacts,
+            action: entry.kind === 'folder' ? `emptyFolder:${entry.key}` : `emptyDestination:${entry.target!.id}`,
+          })),
+          { label: parent ? 'Back' : 'Back to Station Terminal', action: parent ? `emptyFolder:${parent}` : 'stationTerminal', tone: 'back' },
+        ],
+      };
+    }
+    if (state.id === 'emptyRunConfirm') {
+      const contract = state.contracts?.[0];
+      if (!contract || contract.category !== 'empty') return this.buildInteractiveScene({ id: 'emptyRunDirectory', selectedIndex: 0 });
+      const reasons = [...contractMissingQualifications(contract, this.career), ...contractEquipmentRestrictionLabels(contract, this.career.rig)];
+      if (contract.sourceId !== this.career.locationId || !canTravelEmpty(this.career, contract.destinationId)) reasons.push('Destination no longer available');
+      const transfer = contract.selectedTransfer;
+      return {
+        title: 'CONFIRM EMPTY RUN', subtitle: contract.destinationName, bodyMaxHeight: 400,
+        bodyRows: [
+          { kind: 'kv', label: 'From', value: contract.sourcePath },
+          { kind: 'kv', label: 'To', value: contract.destinationPath },
+          { kind: 'kv', label: 'Cargo', value: 'None (0 t)' },
+          { kind: 'kv', label: 'Pay', value: '0 cr — no fuel reimbursement' },
+          { kind: 'kv', label: 'Estimated fuel cost', value: formatCredits(contract.quote.parFuelCost), tone: 'warning' },
+          { kind: 'kv', label: 'Departure', value: transfer ? `${transfer.label}: wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h; coast ${(transfer.transferTime / 3600).toFixed(1)}h` : 'Immediate / local route' },
+          { kind: 'text', text: 'Actual fuel is charged on arrival. Normal flight time, rig wear and restrictions apply.' },
+          ...(reasons.length ? [{ kind: 'text' as const, text: reasons.join(' + '), tone: 'danger' as const }] : []),
+        ],
+        footer: 'Enter/Space: choose   Esc: cancel',
+        options: [
+          { label: 'Depart Empty', action: 'launchEmptyRun', disabled: reasons.length > 0, tone: 'primary' },
+          { label: 'Choose Another Destination', action: `emptyFolder:${state.emptyFolder ?? 'root'}`, tone: 'back' },
+          { label: 'Cancel', action: 'stationTerminal', tone: 'back' },
+        ],
+      };
     }
     if (state.id === 'stationTerminal') {
       const introduction = ESTELLA_LOCATION_INTRODUCTIONS[this.career.locationId];
@@ -2520,6 +2594,7 @@ export class Game {
         options: [
           { label: 'Browse Freight Contracts', detail: ordinaryWorkAuthorized ? 'Open authorized freight postings.' : 'Basic certification is required before contract work.', action: 'browseContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
+          { label: 'Plan Empty Run', detail: ordinaryWorkAuthorized ? 'Choose a destination; fly at your own expense.' : 'Basic certification is required before independent travel.', action: 'emptyFolder:root', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Local Directory', tag: tutorialCheckrideAvailableHere ? 'TUTORIAL' : undefined, tagTone: tutorialCheckrideAvailableHere ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
           { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
           {
@@ -2647,6 +2722,11 @@ export class Game {
         bodyRows: [
           { kind: 'text', text: entries.length ? 'Local offices and reachable contacts available through this terminal.' : 'No local offices or reachable contacts are listed here.', tone: entries.length ? undefined : 'warning' },
           { kind: 'kv', label: 'Listings', value: `${entries.length}` },
+          ...(() => {
+            const local = new Set(localTerminalScopeIds(this.career.locationId));
+            const contacts = contactSummary(knownMissionContacts(this.career).filter(c => c.locationIds.some(id => local.has(id))));
+            return contacts ? [{ kind: 'kv' as const, label: 'Known contacts here', value: contacts }] : [];
+          })(),
           { kind: 'kv', label: 'Access', value: 'Local offices plus contacts within communications range' },
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
@@ -2689,6 +2769,7 @@ export class Game {
         subtitle: entry.kind === 'contact' ? `${entry.title} — ${entry.organizationName ?? 'Independent'}` : entry.organizationName,
         bodyRows: entry.kind === 'contact' ? [
           { kind: 'text', text: contactPresentation?.description ?? entry.description },
+          { kind: 'kv', label: 'Location', value: contactLocation },
           { kind: 'separator' },
           ...(contactPresentation?.dialogue ?? entry.dialogue).map((text, index) => ({ kind: 'text' as const, text, tone: index === 0 ? 'success' as const : undefined })),
         ] : [
@@ -2940,6 +3021,13 @@ export class Game {
     const itemCount = Math.max(1, scene.options.length);
 
     if (input.levelSelect) {
+      if (p.scene.id === 'emptyRunDirectory' || p.scene.id === 'emptyRunConfirm') {
+        const folder = p.scene.emptyFolder ?? 'root';
+        const parent = p.scene.id === 'emptyRunConfirm' ? folder : estellaParentFolder(folder);
+        if (parent) this.phase = { kind: 'interactiveScene', scene: { id: 'emptyRunDirectory', selectedIndex: 0, emptyFolder: parent } };
+        else this.loadStationTerminal();
+        return;
+      }
       if (p.scene.id === 'contractPosting') {
         if (p.scene.board === 'contact' && p.scene.directoryEntryId) {
           this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: p.scene.directoryEntryId, directoryParentEntryId: p.scene.directoryParentEntryId } };
@@ -2970,6 +3058,20 @@ export class Game {
   }
 
   private activateInteractiveSceneOption(state: InteractiveScenePhaseState, action: string): void {
+    if (action.startsWith('emptyFolder:')) {
+      if (!hasTeamsterCertification(this.career, 'basic-3')) return;
+      const folder = action.slice('emptyFolder:'.length) as EstellaFolderKey;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'emptyRunDirectory', selectedIndex: 0, emptyFolder: folder } };
+      return;
+    }
+    if (action.startsWith('emptyDestination:')) {
+      if (!hasTeamsterCertification(this.career, 'basic-3')) return;
+      const destination = action.slice('emptyDestination:'.length);
+      if (!canTravelEmpty(this.career, destination)) return;
+      const contract = createEmptyRun(this.career, destination);
+      this.phase = { kind: 'interactiveScene', scene: { id: 'emptyRunConfirm', selectedIndex: 0, emptyFolder: state.emptyFolder, contracts: [contract], contractIndex: 0 } };
+      return;
+    }
     if (action === 'browseContracts') {
       if (state.id === 'contractPosting') this.phase = { kind: 'interactiveScene', scene: { id: 'browseContracts', selectedIndex: state.contractIndex ?? 0, contracts: state.contracts ?? [], board: 'freight' } };
       else this.loadBrowseContracts();
@@ -2993,11 +3095,18 @@ export class Game {
       };
       return;
     }
-    if (action === 'localDirectory') { this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectory', selectedIndex: 0 } }; return; }
+    if (action === 'localDirectory') {
+      const visibleContacts = localDirectoryEntriesAt(this.career.locationId, this.career.certifications).filter(e => e.kind === 'contact').map(e => e.id);
+      if (!this.rememberDirectoryContacts(visibleContacts)) return;
+      this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectory', selectedIndex: 0 } }; return;
+    }
     if (action.startsWith('directoryEntry:')) {
       const directoryEntryId = action.slice('directoryEntry:'.length);
       const directoryEntry = localDirectoryEntryById(directoryEntryId);
-      if (directoryEntry?.maintenanceShopId) {
+      if (!directoryEntry || !localDirectoryEntriesAt(this.career.locationId, this.career.certifications).some(e => e.id === directoryEntryId)) return;
+      // An office's visible introduction also teaches the named person's location.
+      if (!this.rememberDirectoryContacts([directoryEntry.id, ...directoryEntry.actions.flatMap(a => a.contactId ? [a.contactId] : [])])) return;
+      if (directoryEntry.maintenanceShopId) {
         this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: directoryEntry.maintenanceShopId } };
         return;
       }
@@ -3029,6 +3138,8 @@ export class Game {
         return;
       }
       if (directoryAction?.contactId) {
+        if (!localDirectoryEntriesAt(this.career.locationId, this.career.certifications).some(e => e.id === directoryEntryId)) return;
+        if (!this.rememberDirectoryContacts([directoryAction.contactId])) return;
         const contracts = generateDirectoryEntryContracts(directoryAction.contactId, this.career.locationId, this.career.worldTime, this.career.certifications);
         this.phase = { kind: 'interactiveScene', scene: { id: 'localDirectoryEntry', selectedIndex: 0, directoryEntryId: directoryAction.contactId, directoryParentEntryId: directoryEntryId, contracts } };
         return;
@@ -3307,9 +3418,12 @@ export class Game {
       if (idx >= 0) this.openContractPosting(contracts, idx, state.id === 'browsePassengerContracts' || state.board === 'passenger' ? 'passenger' : 'freight');
       return;
     }
-    if (action === 'acceptContract') {
+    if (action === 'acceptContract' || action === 'launchEmptyRun') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
-      if (!contract) return;
+      if (!contract || (action === 'launchEmptyRun' && contract.category !== 'empty')) return;
+      if (contract.category === 'empty' && (contract.sourceId !== this.career.locationId
+        || !canTravelEmpty(this.career, contract.destinationId)
+        || !hasTeamsterCertification(this.career, 'basic-3'))) return;
       if (contractMissingQualifications(contract, this.career).length
         || contractEquipmentRestrictionLabels(contract, this.career.rig).length) return;
       const selectedTransfer = contract.selectedTransfer;
@@ -3395,7 +3509,7 @@ export class Game {
       title: this.activeCareerContract?.title ?? 'Generated Estella mission',
       sourceId,
       destinationId,
-      manifestKind: this.activeCareerContract?.category === 'passenger' ? 'passenger' : this.activeMissionQuote ? 'freight' : 'empty',
+      manifestKind: this.activeCareerContract?.category === 'empty' ? 'empty' : this.activeCareerContract?.category === 'passenger' ? 'passenger' : this.activeMissionQuote ? 'freight' : 'empty',
       manifestMassTons: this.activeMissionQuote?.cargoMassTons ?? 0,
       attempt: previousAttempt + 1,
       startWorldTime,

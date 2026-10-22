@@ -96,7 +96,7 @@ export function estellaSelectableNavTargets(): EstellaNavTarget[] {
 
 const SELECTABLE_TARGET_IDS = () => new Set(estellaSelectableNavTargets().map(target => target.id));
 
-function nodeHasSelectableDescendant(nodeId: string, selectableIds: Set<string>): boolean {
+function nodeHasSelectableDescendant(nodeId: string, selectableIds: ReadonlySet<string>): boolean {
   if (selectableIds.has(nodeId)) return true;
   const stack = ESTELLA_NODES.filter(node => node.placement?.parentId === nodeId);
   const seen = new Set<string>();
@@ -142,17 +142,32 @@ export function estellaParentFolder(folder: EstellaFolderKey): EstellaFolderKey 
   return `node:${parent.id}`;
 }
 
-export function estellaFolderEntries(folder: EstellaFolderKey): EstellaNavEntry[] {
-  const selectableIds = SELECTABLE_TARGET_IDS();
+/** Radius is relative to the shared parent, not current distance from the ship. */
+export function navigationOrbitRadius(node: WorldNode): number | undefined {
+  const p = node.placement;
+  return p?.kind === 'orbit' && p.orbit
+    ? p.orbit.kind === 'circular' ? p.orbit.radius : p.orbit.semiMajorAxis
+    : undefined;
+}
+export function compareNavigationNodes(a: WorldNode, b: WorldNode): number {
+  const group = (n: WorldNode) => n.placement?.kind === 'surface' ? 0 : navigationOrbitRadius(n) !== undefined ? 1 : 2;
+  return group(a) - group(b)
+    || ((navigationOrbitRadius(a) ?? 0) - (navigationOrbitRadius(b) ?? 0))
+    || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+}
+
+export function estellaFolderEntries(folder: EstellaFolderKey, selectableIds: ReadonlySet<string> = SELECTABLE_TARGET_IDS()): EstellaNavEntry[] {
 
   if (folder === 'root') {
     const regions = Object.keys(ESTELLA_REGION_NAMES) as RegionId[];
     return regions
       .map(regionId => {
-        const count = estellaSelectableNavTargets().filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === regionId).length;
-        return { regionId, count };
+        const count = estellaSelectableNavTargets().filter(target => selectableIds.has(target.id) && ESTELLA_NODES_BY_ID.get(target.id)?.regionId === regionId).length;
+        const radius = Math.min(...ESTELLA_NODES.filter(n => n.regionId === regionId && n.placement?.parentId === 'estella').map(n => navigationOrbitRadius(n) ?? Infinity));
+        return { regionId, count, radius };
       })
       .filter(row => row.count > 0)
+      .sort((a, b) => a.radius - b.radius)
       .map(row => ({
         kind: 'folder' as const,
         key: `region:${row.regionId}` as EstellaFolderKey,
@@ -165,19 +180,20 @@ export function estellaFolderEntries(folder: EstellaFolderKey): EstellaNavEntry[
   if (regionId) {
     return ESTELLA_NODES
       .filter(node => node.regionId === regionId && node.placement?.parentId === 'estella' && nodeHasSelectableDescendant(node.id, selectableIds))
+      .sort(compareNavigationNodes)
       .map(node => ({
         kind: 'folder' as const,
         key: `node:${node.id}` as EstellaFolderKey,
         label: displayName(node),
         detail: placementDetail(node),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
+      }));
   }
 
   const nodeId = nodeIdOfKey(folder);
   if (!nodeId) return [];
   return ESTELLA_NODES
     .filter(node => node.placement?.parentId === nodeId && nodeHasSelectableDescendant(node.id, selectableIds))
+    .sort(compareNavigationNodes)
     .map(node => {
       const target = node.kind === 'poi' ? targetForNode(node) : undefined;
       if (target) {
@@ -194,6 +210,5 @@ export function estellaFolderEntries(folder: EstellaFolderKey): EstellaNavEntry[
         label: displayName(node),
         detail: placementDetail(node),
       };
-    })
-    .sort((a, b) => a.label.localeCompare(b.label));
+    });
 }

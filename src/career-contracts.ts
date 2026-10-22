@@ -25,7 +25,7 @@ export interface CareerContract {
   issuerName?: string;
   issuerTag?: string;
   templateId?: string;
-  category?: 'freight' | 'passenger' | 'certification';
+  category?: 'freight' | 'passenger' | 'certification' | 'empty';
   certificationOnSuccess?: TeamsterCertificationId;
   tutorial?: boolean;
   requiredCertification?: TeamsterCertificationId;
@@ -109,7 +109,7 @@ function isDisallowedSameSiteDelivery(sourceId: string, destinationId: string): 
   return false;
 }
 
-function classifyRoute(sourceId: string, destinationId: string): CareerContractClass {
+export function classifyRoute(sourceId: string, destinationId: string): CareerContractClass {
   const source = ESTELLA_NODES_BY_ID.get(sourceId);
   const dest = ESTELLA_NODES_BY_ID.get(destinationId);
   const sourceBody = bodyNodeIdForLocation(sourceId);

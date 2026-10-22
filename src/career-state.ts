@@ -50,12 +50,14 @@ export interface CareerProfile {
   rig: CareerRigState;
   maintenanceShopInspections: Record<string, MaintenanceShopInspectionState>;
   nunesInquiries: NunesInquiryState;
+  /** Mission-giving people learned through introductions, never inferred from visits. */
+  knownContactIds?: string[];
 }
 
 export const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
 
 export function defaultCareerProfile(): CareerProfile {
-  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], rig: createDefaultRigState(false), maintenanceShopInspections: {}, nunesInquiries: createDefaultNunesInquiryState(0) };
+  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], knownContactIds: [], rig: createDefaultRigState(false), maintenanceShopInspections: {}, nunesInquiries: createDefaultNunesInquiryState(0) };
 }
 
 function isTeamsterCertificationId(value: unknown): value is TeamsterCertificationId {
@@ -148,6 +150,12 @@ export function loadCareerProfile(): CareerProfile {
       money: parsed.money,
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
       certifications,
+      // Pre-contact-knowledge careers that completed Gid's practicals already
+      // know him. An explicit empty list on a newer save remains authoritative.
+      knownContactIds: Array.isArray(parsed.knownContactIds)
+        ? migratedComponentIds(parsed.knownContactIds)
+        : parsed.knownContactIds === undefined && certifications.some(id => ['basic-1', 'basic-2', 'basic-3', 'line'].includes(id))
+          ? ['gideon-gid-bell'] : [],
       rig: migrateRigState(parsed.rig, certifications.includes('thin-atmosphere') || certifications.includes('thick-atmosphere')),
       maintenanceShopInspections: migratedShopInspections(parsed),
       nunesInquiries: migrateNunesInquiryState(parsed.nunesInquiries, typeof parsed.worldTime === 'number' ? parsed.worldTime : 0),

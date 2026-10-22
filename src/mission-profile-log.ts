@@ -11,6 +11,7 @@ export interface MissionProfileLogEntry {
   sourceId: string;
   destinationId: string;
   routeClass?: string;
+  missionKind?: 'empty' | 'freight' | 'passenger' | 'certification';
   transferId?: string;
   transferLabel?: string;
   waitTime?: number;
@@ -71,6 +72,7 @@ export function createMissionProfileEntry(opts: {
     sourceId: opts.quote.sourceId,
     destinationId: opts.quote.destinationId,
     routeClass: opts.careerContract?.routeClass,
+    missionKind: opts.careerContract?.category,
     transferId: opts.selectedTransfer?.id,
     transferLabel: opts.selectedTransfer?.label,
     waitTime: opts.selectedTransfer?.waitTime,
@@ -111,6 +113,7 @@ export function missionProfilesToCsv(entries: MissionProfileLogEntry[] = readMis
   const cols: (keyof MissionProfileLogEntry)[] = [
     'completedAt',
     'mode',
+    'missionKind',
     'sourceId',
     'destinationId',
     'routeClass',

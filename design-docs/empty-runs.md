@@ -1,13 +1,13 @@
-# Empty runs — proposed access roster
+# Empty runs and contact-authorized travel
 
 Updated: 2026-10-21
-Status: access recommendation approved except abandoned/remote/cache destinations, now under review. No runtime implementation or access-policy changes yet.
+Status: implemented. Pete approved the access roster, made all eight abandoned/remote/lore sites unlisted, and clarified that public contracts include authorization. A known mission-giving contact permits empty travel to that contact's site.
 
 ## Requested mechanism
 
-Station Terminal → Plan Empty Run → region/body/moon/station navigation → destination → route/cost confirmation → normal playable mission. Origin is the current career location. No cargo, pay or fuel reimbursement; normal fuel/time/wear and flight restrictions. Destination must be public and physically playable. Departures from restricted delivery sites must remain possible. Existing contract-authorized access is unaffected.
+Station Terminal → Plan Empty Run → region/body/moon/station navigation → destination → route/cost confirmation → normal playable mission. Origin is the current career location. No cargo, pay or fuel reimbursement; normal fuel/time/wear and flight restrictions. Destination must be physically playable and either public or the location of a known mission contact. Departures from restricted delivery sites remain possible. Public postings may freely direct to non-public sites: the assignment supplies authorization. Existing contract generation is unaffected.
 
-Proposed bookkeeping: distinguish empty runs from commercial deliveries, no qualification/reputation rewards; settlement and wear commit only on successful arrival, normal deterministic retries. Public surface-to-surface personal relocation is allowed; this does not add routine local supply jobs to boards. Omit current-terminal destinations and prune empty folders.
+Bookkeeping: distinguish empty runs from commercial deliveries, no qualification/reputation rewards; settlement and wear commit only on successful arrival, normal deterministic retries. Public surface-to-surface personal relocation is allowed; this does not add routine local supply jobs to boards. Omit current-terminal destinations and prune empty folders.
 
 Sort regions inner-to-outer; orbiting siblings by radius around their shared parent (semi-major axis for eccentric orbits). Surface sites separately/alphabetically; non-orbiting cluster members have no orbital radius and use a stable alphabetical fallback. Preserve back navigation and readable wrapping.
 
@@ -15,9 +15,9 @@ Sort regions inner-to-outer; orbiting siblings by radius around their shared par
 
 Public means an independent Teamster may arrive at the site's receiving pad/dock without a sponsoring assignment. It does not grant access to a factory floor, palace interior, data centre or every onboard department. Danger, remoteness, private ownership, expensive clientele and scientific work do not by themselves make a destination restricted.
 
-Recommend explicit per-POI access: public / restricted / clandestine, with a short author-facing reason. Classify existing inventory deliberately; require review for new POIs rather than automatically exposing them. Do not derive access from free-text tags or propagate a parent's restriction without public-entry exceptions. Access metadata for this feature is not a new universal law/customs simulation.
+Explicit per-POI empty-travel access: public / restricted / unlisted. Unlisted includes clandestine, abandoned and remote/lore destinations; it does NOT hide contracts or require discoveries before commercial postings. Classify existing inventory deliberately; require review for new POIs rather than automatically exposing them. Do not derive access from free-text tags or propagate a parent's restriction without public-entry exceptions. Access metadata for this feature is not a new universal law/customs simulation.
 
-## Public by recommendation
+## Public receiving destinations
 
 All ordinary commercial/civic destinations not excepted below, including:
 
@@ -31,17 +31,18 @@ All ordinary commercial/civic destinations not excepted below, including:
 - Daedalus Systems Campus's commercial receiving area; not Server Farm or Icarus.
 - Pilgrim Gate and Vigil Gate as external trade/arrival interfaces; not unrestricted admission to the Covenant interiors.
 - Macao Palace and Great Arena; ordinary legal resorts/casinos, not invitation-only or hidden facilities.
-- Reach settlements and monasteries. The earlier proposal to include remote science cells, prospector caches, lone beacons and Deepest Dock is under review below.
-- First Landing and Old Survey Camp: public access is NOT approved; Pete is inclined to make abandoned sites unlisted/unknown.
+- Reach settlements and monasteries. The eight abandoned/remote/lore sites listed below are unlisted for empty travel.
 
 Public classifications do not manufacture missing placements: casino Concourse and civilian Main Observatory Dock should be public when playable, but unfinished placement chains remain unavailable.
 
-## Restricted — proposed exclusions
+## Restricted empty-arrival sites
+
+These are absent unless a known mission contact is physically based at the exact destination. Contact knowledge does not open every sibling berth, department or site on the same body.
 
 | Area | POI IDs | Reason |
 |---|---|---|
 | Gaia | `estella-iii-military-spaceport` | Restricted military/government installation |
-| Kuznia surface | `estella-vi-industrial-city`, `estella-vi-foundry-complex`, `estella-vi-spaceport`, `estella-vi-agricultural-lowlands`, `estella-vi-polar-weather-research`, `estella-vi-mountain-mining` | Recommend assignment-only arrival for this version; preserve Combine dispatch/clearance rather than invent a visitor-permit system |
+| Kuznia surface | `estella-vi-industrial-city`, `estella-vi-foundry-complex`, `estella-vi-spaceport`, `estella-vi-agricultural-lowlands`, `estella-vi-polar-weather-research`, `estella-vi-mountain-mining` | Contract or known-contact authorization; preserve Combine dispatch/clearance without a visitor-permit simulation |
 | Kalyna surface | `estella-vib-vat-protein`, `estella-vib-pharma-horticulture`, `estella-vib-aquaculture` | Controlled producer facilities; use Kalyna Orbital for unsponsored arrivals |
 | Tessera | `estella-vii-black-project-outpost` | Black Tile sealed research |
 | Still internal destinations | `still-guild-hq`, `still-refinery-core`, `still-distribution-bay`, `still-worker-hab`, `still-skim-runner-berth-poi` | Empty flights use Public Approach Dock; local Directory/training access remains unchanged |
@@ -57,7 +58,7 @@ Public classifications do not manufacture missing placements: casino Concourse a
 | Ceuta | `estella-xiid-black-project-exile`, `estella-xiid-blackglass-observatory` | Castle Nunes and Blackglass Observatory controlled access |
 | Reach | `estella-xiii-prison-exile-colony`, `estella-xiii-classified-research` | Prison custody and classified research |
 
-## Clandestine — proposed exclusions
+## Unlisted clandestine sites
 
 - `arkfall-apocrypha-cache-poi` — Apocrypha Cache.
 - `casino-backstairs-bay` — Backstairs Bay.
@@ -69,16 +70,16 @@ Public classifications do not manufacture missing placements: casino Concourse a
 - `estella-xiv-smuggler-haven` — Smuggler Haven.
 - `reach-comet-fragment-3-poi` — Reach comet Dead-Drop.
 
-Hide these from the public destination picker, including empty parent branches. Existing contracts/contact mechanics can still name and authorize them. Do not add public explanations that reveal hidden operations.
+Hide these from the empty-run picker, including empty parent branches, unless a mission contact there is known. Public postings may name and authorize them. Visiting on a contract does not automatically teach a contact or permanently unlock empty travel.
 
 ## Reserved / not ready
 
 - Coronal Observation Post: retain endgame reserve and missing authored orbit; no new placement as part of empty runs.
 - `estella-xiv-abandoned-active-site`: recommend excluding the Abandoned-but-Active Site until its mystery/entry conditions are authored. Treat as reserved access, not a claim of military ownership.
 
-## Review points
+## Unlisted abandoned / remote / lore sites
 
-Pete approved the recommendation except the 'known abandoned sites etc.' group and requested its list before deciding. Remaining review:
+All eight are now unlisted for empty travel, as requested:
 
 | Site | ID | Existing description |
 |---|---|---|
@@ -88,8 +89,21 @@ Pete approved the recommendation except the 'known abandoned sites etc.' group a
 | Lonely Beacon / Lone-Operator Station | `reach-rogue-lonely-beacon` | Isolated, inhabited station on the rogue KBO fragment |
 | The Deepest Dock | `deepest-dock-poi` | Writer-defined settled outer-limit dock; not explicitly abandoned |
 
-Adjacent review candidates from the broader remote/lore-site recommendation: Estella IX Geological Feature (`estella-ix-geological-feature`), Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
+Also unlisted: Estella IX Geological Feature (`estella-ix-geological-feature`), Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
 
-Consider distinguishing unlisted/undiscovered from known-but-permission-restricted. Prospector Cache, Lonely Beacon and Deepest Dock already occur in BFS/VHM regular contract endpoint pools; hiding them from empty-run navigation alone does not make them genuinely unknown. Discovery/contact gating or removing public advertisements would be a separate decision, not silently included here.
+**No public-advertisement removal.** Prospector Cache, Lonely Beacon and Deepest Dock retain their ordinary BFS/VHM work. Posting authorization and independent empty-travel access are separate.
+
+## Contacts and implementation
+
+- Contacts are mission-giving people/faction representatives. Only `gideon-gid-bell` currently qualifies; named shop staff and institutional offices do not.
+- `CareerProfile.knownContactIds` persists introductions. Viewing a locally accessible office's introduction or an actual contact listing learns registered mission contacts, atomically clone→save→publish. Failures do not unlock travel. A new career knows nobody. Legacy saves without this field infer Gid only from completed basic/line practicals; explicit new-save empty knowledge is authoritative.
+- Known contacts authorize their exact `locationIds`, not all physical-terminal siblings. Gid is at Guild HQ, not every office carrying his remote link.
+- The destination tree shows a single known person's name, or `N contacts` for multiple known people; zero omitted. Parent folders aggregate distinct known contacts at eligible descendant destinations. Local Directory also summarizes known people physically present. Contact views show their location.
+- `empty-travel-access.ts`:186 explicit POIs,134 public/33 restricted/19 unlisted. New IDs fail closed pending authoring. Missing physical placement still blocks travel even when a contact is known.
+- `empty-runs.ts`: allowed destinations, filtered annotated tree, on-demand zero-mass/zero-pay `CareerContract` with category `empty`. Source always current location; no source privacy gate. Current physical terminal excluded. Public surface-to-surface relocation supported.
+- `navigation.ts`: shared radius ordering and optional target filter; pruning applies only to the supplied target set. Commercial board generation and its full target inventory are untouched.
+- Terminal uses ordinary readable/scrollable InteractiveScene menus. Confirmation displays estimated fuel cost/departure; basic certification required, ordinary line/rig restrictions rechecked at launch. No freight/passenger handling credential or condition meter for an empty manifest.
+- Empty runs use normal deterministic phase retries and maintenance telemetry with `manifestKind: empty`. Successful arrival saves fuel debit/time/location/rig before publishing; failed save retains the arrival screen for retry. Debug ledger/profile logs follow commit. No certification or inquiry rewards. History JSON/CSV includes `missionKind`; old entries remain untouched.
+- Regression: `npm run test:empty-runs`, including full access coverage, filtered/radius-sorted tree, synthetic future two-contact cases, Gid-only production registry, migration/save failure, every eligible destination, real terminal launch/retry/arrival, and unchanged authorization for public postings into non-public sites.
 
 No new general docking fees, debt rules, permits, faction reputation or exploration rewards in the initial version.
