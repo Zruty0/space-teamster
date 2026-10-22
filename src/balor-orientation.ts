@@ -17,15 +17,13 @@ export function rotateBalorDeparture(init: OrbitalInitOverride, angle: number): 
     vx: init.vx * c - init.vy * s, vy: init.vx * s + init.vy * c };
 }
 
-/** Clone the visit, never the catalog. Retry/approach returns retain the snapshot.
- * System-map markers also freeze at that view's entry time, not each draw call.
+/** Clone the local visit, never the catalog. Retry/approach returns retain the
+ * snapshot. System-map markers instead face the star from their live position.
  */
 export function orientBalorOrbitalVisit(level: OrbitalLevel, worldTime: number, inheritedAngle?: number): OrbitalLevel {
   if (level.balorEyeAngle !== undefined) return level;
-  const local = level.bodyId === BALOR_BODY_ID;
-  if (!local && !level.systemBodies?.some(body => body.id === BALOR_BODY_ID)) return level;
+  if (level.bodyId !== BALOR_BODY_ID) return level;
   const angle = inheritedAngle ?? balorEyeAngleAt(worldTime);
-  if (!local) return { ...level, balorEyeAngle: angle };
   const canonicalStart = { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY };
   const start = level.station || level.dynamicStartOrbit || level.dynamicStartBodyId
     ? canonicalStart : rotateBalorDeparture(canonicalStart, angle);

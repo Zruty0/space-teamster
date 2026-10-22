@@ -2,7 +2,7 @@ import './svg-dom';
 import { drawBalorDisc, balorShoreX, BALOR_EYE_ARC } from '../src/balor-appearance';
 import { balorEyeAngleAt, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from '../src/balor-orientation';
 import { createPlayableEstellaMission } from '../src/estella-playable';
-import { ORBITAL_LEVELS, createOrbitalState, createOrbitalCamera, orbitalToApproachParams, surfaceDistanceFromLandingTarget, updateOrbital, renderOrbital, type OrbitalLevel } from '../src/orbital';
+import { ORBITAL_LEVELS, createOrbitalState, createOrbitalCamera, orbitalToApproachParams, surfaceDistanceFromLandingTarget, updateOrbital, renderOrbital, transferBodyState, type OrbitalLevel } from '../src/orbital';
 import { APPROACH_LEVELS, createApproachState, type ApproachLevel, type ApproachInitOverride } from '../src/approach';
 import { bodyById, bodyStateRelativeToParent, SURFACE_POIS } from '../src/world';
 import { Game } from '../src/game';
@@ -171,12 +171,26 @@ for (const elapsed of [0, year / 4]) {
 const system = ORBITAL_LEVELS.find(l => l.bodyId === 'estella' && l.systemBodies?.some(b => b.id === 'estella-i'))!;
 assert(system, 'system-map fixture');
 const systemVisit = orientBalorOrbitalVisit(system, entry);
+assert(systemVisit === system, 'system view does not acquire a local surface snapshot');
 const systemState = createOrbitalState(systemVisit, { ...arrival, x: body.orbit!.radius, y: 0 });
-for (const elapsed of [0, year / 4]) {
+assert(systemState.balorEyeAngle === undefined, 'system state has no frozen Eye orientation');
+for (let step = 0; step <= 12; step++) {
+  const elapsed = year * step / 12;
   systemState.time = entry + elapsed;
+  // Even stale snapshots from a previous frame must not override chart facing.
+  const staleVisit = { ...systemVisit, balorEyeAngle: frozenAngle };
+  systemState.balorEyeAngle = frozenAngle;
+  const cam = { ...createOrbitalCamera(systemVisit), x: step * 1e6, y: -step * 2e6 };
+  const position = transferBodyState(systemVisit, 'estella-i', systemState.time)!;
+  const bx = (position.x - cam.x) * cam.zoom + game.canvas.width / 2;
+  const by = -(position.y - cam.y) * cam.zoom + game.canvas.height / 2;
   const r = recorder();
-  renderOrbital(r.ctx, game.canvas, createOrbitalCamera(systemVisit), systemState, systemVisit, elapsed);
-  assert(r.calls.some(c => c[0] === 'rotate' && c[1] === -frozenAngle), 'system marker uses same static-entry rule');
+  renderOrbital(r.ctx, game.canvas, cam, systemState, staleVisit, elapsed);
+  const marker = r.calls.findIndex(c => c[0] === 'translate' && c[1] === bx && c[2] === by);
+  assert(marker >= 0 && r.calls[marker + 1][0] === 'rotate', 'find actual Balor marker, not ship rotation');
+  const worldAngle = -(r.calls[marker + 1][1] as number);
+  direction(worldAngle, Math.atan2(-position.y, -position.x), 'system Eye always points from current Balor position to Estella');
+  if (step === 3) assert(Math.abs(Math.sin(worldAngle - frozenAngle!)) > 0.99, 'quarter-orbit advance cannot reuse frozen entry angle');
   const hint = r.calls.findIndex(c => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === '#ffb448');
   assert(hint >= 0, 'tiny system marker retains orange Eye hint');
   const hintStroke = r.calls.findIndex((c, i) => i > hint && c[0] === 'stroke');

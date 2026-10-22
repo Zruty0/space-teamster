@@ -1035,7 +1035,7 @@ export function createOrbitalState(level: OrbitalLevel, override?: OrbitalInitOv
     trail: [],
     trailIdx: 0,
     time: initTime,
-    balorEyeAngle: level.balorEyeAngle ?? ((level.bodyId === BALOR_BODY_ID || level.systemBodies?.some(body => body.id === BALOR_BODY_ID)) ? balorEyeAngleAt(initTime) : undefined),
+    balorEyeAngle: level.bodyId === BALOR_BODY_ID ? level.balorEyeAngle ?? balorEyeAngleAt(initTime) : undefined,
     realTime: 0,
     timeWarp: 1,
     timeWarpLevel: 0,
@@ -2945,7 +2945,9 @@ function drawSystemBodies(
         ? Math.min(8, Math.max(4, body.radius * cam.zoom))
         : Math.min(10, Math.max(3, body.radius * cam.zoom));
     if (body.id === BALOR_BODY_ID) {
-      drawBalorDisc(ctx, bx, by, br, level.balorEyeAngle ?? s.balorEyeAngle ?? 0);
+      // The chart body moves: point the Eye at the central star from the same
+      // live ephemeris used to place its marker, not a local-visit snapshot.
+      drawBalorDisc(ctx, bx, by, br, Math.atan2(-pos.y, -pos.x));
     } else {
       ctx.beginPath();
       ctx.arc(bx, by, br, 0, Math.PI * 2);

@@ -1,6 +1,6 @@
 # Balor Eye rendering and entry orientation
 
-Updated: 2026-10-20
+Updated: 2026-10-22
 
 ## Appearance
 
@@ -18,7 +18,7 @@ Pete rejected the initial broad cap and requested15–30degrees. `BALOR_EYE_ARC 
 - Orbital descent: clone the approach frame/POI with that same snapshot. Return to orbit from that approach retains it.
 - First surface ascent: local approach uses canonical ground coordinates. At orbital entry rotate ship position AND velocity once into the chosen frame, preserving altitude, along-track displacement, speed, angular momentum, temperature and delta-v accounting.
 - Incoming space/transfer states are already inertial and must not rotate. Station orbits, dynamic station starts, transfer vectors and orbital markers also remain inertial.
-- System-map marker: same entry-time freeze rule. The body continues following its orbit, but its artwork does not continuously turn during that view. A fresh local view takes a fresh snapshot.
+- System-map marker (corrected2026-10-22): always faces Estella from its CURRENT plotted position (`atan2(-pos.y, -pos.x)` using the same `transferBodyState` result as marker placement). No system-view entry snapshot: freezing this while the marker moved caused the Eye to point away from the star. This chart-only facing does not rotate local surface geography or alter the frozen close-up visit.
 
 The old42000s rotationPeriod metadata is removed; this is deliberately frozen presentation, not simulated synchronous spin or moving landing zones.
 
@@ -30,6 +30,6 @@ No added magma terrain collisions, radiation/heat damage, weather, orbital mecha
 
 ## Verification
 
-`npm run test:balor` includes naming/catalog regression and `tests/balor-eye.test.ts`:24 entry epochs, three surface destinations, star direction, fixed/retry snapshots, immutable global data, ground/cap separation, real Game load/descent/return/ascent transitions, landing prediction reference, conserved rigid-frame quantities, station start/ephemeris invariance, production local/system renderer dispatch, deterministic geometry, small-marker detail and zero-size guards.
+`npm run test:balor` includes naming/catalog regression and `tests/balor-eye.test.ts`:24 entry epochs, three surface destinations, star direction, fixed/retry snapshots, immutable global data, ground/cap separation, real Game load/descent/return/ascent transitions, landing prediction reference, conserved rigid-frame quantities, station start/ephemeris invariance, production local/system renderer dispatch (local snapshot fixed; system marker star-facing across a full orbit, camera offsets and stale snapshot fields), deterministic geometry, small-marker detail and zero-size guards.
 
 Desktop-only visual fixture: `http://127.0.0.1:5173/tests/balor-eye-preview.html`. Uses the production renderer plus20 real-canvas pixel assertions for orientation, colours, narrow footprint, clipping and repeated-image identity. No user profile is loaded. Inspected with headless Edge at1280×900; no mobile viewport or emulation. The fixture is not a production build entry.
