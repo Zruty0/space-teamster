@@ -77,8 +77,15 @@ for(let i=0;i<folders.length;i++) {
   const nodes=entries.flatMap(e=>{ const n=ESTELLA_NODES_BY_ID.get(e.target?emptyRunLocationId(e.target.id):e.key?.slice(5)??'');return n?[n]:[]; });
   for(let j=1;j<nodes.length;j++) assert(compareNavigationNodes(nodes[j-1],nodes[j])<=0,'siblings sorted by shared-parent orbital radius, stable fallback');
   for(const e of entries) {
-    if(e.kind==='folder') folders.push(e.key!);
-    else { assert(canTravelEmpty(learned,e.target!.id),'tree contains only allowed targets'); found.add(e.target!.id); }
+    const count=parseInt(e.detail);
+    assert(Number.isFinite(count) && count>0 && e.detail.startsWith(`${count} available destination${count===1?'':'s'}`),'available destinations shown at every tree level');
+    if(e.kind==='folder') {
+      const childCount=emptyRunDirectory(learned,e.key!).reduce((sum,child)=>sum+parseInt(child.detail),0);
+      assert(count===childCount,'folder count equals all selectable descendant locations, not immediate child folders');
+      folders.push(e.key!);
+    }
+    else assert(count===1,'surface sites and auto-selected terminals report one destination');
+    if(e.kind==='target') { assert(canTravelEmpty(learned,e.target!.id),'tree contains only allowed targets'); found.add(e.target!.id); }
   }
 }
 const allowedLocations=new Set([...emptyRunDestinationIds(learned)].map(emptyRunLocationId));

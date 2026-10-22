@@ -39,8 +39,12 @@ export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'k
   const known = knownMissionContacts(profile);
   const targets = estellaSelectableNavTargets();
   return estellaFolderEntries(folder, allowed).map(entry => {
-    const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => allowed.has(id)
-      && (entry.kind === 'target' ? entry.target?.id === id : !!entry.key && insideFolder(id, entry.key)))));
+    const destinations = new Set([...allowed].filter(id => entry.kind === 'target'
+      ? entry.target?.id === id : !!entry.key && insideFolder(id, entry.key)));
+    const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => destinations.has(id))));
+    const count = new Set([...destinations].map(emptyRunLocationId)).size;
+    const countText = `${count} available destination${count === 1 ? '' : 's'}`;
+    const detail = entry.key?.startsWith('region:') ? countText : `${countText} · ${entry.detail}`;
     const nodeId = entry.kind === 'folder' ? entry.key?.slice(5) : undefined;
     if (nodeId && sharedTerminalParentId(nodeId) === nodeId) {
       const docks = localTerminalScopeIds(nodeId).filter(id => allowed.has(id));
@@ -49,13 +53,11 @@ export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'k
       const dockId = docks.find(id => emptyTravelAccess(id) === 'public') ?? docks[0];
       const target = targets.find(target => target.id === dockId);
       if (target) return {
-        kind: 'target' as const, label: entry.label, detail: entry.detail, contacts,
+        kind: 'target' as const, label: entry.label, detail, contacts,
         target: { ...target, name: entry.label, path: estellaDisplayPath(nodeId) },
       };
     }
-    const count = entry.key?.startsWith('region:')
-      ? new Set([...allowed].filter(id => insideFolder(id, entry.key!)).map(emptyRunLocationId)).size : undefined;
-    return { ...entry, detail: count !== undefined ? `${count} available destination${count === 1 ? '' : 's'}` : entry.detail, contacts };
+    return { ...entry, detail, contacts };
   });
 }
 
