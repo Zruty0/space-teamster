@@ -4,7 +4,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { emptyTravelAccess } from './content/estella/empty-travel-access';
 import { estellaDisplayPath, estellaFolderEntries, estellaSelectableNavTargets, type EstellaFolderKey, type EstellaNavEntry } from './content/estella/navigation';
 import { knownMissionContacts, contactSummary } from './contact-knowledge';
-import { localTerminalScopeIds } from './local-directory';
+import { localTerminalScopeIds, sharedTerminalParentId } from './local-directory';
 import { generateEstellaMission } from './estella-mission';
 import { estimateEstellaMissionCost, makePayTerms } from './mission-cost';
 
@@ -29,15 +29,34 @@ function insideFolder(locationId: string, folder: EstellaFolderKey): boolean {
   }
   return false;
 }
+/** Present physical terminals, not their internal receiving-dock POIs. */
+export function emptyRunLocationId(locationId: string): string {
+  return sharedTerminalParentId(locationId) ?? locationId;
+}
+
 export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'knownContactIds'>, folder: EstellaFolderKey): Array<EstellaNavEntry & { contacts?: string }> {
   const allowed = emptyRunDestinationIds(profile);
   const known = knownMissionContacts(profile);
-  return estellaFolderEntries(folder, allowed).map(entry => ({
-    ...entry,
-    detail: entry.detail.replace('exact-authored POI', 'available destination'),
-    contacts: contactSummary(known.filter(contact => contact.locationIds.some(id => allowed.has(id)
-      && (entry.kind === 'target' ? entry.target?.id === id : !!entry.key && insideFolder(id, entry.key))))),
-  }));
+  const targets = estellaSelectableNavTargets();
+  return estellaFolderEntries(folder, allowed).map(entry => {
+    const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => allowed.has(id)
+      && (entry.kind === 'target' ? entry.target?.id === id : !!entry.key && insideFolder(id, entry.key)))));
+    const nodeId = entry.kind === 'folder' ? entry.key?.slice(5) : undefined;
+    if (nodeId && sharedTerminalParentId(nodeId) === nodeId) {
+      const docks = localTerminalScopeIds(nodeId).filter(id => allowed.has(id));
+      // Prefer the public receiving entrance; never select a restricted sibling
+      // merely because another dock at this physical terminal is authorized.
+      const dockId = docks.find(id => emptyTravelAccess(id) === 'public') ?? docks[0];
+      const target = targets.find(target => target.id === dockId);
+      if (target) return {
+        kind: 'target' as const, label: entry.label, detail: entry.detail, contacts,
+        target: { ...target, name: entry.label, path: estellaDisplayPath(nodeId) },
+      };
+    }
+    const count = entry.key?.startsWith('region:')
+      ? new Set([...allowed].filter(id => insideFolder(id, entry.key!)).map(emptyRunLocationId)).size : undefined;
+    return { ...entry, detail: count !== undefined ? `${count} available destination${count === 1 ? '' : 's'}` : entry.detail, contacts };
+  });
 }
 
 /** Generated on selection, not advertised on any commercial board. */
@@ -50,11 +69,13 @@ export function createEmptyRun(profile: Pick<CareerProfile, 'locationId' | 'worl
   const cargo = { label: 'Empty run', massTons: 0 };
   const quote = estimateEstellaMissionCost(sourceId, destinationId, cargo, selectedTransfer,
     makePayTerms({ generosity: 0, compensationRatio: 0, flatReward: 0, maxCompAllowance: 0 }));
-  const destinationName = ESTELLA_NODES_BY_ID.get(destinationId)!.name;
+  const destinationLocation = emptyRunLocationId(destinationId);
+  const sourceLocation = emptyRunLocationId(sourceId);
+  const destinationName = ESTELLA_NODES_BY_ID.get(destinationLocation)!.name;
   return {
     id: `empty:${sourceId}->${destinationId}:${profile.worldTime}`, templateId: 'empty-run', category: 'empty',
-    sourceId, destinationId, sourceName: ESTELLA_NODES_BY_ID.get(sourceId)!.name, destinationName,
-    sourcePath: estellaDisplayPath(sourceId), destinationPath: estellaDisplayPath(destinationId),
+    sourceId, destinationId, sourceName: ESTELLA_NODES_BY_ID.get(sourceLocation)!.name, destinationName,
+    sourcePath: estellaDisplayPath(sourceLocation), destinationPath: estellaDisplayPath(destinationLocation),
     routeClass: classifyRoute(sourceId, destinationId), title: `Empty run to ${destinationName}`,
     cargo, quote, selectedTransfer, requiredCertification: 'basic-3',
     details: 'No cargo, pay or fuel reimbursement. Normal fuel costs, flight time and rig wear apply.',

@@ -80,6 +80,7 @@ export function render(
   terrain: TerrainData,
   level: LevelDef,
   time: number,
+  showContainer = true,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -102,7 +103,7 @@ export function render(
   drawPredictedTrajectory(ctx, cam, ship, terrain, level, W, H, time);
 
   // Ship
-  drawShip(ctx, cam, ship, W, H, time);
+  drawLandingShip(ctx, cam, ship, W, H, time, showContainer);
 }
 
 export function drawLaunchGuidance(
@@ -462,9 +463,9 @@ function drawPredictedTrajectory(
 }
 
 // --- Ship ---
-function drawShip(
+export function drawLandingShip(
   ctx: CanvasRenderingContext2D, cam: Camera,
-  ship: ShipState, W: number, H: number, time: number
+  ship: ShipState, W: number, H: number, time: number, showContainer = true,
 ): void {
   const exhaustDirX = -Math.sin(ship.renderGimbalAngle);
   const exhaustDirY = -Math.cos(ship.renderGimbalAngle);
@@ -486,19 +487,21 @@ function drawShip(
   // Belt line
   drawPolyline(ctx, cam, ship, BELT_LINE, COL_TRIM, 1.6, W, H);
 
-  // Container with ribs
-  drawPolyline(ctx, cam, ship, [[-5.5, -2.0], [5.5, -2.0], [5.5, 2.0], [-5.5, 2.0], [-5.5, -2.0]], '#44aa66', 1, W, H);
-  for (const x of [-3.0, -1.0, 1.0, 3.0]) {
-    const [wx0, wy0] = localToWorld(x, -2.0, ship.x, ship.y, ship.angle, ship.facingSign);
-    const [wx1, wy1] = localToWorld(x, 2.0, ship.x, ship.y, ship.angle, ship.facingSign);
-    const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
-    const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
-    ctx.beginPath();
-    ctx.moveTo(sx0, sy0);
-    ctx.lineTo(sx1, sy1);
-    ctx.strokeStyle = '#335f33';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+  // Container with ribs; the frame/engines/gear remain on an empty rig.
+  if (showContainer) {
+    drawPolyline(ctx, cam, ship, [[-5.5, -2.0], [5.5, -2.0], [5.5, 2.0], [-5.5, 2.0], [-5.5, -2.0]], '#44aa66', 1, W, H);
+    for (const x of [-3.0, -1.0, 1.0, 3.0]) {
+      const [wx0, wy0] = localToWorld(x, -2.0, ship.x, ship.y, ship.angle, ship.facingSign);
+      const [wx1, wy1] = localToWorld(x, 2.0, ship.x, ship.y, ship.angle, ship.facingSign);
+      const [sx0, sy0] = worldToScreen(wx0, wy0, cam, W, H);
+      const [sx1, sy1] = worldToScreen(wx1, wy1, cam, W, H);
+      ctx.beginPath();
+      ctx.moveTo(sx0, sy0);
+      ctx.lineTo(sx1, sy1);
+      ctx.strokeStyle = '#335f33';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
   }
 
   // Cab, separated from container, truck-facing right

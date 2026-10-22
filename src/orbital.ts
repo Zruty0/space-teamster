@@ -2673,6 +2673,7 @@ export function renderOrbital(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel, time: number,
   atmosphericPackageInstalled = true,
+  showContainer = true,
 ): void {
   const W = canvas.width, H = canvas.height;
 
@@ -2704,7 +2705,7 @@ export function renderOrbital(
     drawOrbitalMarkers(ctx, cam, s, level, W, H);
   }
   if (!rendezvousZoomed && _maneuverCache) drawManeuverMarker(ctx, cam, _maneuverCache, W, H);
-  drawShip(ctx, cam, s, level, W, H, time);
+  drawOrbitalShip(ctx, cam, s, level, W, H, time, showContainer);
 }
 
 // --- Stars ---
@@ -3719,9 +3720,9 @@ function drawOrbitalMarkers(
 }
 
 // --- Ship ---
-function drawShip(
+export function drawOrbitalShip(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  s: OrbitalState, level: OrbitalLevel, W: number, H: number, time: number,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number, time: number, showContainer = true,
 ): void {
   const [sx, sy] = ws(s.x, s.y, cam, W, H);
   const size = 10;
@@ -3751,18 +3752,20 @@ function drawShip(
   const sideThrusterY = size * 0.42;
   const sideThrusterX = size * 0.42;
 
-  // Container fill
-  ctx.fillStyle = '#102010';
-  ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
-  ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
-  for (let i = 1; i < 3; i++) {
-    const x = contX0 + ((contX1 - contX0) * i) / 3;
-    ctx.beginPath();
-    ctx.moveTo(x, contY0);
-    ctx.lineTo(x, contY1);
-    ctx.stroke();
+  // Container fill and ribs; empty runs retain the bare frame.
+  if (showContainer) {
+    ctx.fillStyle = '#102010';
+    ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+    ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+    for (let i = 1; i < 3; i++) {
+      const x = contX0 + ((contX1 - contX0) * i) / 3;
+      ctx.beginPath();
+      ctx.moveTo(x, contY0);
+      ctx.lineTo(x, contY1);
+      ctx.stroke();
+    }
   }
 
   // Frame

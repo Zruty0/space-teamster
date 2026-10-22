@@ -911,7 +911,7 @@ function dws(wx: number, wy: number, cam: DockingCamera, W: number, H: number): 
 
 export function renderDocking(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
-  cam: DockingCamera, s: DockingState, level: DockingLevel, time: number,
+  cam: DockingCamera, s: DockingState, level: DockingLevel, time: number, showContainer = true,
 ): void {
   const W = canvas.width, H = canvas.height;
 
@@ -926,7 +926,7 @@ export function renderDocking(
   drawStation(ctx, cam, level, W, H);
 
   // Ship (tug + container)
-  drawTug(ctx, cam, s, level, W, H, time);
+  drawTug(ctx, cam, s, level, W, H, time, showContainer);
 
   // Neutral X at ship center
   const [cx, cy] = dws(s.x, s.y, cam, W, H);
@@ -1270,9 +1270,9 @@ function drawStation(
 }
 
 // --- Tug + Container ---
-function drawTug(
+export function drawTug(
   ctx: CanvasRenderingContext2D, cam: DockingCamera,
-  s: DockingState, level: DockingLevel, W: number, H: number, time: number,
+  s: DockingState, level: DockingLevel, W: number, H: number, time: number, showContainer = true,
 ): void {
   const [sx, sy] = dws(s.x, s.y, cam, W, H);
   const z = cam.zoom;
@@ -1298,17 +1298,18 @@ function drawTug(
     const frameX1 = frameW / 2;
     const cabX0 = frameX1 + gap; // cab starts after gap
 
-    // Container (centered in frame)
-    ctx.fillStyle = '#1a2a1a';
-    ctx.fillRect(-contW / 2, -contH / 2, contW, contH);
-    ctx.strokeStyle = '#44aa66';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(-contW / 2, -contH / 2, contW, contH);
-    // Container stripes
-    ctx.strokeStyle = 'rgba(68, 170, 102, 0.3)';
-    for (let i = 1; i < 4; i++) {
-      const lx = -contW / 2 + (contW * i) / 4;
-      ctx.beginPath(); ctx.moveTo(lx, -contH / 2); ctx.lineTo(lx, contH / 2); ctx.stroke();
+    // Container (centered in frame); independent of the physics configuration.
+    if (showContainer) {
+      ctx.fillStyle = '#1a2a1a';
+      ctx.fillRect(-contW / 2, -contH / 2, contW, contH);
+      ctx.strokeStyle = '#44aa66';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-contW / 2, -contH / 2, contW, contH);
+      ctx.strokeStyle = 'rgba(68, 170, 102, 0.3)';
+      for (let i = 1; i < 4; i++) {
+        const lx = -contW / 2 + (contW * i) / 4;
+        ctx.beginPath(); ctx.moveTo(lx, -contH / 2); ctx.lineTo(lx, contH / 2); ctx.stroke();
+      }
     }
 
     // Frame wireframe
@@ -1554,7 +1555,7 @@ export function drawDockingHUD(
   const panelRows: { label: string; value: string; color?: string }[] = [];
   let guidance = level.exitMode
     ? `Clear the station to at least ${level.exitDistance.toFixed(0)} m.`
-    : 'Close on the target bay and align the container.';
+    : 'Close on the target bay and align the rig.';
 
   if (target && !level.exitMode) {
     const bp = bayWorldPos(target, level.stationX, level.stationY);
@@ -1569,8 +1570,8 @@ export function drawDockingHUD(
     guidance = s.beamActive
       ? 'Release controls; the tractor beam will center and align the rig.'
       : dist < level.beamRange
-        ? 'Align the container to activate the tractor beam.'
-        : 'Close on the target bay and align the container.';
+        ? 'Align the rig to activate the tractor beam.'
+        : 'Close on the target bay and align the rig.';
   }
 
   if (level.exitMode) {

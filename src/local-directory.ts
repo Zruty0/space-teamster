@@ -54,9 +54,9 @@ export interface LocalContactPresentation {
   dialogue: string[];
 }
 
-const SHARED_TERMINAL_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid']);
+const SHARED_TERMINAL_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid', 'comet-fragment']);
 
-function sharedTerminalParentId(locationId: string): string | undefined {
+export function sharedTerminalParentId(locationId: string): string | undefined {
   const node = ESTELLA_NODES_BY_ID.get(locationId);
   if (!node) return undefined;
   if (SHARED_TERMINAL_PARENT_KINDS.has(node.kind)) return node.id;
@@ -93,7 +93,7 @@ function withinContactRange(currentLocationId: string, contactLocationId: string
   return currentRegion !== undefined && currentRegion === ESTELLA_NODES_BY_ID.get(contactLocationId)?.regionId;
 }
 
-/** POIs sharing the current physical station or asteroid terminal. Surface sites remain separate. */
+/** POIs sharing the current physical station or small-body terminal. Surface sites remain separate. */
 export function localTerminalScopeIds(locationId: string): string[] {
   const parentId = sharedTerminalParentId(locationId);
   if (!parentId) return [locationId];

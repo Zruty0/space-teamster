@@ -1,11 +1,12 @@
 import './svg-dom';
+import './empty-rig-rendering.test';
 import { defaultCareerProfile, loadCareerProfile, saveCareerProfile } from '../src/career-state';
 import { LOCAL_DIRECTORY_ENTRIES, GIDEON_BELL, localTerminalScopeIds } from '../src/local-directory';
 import { contactSummary, knownMissionContacts, learnMissionContacts, missionContacts } from '../src/contact-knowledge';
 import { EMPTY_TRAVEL_ACCESS, emptyTravelAccess } from '../src/content/estella/empty-travel-access';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
 import { estellaFolderEntries, navigationOrbitRadius, compareNavigationNodes, type EstellaFolderKey } from '../src/content/estella/navigation';
-import { canTravelEmpty, createEmptyRun, emptyRunDestinationIds, emptyRunDirectory } from '../src/empty-runs';
+import { canTravelEmpty, createEmptyRun, emptyRunDestinationIds, emptyRunDirectory, emptyRunLocationId } from '../src/empty-runs';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { actualFuelCostForQuote, contractPayoutForQuote } from '../src/mission-cost';
 import { generateCareerContracts } from '../src/career-contracts';
@@ -34,7 +35,9 @@ assert(knownMissionContacts(profile).length===0 && !canTravelEmpty(profile,'stil
 const learned=learnMissionContacts(profile,[GIDEON_BELL.id,GIDEON_BELL.id,'vilar-shop-person','unknown']);
 assert(learned!==profile && profile.knownContactIds?.length===0 && learned.knownContactIds?.length===1,'atomic knowledge copy, dedupe, valid people only');
 assert(canTravelEmpty(learned,'still-guild-hq') && !canTravelEmpty(learned,'still-refinery-core'),'known contact opens exact site, not sibling departments');
-assert(emptyRunDirectory(learned,'node:the-still').find(e=>e.target?.id==='still-guild-hq')?.contacts===GIDEON_BELL.name,'single contact shown by name');
+const stillEntry=emptyRunDirectory(learned,'node:new-canaan-field').find(e=>e.target?.id==='still-public-approach-dock');
+assert(stillEntry?.contacts===GIDEON_BELL.name && stillEntry.label==='The Still','station selected directly, public entrance chosen, contact at sibling department still shown');
+assert(!emptyRunDirectory(learned,'node:new-canaan-field').some(e=>e.key==='node:the-still'),'no final Still dock-selection folder');
 assert(emptyRunDirectory(learned,'region:belt').find(e=>e.key==='node:new-canaan-field')?.contacts===GIDEON_BELL.name,'ancestor branch advertises known contact');
 assert(!emptyRunDirectory(learned,'node:estella-viii-friendly-station').some(e=>e.contacts),'remote certification link does not relocate Gid to Nells Rest');
 let oldSaves=saves; assert(learnMissionContacts(learned,[GIDEON_BELL.id])===learned && saves===oldSaves,'known introductions are no-op saves');
@@ -49,6 +52,7 @@ try {
   LOCAL_DIRECTORY_ENTRIES.push(...contacts);
   const a=learnMissionContacts(profile,['fixture-a']);
   assert(canTravelEmpty(a,unlisted[2]),'known representative unlocks unlisted cache');
+  assert(emptyRunDirectory(a,'node:reach-comet-swarm').find(e=>e.target?.id===unlisted[2])?.contacts==='Representative A','auto-selected unlisted receiving site requires known contact');
   assert(emptyRunDirectory(a,'node:reach-comet-fragment-2')[0].contacts==='Representative A','one known person name, unknown second person not leaked');
   const b=learnMissionContacts(a,['fixture-b']);
   assert(emptyRunDirectory(b,'node:reach-comet-fragment-2')[0].contacts==='2 contacts','plural display at unlocked site');
@@ -70,21 +74,26 @@ const found=new Set<string>(), folders:EstellaFolderKey[]=['root'];
 for(let i=0;i<folders.length;i++) {
   const entries=emptyRunDirectory(learned,folders[i]);
   assert(entries.length>0,'empty folders pruned');
-  const nodes=entries.flatMap(e=>{ const n=ESTELLA_NODES_BY_ID.get(e.target?.id??e.key?.slice(5)??'');return n?[n]:[]; });
+  const nodes=entries.flatMap(e=>{ const n=ESTELLA_NODES_BY_ID.get(e.target?emptyRunLocationId(e.target.id):e.key?.slice(5)??'');return n?[n]:[]; });
   for(let j=1;j<nodes.length;j++) assert(compareNavigationNodes(nodes[j-1],nodes[j])<=0,'siblings sorted by shared-parent orbital radius, stable fallback');
   for(const e of entries) {
     if(e.kind==='folder') folders.push(e.key!);
     else { assert(canTravelEmpty(learned,e.target!.id),'tree contains only allowed targets'); found.add(e.target!.id); }
   }
 }
-assert(found.size===emptyRunDestinationIds(learned).size,'every allowed destination represented once');
+const allowedLocations=new Set([...emptyRunDestinationIds(learned)].map(emptyRunLocationId));
+assert(found.size===allowedLocations.size,'one choice per physical terminal/site, not per dock');
+for(const id of found) assert(allowedLocations.delete(emptyRunLocationId(id)),'unique physical destination');
+assert(allowedLocations.size===0,'every allowed physical destination represented');
+assert(emptyRunDirectory(learned,'root').reduce((sum,e)=>sum+parseInt(e.detail),0)===found.size,'region counts report physical destinations rather than dock aliases');
 const hearth=estellaFolderEntries('region:hearth');
 assert(hearth[0].key==='node:skim-hub-alpha' && hearth[1].key==='node:skim-hub-beta' && hearth[2].key==='node:estella-i','stellar radius order, not alphabetic');
 const moonNodes=estellaFolderEntries('node:estella-xi').map(e=>ESTELLA_NODES_BY_ID.get(e.key?.slice(5)??e.target?.id??'')!).filter(n=>n&&navigationOrbitRadius(n)!==undefined);
 for(let i=1;i<moonNodes.length;i++) assert(navigationOrbitRadius(moonNodes[i-1])!<=navigationOrbitRadius(moonNodes[i])!,'moon and station radius order');
 
 // Every eligible target is playable, with zero freight and zero payout at all fuel usage.
-for(const destinationId of found) {
+for(const destinationId of emptyRunDestinationIds(learned)) {
+  if(ESTELLA_NODES_BY_ID.get(destinationId)?.placement?.kind==='aboard') assert(emptyRunLocationId(destinationId)!==destinationId,'all aboard dock types collapse to a physical destination');
   const c=createEmptyRun(learned,destinationId);
   assert(c.category==='empty' && c.cargo.massTons===0 && !c.cargo.fragile && !c.cargo.passengerComfort,'true empty manifest');
   assert(!c.certificationOnSuccess && !c.nunesInquiry && !c.factionId,'no delivery rewards, inquiry progress or faction issuer');
@@ -123,13 +132,18 @@ for(const folder of folders) for(const option of game.buildInteractiveScene({id:
   assert(layout.labelLines.join('').replace(/\s/g,'')===option.label.replace(/\s/g,''),'desktop directory labels wrap without truncation');
   assert(layout.rightLines.join('').replace(/\s/g,'')===(option.rightText??'').replace(/\s/g,''),'contact annotations wrap without truncation');
 }
-game.activateInteractiveSceneOption(game.phase.scene,'emptyFolder:node:the-still');
+game.activateInteractiveSceneOption(game.phase.scene,'emptyFolder:node:new-canaan-field');
 scene=game.buildInteractiveScene(game.phase.scene);
 assert(scene.options.some((o:any)=>o.rightText===GIDEON_BELL.name),'real directory displays Gid');
-game.activateInteractiveSceneOption(game.phase.scene,'emptyDestination:still-guild-hq');
+const stillOption=scene.options.find((o:any)=>o.label==='The Still');
+assert(stillOption?.action==='emptyDestination:still-public-approach-dock','station row auto-selects allowed receiving dock');
+game.activateInteractiveSceneOption(game.phase.scene,stillOption.action);
 assert(game.phase.scene.id==='emptyRunConfirm','selection generates confirmation');
 const c=game.phase.scene.contracts[0]; const before=JSON.stringify(game.career);
-assert(game.buildInteractiveScene(game.phase.scene).options[0].label==='Depart Empty','confirm before departure');
+const confirmation=game.buildInteractiveScene(game.phase.scene);
+assert(confirmation.options[0].label==='Depart Empty','confirm before departure');
+assert(!/lowest|wait|departure|coast|approach dock/i.test(JSON.stringify(confirmation.bodyRows)),'no transfer/wait notice or internal dock in empty confirmation');
+assert(c.destinationName==='The Still' && c.sourceName===ESTELLA_NODES_BY_ID.get(emptyRunLocationId(c.sourceId))?.name,'empty contracts present physical locations, not dock names');
 game.activeManifestCondition={}; game.activeMaintenanceTelemetry=createMaintenanceTelemetry();
 game.shownOperationsManualTutorials=new Set(); game.missionDvUsed=0;
 game.activateInteractiveSceneOption(game.phase.scene,'launchEmptyRun');
@@ -174,4 +188,16 @@ locked.career={...profile};
 locked.activateInteractiveSceneOption(locked.phase.scene,'emptyDestination:estella-iii-capital-city');
 assert(locked.buildInteractiveScene(locked.phase.scene).options[0].disabled,'atmospheric equipment restriction on empty arrival');
 locked.activateInteractiveSceneOption(locked.phase.scene,'launchEmptyRun');assert(!locked.activeCareerContract,'action cannot bypass rig restriction');
-console.log(`Empty runs passed: ${assertions} assertions; ${found.size} eligible destinations; ${folders.length} nonempty folders; full catalog, contacts, real launch/settlement.`);
+// Departure advances to the computed window automatically, without another menu/wait phase.
+const waitContract=[...emptyRunDestinationIds(learned)].map(id=>createEmptyRun(learned,id)).find(c=>(c.selectedTransfer?.waitTime??0)>learned.worldTime)!;
+assert(waitContract,'fixture has a future departure window');
+const waiting:any=Object.create(Game.prototype);
+Object.assign(waiting,{career:learned,canvas:{width:1280,height:900},shownOperationsManualTutorials:new Set(),showContextualOperationsManual:()=>{}});
+waiting.phase={kind:'interactiveScene',scene:{id:'emptyRunConfirm',selectedIndex:0,contractIndex:0,contracts:[waitContract]}};
+assert(!/lowest|wait|departure|coast/i.test(JSON.stringify(waiting.buildInteractiveScene(waiting.phase.scene).bodyRows)),'future departure remains invisible in confirmation');
+waiting.activateInteractiveSceneOption(waiting.phase.scene,'launchEmptyRun');
+assert(waiting.worldTime===waitContract.selectedTransfer!.waitTime && ['docking','cluster'].includes(waiting.phase.kind),`departure window skipped automatically straight into flight: ${waitContract.destinationId}, ${waiting.phase.kind}, ${waiting.worldTime}/${waitContract.selectedTransfer!.waitTime}`);
+const departedAt=waiting.worldTime;
+waiting.reloadPhase(waiting.phase);
+assert(waiting.worldTime===departedAt && waiting.career.worldTime===learned.worldTime,'retry retains departure snapshot without charging waiting twice');
+console.log(`Empty runs passed: ${assertions} assertions; ${found.size} physical destinations; ${folders.length} nonempty folders; full catalog, contacts, real launch/settlement.`);

@@ -2556,7 +2556,6 @@ export class Game {
       if (!contract || contract.category !== 'empty') return this.buildInteractiveScene({ id: 'emptyRunDirectory', selectedIndex: 0 });
       const reasons = [...contractMissingQualifications(contract, this.career), ...contractEquipmentRestrictionLabels(contract, this.career.rig)];
       if (contract.sourceId !== this.career.locationId || !canTravelEmpty(this.career, contract.destinationId)) reasons.push('Destination no longer available');
-      const transfer = contract.selectedTransfer;
       return {
         title: 'CONFIRM EMPTY RUN', subtitle: contract.destinationName, bodyMaxHeight: 400,
         bodyRows: [
@@ -2565,7 +2564,6 @@ export class Game {
           { kind: 'kv', label: 'Cargo', value: 'None (0 t)' },
           { kind: 'kv', label: 'Pay', value: '0 cr — no fuel reimbursement' },
           { kind: 'kv', label: 'Estimated fuel cost', value: formatCredits(contract.quote.parFuelCost), tone: 'warning' },
-          { kind: 'kv', label: 'Departure', value: transfer ? `${transfer.label}: wait ${(Math.max(0, transfer.waitTime - this.career.worldTime) / 3600).toFixed(1)}h; coast ${(transfer.transferTime / 3600).toFixed(1)}h` : 'Immediate / local route' },
           { kind: 'text', text: 'Actual fuel is charged on arrival. Normal flight time, rig wear and restrictions apply.' },
           ...(reasons.length ? [{ kind: 'text' as const, text: reasons.join(' + '), tone: 'danger' as const }] : []),
         ],
@@ -3547,21 +3545,23 @@ export class Game {
     suppressStateOverlays: boolean,
   ): void {
     let rightHudBottom = 34;
+    // Presentation only: retain the frame, collision footprint and flight tuning.
+    const showContainer = this.activeCareerContract?.category !== 'empty';
     if (p.kind === 'landing') {
-      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time);
+      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time, showContainer);
       rightHudBottom = drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'approach') {
-      renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time);
+      renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time, showContainer);
       rightHudBottom = drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
       const atmosphericPackageInstalled = maintenanceSystemFullyInstalled(this.career.rig, 'atmospheric-package');
-      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time, atmosphericPackageInstalled);
+      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time, atmosphericPackageInstalled, showContainer);
       rightHudBottom = drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays, atmosphericPackageInstalled, p.crashReason);
     } else if (p.kind === 'docking') {
-      renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time);
+      renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time, showContainer);
       rightHudBottom = drawDockingHUD(this.ctx, this.canvas, p.ds, p.level, p.state, completionText, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else {
-      renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime);
+      renderCluster(this.ctx, this.canvas, p.cam, p.cs, p.level, this.worldTime, showContainer);
       rightHudBottom = drawClusterHUD(this.ctx, this.canvas, p.cs, p.level, p.state, this.worldTime, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     }
     if (this.activeManifestCondition.integrity || this.activeManifestCondition.comfort) {

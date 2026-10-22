@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Empty rig desktop render check</title>
+<style>body{background:#030308;color:#9ce;font:15px monospace;margin:20px}main{display:grid;grid-template-columns:110px 360px 360px;gap:10px;align-items:center}canvas{border:1px solid #234}h1{font-size:20px}</style>
+<h1>Loaded / empty rig — all flight views</h1>
+<main id="views"><span>Phase</span><span>Loaded</span><span>Empty (bare frame)</span></main>
+<pre id="status">Loading…</pre>
+<script type="module">
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {createShip} from '/src/ship.ts';
+import {drawLandingShip} from '/src/renderer.ts';
+import {APPROACH_LEVELS,createApproachState,drawApproachShip} from '/src/approach.ts';
+import {ORBITAL_LEVELS,createOrbitalState,drawOrbitalShip} from '/src/orbital.ts';
+import {NEW_CANAAN_CLUSTER_LEVEL,createClusterState,drawClusterShip} from '/src/cluster.ts';
+import {createGenericDockingLevel,createDockingState,drawTug} from '/src/docking.ts';
+createPlayableEstellaMission('estella-vi-heavy-cargo-station','estella-vi-industrial-city',undefined,30);
+const ship=createShip();ship.gearDeployed=true;
+const al=APPROACH_LEVELS[0],a=createApproachState(al);a.vx=a.vy=0;
+const ol=ORBITAL_LEVELS[0],o=createOrbitalState(ol);o.vx=o.vy=0;
+const cl=createClusterState(NEW_CANAAN_CLUSTER_LEVEL);
+const dl=createGenericDockingLevel({id:9999,name:'Preview',subtitle:'',exitMode:false}),d=createDockingState(dl);
+const cam=s=>({x:s.x,y:s.y,zoom:3});
+const cases=[
+  ['Landing',(ctx,on)=>drawLandingShip(ctx,cam(ship),ship,180,60,0,on)],
+  ['Approach',(ctx,on)=>drawApproachShip(ctx,cam(a),a,al,180,60,0,on)],
+  ['Orbital',(ctx,on)=>drawOrbitalShip(ctx,cam(o),o,ol,180,60,0,on)],
+  ['Cluster',(ctx,on)=>drawClusterShip(ctx,cam(cl),cl,180,60,0,on)],
+  ['Docking',(ctx,on)=>drawTug(ctx,cam(d),d,dl,180,60,0,on)],
+];
+const results=[];
+for(const [name,draw] of cases){
+  const label=document.createElement('span');label.textContent=name;views.append(label);
+  const images=[];
+  for(const on of [true,false]){
+    const canvas=document.createElement('canvas');canvas.width=360;canvas.height=120;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#030308';ctx.fillRect(0,0,360,120);ctx.scale(2,2);draw(ctx,on);
+    views.append(canvas);images.push(ctx.getImageData(0,0,360,120).data);
+  }
+  let changed=0;for(let i=0;i<images[0].length;i+=4)if(images[0][i]!==images[1][i]||images[0][i+1]!==images[1][i+1]||images[0][i+2]!==images[1][i+2])changed++;
+  if(!changed)throw Error(name+' did not change');
+  results.push(name+': '+changed+' changed pixels');
+}
+document.getElementById('status').textContent='PASS — '+results.join('; ');
+document.title='PASS — Empty rig desktop render check';
+</script>

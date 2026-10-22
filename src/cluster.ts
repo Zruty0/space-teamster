@@ -795,7 +795,7 @@ function cws(wx: number, wy: number, cam: ClusterCamera, W: number, H: number): 
 
 export function renderCluster(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
-  cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number,
+  cam: ClusterCamera, s: ClusterState, level: ClusterLevel, time: number, showContainer = true,
 ): void {
   const W = canvas.width, H = canvas.height;
   const visualTime = time * (level.localTransferKinematicScale ?? 1);
@@ -807,7 +807,7 @@ export function renderCluster(
   drawClusterEscapeGuide(ctx, cam, s, level, time, W, H);
   for (const member of level.members) drawClusterMember(ctx, cam, level, member, W, H);
   drawClusterTargetIndicator(ctx, cam, s, level, W, H);
-  drawClusterShip(ctx, cam, s, W, H, visualTime);
+  drawClusterShip(ctx, cam, s, W, H, visualTime, showContainer);
   drawSpeedVectorDot(ctx, cam, s, W, H);
 }
 
@@ -1161,7 +1161,7 @@ function drawSpeedVectorDot(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s
   ctx.fill();
 }
 
-function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, W: number, H: number, time: number): void {
+export function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: ClusterState, W: number, H: number, time: number, showContainer = true): void {
   const [sx, sy] = cws(s.x, s.y, cam, W, H);
   const size = 13;
   ctx.save();
@@ -1181,11 +1181,13 @@ function drawClusterShip(ctx: CanvasRenderingContext2D, cam: ClusterCamera, s: C
   const contY0 = size * 0.12;
   const contY1 = size * 0.86;
 
-  ctx.fillStyle = '#102010';
-  ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
-  ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  if (showContainer) {
+    ctx.fillStyle = '#102010';
+    ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+    ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+  }
 
   ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 1.5;

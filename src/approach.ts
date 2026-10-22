@@ -1077,7 +1077,7 @@ function tempColor(t: number): string {
 
 export function renderApproach(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
-  cam: ApproachCamera, s: ApproachState, level: ApproachLevel, time: number,
+  cam: ApproachCamera, s: ApproachState, level: ApproachLevel, time: number, showContainer = true,
 ): void {
   const W = canvas.width, H = canvas.height;
 
@@ -1101,7 +1101,7 @@ export function renderApproach(
   }
 
   // --- Ship ---
-  drawApproachShip(ctx, cam, s, level, W, H, time);
+  drawApproachShip(ctx, cam, s, level, W, H, time, showContainer);
 }
 
 function drawAtmoBackground(
@@ -1493,9 +1493,9 @@ function drawGate(
   }
 }
 
-function drawApproachShip(
+export function drawApproachShip(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
-  s: ApproachState, level: ApproachLevel, W: number, H: number, time: number,
+  s: ApproachState, level: ApproachLevel, W: number, H: number, time: number, showContainer = true,
 ): void {
   const [sx, sy] = ws(s.x, s.y, cam, W, H);
   const size = 14;
@@ -1572,18 +1572,20 @@ function drawApproachShip(
   const rearNozzleLeftX = -size * 0.2;
   const rearNozzleRightX = size * 0.2;
 
-  // Container fill
-  ctx.fillStyle = '#102010';
-  ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
-  ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
-  for (let i = 1; i < 3; i++) {
-    const x = contX0 + ((contX1 - contX0) * i) / 3;
-    ctx.beginPath();
-    ctx.moveTo(x, contY0);
-    ctx.lineTo(x, contY1);
-    ctx.stroke();
+  // Container fill and ribs; empty runs retain the bare frame.
+  if (showContainer) {
+    ctx.fillStyle = '#102010';
+    ctx.fillRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+    ctx.strokeStyle = 'rgba(68, 170, 102, 0.85)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(contX0, contY0, contX1 - contX0, contY1 - contY0);
+    for (let i = 1; i < 3; i++) {
+      const x = contX0 + ((contX1 - contX0) * i) / 3;
+      ctx.beginPath();
+      ctx.moveTo(x, contY0);
+      ctx.lineTo(x, contY1);
+      ctx.stroke();
+    }
   }
 
   // Frame
