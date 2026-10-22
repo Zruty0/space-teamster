@@ -6,7 +6,7 @@ import { contactSummary, knownMissionContacts, learnMissionContacts, missionCont
 import { EMPTY_TRAVEL_ACCESS, emptyTravelAccess } from '../src/content/estella/empty-travel-access';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
 import { estellaFolderEntries, navigationOrbitRadius, compareNavigationNodes, type EstellaFolderKey } from '../src/content/estella/navigation';
-import { canTravelEmpty, createEmptyRun, emptyRunDestinationIds, emptyRunDirectory, emptyRunLocationId } from '../src/empty-runs';
+import { canTravelEmpty, createEmptyRun, emptyRunDestinationIds, emptyRunDirectory, emptyRunLocationId, emptyRunLocationType } from '../src/empty-runs';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { actualFuelCostForQuote, contractPayoutForQuote } from '../src/mission-cost';
 import { generateCareerContracts } from '../src/career-contracts';
@@ -69,6 +69,20 @@ assert(!loadCareerProfile().knownContactIds?.length,'legacy trainee knows nobody
 storage.set('space-teamster.career.v1',JSON.stringify({...legacy,knownContactIds:[]}));
 assert(!loadCareerProfile().knownContactIds?.length,'explicit new-save empty knowledge wins over certifications');
 
+// Player-facing location types, without orbital equations/coordinates.
+for(const [id,label] of [
+  ['estella-i','Planet'],['estella-viii','Dwarf planet'],['estella-x','Gas giant'],
+  ['estella-i-worker-hab','Surface site'],['estella-iiia','Moon'],
+  ['estella-via','Near moon'],['estella-vib','Far moon'],
+  ['estella-xa','Near moon'],['estella-xb','Near moon'],['estella-xc','Far moon'],['estella-xd','Far moon'],
+  ['estella-xia','Near moon'],['estella-xic','Near moon'],['estella-xid','Far moon'],['estella-xif','Far moon'],
+  ['estella-i-transit-customs','Low orbit station'],['estella-vi-heavy-cargo-station','High orbit station'],
+  ['skim-hub-alpha','Low orbit station'],['still-public-approach-dock','Asteroid'],['ark-quarantine-station','Station'],['estella-ii-olympos-platform','Atmospheric station'],['estella-ii-olympos','Surface site'],
+  ['new-canaan-field','Asteroid field'],['reach-comet-swarm','Comet swarm'],['belt-cluster-wreckage-field','Debris field'],
+  ['reach-comet-fragment-1-poi','Comet fragment'],['estella-xi-science-waypoint-poi','Asteroid'],
+  ['estella-viii-moonlet-docking-site','Moon'],
+]) assert(emptyRunLocationType(id)===label,`${id}: concise type ${label}`);
+
 // Traverse the actual filtered tree. No empty branch, hidden target or wrong radius order.
 const found=new Set<string>(), folders:EstellaFolderKey[]=['root'];
 for(let i=0;i<folders.length;i++) {
@@ -78,6 +92,11 @@ for(let i=0;i<folders.length;i++) {
   for(let j=1;j<nodes.length;j++) assert(compareNavigationNodes(nodes[j-1],nodes[j])<=0,'siblings sorted by shared-parent orbital radius, stable fallback');
   for(const e of entries) {
     const count=parseInt(e.detail);
+    assert(!/circular|kepler|coordinates|r=|a=|km|°|aboard/i.test(e.detail),'no orbital jargon or coordinates in browsing details');
+    if(e.key?.startsWith('node:') || e.target) {
+      const id=e.target?.id??e.key!.slice(5);
+      assert(e.detail.endsWith(` · ${emptyRunLocationType(id)}`),'folder and auto-selected destination use concise physical type');
+    }
     assert(Number.isFinite(count) && count>0 && e.detail.startsWith(`${count} available destination${count===1?'':'s'}`),'available destinations shown at every tree level');
     if(e.kind==='folder') {
       const childCount=emptyRunDirectory(learned,e.key!).reduce((sum,child)=>sum+parseInt(child.detail),0);

@@ -1,8 +1,9 @@
 import type { CareerProfile } from './career-state';
 import { classifyRoute, preferredContractTransfer, type CareerContract } from './career-contracts';
-import { ESTELLA_NODES_BY_ID } from './content/estella';
+import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from './content/estella';
+import type { WorldNode } from './content/types';
 import { emptyTravelAccess } from './content/estella/empty-travel-access';
-import { estellaDisplayPath, estellaFolderEntries, estellaSelectableNavTargets, type EstellaFolderKey, type EstellaNavEntry } from './content/estella/navigation';
+import { estellaDisplayPath, estellaFolderEntries, estellaSelectableNavTargets, navigationOrbitRadius, type EstellaFolderKey, type EstellaNavEntry } from './content/estella/navigation';
 import { knownMissionContacts, contactSummary } from './contact-knowledge';
 import { localTerminalScopeIds, sharedTerminalParentId } from './local-directory';
 import { generateEstellaMission } from './estella-mission';
@@ -34,6 +35,43 @@ export function emptyRunLocationId(locationId: string): string {
   return sharedTerminalParentId(locationId) ?? locationId;
 }
 
+function isNavigationMoon(node: WorldNode): boolean {
+  return node.kind === 'moon' || (node.kind === 'asteroid' && node.placement?.kind === 'orbit' && node.placement.usage === 'moon');
+}
+
+/** Short player-facing types; orbital numbers still determine sorting, not prose. */
+export function emptyRunLocationType(locationId: string): string {
+  const node = ESTELLA_NODES_BY_ID.get(emptyRunLocationId(locationId));
+  if (!node) return 'Destination';
+  if (node.kind === 'atmospheric-station') return 'Atmospheric station';
+  if (node.placement?.kind === 'surface') return 'Surface site';
+  if (isNavigationMoon(node)) {
+    const moons = ESTELLA_NODES.filter(sibling => isNavigationMoon(sibling)
+      && sibling.placement?.parentId === node.placement?.parentId && navigationOrbitRadius(sibling) !== undefined)
+      .sort((a, b) => navigationOrbitRadius(a)! - navigationOrbitRadius(b)! || a.id.localeCompare(b.id));
+    const index = moons.findIndex(moon => moon.id === node.id);
+    // Stable across access/discovery changes. Inner half (rounded up) is near.
+    return moons.length > 1 && index >= 0 ? index < Math.ceil(moons.length / 2) ? 'Near moon' : 'Far moon' : 'Moon';
+  }
+  switch (node.kind) {
+    case 'planet': return 'Planet';
+    case 'dwarf-planet': return 'Dwarf planet';
+    case 'gas-giant': return 'Gas giant';
+    case 'station': {
+      const usage = node.placement?.kind === 'orbit' ? node.placement.usage : undefined;
+      if (usage === 'low' || usage === 'very-inner') return 'Low orbit station';
+      if (usage === 'high' || usage === 'outer') return 'High orbit station';
+      return 'Station'; // Cluster stations are not fictitious planetary orbits.
+    }
+    case 'cluster': return node.tags?.includes('comet-swarm') ? 'Comet swarm'
+      : node.tags?.includes('arkfall') ? 'Debris field' : 'Asteroid field';
+    case 'asteroid': return 'Asteroid';
+    case 'comet-fragment': return 'Comet fragment';
+    case 'star': return 'Star';
+    default: return 'Destination';
+  }
+}
+
 export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'knownContactIds'>, folder: EstellaFolderKey): Array<EstellaNavEntry & { contacts?: string }> {
   const allowed = emptyRunDestinationIds(profile);
   const known = knownMissionContacts(profile);
@@ -44,8 +82,8 @@ export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'k
     const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => destinations.has(id))));
     const count = new Set([...destinations].map(emptyRunLocationId)).size;
     const countText = `${count} available destination${count === 1 ? '' : 's'}`;
-    const detail = entry.key?.startsWith('region:') ? countText : `${countText} · ${entry.detail}`;
-    const nodeId = entry.kind === 'folder' ? entry.key?.slice(5) : undefined;
+    const nodeId = entry.target?.id ?? (entry.key?.startsWith('node:') ? entry.key.slice(5) : undefined);
+    const detail = nodeId ? `${countText} · ${emptyRunLocationType(nodeId)}` : countText;
     if (nodeId && sharedTerminalParentId(nodeId) === nodeId) {
       const docks = localTerminalScopeIds(nodeId).filter(id => allowed.has(id));
       // Prefer the public receiving entrance; never select a restricted sibling
