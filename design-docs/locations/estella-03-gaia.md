@@ -44,6 +44,28 @@ Gaia's existing Polar Science and Weather Research site (`estella-iii-polar-scie
 
 The First Dome heritage site concerns Gaia's own early settlement, not priority over Dahai in the system's colonization history.
 
+## Approved site-role direction
+
+Pete approved these roles on2026-10-22; names and cultural naming palette are the next discussion. Existing POI names/count do not constrain the roster. This does not authorize runtime deletions or migrations.
+
+### Gaia surface
+
+- **System capital metropolis:** Council and permanent bureaucracy, universities, research institutes, advanced technology, corporate headquarters and finance. The existing finance/high-tech concepts can be districts rather than obligatory separate destinations.
+- **Agricultural heartland's regional city:** food processing, seed production, agricultural machinery, storage and distribution supporting a vast productive hinterland. Its population has a direct stake in rainfall/watershed stability and terraforming policy.
+- **Continental manufacturing city:** construction equipment, transport machinery, consumer goods and civil-engineering systems. An industrial descendant of the terraforming programme, serving Gaia's civilian economy and exporting finished equipment, including floating-settlement infrastructure to Dahai. Distinct from Kuznia's heavy-industrial role.
+- **Established coastal city:** permanent residents, universities, culture, commerce and holiday districts; broaden the resort concept into a living metropolis. Its coasts/infrastructure/ecosystems give polar climate decisions concrete stakes.
+- **Polar terraforming frontier:** working settlement supporting field stations, engineering installations, monitoring and experimental ecology; crew/researcher/inspector traffic and specialist equipment.
+
+First Dome heritage belongs within an inhabited city unless a distinct destination is justified. Resort material becomes a coastal-city district. A military spaceport remains a possible restricted contract destination, with a specific operational role still to be developed.
+
+### Gaia's moon
+
+- **Old lunar city:** permanent civic/logistical settlement grown from the terraforming-era construction economy; families, schools, workshops and institutions. Its historical districts can absorb the heritage site; avoid asserting first-colony priority before resolving chronology.
+- **Vacuum-industrial/resource complex:** exploit vacuum, low gravity, regolith and separation from Gaia's biosphere. Bulk materials primarily supply orbital construction, not inexplicably replace Gaia's accessible terrestrial resources. Specialized processing, vacuum manufacturing and isotopes; helium-3 is one component, not the entire economy.
+- **Far-side scientific settlement:** observatory/instrument complex screened from much of Gaia's radio interference, with a permanent technical community. Precision equipment, construction and specialist rotations have a location-specific purpose.
+
+The moon has its own society and interests, not merely three suppliers to Gaia. Exact jurisdictions, local actors, contacts, routes and economics remain to be authored.
+
 ## Earlier working concepts — not yet separately confirmed
 
 Retain these as proposals, not settled details of the approved present-day story:
