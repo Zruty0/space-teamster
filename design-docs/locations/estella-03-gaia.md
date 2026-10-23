@@ -56,7 +56,7 @@ Pete approved these roles on2026-10-22. The naming palette is French/Francophone
 - **Established coastal city:** permanent residents, universities, culture, commerce and holiday districts; broaden the resort concept into a living metropolis. Its coasts/infrastructure/ecosystems give polar climate decisions concrete stakes.
 - **Polar terraforming frontier:** working settlement supporting field stations, engineering installations, monitoring and experimental ecology; crew/researcher/inspector traffic and specialist equipment.
 
-First Dome heritage belongs within an inhabited city unless a distinct destination is justified. Resort material becomes a coastal-city district. A military spaceport remains a possible restricted contract destination, with a specific operational role still to be developed.
+First Dome heritage belongs within an inhabited city unless a distinct destination is justified. Resort material becomes a coastal-city district. The former government/military spaceport was removed at Pete's request on2026-10-23; it is not a separate destination.
 
 ### Gaia's moon
 
@@ -115,7 +115,7 @@ Retain these as proposals, not settled details of the approved present-day story
 | Descartes Lab | `estella-iiia-science-settlement` |
 | Beaumont | `estella-iiia-heritage-site` |
 
-- Five public Gaian surface destinations; three on Celeste. Existing Gaia orbital terminals and the restricted military spaceport remain. Military local content is still reserved, not opened to independent empty travel.
+- Five public Gaian surface destinations; three on Celeste. Existing Gaia orbital terminals remain. The former military spaceport was subsequently removed on2026-10-23.
 - Former finance and historic POIs are compatibility IDs for Orselle's Financial District and First Dome Quarter. Both are co-located at Orselle's existing pad coordinates; neither is a separate destination/ground marker. Their old provider routes and district services remain available from the city terminal.
 - `content/estella/location-aliases.ts` explicitly maps the two district IDs to Orselle. New freight/passenger/contact postings normalize endpoints before quoting and deduplicate identical city orders; prices, cargo and unrelated candidate pools are unchanged. Raw provider templates/compatibility targets retain old IDs. Existing Rochefort electronics/optics work remains part of its broadened manufacturing role.
 - Current career locations at either former district resume in Orselle; all other saved balances, rig state, certifications, contact knowledge and diagnostic credits are preserved. Historical logs and accepted contract/quote objects are not rewritten. Legacy delivery completion settles at the physical city; legacy flight requests generate Orselle's actual landing objective/marker.
@@ -131,9 +131,13 @@ Pete requested only planet/moon rendering for now: Gaia's big ice caps, oceans a
 
 - `src/world-disc-appearance.ts`: static blue oceans/green continents/two broad irregular pale caps for Gaia; a reusable RGB-tinted airless disc with basins and foreshortened crater relief for Celeste. Approximately29% of the inset visible Gaia disc reads as ice in the pixel fixture; this is an art check, not a planetary climate statistic.
 - Both close orbital discs and moving system/moon markers share the renderers, with simplified small-marker detail. Celeste uses its existing grey/tan palette. Other bodies are not automatically opted into crater rendering.
-- Oceans reduced to approximately15% of the sampled visible disc (not a global climate statistic). Green land reaches the inhabited rim. Orselle/Valenne stay at their existing angles; Rochefort moves to green land, Mirabel to a coast, Cousteau Station to the ice edge, and the military spaceport to green land. Finance/First Dome remain co-located with Orselle. Stable IDs, access, lunar positions and saved contract/history objects remain unchanged.
+- Oceans reduced to approximately15% of the sampled visible disc (not a global climate statistic). Green land reaches the inhabited rim. Orselle/Valenne stay at their existing angles; Rochefort moves to green land, Mirabel to a coast, Cousteau Station to the ice edge. Finance/First Dome remain co-located with Orselle. Stable IDs, access, lunar positions and saved contract/history objects remain unchanged.
 - No settlement scenery, clouds, inhabited lighting, new atmosphere effect, spin, gravity/atmosphere/weather tuning or save migration. Actual Gaia surface angles are updated so objectives/departures follow the artwork rather than cosmetic marker offsets. This is still a schematic globe, not a latitude/longitude terrain atlas.
 - Validation/API/preview: [World disc appearance](../world-disc-appearance.md).
+
+## Government spaceport removed — 2026-10-23
+
+Pete explicitly requested deletion of the Government/Military Spaceport. Its node, placement, flight profile and access entry are removed, not merely hidden from empty travel. Gaia has only the five authored surface destinations plus the two retained Orselle district IDs. Legacy `estella-iii-military-spaceport` save locations and accepted flight endpoints resolve to Orselle; no new district/provider scope is created, and accepted quotes/history are untouched. Concurrent EDF shipping uses Orselle/Richelieu rather than a separate base.
 
 ## Settlement visual suggestions — recorded for later, not implemented
 

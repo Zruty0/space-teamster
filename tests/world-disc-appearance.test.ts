@@ -78,7 +78,7 @@ for (const radius of [30, 220]) {
     const x = .98 * Math.cos(angle), y = -.98 * Math.sin(angle);
     return ice.some(p => inside(x,y,p)) ? 'ice' : land.some(p => inside(x,y,p)) ? 'land' : 'ocean';
   };
-  for (const id of ['estella-iii-capital-city','estella-iii-high-tech-city','estella-iii-agricultural-region','estella-iii-military-spaceport']) {
+  for (const id of ['estella-iii-capital-city','estella-iii-high-tech-city','estella-iii-agricultural-region']) {
     assert(terrain(siteAngle(id)) === 'land', `${id} sits on green land at both LODs`);
   }
   const polar = siteAngle('estella-iii-polar-science'), coast = siteAngle('estella-iii-coastal-resort');

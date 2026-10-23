@@ -21,6 +21,8 @@ let assertions=0;
 function assert(ok:unknown,message:string):asserts ok {assertions++;if(!ok)throw Error(message);}
 const capital='estella-iii-capital-city';
 const aliases=['estella-iii-finance-city','estella-iii-historic-site'];
+const retired='estella-iii-military-spaceport';
+const legacyLocations=[...aliases,retired];
 const sites:Record<string,string>={
   [capital]:'Orselle','estella-iii-high-tech-city':'Rochefort','estella-iii-agricultural-region':'Valenne',
   'estella-iii-coastal-resort':'Mirabel','estella-iii-polar-science':'Cousteau Station',
@@ -52,7 +54,11 @@ const surfaceNames=gaia.filter(e=>e.target && ESTELLA_NODES_BY_ID.get(e.target.i
 assert(JSON.stringify(surfaceNames)===JSON.stringify(['Orselle','Rochefort','Valenne','Mirabel','Cousteau Station'].sort()),'exactly five meaningful public surface destinations');
 const lunar=emptyRunDirectory(profile,'node:estella-iiia');
 assert(lunar.filter(e=>e.target && ESTELLA_NODES_BY_ID.get(e.target.id)?.placement?.kind==='surface').length===3,'three living lunar surface sites');
-assert(!canTravelEmpty(profile,'estella-iii-military-spaceport'),'military destination still private');
+assert(!ESTELLA_NODES_BY_ID.has(retired) && !ESTELLA_SURFACE_FLIGHT_PROFILES[retired], 'government spaceport removed from catalog and flight profiles');
+assert(!canTravelEmpty(profile,retired) && !estellaSelectableNavTargets().some(t=>t.id===retired), 'retired site is not a travel destination');
+assert(!estellaFolderEntries('node:estella-iii').some(e=>e.target?.id===retired), 'retired site absent from Gaia site list');
+assert(canonicalEstellaLocationId(retired)===capital && !estellaLocationScopeIds(capital).includes(retired), 'old destination redirects without becoming a city district/provider scope');
+assert(createEmptyRun({...profile,locationId:retired},'estella-iii-main-customs').sourceId===capital, 'legacy departure not stranded');
 for(const alias of aliases) {
   assert(canonicalEstellaLocationId(alias)===capital && !canTravelEmpty(profile,alias),'district is not another empty destination');
   assert(!estellaFolderEntries('node:estella-iii').some(e=>e.target?.id===alias),'generic directory also hides district aliases');
@@ -87,7 +93,7 @@ for(const day of [0,1,20,21,119]) {
   for(const source of [capital,'estella-i-transit-customs','caravanserai-main-commercial-dock','still-guild-hq','estella-vi-heavy-cargo-station','estella-via-drydock-station','estella-xif-deep-listening-array']) {
     for(const c of [...generateCareerContracts(source,time),...generatePassengerContracts(source,time)]) {
       boardRows++;
-      assert(!aliases.includes(c.sourceId)&&!aliases.includes(c.destinationId),'new boards never advertise separate finance/heritage cities');
+      assert(!legacyLocations.includes(c.sourceId)&&!legacyLocations.includes(c.destinationId),'new boards never advertise districts or retired government spaceport');
       assert(c.sourceName===ESTELLA_NODES_BY_ID.get(c.sourceId)?.name && c.destinationName===ESTELLA_NODES_BY_ID.get(c.destinationId)?.name,'fresh board names reflect current catalog');
       if(c.destinationId===capital) assert(c.quote.destinationId===capital && c.destinationName==='Orselle','canonical endpoint quoted and displayed');
     }
@@ -97,16 +103,16 @@ assert(actors.has('voss-heinkel-metricwerke') && actors.has('kisaragi-harmony-ya
 
 // Every new role can be flown both ways; legacy contracts generate the city's
 // landing objective/marker, not an invisible old district objective.
-for(const id of [...Object.keys(sites),...aliases]) {
+for(const id of [...Object.keys(sites),...legacyLocations]) {
   const before=new Set(ORBITAL_LEVELS.map(l=>l.id));
   const beforeApproach=new Set(APPROACH_LEVELS.map(l=>l.id));
   const beforeLanding=new Set(LEVELS.map(l=>l.id));
   assert(createPlayableEstellaMission('estella-iii-main-customs',id,undefined,540).start,'arrival builds');
   assert(LEVELS.some(l=>!beforeLanding.has(l.id)&&l.poi.id===canonicalEstellaLocationId(id)),'arrival uses canonical landing site');
   for(const level of ORBITAL_LEVELS.filter(l=>!before.has(l.id)&&l.bodyId==='estella-iii')) {
-    assert(!level.surfaceMarkers?.some(m=>aliases.includes(m.id)),'no duplicate district ground markers');
+    assert(!level.surfaceMarkers?.some(m=>legacyLocations.includes(m.id)),'no duplicate district or retired spaceport ground markers');
   }
-  if(aliases.includes(id)) assert(APPROACH_LEVELS.some(l=>!beforeApproach.has(l.id)&&l.poi.id===capital),'legacy descent uses Orselle objective');
+  if(legacyLocations.includes(id)) assert(APPROACH_LEVELS.some(l=>!beforeApproach.has(l.id)&&l.poi.id===capital),'legacy descent uses Orselle objective');
   const departure=createPlayableEstellaMission(id,'estella-iii-main-customs',undefined,540);
   assert(departure.start.kind==='landing'&&departure.start.level.poi.id===canonicalEstellaLocationId(id),'canonical surface departure');
 }
@@ -117,7 +123,7 @@ const storage=new Map<string,string>();
 (globalThis as any).localStorage={getItem:(k:string)=>storage.get(k)??null,setItem:(k:string,v:string)=>storage.set(k,v),removeItem:(k:string)=>storage.delete(k)};
 const history='[{"destinationId":"estella-iii-finance-city","destinationName":"Secondary Finance City","grossPay":123}]';
 storage.set('space-teamster.missionProfiles.v1',history);
-for(const alias of aliases) {
+for(const alias of legacyLocations) {
   const saved={...profile,locationId:alias,money:123456,worldTime:98765,knownContactIds:['gideon-gid-bell'],maintenanceShopInspections:{fixture:{diagnosedWorldTime:10,diagnosedMaintenanceMission:0,creditRemaining:123,dishonestyRevision:0,fabricatedFaults:[],fabricatedServiceComponentIds:[],pretendMaintainedComponentIds:[]}}};
   const serialized=JSON.stringify(saved);storage.set('space-teamster.career.v1',serialized);
   const loaded=loadCareerProfile();
@@ -136,11 +142,13 @@ for(const id of Object.keys(sites)) {
   assert(scene.bodyRows.some((r:any)=>r.text===estellaLocationIntroduction(id)),'real terminal shows approved local role');
 }
 const legacyContract=generateCareerContracts('estella-iii-main-customs',0)[0];
-const accepted={...legacyContract,destinationId:aliases[0],destinationName:'Secondary Finance City',quote:{...legacyContract.quote,destinationId:aliases[0]}};
-const acceptedJson=JSON.stringify(accepted);
-game.career={...profile};game.activeCareerContract=accepted;game.activeMissionQuote=accepted.quote;game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};
 game.loadStationTerminal=()=>{game.activeCareerContract=null;};
-game.finishCareerDelivery();
-assert(game.career.locationId===capital && loadCareerProfile().locationId===capital,'old accepted delivery settles in consolidated city');
-assert(JSON.stringify(accepted)===acceptedJson && storage.get('space-teamster.missionProfiles.v1')===history,'accepted contract/quote and historical log never rewritten');
+for(const destinationId of [aliases[0],retired]) {
+  const accepted={...legacyContract,destinationId,destinationName:destinationId===retired?'Government/Military Spaceport':'Secondary Finance City',quote:{...legacyContract.quote,destinationId}};
+  const acceptedJson=JSON.stringify(accepted);
+  game.career={...profile};game.activeCareerContract=accepted;game.activeMissionQuote=accepted.quote;game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};
+  game.finishCareerDelivery();
+  assert(game.career.locationId===capital && loadCareerProfile().locationId===capital,'old accepted delivery settles in Orselle');
+  assert(JSON.stringify(accepted)===acceptedJson && storage.get('space-teamster.missionProfiles.v1')===history,'accepted contract/quote and historical log never rewritten');
+}
 console.log(`Gaia/Celeste passed: ${assertions} assertions; ${boardRows} board rows; ${actors.size} Orselle issuers; names, roles, districts, legacy saves/contracts, flight phases.`);

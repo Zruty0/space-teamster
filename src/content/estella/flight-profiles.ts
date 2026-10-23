@@ -407,7 +407,6 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-iii-coastal-resort': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Mirabel — coastal metropolis' },
   'estella-iii-agricultural-region': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Valenne — agricultural heartland' },
   'estella-iii-polar-science': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Cousteau Station — polar terraforming frontier' },
-  'estella-iii-military-spaceport': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-iii-historic-site': { ...ESTELLA_HEARTH_ATMO_SURFACE_PROFILE, subtitle: 'Orselle — First Dome quarter' },
   'estella-iiia-helium-mining': { ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE, subtitle: 'Ampere — vacuum industry and resources' },
   'estella-iiia-science-settlement': { ...ESTELLA_HEARTH_DEFAULT_SURFACE_PROFILE, subtitle: 'Descartes Lab — far-side science' },

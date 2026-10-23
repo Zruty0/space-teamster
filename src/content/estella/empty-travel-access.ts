@@ -2,7 +2,6 @@
 // authorization and must never be filtered through this registry.
 export type EmptyTravelAccess = 'public' | 'restricted' | 'unlisted';
 const RESTRICTED = [
-  'estella-iii-military-spaceport',
   'estella-vi-industrial-city', 'estella-vi-foundry-complex', 'estella-vi-spaceport',
   'estella-vi-agricultural-lowlands', 'estella-vi-polar-weather-research', 'estella-vi-mountain-mining',
   'estella-vib-vat-protein', 'estella-vib-pharma-horticulture', 'estella-vib-aquaculture',

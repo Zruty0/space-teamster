@@ -147,7 +147,6 @@ Gaia supports billions and extensive agriculture while terraforming continues in
 | Estella III.6 | Surface | **Mirabel.** Established coastal city, commerce, culture and holiday districts. |
 | Estella III.7 | Surface | **Valenne.** Agricultural regional city: food processing, seed production, storage and distribution. |
 | Estella III.8 | Surface | **Cousteau Station.** Active polar terraforming frontier: climate monitoring, glaciology, engineering and ecological restoration. |
-| Estella III.9 | Surface | Government / military spaceport. Restricted; local operational role remains to be developed. |
 | Estella III.10 | Orselle district | First Dome Quarter. Early Gaian heritage; compatibility ID sharing Orselle's arrival terminal. |
 
 ### Celeste (Estella IIIa)

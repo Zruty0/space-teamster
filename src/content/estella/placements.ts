@@ -106,7 +106,6 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
   'estella-iii-coastal-resort': { kind: 'surface', parentId: 'estella-iii', angle: -2.98, side: 'equatorial' },
   'estella-iii-agricultural-region': { kind: 'surface', parentId: 'estella-iii', angle: 2.85, side: 'equatorial' },
   'estella-iii-polar-science': { kind: 'surface', parentId: 'estella-iii', angle: -2.45, side: 'polar' },
-  'estella-iii-military-spaceport': { kind: 'surface', parentId: 'estella-iii', angle: 3.0, side: 'unspecified' },
   'estella-iii-historic-site': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
 
   'estella-iiia': {

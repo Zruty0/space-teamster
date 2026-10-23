@@ -30,7 +30,7 @@ try {
   assert(water/inside>.05&&water/inside<.20,'oceans are smaller than the combined green continents');
   const sites=SURFACE_POIS.filter(s=>s.bodyId==='estella-iii');
   const at=(id,delta=0)=>{const a=sites.find(s=>s.id===id).surfaceAngle+delta;return pixel(.98*Math.cos(a),-.98*Math.sin(a));};
-  for(const id of ['estella-iii-capital-city','estella-iii-high-tech-city','estella-iii-agricultural-region','estella-iii-military-spaceport']){
+  for(const id of ['estella-iii-capital-city','estella-iii-high-tech-city','estella-iii-agricultural-region']){
     const c=at(id);assert(green(c),`${id} must be on green land: ${c}`);
   }
   const polar='estella-iii-polar-science',coastal='estella-iii-coastal-resort';
@@ -68,7 +68,7 @@ try {
       const paint=painters[i];paint(ctx,290,260,210);
       if(!i){
         ctx.font='11px monospace';ctx.fillStyle='#00ffcc';
-        for(const site of sites.filter(s=>!['estella-iii-finance-city','estella-iii-historic-site','estella-iii-military-spaceport'].includes(s.id))){
+        for(const site of sites.filter(s=>!['estella-iii-finance-city','estella-iii-historic-site'].includes(s.id))){
           const x=290+210*Math.cos(site.surfaceAngle),y=260-210*Math.sin(site.surfaceAngle);
           ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();ctx.textAlign=x<290?'right':'left';ctx.fillText(site.name,x+(x<290?-8:8),y+4);
         }
