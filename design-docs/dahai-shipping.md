@@ -3,6 +3,8 @@
 Updated: 2026-10-23
 Status: implemented in71fe113 after Pete's approval to integrate all existing providers, unnamed Dahai originators and the Institute. No push/deploy.
 
+Camps follow-up89317da: the original340-order Dahai programme is retained. EIP adds14 Camps-linked orders, bringing the Institute total to92; eligible Hartwell/Tessera counterparts now independently dispatch through their gateways. [Camps review](camps-review.md) records the added scope. No Dahai city/physics/save changes.
+
 ## Cities and Institute
 
 | Stable operational ID | Name | Role |

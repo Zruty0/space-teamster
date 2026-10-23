@@ -195,27 +195,29 @@ The Camps' planets (six bodies in three planetary systems) cover an unusually wi
 
 ## The Camps' bodies and POIs
 
+2026-10-23: all31 site roles expanded in runtime terminal copy;164 added daily orders. Implemented choices, complete shipping audit and Pete's inline `zzz` review: [Camps review](camps-review.md). Hartwell/Tessera eligible surface trade uses50/50 gateway/direct handling; native station work and dedicated Pike refinery legs retained. Kuznia/Kalyna controlled interfaces unchanged.
+
 ### Hartwell
 Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmosphere, dust storms, dome farms, regional offices, and local production of necessities.
 
 | ID | Type | Description |
 |---|---|---|
 | Estella V.1 | Roadstead Station / Roadstead Customs | Transit and customs |
-| Estella V.2 | Concord | Capital settlement, regional offices, old gateway administration |
-| Estella V.3 | Dawes Cut | Open-cast ore mine |
+| Estella V.2 | Concord | Old gateway/civic capital, residential courts, clinics, technical schools, pressure gardens and independent workshops |
+| Estella V.3 | Dawes Cut | Independent open-cast claims; local feedstock to Cinderhook, selected assayed exports to Hammer |
 | Estella V.4 | Cinderhook Refinery | Atmospheric refining + light-industrial complex |
-| Estella V.5 | Gale Survey | Storm-prone research outpost |
-| Estella V.6 | First Landing | Abandoned first colony site (salvage) |
-| Estella V.7 | Ascension Scaffold | Historic first orbital factory, shipyard, and outward-colonization staging ground; locally, the Old Scaffold |
+| Estella V.5 | Gale Survey | Practical dust-storm research; Institute partners, instruments/specimens; routine forecasts electronic |
+| Estella V.6 | First Landing | Abandoned first Hartwell colony attempt; contact-led investigation/salvage reserve, no routine commerce |
+| Estella V.7 | Ascension Scaffold | Old Scaffold; still-inhabited early orbital factory/refit station. Independent workboat/service-module remanufacturing alongside a preserved heritage core |
 
 ### Pike
 Small airless moon of Hartwell used for ore handling, strip mining, and old frontier road work.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella Va.1 | Pike Strip Mine | Strip mine (heavy ore) |
-| Estella Va.2 | Pike Miner Hab | Miner hab |
-| Estella Va.3 | Pike Ore-Handling Depot | Ore-handling depot |
+| Estella Va.1 | Ridgeback Mine | Established independent claims and sorting benches; existing mining companies retained |
+| Estella Va.2 | Switchback | Mining settlement with households, clinic, workshops, training and rotational accommodation |
+| Estella Va.3 | Pike Depot | Shared orbital weighing/storage/assay/export; dedicated ore-lift/refinery chain retained |
 
 ### Kuznia
 Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota culture, hard weather, and the system's primary atmospheric flight school.
@@ -225,14 +227,14 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 | Estella VI.1 | Anvil Station | Low-orbit passengers, paperwork, small freight, customs, dispatch, and surface/weather coordination |
 | Estella VI.2 | Hammer Station | High-orbit bulk cargo, feedstock intake, machinery exports, and heavy-freight marshalling |
 | Estella VI.3 | Perun City | Industrial city — machinery and finished goods |
-| Estella VI.4 | Steel Combine | Smelting, heavy refining, and Kuznia's industrial hub |
+| Estella VI.4 | Gornilo Crucible | Smelting/heavy refining works and founding heart of the Steel Combine |
 | Estella VI.5 | Port Stribog | Spaceport (passengers + bulk food dispatch; weather-gated) |
 | Estella VI.6 | Mokosh Lowlands | Agricultural lowlands (bulk food) |
 | Estella VI.7 | Morana Station | Polar weather research |
 | Estella VI.8 | Kopanka Mine | Mountain mining (specialty ore, hard pad, altitude) |
 
 ### Svarog
-Small airless shipyard moon of Kuznia, named for the Slavic forge god.
+Small airless shipyard moon of Kuznia, named for the Slavic forge god. Politically separate from the commune. **Svarog Yard Company (SYC)** is the shared-infrastructure landlord at the yard/Veles/Anchorhold; Kisaragi and other tenant manufacturers remain independent.
 
 | ID | Type | Description |
 |---|---|---|
@@ -252,15 +254,15 @@ Bright red airless specialty / pharma moon of Kuznia, owned and underwritten by 
 | Estella VIb.4 | Dnipro Pools | Aquaculture (boutique luxury) |
 
 ### Tessera
-Small airless rocky precision-ops planet of rotational labor, high-vacuum work, metrology, and almost no rooted local culture.
+Airless precision-operations planet with a predominantly rotational workforce and a smaller resident service community. Independent workshops produce physical standards, optical mounts and bonded assemblies in protected clean facilities; Roster Hall provides civic life without inventing an ancient capital culture.
 
 | ID | Type | Description |
 |---|---|---|
 | Estella VII.1 | Tessera Orbital | Transit / export |
-| Estella VII.2 | Mosaic Assembly Lab | High-vacuum precision assembly lab |
+| Estella VII.2 | Mosaic Assembly Lab | Independent metrology/fabrication cluster, reference standards, optical mounts, vacuum-bonded assemblies and recalibration |
 | Estella VII.3 | White Ceramic Quarry | High-purity ceramic and optical feedstock quarry |
-| Estella VII.4 | Roster Hall | Administrative capital, medical center, assignment office, and necessary-services hab |
-| Estella VII.5 | Black Tile | Sealed research outpost / black-project rumor |
+| Estella VII.4 | Roster Hall | Civic centre: clinics, accommodation, technical classes, recreation, household services and assignment offices |
+| Estella VII.5 | Black Tile | Sealed outpost with undisclosed operator/programme; intentional restricted story reserve, no routine traffic |
 
 > **Writer's note:** Kuznia is the system's primary atmospheric flight school and home of the most physically demanding civilian work. A great deal of the system's working-class self-image comes from people who have done time on Kuznia. There is room here for a culture as developed as the writer wants.
 

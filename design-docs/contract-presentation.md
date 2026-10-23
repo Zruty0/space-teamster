@@ -22,6 +22,6 @@ Examples:
 
 ## Validation
 
-`npm run test:contract-presentation`:113010 assertions;85 consolidated catalog endpoints,15013 raw candidates across all30 providers,7284 public and9 contact postings (including Dahai civilians/EIP). Covers generic/authored/legacy titles, descriptions/receipts, paths, actual scene/HUD consumers, unchanged accepted objects and storage, real acceptance using original berth IDs and real settlement retaining the receiving POI. Ordinary cargo labels containing a dock name are not accidentally renamed.
+`npm run test:contract-presentation`:117393 assertions;85 consolidated catalog endpoints,15669 raw candidates across all32 providers,7503 public and9 contact postings (including Camps civilians/SYC and expanded EIP). Covers generic/authored/legacy titles, descriptions/receipts, paths, actual scene/HUD consumers, unchanged accepted objects and storage, real acceptance using original berth IDs and real settlement retaining the receiving POI. Ordinary cargo labels containing a dock name are not accidentally renamed.
 
 Gaia/shipping, Acheron, Balor expansion/BAM, empty-run and menu suites plus build pass. Original provider hashes remain protected. Desktop `tests/contract-presentation-preview.html`:8 actual module-worker requests/130 postings, native Canvas2D views for Still/Caravanserai/old cached posting. Isolated profile; no live-save or mobile changes.

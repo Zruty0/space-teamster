@@ -1,5 +1,8 @@
 # Estella VI, Kuznia
 
+Updated: 2026-10-23
+Camps integration/review: [camps-review.md](../camps-review.md). Inline `zzz` review is pending there.
+
 A cold, heavy, storm-wracked industrial world under a thick N₂/CO₂ sky — and the only planet in the Estella system governed by its own workers. Kuznia is the industrial backbone of the Camps: foundries, machine cities, feedstock intake, and the hardest physical labor in the system. It is operated by the **Steel Combine** — at once a republic, a company, and a commune — and it is the reason the Camps corridor *Belt → Camps → everywhere* runs on collectivized steel.
 
 ## How it came to be
@@ -26,7 +29,7 @@ That was the betrayal that broke faith. It was the Udarniki's **children** — K
 
 The pivotal outside actor was the **Teamsters' Guild.** Ostrander demanded the Guild cut fuel to starve the revolt; the Guild, formally neutral and structurally above ideology, kept selling fuel to whoever paid in hard currency — and so the new workers' state survived its first winter. It also learned the permanent lesson that shapes it still: *you can expropriate the foundries and even the air, but you can never expropriate the fuel.*
 
-The Covenant Wars eventually burned out: the fanatics failed to take the system and were driven outward into the Wells, where they hold two moons to this day and trouble the shipping lanes no longer. But the damage at Kuznia was already done, and permanent. Nobody retook the planet — there is no standing military in the Interim to do it with, and, more to the point, nobody bombards their own supply chain, for the system's capital runs on Camps output. The result is a cold, permanent **détente**: the commune is left to its experiment so long as it keeps the finished goods flowing outward and keeps buying Guild fuel. Ostrander — its planet-sized loan called, its Gaia backers burned, its crown-jewel venture gone — retreated one world inward to Hartwell, no longer dominant, merely one of many again, staring outward at the Concession it will not stop calling its own.
+The Covenant Wars eventually burned out: the fanatics failed to take the system and were driven outward into the Wells, where they hold two moons to this day and trouble the shipping lanes no longer. But the damage at Kuznia was already done, and permanent. Nobody retook the planet — a reconquest threatened the supply chain on which the system's capital depended. The result is a cold, permanent **détente**: the commune is left to its experiment so long as it keeps the finished goods flowing outward and keeps buying Guild fuel. Ostrander — its planet-sized loan called, its Gaia backers burned, its crown-jewel venture gone — retreated one world inward to Hartwell, no longer dominant, merely one of many again, staring outward at the Concession it will not stop calling its own.
 
 ## The Steel Combine — republic, company, commune
 
@@ -61,9 +64,9 @@ Both of Kuznia's moons carry Slavic names — christened in the Udarnik renaming
 
 ### Svarog
 
-The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a yard. It is run by a **single operator** who owns the yard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Veles Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
+The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a yard. It is run by **Svarog Yard Company (SYC)**, a single independent commercial landlord which owns the shared yard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Veles Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
 
-> **Writer's note:** Svarog's operator, its history, and its precise relationship to the commune below are left to expand later. The load-bearing facts: single landlord, many tenant manufacturers, not communist.
+> **Camps pass, implemented for review:** SYC operates shared docks/utilities/alignment at the yard, controlled materials handling at Veles and ground-side infrastructure at Anchorhold. Its growth followed Kuznia's industrial transport demand; it remains politically independent. Kisaragi's tenant contracts and Black Vein's existing extraction operators stay separate. SYC now books its own infrastructure freight/technicians. Named owners, shareholder history and deeper relations with the commune remain open; see the central review file.
 
 ### Kalyna
 

@@ -8,7 +8,7 @@ Every contract displays the physical station/asteroid name instead of an interna
 
 ## Current contract model
 
-Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia/Dahai's descriptive unnamed civilian issuers, not generic all-to-all open-market filler.
+Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia/Dahai/Camps' descriptive unnamed civilian issuers, not generic all-to-all open-market filler.
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
@@ -102,6 +102,14 @@ City-specific imports/exports, EDF's Orselle interface after military-spaceport 
 Fuyuan, Zhulong, Jiuyuan and Bingjie reuse the four existing surface IDs. Fuyuan is the old capital and headquarters of the system-wide Estella Institute of Planetology (EIP). Jiuyuan supplies Dahai locally and remains import-heavy offworld; no new industrial faction.340 added logical orders/day:214 unnamed civilian,78 EIP and48 from nine existing provider families. Existing Gaia/Merren counterpart roles corrected; unrelated seeded rosters/pay protected by frozen baselines.
 
 All eligible public Dahai surface/offworld candidates use approximately50/50 orbital/direct dispatch before quoting; new orders exact paired50/50. Gaia/Balor choices remain independent. Native station/local/contact/timed work, accepted quotes/history/saves and physical-terminal naming remain intact. No forced second player leg. Civilian/Institute freight0.80+0.45, passengers0.60+0.60, cap2; other providers retain their own terms. Scientific specimens/archival originals travel physically, ordinary data electronically. Detailed ledger, roles, scope and120-epoch audit: [Dahai shipping](dahai-shipping.md); `npm run test:dahai-shipping`, `npm run audit:dahai`.
+
+## Camps completion pass — implemented for review2026-10-23
+
+Runtime/tests89317da. All31 existing site roles now appear in terminal copy; Pike functional names become Ridgeback Mine/Switchback/Pike Depot. Ascension Scaffold operates as a refit/remanufacturing station. Svarog Yard Company names the existing single independent landlord, separate from Kisaragi tenants and the commune. Tessera has independent physical-metrology/precision-workshop identity and ordinary civic services.
+
+164 new daily logical orders:110 unnamed civilian,17 SYC,14 EIP,7 Steel,4 Hartwell Shipping,4 Daedalus,3 machinery brokers,3 GOV,2 Guild. Original30 providers' entire raw economies remain frozen except three approved-for-review place-name substitutions; all additions are outside seeded pools.32 registered providers. Existing company rates preserved; new civilians freight0.80+0.45/passengers0.60+0.60; SYC0.75+0.45/0.55+0.60; cap2.
+
+Hartwell/Tessera eligible ordinary surface/offworld trade chooses50/50 gateway/direct, independently at each end and alongside Gaia/Dahai/Balor. Native station business is not relocated to force an overall quota: Roadstead's brokerage creates substantially higher whole-world gateway shares. Dedicated Pike ore/refinery legs, Kuznia/Kalyna trade membranes, local/contact/timed work and saved/accepted contracts remain intact. First Landing and Black Tile stay reserves; the other29 Camps sites now have sampled traffic both ways. No new NPC/service/physics/visual layer. Full decisions, routes, audit and operator `zzz` comments: [Camps review](camps-review.md). Commands: `npm run test:camps`, `npm run audit:camps`.
 
 ## Faction: Balor Advanced Materials (BAM)
 

@@ -1,4 +1,4 @@
-/** Approved Camps pass renames only. Original frozen baselines stay intact. */
+/** Camps review-pass renames only. Original frozen baselines stay intact. */
 export function preCampsNames(json: string): string {
   return json.split('Ridgeback Mine').join('Pike Strip Mine')
     .split('Switchback').join('Pike Miner Hab')

@@ -2,11 +2,11 @@
 
 ## Sector Government (GOV)
 
-The existing Estella Commonwealth/Council administration, based in Orselle. GOV's public transport orders carry civil servants, inspection teams and polar field scientists, plus public-clinic equipment, research procurement and physical administrative archives.The original Gaia programme has27 daily logical consignments (20 passenger,7 freight); Dahai adds9 (6 passenger,3 freight). No new named official, contact, agency jurisdiction or political system is introduced.
+The existing Estella Commonwealth/Council administration, based in Orselle. GOV's public transport orders carry civil servants, inspection teams and polar field scientists, plus public-clinic equipment, research procurement and physical administrative archives. The original Gaia programme has27 daily logical consignments (20 passenger,7 freight); Dahai adds9 (6 passenger,3 freight); Camps adds3 (2 passenger,1 freight). No new named official, contact, agency jurisdiction or political system is introduced.
 
 ## Estella Defence Force (EDF)
 
-The Council's defence force, with government command arrangements as recorded in geography. Public Teamster work primarily carries personnel: shipyard relief, training/exercise-observer exchanges, port liaison and leave.The original Gaia programme has18 passenger and3 support-store consignments/day; Dahai adds4 personnel and1 support-store order. Gaia dispatch uses Orselle or Richelieu; Pete removed the separate Government/Military Spaceport. Existing training partners remain independent, not newly claimed EDF bases. No combat missions or new access privileges.
+The Council's defence force, with government command arrangements as recorded in geography. Public Teamster work primarily carries personnel: shipyard relief, training/exercise-observer exchanges, port liaison and leave. The original Gaia programme has18 passenger and3 support-store consignments/day; Dahai adds4 personnel and1 support-store order. Gaia dispatch uses Orselle or Richelieu; Pete removed the separate Government/Military Spaceport. Existing training partners remain independent, not newly claimed EDF bases. No combat missions or new access privileges.
 
 ## Unnamed Gaia civilian customers
 
@@ -16,11 +16,21 @@ The majority of Gaia transit is ordinary civilian business: cooperatives, manufa
 
 The system's most prestigious planetological institute is headquartered in Fuyuan, Dahai's founding settlement/old capital. Its comparative laboratories, reference collections and fellowships support geology, interiors, volcanism, atmospheres/climate, oceans, ice, magnetospheres and habitability throughout Estella. Partner facilities retain their established operators; the Institute does not acquire every scientific site it visits.
 
-78 daily logical orders carry instruments, physical specimens and researchers/fellows. Ordinary data travels electronically. Dahai dispatch follows50/50 orbital/direct, independently of Gaia/Balor counterpart routing. No extra campus dock, mission contact or reputation mechanism. See [Dahai shipping](dahai-shipping.md).
+92 daily logical orders carry instruments, physical specimens and researchers/fellows:78 from the original Dahai integration and14 added in the Camps pass (Gale/Pike/Kuznia through Anvil, plus Mosaic metrology). Ordinary data travels electronically. Dahai dispatch follows50/50 orbital/direct, independently of Gaia/Balor counterpart routing. No extra campus dock, mission contact or reputation mechanism. See [Dahai shipping](dahai-shipping.md).
 
 ## Unnamed Dahai civilian customers
 
 214 daily logical orders from aquaculture/fishing cooperatives, food processors, local extraction/repair customers, archives, port offices and ordinary households. Descriptive issuers, no new megacorporation or market tag. Jiuyuan's production primarily serves Dahai; it is an offworld equipment buyer with limited samples/service returns outbound. Pete rejected a named industrial entity. Nine existing provider families add48 orders alongside these civilians and EIP; all existing eligible Dahai trade participates in shared routing. Full ledger/audit in [Dahai shipping](dahai-shipping.md).
+
+## Svarog Yard Company (SYC)
+
+Implemented for review in the [Camps pass](camps-review.md): the previously unnamed single independent commercial landlord of Svarog's shared shipyard infrastructure. SYC operates shared docks, utilities, alignment and mooring systems at Svarog Shipyard, Veles Terminal and Anchorhold; Kisaragi and other tenant manufacturers retain their own brands/contracts. Black Vein's extraction contractors remain separate. No named owner, political takeover or proprietary Guild-drive manufacture introduced.
+
+17 daily orders (9 freight/8 passenger) handle shared infrastructure, contractor work, service returns and technical rotations. Freight0.75+0.45 reimbursement, people0.55+0.60, cap2, no flat bounty or forced board slot. Detailed ownership/history beyond this bounded role remains open for review.
+
+## Unnamed Camps civilian customers
+
+110 daily orders from independent workshops, growers, assay offices, clinics, technical schools, archives, households and travel offices. Descriptive issuer names, no new planet-wide company/tag. They complement the established industrial provider networks. Camps integration additionally gives37 orders to existing actor families and17 to SYC, for164 additions overall. Hartwell/Tessera eligible surface trade uses independent50/50 gateway/direct handling; native station work, Pike process legs and Kuznia/Kalyna interfaces remain intact. Full ledger and inline `zzz` review: [Camps review](camps-review.md).
 
 ## Balor Advanced Materials (BAM)
 
