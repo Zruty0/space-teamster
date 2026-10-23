@@ -17,7 +17,7 @@ const LOCATION_SUMMARY_IDS: Readonly<Record<string, string>> = {
     'estella-iii-agricultural-region', 'estella-iii-polar-science',
     'estella-iiia-helium-mining', 'estella-iiia-science-settlement', 'estella-iiia-heritage-site',
   ].map(id => [id, id])),
-  'estella-iii-main-customs': 'estella-iii',
+  'estella-iii-main-customs': 'estella-iii-main-customs',
   'estella-iiia-main-port-transit': 'estella-iiia',
   'estella-iv-main-orbital-station': 'estella-iv',
 };

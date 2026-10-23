@@ -84,7 +84,9 @@ for (let day = 0; day < 120; day++) {
         boardSeen.add(c.templateId!);
         assert(c.quote.parDv > 0 && Number.isFinite(c.quote.grossPay), 'new/retained board route has a finite quote');
         if (c.sourceId === pande) {
-          assert(c.details === PANDEMONIUM_COPY.metalsPickup, 'board publishes pickup details');
+          const gaiaHandling = c.templateId === 'rare-metals-to-gaia-tech'
+            ? ` Receiving site: Rochefort. ${c.destinationId === 'estella-iii-main-customs' ? 'Richelieu Orbital Terminal consolidation; local transport arranged by the issuer.' : 'Direct Gaia surface handling.'}` : '';
+          assert(c.details === PANDEMONIUM_COPY.metalsPickup + gaiaHandling, 'board preserves exact pickup prose followed only by Gaia dispatch details');
           pickupContract ??= c;
         }
         if (c.destinationId === pande) assert(c.completionMessage.includes('[contact]Thorne[/contact]'), 'board preserves worker completion and rich contact markup');
@@ -106,7 +108,7 @@ for (const id of ['hydrogen-to-olympos', 'mining-cutters-to-pandemonium', 'press
 assert(pickupContract, 'metal export available');
 game.career.locationId = pande;
 const posting: InteractiveScene = game.buildInteractiveScene({ id: 'contractPosting', selectedIndex: 0, contracts: [pickupContract], contractIndex: 0 });
-const parsed = parseInteractiveTextMarkup(PANDEMONIUM_COPY.metalsPickup);
+const parsed = parseInteractiveTextMarkup(pickupContract.details!);
 assert(posting.bodyRows?.some(row => row.kind === 'kv' && row.label === 'Details' && row.value === parsed.text), 'pickup prose appears in posting Details');
 for (const copy of Object.values(PANDEMONIUM_COPY)) {
   assert(copy.includes('[contact]') && !/Renard|Colette|Nimbus/.test(copy), 'Thorne named without revealing the later conflict');

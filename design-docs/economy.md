@@ -4,7 +4,7 @@ This file tracks the actor-driven economy for Space Teamster. It is a working de
 
 ## Current contract model
 
-Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The contract board now shows only faction-authored postings, weighted-picking up to 10 candidates; there is no generic open-market filler.
+Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia's descriptive unnamed civilian issuers, not generic all-to-all open-market filler.
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
@@ -84,6 +84,14 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 Hartwell Shipping (6 logical consignments), Merren (7), Daedalus (7), KIS-E (9), Steel Combine (4), Halloran (1), Cinderhook refiners (1) and Guild (10) now supplement BAM. Each retains its normal economics/role; Guild uses existing1.70+0 skim terms. Ordinary orders use paired50/50 Balor Orbital/direct handling; Guild skim work stays orbital. Existing seeded company rosters, Merren passenger distribution and pre-existing contracts remain unchanged. No forced second player leg, flat bounty or global board quota.
 
 Skim Alpha/Beta are now selectable/dockable in clockwise stellar orbits at120/180million metres. Coronal remains a reserved endgame site. New contracts use operational Details and neutral receipts, not new unreviewed narrative copy. Full routes, terms and current audit in [Balor shipping](balor-shipping-audit.md); regression `npm run test:balor-shipping`.
+
+## Gaia civilian / GOV / EDF shipping — 2026-10-23
+
+Richelieu Orbital Terminal is the renamed main Gaia customs hub and the system's biggest transit hub (IDs retained). Three new provider registrations add319 logical consignments/day:271 unnamed civilian bookings,27 Sector Government (`GOV`) and21 Estella Defence Force (`EDF`,18 personnel). Civilian issuers have descriptive names and no market tag. Existing25 provider rosters/pay remain intact.
+
+New freight pays0.80+0.45 reimbursement; passengers0.60+0.60; cap2, no flat rewards. Civilian demand weight2.0 versus GOV/EDF0.65 creates a majority civilian economy without priority quotas. Each new order dispatches once/day, exactly50/50 Richelieu/direct over paired days. The public-candidate adapter also routes existing Gaia surface/offworld orders; native station services and local/contact/certification routes keep their original endpoints. New quotes use the actual dispatch endpoint; accepted quotes/history/saves are untouched.
+
+City-specific imports/exports, EDF's Orselle interface after military-spaceport deletion, compatibility/narrative handling, raw-vs-capped-board distinctions and audit percentages: [Gaia shipping](gaia-shipping.md). Implementation `faction-contracts/gaia-contracts.ts` and `gaia-logistics.ts`; tests `npm run test:gaia-shipping`, read-only audit `npm run audit:gaia`.
 
 ## Faction: Balor Advanced Materials (BAM)
 

@@ -2,6 +2,20 @@ import { type HighlinerSeedDef, type InstitutionDef } from '../types';
 
 export const ESTELLA_INSTITUTIONS: InstitutionDef[] = [
   {
+    id: 'estella-government',
+    name: 'Sector Government',
+    tags: ['government', 'council', 'GOV'],
+    summary: 'The Estella Commonwealth Council and its permanent administration, based in Orselle. GOV commissions civil-service travel, inspection, public works and scientific procurement.',
+    services: ['administration', 'inspection', 'public-works', 'research'],
+  },
+  {
+    id: 'estella-defence-force',
+    name: 'Estella Defence Force',
+    tags: ['military', 'EDF'],
+    summary: 'The Council\'s defence force. EDF transport work is predominantly personnel postings, relief, training and leave, with supporting stores and equipment.',
+    services: ['personnel-transfer', 'military-logistics'],
+  },
+  {
     id: 'teamsters-guild',
     name: 'The Teamsters\' Guild',
     tags: ['fuel-monopoly', 'engine-monopoly', 'certification', 'insurance', 'debt'],

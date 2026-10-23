@@ -27,6 +27,7 @@ const pois = ESTELLA_NODES.filter(n => n.kind === 'poi');
 // Approved Gaia/Celeste/Dahai naming changes are presentation-only exceptions;
 // keep the original pre-expansion hashes, not a freshly blessed baseline.
 const legacyPlaceNames: Array<[string,string]> = [
+  ['Richelieu Orbital Terminal','Main Customs and Arrival Hub'],
   ['Orselle Financial District','Secondary Finance City'], ['Orselle First Dome Quarter','Historic First Dome Site'],
   ['Orselle','Capital City Spaceport'], ['Rochefort','High-Tech Industrial City'], ['Mirabel','Coastal Resort'],
   ['Valenne','Agricultural Region'], ['Cousteau Station','Polar Science and Weather Research'],
@@ -45,7 +46,7 @@ const legacy: Record<string, [number, number]> = {
   'merren-conservatory': [340,2674462853], 'daedalus-systems': [445,1210869324],
 };
 const providers = ESTELLA_FACTION_CONTRACT_PROVIDERS.filter(p => legacy[p.id]);
-assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 25, 'eight existing actors expanded, no duplicate provider');
+assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 28 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 28, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
 for (const p of providers) {
   let hash = 2166136261, count = 0;
   for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c))) {

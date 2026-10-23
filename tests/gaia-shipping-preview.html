@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Gaia shipping desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"><option value="terminal">Richelieu terminal</option><option value="civilian">Civilian posting</option><option value="GOV">GOV posting</option><option value="EDF">EDF posting</option></select><span id="status">Checking live worker…</span>
+<canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+const terminal='estella-iii-main-customs',legacyMilitary='estella-iii-military-spaceport';
+const game=Object.create(Game.prototype);
+game.career=defaultCareerProfile();game.career.certifications=['basic-1','basic-2','basic-3','line','passenger','fragile-cargo'];
+game.career.locationId=terminal;game.canvas=document.getElementById('screen');
+game.canvas.width=window.innerWidth-24;game.canvas.height=window.innerHeight-60;
+const selected={};
+function show(){
+  const contract=selected[document.getElementById('view').value];
+  game.career.locationId=contract?.sourceId??terminal;
+  const state=contract?{id:'contractPosting',contracts:[contract],contractIndex:0,selectedIndex:0}:{id:'stationTerminal',selectedIndex:0};
+  drawInteractiveScene(game.canvas.getContext('2d'),game.canvas,game.buildInteractiveScene(state),0);
+}
+document.getElementById('view').onchange=show;show();
+const requests=[];
+for(const day of [0,1,2,3])for(const sourceId of [terminal,legacyMilitary,'estella-iii-capital-city','caravanserai-main-commercial-dock'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const errors=[];const started=performance.now();
+const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){errors.push(message);document.getElementById('status').textContent=`FAIL — ${message}`;document.title='FAIL — Gaia shipping';}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{
+  if(data.error){fail(data.error);worker.terminate();return;}
+  const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+  for(const c of rows){
+    if(c.sourceId===legacyMilitary||c.destinationId===legacyMilitary)fail('retired spaceport advertised');
+    if(requests[complete].sourceId===legacyMilitary&&c.sourceId!=='estella-iii-capital-city')fail('legacy source did not resolve to Orselle');
+    if(c.sourceId===terminal&&c.sourceName!=='Richelieu Orbital Terminal')fail('old terminal source name');
+    if(c.destinationId===terminal&&c.destinationName!=='Richelieu Orbital Terminal')fail('old terminal destination name');
+    if(c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)fail('quote endpoint mismatch');
+    if(c.factionId==='gaia-civilian-bookings'){if(c.issuerTag)fail('tag on unnamed civilian issuer');selected.civilian??=c;}
+    if(c.issuerTag==='GOV')selected.GOV??=c;
+    if(c.issuerTag==='EDF')selected.EDF??=c;
+  }
+  complete++;
+  if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+  worker.terminate();
+  if(!selected.GOV||!selected.EDF||!selected.civilian)fail('missing new issuer on real worker boards');
+  if(errors.length)return;
+  // Render all three posting types with native Canvas2D before restoring the requested view.
+  for(const key of ['civilian','GOV','EDF']){document.getElementById('view').value=key;show();}
+  document.getElementById('view').value=new URLSearchParams(location.search).get('view')??'terminal';show();
+  document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; GOV, EDF and civilians; ${(performance.now()-started).toFixed(0)} ms`;
+  document.title='PASS — Gaia shipping';
+};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Synthetic in-memory profile only: no Game constructor, save load or flight action.
+</script>

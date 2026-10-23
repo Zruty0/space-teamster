@@ -12,6 +12,8 @@
     "test:balor": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor.test.ts && node tests/run-equipment.mjs tests/balor-eye.test.ts",
     "test:bam": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/bam-contracts.test.ts",
     "test:gaia": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia.test.ts",
+    "test:gaia-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia-shipping.test.ts",
+    "audit:gaia": "node tests/run-equipment.mjs tests/audit-gaia-shipping.ts",
     "test:world-discs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/world-disc-appearance.test.ts",
     "test:empty-runs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/empty-runs.test.ts",
     "test:balor-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor-expansion.test.ts",

@@ -139,7 +139,7 @@ Gaia supports billions and extensive agriculture while terraforming continues in
 
 | ID | Type | Description |
 |---|---|---|
-| Estella III.1 | Station, low orbit | Main customs and arrival hub |
+| Estella III.1 | Station, low orbit | **Richelieu Orbital Terminal.** System's biggest transit hub; Gaia freight consolidation, passenger connections and customs |
 | Estella III.2 | Station, high orbit | Luxury orbital habitat |
 | Estella III.3 | Surface | **Orselle.** System capital: science, high technology, universities, bureaucracy and finance. |
 | Estella III.4 | Orselle district | Financial District. Compatibility ID; arrival through Orselle, not a separate city. |

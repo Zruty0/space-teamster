@@ -1,5 +1,17 @@
 # System-Level Corporations and Institutions
 
+## Sector Government (GOV)
+
+The existing Estella Commonwealth/Council administration, based in Orselle. GOV's public transport orders carry civil servants, inspection teams and polar field scientists, plus public-clinic equipment, research procurement and physical administrative archives.27 daily logical consignments (20 passenger,7 freight). No new named official, contact, agency jurisdiction or political system is introduced.
+
+## Estella Defence Force (EDF)
+
+The Council's defence force, with government command arrangements as recorded in geography. Public Teamster work primarily carries personnel: shipyard relief, training/exercise-observer exchanges, port liaison and leave.18 passenger and3 support-store consignments/day. Gaia dispatch uses Orselle or Richelieu; Pete removed the separate Government/Military Spaceport. Existing training partners remain independent, not newly claimed EDF bases. No combat missions or new access privileges.
+
+## Unnamed Gaia civilian customers
+
+The majority of Gaia transit is ordinary civilian business: cooperatives, manufacturers, universities, clinics, households and booking agencies.271 daily logical consignments use descriptive issuers without new proper-name corporations or a market tag. The implementation's civilian aggregator is bookkeeping, not a new political entity. GOV/EDF and civilian route/rate/dispatch details: [Gaia shipping](gaia-shipping.md).
+
 ## Balor Advanced Materials (BAM)
 
 BAM operates Balor's BAM Extraction One and BAM Foundry One. It is an early-stage, already successful corporation led by engineers: professional and merit-based, with safety and competence paramount. Its high-pay/high-risk recruitment targets the highest-rated skilled tradespeople. “Hotheads” is a recruitment identity, not the company name. This is a sincere culture, not a cover for corporate abuse.

@@ -16,6 +16,8 @@ export const FRAGILITY_LEVELS: Readonly<Record<FragilityLevel, { name: string; i
 };
 
 const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
+  'fresh-produce crates': { level: 'somewhat-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.40 },
+  'polar sample cabinets': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.50 },
   'returned automation interface units': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.50 },
   'hot-zone sensor packages': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
   'anatomical culture cabinets': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.60 },
@@ -171,6 +173,34 @@ const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
 };
 
 const ORDINARY_CARGO = new Set<string>([
+  'floating-habitat infrastructure kits',
+  'civil-engineering machinery',
+  'agricultural machinery sets',
+  'certified seed lots',
+  'agricultural machinery spares',
+  'regional specialty foods',
+  'polar field machinery',
+  'sealed administrative archives',
+  'EDF service stores',
+  'civilian business passengers',
+  'civilian relocation passengers',
+  'technical students and instructors',
+  'civilian family visitors',
+  'civilian resident passengers',
+  'university students and staff',
+  'civilian medical passengers',
+  'civil engineering specialists',
+  'agricultural specialists',
+  'civilian holiday passengers',
+  'cultural exchange passengers',
+  'polar research crews',
+  'government civil servants',
+  'government inspection teams',
+  'government field scientists',
+  'EDF relief personnel',
+  'EDF training personnel',
+  'EDF liaison personnel',
+  'EDF leave passengers',
   'refractory fit-out blanks',
   'Guild skim duty crews',
   'returning Guild skim crews',

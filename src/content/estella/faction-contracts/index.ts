@@ -3,6 +3,8 @@ import type { NunesInquirySnapshot } from './nunes-inquiries';
 import type { MissionCargoSpec } from '../../../mission-cost';
 import { classifyMissionCargo } from '../../../cargo-handling';
 import { passengerComfortTerms } from '../../../passenger-comfort';
+import { generateGaiaRoutedContracts } from '../gaia-logistics';
+import { GAIA_CIVILIAN_PROVIDER, GOVERNMENT_PROVIDER, EDF_PROVIDER } from './gaia-contracts';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { BALOR_ADVANCED_MATERIALS_PROVIDER } from './bam-contracts';
 import { CERBERUS_HUMAN_RESOURCES_PROVIDER } from './cerberus-contracts';
@@ -56,6 +58,8 @@ export interface FactionContractCandidate {
   templateId: string;
   sourceId: string;
   destinationId: string;
+  /** Stable logical consignment key for Gaia's paired orbital/direct dispatch. */
+  gaiaDispatchKey?: string;
   /** Optional authored title; ordinary contracts derive a title from cargo and destination. */
   title?: string;
   cargo: MissionCargoSpec;
@@ -133,6 +137,9 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   COVENANT_REMNANTS_PROVIDER,
   DAEDALUS_SYSTEMS_PROVIDER,
   WELLS_NOBLE_HOUSES_PROVIDER,
+  GAIA_CIVILIAN_PROVIDER,
+  GOVERNMENT_PROVIDER,
+  EDF_PROVIDER,
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
@@ -149,7 +156,9 @@ function withDefaultCompletion(candidate: FactionContractCandidate): FactionCont
 }
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(ctx).map(withDefaultCompletion));
+  return generateGaiaRoutedContracts(ctx, source =>
+    ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+  ).map(withDefaultCompletion);
 }
 
 export function generateFactionContactContractCandidates(ctx: FactionContactContractContext): FactionContractCandidate[] {
