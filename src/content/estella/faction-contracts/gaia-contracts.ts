@@ -3,6 +3,8 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 
 import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_GOVERNMENT_LANES, DAHAI_EDF_LANES } from './dahai-partner-lanes';
+import { campsTradeContracts } from './camps-trade-contracts';
+import { CAMPS_GOVERNMENT_LANES } from './camps-partner-lanes';
 
 export const GAIA_CIVILIAN_ID = 'gaia-civilian-bookings';
 export const GOVERNMENT_ID = 'estella-government';
@@ -147,7 +149,11 @@ function provider(id: string, name: string, lanes: readonly Lane[], tag?: string
       }
     }
     const dahaiLanes = id === GOVERNMENT_ID ? DAHAI_GOVERNMENT_LANES : id === EDF_ID ? DAHAI_EDF_LANES : [];
-    return [...out, ...dahaiLanes.flatMap(lane => dahaiTradeContracts(ctx, {
+    return [...out, ...(id === GOVERNMENT_ID ? CAMPS_GOVERNMENT_LANES : []).flatMap(lane => campsTradeContracts(ctx, {
+      factionId: id, factionName: name, factionTag: tag, issuerId: id,
+      generosity: lane.category === 'passenger' ? 0.6 : 0.8,
+      compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
+    }, [lane])), ...dahaiLanes.flatMap(lane => dahaiTradeContracts(ctx, {
       factionId: id, factionName: name, factionTag: tag, issuerId: id,
       generosity: lane.category === 'passenger' ? 0.6 : 0.8,
       compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,

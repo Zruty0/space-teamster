@@ -14,6 +14,10 @@ export const COMFORT_EXPECTATIONS: Readonly<Record<ComfortExpectation, { name: s
 
 /** Explicit passenger-manifest catalog. Expectations are never inferred from label text. */
 const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
+  'workboat refit specialists': 'standard',
+  'industrial heritage visitors': 'standard',
+  'metrology commissioning teams': 'standard',
+  'yard infrastructure technicians': 'standard',
   'marine maintenance specialists': 'standard',
   'marine fleet technicians': 'standard',
   'archive conservators and historians': 'standard',

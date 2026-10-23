@@ -1,6 +1,8 @@
 import { FUYUAN, JIUYUAN, ZHULONG, BINGJIE, DAHAI_SURFACE_SITES, type DahaiSurfaceSite } from '../dahai-sites';
 import { dahaiTradeContracts, type DahaiTradeLane } from './dahai-trade-contracts';
 import type { FactionContractProvider } from './index';
+import { campsTradeContracts } from './camps-trade-contracts';
+import { CAMPS_PLANETOLOGY_LANES } from './camps-partner-lanes';
 
 export const DAHAI_CIVILIAN_ID = 'dahai-civilian-bookings';
 export const PLANETOLOGY_ID = 'estella-institute-of-planetology';
@@ -98,10 +100,15 @@ export const DAHAI_CIVILIAN_PROVIDER: FactionContractProvider = {
 };
 export const PLANETOLOGY_PROVIDER: FactionContractProvider = {
   id: PLANETOLOGY_ID, name: 'Estella Institute of Planetology',
-  generateContracts: ctx => PLANETOLOGY_LANES.flatMap(lane => dahaiTradeContracts(ctx, {
+  generateContracts: ctx => [...PLANETOLOGY_LANES.flatMap(lane => dahaiTradeContracts(ctx, {
     factionId: PLANETOLOGY_ID, factionName: 'Estella Institute of Planetology', factionTag: 'EIP',
     issuerId: PLANETOLOGY_ID, issuerName: 'Estella Institute of Planetology',
     generosity: lane.category === 'passenger' ? 0.6 : 0.8,
     compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
-  }, [lane])),
+  }, [lane])), ...CAMPS_PLANETOLOGY_LANES.flatMap(lane => campsTradeContracts(ctx, {
+    factionId: PLANETOLOGY_ID, factionName: 'Estella Institute of Planetology', factionTag: 'EIP',
+    issuerId: PLANETOLOGY_ID, issuerName: 'Estella Institute of Planetology',
+    generosity: lane.category === 'passenger' ? 0.6 : 0.8,
+    compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
+  }, [lane]))],
 };

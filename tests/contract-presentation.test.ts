@@ -66,7 +66,7 @@ for(const day of [0,1,20,21])for(const source of estellaSelectableNavTargets()) 
   }
   for(const contract of [...generateCareerContracts(source.id,time),...generatePassengerContracts(source.id,time)]){boardRows++;check(contract);}
 }
-assert(seenProviders.size===30,'all existing and new provider families audited');
+assert(seenProviders.size===32,'all existing and new provider families audited');
 
 // Contact/certification routes use the same constructor, including the authored
 // first practical title and Old Nell passages; none bypass physical naming.

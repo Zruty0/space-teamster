@@ -1,0 +1,40 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Camps pass desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"></select><span id="status">Checking live worker…</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {CAMPS_LOCATION_IDS,CONCORD,FIRST_LANDING,BLACK_TILE} from '/src/content/estella/camps-sites.ts';
+import {ESTELLA_NODES_BY_ID} from '/src/content/estella/index.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+const menu=document.getElementById('view'),sites=Object.fromEntries(CAMPS_LOCATION_IDS.map(id=>[ESTELLA_NODES_BY_ID.get(id).name,id]));
+for(const key of [...Object.keys(sites),'civilian','SYC','EIP']){const o=document.createElement('option');o.value=key;o.textContent=key;menu.appendChild(o);}
+const selected={},errors=[];const game=Object.create(Game.prototype);game.career=defaultCareerProfile();game.career.certifications=['basic-1','basic-2','basic-3','line','passenger','fragile-cargo','volatile-cargo'];game.canvas=document.getElementById('screen');game.canvas.width=window.innerWidth-24;game.canvas.height=window.innerHeight-60;
+function show(){const key=menu.value,c=selected[key];game.career.locationId=c?.sourceId??sites[key]??CONCORD;drawInteractiveScene(game.canvas.getContext('2d'),game.canvas,game.buildInteractiveScene(c?{id:'contractPosting',contracts:[c],contractIndex:0,selectedIndex:0}:{id:'stationTerminal',selectedIndex:0}),0);}
+menu.value='Concord';menu.onchange=show;show();
+const requests=[];for(const day of [0,1])for(const sourceId of [...CAMPS_LOCATION_IDS,'estella-iv-primary-city','estella-iii-main-customs'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const started=performance.now();const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){errors.push(message);document.title='FAIL — Camps';document.getElementById('status').textContent=message;}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{
+ if(data.error){fail(data.error);worker.terminate();return;}
+ const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+ if([FIRST_LANDING,BLACK_TILE].includes(requests[complete].sourceId)&&rows.length)fail('reserve gained public traffic');
+ for(const c of rows){
+  if(contractLocationId(c.sourceId)!==contractLocationId(requests[complete].sourceId)||c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)fail('quote/source scope mismatch');
+  if(c.sourceName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name||c.destinationName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name)fail('stale physical name');
+  if(c.factionId==='camps-civilian-bookings'){if(c.issuerTag)fail('tag on ordinary civilian issuer');selected.civilian??=c;}
+  if(c.factionId==='svarog-yard-company'){if(c.issuerTag!=='SYC')fail('missing yard identity');selected.SYC??=c;}
+  if(c.factionId==='estella-institute-of-planetology'&&c.templateId?.startsWith('camps:'))selected.EIP??=c;
+ }
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+ worker.terminate();if(!selected.civilian||!selected.SYC||!selected.EIP)fail('missing reviewed issuer on live boards');if(errors.length)return;
+ for(const key of [...Object.keys(sites),'civilian','SYC','EIP']){menu.value=key;show();}menu.value='Concord';show();
+ document.title='PASS — Camps';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; 31 terminals/civilians/SYC/EIP; ${(performance.now()-started).toFixed(0)} ms`;
+};worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Synthetic profile, no Game constructor or live save access; desktop only.
+</script>

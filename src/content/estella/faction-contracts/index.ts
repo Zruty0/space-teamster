@@ -5,6 +5,8 @@ import { classifyMissionCargo } from '../../../cargo-handling';
 import { passengerComfortTerms } from '../../../passenger-comfort';
 import { generateGaiaRoutedContracts } from '../gaia-logistics';
 import { generateDahaiRoutedContracts } from '../dahai-logistics';
+import { generateCampsRoutedContracts } from '../camps-logistics';
+import { CAMPS_CIVILIAN_PROVIDER, SVAROG_YARD_COMPANY_PROVIDER } from './camps-contracts';
 import { DAHAI_CIVILIAN_PROVIDER, PLANETOLOGY_PROVIDER } from './dahai-contracts';
 import { GAIA_CIVILIAN_PROVIDER, GOVERNMENT_PROVIDER, EDF_PROVIDER } from './gaia-contracts';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
@@ -64,6 +66,8 @@ export interface FactionContractCandidate {
   gaiaDispatchKey?: string;
   /** Stable identity independent of another planet's gateway choice. */
   dahaiDispatchKey?: string;
+  /** Shared stable consignment identity; Hartwell/Tessera hash independently. */
+  campsDispatchKey?: string;
   /** Optional authored title; ordinary contracts derive a title from cargo and destination. */
   title?: string;
   cargo: MissionCargoSpec;
@@ -146,6 +150,8 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   EDF_PROVIDER,
   DAHAI_CIVILIAN_PROVIDER,
   PLANETOLOGY_PROVIDER,
+  CAMPS_CIVILIAN_PROVIDER,
+  SVAROG_YARD_COMPANY_PROVIDER,
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
@@ -162,9 +168,11 @@ function withDefaultCompletion(candidate: FactionContractCandidate): FactionCont
 }
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return generateDahaiRoutedContracts(ctx, dahaiSource =>
-    generateGaiaRoutedContracts(dahaiSource, source =>
-      ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+  return generateCampsRoutedContracts(ctx, campsSource =>
+    generateDahaiRoutedContracts(campsSource, dahaiSource =>
+      generateGaiaRoutedContracts(dahaiSource, source =>
+        ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+      ),
     ),
   ).map(withDefaultCompletion);
 }

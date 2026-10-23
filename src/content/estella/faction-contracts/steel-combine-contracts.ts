@@ -5,6 +5,8 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 import { BAM_EXTRACTION, BAM_FOUNDRY } from '../balor-logistics';
 import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_STEEL_LANES } from './dahai-partner-lanes';
+import { campsTradeContracts } from './camps-trade-contracts';
+import { CAMPS_STEEL_LANES } from './camps-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
 
 const STEEL_COMBINE_ID = 'steel-combine';
@@ -400,6 +402,9 @@ export const STEEL_COMBINE_PROVIDER: FactionContractProvider = {
     return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx), ...balorCombineContracts(ctx),
       ...dahaiTradeContracts(ctx, { factionId: STEEL_COMBINE_ID, factionName: STEEL_COMBINE_NAME, factionTag: STEEL_COMBINE_TAG,
         issuerName: FOREIGN_TRADE_COMMITTEE, generosity: EXPORT_GENEROSITY, compensationRatio: 1, maxCompAllowance: MAX_COMP_ALLOWANCE,
-      }, DAHAI_STEEL_LANES)];
+      }, DAHAI_STEEL_LANES),
+      ...campsTradeContracts(ctx, { factionId: STEEL_COMBINE_ID, factionName: STEEL_COMBINE_NAME, factionTag: STEEL_COMBINE_TAG,
+        issuerName: PLANNING_OFFICE, generosity: 0, compensationRatio: 1, maxCompAllowance: MAX_COMP_ALLOWANCE,
+      }, CAMPS_STEEL_LANES)];
   },
 };

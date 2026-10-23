@@ -4,7 +4,8 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 
 // Small Hartwell mining houses working Pike's clean-metal strip fields. They share a market
 // bucket but post under their own company names. Raw surface lots either go downwell to
-// Cinderhook Refinery or up to Pike Ore-Handling Depot; system export starts from the depot.
+// Cinderhook Refinery or up to Pike Depot; system export starts from the depot.
+// These explicit process legs are preserved by the Camps gateway dispatcher.
 const PIKE_MINERS_ID = 'pike-mining-companies';
 const PIKE_STRIP_MINE = 'estella-va-strip-mine';
 const PIKE_ORBITAL_DEPOT = 'estella-va-ore-handling-depot';

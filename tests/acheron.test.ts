@@ -98,9 +98,10 @@ for (let day = 0; day < 120; day++) {
 }
 // The rare deep-surface equipment postings compete on Hammer's capped board.
 // Additional actors can move their first appearance beyond the 120-day raw
-// audit window; check one year of that source, without forcing board priority.
-for (let day = 120; day < 365 && !boardSeen.has('mining-cutters-to-pandemonium'); day++) {
-  for (const c of generateCareerContracts(hammer, day * 86400)) {
+// audit window; check one year at both equipment sources, until both rare
+// templates appear, without changing their weights or forcing board priority.
+for (let day = 120; day < 365 && (!boardSeen.has('mining-cutters-to-pandemonium') || !boardSeen.has('pressure-seals-to-pandemonium')); day++) {
+  for (const source of [hammer, veles]) for (const c of generateCareerContracts(source, day * 86400)) {
     if (c.factionId === chr.id && c.destinationId === pande) boardSeen.add(c.templateId!);
   }
 }

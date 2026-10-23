@@ -6,6 +6,8 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 // They are not manufacturers; they turn claims, liens, and future ore into present equipment.
 import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_MACHINERY_LANES } from './dahai-partner-lanes';
+import { campsTradeContracts } from './camps-trade-contracts';
+import { CAMPS_MACHINERY_LANES } from './camps-partner-lanes';
 
 const HARTWELL_MACHINERY_ID = 'hartwell-machinery-brokers';
 const HAMMER = 'estella-vi-heavy-cargo-station';
@@ -228,7 +230,10 @@ export const HARTWELL_MACHINERY_BROKERS_PROVIDER: FactionContractProvider = {
   id: HARTWELL_MACHINERY_ID,
   name: 'Hartwell Machinery Brokers',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return [...generateMachineryContracts(ctx), ...DAHAI_MACHINERY_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {
+    return [...generateMachineryContracts(ctx), ...CAMPS_MACHINERY_LANES.flatMap((lane, index) => campsTradeContracts(ctx, {
+      factionId: HARTWELL_MACHINERY_ID, factionName: ROSTER[index % ROSTER.length].name,
+      ...(lane.massClass === 'heavy' ? HEAVY_PAY : ROUTINE_PAY),
+    }, [lane])), ...DAHAI_MACHINERY_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {
       factionId: HARTWELL_MACHINERY_ID, factionName: ROSTER[index % ROSTER.length].name,
       ...(lane.massClass === 'heavy' ? HEAVY_PAY : ROUTINE_PAY),
     }, [lane]))];

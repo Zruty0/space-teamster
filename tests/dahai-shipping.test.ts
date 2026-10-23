@@ -1,5 +1,6 @@
 import './svg-dom';
 import baseline from './fixtures/dahai-unrelated-baseline.json';
+import { preCampsNames } from './fixtures/pre-camps-names';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS, generateFactionContractCandidates, generateFactionContactContractCandidates, type FactionContractCandidate } from '../src/content/estella/faction-contracts';
 import { DAHAI_CIVILIAN_ID, PLANETOLOGY_ID } from '../src/content/estella/faction-contracts/dahai-contracts';
@@ -24,8 +25,8 @@ const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const isNew = (c: FactionContractCandidate) => c.templateId.startsWith('dahai:');
 const isDahai = (id: string) => id === DAHAI_ORBITAL || isDahaiSurface(id);
 const isGaia = (id: string) => id === RICHELIEU || isGaiaSurface(id);
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 30, '28 existing providers and two new providers');
-assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 30, 'unique registrations');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 32, '28 existing providers and two new providers');
+assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 32, 'unique registrations');
 assert(ESTELLA_INSTITUTIONS.some(i => i.id === PLANETOLOGY_ID && i.summary.includes('Fuyuan')), 'Institute institution and HQ');
 assert(!ESTELLA_INSTITUTIONS.some(i => /Deepworks/.test(i.name)), 'rejected industrial entity absent');
 for (const site of DAHAI_SURFACE_SITES) {
@@ -42,10 +43,10 @@ for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   if (!(p.id in baseline)) continue;
   const rows: FactionContractCandidate[] = [];
   for (const day of [0, 1, 7, 20]) for (const n of pois) for (const c of p.generateContracts({ sourceId: n.id, worldTime: day * 86400 })) {
-    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c)) rows.push(c);
+    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:')) rows.push(c);
   }
   let h = 2166136261;
-  for (const ch of JSON.stringify(rows)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  for (const ch of preCampsNames(JSON.stringify(rows))) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
   const expected = (baseline as Record<string, number[]>)[p.id];
   assert(rows.length === expected[0] && (h >>> 0) === expected[1], `${p.id}: all unrelated original candidates unchanged`);
 }
@@ -64,7 +65,7 @@ for (let day = 0; day < 20; day++) for (const n of pois) {
       const r = traffic.get(k) ?? { total: 0, hub: 0, weight: 0, hubWeight: 0, civilianWeight: 0 };
       r.total++; r.weight += c.likelihood;
       if (c.sourceId === DAHAI_ORBITAL || c.destinationId === DAHAI_ORBITAL) { r.hub++; r.hubWeight += c.likelihood; }
-      if ([DAHAI_CIVILIAN_ID, 'gaia-civilian-bookings'].includes(c.factionId)) r.civilianWeight += c.likelihood;
+      if ([DAHAI_CIVILIAN_ID, 'gaia-civilian-bookings', 'camps-civilian-bookings'].includes(c.factionId)) r.civilianWeight += c.likelihood;
       traffic.set(k, r);
     }
     if (!isNew(c)) continue;

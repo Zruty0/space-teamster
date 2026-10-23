@@ -5,6 +5,8 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 import { BAM_EXTRACTION, BAM_FOUNDRY } from '../balor-logistics';
 import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_DAEDALUS_LANES } from './dahai-partner-lanes';
+import { campsTradeContracts } from './camps-trade-contracts';
+import { CAMPS_DAEDALUS_LANES } from './camps-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
 
 const DAEDALUS_ID = 'daedalus-systems';
@@ -472,6 +474,11 @@ function generateDaedalusContracts(ctx: FactionContractContext): FactionContract
     ...fieldReturnCandidates(ctx, day),
     ...researchPersonnelCandidates(ctx, day),
     ...balorSystemsContracts(ctx),
+    ...CAMPS_DAEDALUS_LANES.flatMap(lane => campsTradeContracts(ctx, {
+      factionId: DAEDALUS_ID, factionName: DAEDALUS_NAME, factionTag: DAEDALUS_TAG,
+      issuerName: lane.category === 'passenger' ? 'Daedalus Research Personnel' : 'Daedalus Product Fulfillment',
+      ...(lane.category === 'passenger' ? PERSONNEL_PAY : PRODUCT_PAY),
+    }, [lane])),
     ...DAHAI_DAEDALUS_LANES.flatMap(lane => dahaiTradeContracts(ctx, {
       factionId: DAEDALUS_ID, factionName: DAEDALUS_NAME, factionTag: DAEDALUS_TAG,
       issuerName: lane.category === 'passenger' ? 'Daedalus Research Personnel' : 'Daedalus Product Fulfillment',

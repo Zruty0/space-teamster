@@ -17,6 +17,8 @@ interface GuildContractTemplate {
 }
 
 import { FUYUAN, BINGJIE } from '../dahai-sites';
+import { ASCENSION } from '../camps-sites';
+import { campsTradeContracts } from './camps-trade-contracts';
 import { dahaiTradeContracts } from './dahai-trade-contracts';
 
 const GUILD_ID = 'teamsters-guild';
@@ -321,6 +323,14 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
   generosity: GUILD_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return [...candidatesFromTemplates(ctx), ...balorSkimContracts(ctx),
+      ...campsTradeContracts(ctx, { factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
+        generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
+      }, [{ id: 'scaffold-fuel', from: STILL_DISTRIBUTION, to: [ASCENSION], label: 'stable fuel canisters', massClass: 'standard',
+        purpose: 'Guild spacecraft fuel for the operating workboat and refit station.' }]).map(c => ({ ...c, requiredCertification: 'volatile-cargo' as const })),
+      ...campsTradeContracts(ctx, { factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
+        generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
+      }, [{ id: 'scaffold-drive-service', from: STILL_DISTRIBUTION, to: [ASCENSION], label: 'engine overhaul kits', massClass: 'heavy',
+        purpose: 'Authorized drive-service kits for refit contractors; proprietary drive manufacture stays with the Guild.' }]),
       ...([FUYUAN, BINGJIE] as const).flatMap(site => dahaiTradeContracts(ctx, {
         factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
         generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
