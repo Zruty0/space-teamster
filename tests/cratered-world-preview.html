@@ -3,7 +3,7 @@
 <title>Stage 1 — seeded airless worlds</title>
 <style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:flex;gap:14px;margin-top:12px}canvas{display:block}#status{color:#8dc}a{color:#9ce}</style>
 <h1>STAGE 1 — SAME RENDERER, DIFFERENT GEOLOGY</h1>
-<p>Celeste stays unchanged. Pike, Kalyna and Weymark below are preview-only examples, not live replacements.</p>
+<p>Stage 1 approved. These four appearances are now live in Stage 2. <a href="/tests/rocky-world-preview.html">See all 13 rocky worlds.</a> Celeste stays unchanged.</p>
 <p id="status">Checking native pixels against the frozen original…</p>
 <p>Top: proposed palette/detail examples. Bottom: identical grey palette and detail settings, changing only the seed/layout.</p>
 <div id="views"></div>
@@ -15,9 +15,9 @@ try{
   let checks=0;const assert=(ok,message)=>{if(!ok)throw Error(message);checks++;};
   const samples=[
     {id:'estella-iiia',name:'CELESTE',note:'Original appearance preserved',tint:[170,165,150],settings:{}},
-    {id:'estella-va',name:'PIKE',note:'Preview: finer, denser pitting',tint:[155,135,115],settings:{craterCount:84,craterScale:.88,basinCoverage:.65,reliefContrast:.95}},
-    {id:'estella-vib',name:'KALYNA',note:'Preview: hematite red',tint:[205,70,62],settings:{craterCount:64,craterScale:1.05,basinCoverage:.9,reliefContrast:1.1}},
-    {id:'estella-viii',name:'WEYMARK',note:'Preview: broader basins',tint:[135,155,170],settings:{craterCount:48,craterScale:1.12,basinCoverage:1.2}},
+    {id:'estella-va',name:'PIKE',note:'Finer, denser pitting',tint:[155,135,115],settings:{craterCount:84,craterScale:.88,basinCoverage:.65,reliefContrast:.95}},
+    {id:'estella-vib',name:'KALYNA',note:'Hematite red',tint:[205,70,62],settings:{craterCount:64,craterScale:1.05,basinCoverage:.9,reliefContrast:1.1}},
+    {id:'estella-viii',name:'WEYMARK',note:'Broader basins',tint:[135,155,170],settings:{craterCount:48,craterScale:1.12,basinCoverage:1.2}},
   ];
   const makeProbe=()=>{const c=document.createElement('canvas');c.width=c.height=512;return c.getContext('2d',{willReadFrequently:true});};
   const current=makeProbe(),reference=makeProbe(),grey=[170,165,150];
@@ -47,8 +47,8 @@ try{
     current.fillRect(0,0,1,1);assert(current.getImageData(0,0,1,1).data[3]===255,`${sample.name}: restores clipping`);
     if(sample.id!=='estella-iiia'){
       current.clearRect(0,0,512,512);
-      assert(!drawAuthoredWorldDisc(current,sample.id,256,256,220,sample.tint),`${sample.name}: not opted into production`);
-      assert(current.getImageData(256,256,1,1).data[3]===0,`${sample.name}: no live painter dispatched`);
+      assert(drawAuthoredWorldDisc(current,sample.id,256,256,220,sample.tint),`${sample.name}: Stage2 production dispatch`);
+      assert(same(before,current.getImageData(0,0,512,512).data),`${sample.name}: approved Stage1 example matches Stage2 live pixels`);
     }
     for(const r of [3,8,16,28]){
       current.clearRect(0,0,512,512);drawCrateredDisc(current,256,256,r,sample.tint,profile);

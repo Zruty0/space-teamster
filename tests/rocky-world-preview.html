@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stage 2 — rocky world rollout</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(4,280px);gap:14px;margin-top:12px}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}#flight{margin-top:12px}</style>
+<h1>STAGE 2 — 13 ROCKY WORLDS, NOW LIVE</h1>
+<p>Original palettes, permanent individual crater/basin layouts. Celeste unchanged; ice worlds, giants and custom worlds untouched.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Same grey palette (gallery comparison only)</label> · <select id="body"></select></p>
+<div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
+<script type="module">
+import {drawAuthoredWorldDisc,drawCrateredDisc} from '/src/world-disc-appearance.ts';
+import {ESTELLA_ROCKY_WORLD_PROFILES,rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
+import {crateredWorldGeometry} from '/src/cratered-world-geometry.ts';
+import {drawCrateredDisc as originalCeleste} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+  let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+  const ids=Object.keys(ESTELLA_ROCKY_WORLD_PROFILES),grey=[170,165,150];
+  const makeProbe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+  const p=makeProbe(),q=makeProbe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+  const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+  const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]),greyImages=[];
+  assert(ids.length===13,'exactly13 rocky bodies');
+  for(const id of ids){
+    const body=bodyById(id),profile=rockyWorldProfileFor(id);
+    assert(body.atmosphere===null,`${body.name}: airless`);
+    const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,id,128,128,100,body.color),`${body.name}: live dispatcher`));
+    const expected=pixels(q,ctx=>drawCrateredDisc(ctx,128,128,100,body.color,profile));
+    assert(same(actual,expected),`${body.name}: dispatcher uses the correct seed/palette/settings`);
+    assert(p.getImageData(235,128,1,1).data[3]===0,`${body.name}: clipped silhouette`);
+    const repeat=pixels(q,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,100,body.color));
+    assert(same(actual,repeat),`${body.name}: stable repeat pixels`);
+    assert(crateredWorldGeometry(profile)===crateredWorldGeometry({...profile}),`${body.name}: shared cached model`);
+    greyImages.push(pixels(q,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,100,grey)));
+    for(const r of [3,8,16,28]){
+      pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,body.color));
+      assert(p.getImageData(128,128,1,1).data[3]===255,`${body.name}: readable small marker`);
+    }
+    if(id==='estella-iiia')for(const r of [3,8,14,32,80,100]){
+      const now=pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,body.color));
+      const old=pixels(q,ctx=>originalCeleste(ctx,128,128,r,body.color));
+      assert(same(now,old),'live Celeste exactly matches original pixels');
+    }
+  }
+  for(let i=0;i<greyImages.length;i++)for(let j=i+1;j<greyImages.length;j++)assert(!same(greyImages[i],greyImages[j]),'each world has distinct geometry even in identical grey');
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii')){
+    assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),`${body.name}: unchanged fallback/custom family`);
+  }
+  assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/palettes/sites untouched');
+  const select=document.getElementById('body');
+  ids.forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=bodyById(id).name;select.append(o);});
+  const requested=new URLSearchParams(location.search).get('body');select.value=ids.includes(requested)?requested:'estella-va';
+  select.onchange=()=>{location.href=`?view=flight&body=${encodeURIComponent(select.value)}`;};
+  const gallery=document.getElementById('views'),flight=document.getElementById('flight');
+  const inFlight=new URLSearchParams(location.search).get('view')==='flight';
+  document.getElementById('grey').disabled=inFlight;
+  function galleryView(){
+    gallery.replaceChildren();
+    for(const id of ids){
+      const body=bodyById(id),profile=rockyWorldProfileFor(id),tint=document.getElementById('grey').checked?grey:body.color;
+      const canvas=document.createElement('canvas');canvas.width=280;canvas.height=356;gallery.append(canvas);
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#080d15';ctx.fillRect(0,0,280,356);ctx.textAlign='center';ctx.font='16px monospace';ctx.fillStyle='#d0e2eb';ctx.fillText(body.name.toUpperCase(),140,23);
+      drawAuthoredWorldDisc(ctx,id,140,143,99,tint);
+      ctx.font='11px monospace';ctx.fillStyle='#9db2c2';ctx.fillText(`seed ${profile.seed} / ${profile.craterCount} craters`,140,264);
+      ctx.fillText(`scale ${profile.craterScale} / basins ${profile.basinCoverage} / relief ${profile.reliefContrast}`,140,282);
+      [3,8,16,28].forEach((r,i)=>drawAuthoredWorldDisc(ctx,id,45+i*63,320,r,tint));
+    }
+  }
+  if(inFlight){
+    gallery.style.display='none';flight.hidden=false;
+    const id=select.value,site=SURFACE_POIS.find(s=>s.bodyId===id),before=new Set(ORBITAL_LEVELS.map(l=>l.id));
+    createPlayableEstellaMission('estella-iii-main-customs',site.id,undefined,9876);
+    const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===id&&l.reentryApproachLevelId!==undefined);
+    const state=createOrbitalState(level,{x:level.planetRadius*1.4,y:0,vx:0,vy:-300,time:12345});
+    renderOrbital(flight.getContext('2d'),flight,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
+  }else{flight.style.display='none';galleryView();document.getElementById('grey').onchange=galleryView;}
+  document.getElementById('status').textContent=`PASS — ${checks} native checks;13 distinct live profiles; original Celeste pixels preserved. No saves read/written.`;
+  window.rockyStage2Preview={passed:true,checks,stage:2,ids};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.rockyStage2Preview={passed:false,error:String(error)};throw error;}
+</script>

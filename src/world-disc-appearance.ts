@@ -2,6 +2,7 @@
 // terrain, collision, weather or rotation changes. Gaia site angles are authored
 // separately in placements.ts and checked against this artwork by the preview.
 import { CELESTE_CRATER_PROFILE, crateredWorldGeometry, resolveCrateredWorldProfile, type CrateredWorldProfile } from './cratered-world-geometry';
+import { rockyWorldProfileFor } from './content/estella/rocky-world-appearance';
 
 type Point = readonly [number, number];
 export type WorldTint = readonly [number, number, number];
@@ -101,7 +102,7 @@ function color(tint: WorldTint, scale: number): string {
 }
 
 /** Reusable airless globe. Tint recolors ALL relief; no atmospheric ring.
- * Only Celeste is opted in currently. Other worlds keep their existing art.
+ * Production opt-ins use the explicit Stage 2 rocky-world profile registry.
  */
 export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, tint: WorldTint, profile: CrateredWorldProfile = CELESTE_CRATER_PROFILE): void {
   if (!tint.every(Number.isFinite) || !beginDisc(ctx, cx, cy, radius)) return;
@@ -130,8 +131,12 @@ export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: 
 
 /** Common dispatch for close orbital discs and moving system/moon markers. */
 export function drawAuthoredWorldDisc(ctx: CanvasRenderingContext2D, bodyId: string, cx: number, cy: number, radius: number, tint: WorldTint): boolean {
-  if (bodyId === 'estella-iii') drawGaiaDisc(ctx, cx, cy, radius);
-  else if (bodyId === 'estella-iiia') drawCrateredDisc(ctx, cx, cy, radius, tint);
-  else return false;
+  if (bodyId === 'estella-iii') {
+    drawGaiaDisc(ctx, cx, cy, radius);
+    return true;
+  }
+  const profile = rockyWorldProfileFor(bodyId);
+  if (!profile) return false;
+  drawCrateredDisc(ctx, cx, cy, radius, tint, profile);
   return true;
 }

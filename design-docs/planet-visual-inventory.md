@@ -1,22 +1,22 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: family assignments remain a staged rollout proposal. Pete approved Stage1 only: seeded renderer foundation/comparison preview, now implemented; await review/go-ahead before Stage2. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: Stage1 approved; Pete authorized Stage2 rocky rollout, now implemented and awaiting review. Later families remain staged proposals; await go-ahead before Stage3. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
 Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
-- Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; Celeste alone uses the new cratered renderer.
+- Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
 - Giants share nine straight bands and the same oval storm placement, with palette differences.
 - Other listed globes are predominantly plain tinted discs/noisy outlines plus their existing atmosphere treatment.
-- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Other bodies are not opted in yet; examples remain preview-only.
+- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Other families are not opted in yet.
 
-## Reuse the rocky cratered family — 13
+## Rocky cratered family — 13, implemented in Stage2
 
-Palette descriptions follow current body colors. Crater density/basin adjustments below are art proposals, not new geological canon.
+Palette descriptions follow current body colors. Density/basin differences are visual treatments, not new geological canon. Authored parameters live in `src/content/estella/rocky-world-appearance.ts`; review `/tests/rocky-world-preview.html`.
 
-| ID | World | Suggested variation |
+| ID | World | Visual character |
 |---|---|---|
 | estella-iiia | Celeste | Preserve current warm grey/tan appearance and seed as baseline. |
 | estella-va | Pike | Dusty brown; denser small impacts, fewer broad smooth basins. |
@@ -88,4 +88,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation implemented; no wider body rollout until Stage2 is approved.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation and rocky rollout implemented. Stage3 and later work require separate confirmations.
