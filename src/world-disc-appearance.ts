@@ -3,16 +3,12 @@
 // separately in placements.ts and checked against this artwork by the preview.
 import { CELESTE_CRATER_PROFILE, crateredWorldGeometry, resolveCrateredWorldProfile, type CrateredWorldProfile } from './cratered-world-geometry';
 import { rockyWorldProfileFor } from './content/estella/rocky-world-appearance';
-
+import { icyWorldProfileFor } from './content/estella/icy-world-appearance';
+import { drawIcyDisc } from './icy-world-appearance';
+import { trace, beginDisc, finishDisc, type WorldTint } from './world-disc-primitives';
+export type { WorldTint } from './world-disc-primitives';
 type Point = readonly [number, number];
-export type WorldTint = readonly [number, number, number];
 const TAU = Math.PI * 2;
-
-function trace(ctx: CanvasRenderingContext2D, points: readonly Point[]): void {
-  ctx.beginPath();
-  points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
-  ctx.closePath();
-}
 
 function coast(points: readonly Point[], phase: number): readonly Point[] {
   return points.flatMap(([x, y], i) => {
@@ -44,29 +40,6 @@ const ICE_EDGES = [-1, 1].map(sign => Array.from({ length: 97 }, (_, i): Point =
   const y = sign * (sign < 0 ? 0.53 : 0.59) + 0.036 * Math.sin(x * 9 + sign) + 0.019 * Math.sin(x * 23 - sign) + 0.008 * Math.sin(x * 51);
   return [x, y];
 }));
-
-function beginDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number): boolean {
-  if (!(radius > 0) || ![cx, cy, radius].every(Number.isFinite)) return false;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(radius, radius);
-  ctx.beginPath(); ctx.arc(0, 0, 1, 0, TAU); ctx.clip();
-  return true;
-}
-function finishDisc(ctx: CanvasRenderingContext2D, radius: number, outline: string): void {
-  if (radius >= 14) {
-    // Illustrative relief, not a moving terminator or simulated illumination.
-    const shade = ctx.createRadialGradient(-0.35, -0.45, 0.12, -0.12, -0.18, 1.3);
-    shade.addColorStop(0, 'rgba(255,255,255,0.08)');
-    shade.addColorStop(0.48, 'rgba(0,0,0,0)');
-    shade.addColorStop(1, 'rgba(0,7,18,0.48)');
-    ctx.fillStyle = shade; ctx.fillRect(-1, -1, 2, 2);
-  }
-  // Border is clipped INSIDE the limb; no off-body glow or altered silhouette.
-  ctx.beginPath(); ctx.arc(0, 0, 1, 0, TAU);
-  ctx.strokeStyle = outline; ctx.lineWidth = 1.5 / radius; ctx.stroke();
-  ctx.restore();
-}
 
 /** Ocean/greenery world with oversized, irregular ice caps. Shared at all scales. */
 export function drawGaiaDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number): void {
@@ -133,6 +106,11 @@ export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: 
 export function drawAuthoredWorldDisc(ctx: CanvasRenderingContext2D, bodyId: string, cx: number, cy: number, radius: number, tint: WorldTint): boolean {
   if (bodyId === 'estella-iii') {
     drawGaiaDisc(ctx, cx, cy, radius);
+    return true;
+  }
+  const ice = icyWorldProfileFor(bodyId);
+  if (ice) {
+    drawIcyDisc(ctx, cx, cy, radius, tint, ice);
     return true;
   }
   const profile = rockyWorldProfileFor(bodyId);

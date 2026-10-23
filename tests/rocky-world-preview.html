@@ -3,7 +3,7 @@
 <title>Stage 2 — rocky world rollout</title>
 <style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(4,280px);gap:14px;margin-top:12px}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}#flight{margin-top:12px}</style>
 <h1>STAGE 2 — 13 ROCKY WORLDS, NOW LIVE</h1>
-<p>Original palettes, permanent individual crater/basin layouts. Celeste unchanged; ice worlds, giants and custom worlds untouched.</p>
+<p>Original palettes, permanent individual crater/basin layouts. Celeste unchanged. <a href="/tests/icy-world-preview.html">Stage 3 ice family</a> is a separate approved rollout.</p>
 <p id="status">Checking native rendering…</p>
 <p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Same grey palette (gallery comparison only)</label> · <select id="body"></select></p>
 <div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
@@ -12,6 +12,7 @@ import {drawAuthoredWorldDisc,drawCrateredDisc} from '/src/world-disc-appearance
 import {ESTELLA_ROCKY_WORLD_PROFILES,rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
 import {crateredWorldGeometry} from '/src/cratered-world-geometry.ts';
 import {drawCrateredDisc as originalCeleste} from './fixtures/world-disc-v1.ts';
+import {icyWorldProfileFor} from '/src/content/estella/icy-world-appearance.ts';
 import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
 import {createPlayableEstellaMission} from '/src/estella-playable.ts';
 import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
@@ -45,7 +46,7 @@ try{
     }
   }
   for(let i=0;i<greyImages.length;i++)for(let j=i+1;j<greyImages.length;j++)assert(!same(greyImages[i],greyImages[j]),'each world has distinct geometry even in identical grey');
-  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii')){
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!icyWorldProfileFor(b.id))){
     assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),`${body.name}: unchanged fallback/custom family`);
   }
   assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/palettes/sites untouched');

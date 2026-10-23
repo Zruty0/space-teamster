@@ -1,0 +1,89 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stage 3 — icy worlds</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(4,280px);gap:14px;margin-top:12px}.card{background:#080d15}.card h2{font:14px monospace;text-align:center;min-height:34px;margin:10px 8px 0}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px;max-width:360px}#flight{margin-top:12px}</style>
+<h1>STAGE 3 — EIGHT ICY WORLDS</h1>
+<p>Permanent frost fields, fractured ice and impacts. All surfaces remain solid; Beira's ocean stays below its ice.</p>
+<p>Mercy's existing thin atmosphere appears in the production orbital view. Rocky worlds, Gaia and Balor remain unchanged.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Same tint (gallery only)</label> · <select id="body"></select></p>
+<div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
+<script type="module">
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {drawIcyDisc} from '/src/icy-world-appearance.ts';
+import {ESTELLA_ICY_WORLD_PROFILES,icyWorldProfileFor} from '/src/content/estella/icy-world-appearance.ts';
+import {icyWorldGeometry,icyWorldProfile,ICE_GEOMETRY_CACHE_LIMIT} from '/src/icy-world-geometry.ts';
+import {rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
+import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+  let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+  const ids=Object.keys(ESTELLA_ICY_WORLD_PROFILES),grey=[170,170,170];
+  const probe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+  const p=probe(),q=probe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+  const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+  const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
+  const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]),greyImages=[],hashes=[];
+  assert(ids.length===8,'exactly eight icy bodies');
+  for(const id of ids){
+    const body=bodyById(id),profile=icyWorldProfileFor(id);
+    const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,id,128,128,100,body.color),`${body.name}: live dispatch`));
+    hashes.push(hash(actual));
+    const expected=pixels(q,ctx=>drawIcyDisc(ctx,128,128,100,body.color,profile));
+    assert(same(actual,expected),`${body.name}: correct live profile`);
+    assert(p.getImageData(235,128,1,1).data[3]===0,`${body.name}: clipped solid silhouette`);
+    const repeat=pixels(q,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,100,body.color));
+    assert(same(actual,repeat),`${body.name}: stable native pixels`);
+    const original=icyWorldGeometry(profile);
+    for(let i=0;i<ICE_GEOMETRY_CACHE_LIMIT+1;i++)icyWorldGeometry(icyWorldProfile(`preview-evict-${i}`));
+    assert(original!==icyWorldGeometry(profile),'bounded cache evicts old geometry');
+    assert(same(actual,pixels(q,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,100,body.color))),'cache rebuild preserves pixels');
+    // Same tint AND identical controls: compare seeds alone, not just material/density.
+    greyImages.push(pixels(q,ctx=>drawIcyDisc(ctx,128,128,100,grey,icyWorldProfile(id))));
+    for(const r of [3,8,16,28]){
+      pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,body.color));
+      assert(p.getImageData(128,128,1,1).data[3]===255,`${body.name}: visible small marker`);
+    }
+    p.fillStyle='#ff00ff';p.lineWidth=7;p.lineCap='square';p.translate(3,5);
+    drawAuthoredWorldDisc(p,id,128,128,100,body.color);
+    assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.lineCap==='square'&&p.getTransform().e===3&&p.getTransform().f===5,'native canvas state restored');
+    p.setTransform(1,0,0,1,0,0);p.lineCap='butt';p.lineWidth=1;
+  }
+  for(let i=0;i<greyImages.length;i++)for(let j=i+1;j<greyImages.length;j++)assert(!same(greyImages[i],greyImages[j]),'distinct seeded geology under identical tint/controls');
+  for(const [id,old] of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
+    const tint=bodyById(id).color;
+    assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Celeste/Gaia native pixels preserved');
+  }
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!rockyWorldProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved bodies keep their old renderer');
+  assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'physics/palettes/sites untouched');
+  const select=document.getElementById('body');ids.forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=bodyById(id).name;select.append(o);});
+  const requested=new URLSearchParams(location.search).get('body');select.value=ids.includes(requested)?requested:'estella-xa';
+  select.onchange=()=>{location.href=`?view=flight&body=${encodeURIComponent(select.value)}`;};
+  const gallery=document.getElementById('views'),flight=document.getElementById('flight');
+  const inFlight=new URLSearchParams(location.search).get('view')==='flight';document.getElementById('grey').disabled=inFlight;
+  function galleryView(){
+    gallery.replaceChildren();
+    for(const id of ids){
+      const body=bodyById(id),profile=icyWorldProfileFor(id),tint=document.getElementById('grey').checked?grey:body.color;
+      const card=document.createElement('div');card.className='card';const name=document.createElement('h2');name.textContent=body.name.toUpperCase();card.append(name);
+      const canvas=document.createElement('canvas');canvas.width=280;canvas.height=310;card.append(canvas);gallery.append(card);
+      const ctx=canvas.getContext('2d');drawAuthoredWorldDisc(ctx,id,140,109,99,tint);
+      ctx.textAlign='center';ctx.font='11px monospace';ctx.fillStyle='#9db2c2';ctx.fillText(`seed ${profile.seed} / ${profile.craterCount} impacts`,140,228);
+      ctx.fillText(`frost ${profile.frostCoverage} / cracks ${profile.fractureCount} / dirt ${profile.dirt}`,140,244);
+      [3,8,16,24].forEach((r,i)=>drawAuthoredWorldDisc(ctx,id,45+i*63,280,r,tint));
+    }
+  }
+  if(inFlight){
+    gallery.style.display='none';flight.hidden=false;
+    const id=select.value,site=SURFACE_POIS.find(s=>s.bodyId===id),before=new Set(ORBITAL_LEVELS.map(l=>l.id));
+    createPlayableEstellaMission('estella-iii-main-customs',site.id,undefined,9976);
+    const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===id&&l.reentryApproachLevelId!==undefined);
+    const state=createOrbitalState(level,{x:level.planetRadius*1.4,y:0,vx:0,vy:-300,time:12345});
+    renderOrbital(flight.getContext('2d'),flight,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
+  }else{flight.style.display='none';galleryView();document.getElementById('grey').onchange=galleryView;}
+  document.getElementById('status').textContent=`PASS — ${checks} native checks; eight distinct live profiles; Celeste/Gaia pixels preserved. No saves read/written.`;
+  window.icyStage3Preview={passed:true,checks,stage:3,ids,hashes};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.icyStage3Preview={passed:false,error:String(error)};throw error;}
+</script>

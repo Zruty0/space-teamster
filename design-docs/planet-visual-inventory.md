@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: Stage1 approved; Pete authorized Stage2 rocky rollout, now implemented and awaiting review. Later families remain staged proposals; await go-ahead before Stage3. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: Stages1–2 approved; Pete authorized Stage3 icy rollout, now implemented and awaiting review. Later families remain staged proposals; await go-ahead before Stage4. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
@@ -10,7 +10,7 @@ Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 - Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
 - Giants share nine straight bands and the same oval storm placement, with palette differences.
 - Other listed globes are predominantly plain tinted discs/noisy outlines plus their existing atmosphere treatment.
-- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Other families are not opted in yet.
+- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds the eight icy variants below, preserving existing hue families and Mercy's atmosphere. Other families remain deferred.
 
 ## Rocky cratered family — 13, implemented in Stage2
 
@@ -34,11 +34,11 @@ Palette descriptions follow current body colors. Density/basin differences are v
 
 Their settlements/political importance alone do not require custom planetary geology. No artificial circuit-board continents, giant castles or secret installations visible from orbit.
 
-## Shared icy-surface variant — 8
+## Shared icy-surface variant — 8, implemented in Stage3
 
-Reuse the disc/clipping/seed/crater machinery, add configurable frost patches, fractured plates and fewer/different basins. Ice should read as a distinct material rather than a white lunar reskin. Not eight separate renderers.
+Shared disc/clipping/seed/crater machinery with configurable seeded frost patches, branched fractures, old ice exposures and softened impacts. Eight explicit profiles in `src/content/estella/icy-world-appearance.ts`, not eight renderers. Review `/tests/icy-world-preview.html`. Dark areas are solid old/dirty ice, not open water; no sites moved.
 
-| ID | World | Suggested treatment |
+| ID | World | Visual treatment |
 |---|---|---|
 | estella-ix | Estella IX | Preserve lavender-grey identity in pale frosted terrain and dark ice exposures. |
 | estella-xa | Beira | Pale blue-white; long fractures and relatively few impacts. Its ocean stays beneath the ice. |
@@ -88,4 +88,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation and rocky rollout implemented. Stage3 and later work require separate confirmations.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout and icy family implemented. Stage4 and later work require separate confirmations.
