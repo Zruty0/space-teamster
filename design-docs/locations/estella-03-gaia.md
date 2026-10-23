@@ -50,7 +50,7 @@ Pete approved these roles on2026-10-22. The naming palette is French/Francophone
 
 ### Gaia surface
 
-- **System capital metropolis:** Council and permanent bureaucracy, universities, research institutes, advanced technology, corporate headquarters and finance. The existing finance/high-tech concepts can be districts rather than obligatory separate destinations.
+- **System capital metropolis — Orselle:** Council and permanent bureaucracy, universities, research institutes, advanced technology, corporate headquarters and finance. The existing finance/high-tech concepts can be districts rather than obligatory separate destinations.
 - **Agricultural heartland's regional city:** food processing, seed production, agricultural machinery, storage and distribution supporting a vast productive hinterland. Its population has a direct stake in rainfall/watershed stability and terraforming policy.
 - **Continental manufacturing city:** construction equipment, transport machinery, consumer goods and civil-engineering systems. An industrial descendant of the terraforming programme, serving Gaia's civilian economy and exporting finished equipment, including floating-settlement infrastructure to Dahai. Distinct from Kuznia's heavy-industrial role.
 - **Established coastal city:** permanent residents, universities, culture, commerce and holiday districts; broaden the resort concept into a living metropolis. Its coasts/infrastructure/ecosystems give polar climate decisions concrete stakes.
@@ -72,12 +72,14 @@ French palette approved. Pete approved the city/moon names, but requested famous
 
 | Role | Approved name | Pronunciation |
 |---|---|---|
-| System capital | Bellecour | bell-KOOR |
+| System capital | Orselle | or-SELL |
 | Agricultural regional city | Valenne | vah-LEN |
 | Manufacturing city | Rochefort | rosh-FOR |
 | Coastal city | Mirabel | meer-uh-BELL |
 | Gaia's moon | Celeste | suh-LEST |
 | Old lunar city | Beaumont | boh-MOHN |
+
+Orselle replaces the earlier Bellecour capital name. Montreval was rejected as too similar to Montreal. No district or other use of Bellecour has been approved.
 
 Cousteau Station (Gaia's polar frontier) and Descartes Lab (Celeste's far-side scientific settlement) are approved. Ampere remains a proposal for the lunar industrial complex.
 
