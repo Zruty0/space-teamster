@@ -1,0 +1,2 @@
+# Preserve the recovered rendered transcript byte-for-byte.
+dahai-gemini-2026-05-11.txt -text
