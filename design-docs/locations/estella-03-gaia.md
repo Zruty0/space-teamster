@@ -46,7 +46,7 @@ The First Dome heritage site concerns Gaia's own early settlement, not priority 
 
 ## Approved site-role direction
 
-Pete approved these roles on2026-10-22. The naming palette is French/Francophone, with names readily pronounceable by an American and ordinary proper place names rather than utilitarian job labels. Specific names remain under review. Existing POI names/count do not constrain the roster. This does not authorize runtime deletions or migrations.
+Pete approved these roles on2026-10-22. The naming palette is French/Francophone, with names readily pronounceable by an American and ordinary proper place names rather than utilitarian job labels. City/moon names are approved below; smaller-settlement names remain under review. Existing POI names/count do not constrain the roster. This does not authorize runtime deletions or migrations.
 
 ### Gaia surface
 
@@ -66,23 +66,28 @@ First Dome heritage belongs within an inhabited city unless a distinct destinati
 
 The moon has its own society and interests, not merely three suppliers to Gaia. Exact jurisdictions, local actors, contacts, routes and economics remain to be authored.
 
-## Proposed names — awaiting approval
+## Names — cities approved, smaller settlements under review
 
-French palette approved; this particular slate is a proposal. Pronunciations are approximate English guides, not a requirement for a French accent. Persian naming is reserved for a later Camps planet, not Gaia; that planet has not been identified here.
+French palette approved. Pete approved the city/moon names, but requested famous French people as namesakes for the smaller settlements, citing Descartes and Cousteau. Pronunciations are approximate English guides, not a requirement for a French accent. Persian naming is reserved for a later Camps planet, not Gaia; that planet has not been identified here.
 
-| Role | Proposed name | Pronunciation |
+| Role | Approved name | Pronunciation |
 |---|---|---|
 | System capital | Bellecour | bell-KOOR |
 | Agricultural regional city | Valenne | vah-LEN |
 | Manufacturing city | Rochefort | rosh-FOR |
 | Coastal city | Mirabel | meer-uh-BELL |
-| Polar frontier settlement | Marceau | mar-SOH |
 | Gaia's moon | Celeste | suh-LEST |
 | Old lunar city | Beaumont | boh-MOHN |
-| Lunar industrial complex | Darcel | dar-SELL |
-| Far-side scientific settlement | Virelle | vih-RELL |
 
-The role belongs in the location description, not a name like Manufacturing City or Polar Research Station. No specific founder/commemoration, new terrain feature or Earth-city migration history is implied by these suggestions. None of these names conflicts with existing source/design place names at proposal time.
+Proposed commemorative replacements — assignments not yet approved:
+
+| Role | Proposed name | Namesake / rationale | Pronunciation |
+|---|---|---|---|
+| Polar frontier settlement | Cousteau | Jacques-Yves Cousteau; water, exploration and the ocean/climate consequences of polar work | koo-STOH |
+| Lunar industrial complex | Ampere | Andre-Marie Ampere; physics and electrical engineering | AM-peer |
+| Far-side scientific settlement | Descartes | Rene Descartes; mathematics and scientific inquiry | day-KART |
+
+Earlier small-settlement proposals Marceau, Darcel and Virelle are superseded by the commemorative-naming direction. The role belongs in the description rather than a utilitarian place name. The approved city names imply no particular Earth-city migration history or new terrain feature. Name searches found no pre-existing source/design collisions. No runtime renames yet.
 
 ## Earlier working concepts — not yet separately confirmed
 
