@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: recommendations for discussion, not a rollout authorization. Pete explicitly wants reused worlds to vary, e.g. by crater-generation seed. Scope is globe artwork, not settlement scenery or physics.
+Status: family assignments remain a staged rollout proposal. Pete approved Stage1 only: seeded renderer foundation/comparison preview, now implemented; await review/go-ahead before Stage2. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
@@ -10,7 +10,7 @@ Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 - Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; Celeste alone uses the new cratered renderer.
 - Giants share nine straight bands and the same oval storm placement, with palette differences.
 - Other listed globes are predominantly plain tinted discs/noisy outlines plus their existing atmosphere treatment.
-- Celeste currently has58 craters from one fixed seed41873 and two fixed basin shapes. Tint is configurable; per-body geometry variation is not implemented yet.
+- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Other bodies are not opted in yet; examples remain preview-only.
 
 ## Reuse the rocky cratered family — 13
 
@@ -88,4 +88,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
 
-Suggested order: per-body seeded rocky family → shared ice family → distinct giant profiles → remaining custom atmospheric/volcanic globes one at a time. No runtime changes in this inventory pass.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation implemented; no wider body rollout until Stage2 is approved.

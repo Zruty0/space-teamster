@@ -17,13 +17,20 @@ Approved: change the rendered planet/moon only. Gaia has oceans, greenery and la
 `src/world-disc-appearance.ts` exports:
 
 - `drawGaiaDisc(ctx, cx, cy, radius)`: blue ocean, irregular green continents and forest patches, large pale northern/southern caps with blue ice margins.
-- `drawCrateredDisc(ctx, cx, cy, radius, tint)`: reusable basins/crater relief; `tint` is a readonly RGB tuple. Celeste uses its existing `[170, 165, 150]` palette. Recoloring does not regenerate geometry. Applying this to more bodies is a separate content decision.
+- `drawCrateredDisc(ctx, cx, cy, radius, tint, profile?)`: reusable basins/crater relief; `tint` is a readonly RGB tuple. Celeste uses its existing `[170, 165, 150]` palette and exact legacy appearance by default. Recoloring does not regenerate geometry. Applying this to more bodies is a separate, approval-gated Stage2 decision.
 - `drawAuthoredWorldDisc(ctx, bodyId, cx, cy, radius, tint)`: shared opt-in dispatch used by central-body and system/moon-marker rendering in `src/orbital.ts`; returns false without drawing for other IDs.
 
 Normalized geometry is generated once, independently of time/random frame state. Craters foreshorten toward the limb. Tiny markers use fewer features; larger discs add fine coastline/forest/crater detail. Relief shading is fixed illustration, not a sun-tracking terminator. Paint and border are clipped inside the circular silhouette; canvas state is restored. No off-limb bloom.
 
+## Seeded foundation — Stage1, 2026-10-23
+
+`src/cratered-world-geometry.ts` exports `crateredWorldProfile(bodyId, overrides?)`, `crateredWorldGeometry(profile?)`, `resolveCrateredWorldProfile(profile)` and `CELESTE_CRATER_PROFILE`. Profiles derive seeds from stable IDs, not names/time; Celeste retains41873 plus explicit legacy basins. Optional crater count/scale, basin coverage and relief contrast are bounded. Crater and basin random streams are independent; changing density never shuffles the basins or existing crater positions. Geometry/points are deeply immutable and cached in a64-entry LRU, independent of tint/contrast/zoom. Eviction/rebuild yields identical geometry.
+
+Only the existing Celeste dispatch uses this machinery in production. Other-world examples in `/tests/cratered-world-preview.html` are isolated demonstrations, NOT a rollout. [Stage plan and approval status](planet-visual-stages.md).
+
 ## Validation
 
-- `npm run test:world-discs`:294 assertions for deterministic paint, finite/invalid geometry, LOD, tint-only recoloring, opt-in scope and actual production central/system/moon rendering at multiple epochs. Checks rendering leaves flight states/level geometry unchanged and authored sites match painted land/coast/ice at both LODs.
+- `npm run test:world-discs`:5069 additional seeded-foundation assertions (independent frozen original painter, seed variation, controls, immutable bounded cache) plus294 assertions for deterministic paint, finite/invalid geometry, LOD, tint-only recoloring, opt-in scope and actual production central/system/moon rendering at multiple epochs. Checks rendering leaves flight states/level geometry unchanged and authored sites match painted land/coast/ice at both LODs.
+- Stage1 comparison fixture: `/tests/cratered-world-preview.html`;58 native pixel/state checks, repeated after reload. Exact Celeste pixels at6 sizes versus frozen pre-stage source, seeded variation at identical tint/settings, no new production opt-ins. Fixture source: `tests/fixtures/world-disc-v1.ts` (do not regenerate to bless renderer changes).
 - Desktop native-canvas fixture: `/tests/world-disc-preview.html`; `?view=flight` shows production orbital rendering.45 pixel/state checks cover ice/greenery/ocean, reduced ocean coverage, real site placement on land/coast/ice, deterministic pixels, clipping, recoloring and small markers. Synthetic missions only; no save reads/writes.
 - Gaia, Balor/Eye, orbital markers, empty/rendering, par and production build pass. Existing Vite CJS/chunk-size warnings remain. Concurrent Gaia shipping work initially tripped an old provider-count assertion; after its integration updates, the broader Balor expansion suite also passes (63,589 assertions).

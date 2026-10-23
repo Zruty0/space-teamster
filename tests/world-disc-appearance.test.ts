@@ -1,4 +1,5 @@
 import './svg-dom';
+import './cratered-world.test';
 import { drawGaiaDisc, drawCrateredDisc, drawAuthoredWorldDisc, type WorldTint } from '../src/world-disc-appearance';
 import { bodyById, BODIES, SURFACE_POIS } from '../src/world';
 import { createPlayableEstellaMission } from '../src/estella-playable';

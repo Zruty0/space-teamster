@@ -1,6 +1,8 @@
 // Orbital/chart artwork only. Normalized, static geometry; no simulation state,
 // terrain, collision, weather or rotation changes. Gaia site angles are authored
 // separately in placements.ts and checked against this artwork by the preview.
+import { CELESTE_CRATER_PROFILE, crateredWorldGeometry, resolveCrateredWorldProfile, type CrateredWorldProfile } from './cratered-world-geometry';
+
 type Point = readonly [number, number];
 export type WorldTint = readonly [number, number, number];
 const TAU = Math.PI * 2;
@@ -94,19 +96,6 @@ export function drawGaiaDisc(ctx: CanvasRenderingContext2D, cx: number, cy: numb
   finishDisc(ctx, radius, '#6c9da5');
 }
 
-// Shared airless-world relief. Precomputed once, not random on each frame or
-// recoloring. Large basins remain legible at chart scale; finer pits fade out.
-const BASINS = [blob(-0.35, -0.26, 0.43, 0.28, 2), blob(0.27, 0.22, 0.34, 0.43, 4)];
-const CRATERS = (() => {
-  let seed = 41873;
-  const random = () => { seed = seed * 16807 % 2147483647; return seed / 2147483647; };
-  const result: { x: number; y: number; r: number; squash: number; angle: number }[] = [];
-  for (let i = 0; i < 58; i++) {
-    const a = random() * TAU, d = Math.sqrt(random()) * 0.98;
-    result.push({ x: Math.cos(a) * d, y: Math.sin(a) * d, r: i < 9 ? 0.065 + random() * 0.065 : 0.014 + random() * 0.037, squash: Math.max(0.24, Math.sqrt(1 - d * d)), angle: a });
-  }
-  return result;
-})();
 function color(tint: WorldTint, scale: number): string {
   return `rgb(${tint.map(c => Math.round(Math.min(255, Math.max(0, c * scale)))).join(',')})`;
 }
@@ -114,22 +103,25 @@ function color(tint: WorldTint, scale: number): string {
 /** Reusable airless globe. Tint recolors ALL relief; no atmospheric ring.
  * Only Celeste is opted in currently. Other worlds keep their existing art.
  */
-export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, tint: WorldTint): void {
+export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, tint: WorldTint, profile: CrateredWorldProfile = CELESTE_CRATER_PROFILE): void {
   if (!tint.every(Number.isFinite) || !beginDisc(ctx, cx, cy, radius)) return;
+  const settings = resolveCrateredWorldProfile(profile);
+  const { basins, craters } = crateredWorldGeometry(settings);
+  const relief = (scale: number) => color(tint, settings.reliefContrast === 1 ? scale : 0.78 + (scale - 0.78) * settings.reliefContrast);
   ctx.fillStyle = color(tint, 0.78); ctx.fillRect(-1, -1, 2, 2);
-  for (const basin of BASINS) { trace(ctx, basin); ctx.fillStyle = color(tint, 0.62); ctx.fill(); }
-  const count = radius < 14 ? 3 : radius < 60 ? 9 : CRATERS.length;
-  for (const { x, y, r, squash, angle } of CRATERS.slice(0, count)) {
+  for (const basin of basins) { trace(ctx, basin); ctx.fillStyle = relief(0.62); ctx.fill(); }
+  const count = radius < 14 ? 3 : radius < 60 ? 9 : craters.length;
+  for (const { x, y, r, squash, angle } of craters.slice(0, count)) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(squash, 1);
     ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
-    ctx.fillStyle = color(tint, 0.53); ctx.fill();
+    ctx.fillStyle = relief(0.53); ctx.fill();
     ctx.lineWidth = Math.max(0.0025, Math.min(0.6 / radius, r * 0.13));
-    ctx.strokeStyle = color(tint, 0.92); ctx.stroke();
+    ctx.strokeStyle = relief(0.92); ctx.stroke();
     if (radius >= 14) {
       ctx.beginPath(); ctx.arc(0, 0, r * 0.77, -2.8 - angle, -0.3 - angle);
-      ctx.strokeStyle = color(tint, 0.38); ctx.lineWidth = r * 0.14; ctx.stroke();
+      ctx.strokeStyle = relief(0.38); ctx.lineWidth = r * 0.14; ctx.stroke();
       ctx.beginPath(); ctx.arc(0, 0, r * 0.80, 0.2 - angle, 2.5 - angle);
-      ctx.strokeStyle = color(tint, 1.02); ctx.lineWidth = r * 0.09; ctx.stroke();
+      ctx.strokeStyle = relief(1.02); ctx.lineWidth = r * 0.09; ctx.stroke();
     }
     ctx.restore();
   }
