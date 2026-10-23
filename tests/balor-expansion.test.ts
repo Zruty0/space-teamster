@@ -24,6 +24,20 @@ const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const pois = ESTELLA_NODES.filter(n => n.kind === 'poi');
 // Captured before expansion, from unmodified 0c3ca39 over days0,1,20,21,119.
 // Protect existing seeded company identities, contracts, prices and narrative.
+// Approved Gaia/Celeste/Dahai naming changes are presentation-only exceptions;
+// keep the original pre-expansion hashes, not a freshly blessed baseline.
+const legacyPlaceNames: Array<[string,string]> = [
+  ['Orselle Financial District','Secondary Finance City'], ['Orselle First Dome Quarter','Historic First Dome Site'],
+  ['Orselle','Capital City Spaceport'], ['Rochefort','High-Tech Industrial City'], ['Mirabel','Coastal Resort'],
+  ['Valenne','Agricultural Region'], ['Cousteau Station','Polar Science and Weather Research'],
+  ['Celeste Main Port','Estella IIIa Main Port'], ['Celeste','Estella IIIa'],
+  ['Ampere','Helium-3 and Regolith Mine'], ['Descartes Lab','Lunar Science Settlement'],
+  ['Beaumont','First Off-World Colony Heritage Site'], ['Primary Floating Port','Primary Island Port'],
+  ['Ocean Weather Station','Archipelago Weather Station'], ['Pelagic Research Platform','Pelagic Research Atoll'],
+].sort((a,b)=>b[0].length-a[0].length) as Array<[string,string]>;
+function legacyCandidateJson(candidate: FactionContractCandidate): string {
+  return legacyPlaceNames.reduce((json,[current,old])=>json.split(current).join(old),JSON.stringify(candidate));
+}
 const legacy: Record<string, [number, number]> = {
   'kisaragi-yards-estella': [190,1018006390], 'teamsters-guild': [95,1590288798],
   'steel-combine': [170,3022841915], 'halloran-smelting-house': [50,879589401],
@@ -36,7 +50,7 @@ for (const p of providers) {
   let hash = 2166136261, count = 0;
   for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c))) {
     count++;
-    for (const char of JSON.stringify(c)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash,16777619); }
+    for (const char of legacyCandidateJson(c)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash,16777619); }
   }
   assert(count === legacy[p.id][0] && (hash >>> 0) === legacy[p.id][1], `${p.id}: every old candidate unchanged`);
 }

@@ -1,3 +1,4 @@
+import { canonicalEstellaLocationId } from './location-aliases';
 import { type RegionId, type WorldNode } from '../types';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_REGION_NAMES, ESTELLA_PLACEMENTS } from './index';
 
@@ -46,6 +47,7 @@ function pathName(node: WorldNode): string {
 }
 
 export function estellaDisplayPath(nodeId: string): string {
+  nodeId = canonicalEstellaLocationId(nodeId);
   const chain: WorldNode[] = [];
   let current = ESTELLA_NODES_BY_ID.get(nodeId);
   const seen = new Set<string>();
@@ -82,6 +84,8 @@ function placementDetail(node: WorldNode): string {
   return 'Placement pending';
 }
 
+/** Includes compatibility districts for existing provider routes and saved contracts.
+ * Visible directory entries filter those aliases to their physical city. */
 export function estellaSelectableNavTargets(): EstellaNavTarget[] {
   return ESTELLA_NODES
     .filter(node => node.kind === 'poi' && hasExactPlacementChain(node))
@@ -157,6 +161,7 @@ export function compareNavigationNodes(a: WorldNode, b: WorldNode): number {
 }
 
 export function estellaFolderEntries(folder: EstellaFolderKey, selectableIds: ReadonlySet<string> = SELECTABLE_TARGET_IDS()): EstellaNavEntry[] {
+  selectableIds = new Set([...selectableIds].filter(id => canonicalEstellaLocationId(id) === id));
 
   if (folder === 'root') {
     const regions = Object.keys(ESTELLA_REGION_NAMES) as RegionId[];

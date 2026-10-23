@@ -1,3 +1,4 @@
+import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { createDefaultNunesInquiryState, migrateNunesInquiryState, type NunesInquiryState } from './content/estella/faction-contracts/nunes-inquiries';
 import { createDefaultRigState, migrateRigState } from './maintenance/rig-state';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type FabricatedFaultClaim, type MaintenanceSystemId } from './maintenance/types';
@@ -144,9 +145,9 @@ export function loadCareerProfile(): CareerProfile {
     if (typeof parsed?.locationId !== 'string' || typeof parsed?.money !== 'number') return defaultCareerProfile();
     const certifications = migratedCertifications(parsed);
     const profile: CareerProfile = {
-      // The retired Balor observatory is no longer a destination. Resume old
-      // careers in Shade without resetting progress or rewriting their history.
-      locationId: parsed.locationId === 'estella-i-deep-listening' ? 'estella-i-worker-hab' : parsed.locationId,
+      // Resume retired Balor/Orselle locations at their current physical site
+      // without resetting progress or rewriting contracts and flight history.
+      locationId: canonicalEstellaLocationId(parsed.locationId === 'estella-i-deep-listening' ? 'estella-i-worker-hab' : parsed.locationId),
       money: parsed.money,
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
       certifications,

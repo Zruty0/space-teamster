@@ -2,6 +2,7 @@ import type { CareerProfile } from './career-state';
 import { classifyRoute, preferredContractTransfer, type CareerContract } from './career-contracts';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from './content/estella';
 import type { WorldNode } from './content/types';
+import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { emptyTravelAccess } from './content/estella/empty-travel-access';
 import { estellaDisplayPath, estellaFolderEntries, estellaSelectableNavTargets, navigationOrbitRadius, type EstellaFolderKey, type EstellaNavEntry } from './content/estella/navigation';
 import { knownMissionContacts, contactSummary } from './contact-knowledge';
@@ -11,8 +12,8 @@ import { estimateEstellaMissionCost, makePayTerms } from './mission-cost';
 
 export function emptyRunDestinationIds(profile: Pick<CareerProfile, 'locationId' | 'knownContactIds'>): Set<string> {
   const local = new Set(localTerminalScopeIds(profile.locationId));
-  const contacts = new Set(knownMissionContacts(profile).flatMap(contact => contact.locationIds));
-  return new Set(estellaSelectableNavTargets().filter(target => !local.has(target.id)
+  const contacts = new Set(knownMissionContacts(profile).flatMap(contact => contact.locationIds.map(canonicalEstellaLocationId)));
+  return new Set(estellaSelectableNavTargets().filter(target => canonicalEstellaLocationId(target.id) === target.id && !local.has(target.id)
     && (emptyTravelAccess(target.id) === 'public' || contacts.has(target.id))).map(target => target.id));
 }
 export function canTravelEmpty(profile: Pick<CareerProfile, 'locationId' | 'knownContactIds'>, destinationId: string): boolean {
@@ -32,6 +33,7 @@ function insideFolder(locationId: string, folder: EstellaFolderKey): boolean {
 }
 /** Present physical terminals, not their internal receiving-dock POIs. */
 export function emptyRunLocationId(locationId: string): string {
+  locationId = canonicalEstellaLocationId(locationId);
   return sharedTerminalParentId(locationId) ?? locationId;
 }
 
@@ -79,7 +81,7 @@ export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'k
   return estellaFolderEntries(folder, allowed).map(entry => {
     const destinations = new Set([...allowed].filter(id => entry.kind === 'target'
       ? entry.target?.id === id : !!entry.key && insideFolder(id, entry.key)));
-    const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => destinations.has(id))));
+    const contacts = contactSummary(known.filter(contact => contact.locationIds.some(id => destinations.has(canonicalEstellaLocationId(id)))));
     const count = new Set([...destinations].map(emptyRunLocationId)).size;
     const countText = `${count} available destination${count === 1 ? '' : 's'}`;
     const nodeId = entry.target?.id ?? (entry.key?.startsWith('node:') ? entry.key.slice(5) : undefined);
@@ -102,7 +104,7 @@ export function emptyRunDirectory(profile: Pick<CareerProfile, 'locationId' | 'k
 /** Generated on selection, not advertised on any commercial board. */
 export function createEmptyRun(profile: Pick<CareerProfile, 'locationId' | 'worldTime' | 'knownContactIds'>, destinationId: string): CareerContract {
   if (!canTravelEmpty(profile, destinationId)) throw new Error('Destination unavailable for empty travel');
-  const sourceId = profile.locationId;
+  const sourceId = canonicalEstellaLocationId(profile.locationId);
   if (!estellaSelectableNavTargets().some(target => target.id === sourceId)) throw new Error('Departure location is not playable');
   const mission = generateEstellaMission(sourceId, destinationId, profile.worldTime);
   const selectedTransfer = preferredContractTransfer(mission.transferOptions);

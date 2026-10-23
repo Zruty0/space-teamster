@@ -1,3 +1,4 @@
+import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { APPROACH_LEVELS, type ApproachLevel } from './approach';
 import { DOCKING_LEVELS, createGenericDockingLevel, type DockingLevel } from './docking';
 import { LEVELS, createLandingLevel, type LevelDef } from './levels';
@@ -68,6 +69,7 @@ function orbitalStationNameForHud(stationId: string): string {
 
 function surfaceMarkersForBody(bodyId: string): NonNullable<OrbitalLevel['surfaceMarkers']> {
   return SURFACE_POIS
+    .filter(poi => canonicalEstellaLocationId(poi.id) === poi.id)
     .filter(poi => poi.bodyId === bodyId)
     .map(poi => ({ id: poi.id, name: poi.name, angle: poi.surfaceAngle, altitude: poi.altitude, labelVisibility: ESTELLA_SURFACE_FLIGHT_PROFILES[poi.id]?.labelVisibility }));
 }
@@ -743,6 +745,8 @@ export function createPlayableEstellaMission(
   selectedTransfer?: EstellaTransferOption,
   missionLayoutSeed = Math.floor(Math.random() * 0x1_0000_0000),
 ): EstellaPlayableMission {
+  sourceId = canonicalEstellaLocationId(sourceId);
+  destinationId = canonicalEstellaLocationId(destinationId);
   const sourceKind = playableKind(sourceId);
   const destKind = playableKind(destinationId);
   const sourceClusterBodyId = clusterBodyIdForPoi(sourceId);

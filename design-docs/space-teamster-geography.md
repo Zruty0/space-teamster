@@ -108,7 +108,7 @@ Internal supply chains are dense and largely uninteresting to the outsider. The 
 | **Balor** | Airless, tidally locked lava-eye planet | Catalogue Estella I. BAM refractory mining/foundry, Shade recreation/recovery town, orbital skim service and trade hub. |
 | **Estella II** | Venus-like, thick toxic atmosphere | Surface uninhabitable. Habitable cloud city in upper atmosphere. Iconic. Decadent. Possibly mysterious. |
 | **Gaia** | Mostly habitable, terraforming ongoing | Catalogue Estella III. Capital, government, old money; cities and agriculture support billions. Polar terraforming remains unfinished. |
-| **Estella IIIa** | Large airless moon of Gaia | Heritage and helium-3. Where the first off-world colony was. |
+| **Celeste** | Large airless moon of Gaia | Catalogue Estella IIIa. Living lunar society: Beaumont, Ampere vacuum industry/resources and Descartes Lab far-side science. |
 | **Dahai** | Breathable water planet, humid marine climate | Catalogue Estella IV. Colonized before Gaia: immediately habitable air and storm-free latitude belts supported floating habitats. |
 
 In addition, between Balor and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
@@ -141,33 +141,33 @@ Gaia supports billions and extensive agriculture while terraforming continues in
 |---|---|---|
 | Estella III.1 | Station, low orbit | Main customs and arrival hub |
 | Estella III.2 | Station, high orbit | Luxury orbital habitat |
-| Estella III.3 | Surface | The capital city. Passengers, VIPs, government, lobbyists, taxes. |
-| Estella III.4 | Surface | Secondary major city. Finance, commerce, banking. |
-| Estella III.5 | Surface | High-tech industrial city. Electronics, optics, fragile cargo origin. |
-| Estella III.6 | Surface | Coastal resort. Passenger destination and luxury cargo. |
-| Estella III.7 | Surface | Agricultural region. Bulk food. The breadbasket. |
-| Estella III.8 | Surface | Active polar terraforming frontier: climate monitoring, glaciology, engineering and ecological restoration |
-| Estella III.9 | Surface | Government / military spaceport. Restricted; classified cargo origin. |
-| Estella III.10 | Surface | Historic/cultural site. Pilgrimage. An early Gaian settlement's First Dome, not the system's first settlement. |
+| Estella III.3 | Surface | **Orselle.** System capital: science, high technology, universities, bureaucracy and finance. |
+| Estella III.4 | Orselle district | Financial District. Compatibility ID; arrival through Orselle, not a separate city. |
+| Estella III.5 | Surface | **Rochefort.** Continental manufacturing, precision electronics, transport machinery and civil infrastructure. |
+| Estella III.6 | Surface | **Mirabel.** Established coastal city, commerce, culture and holiday districts. |
+| Estella III.7 | Surface | **Valenne.** Agricultural regional city: food processing, seed production, storage and distribution. |
+| Estella III.8 | Surface | **Cousteau Station.** Active polar terraforming frontier: climate monitoring, glaciology, engineering and ecological restoration. |
+| Estella III.9 | Surface | Government / military spaceport. Restricted; local operational role remains to be developed. |
+| Estella III.10 | Orselle district | First Dome Quarter. Early Gaian heritage; compatibility ID sharing Orselle's arrival terminal. |
 
-### Estella IIIa (Luna-like moon)
+### Celeste (Estella IIIa)
 | ID | Type | Description |
 |---|---|---|
-| Estella IIIa.1 | Station, low orbit | Main port, transit, customs |
-| Estella IIIa.2 | Surface | Helium-3 and regolith mining |
-| Estella IIIa.3 | Surface | Lunar science settlement and observatory |
-| Estella IIIa.4 | Surface | Heritage / historic site (the first off-world colony) |
+| Estella IIIa.1 | Station, low orbit | **Celeste Main Port.** Transit and customs. |
+| Estella IIIa.2 | Surface | **Ampere.** Vacuum industry, orbital-construction resources and isotope extraction, including helium-3. |
+| Estella IIIa.3 | Surface | **Descartes Lab.** Far-side scientific settlement and observatory. |
+| Estella IIIa.4 | Surface | **Beaumont.** Old civic/logistical lunar city, with terraforming-era heritage districts. |
 
 ### Dahai
 | ID | Type | Description |
 |---|---|---|
 | Estella IV.1 | Station, low orbit | Main orbital station |
-| Estella IV.2 | Surface | Primary island city / port |
-| Estella IV.3 | Surface | Archipelago weather station |
-| Estella IV.4 | Surface | Floating mariculture platform |
-| Estella IV.5 | Surface | Pelagic research atoll |
+| Estella IV.2 | Surface | Primary Floating Port |
+| Estella IV.3 | Surface | Ocean Weather Station |
+| Estella IV.4 | Surface | Floating Mariculture Platform |
+| Estella IV.5 | Surface | Pelagic Research Platform |
 
-> Dahai was immediately habitable and settled before Gaia, with floating habitats built in storm-free latitude belts. Weather and ocean operations remain central to its economy. The island/archipelago/atoll descriptions above are older placeholders pending the Dahai authoring pass; a volcanic-island foundation for settlement is not canon.
+> Dahai was immediately habitable and settled before Gaia, with floating habitats built in storm-free latitude belts. Weather and ocean operations remain central to its economy. The older island/archipelago/atoll placeholders have been corrected to floating infrastructure. Bespoke names and latitude-dependent weather remain future work; a volcanic-island foundation for settlement is not canon.
 
 ### Inner-system Skim Infrastructure
 | ID | Type | Description |

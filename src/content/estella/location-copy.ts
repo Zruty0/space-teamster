@@ -1,3 +1,5 @@
+import { ESTELLA_NODES_BY_ID } from './index';
+
 // Approved local prose. Keep worker-facing Pandemonium scenes separate from
 // CHR's offworld corporate receipts; Renard's covert aid is reserved for a story.
 export const PANDEMONIUM_COPY = {
@@ -8,6 +10,25 @@ export const PANDEMONIUM_COPY = {
   metalsPickup: 'The dock delegate checks the assay seals against the figures in your manifest. “[contact]Thorne[/contact] wants a copy of the receiving weight. Every deduction comes out of our hydrogen allowance, and they’ve been finding deductions.” Behind him, the next shift is already assembling for the workings. Several lean against the wall with their eyes closed. “Get the receipt back to us, Teamster. We need something he can argue with.”',
 } as const;
 
+// Factual site-role descriptions, not new NPC dialogue or mission contacts.
+const LOCATION_SUMMARY_IDS: Readonly<Record<string, string>> = {
+  ...Object.fromEntries([
+    'estella-iii-capital-city', 'estella-iii-high-tech-city', 'estella-iii-coastal-resort',
+    'estella-iii-agricultural-region', 'estella-iii-polar-science',
+    'estella-iiia-helium-mining', 'estella-iiia-science-settlement', 'estella-iiia-heritage-site',
+  ].map(id => [id, id])),
+  'estella-iii-main-customs': 'estella-iii',
+  'estella-iiia-main-port-transit': 'estella-iiia',
+  'estella-iv-main-orbital-station': 'estella-iv',
+};
+
 export const ESTELLA_LOCATION_INTRODUCTIONS: Readonly<Record<string, string>> = {
   'estella-ii-pandemonium': PANDEMONIUM_COPY.introduction,
 };
+
+export function estellaLocationIntroduction(locationId: string): string | undefined {
+  // Resolve at scene time: providers also import the authored dialogue, before
+  // the world catalog has necessarily finished initialization.
+  return ESTELLA_LOCATION_INTRODUCTIONS[locationId]
+    ?? ESTELLA_NODES_BY_ID.get(LOCATION_SUMMARY_IDS[locationId])?.summary;
+}

@@ -1,5 +1,6 @@
 import type { TeamsterCertificationId } from './career-state';
 import type { NunesInquirySnapshot } from './content/estella/faction-contracts/nunes-inquiries';
+import { canonicalEstellaLocationId, estellaLocationScopeIds } from './content/estella/location-aliases';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContactContractCandidates, generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
 import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
@@ -215,13 +216,33 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
   };
 }
 
+/** New postings use physical city endpoints; historical contract objects stay untouched. */
+export function canonicalizeContractCandidates(candidates: FactionContractCandidate[]): FactionContractCandidate[] {
+  const seen = new Set<string>();
+  return candidates.flatMap(candidate => {
+    const sourceId = canonicalEstellaLocationId(candidate.sourceId);
+    const destinationId = canonicalEstellaLocationId(candidate.destinationId);
+    const normalized = sourceId === candidate.sourceId && destinationId === candidate.destinationId
+      ? candidate : { ...candidate, sourceId, destinationId };
+    // Avoid doubling identical orders shared by a city's old district pools.
+    // Leave unrelated actors' candidate ordering and multiplicity intact.
+    if (estellaLocationScopeIds(sourceId).length > 1 || estellaLocationScopeIds(destinationId).length > 1) {
+      const key = JSON.stringify(normalized);
+      if (seen.has(key)) return [];
+      seen.add(key);
+    }
+    return [normalized];
+  });
+}
+
 export function generateCareerContracts(sourceId: string, startWorldTime: number = 0, nunesInquiries?: NunesInquirySnapshot): CareerContract[] {
+  sourceId = canonicalEstellaLocationId(sourceId);
   const seed = hashString(`career-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
   const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
   const contracts: CareerContract[] = [];
 
-  const factionCandidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries }))
+  const factionCandidates = canonicalizeContractCandidates(boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries })))
     .filter(candidate => (candidate.category ?? 'freight') === 'freight')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
   const factionCount = Math.min(MAX_FACTION_CONTRACTS, factionCandidates.length);
@@ -234,11 +255,12 @@ export function generateCareerContracts(sourceId: string, startWorldTime: number
 }
 
 export function generateDirectoryEntryContracts(entryId: string, sourceId: string, startWorldTime: number, certifications: readonly TeamsterCertificationId[]): CareerContract[] {
+  sourceId = canonicalEstellaLocationId(sourceId);
   const entry = localDirectoryEntryById(entryId);
   if (!entry?.factionId || !entry.missionTags?.length) return [];
   const availableSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
-  return generateFactionContactContractCandidates({
+  return canonicalizeContractCandidates(generateFactionContactContractCandidates({
     sourceId,
     worldTime: startWorldTime,
     availableSourceIds,
@@ -257,7 +279,7 @@ export function generateDirectoryEntryContracts(entryId: string, sourceId: strin
       factionId: entry.factionId,
       missionTags: entry.missionTags,
     },
-  })
+  }))
     .filter(candidate => availableSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId))
     .map((candidate, index) => makeFactionContract(candidate, index, startWorldTime));
 }
@@ -265,10 +287,11 @@ export function generateDirectoryEntryContracts(entryId: string, sourceId: strin
 const MAX_PASSENGER_CONTRACTS = 18;
 
 export function generatePassengerContracts(sourceId: string, startWorldTime: number = 0, nunesInquiries?: NunesInquirySnapshot): CareerContract[] {
+  sourceId = canonicalEstellaLocationId(sourceId);
   const seed = hashString(`passenger-board:${sourceId}:${Math.floor(startWorldTime / 86_400)}`);
   const boardSourceIds = localTerminalScopeIds(sourceId);
   const targetIds = new Set(estellaSelectableNavTargets().map(target => target.id));
-  const candidates = boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries }))
+  const candidates = canonicalizeContractCandidates(boardSourceIds.flatMap(routeSourceId => generateFactionContractCandidates({ sourceId: routeSourceId, worldTime: startWorldTime, nunesInquiries })))
     .filter(candidate => candidate.category === 'passenger')
     .filter(candidate => boardSourceIds.includes(candidate.sourceId) && targetIds.has(candidate.destinationId) && !isDisallowedSameSiteDelivery(candidate.sourceId, candidate.destinationId));
   return weightedPick(candidates, MAX_PASSENGER_CONTRACTS, seed ^ 0x9a55e67).map((candidate, index) => makeFactionContract(candidate, index, startWorldTime));

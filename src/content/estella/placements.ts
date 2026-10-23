@@ -99,13 +99,13 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     orbit: { kind: 'circular', radius: 760_000, altitude: 400_000, epochAngle: 1.75, epochTime: 0, orbitSense: -1 },
   },
   'estella-iii-capital-city': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
-  'estella-iii-finance-city': { kind: 'surface', parentId: 'estella-iii', angle: 0.7, side: 'equatorial' },
+  'estella-iii-finance-city': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
   'estella-iii-high-tech-city': { kind: 'surface', parentId: 'estella-iii', angle: 1.35, side: 'equatorial' },
   'estella-iii-coastal-resort': { kind: 'surface', parentId: 'estella-iii', angle: 2.05, side: 'equatorial' },
   'estella-iii-agricultural-region': { kind: 'surface', parentId: 'estella-iii', angle: 2.85, side: 'equatorial' },
   'estella-iii-polar-science': { kind: 'surface', parentId: 'estella-iii', angle: -2.55, side: 'polar' },
   'estella-iii-military-spaceport': { kind: 'surface', parentId: 'estella-iii', angle: -1.3, side: 'unspecified' },
-  'estella-iii-historic-site': { kind: 'surface', parentId: 'estella-iii', angle: -0.55, side: 'equatorial' },
+  'estella-iii-historic-site': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
 
   'estella-iiia': {
     kind: 'orbit',

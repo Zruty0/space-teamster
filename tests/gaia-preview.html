@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Gaia / Celeste desktop UI check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"><option value="directory">Gaia destination directory</option><option value="estella-iii-capital-city">Orselle terminal</option><option value="estella-iii-polar-science">Cousteau Station terminal</option><option value="estella-iiia-science-settlement">Descartes Lab terminal</option></select><span id="status">Checking worker…</span>
+<canvas id="screen" width="1240" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+const game=Object.create(Game.prototype);
+game.career=defaultCareerProfile();game.career.certifications=['basic-1','basic-2','basic-3','line'];
+game.canvas=document.getElementById('screen');
+game.canvas.width=window.innerWidth-24;game.canvas.height=window.innerHeight-60;
+function show(){
+  const value=document.getElementById('view').value;
+  game.career.locationId=value==='directory'?'caravanserai-main-commercial-dock':value;
+  const state=value==='directory'?{id:'emptyRunDirectory',emptyFolder:'node:estella-iii',selectedIndex:0}:{id:'stationTerminal',selectedIndex:0};
+  drawInteractiveScene(game.canvas.getContext('2d'),game.canvas,game.buildInteractiveScene(state),0);
+}
+const initial=new URLSearchParams(location.search).get('place');if(initial)document.getElementById('view').value=initial;
+document.getElementById('view').onchange=show;show();
+const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+worker.onmessage=({data})=>{
+  const rows=[...(data.boards?.freight??[]),...(data.boards?.passenger??[])];
+  const ok=!data.error&&rows.length>0&&rows.every(c=>c.sourceId==='estella-iii-capital-city'&&c.sourceName==='Orselle'&&!['estella-iii-finance-city','estella-iii-historic-site'].includes(c.destinationId));
+  document.getElementById('status').textContent=ok?`PASS — native canvas; ${rows.length} live-worker Orselle postings`:`FAIL — ${data.error??'incorrect worker endpoints'}`;
+  document.title=ok?'PASS — Gaia / Celeste UI':'FAIL — Gaia / Celeste UI';worker.terminate();
+};
+worker.onerror=e=>{document.getElementById('status').textContent=`FAIL — ${e.message}`;};
+worker.postMessage({requestId:1,sourceId:'estella-iii-capital-city',worldTime:0,nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Isolated synthetic profile: no Game constructor, career load/save or flight action.
+</script>

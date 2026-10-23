@@ -1,3 +1,4 @@
+import { estellaLocationScopeIds } from './content/estella/location-aliases';
 import { PURCHASABLE_TEAMSTER_LICENSES, type TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { estellaSelectableNavTargets } from './content/estella/navigation';
@@ -93,8 +94,10 @@ function withinContactRange(currentLocationId: string, contactLocationId: string
   return currentRegion !== undefined && currentRegion === ESTELLA_NODES_BY_ID.get(contactLocationId)?.regionId;
 }
 
-/** POIs sharing the current physical station or small-body terminal. Surface sites remain separate. */
+/** Shared terminals and explicitly consolidated city districts. Other surface sites stay separate. */
 export function localTerminalScopeIds(locationId: string): string[] {
+  const city = estellaLocationScopeIds(locationId);
+  if (city.length > 1) return city;
   const parentId = sharedTerminalParentId(locationId);
   if (!parentId) return [locationId];
   const selectableIds = new Set(estellaSelectableNavTargets().map(target => target.id));

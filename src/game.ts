@@ -36,9 +36,10 @@ import {
 import { bodyById, bodyStateRelativeToParent, stellarDistanceFromBody } from './world';
 import { createEstellaNavState, drawEstellaNavigation, estellaNavActivate, estellaNavBack, estellaNavForward, moveEstellaCursor, resetEstellaNavSelection, type EstellaNavPhaseState } from './estella-nav';
 import { estellaDisplayPath, estellaFolderTitle, estellaParentFolder, type EstellaFolderKey } from './content/estella/navigation';
+import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { canTravelEmpty, createEmptyRun, emptyRunDirectory } from './empty-runs';
 import { contactSummary, knownMissionContacts, learnMissionContacts } from './contact-knowledge';
-import { ESTELLA_LOCATION_INTRODUCTIONS } from './content/estella/location-copy';
+import { estellaLocationIntroduction } from './content/estella/location-copy';
 import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
@@ -1020,7 +1021,7 @@ export class Game {
       const next: CareerProfile = {
         ...this.career,
         money: this.career.money - actualFuelCostForQuote(quote, this.missionDvUsed),
-        locationId: contract.destinationId, worldTime: this.worldTime,
+        locationId: canonicalEstellaLocationId(contract.destinationId), worldTime: this.worldTime,
         rig: settlement?.resultingRig ?? this.career.rig,
       };
       saveCareerProfile(next);
@@ -1035,7 +1036,7 @@ export class Game {
       - actualFuelCostForQuote(quote, this.missionDvUsed)
       - integrityPenalty(this.activeManifestCondition.integrity)
       - comfortPenalty(this.activeManifestCondition.comfort);
-    this.career.locationId = contract.destinationId;
+    this.career.locationId = canonicalEstellaLocationId(contract.destinationId);
     this.career.worldTime = this.worldTime;
     if (contract.certificationOnSuccess !== undefined) {
       awardTeamsterCertification(this.career, contract.certificationOnSuccess);
@@ -1059,7 +1060,7 @@ export class Game {
   private completeOldNellTransit(contract: CareerContract): void {
     const transfer = contract.selectedTransfer;
     const departureTime = transfer ? Math.max(this.career.worldTime, transfer.waitTime) : this.career.worldTime;
-    this.career.locationId = contract.destinationId;
+    this.career.locationId = canonicalEstellaLocationId(contract.destinationId);
     this.career.worldTime = departureTime + (transfer?.transferTime ?? 0);
     this.worldTime = this.career.worldTime;
     saveCareerProfile(this.career);
@@ -2555,7 +2556,7 @@ export class Game {
       const contract = state.contracts?.[0];
       if (!contract || contract.category !== 'empty') return this.buildInteractiveScene({ id: 'emptyRunDirectory', selectedIndex: 0 });
       const reasons = [...contractMissingQualifications(contract, this.career), ...contractEquipmentRestrictionLabels(contract, this.career.rig)];
-      if (contract.sourceId !== this.career.locationId || !canTravelEmpty(this.career, contract.destinationId)) reasons.push('Destination no longer available');
+      if (contract.sourceId !== canonicalEstellaLocationId(this.career.locationId) || !canTravelEmpty(this.career, contract.destinationId)) reasons.push('Destination no longer available');
       return {
         title: 'CONFIRM EMPTY RUN', subtitle: contract.destinationName, bodyMaxHeight: 400,
         bodyRows: [
@@ -2576,7 +2577,7 @@ export class Game {
       };
     }
     if (state.id === 'stationTerminal') {
-      const introduction = ESTELLA_LOCATION_INTRODUCTIONS[this.career.locationId];
+      const introduction = estellaLocationIntroduction(this.career.locationId);
       return {
         title: 'STATION TERMINAL',
         subtitle: `${locationPath}   CASH: ${formatCredits(this.career.money)}   TIME: ${(this.career.worldTime / 86_400).toFixed(1)}d`,
@@ -3419,7 +3420,7 @@ export class Game {
     if (action === 'acceptContract' || action === 'launchEmptyRun') {
       const contract = state.contracts?.[state.contractIndex ?? -1];
       if (!contract || (action === 'launchEmptyRun' && contract.category !== 'empty')) return;
-      if (contract.category === 'empty' && (contract.sourceId !== this.career.locationId
+      if (contract.category === 'empty' && (contract.sourceId !== canonicalEstellaLocationId(this.career.locationId)
         || !canTravelEmpty(this.career, contract.destinationId)
         || !hasTeamsterCertification(this.career, 'basic-3'))) return;
       if (contractMissingQualifications(contract, this.career).length
