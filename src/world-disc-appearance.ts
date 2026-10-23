@@ -3,7 +3,7 @@
 // separately in placements.ts and checked against this artwork by the preview.
 import { CELESTE_CRATER_PROFILE, crateredWorldGeometry, resolveCrateredWorldProfile, type CrateredWorldProfile } from './cratered-world-geometry';
 import { rockyWorldProfileFor } from './content/estella/rocky-world-appearance';
-import { icyWorldProfileFor } from './content/estella/icy-world-appearance';
+import { icyWorldProfileFor, icyWorldTintFor } from './content/estella/icy-world-appearance';
 import { drawIcyDisc } from './icy-world-appearance';
 import { trace, beginDisc, finishDisc, type WorldTint } from './world-disc-primitives';
 export type { WorldTint } from './world-disc-primitives';
@@ -110,7 +110,7 @@ export function drawAuthoredWorldDisc(ctx: CanvasRenderingContext2D, bodyId: str
   }
   const ice = icyWorldProfileFor(bodyId);
   if (ice) {
-    drawIcyDisc(ctx, cx, cy, radius, tint, ice);
+    drawIcyDisc(ctx, cx, cy, radius, icyWorldTintFor(bodyId, tint), ice);
     return true;
   }
   const profile = rockyWorldProfileFor(bodyId);

@@ -1,8 +1,8 @@
 import { icyWorldGeometry, resolveIcyWorldProfile, type IcyWorldProfile } from './icy-world-geometry';
 import { beginDisc, finishDisc, trace, type WorldTint } from './world-disc-primitives';
 
-/** Solid ice throughout: dark exposures, bright frost, double-edged fractures
- * and softened impact relief. No water, atmosphere, hazards or changing cracks.
+/** Solid ice throughout: layered dark exposures, bright frost and sparse,
+ * softened impact relief. No fracture lines, water, atmosphere or hazards.
  * Existing atmosphere is drawn independently by the production orbital layer. */
 export function drawIcyDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, tint: WorldTint, profile: IcyWorldProfile): void {
   if (!tint.every(Number.isFinite) || !beginDisc(ctx, cx, cy, radius)) return;
@@ -19,24 +19,8 @@ export function drawIcyDisc(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
   for (const [i, field] of model.frost.entries()) {
     trace(ctx, field);
     ctx.fillStyle = material(0.94, 0.43 + i % 3 * 0.09); ctx.fill();
-    if (radius >= 60) {
-      ctx.strokeStyle = material(0.91, 0.3); ctx.lineWidth = 0.009; ctx.stroke();
-    }
   }
-  if (radius >= 14) {
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    const line = (points: readonly (readonly [number, number])[]) => {
-      ctx.beginPath(); points.forEach(([x,y], i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y));
-    };
-    for (const fracture of model.fractures.slice(0, radius < 60 ? 4 : undefined)) {
-      for (const path of radius < 60 ? [fracture.main] : [fracture.main, fracture.branch]) {
-        line(path); ctx.strokeStyle = material(0.74, 0.12); ctx.lineWidth = 0.017; ctx.stroke();
-        ctx.save(); ctx.translate(-0.003, -0.004);
-        line(path); ctx.strokeStyle = material(1, 0.55); ctx.lineWidth = 0.005; ctx.stroke(); ctx.restore();
-        line(path); ctx.strokeStyle = material(0.51); ctx.lineWidth = 0.004; ctx.stroke();
-      }
-    }
-  }
+  ctx.lineCap = 'round';
   const count = radius < 14 ? 0 : radius < 60 ? 5 : model.surface.craters.length;
   for (const { x, y, r, squash, angle } of model.surface.craters.slice(0, count)) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(squash, 1);

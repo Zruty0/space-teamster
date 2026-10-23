@@ -36,18 +36,22 @@ Their settlements/political importance alone do not require custom planetary geo
 
 ## Shared icy-surface variant — 8, implemented in Stage3
 
-Shared disc/clipping/seed/crater machinery with configurable seeded frost patches, branched fractures, old ice exposures and softened impacts. Eight explicit profiles in `src/content/estella/icy-world-appearance.ts`, not eight renderers. Review `/tests/icy-world-preview.html`. Dark areas are solid old/dirty ice, not open water; no sites moved.
+Shared disc/clipping/seed/crater machinery with configurable seeded frost patches, layered old ice exposures and softened impacts. Pete rejected cracks during review: fracture geometry/painter and thin frost outlines removed; original field/impact layouts/counts retained. Art-only palettes now vary more clearly. Eight explicit profiles in `src/content/estella/icy-world-appearance.ts`, not eight renderers. Review `/tests/icy-world-preview.html`. Dark areas are solid old/dirty ice, not open water; no sites moved.
 
 | ID | World | Visual treatment |
 |---|---|---|
-| estella-ix | Estella IX | Preserve lavender-grey identity in pale frosted terrain and dark ice exposures. |
-| estella-xa | Beira | Pale blue-white; long fractures and relatively few impacts. Its ocean stays beneath the ice. |
-| estella-xic | Macao | Blue-grey ice; darker fractured plates and moderate crater relief. |
-| estella-xiia | Mercy | Broad pale icy plains; retain existing thin nitrogen atmosphere treatment. Not literally an airless body. |
-| estella-xiic | Teide | Dirty comet/KBO ice; mottled dark material and heavier pitting. |
-| estella-xiii | Estella XIII | Broad bright frost fields with darker old terrain. |
-| estella-xiv | Estella XIV | Darker, rougher blue-grey ice with a different frost/crater distribution. |
-| reach-rogue-kbo-fragment | Captured Rogue Planetoid / KBO Fragment | Very subdued dirty ice, strong mottling and impacts. |
+| estella-ix | Estella IX | Muted lavender-grey frosted terrain/dark ice exposures; possible sand-world reinterpretation remains a proposal below. |
+| estella-xa | Beira | Glacial cyan-white; broad frost fields and relatively few impacts. Its ocean stays beneath the ice. |
+| estella-xic | Macao | Pale jade ice; darker exposures and moderate crater relief. |
+| estella-xiia | Mercy | Broad ivory icy plains; retain existing thin nitrogen atmosphere treatment. Not literally an airless body. |
+| estella-xiic | Teide | Dusty taupe comet/KBO ice; mottled dark material and heavier pitting. |
+| estella-xiii | Estella XIII | Pearl-blue bright frost fields with darker old terrain. |
+| estella-xiv | Estella XIV | Dusky violet-grey ice with a different frost/crater distribution. |
+| reach-rogue-kbo-fragment | Captured Rogue Planetoid / KBO Fragment | Subdued ash/sage dirty ice, strong mottling and impacts. |
+
+### IX sand-world discussion — not implemented
+
+Pete asks whether IX could be a sand world. Current canon/runtime: small airless Belt dwarf, scientific role, ice mine. A cold dusty/regolith-covered dwarf with buried ice is physically plausible and preserves that infrastructure. Ordinary wind-blown dunes require an atmosphere, with retention/size/temperature reconsidered; cold dunes are possible, sand does not imply a hot world. Gameplay-scaled star/orbit values are not a literal climate model. Recommended direction is an airless regolith desert over buried ice; no conversion, atmospheric change or new terrain approved yet.
 
 ## Individually authored globe identities — 9
 
@@ -83,7 +87,7 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 
 - Seed from stable body ID, not display name, time, visit, current mission or frame RNG. Preserve Celeste's existing seed41873/art via an explicit baseline override.
 - Seed BOTH crater placement/size and basin outlines/positions, so recolored worlds do not retain the same two giant splotches.
-- Small authored controls: crater density/size range, basin coverage, relief contrast, palette; icy family adds frost coverage/fracture density.
+- Small authored controls: crater density/size range, basin coverage, relief contrast, palette; icy family adds frost coverage/dirty-material contrast and art-only palettes (fractures rejected during review).
 - Build/cache immutable normalized geometry once per body/profile. Close-up and system markers use the same underlying layout; small scales omit fine detail, not regenerate the world.
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
