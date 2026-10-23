@@ -1,7 +1,7 @@
 # Dahai shipping — discussion draft
 
 Updated: 2026-10-23
-Status: city direction and orbital share approved; commodities, new entities and route roster below are proposals. No runtime implementation requested.
+Status: city direction, orbital share and a prestigious system-wide planetology institute approved in principle; named industrial entity rejected. Institute name/headquarters, commodities and route roster remain proposals. No runtime implementation requested.
 
 ## Approved foundation
 
@@ -41,9 +41,15 @@ Existing actors first: Gaia's civilian food/equipment/cultural trade; Merren Con
 
 Keep most demand with unnamed fishing/aquaculture cooperatives, food processors, independent workshops, university/travel offices and households. Avoid four new megacorporations, one owning each city.
 
-Two optional signature institutions (working names, NOT approved):
-- **Jiuyuan Deepworks**: optional local extraction operator/consortium, purchasing equipment and commissioning skilled crews for Dahai-facing production. No assumed system-wide machinery/product exports or major market-faction status; a descriptive local issuer may suffice. Neither city government nor universal nutrient monopolist. Name and ownership form remain open.
-- **Dahai Oceanographic Institute**: public/academic marine science body, civic headquarters in Fuyuan with operations in the other cities. Physical samples/instruments, calibration returns and research rotations. Distinct from corporate Merren cultivation and Daedalus electronics/compute.
+### Institute direction — discussion2026-10-23
+
+Pete rejects the new industrial entity: do not introduce Jiuyuan Deepworks or a replacement named extraction faction. Ordinary industrial customers can remain descriptive issuers.
+
+Pete instead expands the proposed marine institute into the system's most prestigious institute for planetological research across Estella, not a Dahai-only/oceanography organization. **Estella Institute of Planetology** is his working name; final naming remains open.
+
+Headquarters recommendation, NOT yet selected: **Fuyuan**. Its early-settlement history and old civic/academic centre provide a credible home for an institution predating Gaia's industrial/political dominance. A possible history is growth from early habitability/ocean surveys into comparative planetary science; this founding history is a proposal, not established source lore. Suggested scope: planetary interiors/geology, volcanism, atmospheres/climates, oceans, ice, magnetospheres and habitability/biosphere interactions. Prestige need not imply ownership of all scientific facilities.
+
+A Fuyuan main campus could house scholarly leadership, teaching/fellowships, comparative laboratories and reference collections. Field programs/partnerships should use suitable existing stations around the system, retaining their established operators and roles. Bingjie can host polar work and archive storage without becoming headquarters; orbital facilities serve instruments/cargo transit, not a mandatory new campus destination. Contracts still address the physical city/orbital terminal, not an extra internal dock. Suggested shipments: physical specimens, scientific instruments/calibration returns and researchers/field crews across multiple worlds; ordinary data uses communications. Governance, funding, exact name, headquarters and field footprint await discussion/approval.
 
 A growers' exchange, Zhulong marine-workers' association and Bingjie archive/port offices can initially be descriptive local issuers, not new system-level factions. Reputation, union politics, official names/ownership and mission contacts need separate approval.
 
