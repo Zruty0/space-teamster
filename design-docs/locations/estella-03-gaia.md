@@ -46,7 +46,7 @@ The First Dome heritage site concerns Gaia's own early settlement, not priority 
 
 ## Approved site-role direction
 
-Pete approved these roles on2026-10-22; names and cultural naming palette are the next discussion. Existing POI names/count do not constrain the roster. This does not authorize runtime deletions or migrations.
+Pete approved these roles on2026-10-22. The naming palette is French/Francophone, with names readily pronounceable by an American and ordinary proper place names rather than utilitarian job labels. Specific names remain under review. Existing POI names/count do not constrain the roster. This does not authorize runtime deletions or migrations.
 
 ### Gaia surface
 
@@ -65,6 +65,24 @@ First Dome heritage belongs within an inhabited city unless a distinct destinati
 - **Far-side scientific settlement:** observatory/instrument complex screened from much of Gaia's radio interference, with a permanent technical community. Precision equipment, construction and specialist rotations have a location-specific purpose.
 
 The moon has its own society and interests, not merely three suppliers to Gaia. Exact jurisdictions, local actors, contacts, routes and economics remain to be authored.
+
+## Proposed names — awaiting approval
+
+French palette approved; this particular slate is a proposal. Pronunciations are approximate English guides, not a requirement for a French accent. Persian naming is reserved for a later Camps planet, not Gaia; that planet has not been identified here.
+
+| Role | Proposed name | Pronunciation |
+|---|---|---|
+| System capital | Bellecour | bell-KOOR |
+| Agricultural regional city | Valenne | vah-LEN |
+| Manufacturing city | Rochefort | rosh-FOR |
+| Coastal city | Mirabel | meer-uh-BELL |
+| Polar frontier settlement | Marceau | mar-SOH |
+| Gaia's moon | Celeste | suh-LEST |
+| Old lunar city | Beaumont | boh-MOHN |
+| Lunar industrial complex | Darcel | dar-SELL |
+| Far-side scientific settlement | Virelle | vih-RELL |
+
+The role belongs in the location description, not a name like Manufacturing City or Polar Research Station. No specific founder/commemoration, new terrain feature or Earth-city migration history is implied by these suggestions. None of these names conflicts with existing source/design place names at proposal time.
 
 ## Earlier working concepts — not yet separately confirmed
 
