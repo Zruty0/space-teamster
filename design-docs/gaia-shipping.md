@@ -1,7 +1,7 @@
 # Gaia shipping
 
 Updated: 2026-10-23
-Status: implemented after Pete's “okay, execute.”
+Status: implemented after Pete's “okay, execute.” Dahai integration71fe113 subsequently corrects its counterpart sites and removes one obsolete nutrient-export order; original Gaia program now318 orders/day. New Dahai-origin GOV/EDF lanes are counted separately in [Dahai shipping](dahai-shipping.md).
 
 ## Approved direction
 
@@ -13,11 +13,11 @@ Status: implemented after Pete's “okay, execute.”
 
 ## Added orders
 
-`src/content/estella/faction-contracts/gaia-contracts.ts` is the exact lane/commodity ledger.319 logical consignments/day:
+`src/content/estella/faction-contracts/gaia-contracts.ts` is the exact lane/commodity ledger.318 logical consignments/day after Dahai role reconciliation:
 
 | Provider | Freight | Passengers | Total | Presentation |
 |---|---:|---:|---:|---|
-| Independent civilian bookings |97|174|271|Descriptive issuers; no market tag or invented corporate name|
+| Independent civilian bookings |96|174|270|Descriptive issuers; no market tag or invented corporate name|
 | Sector Government |7|20|27|GOV|
 | Estella Defence Force |3|18|21|EDF|
 
@@ -55,7 +55,9 @@ Civilian identities include agricultural cooperatives, medical/instrument/equipm
 - Explicit handling/comfort catalogs: fresh produce somewhat fragile, polar sample cabinets fragile, new passengers standard except elevated medical travel. Produce's supplied packaging explains its transport; no new temperature/decay mechanic.
 - The50/50 rule describes dispatch traffic, NOT a forced player's itinerary or a quota on each capped board. Each source still displays at most10 freight and18 passenger candidates; existing priority behavior is retained. Richelieu has one capped board while five cities have five boards, so summing displayed outbound rows across locations understates terminal throughput.
 
-## Audit — 2026-10-23
+## Initial rollout audit — 2026-10-23 (before Dahai expansion)
+
+Historical results below describe the initial319-order roster. Current Gaia regression covers318 original-program orders and219 playable pairs; Dahai additions use independent gateway choices at both ends. See the Dahai report for current cross-planet scope.
 
 `npm run audit:gaia`:120 raw epochs, including all legacy providers/native terminal services;12 capped-board epochs. Overall inbound and outbound raw traffic each about54% through Richelieu. New orders alone are exactly50/50 in complete pairs.
 

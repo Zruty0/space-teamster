@@ -1,64 +1,87 @@
-# Dahai shipping — discussion draft
+# Dahai shipping
 
 Updated: 2026-10-23
-Status: city direction, orbital share and a prestigious system-wide planetology institute approved in principle; named industrial entity rejected. Institute name/headquarters, commodities and route roster remain proposals. No runtime implementation requested.
+Status: implemented in71fe113 after Pete's approval to integrate all existing providers, unnamed Dahai originators and the Institute. No push/deploy.
 
-## Approved foundation
+## Cities and Institute
 
-- Four cities: **Fuyuan (浮苑)**, **Jiuyuan (九渊)**, **Zhulong (逐龙)** and **Bingjie (冰界)**.
-- Fuyuan is the founding settlement/old capital and cultural heart, grown from early floating habitats and food-production platforms in a calm latitude belt. Historic core surrounded by later construction; older than Gaia's established cities. No capital relocation is implied; detailed government remains unauthored.
-- Jiuyuan: deep-extraction industry. Zhulong: storm-work/maritime industry. Bingjie: polar port, archive and outward-facing logistics. These roles do not approve the source's absolute monopolies or unreliable atmospheric/geological explanations.
-- No moving-city, moving-deck or underwater-flight mechanics needed. Fixed/stable playable destinations.
-- Approximately50% of Dahai's offworld traffic uses its orbital station; the remainder serves the cities directly, following the Gaia/Balor pattern. Apply independently inbound/outbound and to freight/passengers; not equal city traffic or a forced50% share of every displayed board. Orbital station has no newly approved proper name.
-- Consolidated orbital deliveries include background onward distribution; no mandatory second player flight. Bingjie remains a surface destination, not a replacement for the orbital hub or an exclusive gateway.
-
-## Proposed cargo identities
-
-| City | Outbound | Inbound |
+| Stable operational ID | Name | Role |
 |---|---|---|
-| Fuyuan | Frozen/preserved fish and shellfish; dried sea vegetables; prepared marine foods; certified aquaculture cultures/broodstock; processed marine oils, alginates and food/pharma ingredients; cultural loans/touring equipment | Fruit, grain products and other dietary variety; clinic equipment and medicines; hatchery/processing machinery; cold-chain supplies; habitat components; books, instruments and consumer goods |
-| Jiuyuan | Limited offworld freight: assay/research specimens, failed equipment for specialist overhaul, reusable transport hardware; occasional biological extracts only if a specific valuable application is established | Corrosion-resistant alloys, ceramics, seals, membranes, cable and manipulators; sensors/controllers; robotic inspection equipment; industrial medicines/stores; food |
-| Zhulong | Preserved catches and sea crops; screened storm-wake biological samples; ruggedized marine instruments, repaired weather buoys and sampling packages | Replacement buoy/sensor assemblies; weather/communication instruments; netting, lifting gear and pump parts; protective equipment and repair materials; food and household stores |
-| Bingjie | Physical archival masters and heritage loans; polar ice/brine cores; calibrated cold-environment instruments; specialist packaged supplies for offworld polar work | Archive storage hardware/readers, cooling and power components; port/handling equipment; cold-rated habitat supplies; food, medicines and consumer goods |
+| `estella-iv-primary-city` | **Fuyuan / 浮苑** | Floating Garden; founding settlement, old capital and cultural heart in a calm latitude belt. Aquaculture/food processing, historic core and Institute headquarters. No capital relocation implied. |
+| `estella-iv-climate-poi-1` | **Zhulong / 逐龙** | Dragon-Chaser; fixed home port for fleets working storm belts, fisheries, sea-crop cultivation, weather observation and repairs. |
+| `estella-iv-climate-poi-2` | **Jiuyuan / 九渊** | Nine Abysses; extraction/processing primarily supplies Dahai's own cultivation economy through local maritime transport. Import-heavy offworld trade; limited samples and service returns outbound. |
+| `estella-iv-climate-poi-3` | **Bingjie / 冰界** | Ice Boundary; polar port, archives and cold-environment field base. Complements other cities, not an exclusive gateway. |
+| `estella-iv-main-orbital-station` | **Dahai Main Orbital Station** | Offworld freight/passenger consolidation; parent station ID remains `estella-iv-main-station`. No new proper name selected. |
 
-Bulk fish/sea crops are ordinary products, not exclusively elite delicacies. Packaged perishables use shipper-supplied preservation; no new refrigeration/decay mechanics implied. Local mineral/food distribution is primarily maritime background logistics, not new same-body Teamster routes. Avoid routine orbital shipping of raw seawater, undifferentiated wet sludge or cheap polar ice; value-add/concentration justifies freight. Digital weather products/ordinary backups travel by communications; physical sensors, specimens, originals and genuine offline custody copies justify Teamster cargo. Native biological products require screening/processing, not assumed compatibility as fish feed.
+Existing POIs are reused, not supplemented with four extra cities. Roles/descriptions appear in actual terminal scenes, navigation and contract labels. The former mariculture placeholder becomes Jiuyuan: its inappropriate biological-production routes move to Fuyuan/Zhulong rather than persisting under a misleading city name. Physical coordinates/flight profiles stay unchanged; Bingjie's polar identity is lore/site-role metadata in the current2D model, not a new3D latitude mechanic. Surface scenery remains the separate approval-gated visual task.
 
-### Jiuyuan revision — discussion2026-10-23
+**Estella Institute of Planetology (EIP)** is the system's most prestigious planetological institute, headquartered in Fuyuan. Comparative laboratories, collections and fellowships support geology, interiors, volcanism, atmospheres/climate, oceans, ice, magnetospheres and habitability. It operates partnerships throughout Estella; host facilities retain their existing operators. Institutional catalog and contract provider registered. No extra campus dock, named director, mission contact, detailed governance or reputation mechanics introduced.
 
-Pete questions whether deep-ocean extraction has much to offer offworld: its engineering is extremely specialized. Revised recommendation: Jiuyuan mainly supplies Dahai's own cultivation/processing economy, with local maritime distribution, not a large system-wide mineral or machinery export industry. Operating difficult equipment does not automatically make a city a competitive manufacturer for unrelated environments. Imported machinery/materials and two-way passenger travel can dominate Teamster demand; outbound freight can be much smaller and consist mainly of samples, overhaul returns and reusable packaging. No artificial balanced trade or unique miracle product required. The50/50 hub/direct policy concerns routing within each direction, not equal inbound/outbound volumes. This refinement is a proposal responding to the objection, not a completed route approval.
+Pete rejected a named industrial entity. There is no Jiuyuan Deepworks provider. Ordinary local industrial, agricultural and household customers use descriptive issuers.
 
-## Proposed passenger work
+## Dispatch policy
 
-- Fuyuan: ordinary households/family visits, students and teachers, cultural groups, tourists, business and civic travel; clinical visits and aquaculture specialists.
-- Jiuyuan: skilled industrial rotations, commissioning/maintenance teams, laboratory staff, apprentices and leave travel.
-- Zhulong: marine technicians, weather researchers, survey crews, safety/rescue training exchanges, residents and leave passengers. No new time-critical rescue mechanic implied.
-- Bingjie: port workers, archive conservators/historians, polar field teams, ordinary residents and offworld visitors.
-- All cities remain lived-in places with general passenger/household demand. Fuyuan likely leads passenger volume; Jiuyuan is freight-heavy. No numerical route/volume roster approved yet.
+- Approximately50% orbital /50% direct, independently inbound/outbound and freight/passengers. Each new logical consignment uses an exact deterministic two-day pair, one day each route, with stable mass and demand weight. Not a tonnage quota or a forced fraction of every capped board.
+- Orbital delivery/pickup includes issuer-arranged background distribution. Settlement finishes at the contracted station/city; no mandatory second player leg.
+- All30 providers pass the public-candidate adapters: Gaia first for each queried source, then Dahai. The Dahai orbital query collects all four cities plus native terminal work so redirected departures are not lost.
+- New lanes have stable dispatch identities. Existing-provider keys ignore rotating cargo labels and normalize the independently selected Gaia/Balor gateway. Neither planet's dispatch undoes the other. New Balor-linked Institute/holiday work uses Balor's established dispatcher and explains handling at both worlds.
+- Native orbital services, local same-body trips, certification/contact work and timed departures keep their actual endpoints. Native station activity explains small deviations from50% when auditing ALL traffic.
+- Routing happens before quotes. Accepted contracts, recorded prices/history, saves, access rules, original berth IDs and existing provider pay remain untouched. Renames require no eager save migration.
 
-## Proposed partners and institutions
+## New consignments
 
-Existing actors first: Gaia's civilian food/equipment/cultural trade; Merren Conservatory's existing culture/breeding-stock and specialist exchanges; Daedalus public electronics/instrumentation; Steel Combine/appropriate machinery brokers for industrial inputs; Hartwell Shipping for freight aggregation; GOV for civil/public-service travel and supplies; modest EDF liaison/leave/training demand, without inventing a Dahai military base. Guild spacecraft fuel stays separate from industrial hydrogen/ordinary power. Highliner connection remains Caravanserai.
+340 logical orders/day, across11 issuer families:
 
-Keep most demand with unnamed fishing/aquaculture cooperatives, food processors, independent workshops, university/travel offices and households. Avoid four new megacorporations, one owning each city.
+| Provider | Added orders/day | Scope |
+|---|---:|---|
+| Unnamed Dahai civilian bookings |214|Food, cultures/processed ingredients, household goods, habitat/repair supplies, archive loans and ordinary passenger travel |
+| Estella Institute of Planetology |78|Field instruments/specimens, researchers/fellows and comparative work across Estella |
+| Sector Government |9|Civic exchanges, port inspection, clinic procurement and physical administrative custody copies |
+| Estella Defence Force |5|Four personnel consignments and one support-store order; no new base |
+| Hartwell Shipping |6|Brokered food exports, workwear, farm/fleet/polar stores |
+| Hartwell Machinery Brokers |5|Heavy processing/port/workshop machinery and Jiuyuan overhaul cores |
+| Daedalus Systems |12|Public control/sensor/storage hardware, service returns and integration engineers |
+| Merren Conservatory |4|Certified cultivation inputs, processed marine ingredients and reusable racks |
+| Steel Combine |4|Material/machinery exports under Foreign Trade Committee terms |
+| Cinderhook Refining Houses |1|Certified material for local maintenance workshops, from an existing roster company |
+| Teamsters' Guild |2|Certified spacecraft fuel for Fuyuan/Bingjie port operations; volatile credential retained |
 
-### Institute direction — discussion2026-10-23
+The 214 civilian orders represent many unnamed customers, not one new corporation. No market tag. They receive demand weight2; Institute and most additions to existing providers use0.6 (Cinderhook0.3). No forced board priority, flat bounty or minimum provider slot. Established seeded company rosters are unchanged; additive lanes belong to their existing provider modules.
 
-Pete rejects the new industrial entity: do not introduce Jiuyuan Deepworks or a replacement named extraction faction. Ordinary industrial customers can remain descriptive issuers.
+New civilian/Institute/GOV/EDF freight uses0.80×par fuel fixed plus45% actual-fuel reimbursement; passengers0.60+0.60. Cap2×par. Existing-company additions use those companies' established rate families, including Steel export0.15+1.00, Merren standard0.30+0.75/return0.25+0.80, and Guild0.85+0.40. Explicit handling/comfort catalogs cover new manifests. Refrigeration/preservation travels with packaged consignments; no new decay or cold-chain simulation.
 
-Pete instead expands the proposed marine institute into the system's most prestigious institute for planetological research across Estella, not a Dahai-only/oceanography organization. **Estella Institute of Planetology** is his working name; final naming remains open.
+### City trade
 
-Headquarters recommendation, NOT yet selected: **Fuyuan**. Its early-settlement history and old civic/academic centre provide a credible home for an institution predating Gaia's industrial/political dominance. A possible history is growth from early habitability/ocean surveys into comparative planetary science; this founding history is a proposal, not established source lore. Suggested scope: planetary interiors/geology, volcanism, atmospheres/climates, oceans, ice, magnetospheres and habitability/biosphere interactions. Prestige need not imply ownership of all scientific facilities.
+- **Fuyuan:** everyday frozen/preserved seafood, dried sea vegetables, processed marine ingredients and heritage loans outbound. Dietary variety, hatchery/processing supplies and ordinary goods inbound. Broad family, holiday, study, business/civic and cultural travel. Institute fieldwork is separate from ordinary university travel.
+- **Jiuyuan:** machinery, corrosion-resistant materials, membranes/seals, robotics, electronics and household supplies inbound. Failed equipment, overhaul cores, customer hardware and scientific specimens outbound. New freight is21 inbound versus7 outbound daily. No assumed system-wide machinery export industry, miracle product, nutrient monopoly or artificial trade balance.
+- **Zhulong:** packaged catches/sea crops, screened storm-wake specimens and service returns outbound; fleet gear, electronics and repair supplies inbound. Marine technical rotations plus ordinary resident travel. Storm work occurs in local fleets; the city does not move.
+- **Bingjie:** archive originals/custody copies, polar specimens and calibrated cold-field kits outbound; archive hardware, conservation supplies, port fittings and ordinary goods inbound. Conservators, port staff, polar researchers and households travel both ways. Routine digital data uses communications, not fictitious physical courier demand.
 
-A Fuyuan main campus could house scholarly leadership, teaching/fellowships, comparative laboratories and reference collections. Field programs/partnerships should use suitable existing stations around the system, retaining their established operators and roles. Bingjie can host polar work and archive storage without becoming headquarters; orbital facilities serve instruments/cargo transit, not a mandatory new campus destination. Contracts still address the physical city/orbital terminal, not an extra internal dock. Suggested shipments: physical specimens, scientific instruments/calibration returns and researchers/field crews across multiple worlds; ordinary data uses communications. Governance, funding, exact name, headquarters and field footprint await discussion/approval.
+Institute field programs connect Fuyuan with Balor extraction, Olympos, Cousteau, Descartes, Cinderhook, Hammer/Kalyna orbital interfaces, icy-dwarf research, Gryphon/Hydra-moon/Manticore sites, Teide and the Reach port. Selected specimens originate at the other Dahai cities. No private Daedalus Server Farm/Icarus/Arkfall access or ownership transfer of partner facilities.
 
-A growers' exchange, Zhulong marine-workers' association and Bingjie archive/port offices can initially be descriptive local issuers, not new system-level factions. Reputation, union politics, official names/ownership and mission contacts need separate approval.
+## Existing-provider reconciliation
 
-## Implementation boundaries for a later authorized pass
+- **Gaia civilians:** retain existing marine/civilian exchanges, but floating-habitat deliveries now serve the three floating cities; agricultural supplies and delicacies use Fuyuan/Zhulong. Remove the former mariculture/Jiuyuan nutrient export to Valenne. Original Gaia program becomes318 orders/day (270 civilian/27 GOV/21 EDF), down from319; new Dahai GOV/EDF additions counted separately above.
+- **Merren:** old reference-culture sources become Fuyuan/Zhulong. Specialist travel uses Fuyuan/Zhulong/Bingjie rather than treating Jiuyuan as a cultivation platform. Kalyna's orbital trade membrane and unrelated immigration/work-union programs retained.
+- **BAM, Cerberus, Hartwell Labor:** existing Dahai-facing leave, commercial and personnel work inherits names and dispatch; no new coercive-labor expansion, corporate claims or story events.
+- **Other providers:** Miners Mutual, BFS, VHM, KIS-E, Kisaragi parent, Halloran, Glitterfield, Pike, Roadstead brokers, Oathmark, the three senior Houses, Covenant and minor Wells nobility were audited through the shared registry. Their unrelated roles/routes/pay remain intact; do not manufacture Dahai ore exports, direct factory franchises, noble claims or restricted religious/research access just to give every actor an arbitrary new lane. They automatically use the shared policy for any eligible Dahai surface consignment.
+- Keep local nutrient distribution and same-body Institute coordination in the background. Do not mirror an existing counterparty's procurement order as a duplicate new civilian posting. Notably Merren owns the new Kalyna marine-ingredient purchase; it is absent from the civilian lane roster.
 
-- Preserve legacy station/site IDs, accepted contracts/quotes/history and existing counterpart-provider roles; decide explicit mapping from four existing functional surface placeholders to the four cities rather than blindly overwriting roles.
-- Existing Gaia lanes already cover marine infrastructure, instruments, food, cultures, specialists and ordinary passengers. Extend/reconcile these rather than generating duplicate orders from both planets.
-- Both ends of Gaia–Dahai consignments must retain their independent gateway choices; do not make Dahai routing undo Gaia's50/50 selection (or vice versa).
-- Native orbital services/local surface–orbit travel stay native, not fictitious city shipments merely to force a percentage. Audit logical consignments/likelihood separately from capped-board sampling.
-- No runtime physics, city placement, visuals or new hazard mechanics authorized. Other agent's visual-stage approval gates remain separate.
+## Audit — 2026-10-23
 
-Source and conflicts: [recovered writer review](locations/estella-04-dahai-review.md). Existing policy model: [Gaia shipping](gaia-shipping.md).
+`npm run audit:dahai`:120 raw epochs and12 sampled-board epochs. Civilian share below includes unnamed Gaia and Dahai issuers; native terminal services remain included.
+
+| Direction/type | Orbital count / demand share | Civilian count / demand share | Sampled board civilian share |
+|---|---|---|---|
+| Inbound freight |50.0% /50.2%|62.2% /83.4%|68.3%|
+| Outbound freight |50.6% /50.6%|57.3% /78.1%|68.3%|
+| Inbound passengers |52.1% /51.2%|62.8% /83.2%|67.2%|
+| Outbound passengers |54.2% /52.5%|55.9% /76.5%|73.2%|
+
+`npm run test:dahai-shipping`:82362 assertions;340 daily orders,230 playable endpoint pairs; paired dispatch, independent Gaia/Balor ends, location/cargo/access integrity, quotes, actual terminal/settlement and save immutability. Frozen pre-change fixture from1aa0309 protects all28 providers' unrelated candidates over four epochs. Existing Balor original hashes retained except the deliberately reauthored Merren Dahai subset, covered by the separate non-Dahai snapshot. Balor board sampling widened to120 days to observe rare actors amid the added demand; rates/weights were not inflated to force their presence.
+
+Full equipment, maintenance, par, Gaia, Acheron, Balor/BAM/expansion, empty-run, marker, menu, station/parked-ship and globe suites/build pass. Contract-presentation audit now covers30 providers,113010 assertions,7284 public and9 contact postings. Native desktop preview `tests/dahai-shipping-preview.html` exercises the real module worker:32 requests/647 postings, all four city terminals plus civilian/EIP postings. Isolated profile; no live saves or mobile testing. Existing Vite warnings only.
+
+Implementation: `dahai-sites.ts`, `dahai-logistics.ts`, `faction-contracts/dahai-{contracts,partner-lanes,trade-contracts}.ts`; provider integrations remain actor-owned. Naming/role summaries in `nodes.ts`/`location-copy.ts`, institution in `institutions.ts`.
+
+Scientific explanations from the [recovered source review](locations/estella-04-dahai-review.md) remain proposals where not separately accepted. No hydrogen canopy, moving city/deck, underwater flight, global climate/ecosystem simulation, physics changes or automatic visual-stage rollout introduced.

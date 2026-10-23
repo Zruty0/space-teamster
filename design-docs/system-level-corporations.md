@@ -2,15 +2,25 @@
 
 ## Sector Government (GOV)
 
-The existing Estella Commonwealth/Council administration, based in Orselle. GOV's public transport orders carry civil servants, inspection teams and polar field scientists, plus public-clinic equipment, research procurement and physical administrative archives.27 daily logical consignments (20 passenger,7 freight). No new named official, contact, agency jurisdiction or political system is introduced.
+The existing Estella Commonwealth/Council administration, based in Orselle. GOV's public transport orders carry civil servants, inspection teams and polar field scientists, plus public-clinic equipment, research procurement and physical administrative archives.The original Gaia programme has27 daily logical consignments (20 passenger,7 freight); Dahai adds9 (6 passenger,3 freight). No new named official, contact, agency jurisdiction or political system is introduced.
 
 ## Estella Defence Force (EDF)
 
-The Council's defence force, with government command arrangements as recorded in geography. Public Teamster work primarily carries personnel: shipyard relief, training/exercise-observer exchanges, port liaison and leave.18 passenger and3 support-store consignments/day. Gaia dispatch uses Orselle or Richelieu; Pete removed the separate Government/Military Spaceport. Existing training partners remain independent, not newly claimed EDF bases. No combat missions or new access privileges.
+The Council's defence force, with government command arrangements as recorded in geography. Public Teamster work primarily carries personnel: shipyard relief, training/exercise-observer exchanges, port liaison and leave.The original Gaia programme has18 passenger and3 support-store consignments/day; Dahai adds4 personnel and1 support-store order. Gaia dispatch uses Orselle or Richelieu; Pete removed the separate Government/Military Spaceport. Existing training partners remain independent, not newly claimed EDF bases. No combat missions or new access privileges.
 
 ## Unnamed Gaia civilian customers
 
-The majority of Gaia transit is ordinary civilian business: cooperatives, manufacturers, universities, clinics, households and booking agencies.271 daily logical consignments use descriptive issuers without new proper-name corporations or a market tag. The implementation's civilian aggregator is bookkeeping, not a new political entity. GOV/EDF and civilian route/rate/dispatch details: [Gaia shipping](gaia-shipping.md).
+The majority of Gaia transit is ordinary civilian business: cooperatives, manufacturers, universities, clinics, households and booking agencies.270 daily logical consignments use descriptive issuers without new proper-name corporations or a market tag. The implementation's civilian aggregator is bookkeeping, not a new political entity. GOV/EDF and civilian route/rate/dispatch details: [Gaia shipping](gaia-shipping.md).
+
+## Estella Institute of Planetology (EIP)
+
+The system's most prestigious planetological institute is headquartered in Fuyuan, Dahai's founding settlement/old capital. Its comparative laboratories, reference collections and fellowships support geology, interiors, volcanism, atmospheres/climate, oceans, ice, magnetospheres and habitability throughout Estella. Partner facilities retain their established operators; the Institute does not acquire every scientific site it visits.
+
+78 daily logical orders carry instruments, physical specimens and researchers/fellows. Ordinary data travels electronically. Dahai dispatch follows50/50 orbital/direct, independently of Gaia/Balor counterpart routing. No extra campus dock, mission contact or reputation mechanism. See [Dahai shipping](dahai-shipping.md).
+
+## Unnamed Dahai civilian customers
+
+214 daily logical orders from aquaculture/fishing cooperatives, food processors, local extraction/repair customers, archives, port offices and ordinary households. Descriptive issuers, no new megacorporation or market tag. Jiuyuan's production primarily serves Dahai; it is an offworld equipment buyer with limited samples/service returns outbound. Pete rejected a named industrial entity. Nine existing provider families add48 orders alongside these civilians and EIP; all existing eligible Dahai trade participates in shared routing. Full ledger/audit in [Dahai shipping](dahai-shipping.md).
 
 ## Balor Advanced Materials (BAM)
 

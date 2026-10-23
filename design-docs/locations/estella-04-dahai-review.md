@@ -3,11 +3,13 @@
 Updated: 2026-10-23
 Status: review only. Pete recalls liking the original conversation and requests conflicts/difficulties before integration. No runtime names, routes, physics, visuals or current lore changed by this review. Recommendations below are not silently adopted canon.
 
+Implementation follow-up: Pete subsequently approved the city roles, Fuyuan Institute headquarters and shipping integration.71fe113 implements those decisions; current state in [Dahai shipping](../dahai-shipping.md). The scientific objections/source classification below remain a review, not approval of the transcript's chemistry or extreme-engineering claims.
+
 ## Follow-up decisions — 2026-10-23
 
 Pete likes the three cities plus the polar port and explicitly excludes moving cities, moving decks and underwater flight from the needed mechanics. Keep these destinations fixed/stable in gameplay. This selects the four-city concept, not every scientific explanation or monopoly in the source. No runtime implementation requested yet.
 
-Subsequently approved: Fuyuan is the founding settlement/old capital and cultural heart, grown from early floating habitats and food production in a calm latitude belt. The polar port is Bingjie. No capital relocation implied; exact latitude and governmental structure remain unauthored. Pete also selects approximately50% orbital/50% direct Dahai traffic. Shipping/possible new entities are now under discussion, not authorized for implementation: [Dahai shipping draft](../dahai-shipping.md). The original review below remains a record of source conflicts, not an automatic adoption of its recommendations.
+Subsequently approved: Fuyuan is the founding settlement/old capital and cultural heart, grown from early floating habitats and food production in a calm latitude belt. The polar port is Bingjie. No capital relocation implied; exact latitude and governmental structure remain unauthored. Pete also selects approximately50% orbital/50% direct Dahai traffic. Shipping and Institute integration were subsequently approved and implemented: [Dahai shipping](../dahai-shipping.md). The original review below remains a record of source conflicts, not an automatic adoption of its recommendations.
 
 ## Source and provenance
 

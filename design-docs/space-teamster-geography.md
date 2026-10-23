@@ -160,13 +160,13 @@ Gaia supports billions and extensive agriculture while terraforming continues in
 ### Dahai
 | ID | Type | Description |
 |---|---|---|
-| Estella IV.1 | Station, low orbit | Main orbital station |
-| Estella IV.2 | Surface | Primary Floating Port |
-| Estella IV.3 | Surface | Ocean Weather Station |
-| Estella IV.4 | Surface | Floating Mariculture Platform |
-| Estella IV.5 | Surface | Pelagic Research Platform |
+| Estella IV.1 | Station, low orbit | **Dahai Main Orbital Station.** Approximately half of inbound/outbound offworld freight and passengers consolidate here. |
+| Estella IV.2 | Surface | **Fuyuan (浮苑), Floating Garden.** Founding settlement, old capital and cultural heart; aquaculture/food processing and headquarters of the Estella Institute of Planetology. |
+| Estella IV.3 | Surface | **Zhulong (逐龙), Dragon-Chaser.** Fixed home port for storm-working fleets, fisheries, weather observation and marine repairs. |
+| Estella IV.4 | Surface | **Jiuyuan (九渊), Nine Abysses.** Extraction/processing for Dahai's local cultivation economy; imports equipment/materials, exports limited specimens and overhaul returns. |
+| Estella IV.5 | Surface | **Bingjie (冰界), Ice Boundary.** Polar port, archive centre and cold-environment field base; complements other ports without monopolizing offworld access. |
 
-> Dahai was immediately habitable and settled before Gaia, with floating habitats built in storm-free latitude belts. Weather and ocean operations remain central to its economy. The older island/archipelago/atoll placeholders have been corrected to floating infrastructure. Bespoke names and latitude-dependent weather remain future work; a volcanic-island foundation for settlement is not canon.
+> Dahai was immediately habitable and settled before Gaia, with floating habitats built in calm latitude belts; a volcanic-island foundation is not canon. Fuyuan's Institute is the system's most prestigious planetology institution, with field partnerships throughout Estella rather than an exclusively marine remit. Four cities retain the existing operational IDs and fixed gameplay placements. No moving decks/cities or underwater flight; latitude-dependent weather and bespoke settlement scenery remain separate work. Implemented routes, company reconciliation, rates and audit: [Dahai shipping](dahai-shipping.md).
 
 ### Inner-system Skim Infrastructure
 | ID | Type | Description |

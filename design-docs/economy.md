@@ -8,7 +8,7 @@ Every contract displays the physical station/asteroid name instead of an interna
 
 ## Current contract model
 
-Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia's descriptive unnamed civilian issuers, not generic all-to-all open-market filler.
+Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia/Dahai's descriptive unnamed civilian issuers, not generic all-to-all open-market filler.
 
 Mission pay follows the contract pay model (see below): a fixed reward plus optional fuel compensation, computed at settlement from the actual ΔV flown. Contract generators must choose cargo before cost estimation; `estimateEstellaMissionCost()` must not generate cargo internally.
 
@@ -91,11 +91,17 @@ Skim Alpha/Beta are now selectable/dockable in clockwise stellar orbits at120/18
 
 ## Gaia civilian / GOV / EDF shipping — 2026-10-23
 
-Richelieu Orbital Terminal is the renamed main Gaia customs hub and the system's biggest transit hub (IDs retained). Three new provider registrations add319 logical consignments/day:271 unnamed civilian bookings,27 Sector Government (`GOV`) and21 Estella Defence Force (`EDF`,18 personnel). Civilian issuers have descriptive names and no market tag. Existing25 provider rosters/pay remain intact.
+Richelieu Orbital Terminal is the renamed main Gaia customs hub and the system's biggest transit hub (IDs retained). The original three-provider programme now has318 logical consignments/day:270 unnamed civilian bookings,27 Sector Government (`GOV`) and21 Estella Defence Force (`EDF`,18 personnel). Dahai reconciliation removes the obsolete Jiuyuan→Valenne nutrient export from the initial319-order roster; additional Dahai GOV/EDF work is counted below. Civilian issuers have descriptive names and no market tag. Existing25 provider rosters/pay remain intact.
 
 New freight pays0.80+0.45 reimbursement; passengers0.60+0.60; cap2, no flat rewards. Civilian demand weight2.0 versus GOV/EDF0.65 creates a majority civilian economy without priority quotas. Each new order dispatches once/day, exactly50/50 Richelieu/direct over paired days. The public-candidate adapter also routes existing Gaia surface/offworld orders; native station services and local/contact/certification routes keep their original endpoints. New quotes use the actual dispatch endpoint; accepted quotes/history/saves are untouched.
 
 City-specific imports/exports, EDF's Orselle interface after military-spaceport deletion, compatibility/narrative handling, raw-vs-capped-board distinctions and audit percentages: [Gaia shipping](gaia-shipping.md). Implementation `faction-contracts/gaia-contracts.ts` and `gaia-logistics.ts`; tests `npm run test:gaia-shipping`, read-only audit `npm run audit:gaia`.
+
+## Dahai cities / civilians / planetology — 2026-10-23
+
+Fuyuan, Zhulong, Jiuyuan and Bingjie reuse the four existing surface IDs. Fuyuan is the old capital and headquarters of the system-wide Estella Institute of Planetology (EIP). Jiuyuan supplies Dahai locally and remains import-heavy offworld; no new industrial faction.340 added logical orders/day:214 unnamed civilian,78 EIP and48 from nine existing provider families. Existing Gaia/Merren counterpart roles corrected; unrelated seeded rosters/pay protected by frozen baselines.
+
+All eligible public Dahai surface/offworld candidates use approximately50/50 orbital/direct dispatch before quoting; new orders exact paired50/50. Gaia/Balor choices remain independent. Native station/local/contact/timed work, accepted quotes/history/saves and physical-terminal naming remain intact. No forced second player leg. Civilian/Institute freight0.80+0.45, passengers0.60+0.60, cap2; other providers retain their own terms. Scientific specimens/archival originals travel physically, ordinary data electronically. Detailed ledger, roles, scope and120-epoch audit: [Dahai shipping](dahai-shipping.md); `npm run test:dahai-shipping`, `npm run audit:dahai`.
 
 ## Faction: Balor Advanced Materials (BAM)
 
