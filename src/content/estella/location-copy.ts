@@ -16,10 +16,11 @@ const LOCATION_SUMMARY_IDS: Readonly<Record<string, string>> = {
     'estella-iii-capital-city', 'estella-iii-high-tech-city', 'estella-iii-coastal-resort',
     'estella-iii-agricultural-region', 'estella-iii-polar-science',
     'estella-iiia-helium-mining', 'estella-iiia-science-settlement', 'estella-iiia-heritage-site',
+    'estella-iv-primary-city', 'estella-iv-climate-poi-1', 'estella-iv-climate-poi-2', 'estella-iv-climate-poi-3',
   ].map(id => [id, id])),
   'estella-iii-main-customs': 'estella-iii-main-customs',
   'estella-iiia-main-port-transit': 'estella-iiia',
-  'estella-iv-main-orbital-station': 'estella-iv',
+  'estella-iv-main-orbital-station': 'estella-iv-main-orbital-station',
 };
 
 export const ESTELLA_LOCATION_INTRODUCTIONS: Readonly<Record<string, string>> = {

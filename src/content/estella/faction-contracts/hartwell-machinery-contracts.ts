@@ -4,6 +4,9 @@ import type { FactionContractCandidate, FactionContractContext, FactionContractP
 
 // Hartwell brokers finance, charter, and lease Kuznia/Svarog machinery into Hartwell and Pike.
 // They are not manufacturers; they turn claims, liens, and future ore into present equipment.
+import { dahaiTradeContracts } from './dahai-trade-contracts';
+import { DAHAI_MACHINERY_LANES } from './dahai-partner-lanes';
+
 const HARTWELL_MACHINERY_ID = 'hartwell-machinery-brokers';
 const HAMMER = 'estella-vi-heavy-cargo-station';
 const ANVIL = 'estella-vi-main-transit-dispatch';
@@ -225,6 +228,9 @@ export const HARTWELL_MACHINERY_BROKERS_PROVIDER: FactionContractProvider = {
   id: HARTWELL_MACHINERY_ID,
   name: 'Hartwell Machinery Brokers',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return generateMachineryContracts(ctx);
+    return [...generateMachineryContracts(ctx), ...DAHAI_MACHINERY_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {
+      factionId: HARTWELL_MACHINERY_ID, factionName: ROSTER[index % ROSTER.length].name,
+      ...(lane.massClass === 'heavy' ? HEAVY_PAY : ROUTINE_PAY),
+    }, [lane]))];
   },
 };

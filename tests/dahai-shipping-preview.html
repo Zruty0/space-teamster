@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Dahai shipping desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"><option value="orbital">Dahai Orbital</option><option value="Fuyuan">Fuyuan</option><option value="Jiuyuan">Jiuyuan</option><option value="Zhulong">Zhulong</option><option value="Bingjie">Bingjie</option><option value="civilian">Civilian posting</option><option value="EIP">Institute posting</option></select><span id="status">Checking live worker…</span>
+<canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {DAHAI_SITE_NAMES,DAHAI_ORBITAL} from '/src/content/estella/dahai-sites.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+const sites={orbital:DAHAI_ORBITAL,...Object.fromEntries(Object.entries(DAHAI_SITE_NAMES).map(([id,name])=>[name,id]))};
+const selected={},errors=[];
+const game=Object.create(Game.prototype);game.career=defaultCareerProfile();game.career.certifications=['basic-1','basic-2','basic-3','line','passenger','fragile-cargo','volatile-cargo'];game.canvas=document.getElementById('screen');
+game.canvas.width=window.innerWidth-24;game.canvas.height=window.innerHeight-60;
+function show(){const key=document.getElementById('view').value,c=selected[key];game.career.locationId=c?.sourceId??sites[key]??DAHAI_ORBITAL;drawInteractiveScene(game.canvas.getContext('2d'),game.canvas,game.buildInteractiveScene(c?{id:'contractPosting',contracts:[c],contractIndex:0,selectedIndex:0}:{id:'stationTerminal',selectedIndex:0}),0);}
+document.getElementById('view').onchange=show;show();
+const requests=[];for(const day of [0,1,10,11])for(const sourceId of [...Object.values(sites),'estella-iii-main-customs','estella-iiia-science-settlement','caravanserai-main-commercial-dock'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const started=performance.now();
+const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){errors.push(message);document.title='FAIL — Dahai shipping';document.getElementById('status').textContent=message;}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{
+ if(data.error){fail(data.error);worker.terminate();return;}
+ const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+ for(const c of rows){
+  if(contractLocationId(c.sourceId)!==contractLocationId(requests[complete].sourceId)||c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)fail(`quote/source scope mismatch: ${requests[complete].sourceId} / ${c.sourceId} -> ${c.destinationId}`);
+  for(const [id,name] of Object.entries(DAHAI_SITE_NAMES)){if(c.sourceId===id&&c.sourceName!==name||c.destinationId===id&&c.destinationName!==name)fail('old city label');}
+  if(c.factionId==='dahai-civilian-bookings'){if(c.issuerTag)fail('civilian megacorporation tag');selected.civilian??=c;}
+  if(c.factionId==='estella-institute-of-planetology'){if(c.issuerTag!=='EIP')fail('missing Institute identity');selected.EIP??=c;}
+ }
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+ worker.terminate();if(!selected.civilian||!selected.EIP)fail('missing new providers on real worker boards');if(errors.length)return;
+ for(const key of [...Object.keys(sites),'civilian','EIP']){document.getElementById('view').value=key;show();}
+ document.getElementById('view').value='Fuyuan';show();
+ document.title='PASS — Dahai shipping';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; four cities, civilians and Institute; ${(performance.now()-started).toFixed(0)} ms`;
+};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Synthetic in-memory profile: no Game constructor, live save load or flight action.
+</script>

@@ -4,6 +4,8 @@ import type { MissionCargoSpec } from '../../../mission-cost';
 import { classifyMissionCargo } from '../../../cargo-handling';
 import { passengerComfortTerms } from '../../../passenger-comfort';
 import { generateGaiaRoutedContracts } from '../gaia-logistics';
+import { generateDahaiRoutedContracts } from '../dahai-logistics';
+import { DAHAI_CIVILIAN_PROVIDER, PLANETOLOGY_PROVIDER } from './dahai-contracts';
 import { GAIA_CIVILIAN_PROVIDER, GOVERNMENT_PROVIDER, EDF_PROVIDER } from './gaia-contracts';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from './bruckner-contracts';
 import { BALOR_ADVANCED_MATERIALS_PROVIDER } from './bam-contracts';
@@ -60,6 +62,8 @@ export interface FactionContractCandidate {
   destinationId: string;
   /** Stable logical consignment key for Gaia's paired orbital/direct dispatch. */
   gaiaDispatchKey?: string;
+  /** Stable identity independent of another planet's gateway choice. */
+  dahaiDispatchKey?: string;
   /** Optional authored title; ordinary contracts derive a title from cargo and destination. */
   title?: string;
   cargo: MissionCargoSpec;
@@ -140,6 +144,8 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   GAIA_CIVILIAN_PROVIDER,
   GOVERNMENT_PROVIDER,
   EDF_PROVIDER,
+  DAHAI_CIVILIAN_PROVIDER,
+  PLANETOLOGY_PROVIDER,
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
@@ -156,8 +162,10 @@ function withDefaultCompletion(candidate: FactionContractCandidate): FactionCont
 }
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return generateGaiaRoutedContracts(ctx, source =>
-    ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+  return generateDahaiRoutedContracts(ctx, dahaiSource =>
+    generateGaiaRoutedContracts(dahaiSource, source =>
+      ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+    ),
   ).map(withDefaultCompletion);
 }
 

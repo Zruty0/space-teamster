@@ -3,6 +3,8 @@ import { ESTELLA_NODES_BY_ID } from '..';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 import { SHADE } from '../balor-logistics';
+import { dahaiTradeContracts } from './dahai-trade-contracts';
+import { DAHAI_MERREN_LANES } from './dahai-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
 
 const MERREN_ID = 'merren-conservatory';
@@ -144,7 +146,7 @@ const PROCUREMENT_LANES: readonly ProcurementLane[] = [
   },
   {
     id: 'biological-reference-stock',
-    sourceIds: ['estella-iii-agricultural-region', 'estella-iv-climate-poi-2', 'estella-iv-climate-poi-3'],
+    sourceIds: ['estella-iii-agricultural-region', 'estella-iv-primary-city', 'estella-iv-climate-poi-1'],
     cargo: [
       { label: 'certified biological reference cultures', massClass: 'light' },
       { label: 'quarantined breeding stock', massClass: 'light' },
@@ -228,7 +230,7 @@ const SPECIALIST_NODES = [
   'estella-iii-high-tech-city',
   'estella-iv-main-orbital-station',
   'estella-iv-primary-city',
-  'estella-iv-climate-poi-2',
+  'estella-iv-climate-poi-1',
   'estella-iv-climate-poi-3',
 ];
 
@@ -593,6 +595,11 @@ export const MERREN_CONSERVATORY_PROVIDER: FactionContractProvider = {
       ...workUnionPilgrims(ctx.sourceId, day),
       ...specialists(ctx.sourceId, day),
       ...balorConservatoryContracts(ctx),
+      ...DAHAI_MERREN_LANES.flatMap(lane => dahaiTradeContracts(ctx, {
+        factionId: MERREN_ID, factionName: MERREN_NAME, factionTag: MERREN_TAG,
+        issuerName: lane.id.includes('return') ? 'Merren Conservatory Return Custody' : 'Merren Conservatory Trading Office',
+        ...(lane.id.includes('return') ? INTERNAL_PAY : STANDARD_PAY),
+      }, [lane])),
     ];
   },
 };

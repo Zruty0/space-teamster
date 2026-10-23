@@ -30,7 +30,7 @@ assert(ESTELLA_NODES_BY_ID.get('estella-iii-main-customs-station')?.name==='Rich
 assert(estellaDisplayPath(RICHELIEU).includes('Richelieu Orbital Terminal'),'navigation uses live name');
 assert(estellaLocationIntroduction(RICHELIEU)?.includes('biggest transit hub'),'actual terminal describes system-scale role');
 for(const id of [GOVERNMENT_ID,EDF_ID])assert(ESTELLA_INSTITUTIONS.some(i=>i.id===id),'institution catalog registered');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===28,'25 legacy providers plus two institutions and civilian aggregator');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===30,'28 established providers plus Dahai civilians and Institute');
 
 const orders=new Map<string,Map<number,FactionContractCandidate>>();
 const pairs=new Map<string,FactionContractCandidate>();
@@ -45,10 +45,10 @@ for(let day=0;day<20;day++)for(const node of pois) {
       const r=totals.get(key)??{count:0,hub:0,civilian:0,weight:0,hubWeight:0,civilianWeight:0};
       r.count++;r.weight+=c.likelihood;
       if(c.sourceId===RICHELIEU||c.destinationId===RICHELIEU){r.hub++;r.hubWeight+=c.likelihood;}
-      if(c.factionId===GAIA_CIVILIAN_ID){r.civilian++;r.civilianWeight+=c.likelihood;}
+      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings'].includes(c.factionId)){r.civilian++;r.civilianWeight+=c.likelihood;}
       totals.set(key,r);sources.add(c.sourceId);
     }
-    if(!isNew(c))continue;
+    if(!isNew(c)||!c.templateId.startsWith('gaia:'))continue;
     counts.set(c.factionId,(counts.get(c.factionId)??0)+1);
     assert(c.sourceId===node.id && nav.has(c.sourceId)&&nav.has(c.destinationId),`new posting has selectable scoped endpoints: ${c.sourceId}->${c.destinationId} (${c.templateId})`);
     assert(isGaia(c.sourceId)!==isGaia(c.destinationId),'one Gaia endpoint; no local surface shuttles');
@@ -61,7 +61,7 @@ for(let day=0;day<20;day++)for(const node of pois) {
     assert(c.generosity===(c.category==='passenger'?0.6:0.8)&&c.compensationRatio===(c.category==='passenger'?0.6:0.45),'documented pay terms');
     assert(c.details?.includes('site:')&&!!c.completionMessage,'operational details and neutral receipt');
     const hub=c.sourceId===RICHELIEU||c.destinationId===RICHELIEU;
-    assert(c.details!.includes('local transport arranged')===hub,'consolidation is background handling only');
+    assert(c.details!.includes('Richelieu Orbital Terminal consolidation')===hub,'consolidation is background handling only');
     assert(c.details!.includes('Direct Gaia surface handling.')===!hub,'direct handling accurately described');
     classifyMissionCargo(c.cargo);
     if(c.category==='passenger')assert(c.cargo.passengerComfort?.expectation===passengerComfortTerms(c.cargo.label).expectation,'explicit passenger comfort');
@@ -75,8 +75,8 @@ for(let day=0;day<20;day++)for(const node of pois) {
     pairs.set(`${c.sourceId}->${c.destinationId}`,c);sources.add(c.sourceId);
   }
 }
-assert(counts.get(GAIA_CIVILIAN_ID)===271*20&&counts.get(GOVERNMENT_ID)===27*20&&counts.get(EDF_ID)===21*20,'complete 271 civilian / 27 GOV / 21 EDF daily dispatches');
-assert(orders.size===319,'319 unique logical consignments');
+assert(counts.get(GAIA_CIVILIAN_ID)===270*20&&counts.get(GOVERNMENT_ID)===27*20&&counts.get(EDF_ID)===21*20,'270 civilian / 27 GOV / 21 EDF Gaia dispatches; obsolete Jiuyuan nutrient export removed');
+assert(orders.size===318,'318 original Gaia logical consignments after Jiuyuan correction');
 for(const [key,days] of orders) {
   assert(days.size===20,`complete daily coverage: ${key}`);
   assert(new Set([...days.values()].map(c=>c.cargo.massTons)).size===1,'cargo mass stable across gateway and days');
@@ -149,7 +149,7 @@ for(const day of [0,1,2,3,10,11,20,21,30,31,60,61])for(const source of sources) 
     if(isGaia(c.sourceId)!==isGaia(c.destinationId)) {
       const key=`${isGaia(c.sourceId)?'out':'in'}:${c.category}`;
       const r=boardShares.get(key)??{total:0,civilian:0};r.total++;
-      if(c.factionId===GAIA_CIVILIAN_ID)r.civilian++;
+      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings'].includes(c.factionId!))r.civilian++;
       boardShares.set(key,r);
     }
     if(!isNew(c))continue;

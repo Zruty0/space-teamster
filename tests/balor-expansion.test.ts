@@ -33,8 +33,8 @@ const legacyPlaceNames: Array<[string,string]> = [
   ['Valenne','Agricultural Region'], ['Cousteau Station','Polar Science and Weather Research'],
   ['Celeste Main Port','Estella IIIa Main Port'], ['Celeste','Estella IIIa'],
   ['Ampere','Helium-3 and Regolith Mine'], ['Descartes Lab','Lunar Science Settlement'],
-  ['Beaumont','First Off-World Colony Heritage Site'], ['Primary Floating Port','Primary Island Port'],
-  ['Ocean Weather Station','Archipelago Weather Station'], ['Pelagic Research Platform','Pelagic Research Atoll'],
+  ['Beaumont','First Off-World Colony Heritage Site'], ['Fuyuan','Primary Island Port'],
+  ['Zhulong','Archipelago Weather Station'], ['Bingjie','Pelagic Research Atoll'], ['Jiuyuan','Floating Mariculture Platform'],
 ].sort((a,b)=>b[0].length-a[0].length) as Array<[string,string]>;
 function legacyCandidateJson(candidate: FactionContractCandidate): string {
   return legacyPlaceNames.reduce((json,[current,old])=>json.split(current).join(old),JSON.stringify(candidate));
@@ -46,10 +46,13 @@ const legacy: Record<string, [number, number]> = {
   'merren-conservatory': [340,2674462853], 'daedalus-systems': [445,1210869324],
 };
 const providers = ESTELLA_FACTION_CONTRACT_PROVIDERS.filter(p => legacy[p.id]);
-assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 28 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 28, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
+assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 30 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 30, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
 for (const p of providers) {
+  // Merren's approved Dahai culture/specialist sites changed roles. Its complete
+  // non-Dahai baseline is frozen independently in dahai-shipping.test.ts.
+  if (p.id === 'merren-conservatory') continue;
   let hash = 2166136261, count = 0;
-  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c))) {
+  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('dahai:'))) {
     count++;
     for (const char of legacyCandidateJson(c)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash,16777619); }
   }
@@ -126,7 +129,10 @@ for (const c of pairs.values()) {
 }
 let boardRows=0;
 const boardProviders=new Set<string>(), passengerHubs=new Set<string>();
-for (const day of [0,1,2,3,10,11,20,21,30,31,60,61]) for (const sourceId of sources) {
+// More competing Dahai orders change the capped board lottery, not eligibility.
+// Exercise a full120-day window rather than assuming every rare actor appears
+// within the previous twelve sampled epochs.
+for (let day = 0; day < 120; day++) for (const sourceId of sources) {
   for (const c of [...generateCareerContracts(sourceId,day*86400),...generatePassengerContracts(sourceId,day*86400)].filter(isNew)) {
     boardRows++; boardProviders.add(c.factionId!);
     assert(Number.isFinite(c.quote.grossPay) && c.quote.grossPay>0 && c.details && c.completionMessage, 'real payable board preserves details/receipt');
@@ -137,7 +143,7 @@ for (const day of [0,1,2,3,10,11,20,21,30,31,60,61]) for (const sourceId of sour
     }
   }
 }
-assert(boardProviders.size===8 && passengerHubs.size===2, 'all eight actors and both skim-crew hubs reach actual boards');
+assert(boardProviders.size===8 && passengerHubs.size===2, `all eight actors and both skim-crew hubs reach actual boards: ${[...boardProviders]} / ${[...passengerHubs]}`);
 
 // Exact source/destination/cargo clones of BAM's own orders are not additions.
 const bam=ESTELLA_FACTION_CONTRACT_PROVIDERS.find(p=>p.id==='balor-advanced-materials')!;

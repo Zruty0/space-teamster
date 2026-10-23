@@ -3,6 +3,8 @@ import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-ut
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 import { BAM_EXTRACTION, BAM_FOUNDRY } from '../balor-logistics';
+import { dahaiTradeContracts } from './dahai-trade-contracts';
+import { DAHAI_STEEL_LANES } from './dahai-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
 
 const STEEL_COMBINE_ID = 'steel-combine';
@@ -395,6 +397,9 @@ export const STEEL_COMBINE_PROVIDER: FactionContractProvider = {
   id: STEEL_COMBINE_ID,
   name: STEEL_COMBINE_NAME,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx), ...balorCombineContracts(ctx)];
+    return [...generateSteelCombineContracts(ctx), ...generateKalynaWorkPilgrimages(ctx), ...balorCombineContracts(ctx),
+      ...dahaiTradeContracts(ctx, { factionId: STEEL_COMBINE_ID, factionName: STEEL_COMBINE_NAME, factionTag: STEEL_COMBINE_TAG,
+        issuerName: FOREIGN_TRADE_COMMITTEE, generosity: EXPORT_GENEROSITY, compensationRatio: 1, maxCompAllowance: MAX_COMP_ALLOWANCE,
+      }, DAHAI_STEEL_LANES)];
   },
 };

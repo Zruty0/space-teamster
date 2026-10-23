@@ -2,6 +2,14 @@ import { type HighlinerSeedDef, type InstitutionDef } from '../types';
 
 export const ESTELLA_INSTITUTIONS: InstitutionDef[] = [
   {
+    id: 'estella-institute-of-planetology',
+    name: 'Estella Institute of Planetology',
+    tags: ['science', 'planetology', 'EIP', 'fuyuan'],
+    summary: 'The system\'s most prestigious planetological institute, headquartered in Fuyuan on Dahai. Its comparative laboratories, scholarly collections and fellowships support field partnerships throughout Estella: geology, planetary interiors, atmospheres, climate, oceans, ice, magnetospheres and habitability.',
+    services: ['planetary-research', 'field-science', 'reference-collections', 'fellowships'],
+    constraints: ['Partner facilities retain their own operators.', 'Ordinary research data travels electronically; shipping carries instruments, physical specimens and people.'],
+  },
+  {
     id: 'estella-government',
     name: 'Sector Government',
     tags: ['government', 'council', 'GOV'],

@@ -1,6 +1,9 @@
 import { cargoMassForClass, type CargoMassClass } from '../../../mission-cost';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
+import { dahaiTradeContracts } from './dahai-trade-contracts';
+import { DAHAI_GOVERNMENT_LANES, DAHAI_EDF_LANES } from './dahai-partner-lanes';
+
 export const GAIA_CIVILIAN_ID = 'gaia-civilian-bookings';
 export const GOVERNMENT_ID = 'estella-government';
 export const EDF_ID = 'estella-defence-force';
@@ -65,19 +68,19 @@ const CIVILIAN_LANES: readonly Lane[] = [
   freight('research-samples', ORSELLE, 'in', [DESCARTES, RESEARCH, PELAGIC], 'sealed assay cores', 'light', 'University laboratory', 'Physical specimens for laboratory analysis.'),
   freight('specialty-alloys', ROCHEFORT, 'in', [HAMMER, VELES, ROADSTEAD], 'precision alloy billets', 'dense', 'Manufacturing purchasing cooperative', 'Certified metal stock for civilian machinery.'),
   freight('manufacturing-inputs', ROCHEFORT, 'in', [MOSAIC, AMPERE, HIGHLINER], 'high-purity ceramic packages', 'light', 'Precision component manufacturer', 'Specialized fabrication inputs.'),
-  freight('marine-equipment', ROCHEFORT, 'out', [DAHAI, MARICULTURE, PELAGIC], 'floating-habitat infrastructure kits', 'heavy', 'Marine infrastructure manufacturer', 'Habitat and marine civil-engineering infrastructure.'),
+  freight('marine-equipment', ROCHEFORT, 'out', [DAHAI, MARICULTURE, OCEAN], 'floating-habitat infrastructure kits', 'heavy', 'Marine infrastructure manufacturer', 'Habitat and marine civil-engineering infrastructure.'),
   freight('civil-machinery', ROCHEFORT, 'out', [BEAUMONT, AMPERE, CONCORD, WEYMARK, COMMERCIAL, CADIZ], 'civil-engineering machinery', 'heavy', 'Civil equipment manufacturer', 'Construction and municipal machinery.'),
-  freight('agricultural-equipment', ROCHEFORT, 'out', [DAHAI, MARICULTURE, CONCORD, COMMERCIAL], 'agricultural machinery sets', 'heavy', 'Agricultural equipment manufacturer', 'Food-production and handling equipment.'),
+  freight('agricultural-equipment', ROCHEFORT, 'out', [DAHAI, OCEAN, CONCORD, COMMERCIAL], 'agricultural machinery sets', 'heavy', 'Agricultural equipment manufacturer', 'Food-production and handling equipment.'),
   freight('precision-output', ROCHEFORT, 'out', [DESCARTES, SVAROG, VELES, OBSERVATORY], 'sensor interface assemblies', 'light', 'Precision component manufacturer', 'Finished instrumentation and interface assemblies.'),
   freight('overhaul-returns', ROCHEFORT, 'in', [DAHAI, BEAUMONT, CONCORD, COMMERCIAL], 'rebuildable coolant pump sets', 'heavy', 'Industrial repair workshop', 'Customer machinery returned for overhaul.'),
   freight('food-exports', VALENNE, 'out', [BEAUMONT, AMPERE, DESCARTES, CONCORD, ROSTER, WEYMARK, COMMERCIAL, CADIZ, SVAROG, 'harlan-dock', 'mercer-dock'], 'preserved-food crates', 'standard', 'Agricultural cooperative', 'Food for offworld households and workplaces.'),
   freight('fresh-produce', VALENNE, 'out', [BEAUMONT, DAHAI, OLYMPOS, COMMERCIAL, SVAROG], 'fresh-produce crates', 'standard', 'Produce wholesaler', 'Protected fresh produce; temperature control supplied with the consignment.'),
-  freight('seed-exports', VALENNE, 'out', [BEAUMONT, CONCORD, WEYMARK, MARICULTURE], 'certified seed lots', 'light', 'Seed cooperative', 'Planting stock for protected cultivation.'),
+  freight('seed-exports', VALENNE, 'out', [BEAUMONT, CONCORD, WEYMARK, DAHAI], 'certified seed lots', 'light', 'Seed cooperative', 'Planting stock for protected cultivation.'),
   freight('farm-spares', VALENNE, 'in', [HAMMER, VELES, HIGHLINER], 'agricultural machinery spares', 'standard', 'Agricultural purchasing cooperative', 'Specialized parts for local farming and food processing.'),
-  freight('nutrient-inputs', VALENNE, 'in', [CINDERHOOK, MARICULTURE], 'trace-mineral nutrient concentrates', 'standard', 'Agricultural purchasing cooperative', 'Selected nutrient inputs, not bulk soil imports.'),
+  freight('nutrient-inputs', VALENNE, 'in', [CINDERHOOK], 'trace-mineral nutrient concentrates', 'standard', 'Agricultural purchasing cooperative', 'Selected nutrient inputs, not bulk soil imports.'),
   freight('breeding-stock', VALENNE, 'in', [HIGHLINER, KALYNA], 'quarantined breeding stock', 'light', 'Seed cooperative', 'Controlled breeding and cultivation stock.'),
   freight('coastal-specialties', MIRABEL, 'out', [DAHAI, OLYMPOS, BEAUMONT, COMMERCIAL], 'regional specialty foods', 'standard', 'Regional food exporter', 'Packaged coastal food specialties.'),
-  freight('coastal-imports', MIRABEL, 'in', [MARICULTURE, KALYNA, HIGHLINER], 'cultured delicacy stock', 'light', 'Hospitality purchasing cooperative', 'Specialty food for residents and visitors.'),
+  freight('coastal-imports', MIRABEL, 'in', [DAHAI, KALYNA, HIGHLINER], 'cultured delicacy stock', 'light', 'Hospitality purchasing cooperative', 'Specialty food for residents and visitors.'),
   freight('cultural-touring', MIRABEL, 'out', [BEAUMONT, DAHAI, CONCORD], 'musicians’ equipment', 'light', 'Performing arts booking office', 'Touring performance equipment.'),
   freight('cultural-returns', MIRABEL, 'in', [BEAUMONT, DAHAI, CONCORD], 'musicians’ equipment', 'light', 'Performing arts booking office', 'Touring equipment returning home.'),
   freight('polar-habitats', COUSTEAU, 'in', [VELES, BEAUMONT, COMMERCIAL], 'cold-rated habitat fittings', 'standard', 'Polar engineering contractor', 'Protected field habitation and working shelters.'),
@@ -143,7 +146,12 @@ function provider(id: string, name: string, lanes: readonly Lane[], tag?: string
         });
       }
     }
-    return out;
+    const dahaiLanes = id === GOVERNMENT_ID ? DAHAI_GOVERNMENT_LANES : id === EDF_ID ? DAHAI_EDF_LANES : [];
+    return [...out, ...dahaiLanes.flatMap(lane => dahaiTradeContracts(ctx, {
+      factionId: id, factionName: name, factionTag: tag, issuerId: id,
+      generosity: lane.category === 'passenger' ? 0.6 : 0.8,
+      compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
+    }, [lane]))];
   } };
 }
 

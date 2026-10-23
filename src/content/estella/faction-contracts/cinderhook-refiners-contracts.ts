@@ -3,6 +3,8 @@ import { completionBlurbFrom, type CompletionBlurb } from './completion-blurb-ut
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
 import { BAM_FOUNDRY } from '../balor-logistics';
+import { JIUYUAN } from '../dahai-sites';
+import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { balorTradeContracts } from './balor-trade-contracts';
 
 // Cinderhook's small refining houses turn Hartwell/Pike feedstock into brokerable clean lots.
@@ -141,7 +143,12 @@ export const CINDERHOOK_REFINERS_PROVIDER: FactionContractProvider = {
   id: CINDERHOOK_REFINERS_ID,
   name: 'Cinderhook Refining Houses',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return [...generateCinderhookContracts(ctx), ...ROSTER.flatMap(company => company.lots
+    return [...generateCinderhookContracts(ctx),
+      ...ROSTER.flatMap(company => company.lots.filter(lot => lot.label === 'certified clean-metal lots').flatMap(lot => dahaiTradeContracts(ctx, {
+        factionId: CINDERHOOK_REFINERS_ID, factionName: company.name, ...CERTIFIED_EXPORT_PAY,
+      }, [{ id: `${company.slug}:deep-workshop-stock`, site: JIUYUAN, externalIds: [CINDERHOOK], direction: 'in', label: lot.label, massClass: lot.massClass,
+        likelihood: 0.3, purpose: 'Certified material for local repair workshops; Dahai extraction serves its own marine economy.' }]))),
+      ...ROSTER.flatMap(company => company.lots
       .filter(lot => lot.label === 'ceramic flux precursors' || lot.label === 'certified clean-metal lots')
       .flatMap(lot => balorTradeContracts(ctx, {
         factionId: CINDERHOOK_REFINERS_ID, factionName: company.name, ...ROUTINE_EXPORT_PAY,

@@ -16,6 +16,9 @@ interface GuildContractTemplate {
   requiredCertification?: TeamsterCertificationId;
 }
 
+import { FUYUAN, BINGJIE } from '../dahai-sites';
+import { dahaiTradeContracts } from './dahai-trade-contracts';
+
 const GUILD_ID = 'teamsters-guild';
 const GUILD_NAME = 'The Teamsters\' Guild';
 const GUILD_TAG = 'GUILD';
@@ -317,7 +320,13 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
   name: GUILD_NAME,
   generosity: GUILD_BASE_GENEROSITY,
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
-    return [...candidatesFromTemplates(ctx), ...balorSkimContracts(ctx)];
+    return [...candidatesFromTemplates(ctx), ...balorSkimContracts(ctx),
+      ...([FUYUAN, BINGJIE] as const).flatMap(site => dahaiTradeContracts(ctx, {
+        factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
+        generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
+      }, [{ id: 'dahai-port-fuel', site, externalIds: [STILL_DISTRIBUTION], direction: 'in', label: 'stable fuel canisters', massClass: 'standard',
+        purpose: 'Guild spacecraft fuel supply for Dahai port operations; industrial hydrogen is not drive fuel.' }])
+        .map(c => ({ ...c, requiredCertification: 'volatile-cargo' as const })))];
   },
   generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
     if (ctx.issuer.missionTags.includes('old-nell-passage')) return oldNellPassageCandidates(ctx);
