@@ -107,9 +107,9 @@ Internal supply chains are dense and largely uninteresting to the outsider. The 
 |---|---|---|
 | **Balor** | Airless, tidally locked lava-eye planet | Catalogue Estella I. BAM refractory mining/foundry, Shade recreation/recovery town, orbital skim service and trade hub. |
 | **Estella II** | Venus-like, thick toxic atmosphere | Surface uninhabitable. Habitable cloud city in upper atmosphere. Iconic. Decadent. Possibly mysterious. |
-| **Gaia** | Earth-like, breathable atmosphere, weather | Catalogue Estella III. The civilization. Capital, government, the old money. Most-named place in the system. |
+| **Gaia** | Mostly habitable, terraforming ongoing | Catalogue Estella III. Capital, government, old money; cities and agriculture support billions. Polar terraforming remains unfinished. |
 | **Estella IIIa** | Large airless moon of Gaia | Heritage and helium-3. Where the first off-world colony was. |
-| **Dahai** | Breathable water planet, humid marine climate | Catalogue Estella IV. The rival or the relief, depending on who you ask. An ocean world where Gaia's children move when they want to feel like pioneers. |
+| **Dahai** | Breathable water planet, humid marine climate | Catalogue Estella IV. Colonized before Gaia: immediately habitable air and storm-free latitude belts supported floating habitats. |
 
 In addition, between Balor and the star itself sit three free-floating stations in tight solar orbit: **Skim Hub Alpha**, **Skim Hub Beta**, and the **Coronal Observation Post**. These are the working end of the Teamsters' Guild's stellar antimatter operation. Skim crews are extreme professionals, paid extreme rates, and have an extreme mortality rate.
 
@@ -134,6 +134,9 @@ The observatory is removed. Balor Advanced Materials (BAM) is an early-stage, su
 | Estella II.4 | Station, orbit | **Acheron Commercial Hub.** Orbital commercial, customs, and transfer hub over Acheron. |
 
 ### Gaia
+
+Gaia supports billions and extensive agriculture while terraforming continues in oversized polar ice regions. The work must protect existing coasts, farmland and ocean circulation. See [Gaia — an inhabited world still being terraformed](locations/estella-03-gaia.md) for approved chronology, polar conditions and political implications.
+
 | ID | Type | Description |
 |---|---|---|
 | Estella III.1 | Station, low orbit | Main customs and arrival hub |
@@ -143,9 +146,9 @@ The observatory is removed. Balor Advanced Materials (BAM) is an early-stage, su
 | Estella III.5 | Surface | High-tech industrial city. Electronics, optics, fragile cargo origin. |
 | Estella III.6 | Surface | Coastal resort. Passenger destination and luxury cargo. |
 | Estella III.7 | Surface | Agricultural region. Bulk food. The breadbasket. |
-| Estella III.8 | Surface | Polar science and weather research |
+| Estella III.8 | Surface | Active polar terraforming frontier: climate monitoring, glaciology, engineering and ecological restoration |
 | Estella III.9 | Surface | Government / military spaceport. Restricted; classified cargo origin. |
-| Estella III.10 | Surface | Historic/cultural site. Pilgrimage. The first colony's first dome. |
+| Estella III.10 | Surface | Historic/cultural site. Pilgrimage. An early Gaian settlement's First Dome, not the system's first settlement. |
 
 ### Estella IIIa (Luna-like moon)
 | ID | Type | Description |
@@ -164,7 +167,7 @@ The observatory is removed. Balor Advanced Materials (BAM) is an early-stage, su
 | Estella IV.4 | Surface | Floating mariculture platform |
 | Estella IV.5 | Surface | Pelagic research atoll |
 
-> Dahai is a humid marine world: most settlement is coastal, floating, or island-based, and weather/ocean operations define its local economy and culture.
+> Dahai was immediately habitable and settled before Gaia, with floating habitats built in storm-free latitude belts. Weather and ocean operations remain central to its economy. The island/archipelago/atoll descriptions above are older placeholders pending the Dahai authoring pass; a volcanic-island foundation for settlement is not canon.
 
 ### Inner-system Skim Infrastructure
 | ID | Type | Description |
