@@ -16,6 +16,7 @@ import { ORBITAL_LEVELS } from '../src/orbital';
 import { APPROACH_LEVELS } from '../src/approach';
 import { LEVELS } from '../src/levels';
 import { Game } from '../src/game';
+import { contractLocationId } from '../src/contract-presentation';
 
 let assertions=0;
 function assert(ok:unknown,message:string):asserts ok {assertions++;if(!ok)throw Error(message);}
@@ -94,7 +95,7 @@ for(const day of [0,1,20,21,119]) {
     for(const c of [...generateCareerContracts(source,time),...generatePassengerContracts(source,time)]) {
       boardRows++;
       assert(!legacyLocations.includes(c.sourceId)&&!legacyLocations.includes(c.destinationId),'new boards never advertise districts or retired government spaceport');
-      assert(c.sourceName===ESTELLA_NODES_BY_ID.get(c.sourceId)?.name && c.destinationName===ESTELLA_NODES_BY_ID.get(c.destinationId)?.name,'fresh board names reflect current catalog');
+      assert(c.sourceName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name && c.destinationName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name,'fresh board names reflect physical locations in current catalog');
       if(c.destinationId===capital) assert(c.quote.destinationId===capital && c.destinationName==='Orselle','canonical endpoint quoted and displayed');
     }
   }

@@ -43,6 +43,7 @@ import { estellaLocationIntroduction } from './content/estella/location-copy';
 import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEstellaMission, type EstellaGeneratedMissionState, type EstellaTransferOption } from './estella-mission';
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
+import { presentCareerContract } from './contract-presentation';
 import { contributeToNunesInquiry, formatNunesInquiryTitle, nunesInquiryCatalogEntry, nunesInquirySnapshot, nunesInquiryWillClose } from './content/estella/faction-contracts/nunes-inquiries';
 import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
 import type { PreparedContractBoards } from './contract-board-worker-types';
@@ -874,7 +875,7 @@ export class Game {
   }
 
   private currentMissionCompletionText(): string {
-    const contract = this.activeCareerContract;
+    const contract = this.activeCareerContract ? presentCareerContract(this.activeCareerContract) : undefined;
     if (contract?.nunesInquiry) {
       const closingInquiry = nunesInquiryWillClose(
         this.career.nunesInquiries,
@@ -891,12 +892,12 @@ export class Game {
   }
 
   private currentMissionDestinationName(): string | undefined {
-    if (this.activeCareerContract) return this.activeCareerContract.destinationName;
+    if (this.activeCareerContract) return presentCareerContract(this.activeCareerContract).destinationName;
     return undefined;
   }
 
   private currentMissionDestinationLocation(): string | undefined {
-    if (this.activeCareerContract) return this.activeCareerContract.destinationPath;
+    if (this.activeCareerContract) return presentCareerContract(this.activeCareerContract).destinationPath;
     return undefined;
   }
 
@@ -979,7 +980,7 @@ export class Game {
         this.worldTime,
       );
     }
-    const finalContractTitle = completionText && this.activeCareerContract ? this.activeCareerContract.title : undefined;
+    const finalContractTitle = completionText && this.activeCareerContract ? presentCareerContract(this.activeCareerContract).title : undefined;
     this.phaseCompletion = {
       title: finalContractTitle ?? extra.title ?? this.phaseTitle(p),
       tone: extra.tone ?? 'success',
@@ -2523,6 +2524,9 @@ export class Game {
   }
 
   private buildInteractiveScene(state: InteractiveScenePhaseState): InteractiveScene {
+    // Cached and accepted contracts may still contain old dock-level labels.
+    // Render copies only; flight/acceptance keeps the original berth IDs/quote.
+    if (state.contracts) state = { ...state, contracts: state.contracts.map(presentCareerContract) };
     const locationPath = estellaDisplayPath(this.career.locationId);
     const tutorialCertificationIncomplete = !hasTeamsterCertification(this.career, 'line');
     const currentTeamsterRank = teamsterRank(this.career);
@@ -3505,7 +3509,7 @@ export class Game {
     this.activeMaintenanceTelemetry = createMaintenanceTelemetry();
     this.activeMaintenanceContext = {
       missionId,
-      title: this.activeCareerContract?.title ?? 'Generated Estella mission',
+      title: this.activeCareerContract ? presentCareerContract(this.activeCareerContract).title : 'Generated Estella mission',
       sourceId,
       destinationId,
       manifestKind: this.activeCareerContract?.category === 'empty' ? 'empty' : this.activeCareerContract?.category === 'passenger' ? 'passenger' : this.activeMissionQuote ? 'freight' : 'empty',

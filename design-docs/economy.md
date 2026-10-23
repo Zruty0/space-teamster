@@ -2,6 +2,10 @@
 
 This file tracks the actor-driven economy for Space Teamster. It is a working design ledger for faction contract generation now, and for reputation/certification locking later.
 
+## Physical contract destinations — 2026-10-23
+
+Every contract displays the physical station/asteroid name instead of an internal receiving dock: The Still, The Caravanserai, Cupola Station, etc. Shared construction covers every public/contact provider; render-time views also cover cached/accepted contracts. Titles, source/destination fields, paths and endpoint references use physical names. Berth IDs, access, quotes, actual flights and settlement remain unchanged. Surface settlements remain distinct. See [Contract presentation](contract-presentation.md).
+
 ## Current contract model
 
 Career contracts are generated from the player's current dock and career world time. On stations and asteroids, the local BBS pools postings from every selectable POI aboard the same station/asteroid; accepting a posting from a sibling POI silently starts the run from that POI. Planet and moon surface POIs do not share local boards. Faction providers produce explicit contract candidates with an issuer, tag, route, cargo label, cargo mass class, and likelihood. The freight board shows only authored issuer postings, weighted-picking up to10 candidates; passenger boards pick up to18. These include named factions and Gaia's descriptive unnamed civilian issuers, not generic all-to-all open-market filler.

@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Contract destination desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"><option value="still">Delivery to The Still</option><option value="caravanserai">Delivery to The Caravanserai</option><option value="legacy">Cached old posting</option></select><span id="status">Checking live worker…</span>
+<canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS} from '/src/career-state.ts';
+import {createDefaultRigState} from '/src/maintenance/rig-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {contractLocationPresentation} from '/src/contract-presentation.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+const game=Object.create(Game.prototype);
+game.career={...defaultCareerProfile(),money:1e9,certifications:[...TEAMSTER_CERTIFICATION_IDS],rig:createDefaultRigState(true)};
+game.canvas=document.getElementById('screen');game.canvas.width=window.innerWidth-24;game.canvas.height=window.innerHeight-60;
+const selected={};let legacySnapshot='';
+function show(){
+ const c=selected[document.getElementById('view').value];if(!c)return;
+ game.career.locationId=c.sourceId;game.activeCareerContract=c;
+ drawInteractiveScene(game.canvas.getContext('2d'),game.canvas,game.buildInteractiveScene({id:'contractPosting',contracts:[c],contractIndex:0,selectedIndex:0}),0);
+ if(legacySnapshot&&JSON.stringify(selected.legacy)!==legacySnapshot)throw Error('Cached contract mutated');
+}
+document.getElementById('view').onchange=show;
+const requests=[];
+for(const day of [0,1])for(const sourceId of ['skim-hub-alpha-precursor-dock','still-public-approach-dock','estella-iii-main-customs','estella-i-hot-processing'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;
+const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){document.getElementById('status').textContent=`FAIL — ${message}`;document.title='FAIL — contract destinations';worker.terminate();}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{
+ try{
+  if(data.error)throw Error(data.error);
+  const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+  for(const c of rows){
+   const src=contractLocationPresentation(c.sourceId),dst=contractLocationPresentation(c.destinationId);
+   if(c.sourceName!==src.name||c.destinationName!==dst.name||c.sourcePath!==src.path||c.destinationPath!==dst.path)throw Error('Detailed endpoint leaked from worker');
+   if(c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)throw Error('Operational endpoint changed');
+   if(c.destinationName==='The Still')selected.still??=c;
+   if(c.destinationName==='The Caravanserai')selected.caravanserai??=c;
+  }
+  complete++;
+  if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+  worker.terminate();if(!selected.still||!selected.caravanserai)throw Error('Missing representative deliveries');
+  const c=selected.still;
+  selected.legacy={...c,destinationId:'still-public-approach-dock',destinationName:'Public Approach Dock',destinationPath:'The Belt -> New Canaan Field -> The Still -> Public Approach Dock',title:`Deliver ${c.cargo.label} to Public Approach Dock`,category:'freight',quote:{...c.quote,destinationId:'still-public-approach-dock'}};
+  legacySnapshot=JSON.stringify(selected.legacy);
+  for(const view of ['still','caravanserai','legacy']){document.getElementById('view').value=view;show();}
+  document.getElementById('view').value='still';show();
+  document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; physical names, original berth IDs, immutable cached posting`;
+  document.title='PASS — contract destinations';
+ }catch(e){fail(e.message);}
+};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Synthetic in-memory profile only; no constructor, save loading or flight action.
+</script>

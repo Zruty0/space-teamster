@@ -16,6 +16,7 @@ import { estimateEstellaMissionCost, makePayTerms } from '../src/mission-cost';
 import { DOCKING_LEVELS } from '../src/docking';
 import { LEVELS } from '../src/levels';
 import { Game } from '../src/game';
+import { contractLocationId } from '../src/contract-presentation';
 
 let assertions=0;
 function assert(ok:unknown,message:string):asserts ok {assertions++;if(!ok)throw Error(message);}
@@ -154,7 +155,7 @@ for(const day of [0,1,2,3,10,11,20,21,30,31,60,61])for(const source of sources) 
     if(!isNew(c))continue;
     boardRows++;seenActors.add(c.factionId!);
     assert(c.quote.sourceId===c.sourceId&&c.quote.destinationId===c.destinationId,'quote uses dispatched endpoints');
-    assert(c.sourceName===ESTELLA_NODES_BY_ID.get(c.sourceId)?.name&&c.destinationName===ESTELLA_NODES_BY_ID.get(c.destinationId)?.name,'display names match endpoints');
+    assert(c.sourceName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name&&c.destinationName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name,'display names match physical terminals/surface sites');
     assert(c.quote.grossPay>0&&c.details&&c.completionMessage,'actual board is payable with handling information');
     if(c.category==='passenger')assert(!!c.cargo.passengerComfort&&['passenger','fragile-cargo'].includes(c.requiredCertification!),'passenger board license and comfort');
     assert(!['estella-iii-finance-city','estella-iii-historic-site'].includes(c.sourceId)&&!['estella-iii-finance-city','estella-iii-historic-site'].includes(c.destinationId),'no phantom district endpoints');

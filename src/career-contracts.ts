@@ -3,11 +3,12 @@ import type { NunesInquirySnapshot } from './content/estella/faction-contracts/n
 import { canonicalEstellaLocationId, estellaLocationScopeIds } from './content/estella/location-aliases';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { generateFactionContactContractCandidates, generateFactionContractCandidates, type FactionContractCandidate } from './content/estella/faction-contracts';
-import { estellaDisplayPath, estellaSelectableNavTargets } from './content/estella/navigation';
+import { estellaSelectableNavTargets } from './content/estella/navigation';
 import { type EstellaTransferOption, generateEstellaMission } from './estella-mission';
 import { localDirectoryEntryById, localTerminalScopeIds } from './local-directory';
 import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 import { bodyById } from './world';
+import { contractLocationPresentation, presentCareerContract } from './contract-presentation';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -133,18 +134,6 @@ export function preferredContractTransfer(options: EstellaTransferOption[]): Est
   return options.find(option => option.id === 'soon') ?? options[1] ?? options[0];
 }
 
-function contractTarget(destinationId: string): { name: string; path: string } {
-  const target = estellaSelectableNavTargets().find(row => row.id === destinationId);
-  return {
-    name: target?.name ?? ESTELLA_NODES_BY_ID.get(destinationId)?.name ?? destinationId,
-    path: target?.path ?? estellaDisplayPath(destinationId),
-  };
-}
-
-function contractTitleDestination(destinationId: string): string {
-  return ESTELLA_NODES_BY_ID.get(destinationId)?.name ?? contractTarget(destinationId).name;
-}
-
 function positiveAngle(angle: number): number {
   const turn = Math.PI * 2;
   return ((angle % turn) + turn) % turn;
@@ -183,9 +172,9 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     maxCompAllowance: candidate.maxCompAllowance,
   });
   const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, pay);
-  const source = contractTarget(candidate.sourceId);
-  const target = contractTarget(candidate.destinationId);
-  return {
+  const source = contractLocationPresentation(candidate.sourceId);
+  const target = contractLocationPresentation(candidate.destinationId);
+  return presentCareerContract({
     id: `${candidate.factionId}:${candidate.templateId}:${candidate.sourceId}->${candidate.destinationId}:${index}`,
     sourceId: candidate.sourceId,
     sourceName: source.name,
@@ -194,7 +183,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     destinationName: target.name,
     destinationPath: target.path,
     routeClass: classifyRoute(candidate.sourceId, candidate.destinationId),
-    title: candidate.title ?? `${candidate.category === 'passenger' ? 'Transport' : 'Deliver'} ${candidate.cargo.label} to ${contractTitleDestination(candidate.destinationId)}`,
+    title: candidate.title ?? `${candidate.category === 'passenger' ? 'Transport' : 'Deliver'} ${candidate.cargo.label} to ${target.name}`,
     factionId: candidate.factionId,
     issuerId: candidate.issuerId ?? candidate.factionId,
     issuerName: candidate.issuerName ?? candidate.factionName,
@@ -213,7 +202,7 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     details: candidate.details,
     nunesInquiry: candidate.nunesInquiry,
     completionMessage: candidate.completionMessage ?? `${candidate.issuerName ?? candidate.factionName} thanks you for successfully completing this contract.`,
-  };
+  });
 }
 
 /** New postings use physical city endpoints; historical contract objects stay untouched. */
