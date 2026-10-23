@@ -3,6 +3,12 @@
 Updated: 2026-10-23
 Status: review only. Pete recalls liking the original conversation and requests conflicts/difficulties before integration. No runtime names, routes, physics, visuals or current lore changed by this review. Recommendations below are not silently adopted canon.
 
+## Follow-up decisions — 2026-10-23
+
+Pete likes the three cities plus the polar port and explicitly excludes moving cities, moving decks and underwater flight from the needed mechanics. Keep these destinations fixed/stable in gameplay. This selects the four-city concept, not every scientific explanation or monopoly in the source. No runtime implementation requested yet.
+
+Old-capital placement remains open. Recommendation for discussion: Fuyuan, founded around the earliest floating settlement and food-production platforms in a calm latitude belt; later a civic/cultural centre as Jiuyuan, Zhulong and the polar port develop specialized roles. Neither its exact latitude nor its present governmental status has been selected.
+
 ## Source and provenance
 
 - Shared conversation: https://gemini.google.com/share/8adbfbbe3d1b (rendered link https://share.gemini.google/IVOtWWYdExz9), **Deep Ocean Water World Physics**. Page dates: created/published2026-05-11. Retrieved/read in full2026-10-23.
