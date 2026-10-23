@@ -1,7 +1,7 @@
 # Gaia — an inhabited world still being terraformed
 
-Updated: 2026-10-22
-Status: approved geography/names/site roles implemented2026-10-22. Visual redesign remains under discussion; no new flight physics or bespoke mission chains.
+Updated: 2026-10-23
+Status: approved geography/names/site roles implemented2026-10-22. Gaia/Celeste globe artwork implemented2026-10-23; settlement visuals remain deferred. No new flight physics or bespoke mission chains.
 
 ## Settlement chronology
 
@@ -121,13 +121,23 @@ Retain these as proposals, not settled details of the approved present-day story
 - Current career locations at either former district resume in Orselle; all other saved balances, rig state, certifications, contact knowledge and diagnostic credits are preserved. Historical logs and accepted contract/quote objects are not rewritten. Legacy delivery completion settles at the physical city; legacy flight requests generate Orselle's actual landing objective/marker.
 - Approved factual site descriptions appear in the station terminal. No new mission-giving characters, dialogue scenes, factions, shipping templates or special missions have been invented. Gid remains the only authored mission contact.
 - Gaia/Celeste summaries record ongoing terraforming and a living lunar economy. First Dome belongs to Gaia's own history; Beaumont no longer asserts the first off-world colony. Dahai's older island/archipelago/atoll labels become Primary Floating Port, Ocean Weather Station and Pelagic Research Platform, preserving IDs and routes. Its summary records first settlement and calm latitude belts.
-- Artwork, atmospheric/flight tuning and weather profiles are unchanged. There is no new latitude-weather or terraforming simulation; current upper-air weather does not model the surface settlement belts explicitly. Detailed original atmosphere/native-life proposals above remain unconfirmed.
+- At the2026-10-22 rollout, artwork, atmospheric/flight tuning and weather profiles were unchanged. Subsequent globe artwork is described below. There is no new latitude-weather or terraforming simulation; current upper-air weather does not model the surface settlement belts explicitly. Detailed original atmosphere/native-life proposals above remain unconfirmed.
 
 Validation: `npm run test:gaia` covers names/roles, five plus three public sites, migration/history/credits, alias-compatible departures/arrivals/markers, consolidated corporate boards and terminal descriptions. Existing Balor expansion hashes remain the original baseline, with only approved place-name strings normalized back for that historical comparison.
 
-## Visual direction — proposal, not yet approved
+## Globe artwork — approved and implemented 2026-10-23
 
-- Orbital Gaia: visibly terrestrial continents/oceans and broad, irregular remaining ice sheets; settled regions appear mature rather than universally unfinished. Thin cloud treatment and simplified small-scale markers; avoid obscuring flight guidance.
+Pete requested only planet/moon rendering for now: Gaia's big ice caps, oceans and greenery; Celeste as a generic cratered airless world reusable with different tints elsewhere. On preview, he requested smaller oceans and surface sites aligned to appropriate parts of the globe's outer circle.
+
+- `src/world-disc-appearance.ts`: static blue oceans/green continents/two broad irregular pale caps for Gaia; a reusable RGB-tinted airless disc with basins and foreshortened crater relief for Celeste. Approximately29% of the inset visible Gaia disc reads as ice in the pixel fixture; this is an art check, not a planetary climate statistic.
+- Both close orbital discs and moving system/moon markers share the renderers, with simplified small-marker detail. Celeste uses its existing grey/tan palette. Other bodies are not automatically opted into crater rendering.
+- Oceans reduced to approximately15% of the sampled visible disc (not a global climate statistic). Green land reaches the inhabited rim. Orselle/Valenne stay at their existing angles; Rochefort moves to green land, Mirabel to a coast, Cousteau Station to the ice edge, and the military spaceport to green land. Finance/First Dome remain co-located with Orselle. Stable IDs, access, lunar positions and saved contract/history objects remain unchanged.
+- No settlement scenery, clouds, inhabited lighting, new atmosphere effect, spin, gravity/atmosphere/weather tuning or save migration. Actual Gaia surface angles are updated so objectives/departures follow the artwork rather than cosmetic marker offsets. This is still a schematic globe, not a latitude/longitude terrain atlas.
+- Validation/API/preview: [World disc appearance](../world-disc-appearance.md).
+
+## Settlement visual suggestions — recorded for later, not implemented
+
+The following suggestions remain available for a later art pass; the current authorization covers globes only. Thin cloud treatment for Gaia also remains deferred.
 - Orselle: dense, layered civic/university/high-tech skyline, pale masonry and cool glass, clear urban structure. French influence without literal Paris landmarks.
 - Valenne: regional urban skyline backed by agricultural patterns, storage/processing and transport infrastructure.
 - Rochefort: large assembly halls, gantries and busy civil-manufacturing infrastructure; visually distinct from capital towers and Combine foundries.
@@ -135,4 +145,4 @@ Validation: `npm run test:gaia` covers names/roles, five plus three public sites
 - Cousteau Station: compact protected structures, ice escarpments, instrument masts and engineering equipment; a working frontier rather than an ice-covered metropolis.
 - Celeste: airless cratered greys, warm inhabited lighting. Beaumont clustered civic construction; Ampere long process halls/excavations/radiators; Descartes Lab separated instruments/dishes and sheltered habitation.
 
-Keep the readable Canvas2D/vector style and uncluttered landing areas. Art should establish place identity without silently changing collision geometry or flight difficulty. Start by agreeing on orbital Gaia/Celeste appearance, then one representative landing scene.
+Keep the readable Canvas2D/vector style and uncluttered landing areas. Art should establish place identity without silently changing collision geometry or flight difficulty. A later Orselle landing backdrop could establish the shared Gaian architectural style; do not start that pass without authorization.

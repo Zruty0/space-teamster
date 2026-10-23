@@ -1,0 +1,85 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Gaia / Celeste — globe rendering</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:14px monospace}h1{font-size:22px;margin:0 0 10px}p{margin:8px 0}#views{display:flex;gap:20px}canvas{display:block}#status{color:#9cc}a{color:#8bd}</style>
+<h1>GAIA / CELESTE — ORBITAL ART ONLY</h1>
+<p id="status">Checking native canvas…</p>
+<p><a href="?">Disc artwork / reusable tints</a> · <a href="?view=flight">Production orbital views</a></p>
+<div id="views"><canvas id="left" width="580" height="650"></canvas><canvas id="right" width="580" height="650"></canvas></div>
+<script type="module">
+import {drawGaiaDisc,drawCrateredDisc} from '/src/world-disc-appearance.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+import {SURFACE_POIS} from '/src/world.ts';
+try {
+  let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+  const probe=document.createElement('canvas');probe.width=probe.height=512;
+  const p=probe.getContext('2d',{willReadFrequently:true});
+  const draw=(fn)=>{p.clearRect(0,0,512,512);fn(p,256,256,220);};
+  const pixel=(x,y)=>p.getImageData(Math.round(256+x*220),Math.round(256+y*220),1,1).data;
+  draw(drawGaiaDisc);
+  for(const y of [-0.8,0.8]){const c=pixel(0,y);assert(c[0]>100&&Math.abs(c[1]-c[2])<25,'large pale ice cap at each pole');}
+  let c=pixel(0,0);assert(c[2]>c[0]*1.5&&c[2]>c[1]*1.1,'blue ocean between continents');
+  c=pixel(-0.55,0);assert(c[1]>c[0]*1.1&&c[1]>c[2]*1.1,'green continental vegetation');
+  const green=c=>c[1]>c[0]*1.08&&c[1]>c[2]*1.05;
+  const ocean=c=>c[2]>c[1]*1.1&&c[1]>c[0]*1.5;
+  const frozen=c=>c[0]>80&&c[0]/c[1]>.8&&c[2]>c[0];
+  let ice=0,water=0,inside=0;
+  for(let x=-.95;x<=.95;x+=.025)for(let y=-.95;y<=.95;y+=.025)if(x*x+y*y<.95*.95){inside++;const c=pixel(x,y);if(frozen(c))ice++;if(ocean(c))water++;}
+  assert(ice/inside>.22&&ice/inside<.45,'ice covers a substantial but minority portion of visible globe');
+  assert(water/inside>.05&&water/inside<.20,'oceans are smaller than the combined green continents');
+  const sites=SURFACE_POIS.filter(s=>s.bodyId==='estella-iii');
+  const at=(id,delta=0)=>{const a=sites.find(s=>s.id===id).surfaceAngle+delta;return pixel(.98*Math.cos(a),-.98*Math.sin(a));};
+  for(const id of ['estella-iii-capital-city','estella-iii-high-tech-city','estella-iii-agricultural-region','estella-iii-military-spaceport']){
+    const c=at(id);assert(green(c),`${id} must be on green land: ${c}`);
+  }
+  const polar='estella-iii-polar-science',coastal='estella-iii-coastal-resort';
+  assert(frozen(at(polar)),`Cousteau on ice: ${at(polar)}`);
+  assert(green(at(polar,-.14)),`Cousteau near habitable edge: ${at(polar,-.14)}`);
+  assert(green(at(coastal))&&green(at(coastal,-.045))&&ocean(at(coastal,.045)),`Mirabel meets land/sea coast: ${at(coastal)} / ${at(coastal,-.045)} / ${at(coastal,.045)}`);
+  const palettes=[[170,165,150],[205,124,90],[110,160,205]];
+  const painters=[drawGaiaDisc,...palettes.map(t=>(ctx,x,y,r)=>drawCrateredDisc(ctx,x,y,r,t))];
+  for(const paint of painters){
+    draw(paint);const before=p.getImageData(0,0,512,512).data.slice();
+    assert(pixel(1.04,0)[3]===0&&pixel(0,-1.04)[3]===0,'no off-limb paint/glow');
+    draw(paint);const after=p.getImageData(0,0,512,512).data;
+    assert(before.every((v,i)=>v===after[i]),'identical repeated native pixels');
+    p.save();p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(2,3);const matrix=p.getTransform();paint(p,150,150,60);
+    assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===matrix.e&&p.getTransform().f===matrix.f,'canvas style/transform restored');p.restore();
+  }
+  draw(painters[2]);const warm=pixel(0,0);draw(painters[3]);const cool=pixel(0,0);
+  assert(warm[0]>warm[2]&&cool[2]>cool[0],'airless globe recolors correctly');
+  for(const paint of painters)for(const r of [3,5,8,14,24]){
+    p.clearRect(0,0,512,512);paint(p,256,256,r);
+    assert(p.getImageData(256,256,1,1).data[3]===255,'small marker remains opaque/visible');
+  }
+  const canvases=[document.querySelector('#left'),document.querySelector('#right')];
+  if(new URLSearchParams(location.search).get('view')==='flight'){
+    const ids=['estella-iii','estella-iiia'],sites=['estella-iii-capital-city','estella-iiia-science-settlement'];
+    sites.forEach((site,i)=>{
+      const previous=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-iii-main-customs',site,undefined,789+i);
+      const level=ORBITAL_LEVELS.find(l=>!previous.has(l.id)&&l.bodyId===ids[i]&&l.reentryApproachLevelId!==undefined);
+      const state=createOrbitalState(level,{x:level.planetRadius*1.4,y:0,vx:0,vy:-300,time:0});
+      renderOrbital(canvases[i].getContext('2d'),canvases[i],{x:0,y:0,zoom:190/level.planetRadius},state,level,0);
+    });
+  }else{
+    canvases.forEach((canvas,i)=>{
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#030308';ctx.fillRect(0,0,580,650);ctx.font='17px monospace';ctx.textAlign='center';ctx.fillStyle='#c4d8df';ctx.fillText(i?'CELESTE / TINTABLE AIRLESS WORLD':'GAIA / OCEANS, GREENERY, LARGE ICE CAPS',290,24);
+      const paint=painters[i];paint(ctx,290,260,210);
+      if(!i){
+        ctx.font='11px monospace';ctx.fillStyle='#00ffcc';
+        for(const site of sites.filter(s=>!['estella-iii-finance-city','estella-iii-historic-site','estella-iii-military-spaceport'].includes(s.id))){
+          const x=290+210*Math.cos(site.surfaceAngle),y=260-210*Math.sin(site.surfaceAngle);
+          ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();ctx.textAlign=x<290?'right':'left';ctx.fillText(site.name,x+(x<290?-8:8),y+4);
+        }
+        ctx.textAlign='center';
+      }
+      if(i)palettes.forEach((t,j)=>drawCrateredDisc(ctx,125+j*165,535,43,t));
+      else {ctx.font='13px monospace';ctx.fillStyle='#8099ab';ctx.fillText('Static geography; no clouds or city artwork added',290,535);}
+      [3,5,8,14,24].forEach((r,j)=>paint(ctx,130+j*80,615,r));
+    });
+  }
+  document.getElementById('status').textContent=`PASS — ${checks} native-canvas checks; ice ${(ice/inside*100).toFixed(1)}%, ocean ${(water/inside*100).toFixed(1)}%; site placement verified. No saves read/written.`;
+  window.worldDiscPreview={passed:true,checks};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.worldDiscPreview={passed:false,error:String(error)};throw error;}
+</script>

@@ -5,6 +5,7 @@ import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type Transfe
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
 import { drawBalorDisc } from './balor-appearance';
+import { drawAuthoredWorldDisc } from './world-disc-appearance';
 import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-orientation';
 import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
@@ -2767,8 +2768,10 @@ function drawPlanet(
     drawBalorDisc(ctx, cx, cy, level.planetRadius * cam.zoom, level.balorEyeAngle ?? balorEyeAngle ?? 0);
     return;
   }
-  const isStar = bodyById(level.bodyId).id === 'estella';
+  const body = bodyById(level.bodyId);
+  const isStar = body.id === 'estella';
   const r = isStar ? Math.max(level.planetRadius * cam.zoom, 8) : level.planetRadius * cam.zoom;
+  if (drawAuthoredWorldDisc(ctx, level.bodyId, cx, cy, r, body.color)) return;
 
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -2948,7 +2951,7 @@ function drawSystemBodies(
       // The chart body moves: point the Eye at the central star from the same
       // live ephemeris used to place its marker, not a local-visit snapshot.
       drawBalorDisc(ctx, bx, by, br, Math.atan2(-pos.y, -pos.x));
-    } else {
+    } else if (!drawAuthoredWorldDisc(ctx, body.id, bx, by, br, body.color)) {
       ctx.beginPath();
       ctx.arc(bx, by, br, 0, Math.PI * 2);
       ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;

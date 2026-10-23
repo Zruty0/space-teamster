@@ -98,13 +98,15 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
     usage: 'high',
     orbit: { kind: 'circular', radius: 760_000, altitude: 400_000, epochAngle: 1.75, epochTime: 0, orbitSense: -1 },
   },
+  // Gaia rim geography matches world-disc-appearance.ts: green cities, coastal
+  // Mirabel and ice-edge Cousteau. Actual flight angles, not visual offsets.
   'estella-iii-capital-city': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
   'estella-iii-finance-city': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
-  'estella-iii-high-tech-city': { kind: 'surface', parentId: 'estella-iii', angle: 1.35, side: 'equatorial' },
-  'estella-iii-coastal-resort': { kind: 'surface', parentId: 'estella-iii', angle: 2.05, side: 'equatorial' },
+  'estella-iii-high-tech-city': { kind: 'surface', parentId: 'estella-iii', angle: -0.30, side: 'equatorial' },
+  'estella-iii-coastal-resort': { kind: 'surface', parentId: 'estella-iii', angle: -2.98, side: 'equatorial' },
   'estella-iii-agricultural-region': { kind: 'surface', parentId: 'estella-iii', angle: 2.85, side: 'equatorial' },
-  'estella-iii-polar-science': { kind: 'surface', parentId: 'estella-iii', angle: -2.55, side: 'polar' },
-  'estella-iii-military-spaceport': { kind: 'surface', parentId: 'estella-iii', angle: -1.3, side: 'unspecified' },
+  'estella-iii-polar-science': { kind: 'surface', parentId: 'estella-iii', angle: -2.45, side: 'polar' },
+  'estella-iii-military-spaceport': { kind: 'surface', parentId: 'estella-iii', angle: 3.0, side: 'unspecified' },
   'estella-iii-historic-site': { kind: 'surface', parentId: 'estella-iii', angle: 0.1, side: 'equatorial' },
 
   'estella-iiia': {
