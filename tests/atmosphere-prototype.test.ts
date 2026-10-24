@@ -1,4 +1,5 @@
 import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, GAIA_ATMOSPHERE_PROFILE } from '../src/atmosphere-prototype-profile';
+import './atmosphere-timing.test';
 let checks=0;
 function assert(ok:unknown,message:string):asserts ok{checks++;if(!ok)throw Error(message);}
 const json=(x:unknown)=>JSON.stringify(x),p=GAIA_ATMOSPHERE_PROFILE;
@@ -14,6 +15,8 @@ const storms=atmosphereProfile({vortexCount:99,vortexSize:-1,vortexStrength:Infi
 assert(storms.vortexCount===6&&storms.vortexSize===.12&&storms.vortexStrength===p.vortexStrength&&storms.vortexEye===1,'bounded vortex controls');
 assert(atmosphereProfile({vortexCount:1.6}).vortexCount===2,'integer vortex count');
 assert(atmosphereProfile({vortexCount:-1,vortexStrength:0}).vortexCount===0,'vortices can be disabled');
+assert(atmosphereProfile({vortexSpeed:1.7}).vortexSpeed===2&&atmosphereProfile({vortexSpeed:99}).vortexSpeed===3,'integer bounded spin multiplier closes loop');
+assert(atmosphereProfile({vortexSpeed:0}).vortexSpeed===0,'local spin can stop without removing storms');
 for(const t of [-720,-361,-360,-1,0,.01,90,180,359.99,360,720,123456]){
  const phase=atmospherePhase(t,360);assert(phase>=0&&phase<1,'normalized absolute phase');
  assert(Math.abs(phase-atmospherePhase(t+360,360))<1e-12,'periodic through negative/positive time');
@@ -26,12 +29,16 @@ try{
  assert(Object.isFrozen(systems)&&systems.length===6,'bounded frozen storm registry');
  assert(json(systems)===json(atmosphereVortices(p.seed)),'seeded systems repeat');
  assert(json(systems)!==json(atmosphereVortices(p.seed+1)),'system geography varies by seed');
+ for(const key of ['sizeScale','strengthScale','eyeScale','turns']as const)assert(new Set(systems.map(v=>v[key])).size===6,`individual ${key}, not one shared parameter`);
  for(const [i,system]of systems.entries()){
   assert(Object.isFrozen(system)&&Object.isFrozen(system.center),'deep immutable storm descriptors');
   assert(Math.abs(Math.hypot(...system.center)-1)<1e-12,'storm centers on unit sphere');
   assert(system.center.every(Number.isFinite)&&Number.isFinite(system.phase),'finite storm descriptors');
   assert(Math.sign(system.center[1])===(i%2===0?1:-1),'opposite hemisphere circulation anchors');
   assert(Math.abs(system.center[1])>.3&&Math.abs(system.center[1])<.6,'midlatitude systems, not polar/equatorial singularities');
+  assert(system.sizeScale>=.72&&system.sizeScale<=1.20&&system.strengthScale>=.72&&system.strengthScale<=1.27&&system.eyeScale>=.30&&system.eyeScale<=1.45,'bounded individual characteristics');
+  assert(Number.isInteger(system.turns)&&system.turns>=12&&system.turns<=29,'distinct faster integer winding');
+  assert(Math.abs(Math.sin(system.turns*Math.PI*2+system.phase)-Math.sin(system.phase))<1e-12,'individual spin closes exactly analytically');
  }
  const a=atmosphereNoise(p.seed),b=atmosphereNoise(p.seed),c=atmosphereNoise(p.seed+1);
  assert(a.length===64**3,'bounded 256KiB noise volume');

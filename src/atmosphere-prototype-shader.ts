@@ -14,8 +14,10 @@ uniform sampler3D noiseVolume;
 uniform float phase,coverage,scale,fronts,detail,shear,evolution,cirrus,opticalDepth;
 uniform float zonalTurns,tropicalTurns,cirrusTurns;
 uniform vec3 cloudColor;
-uniform float vortexCount,vortexSize,vortexStrength,vortexEye;
+uniform float vortexCount,vortexSize,vortexStrength,vortexEye,vortexSpeed;
 uniform vec4 vortexCenters[6];
+// Per-system size, strength, eye clearing and integer spin turns.
+uniform vec4 vortexProperties[6];
 const float TAU=6.28318530718;
 const mat3 ROT=mat3(.00,.80,.60,-.80,.36,-.48,-.60,-.48,.64);
 float noise3(vec3 p){return texture(noiseVolume,(p+.5)/64.).r;}
@@ -63,7 +65,8 @@ float cyclones(vec3 p,float background){
     float offset=vortexCenters[i].w;
     float along=dot(p,center);
     float distance=atan(length(p-center*along),along);
-    float radius=vortexSize*(.94+.06*sin(t+offset));
+    vec4 individual=vortexProperties[i];
+    float radius=vortexSize*individual.x*(.96+.04*evolution*sin(t+offset));
     float r=distance/radius;
     if(r>=1.)continue;
     float envelope=1.-smoothstep(.40,1.,r);
@@ -72,21 +75,24 @@ float cyclones(vec3 p,float background){
     // Blend DENSITY at the boundary, not a partially rotated coordinate, so a
     // complete loop closes even where the storm blends into its surroundings.
     float handedness=sign(center.y);
-    float twist=vortexStrength*(6.5*pow(1.-r,1.7)+.45*sin(t+offset)*(1.-r));
-    vec3 q=rotateAxis(p,center,-handedness*(2.*t+twist));
+    float strength=vortexStrength*individual.y;
+    float twist=strength*(6.5*pow(1.-r,1.7)+.45*evolution*sin(t+offset)*(1.-r));
+    vec3 spinning=rotateAxis(p,center,-handedness*(individual.w*vortexSpeed*t+offset));
+    vec3 q=rotateAxis(spinning,center,-handedness*twist);
     vec3 east=normalize(cross(vec3(0.,1.,0.),center));
     vec3 north=cross(center,east);
     // Anisotropic feeder filaments are drawn from the SAME seeded noise, then
     // wound into the field. No painted spiral curves, circular outlines or icons.
     vec3 feeding=vec3(dot(q,east)*9.,dot(q,north)*35.,dot(q,center)*7.);
     float filaments=fbm(feeding+vec3(17.,9.,4.));
-    // Keep fine billows in the advected frame: twisting every noise octave
-    // stretches them into polished concentric threads instead of cloud banks.
-    float breakup=fbm(p*55.+vec3(2.,11.,17.));
+    // Fine billows spin with their storm but are NOT radially stretched.
+    // This makes circulation readable without polished concentric threads.
+    float breakup=fbm(spinning*55.+vec3(2.,11.,17.));
     float local=max(0.,cloudField(q,true)+.7*(filaments-.46)+1.8*(breakup-.50));
-    float eye=1.-smoothstep(.055,.17,r);
-    local*=1.-vortexEye*eye;
-    background=mix(background,local,envelope*min(1.,vortexStrength));
+    float eyeRadius=.10+.05*(.5+.5*sin(offset));
+    float eye=1.-smoothstep(eyeRadius*.32,eyeRadius,r);
+    local*=1.-min(1.,vortexEye*individual.z)*eye;
+    background=mix(background,local,envelope*min(1.,strength));
   }
   return background;
 }

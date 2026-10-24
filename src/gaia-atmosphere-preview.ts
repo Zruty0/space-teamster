@@ -1,6 +1,7 @@
 // Review entry point only; not imported by index.html or production rendering.
 import { createAtmospherePrototype, atmosphereProfile, atmospherePhase, GAIA_ATMOSPHERE_PROFILE, type AtmosphereProfile } from './atmosphere-prototype';
 import { drawGaiaDisc } from './world-disc-appearance';
+import { atmosphereVortices } from './atmosphere-prototype-profile';
 const element=<T extends HTMLElement>(id:string)=>document.getElementById(id)as T;
 const status=element('status');
 try{
@@ -12,13 +13,16 @@ try{
     ['coverage','Lower cloud amount',0,1],['fronts','Frontal structure',0,1.5],['scale','Cloud feature scale',.4,2.5],['detail','Fine texture / erosion',0,1],
     ['shear','Wind shear',0,1.5],['evolution','Slow shape evolution',0,1.5],['cirrus','High cirrus',0,1],['opticalDepth','Cloud thickness',.2,8],
     ['haze','Blue atmospheric veil',0,1],['shadow','Cloud shadows',0,.5],
-    ['vortexCount','Vortex count',0,6],['vortexSize','Vortex size (angular radius)',.12,.5],
-    ['vortexStrength','Vortex strength',0,2],['vortexEye','Eye clearing',0,1],
+    ['vortexCount','Vortex count',0,6],['vortexSize','Base vortex radius (radians)',.12,.5],
+    ['vortexStrength','Overall vortex strength',0,2],['vortexEye','Overall eye clearing',0,1],
+    ['vortexSpeed','Spin speed multiplier (0 = stopped)',0,3],
   ];
   function sync(){
     for(const [key,input]of inputs){input.value=String(profile[key]);input.parentElement!.querySelector('output')!.textContent=Number(profile[key]).toFixed(2);}
     element<HTMLInputElement>('seed').value=String(profile.seed);
-    element('profile').textContent=JSON.stringify(profile,null,2);
+    const systems=atmosphereVortices(profile.seed).slice(0,profile.vortexCount);
+    element('profile').textContent=JSON.stringify({profile,vortices:systems},null,2);
+    element('vortices').textContent=systems.map((v,i)=>`Vortex ${i+1}: nominal radius ${(profile.vortexSize*v.sizeScale).toFixed(3)} rad · strength ${(profile.vortexStrength*v.strengthScale).toFixed(2)} · eye ${Math.min(1,profile.vortexEye*v.eyeScale).toFixed(2)} · ${profile.vortexSpeed?(profile.loopSeconds/(v.turns*profile.vortexSpeed)).toFixed(1)+'s / revolution':'spin stopped'} · ${v.center[1]>0?'counterclockwise':'clockwise'}`).join('\n')||'No vortices enabled.';
     element<HTMLInputElement>('scrub').max=String(profile.loopSeconds);
     element('play').textContent=playing?'Pause':'Play';
   }
@@ -36,12 +40,14 @@ try{
     const phase=atmospherePhase(seconds,profile.loopSeconds);
     element<HTMLInputElement>('scrub').value=String(phase*profile.loopSeconds);element('clock').textContent=`${(phase*profile.loopSeconds).toFixed(1)} / ${profile.loopSeconds}s`;
     drawMs=performance.now()-start;
-    status.textContent=`Seed ${profile.seed} · 512px cloud field · ${drawMs.toFixed(1)}ms CPU submission (not GPU timing) · ${playing?'playing':'paused'} · no game saves accessed`;
+    const gpu=generator.timing();
+    const gpuText=gpu.meanMs!==null?`${gpu.meanMs.toFixed(2)}ms GPU cloud draw mean (${gpu.sampleCount} samples; excludes copies/compositing)`:(gpu.supported?'GPU timing pending':'GPU timing unavailable');
+    status.textContent=`Seed ${profile.seed} · 512px field · ${drawMs.toFixed(1)}ms CPU submission · ${gpuText} · ${playing?'playing':'paused'} · no game saves accessed`;
   }
   function setProfile(changes:Partial<AtmosphereProfile>){profile=atmosphereProfile({...profile,...changes});sync();draw();}
   for(const [key,name,min,max]of specifications){
     const label=document.createElement('label'),title=document.createElement('span'),output=document.createElement('output'),input=document.createElement('input');
-    title.textContent=name;input.type='range';input.min=String(min);input.max=String(max);input.step=key==='vortexCount'?'1':'.01';input.dataset.key=key;
+    title.textContent=name;input.type='range';input.min=String(min);input.max=String(max);input.step=key==='vortexCount'||key==='vortexSpeed'?'1':'.01';input.dataset.key=key;
     input.oninput=()=>setProfile({[key]:Number(input.value)});label.append(title,output,input);controls.append(label);inputs.set(key,input);
   }
   element('play').onclick=()=>{playing=!playing;last=performance.now();sync();draw();};

@@ -1,5 +1,6 @@
 import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, type AtmosphereProfile } from './atmosphere-prototype-profile';
 import { ATMOSPHERE_VERTEX, ATMOSPHERE_FRAGMENT } from './atmosphere-prototype-shader';
+import { createAtmosphereGpuTimer } from './atmosphere-prototype-timing';
 export { GAIA_ATMOSPHERE_PROFILE, atmosphereProfile, atmospherePhase } from './atmosphere-prototype-profile';
 export type { AtmosphereProfile } from './atmosphere-prototype-profile';
 
@@ -11,9 +12,10 @@ export function createAtmospherePrototype(resolution=512){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=resolution;
   const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,preserveDrawingBuffer:true,depth:false,stencil:false});
   if(!gl)throw Error('This atmosphere preview needs WebGL2. The game renderer is unchanged.');
+  const timer=createAtmosphereGpuTimer(gl);
   const shaders:WebGLShader[]=[];
   let program:WebGLProgram|null=null,buffer:WebGLBuffer|null=null,texture:WebGLTexture|null=null;
-  const cleanup=()=>{if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));};
+  const cleanup=()=>{timer.dispose();if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));};
   try{
     const compile=(type:number,source:string)=>{
       const s=gl.createShader(type);if(!s)throw Error('Cannot create atmosphere shader');shaders.push(s);
@@ -32,10 +34,11 @@ export function createAtmospherePrototype(resolution=512){
     gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     for(const axis of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T,gl.TEXTURE_WRAP_R])gl.texParameteri(gl.TEXTURE_3D,axis,gl.REPEAT);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.uniform1i(gl.getUniformLocation(program,'noiseVolume'),0);
-    const keys=['phase','coverage','scale','fronts','detail','shear','evolution','cirrus','opticalDepth','zonalTurns','tropicalTurns','cirrusTurns','vortexCount','vortexSize','vortexStrength','vortexEye']as const;
+    const keys=['phase','coverage','scale','fronts','detail','shear','evolution','cirrus','opticalDepth','zonalTurns','tropicalTurns','cirrusTurns','vortexCount','vortexSize','vortexStrength','vortexEye','vortexSpeed']as const;
     const locations=Object.fromEntries(keys.map(k=>[k,gl.getUniformLocation(program!,k)]))as Record<typeof keys[number],WebGLUniformLocation|null>;
     const color=gl.getUniformLocation(program,'cloudColor');
     const vortices=gl.getUniformLocation(program,'vortexCenters[0]');
+    const vortexProperties=gl.getUniformLocation(program,'vortexProperties[0]');
     const shadow=document.createElement('canvas');shadow.width=shadow.height=resolution;
     const shadowCtx=shadow.getContext('2d')!;
     // Successive 2x area reductions avoid sparkling fine clouds on tiny markers.
@@ -53,12 +56,14 @@ export function createAtmospherePrototype(resolution=512){
         check();const profile=atmosphereProfile(input);
         if(profile.seed!==seed){
           gl.texImage3D(gl.TEXTURE_3D,0,gl.R8,64,64,64,0,gl.RED,gl.UNSIGNED_BYTE,atmosphereNoise(profile.seed));
-          gl.uniform4fv(vortices,new Float32Array(atmosphereVortices(profile.seed).flatMap(v=>[...v.center,v.phase])));
+          const systems=atmosphereVortices(profile.seed);
+          gl.uniform4fv(vortices,new Float32Array(systems.flatMap(v=>[...v.center,v.phase])));
+          gl.uniform4fv(vortexProperties,new Float32Array(systems.flatMap(v=>[v.sizeScale,v.strengthScale,v.eyeScale,v.turns])));
           seed=profile.seed;
         }
         gl.viewport(0,0,resolution,resolution);
         for(const key of keys)gl.uniform1f(locations[key],key==='phase'?atmospherePhase(seconds,profile.loopSeconds):profile[key]);
-        gl.uniform3f(color,...profile.cloudColor);gl.drawArrays(gl.TRIANGLES,0,6);
+        gl.uniform3f(color,...profile.cloudColor);timer.begin();gl.drawArrays(gl.TRIANGLES,0,6);timer.end();
         shadowCtx.clearRect(0,0,resolution,resolution);shadowCtx.globalCompositeOperation='source-over';shadowCtx.drawImage(canvas,0,0);
         shadowCtx.globalCompositeOperation='source-in';shadowCtx.fillStyle='#081321';shadowCtx.fillRect(0,0,resolution,resolution);shadowCtx.globalCompositeOperation='source-over';
         for(let i=1;i<mipmaps.length;i++)for(const key of ['cloud','shadow']as const){
@@ -84,7 +89,9 @@ export function createAtmospherePrototype(resolution=512){
         halo.addColorStop(0,`rgba(${rgb},0)`);halo.addColorStop(.25,`rgba(${rgb},${p.haze*.22})`);halo.addColorStop(1,`rgba(${rgb},0)`);
         ctx.fillStyle=halo;ctx.fillRect(cx-radius*1.04,cy-radius*1.04,radius*2.08,radius*2.08);ctx.restore();
       },
-      diagnostics(){return{renderer:String(gl.getParameter(gl.RENDERER)),error:gl.getError(),resolution,noiseBytes:64**3};},
+      timing(){return timer.snapshot();},
+      resetTiming(){timer.reset();},
+      diagnostics(){return{gpu:timer.snapshot(),renderer:String(gl.getParameter(gl.RENDERER)),error:gl.getError(),resolution,noiseBytes:64**3};},
       dispose(){if(!disposed){cleanup();for(const mip of mipmaps)for(const c of [mip.cloud,mip.shadow])c.width=c.height=1;disposed=true;}},
     };
   }catch(error){cleanup();throw error;}

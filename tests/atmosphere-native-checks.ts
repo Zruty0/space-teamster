@@ -1,5 +1,5 @@
 import { drawGaiaDisc as originalGaia } from './fixtures/world-disc-v1';
-import type { AtmosphereProfile } from '../src/atmosphere-prototype-profile';
+import { atmosphereVortices, type AtmosphereProfile } from '../src/atmosphere-prototype-profile';
 interface Scene {
   defaults:AtmosphereProfile;
   render(time:number,changes?:Partial<AtmosphereProfile>):{error:number};
@@ -53,12 +53,26 @@ export function checkAtmosphereNative(api:Scene,canvas:HTMLCanvasElement){
   assert(small!==hash(api.cloudPixels()),'vortex size changes footprint');
   api.render(0,{vortexEye:0});const noEye=hash(api.cloudPixels());api.render(0,{vortexEye:1});
   assert(noEye!==hash(api.cloudPixels()),'eye clearing control');
+  // Freeze every other source of motion: prove local spin, not planetary drift.
+  const isolated={zonalTurns:0,tropicalTurns:0,cirrus:0,shear:0,evolution:0,vortexCount:1};
+  api.render(0,{...isolated,vortexSpeed:0});const stopped=hash(api.cloudPixels());
+  api.render(2,{...isolated,vortexSpeed:0});assert(hash(api.cloudPixels())===stopped,'stopped spin and frozen winds remain static');
+  api.render(0,isolated);const spinStart=api.cloudPixels();
+  api.render(2,isolated);assert(hash(api.cloudPixels())!==hash(spinStart),'local vortex visibly evolves in two seconds without any global drift');
+  const first=atmosphereVortices(api.defaults.seed)[0];
+  api.render(period/first.turns,isolated);const revolution=api.cloudPixels();
+  let spinError=0;for(let i=3;i<spinStart.length;i+=4)spinError+=Math.abs(spinStart[i]-revolution[i]);
+  spinError/=spinStart.length/4;
+  assert(spinError<.02,`isolated vortex repeats at its own spin period: ${spinError}`);
   api.render(0,{seed:api.defaults.seed+1});assert(hash(api.cloudPixels())!==hash(zero),'different seed changes weather');
   api.render(0,{coverage:.2});const low=api.cloudPixels();api.render(0,{coverage:.8});const high=api.cloudPixels();
   let lowAlpha=0,highAlpha=0;for(let i=3;i<low.length;i+=4){lowAlpha+=low[i];highAlpha+=high[i];}
   assert(highAlpha>lowAlpha*1.5,'coverage control increases clouds');
   const slider=document.querySelector<HTMLInputElement>('[data-key=coverage]')!;slider.value='.35';slider.dispatchEvent(new Event('input',{bubbles:true}));
   assert(document.querySelector('output')!.textContent==='0.35','live control wiring');
+  const spinSlider=document.querySelector<HTMLInputElement>('[data-key=vortexSpeed]')!;
+  spinSlider.value='2';spinSlider.dispatchEvent(new Event('input',{bubbles:true}));
+  assert(spinSlider.step==='1'&&document.getElementById('vortices')!.textContent!.includes(`${(period/(first.turns*2)).toFixed(1)}s / revolution`),'spin control updates individual speed readout');
   assert(api.render(0).error===0,'no WebGL error');
   return{checks,hashes:[hash(zero),hash(quarter),hash(half)],seamMeanDifference:seam,cloudCoverage:visible/interior,opaqueFraction:opaque/interior,softFraction:soft/interior,baseMaxDifference,noVortexHash:hash(noVortices),vortexAffectedFraction:affected/(zero.length/4)};
 }
