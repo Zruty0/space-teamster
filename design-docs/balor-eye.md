@@ -1,12 +1,16 @@
 # Balor Eye rendering and entry orientation
 
-Updated: 2026-10-22
+Updated: 2026-10-24
 
 ## Appearance
 
-`src/balor-appearance.ts`: shared `drawBalorDisc()` for the local planet and system-map marker. Charcoal rock, narrow sunward molten cap, yellow/orange interior, irregular red cooling margin and small crust plates. Cached normalized geometry; gradients in Canvas2D; no image assets, frame randomness, animation or off-limb atmospheric halo. Planet/trajectory/target overlays keep their existing draw order.
+`src/balor-appearance.ts`: shared `drawBalorDisc()` for the local planet and system-map marker. On2026-10-24 Pete requested the same cratered-airless treatment as other rocky worlds, plus a deeper Eye and tendrils without widening its angular footprint.
 
-Pete rejected the initial broad cap and requested15–30degrees. `BALOR_EYE_ARC = PI/6` is30° TOTAL surface arc, ±15° from the star-facing point. Its projected shoreline is near x=cos(15°), so the top-down view shows a narrow bright patch on the limb, not a centred eyeball or a molten hemisphere. Shore roughness scales with cap depth; crust and gradient scales follow the same footprint. At small chart scales, an inward one-pixel stroke preserves visibility over the same30° arc; it does not enlarge into a hemisphere.
+The base now uses `drawCrateredDisc()` with stable body-ID profile `estella-i`:68 impacts, scale.88, basin coverage.8, relief contrast1.15, warm-grey tint[109,101,94]. Same immutable normalized crater/basin model and nested LOD as other airless worlds; terrain rotates only with the existing Eye-relative visit/system frame. No terrain/physics/POI changes.
+
+`BALOR_EYE_ARC = PI/6` remains30° TOTAL rim arc (±15°). Original limb endpoints stay at x=cos15°, y=±sin15°. Central shoreline extends inward by~.14 planet radii (x~.827); four tapered molten tendrils reach x=.52–.72. The complete Eye—including tendrils—is clipped to the original angular wedge and disc. Hot yellow/orange radial gradient, red cooling shore and small crust plates remain; no off-limb bloom or atmospheric ring. At small chart scales the original inward one-pixel30° arc hint remains.
+
+Historical progression: the initial broad cap was narrowed at Pete's request on2026-10-21; the2026-10-24 revision changes projected depth, not the approved angular width. No frame RNG, animation or changing permanent seed.
 
 ## Fixed visit orientation
 
@@ -32,4 +36,4 @@ No added magma terrain collisions, radiation/heat damage, weather, orbital mecha
 
 `npm run test:balor` includes naming/catalog regression and `tests/balor-eye.test.ts`:24 entry epochs, three surface destinations, star direction, fixed/retry snapshots, immutable global data, ground/cap separation, real Game load/descent/return/ascent transitions, landing prediction reference, conserved rigid-frame quantities, station start/ephemeris invariance, production local/system renderer dispatch (local snapshot fixed; system marker star-facing across a full orbit, camera offsets and stale snapshot fields), deterministic geometry, small-marker detail and zero-size guards.
 
-Desktop-only visual fixture: `http://127.0.0.1:5173/tests/balor-eye-preview.html`. Uses the production renderer plus20 real-canvas pixel assertions for orientation, colours, narrow footprint, clipping and repeated-image identity. No user profile is loaded. Inspected with headless Edge at1280×900; no mobile viewport or emulation. The fixture is not a production build entry.
+Desktop-only visual fixture: `http://127.0.0.1:5173/tests/balor-eye-preview.html`. Uses the production renderer plus28 real-canvas pixel assertions for orientation, colours, inward reach/unchanged angular sector, clipping and repeated-image identity. Probe canvas explicitly keeps accelerated backing during repeated readback. Balor Eye unit regression2538 assertions covers the new immutable crater profile/tendril bounds as well as the existing visit/flight invariants. No user profile is loaded. Inspected with headless Edge at1280×900; no mobile viewport or emulation. The fixture is not a production build entry.

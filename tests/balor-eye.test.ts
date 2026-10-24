@@ -1,5 +1,5 @@
 import './svg-dom';
-import { drawBalorDisc, balorShoreX, BALOR_EYE_ARC } from '../src/balor-appearance';
+import { drawBalorDisc, balorShoreX, BALOR_EYE_ARC, BALOR_EYE_TENDRILS, BALOR_CRATER_PROFILE } from '../src/balor-appearance';
 import { balorEyeAngleAt, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from '../src/balor-orientation';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { ORBITAL_LEVELS, createOrbitalState, createOrbitalCamera, orbitalToApproachParams, surfaceDistanceFromLandingTarget, updateOrbital, renderOrbital, transferBodyState, type OrbitalLevel } from '../src/orbital';
@@ -16,10 +16,21 @@ function close(a: number, b: number, message: string, tolerance = 1e-7): void { 
 function direction(a: number, b: number, message: string): void { close(Math.cos(a), Math.cos(b), message); close(Math.sin(a), Math.sin(b), message); }
 const sources = ['estella-i-worker-hab', 'estella-i-refractory-mine', 'estella-i-hot-processing'];
 close(BALOR_EYE_ARC * 180 / Math.PI, 30, 'Eye occupies 30 degrees total, not a 30-degree radius');
+const halfEye=BALOR_EYE_ARC/2,height=Math.sin(halfEye);
+close(balorShoreX(height),Math.cos(halfEye),'upper limb endpoint unchanged');
+close(balorShoreX(-height),Math.cos(halfEye),'lower limb endpoint unchanged');
+assert(balorShoreX(0)<.84&&balorShoreX(0)>.8,'Eye spreads inward without widening its rim arc');
+assert(BALOR_CRATER_PROFILE.craterCount===68&&Object.isFrozen(BALOR_CRATER_PROFILE),'stable airless crater profile');
 for (let i = -100; i <= 100; i++) {
-  const y = i / 100;
-  assert(balorShoreX(y) > Math.cos(16 * Math.PI / 180), 'shoreline stays within approximately 30-degree cap');
+  const y=i/100;
+  if(Math.abs(y)>height)assert(balorShoreX(y)>1,'no molten shore outside the original latitude extent');
+  else assert(Math.abs(Math.atan2(y,balorShoreX(y)))<=halfEye+1e-12,'inward shore stays in original angular sector');
 }
+assert(BALOR_EYE_TENDRILS.length===4&&Object.isFrozen(BALOR_EYE_TENDRILS),'four immutable lava tendrils');
+for(const tendril of BALOR_EYE_TENDRILS)for(const [x,y]of tendril){
+ assert(Math.hypot(x,y)<1&&Math.abs(Math.atan2(y,x))<halfEye,'tendrils remain inside limb and original30-degree sector');
+}
+assert(Math.min(...BALOR_EYE_TENDRILS.flatMap(p=>p.map(v=>v[0])))<=.53,'thin fingers reach farther inward');
 const body = bodyById('estella-i');
 const year = 2 * Math.PI * Math.sqrt(body.orbit!.radius ** 3 / bodyById('estella').gm);
 const game: any = Object.create(Game.prototype);
