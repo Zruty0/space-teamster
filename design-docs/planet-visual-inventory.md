@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-24
-Status: Stages1–8 approved; Stages9–11 implemented together at Pete's explicit request, awaiting combined review. Labels retain the approved style. Realistic animated cloud patterns deferred to a separate pass across all atmospheric worlds. All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Realistic animated cloud patterns deferred to a separate pass across all atmospheric worlds. All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
@@ -96,4 +96,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 
 Cloud follow-up: defer new cloud layers to a separate realistic, animated weather-art pass across all worlds with atmospheres. Other already-approved globe artwork remains unchanged; this is not authorization for new flight-weather physics or automatic animation implementation.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). All eleven base-globe stages are implemented. Stages9–11 were explicitly grouped for joint delivery; their combined review is pending. Future clouds, IX identity and settlement artwork still require separate authorization.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). All eleven base-globe stages are implemented. Stages9–11 were explicitly grouped for joint delivery; their combined review was approved on2026-10-24. Future clouds, IX identity and settlement artwork still require separate authorization.

@@ -6,7 +6,7 @@ Pete originally required confirmation between stages. On2026-10-24 he explicitly
 
 ## Approval protocol
 
-- Stages1–8 approved. Pete first authorized Stage9, then explicitly requested all remaining stages together. Stages9–11 are implemented and awaiting combined review at `/tests/final-moons-preview.html`; the eleven-stage base-globe sequence is complete. This does not authorize the separate cloud/weather-art pass. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
+- All Stages1–11 approved. Pete approved the combined Calatrava/Almaden/Marisma preview on2026-10-24; the eleven-stage base-globe sequence is complete. Preview: `/tests/final-moons-preview.html`. This does not authorize the separate cloud/weather-art pass. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current scope (Stages9–11 together by explicit exception). Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Cloud review follow-up: Pete rejects Dahai's storm swirls and asks for no clouds for now. A separate future weather-art pass should cover ALL worlds with atmospheres using more realistic, animated cloud patterns. No animation or physics/weather tuning is authorized now; do not add new cloud layers during the remaining base-globe stages. Existing other-world artwork remains unchanged pending that pass.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
@@ -26,9 +26,9 @@ Pete originally required confirmation between stages. On2026-10-24 he explicitly
 | 6 | Ocean and ice only; cloud/storm artwork removed for a later animated-weather pass. Zhulong on open water, Bingjie on ice; no invented continents. | Dahai only. | Approved after ocean/ice-only revision |
 | 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Approved |
 | 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Approved |
-| 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Implemented; combined review pending |
-| 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Implemented; combined review pending |
-| 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Implemented; combined review pending |
+| 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Approved in combined review |
+| 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Approved in combined review |
+| 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Approved in combined review |
 
 ## Per-stage review checklist
 
@@ -139,4 +139,4 @@ Cloud/storm portion superseded by the revision below; retained here as the initi
 - Marisma (`marisma-appearance.ts`): seed1940068925; three cool lowlands, two pale uplands, three surface-tone layers. Blue Fen.85/Blackwater2.65 on lowlands, Coldgate−.15/Cauldron1.75/Castle−2.4 unchanged. Existing85km/1.6/13km atmosphere retained; no Titan-orange recolour, invented seas/resources or new cloud layers.
 - New shared `authored-ground-geometry.ts` supports only these new worlds: independent permanent-ID-seeded feature streams, immutable normalized regions/volcanic ovals, exact point-subset LOD below60px. One lazy frozen model per moon; Calatrava retains crater geometry even after shared-cache eviction. Old painters/generators unchanged. Approved dark label halos extend to all three without text/anchor/visibility changes.
 - Final moons4769 assertions + labels58 + all earlier world suites pass; native142 gallery/143 per flight, reload hashes identical, all14 local and3 parent views checked. Gallery and representative Marcher Wells/Yellow Pit/Blue Fen flights inspected. All prior seven galleries/all targets pass; prior image hashes retained. Their native counts now rocky222/ice136/giants56/Acheron156/Dahai60/Hartwell60/Kuznia64 (three former fallback exclusions removed).
-- Markers41, Camps43488+review17055, Balor8721+Eye2204, empty2872+render35, contract presentation117393 and build/diff pass. No content IDs, body/flight physics, atmospheres, placements, access, quotes/history or saves changed. No mobile/push; Vite remains available. STOP for combined review; cloud animation/IX conversion/settlement scenery remain separate work.
+- Markers41, Camps43488+review17055, Balor8721+Eye2204, empty2872+render35, contract presentation117393 and build/diff pass. No content IDs, body/flight physics, atmospheres, placements, access, quotes/history or saves changed. No mobile/push; Vite remains available. Pete approved the combined result on2026-10-24. All base-globe stages complete and approved; cloud animation/IX conversion/settlement scenery remain separate work.

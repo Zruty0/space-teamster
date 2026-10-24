@@ -78,7 +78,7 @@ Pete explicitly grouped the remaining three stages for joint delivery. Modules `
 - Almaden seed155964474: four ochre/russet flow fields, three sulfur regions, four irregular three-layer dark calderas. Yellow Pit.2 on sulfur terrain, Cinnabar−2.25 on volcanic ground, Castle1.65 unchanged; all sites outside calderas. Original38km/.22/8km atmosphere retained. Four total destinations including Almaden Orbital.
 - Marisma seed1940068925: three blue-grey lowlands, two pale uplands, three tonal surface layers. Blue Fen.85/Blackwater2.65 in lowlands, remaining angles unchanged. Original85km/1.6/13km atmosphere retained. No invented seas/resources, orange recolour, clouds/haze. Five destinations.
 
-All three use approved label halos with original text/status colours/fonts/anchors. Preview `/tests/final-moons-preview.html` presents all three together, small discs, actual rim-site guides, fourteen synthetic local orbital destinations and three parent-system views. No access/physics/saves changes; combined review pending. This finishes the base-globe sequence, not the separate weather-art work.
+All three use approved label halos with original text/status colours/fonts/anchors. Preview `/tests/final-moons-preview.html` presents all three together, small discs, actual rim-site guides, fourteen synthetic local orbital destinations and three parent-system views. No access/physics/saves changes; Pete approved the combined review on2026-10-24. This finishes the base-globe sequence, not the separate weather-art work.
 
 ## Deferred cloud/weather-art pass
 
