@@ -21,7 +21,7 @@ function assert(ok: unknown, message: string): asserts ok { assertions++; if (!o
 const storage = new Map<string,string>(); let failSave=false, saves=0;
 (globalThis as any).localStorage={ getItem:(k:string)=>storage.get(k)??null, setItem:(k:string,v:string)=>{if(failSave)throw Error('test storage failure');saves++;storage.set(k,v);}, removeItem:(k:string)=>storage.delete(k) };
 const profile=defaultCareerProfile(); profile.certifications=['basic-1','basic-2','basic-3','line'];
-const unlisted=['estella-v-abandoned-colony','estella-viii-abandoned-site','reach-comet-fragment-2-poi','reach-rogue-lonely-beacon','deepest-dock-poi','estella-ix-geological-feature','reach-comet-fragment-4-poi','reach-comet-fragment-6-poi'];
+const unlisted=['estella-v-abandoned-colony','estella-viii-abandoned-site','reach-comet-fragment-2-poi','reach-rogue-lonely-beacon','deepest-dock-poi','reach-comet-fragment-4-poi','reach-comet-fragment-6-poi'];
 const pois=ESTELLA_NODES.filter(n=>n.kind==='poi');
 assert(Object.keys(EMPTY_TRAVEL_ACCESS).length===pois.length,'every POI explicitly reviewed, no stale access entries');
 for(const n of pois) assert(Object.prototype.hasOwnProperty.call(EMPTY_TRAVEL_ACCESS,n.id),`access authored: ${n.id}`);

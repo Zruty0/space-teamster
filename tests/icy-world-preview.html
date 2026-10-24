@@ -2,10 +2,10 @@
 <meta charset="utf-8">
 <title>Stage 3 — icy worlds</title>
 <style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(4,280px);gap:14px;margin-top:12px}.card{background:#080d15}.card h2{font:14px monospace;text-align:center;min-height:34px;margin:10px 8px 0}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px;max-width:360px}#flight{margin-top:12px}</style>
-<h1>STAGE 3 — EIGHT ICY WORLDS</h1>
+<h1>ICY WORLDS — SEVEN RETAINED PROFILES</h1>
 <p>Revised: layered shades and sparse impacts, without cracks; more varied tints. Beira's ocean stays below its ice.</p>
 <p>Mercy's existing thin atmosphere appears in the production orbital view. Rocky worlds, Gaia and Balor remain unchanged.</p>
-<p>IX remains icy here; its possible sand-world identity is still under discussion.</p>
+<p>Sahra (IX) now has an approved regolith-desert identity; see the rocky-world gallery. The other seven ice profiles are unchanged.</p>
 <p id="status">Checking native rendering…</p>
 <p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Same tint (gallery only)</label> · <select id="body"></select></p>
 <div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
@@ -28,7 +28,7 @@ try{
   const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
   const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
   const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]),greyImages=[],hashes=[];
-  assert(ids.length===8,'exactly eight icy bodies');
+  assert(ids.length===7,'seven remaining icy bodies');
   for(const id of ids){
     const body=bodyById(id),profile=icyWorldProfileFor(id);
     const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,id,128,128,100,body.color),`${body.name}: live dispatch`));
@@ -86,7 +86,7 @@ try{
     const state=createOrbitalState(level,{x:level.planetRadius*1.4,y:0,vx:0,vy:-300,time:12345});
     renderOrbital(flight.getContext('2d'),flight,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
   }else{flight.style.display='none';galleryView();document.getElementById('grey').onchange=galleryView;}
-  document.getElementById('status').textContent=`PASS — ${checks} native checks; eight distinct live profiles; Celeste/Gaia pixels preserved. No saves read/written.`;
+  document.getElementById('status').textContent=`PASS — ${checks} native checks; seven distinct live profiles; Celeste/Gaia pixels preserved. No saves read/written.`;
   window.icyStage3Preview={passed:true,checks,stage:3,ids,hashes};
 }catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.icyStage3Preview={passed:false,error:String(error)};throw error;}
 </script>

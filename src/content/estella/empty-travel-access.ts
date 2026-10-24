@@ -20,7 +20,7 @@ const UNLISTED = [
   'estella-xiid-mirror-clinic', 'estella-xiv-smuggler-haven', 'reach-comet-fragment-3-poi',
   // Abandoned, isolated and lore sites: no empty arrival until a contact is known.
   'estella-v-abandoned-colony', 'estella-viii-abandoned-site', 'reach-comet-fragment-2-poi',
-  'reach-rogue-lonely-beacon', 'deepest-dock-poi', 'estella-ix-geological-feature',
+  'reach-rogue-lonely-beacon', 'deepest-dock-poi',
   'reach-comet-fragment-4-poi', 'reach-comet-fragment-6-poi',
   'coronal-observation-post-ops', 'estella-xiv-abandoned-active-site',
 ] as const;
@@ -45,7 +45,7 @@ const PUBLIC: readonly string[] = [
   'casino-concourse', 'science-asteroid-main-observatory-dock',
   'estella-viii-first-rendezvous-station', 'estella-viii-harder-approach-station', 'estella-viii-settlement',
   'estella-viii-mining-site', 'estella-viii-moonlet-docking-site',
-  'estella-ix-low-orbit-research-station', 'estella-ix-opposite-sense-supply-depot', 'estella-ix-research-base', 'estella-ix-ice-mine', 'estella-ix-moonlet-observation-outpost',
+  'estella-ix-geological-feature', 'estella-ix-opposite-sense-supply-depot', 'estella-ix-research-base', 'estella-ix-ice-mine', 'estella-ix-moonlet-observation-outpost',
   'estella-x-observation-skim-hub', 'estella-xa-volatiles-transit', 'estella-xa-deep-ice-mine',
   'estella-xb-rare-element-mine', 'estella-xb-smelting-processing', 'estella-xb-worker-hab',
   'estella-xc-main-outpost', 'estella-xc-transit-refuel', 'estella-xc-castle-alvares', 'estella-xc-castle-mendes',

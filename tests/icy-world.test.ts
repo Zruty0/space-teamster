@@ -7,7 +7,7 @@ import { BODIES, SURFACE_POIS, bodyById } from '../src/world';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { ORBITAL_LEVELS, createOrbitalState, renderOrbital, transferBodyState, type OrbitalLevel } from '../src/orbital';
 
-export const EXPECTED_ICY_IDS: readonly string[] = ['estella-ix','estella-xa','estella-xic','estella-xiia','estella-xiic','estella-xiii','estella-xiv','reach-rogue-kbo-fragment'];
+export const EXPECTED_ICY_IDS: readonly string[] = ['estella-xa','estella-xic','estella-xiia','estella-xiic','estella-xiii','estella-xiv','reach-rogue-kbo-fragment'];
 let assertions = 0;
 function assert(ok: unknown, msg: string): asserts ok { assertions++; if (!ok) throw Error(msg); }
 const json = (x: unknown) => JSON.stringify(x);
@@ -25,16 +25,17 @@ function frozen(value: any): void {
   assert(Object.isFrozen(value),'deeply immutable geometry');
   for (const v of Object.values(value)) frozen(v);
 }
-assert(json(Object.keys(ESTELLA_ICY_WORLD_PROFILES).sort())===json([...EXPECTED_ICY_IDS].sort()),'exact eight approved ice worlds');
+assert(json(Object.keys(ESTELLA_ICY_WORLD_PROFILES).sort())===json([...EXPECTED_ICY_IDS].sort()),'seven retained ice worlds after approved Sahra conversion');
 assert(Object.isFrozen(ESTELLA_ICY_WORLD_PROFILES),'frozen registry');
 assert(json(Object.keys(ESTELLA_ICY_WORLD_TINTS).sort())===json([...EXPECTED_ICY_IDS].sort()),'exact approved palette scope');
 frozen(ESTELLA_ICY_WORLD_TINTS);
-assert(new Set(Object.values(ESTELLA_ICY_WORLD_TINTS).map(json)).size===8,'eight distinct art-only palettes');
+assert(new Set(Object.values(ESTELLA_ICY_WORLD_TINTS).map(json)).size===7,'seven distinct art-only palettes');
 const fallbackTint = [170,170,170] as const;
 for(const id of ['constructor','__proto__','unknown'])assert(icyWorldTintFor(id,fallbackTint)===fallbackTint,'palette lookup safely preserves unknown-body fallback');
 // Captured from 8fb004b BEFORE the revision; pin retained frost/basin/crater data.
 // Do not regenerate these to bless unintended geography/count changes.
-const originalGeometryHashes=[72870987,1418737051,2764990927,1396391714,2451217607,2222628236,2049786345,3696563776];
+// Original IX hash72870987 is retired with its explicitly replaced ice profile.
+const originalGeometryHashes=[1418737051,2764990927,1396391714,2451217607,2222628236,2049786345,3696563776];
 const worldBefore=json([BODIES,SURFACE_POIS]),layouts=new Set<string>(),frosts=new Set<string>();
 const originalRandom=Math.random;
 try {
@@ -75,10 +76,10 @@ try {
     }
   }
 } finally { Math.random=originalRandom; }
-assert(layouts.size===8&&frosts.size===8,'all eight have distinct frost/impact geography');
+assert(layouts.size===7&&frosts.size===7,'all seven have distinct frost/impact geography');
 const base=icyWorldProfile('estella-xa'),old=icyWorldGeometry(base),snapshot=json(old);
 assert(icyWorldProfile('estella-xa',{seed:undefined}).seed===base.seed,'undefined override keeps permanent ID seed');
-assert(json(EXPECTED_ICY_IDS.map(id=>icyWorldProfileFor(id)!.seed))===json([267736572,852143118,1928884131,1680290610,1713845848,1814511562,1610109370,896573598]),'v1 icy body seed mapping pinned');
+assert(json(EXPECTED_ICY_IDS.map(id=>icyWorldProfileFor(id)!.seed))===json([852143118,1928884131,1680290610,1713845848,1814511562,1610109370,896573598]),'v1 icy body seed mapping pinned');
 for(let i=0;i<ICE_GEOMETRY_CACHE_LIMIT+10;i++) icyWorldGeometry(icyWorldProfile(`eviction-${i}`));
 const rebuilt=icyWorldGeometry(base);
 assert(rebuilt!==old&&json(rebuilt)===snapshot,'bounded LRU evicts and rebuilds identical model');
@@ -89,7 +90,7 @@ assert(Object.values(invalid).every(v=>typeof v!=='number'||Number.isFinite(v)),
 const bounded=resolveIcyWorldProfile({seed:1,frostCoverage:5,dirt:-4});
 assert(bounded.frostCoverage===1&&bounded.dirt===0,'bounded controls');
 const bad=recorder();drawIcyDisc(bad.ctx,0,0,100,[NaN,100,100],base);assert(!bad.calls.length,'invalid palette skipped');
-for(const id of ['estella-iiia','estella-iv','estella-x','estella-xd','estella-ix-captured-moonlet','estella-viii-captured-moonlet','constructor','__proto__'])assert(!icyWorldProfileFor(id),'no accidental opt-in');
+for(const id of ['estella-ix','estella-iiia','estella-iv','estella-x','estella-xd','estella-ix-captured-moonlet','estella-viii-captured-moonlet','constructor','__proto__'])assert(!icyWorldProfileFor(id),'no accidental opt-in');
 const mercy=bodyById('estella-xiia');
 assert(mercy.atmosphere?.height===34000&&mercy.atmosphere.surfaceDensity===0.12&&mercy.atmosphere.scaleHeight===9000,'original thin nitrogen atmosphere retained');
 assert(bodyById('estella-xa').atmosphere===null,'Beira remains airless, no exposed surface ocean/atmosphere');
@@ -124,4 +125,4 @@ for(const [index,id] of EXPECTED_ICY_IDS.entries()){
   }
 }
 assert(json([BODIES,SURFACE_POIS])===worldBefore,'world physics, palettes, atmosphere, ephemerides and sites unchanged');
-console.log(`Icy world family passed: ${assertions} assertions; eight distinct immutable worlds, stable LOD, actual orbital paths and Mercy atmosphere.`);
+console.log(`Icy world family passed: ${assertions} assertions; seven distinct immutable worlds, stable LOD, actual orbital paths and Mercy atmosphere.`);

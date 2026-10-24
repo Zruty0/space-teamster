@@ -42,7 +42,6 @@ export const ESTELLA_LAYOUTS: Partial<Record<string, LayoutOverride>> = {
   // The Belt
   'estella-viii-friendly-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 334 },
   'estella-viii-high-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 145 },
-  'estella-ix-research-station': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 21 },
   'estella-ix-supply-depot': { layoutId: 'small-station-1', autoRotate: false, rotationDegrees: 24 },
 
   // The Wells — fixed orientations, like the other stations (one-time seed 20261017).

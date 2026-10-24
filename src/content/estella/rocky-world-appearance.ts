@@ -10,6 +10,8 @@ export const ESTELLA_ROCKY_WORLD_PROFILES: Readonly<Partial<Record<string, Crate
   'estella-vib': crateredWorldProfile('estella-vib', { craterCount: 64, craterScale: 1.05, basinCoverage: 0.9, reliefContrast: 1.1 }), // Kalyna
   'estella-vii': crateredWorldProfile('estella-vii', { craterCount: 72, craterScale: 0.82, basinCoverage: 0.75, reliefContrast: 0.8 }), // Tessera
   'estella-viii': crateredWorldProfile('estella-viii', { craterCount: 48, craterScale: 1.12, basinCoverage: 1.2 }), // Weymark
+  // Sahra: approved cold regolith desert; muted, partly buried impact relief.
+  'estella-ix': crateredWorldProfile('estella-ix', { craterCount: 38, craterScale: 0.8, basinCoverage: 0.85, reliefContrast: 0.65 }),
   'estella-xb': crateredWorldProfile('estella-xb', { craterCount: 66, basinCoverage: 0.85 }), // Tinto
   'estella-xc': crateredWorldProfile('estella-xc', { craterCount: 42, craterScale: 1.18, basinCoverage: 1.25, reliefContrast: 0.95 }), // Thronehold
   'estella-xid': crateredWorldProfile('estella-xid', { basinCoverage: 0.95 }), // Cadiz

@@ -1,3 +1,4 @@
+import { canonicalEstellaLocationId } from '../location-aliases';
 import { cargoMassForClass, type CargoMassClass } from '../../../mission-cost';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
@@ -36,6 +37,8 @@ const HIGHLINER = 'caravanserai-highliner-bay-poi';
 const CUSTOMS = 'caravanserai-customs-inspection';
 const WEYMARK = 'estella-viii-settlement';
 const RESEARCH = 'estella-ix-research-base';
+// Legacy consignment/seed key only. The station was removed; existing research
+// consignments now arrive at Suhail for onward handling, not a new orbital lab.
 const OBSERVATORY = 'estella-ix-low-orbit-research-station';
 const CADIZ = 'estella-xid-main-port';
 const SERRATINE = 'estella-xc-main-outpost';
@@ -129,7 +132,7 @@ function provider(id: string, name: string, lanes: readonly Lane[], tag?: string
       for (const direction of lane.direction === 'both' ? ['in', 'out'] as const : [lane.direction]) {
         const sourceId = direction === 'out' ? lane.site : external;
         if (sourceId !== ctx.sourceId) continue;
-        const destinationId = direction === 'out' ? external : lane.site;
+        const destinationId = canonicalEstellaLocationId(direction === 'out' ? external : lane.site);
         const key = `${lane.id}:${external}:${direction}`;
         out.push({
           factionId: id, factionName: name, factionTag: tag,

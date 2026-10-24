@@ -4,7 +4,6 @@ import type { WorldTint } from '../../world-disc-primitives';
 // Stage 3 only: explicit landable globes, never infer from an atmosphere flag.
 // Mercy keeps its existing atmosphere; Beira's dark ice is not surface ocean.
 export const ESTELLA_ICY_WORLD_PROFILES: Readonly<Partial<Record<string, IcyWorldProfile>>> = Object.freeze({
-  'estella-ix': icyWorldProfile('estella-ix', { craterCount: 38, frostCoverage: 0.60, dirt: 0.18 }),
   'estella-xa': icyWorldProfile('estella-xa', { craterCount: 12, craterScale: 0.45, basinCoverage: 0.45, frostCoverage: 0.92, dirt: 0.02 }),
   'estella-xic': icyWorldProfile('estella-xic', { craterCount: 32, basinCoverage: 1.1, frostCoverage: 0.48, dirt: 0.12 }),
   'estella-xiia': icyWorldProfile('estella-xiia', { craterCount: 18, craterScale: 0.5, basinCoverage: 0.6, frostCoverage: 0.95, dirt: 0.04 }),
@@ -14,9 +13,8 @@ export const ESTELLA_ICY_WORLD_PROFILES: Readonly<Partial<Record<string, IcyWorl
   'reach-rogue-kbo-fragment': icyWorldProfile('reach-rogue-kbo-fragment', { craterCount: 82, craterScale: 0.8, basinCoverage: 1.3, frostCoverage: 0.22, dirt: 0.78 }),
 });
 // Art-only palettes: do not change atmosphere, terrain, navigation or physics.
-// IX remains ice/lavender pending a separate decision on its proposed sand identity.
+// Sahra (IX) now uses the approved rocky/regolith profile; its ice is buried.
 export const ESTELLA_ICY_WORLD_TINTS: Readonly<Partial<Record<string, WorldTint>>> = Object.freeze({
-  'estella-ix': Object.freeze([174, 155, 194] as const), // muted lavender
   'estella-xa': Object.freeze([145, 199, 215] as const), // glacial cyan
   'estella-xic': Object.freeze([135, 181, 165] as const), // pale jade
   'estella-xiia': Object.freeze([216, 205, 178] as const), // ivory

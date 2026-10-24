@@ -11,7 +11,7 @@ import { ORBITAL_LEVELS, createOrbitalState, renderOrbital, transferBodyState, t
 // worlds, Calatrava, atmospheric worlds, giants or captured asteroids.
 export const EXPECTED_ROCKY_IDS: readonly string[] = [
   'estella-iiia','estella-va','estella-via','estella-vib','estella-vii','estella-viii',
-  'estella-xb','estella-xc','estella-xid','estella-xie','estella-xif','estella-xiib','estella-xiid',
+  'estella-ix','estella-xb','estella-xc','estella-xid','estella-xie','estella-xif','estella-xiib','estella-xiid',
 ];
 let assertions=0;
 function assert(ok:unknown,message:string):asserts ok {assertions++;if(!ok)throw Error(message);}
@@ -27,7 +27,7 @@ function recorder(){
   }) as CanvasRenderingContext2D;
   return {ctx,calls};
 }
-assert(JSON.stringify(Object.keys(ESTELLA_ROCKY_WORLD_PROFILES).sort())===JSON.stringify([...EXPECTED_ROCKY_IDS].sort()),'exactly the 13 approved rocky worlds');
+assert(JSON.stringify(Object.keys(ESTELLA_ROCKY_WORLD_PROFILES).sort())===JSON.stringify([...EXPECTED_ROCKY_IDS].sort()),'13 approved rocky worlds plus approved Sahra regolith conversion');
 assert(Object.isFrozen(ESTELLA_ROCKY_WORLD_PROFILES),'registry immutable');
 const physicsBefore=JSON.stringify(BODIES),sitesBefore=JSON.stringify(SURFACE_POIS);
 const seeds=new Set<number>(),layouts=new Set<string>();
@@ -50,8 +50,8 @@ for(const id of EXPECTED_ROCKY_IDS){
     }
   }
 }
-assert(seeds.size===13&&layouts.size===13,'all 13 worlds have distinct permanent geology');
-for(const id of ['estella-i','estella-iii','estella-xa','estella-xic','estella-xiia','estella-xd','estella-iv','estella-x','estella-ix','estella-xiii','estella-viii-captured-moonlet','constructor','toString','__proto__']){
+assert(seeds.size===14&&layouts.size===14,'all 14 worlds have distinct permanent geology');
+for(const id of ['estella-i','estella-iii','estella-xa','estella-xic','estella-xiia','estella-xd','estella-iv','estella-x','estella-xiii','estella-viii-captured-moonlet','constructor','toString','__proto__']){
   assert(rockyWorldProfileFor(id)===undefined,`${id}: not accidentally included by atmosphere/prototype lookup`);
 }
 
@@ -87,4 +87,4 @@ for(let index=0;index<EXPECTED_ROCKY_IDS.length;index++){
   }
 }
 assert(JSON.stringify(BODIES)===physicsBefore&&JSON.stringify(SURFACE_POIS)===sitesBefore,'body physics, palettes, ephemerides and surface placements unchanged');
-console.log(`Rocky world rollout passed: ${assertions} assertions; 13 authored profiles, actual central/parent markers, exact Celeste and unchanged world geometry.`);
+console.log(`Rocky world rollout passed: ${assertions} assertions; 14 authored profiles, actual central/parent markers, exact Celeste and unchanged world geometry.`);

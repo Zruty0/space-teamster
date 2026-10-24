@@ -1,0 +1,242 @@
+{
+  "sourceCommit": "05fe774",
+  "raw": [
+    15669,
+    2201064976
+  ],
+  "unaffectedRaw": [
+    15613,
+    936406408
+  ],
+  "unaffectedBoards": [
+    7463,
+    4064477568
+  ],
+  "physics": {
+    "radius": 165000,
+    "gm": 39476250000,
+    "rotationPeriod": 52000,
+    "notes": "Icy sibling dwarf planet near Estella VIII for same-belt transfer prototyping."
+  },
+  "placements": {
+    "estella-ix": {
+      "kind": "orbit",
+      "parentId": "estella",
+      "usage": "stellar",
+      "orbit": {
+        "kind": "circular",
+        "radius": 1585000000,
+        "epochAngle": 2.95,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-ix-supply-depot": {
+      "kind": "orbit",
+      "parentId": "estella-ix",
+      "usage": "high",
+      "orbit": {
+        "kind": "circular",
+        "radius": 390000,
+        "altitude": 225000,
+        "epochAngle": 1.05,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-ix-opposite-sense-supply-depot": {
+      "kind": "aboard",
+      "parentId": "estella-ix-supply-depot"
+    },
+    "estella-ix-research-base": {
+      "kind": "surface",
+      "parentId": "estella-ix",
+      "angle": 0.55,
+      "side": "equatorial"
+    },
+    "estella-ix-ice-mine": {
+      "kind": "surface",
+      "parentId": "estella-ix",
+      "angle": 2.75,
+      "side": "equatorial"
+    },
+    "estella-ix-captured-moonlet": {
+      "kind": "orbit",
+      "parentId": "estella-ix",
+      "usage": "moon",
+      "orbit": {
+        "kind": "circular",
+        "radius": 2500000,
+        "epochAngle": -1.75,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-ix-moonlet-observation-outpost": {
+      "kind": "aboard",
+      "parentId": "estella-ix-captured-moonlet"
+    },
+    "estella-ix-geological-feature": {
+      "kind": "surface",
+      "parentId": "estella-ix",
+      "angle": -1.15,
+      "side": "unspecified"
+    }
+  },
+  "profiles": {
+    "estella-ix-research-base": {
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 880,
+          "xEnd": 905,
+          "height": 38
+        },
+        {
+          "xStart": 1110,
+          "xEnd": 1135,
+          "height": 46
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -90000,
+        "startY": 9000,
+        "startVX": 480,
+        "startVY": -24,
+        "startAngle": 1.5,
+        "gateY": 1500,
+        "gateRadius": 1800,
+        "gateMaxSpeed": 150,
+        "gateMinSpeed": 15
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 8000,
+        "thresholdApoapsisAltitude": 85000,
+        "targetOrbitAltitude": 100000,
+        "orbitDir": 1,
+        "fuelSeconds": 180
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-ix-ice-mine": {
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 880,
+          "xEnd": 905,
+          "height": 38
+        },
+        {
+          "xStart": 1110,
+          "xEnd": 1135,
+          "height": 46
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -90000,
+        "startY": 9000,
+        "startVX": 480,
+        "startVY": -24,
+        "startAngle": 1.5,
+        "gateY": 1500,
+        "gateRadius": 1800,
+        "gateMaxSpeed": 150,
+        "gateMinSpeed": 15
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 8000,
+        "thresholdApoapsisAltitude": 85000,
+        "targetOrbitAltitude": 100000,
+        "orbitDir": 1,
+        "fuelSeconds": 180
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-ix-geological-feature": {
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 880,
+          "xEnd": 905,
+          "height": 38
+        },
+        {
+          "xStart": 1110,
+          "xEnd": 1135,
+          "height": 46
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -90000,
+        "startY": 9000,
+        "startVX": 480,
+        "startVY": -24,
+        "startAngle": 1.5,
+        "gateY": 1500,
+        "gateRadius": 1800,
+        "gateMaxSpeed": 150,
+        "gateMinSpeed": 15
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 8000,
+        "thresholdApoapsisAltitude": 85000,
+        "targetOrbitAltitude": 100000,
+        "orbitDir": 1,
+        "fuelSeconds": 180
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      },
+      "labelVisibility": "target"
+    }
+  }
+}

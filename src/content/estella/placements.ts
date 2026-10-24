@@ -373,19 +373,6 @@ export const ESTELLA_PLACEMENTS: Partial<Record<string, Placement>> = {
       orbitSense: -1,
     },
   },
-  'estella-ix-research-station': {
-    kind: 'orbit',
-    parentId: 'estella-ix',
-    usage: 'low',
-    orbit: {
-      kind: 'circular',
-      radius: 240_000,
-      altitude: 75_000,
-      epochAngle: -0.35,
-      epochTime: 0,
-      orbitSense: -1,
-    },
-  },
   'estella-ix-supply-depot': {
     kind: 'orbit',
     parentId: 'estella-ix',

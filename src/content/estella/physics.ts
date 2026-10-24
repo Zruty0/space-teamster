@@ -120,7 +120,7 @@ export const ESTELLA_BODY_PHYSICS: Partial<Record<string, BodyPhysicsDef>> = {
     radius: 165_000,
     gm: 1.45 * 165_000 * 165_000,
     rotationPeriod: 52_000,
-    notes: 'Icy sibling dwarf planet near Estella VIII for same-belt transfer prototyping.',
+    notes: 'Sahra: cold airless regolith desert over buried ice. Original IX flight scale retained.',
   },
 
   'estella-x': { radius: 800_000, gm: 22 * 800_000 * 800_000, rotationPeriod: 36_000, notes: 'Warm inner gas giant of the Wells; not landable.' },
@@ -280,12 +280,12 @@ export const ESTELLA_BODY_FLIGHT_PROFILES: Partial<Record<string, BodyFlightProf
     },
   },
   'estella-ix': {
-    color: [190, 145, 220],
-    planetFillColor: '#1b1026',
-    planetStrokeColor: '#a06ec0',
-    terrainFillColor: '#1b1026',
-    terrainStrokeColor: '#a06ec0',
-    terrainBrightColor: '#d2a8e8',
+    color: [190, 163, 116],
+    planetFillColor: '#211c13',
+    planetStrokeColor: '#a88c5b',
+    terrainFillColor: '#211c13',
+    terrainStrokeColor: '#a88c5b',
+    terrainBrightColor: '#d2b77f',
     orbitalDefaults: {
       baseTimeScale: 50,
       thrustAccel: 0.05,

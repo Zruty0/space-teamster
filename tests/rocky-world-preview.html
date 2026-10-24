@@ -2,8 +2,8 @@
 <meta charset="utf-8">
 <title>Stage 2 — rocky world rollout</title>
 <style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(4,280px);gap:14px;margin-top:12px}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}#flight{margin-top:12px}</style>
-<h1>STAGE 2 — 13 ROCKY WORLDS, NOW LIVE</h1>
-<p>Original palettes, permanent individual crater/basin layouts. Celeste unchanged. <a href="/tests/icy-world-preview.html">Stage 3 ice family</a> is a separate approved rollout.</p>
+<h1>ROCKY WORLDS — ORIGINAL 13 + SAHRA</h1>
+<p>Original thirteen palettes/layouts retained; Sahra adds an approved warm regolith profile. Celeste unchanged. <a href="/tests/icy-world-preview.html">Stage 3 ice family</a> is a separate approved rollout.</p>
 <p id="status">Checking native rendering…</p>
 <p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Same grey palette (gallery comparison only)</label> · <select id="body"></select></p>
 <div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
@@ -24,7 +24,7 @@ try{
   const p=makeProbe(),q=makeProbe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
   const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
   const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]),greyImages=[];
-  assert(ids.length===13,'exactly13 rocky bodies');
+  assert(ids.length===14,'original13 rocky bodies plus Sahra');
   for(const id of ids){
     const body=bodyById(id),profile=rockyWorldProfileFor(id);
     assert(body.atmosphere===null,`${body.name}: airless`);
@@ -78,7 +78,7 @@ try{
     const state=createOrbitalState(level,{x:level.planetRadius*1.4,y:0,vx:0,vy:-300,time:12345});
     renderOrbital(flight.getContext('2d'),flight,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
   }else{flight.style.display='none';galleryView();document.getElementById('grey').onchange=galleryView;}
-  document.getElementById('status').textContent=`PASS — ${checks} native checks;13 distinct live profiles; original Celeste pixels preserved. No saves read/written.`;
+  document.getElementById('status').textContent=`PASS — ${checks} native checks;14 distinct live profiles; original Celeste pixels preserved. No saves read/written.`;
   window.rockyStage2Preview={passed:true,checks,stage:2,ids};
 }catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.rockyStage2Preview={passed:false,error:String(error)};throw error;}
 </script>

@@ -9,6 +9,10 @@ export const ESTELLA_LOCATION_ALIASES: Readonly<Record<string, string>> = {
 // districts or raw provider scopes. Never advertise them as new destinations.
 const RETIRED_LOCATIONS: Readonly<Record<string, string>> = {
   'estella-iii-military-spaceport': 'estella-iii-capital-city',
+  // Removed IX research station: old parked saves/flights use the surviving
+  // orbital anchorage, without changing their historical quotes or records.
+  'estella-ix-research-station': 'estella-ix-opposite-sense-supply-depot',
+  'estella-ix-low-orbit-research-station': 'estella-ix-opposite-sense-supply-depot',
 };
 
 export function canonicalEstellaLocationId(id: string): string {

@@ -3,7 +3,7 @@
 export function drawOrbitalWorldLabel(
   ctx: CanvasRenderingContext2D, bodyId: string, text: string, x: number, y: number,
 ): void {
-  if (bodyId === 'estella-ii' || bodyId === 'estella-iv' || bodyId === 'estella-v' || bodyId === 'estella-vi' || bodyId === 'estella-xd' || bodyId === 'estella-xia' || bodyId === 'estella-xib') {
+  if (bodyId === 'estella-ix' || bodyId === 'estella-ii' || bodyId === 'estella-iv' || bodyId === 'estella-v' || bodyId === 'estella-vi' || bodyId === 'estella-xd' || bodyId === 'estella-xia' || bodyId === 'estella-xib') {
     ctx.save();
     ctx.strokeStyle = '#071019';
     ctx.lineWidth = 3;

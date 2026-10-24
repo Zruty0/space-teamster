@@ -1,5 +1,7 @@
 import './svg-dom';
 import baseline from './fixtures/camps-review-baseline.json';
+import sahraBaseline from './fixtures/sahra-baseline.json';
+import { preSahraNames } from './fixtures/pre-sahra-names';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
 import { publicContentText } from '../src/content-terminology';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
@@ -36,8 +38,11 @@ for (const day of [0, 1, 20, 21]) {
   // The nav menu legitimately reorders renamed sites; compare boards by stable source ID.
   for (const n of estellaSelectableNavTargets().sort((a, b) => a.id.localeCompare(b.id))) boards.push(...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400));
 }
-assert(JSON.stringify(reviewFingerprint(raw)) === JSON.stringify(baseline.raw), 'all32 provider candidates: only reviewed text/tag changes, identical IDs, sampling, masses, handling, prices and routes');
-assert(JSON.stringify(reviewFingerprint(boards)) === JSON.stringify(baseline.boards), '7503 boards: exact original quotes, IDs, availability, ordering and all non-display terms');
+assert(JSON.stringify(reviewFingerprint(JSON.parse(preSahraNames(JSON.stringify(raw))))) === JSON.stringify(baseline.raw), 'all32 candidates: reviewed names/tags and two retired Sahra receiving points only; sampling, masses, handling and rates retained');
+// Sahra's approved station removal changes its incident quotes; the independent
+// pre-Sahra snapshot pins every unrelated posting, including ordering/prices.
+const unaffectedBoards = boards.filter(c => ![c.sourceId, c.destinationId].some(id => id.startsWith('estella-ix')));
+assert(JSON.stringify(reviewFingerprint(unaffectedBoards)) === JSON.stringify(sahraBaseline.unaffectedBoards), 'all7463 non-Sahra postings retain exact quotes, IDs, availability and ordering');
 const labels = new Set<string>();
 for (const c of raw) {
   if (labels.has(c.cargo.label)) continue;
@@ -71,4 +76,4 @@ assert(scene.bodyRows.some((r: any) => ['Passengers', 'Cargo'].includes(r.label)
 game.activeCareerContract = old;
 assert(clean(game.currentMissionCompletionText()), 'accepted completion text normalized');
 assert(JSON.stringify(old) === snapshot && writes === 0, 'rendering never writes saves or historical records');
-console.log(`Camps review passed: ${assertions} assertions; ${raw.length} candidates, ${boards.length} exact quoted postings, ${labels.size} old/new cargo aliases. No economic/routing/save changes.`);
+console.log(`Camps review passed: ${assertions} assertions; ${raw.length} candidates, ${unaffectedBoards.length} exact non-Sahra quoted postings, ${labels.size} old/new cargo aliases. Approved Sahra retirement checked separately; saves untouched.`);

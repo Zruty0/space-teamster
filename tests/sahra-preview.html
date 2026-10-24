@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8"><title>Sahra desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"></select><span id="status">Checking live worker…</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {ESTELLA_NODES,ESTELLA_NODES_BY_ID} from '/src/content/estella/index.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {bodyById} from '/src/world.ts';
+const sites=Object.fromEntries(ESTELLA_NODES.filter(n=>n.kind==='poi'&&n.id.startsWith('estella-ix')).map(n=>[n.name,n.id]));
+const menu=document.getElementById('view'),canvas=document.getElementById('screen'),ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth-24;canvas.height=window.innerHeight-60;
+for(const key of [...Object.keys(sites),'Globe',...Object.keys(sites).map(n=>'Orbit '+n)]){const o=document.createElement('option');o.value=key;o.textContent=key;menu.append(o);}
+const game=Object.create(Game.prototype);game.career=defaultCareerProfile();game.career.certifications=['basic-1','basic-2','basic-3','line','passenger','fragile-cargo'];game.canvas=canvas;
+const levels=new Map();
+function show(){const key=menu.value;ctx.clearRect(0,0,canvas.width,canvas.height);if(key==='Globe'){const b=bodyById('estella-ix');drawAuthoredWorldDisc(ctx,b.id,canvas.width/2,canvas.height/2,260,b.color);ctx.fillStyle='#def';ctx.font='20px monospace';ctx.fillText('SAHRA — AIRLESS REGOLITH / BURIED ICE',canvas.width/2-240,50);return;}
+ if(key.startsWith('Orbit ')){const name=key.slice(6);let l=levels.get(name);if(!l){const before=new Set(ORBITAL_LEVELS.map(x=>x.id));createPlayableEstellaMission('caravanserai-main-commercial-dock',sites[name],undefined,9876);const surface=ESTELLA_NODES_BY_ID.get(sites[name]).placement.kind==='surface';l=ORBITAL_LEVELS.find(x=>!before.has(x.id)&&x.bodyId==='estella-ix'&&(surface?x.reentryApproachLevelId!==undefined:true));if(!l)throw Error('missing orbital view '+name);levels.set(name,l);}const state=createOrbitalState(l,{x:l.planetRadius*1.4,y:0,vx:0,vy:-300,time:12345});renderOrbital(ctx,canvas,{x:0,y:0,zoom:250/l.planetRadius},state,l,0);return;}
+ game.career.locationId=sites[key];drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'stationTerminal',selectedIndex:0}),0);
+}
+menu.onchange=show;menu.value='Multaqa';show();
+const requests=[];for(const day of [0,1])for(const sourceId of [...Object.values(sites),'estella-iii-capital-city','estella-iii-main-customs'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const started=performance.now(),worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){document.title='FAIL — Sahra';document.getElementById('status').textContent=message;worker.terminate();}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{try{if(data.error)throw Error(data.error);const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;for(const c of rows){if(contractLocationId(c.sourceId)!==contractLocationId(requests[complete].sourceId)||c.quote.destinationId!==c.destinationId)throw Error('quote/source mismatch');if([c.sourceId,c.destinationId].some(id=>id==='estella-ix-low-orbit-research-station'))throw Error('removed station posted');if(c.sourceName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name||c.destinationName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name)throw Error('stale physical name');}
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}worker.terminate();if(Object.keys(sites).length!==5)throw Error('expected five destinations');for(const o of menu.options){menu.value=o.value;show();}menu.value='Multaqa';show();document.title='PASS — Sahra';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; five terminals + five actual orbital views; ${(performance.now()-started).toFixed(0)} ms`;
+}catch(e){fail(e.stack??String(e));}};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Isolated synthetic profile: no Game constructor, save loading or mobile emulation.
+</script>

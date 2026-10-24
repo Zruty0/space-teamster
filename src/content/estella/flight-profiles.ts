@@ -98,7 +98,7 @@ const ESTELLA_VIII_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
 
 const ESTELLA_IX_DEFAULT_SURFACE_PROFILE: EstellaSurfaceFlightProfile = {
   ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
-  subtitle: 'Generated Estella IX icy surface site',
+  subtitle: 'Sahra — airless regolith desert',
   features: [
     { xStart: 880, xEnd: 905, height: 38 },
     { xStart: 1110, xEnd: 1135, height: 46 },
@@ -443,10 +443,11 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
     ...ESTELLA_VIII_DEFAULT_SURFACE_PROFILE,
     labelVisibility: 'target',
   },
-  'estella-ix-research-base': ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
-  'estella-ix-ice-mine': ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
+  'estella-ix-research-base': { ...ESTELLA_IX_DEFAULT_SURFACE_PROFILE, subtitle: 'Multaqa — caravan meeting settlement and scientific quarter' },
+  'estella-ix-ice-mine': { ...ESTELLA_IX_DEFAULT_SURFACE_PROFILE, subtitle: 'Bir Safa — ice extraction and caravan services' },
   'estella-ix-geological-feature': {
     ...ESTELLA_IX_DEFAULT_SURFACE_PROFILE,
+    subtitle: 'Wadi al-Layl — opal valley field landing',
     labelVisibility: 'target',
   },
 
