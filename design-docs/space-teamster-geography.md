@@ -391,17 +391,18 @@ Small SOI, airless, low-gravity. The Belt's first proper orbital body — many T
 | Estella VIII.5 | Nell's Lantern | Captured moonlet with Lantern Dock |
 | Estella VIII.6 | Old Survey Camp | Abandoned survey camp with salvage potential |
 
-### Estella IX — icy / scientific dwarf planet
-Small SOI, icy, scientific in flavor. Less developed.
+### Sahra — Estella IX
+Cold airless regolith desert over buried ice and opal-bearing rock. Sealed caravans link fixed settlements; Bedouin cultural roots expressed through extended households, hospitality, water agreements, navigation and trusted trade. Original size/gravity/orbits retained. Identity/locations implementedd08aea7; [Sahra](locations/sahra.md) separates those changes from the proposed new economy.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella IX.1 | Station, low orbit | Research station |
-| Estella IX.2 | Station, high orbit | Supply depot |
-| Estella IX.3 | Surface | Research base |
-| Estella IX.4 | Surface | Ice mine |
-| Estella IX.5 | Captured moonlet | Observation outpost |
-| Estella IX.6 | Surface | Geological feature, lore POI |
+| Estella IX.2 | Station, high orbit | **Suhail Anchorage** — orbital freight exchange, supply and passage bookings |
+| Estella IX.3 | Surface | **Multaqa** — principal caravan market/settlement, gemstone cutting, civic services and scientific quarter |
+| Estella IX.4 | Surface | **Bir Safa** — ice extraction, purification, reservoirs and caravan services |
+| Estella IX.5 | Captured moonlet | **Raqib** — astronomical/navigation outpost, existing dock-only geometry |
+| Estella IX.6 | Surface | **Wadi al-Layl** — opal-bearing fracture valley and public fixed field landing |
+
+The proposed Manara research station (IX.1) is removed, not renamed or hidden. Old station saves/accepted flights resolve to Suhail; its two existing Gaia research consignments now arrive there for onward handling. No new economic programme or compulsory orbital gateway yet.
 
 ---
 

@@ -1,20 +1,20 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-24
-Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Gaia-only dynamic-atmosphere prototype now under review; production rollout to atmospheric worlds remains separate. See [atmosphere prototype](atmosphere-visual-prototype.md). All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Gaia-only dynamic-atmosphere prototype now under review; production rollout to atmospheric worlds remains separate. See [atmosphere prototype](atmosphere-visual-prototype.md). All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. Sahra/IX's separately approved regolith conversion is implemented in d08aea7. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
 Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
-- Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
+- Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the14 rocky/regolith worlds listed below now use individually seeded crater profiles.
 - Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
 - Acheron has an opaque ochre/cream cloud map; Dahai has blue ocean and a small sea-ice margin only; its cloud/storm layers were rejected and removed. Shared local/stellar rendering and unchanged physical atmospheres. Acheron/Dahai labels now have dark outlines. All remaining custom globes now have authored surface maps; existing atmosphere treatment remains independent.
 - Hartwell now has bespoke rusty plains/uplands, dry erosion terraces, surface dust deposits and subdued impacts; existing atmosphere/sites retained. No new weather/cloud art.
 - Kuznia now has slate/blue-grey lowlands, mountain relief and lighter polar ground at existing sites, with original thick atmosphere retained. No new clouds, industry glow or resource/ice-deposit claims.
 - Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds eight crack-free icy variants with varied art-only tints, preserving Mercy's atmosphere. Stage4 adds the three giants below. Stages9–11 complete Calatrava/Almaden/Marisma without new clouds.
 
-## Rocky cratered family — 13, implemented in Stage2
+## Rocky cratered family — 13 Stage2 worlds + Sahra
 
 Palette descriptions follow current body colors. Density/basin differences are visual treatments, not new geological canon. Authored parameters live in `src/content/estella/rocky-world-appearance.ts`; review `/tests/rocky-world-preview.html`.
 
@@ -26,6 +26,7 @@ Palette descriptions follow current body colors. Density/basin differences are v
 | estella-vib | Kalyna | Saturated hematite red; same geology family, distinct palette. |
 | estella-vii | Tessera | Dark neutral/violet-grey; restrained, fine crater relief. |
 | estella-viii | Weymark | Blue-grey; several broad recognizable basins. |
+| estella-ix | Sahra | Approved follow-up: warm muted regolith,38 subdued impacts, buried ice; original size/gravity/sites retained. |
 | estella-xb | Tinto | Warm brown/copper; mixed crater sizes. |
 | estella-xc | Thronehold | Muted grey/olive; one or two prominent old-looking impact basins. |
 | estella-xid | Cadiz | Warm stone-grey; varied medium impacts and plains. |
@@ -36,13 +37,12 @@ Palette descriptions follow current body colors. Density/basin differences are v
 
 Their settlements/political importance alone do not require custom planetary geology. No artificial circuit-board continents, giant castles or secret installations visible from orbit.
 
-## Shared icy-surface variant — 8, implemented in Stage3
+## Shared icy-surface variant — 7 retained after Sahra conversion
 
-Shared disc/clipping/seed/crater machinery with configurable seeded frost patches, layered old ice exposures and softened impacts. Pete rejected cracks during review: fracture geometry/painter and thin frost outlines removed; original field/impact layouts/counts retained. Art-only palettes now vary more clearly. Eight explicit profiles in `src/content/estella/icy-world-appearance.ts`, not eight renderers. Review `/tests/icy-world-preview.html`. Dark areas are solid old/dirty ice, not open water; no sites moved.
+Shared disc/clipping/seed/crater machinery with configurable seeded frost patches, layered old ice exposures and softened impacts. Pete rejected cracks during review: fracture geometry/painter and thin frost outlines removed; original field/impact layouts/counts retained. Art-only palettes now vary more clearly. Initially eight explicit profiles in `src/content/estella/icy-world-appearance.ts`; seven remain after the approved Sahra regolith conversion. Review `/tests/icy-world-preview.html`. Dark areas are solid old/dirty ice, not open water; no sites moved.
 
 | ID | World | Visual treatment |
 |---|---|---|
-| estella-ix | Estella IX | Muted lavender-grey frosted terrain/dark ice exposures; possible sand-world reinterpretation remains a proposal below. |
 | estella-xa | Beira | Glacial cyan-white; broad frost fields and relatively few impacts. Its ocean stays beneath the ice. |
 | estella-xic | Macao | Pale jade ice; darker exposures and moderate crater relief. |
 | estella-xiia | Mercy | Broad ivory icy plains; retain existing thin nitrogen atmosphere treatment. Not literally an airless body. |
@@ -51,9 +51,9 @@ Shared disc/clipping/seed/crater machinery with configurable seeded frost patche
 | estella-xiv | Estella XIV | Dusky violet-grey ice with a different frost/crater distribution. |
 | reach-rogue-kbo-fragment | Captured Rogue Planetoid / KBO Fragment | Subdued ash/sage dirty ice, strong mottling and impacts. |
 
-### IX sand-world discussion — not implemented
+### Sahra / IX — approved conversion implemented2026-10-24
 
-Pete asks whether IX could be a sand world. Current canon/runtime: small airless Belt dwarf, scientific role, ice mine. A cold dusty/regolith-covered dwarf with buried ice is physically plausible and preserves that infrastructure. Ordinary wind-blown dunes require an atmosphere, with retention/size/temperature reconsidered; cold dunes are possible, sand does not imply a hot world. Gameplay-scaled star/orbit values are not a literal climate model. Recommended direction is an airless regolith desert over buried ice; no conversion, atmospheric change or new terrain approved yet.
+`d08aea7`: Sahra is a cold, airless regolith desert over buried ice; Pete explicitly keeps its size. Warm muted sand/rock palette,38 subdued impacts, existing rocky-family renderer and outlined labels. Rocky registry now14 profiles; remaining7 ice profiles unchanged. No atmosphere, wind dunes, moving cities, orbit/flight/terrain-collision changes. Five approved destinations replace functional names; orbital research station removed. [Sahra identity, compatibility and economic proposal](locations/sahra.md).
 
 ## Individually authored globe identities — 9
 
@@ -83,7 +83,7 @@ Custom composition can still reuse common rendering helpers; it does not imply n
 
 ## Captured moonlets / small-body boundary
 
-Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet (`estella-ix-captured-moonlet`) are dock-only asteroid-kind satellites, not ordinary landable globe scenes. Crater texture is reusable, but a later small-body art pass should respect their existing docking/collision geometry. Other captured asteroids/comets and trojans likewise belong to that separate pipeline, not an automatic spherical-planet conversion.
+Nell's Lantern (`estella-viii-captured-moonlet`) and Raqib (`estella-ix-captured-moonlet`) are dock-only asteroid-kind satellites, not ordinary landable globe scenes. Crater texture is reusable, but a later small-body art pass should respect their existing docking/collision geometry. Other captured asteroids/comets and trojans likewise belong to that separate pipeline, not an automatic spherical-planet conversion.
 
 ## Stable variation requirement / proposed implementation
 
@@ -96,4 +96,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 
 Cloud follow-up: defer new cloud layers to a separate realistic, animated weather-art pass across all worlds with atmospheres. Other already-approved globe artwork remains unchanged; this is not authorization for new flight-weather physics or automatic animation implementation.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). All eleven base-globe stages are implemented. Stages9–11 were explicitly grouped for joint delivery; their combined review was approved on2026-10-24. Future clouds, IX identity and settlement artwork still require separate authorization.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). All eleven base-globe stages are implemented. Stages9–11 were explicitly grouped for joint delivery; their combined review was approved on2026-10-24. Sahra's separately approved identity/regolith conversion is implemented. Future cloud rollout and settlement artwork still require separate authorization.

@@ -88,7 +88,9 @@ All eight are now unlisted for empty travel, as requested:
 | Lonely Beacon / Lone-Operator Station | `reach-rogue-lonely-beacon` | Isolated, inhabited station on the rogue KBO fragment |
 | The Deepest Dock | `deepest-dock-poi` | Writer-defined settled outer-limit dock; not explicitly abandoned |
 
-Also unlisted: Estella IX Geological Feature (`estella-ix-geological-feature`), Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
+Sahra follow-upd08aea7: former IX Geological Feature (`estella-ix-geological-feature`) is now **Wadi al-Layl**, an approved public field landing. The removed IX research station is no longer a destination; old parked saves resolve to Suhail Anchorage.
+
+Still unlisted: Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
 
 **No public-advertisement removal.** Prospector Cache, Lonely Beacon and Deepest Dock retain their ordinary BFS/VHM work. Posting authorization and independent empty-travel access are separate.
 

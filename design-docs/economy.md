@@ -103,6 +103,10 @@ Fuyuan, Zhulong, Jiuyuan and Bingjie reuse the four existing surface IDs. Fuyuan
 
 All eligible public Dahai surface/offworld candidates use approximately50/50 orbital/direct dispatch before quoting; new orders exact paired50/50. Gaia/Balor choices remain independent. Native station/local/contact/timed work, accepted quotes/history/saves and physical-terminal naming remain intact. No forced second player leg. Civilian/Institute freight0.80+0.45, passengers0.60+0.60, cap2; other providers retain their own terms. Scientific specimens/archival originals travel physically, ordinary data electronically. Detailed ledger, roles, scope and120-epoch audit: [Dahai shipping](dahai-shipping.md); `npm run test:dahai-shipping`, `npm run audit:dahai`.
 
+## Sahra / IX — identity implemented; economics proposed2026-10-24
+
+`d08aea7` implements Sahra, Multaqa, Bir Safa, Wadi al-Layl, Suhail Anchorage and Raqib; removes the orbital research station. Only economic reconciliation so far: two existing Gaia research consignments now arrive at Suhail using their original seed/template/mass/rate terms. All other orders/providers retained; no new water, opal, caravan or research programme yet. Proposed civilian ice/gem/services economy, counterparties and routing/pay direction: [Sahra](locations/sahra.md#economic-proposal--awaiting-approval). No assumed water monopoly or industrial miracle mineral.
+
 ## Camps completion pass — review corrections implemented2026-10-24
 
 Runtime/tests89317da. All31 existing site roles now appear in terminal copy; Pike functional names become Flint Mine/Switchback/Pike Depot. Ascension Scaffold operates as a refit/remanufacturing station. Svarog Shipyard Company names the existing single independent landlord, separate from Kisaragi tenants and the commune. Tessera has independent physical-metrology/precision-workshop identity and ordinary civic services.
