@@ -6,7 +6,7 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 
 ## Approval protocol
 
-- Pete approved Stages1–3 (including the crack-free ice revision) and authorized Stage4 on2026-10-23. Stage4 is implemented and awaiting review; STOP before Stage5 until he explicitly authorizes continuing. Stages5–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
+- Pete approved Stages1–4 and authorized Stage5 on2026-10-23. Stage5 is implemented and awaiting review; STOP before Stage6 until he explicitly authorizes continuing. Stages6–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
@@ -20,8 +20,8 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 | 1 | Seeded rocky renderer foundation; vary craters AND basins, density/scale/contrast controls, cached normalized geometry. Desktop comparison sheet using representative palettes/seeds. Preserve current Celeste appearance exactly. | Infrastructure/preview only at this stage; Celeste preserved. | Approved |
 | 2 | Roll out approved rocky family with individual persistent seeds/palettes and modest per-world settings. | Celeste baseline; Pike, Svarog, Kalyna, Tessera, Weymark, Tinto, Thronehold, Cadiz, Oathmark, Coimbra, Vigil, Ceuta. | Approved |
 | 3 | Shared icy-world family: layered frost/material contrast, sparse impacts; review revision removes cracks and varies tints; review a full comparison sheet. Retain Mercy's existing thin atmosphere. | Estella IX, Beira, Macao, Mercy, Teide, Estella XIII, Estella XIV, captured rogue/KBO planetoid. | Approved after crack-free/tint revision |
-| 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Implemented; awaiting review / Stage5 go-ahead |
-| 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Not started |
+| 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Approved |
+| 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Implemented; awaiting review / Stage6 go-ahead |
 | 6 | Ocean world with cloud patterns distinguishing calm latitude belts; no invented continental settlement foundation. | Dahai only. | Not started |
 | 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Not started |
 | 8 | Cold slate/blue-grey world under heavy weather, distinct from volcanic worlds. | Kuznia only. | Not started |
@@ -81,4 +81,13 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 - `drawAuthoredWorldDisc` serves both local and stellar markers. Removed old nine-straight-band/single-oval painter. Existing atmosphere layers, skim/observatory targets, marker sizing, moon orbits, gravity and hazards unchanged. No planetary rings or landing sites added/moved. All previous approved world artwork remains intact; IX still icy pending its separate decision.
 - Review `/tests/gas-giant-preview.html`: three full globes, small markers, shared-grey comparison, actual orbital selector (`?view=flight&body=estella-xi` for Hydra).63 native checks pass, identical reload/cache-rebuild pixels, distinct same-palette images, original Celeste/Gaia pixels at six sizes, all three actual orbital views. Gallery and Hydra flight screenshot inspected.
 - Validation: giants12058 + foundation5069 + rocky610 + ice5664 + world294 assertions. Covers exact IDs/seeds, frozen profiles/data, stable LOD, non-crossing bands, cache eviction, author input guards, actual central/stellar paint at two epochs and retained atmospheric rendering/physical state. Prior native ice143 and rocky229 pass including all their actual orbital views (three newly authorized giants removed from former fallback checks); ice pixel hashes match the accepted revision. Balor8721+Eye2204, markers41, empty2872+render35 and production build pass; existing Vite warnings only. No saves/mobile/push.
-- STOP here. Stage5 (Acheron cloud globe only) requires explicit confirmation.
+- Pete subsequently approved Stage4 and authorized Stage5.
+
+## Stage5 result — 2026-10-23
+
+- `src/acheron-appearance.ts`: opaque ochre/cream cloud globe with seven broad cloud systems, filled feather layers and six fine wisps. Two large sheared circulations distinguish it from the giants' latitude belts. No crater/terrain/city drawings or crack-like contour strokes; opaque cloud base remains beneath all shading.
+- One lazily cached, deeply immutable normalized map; seed869881717 derives from `cloud-world-v1:estella-ii`, not name/time/visit. Independent broad/wisp streams. Small markers subset the same cloud-edge points and omit fine wisps; full paths use129 samples per edge. Shared clipping/shading and common local/stellar dispatcher; only Acheron newly opted in.
+- Illustration stays within the existing disc radius, not a new physical cloud-top altitude. Existing120km atmospheric envelope/density/scale height, Olympos/Nimbus altitudes, Pandemonium surface angle, hub/orbits and objectives unchanged. No chemistry decision, weather/hazard tuning, scenery, dialogue or economy/save changes. Earlier approved worlds intact; IX sand conversion still pending.
+- Review `/tests/acheron-world-preview.html`: full globe and markers, unchanged Gryphon/Hydra comparison, real orbital selector for Commercial Hub/Olympos/Nimbus/Pandemonium.162 native checks, opaque interior samples, exact repeat/reload hashes and all four orbital views pass. Final gallery and Pandemonium flight screenshot inspected; Olympos view also checked during work.
+- Tests: cloud9020 + foundation5069 + rocky610 + ice5664 + giants12058 + world294 assertions. Real local/stellar paths at two epochs for all four targets preserve atmosphere/flight state. Acheron gameplay10388, Balor8721+Eye2204, markers41, empty2872+render35 and build pass. Giant native62/all three orbital views pass with unchanged hashes (Acheron removed from former fallback checks); prior ice142/rocky228 native previews and all their orbital views also pass with that single fallback exclusion updated. Existing Vite warnings only; concurrent Camps review changes untouched. No live saves/mobile/push.
+- STOP here. Stage6 (Dahai ocean/cloud globe only) requires explicit confirmation.

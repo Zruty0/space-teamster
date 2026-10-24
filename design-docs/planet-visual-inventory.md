@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: Stages1–3 approved; Pete authorized Stage4 giants, now implemented and awaiting review. Later custom worlds remain staged proposals; await go-ahead before Stage5. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: Stages1–4 approved; Pete authorized Stage5 Acheron, now implemented and awaiting review. Remaining custom worlds stay staged proposals; await go-ahead before Stage6. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
@@ -9,7 +9,7 @@ Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
 - Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
 - Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
-- Other listed globes are predominantly plain tinted discs/noisy outlines plus their existing atmosphere treatment.
+- Acheron now has an opaque ochre/cream cloud map, shared local/stellar rendering and unchanged physical atmosphere. Remaining custom globes are predominantly plain tinted discs/noisy outlines plus existing atmosphere treatment.
 - Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds eight crack-free icy variants with varied art-only tints, preserving Mercy's atmosphere. Stage4 adds the three giants below. Remaining custom identities stay deferred.
 
 ## Rocky cratered family — 13, implemented in Stage2
@@ -60,7 +60,7 @@ Custom composition can still reuse common rendering helpers; it does not imply n
 | ID | World | Recommendation |
 |---|---|---|
 | estella-i | Balor | Keep existing narrow lava Eye and local/system-facing rules. |
-| estella-ii | Acheron | Opaque ochre/cream cloud deck, large atmospheric swirls; surface largely hidden. Do not settle the unresolved chemistry through artwork. |
+| estella-ii | Acheron | Stage5 implemented: opaque ochre/cream cloud deck with broad sheared swirls and fine wisps, no visible terrain. Existing atmosphere/sites retained; chemistry unresolved. Review `/tests/acheron-world-preview.html`. |
 | estella-iii | Gaia | Keep approved green continents, smaller oceans and oversized caps; current site/rim alignment preserved. |
 | estella-iv | Dahai | Ocean-dominated blue globe, cloud patterns with readable calm latitude belts. Floating settlements do not imply large continents/islands. |
 | estella-v | Hartwell | Rusty dry plains, dark uplands/large erosion features and dust; impact craters secondary. |
@@ -92,4 +92,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout, icy family and three giants implemented. Stage5 and later work require separate confirmations.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout, icy family, three giants and Acheron implemented. Stage6 and later work require separate confirmations.
