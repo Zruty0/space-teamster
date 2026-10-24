@@ -1,6 +1,6 @@
 # Shared and custom globe artwork
 
-Updated: 2026-10-24
+Updated: 2026-10-23
 
 ## Scope
 
@@ -50,7 +50,7 @@ Common clip/shade/outline helpers moved unchanged to `world-disc-primitives.ts`;
 
 Common central/stellar dispatch opts in only `estella-ii`. The illustrative cloud disc uses the existing radius, not a new physical cloud-top surface. Existing120km atmosphere/density/scale height, stations, Olympos/Nimbus altitudes, Pandemonium surface target, flight state and overlay ordering remain unchanged. No surface scenery or atmospheric/weather simulation changes. Review `/tests/acheron-world-preview.html`, including all four actual orbital destinations and unchanged giant comparison.
 
-## Dahai / bright-world labels — Stage6, 2026-10-24
+## Dahai / bright-world labels — Stage6, 2026-10-23
 
 `src/dahai-appearance.ts`: `drawDahaiDisc`, `dahaiGeometry`, `DAHAI_SEED`1709551853. Continuous blue ocean with tonal water layers, three broken silver cloud decks, two storm spirals, clear-water belts and a small sea-ice margin. Independent water/cloud/storm/wisp streams, permanent ID, one lazy deeply frozen map. Full polygons and exact point-subset coarse paths; below60px omit fine wisps. Common central/stellar dispatch adds only `estella-iv`; existing75km atmosphere/density1/scale height8500 retained.
 

@@ -1,12 +1,12 @@
 # Planet visual stages — operator approval gates
 
-Updated: 2026-10-24
+Updated: 2026-10-23
 
 Pete requires this work in stages, with confirmation between stages. Scope/assignments: [visual inventory](planet-visual-inventory.md).
 
 ## Approval protocol
 
-- Pete approved Stages1–5 and authorized Stage6 on2026-10-24, requesting more contrasting Acheron labels and continued bright-world readability checks. Stage6 and the label correction are implemented, awaiting review; STOP before Stage7 until he explicitly authorizes continuing. Stages7–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
+- Pete approved Stages1–5 and authorized Stage6 on2026-10-23, requesting more contrasting Acheron labels and continued bright-world readability checks. Stage6 and the label correction are implemented, awaiting review; STOP before Stage7 until he explicitly authorizes continuing. Stages7–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
@@ -92,7 +92,7 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 - Tests: cloud9020 + foundation5069 + rocky610 + ice5664 + giants12058 + world294 assertions. Real local/stellar paths at two epochs for all four targets preserve atmosphere/flight state. Acheron gameplay10388, Balor8721+Eye2204, markers41, empty2872+render35 and build pass. Giant native62/all three orbital views pass with unchanged hashes (Acheron removed from former fallback checks); prior ice142/rocky228 native previews and all their orbital views also pass with that single fallback exclusion updated. Existing Vite warnings only; concurrent Camps review changes untouched. No live saves/mobile/push.
 - Pete subsequently approved Stage5, requested contrasting Acheron labels and authorized Stage6.
 
-## Stage6 result / Acheron label follow-up — 2026-10-24
+## Stage6 result / Acheron label follow-up — 2026-10-23
 
 - `src/dahai-appearance.ts`: continuous blue ocean, tonal water layers, three broken silver cloud decks with clear-water belts, two storm spirals and a small floating sea-ice margin. No continents/islands, city scenery, ice cracks or new weather mechanics. Permanent ID seed1709551853; independent water/cloud/storm/wisp streams, one lazy deep-frozen normalized map. Small markers subset the same points and omit fine wisps; shared central/stellar dispatcher adds only Dahai.
 - Art composition matches existing rim positions: Fuyuan−0.1/Jiuyuan2.45 in clear water, Zhulong1.15 at the cloudy work belt, Bingjie−2.0 on sea ice. No site relocation or cosmetic marker offsets. This chart orientation is not physical axial tilt/3D latitude or a global climate claim; the current2D equatorial placement metadata is unchanged. Atmosphere75km/density1/scale height8500, targets, orbits, flight profiles and established floating-settlement history retained. No hydrogen-canopy chemistry, moving cities/decks, underwater flight, hazards, economy or save edits.

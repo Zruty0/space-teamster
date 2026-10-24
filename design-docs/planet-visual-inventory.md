@@ -1,6 +1,6 @@
 # Planet / moon visual inventory
 
-Updated: 2026-10-24
+Updated: 2026-10-23
 Status: Stages1–5 approved; Pete authorized Stage6 Dahai, now implemented and awaiting review. Requested Acheron label contrast correction also implemented. Remaining custom worlds stay staged proposals; await go-ahead before Stage7. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
