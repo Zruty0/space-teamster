@@ -3,7 +3,8 @@
 <title>Stage 6 — Dahai ocean globe and label contrast</title>
 <style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}canvas{display:block;margin-top:12px}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}</style>
 <h1>STAGE 6 — DAHAI</h1>
-<p>Open blue ocean, silver cloud decks, clear-water belts, storm spirals and a small floating sea-ice margin.</p>
+<p>Ocean and ice only. Zhulong is on open water; Bingjie stays on ice. Existing site positions and approved labels retained.</p>
+<p>Clouds and storm swirls removed. Realistic animated clouds are deferred to a separate pass across atmospheric worlds.</p>
 <p>Rim guides use the four existing site angles. Chart composition, not new 3D latitude, moving cities or weather mechanics.</p>
 <p id="status">Checking native rendering…</p>
 <p><a href="?">Globe / label comparison</a> · <a href="?view=flight">Production orbital view</a> · <select id="target"></select></p>
@@ -33,6 +34,16 @@ try{
   assert(p.getImageData(235,128,1,1).data[3]===0,'original clipped silhouette');
  }
  assert(dahaiGeometry()===dahaiGeometry(),'same immutable cached map');
+ assert(JSON.stringify(Object.keys(dahaiGeometry()).sort())===JSON.stringify(['ice','water']),'no cloud/storm geometry');
+ for(const radius of [32,100]){
+  pixels(p,ctx=>drawDahaiDisc(ctx,128,128,radius));
+  for(const depth of [.88,.95]){
+   const sample=angle=>p.getImageData(Math.round(128+Math.cos(angle)*radius*depth),Math.round(128-Math.sin(angle)*radius*depth),1,1).data;
+   const z=sample(1.15),b=sample(-2);
+   assert(z[0]<70&&z[2]>z[0]+50&&z[3]===255,'Zhulong native pixels are blue ocean at full/small LOD');
+   assert(b[0]>90&&b[1]>100&&b[2]>100&&b[3]===255,'Bingjie native pixels stay on pale ice');
+  }
+ }
  p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(3,5);drawDahaiDisc(p,128,128,100);
  assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===3&&p.getTransform().f===5,'native canvas state restored');p.setTransform(1,0,0,1,0,0);p.lineWidth=1;
  for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
@@ -57,14 +68,14 @@ try{
   const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===body.id);
   const state=createOrbitalState(level,{x:level.planetRadius*1.5,y:0,vx:0,vy:-300,time:12345});renderOrbital(ctx,canvas,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
  }else{
-  ctx.fillStyle='#080d15';ctx.fillRect(0,0,1200,680);ctx.textAlign='center';ctx.fillStyle='#cfdfeb';ctx.font='18px monospace';ctx.fillText('DAHAI — OPEN OCEAN / CLOUD BELTS',320,35);
+  ctx.fillStyle='#080d15';ctx.fillRect(0,0,1200,680);ctx.textAlign='center';ctx.fillStyle='#cfdfeb';ctx.font='18px monospace';ctx.fillText('DAHAI — OCEAN AND ICE',320,35);
   drawDahaiDisc(ctx,320,292,220);
   ctx.font='11px monospace';ctx.fillStyle='rgba(120,180,255,0.9)';drawOrbitalWorldLabel(ctx,body.id,'DAHAI',320,292);
   for(const [i,a]of [-.1,1.15,2.45,-2].entries()){
    const x=Math.cos(a),y=-Math.sin(a);ctx.fillStyle='#00ffcc';ctx.beginPath();ctx.arc(320+x*220,292+y*220,3,0,Math.PI*2);ctx.fill();
    ctx.font='bold 10px monospace';ctx.textAlign=x>=0?'right':'left';drawOrbitalWorldLabel(ctx,body.id,targets[i+1][1].toUpperCase(),320+x*190,292+y*190);
   }
-  ctx.textAlign='center';ctx.fillStyle='#9db2c2';ctx.font='13px monospace';ctx.fillText(`Stable ocean/cloud seed ${DAHAI_SEED} · original site angles`,320,545);
+  ctx.textAlign='center';ctx.fillStyle='#9db2c2';ctx.font='13px monospace';ctx.fillText(`Stable ocean seed ${DAHAI_SEED} · original site angles`,320,545);
   [3,8,14,28,50].forEach((r,i)=>drawDahaiDisc(ctx,100+i*110,610,r));
   for(const [y,halo]of [[190,false],[480,true]]){
    drawAcheronDisc(ctx,900,y,105);ctx.font='11px monospace';ctx.fillStyle='rgba(120,180,255,0.9)';

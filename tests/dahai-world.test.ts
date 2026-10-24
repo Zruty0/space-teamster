@@ -16,7 +16,7 @@ function recorder(){
  const ctx=new Proxy(raw,{get:(o,k)=>k in o?o[k]:(...a:unknown[])=>calls.push([String(k),...a]),set:(o,k,v)=>{o[k]=v;calls.push(['set',String(k),v]);return true;}})as CanvasRenderingContext2D;
  return{ctx,calls};
 }
-function frozen(value:any):void{if(!value||typeof value!=='object')return;assert(Object.isFrozen(value),'deeply immutable ocean/cloud map');Object.values(value).forEach(frozen);}
+function frozen(value:any):void{if(!value||typeof value!=='object')return;assert(Object.isFrozen(value),'deeply immutable ocean/ice map');Object.values(value).forEach(frozen);}
 function inside(points:readonly (readonly [number,number])[],x:number,y:number):boolean{
  let result=false;
  for(let i=0,j=points.length-1;i<points.length;j=i++){
@@ -32,8 +32,13 @@ try{
  const model=dahaiGeometry();frozen(model);
  assert(model===dahaiGeometry(),'one cached permanent map');
  assert(DAHAI_SEED===1709551853&&DAHAI_SEED===crateredWorldProfile('ocean-world-v1:estella-iv').seed,'permanent ID seed');
- assert(model.water.length===6&&model.ice.length===2&&model.clouds.length===42&&model.storms.length===6&&model.wisps.length===30,'bounded authored ocean/cloud composition, no land/city geometry');
- for(const layers of [model.water,model.ice,model.clouds,model.storms,model.wisps])for(const part of layers){
+ assert(json(Object.keys(model).sort())===json(['ice','water']),'only ocean and ice: no cloud/storm/wisp geometry');
+ assert(model.water.length===6&&model.ice.length===2,'retained water/ice layer counts');
+ // Captured before removal from 6515c25/88ae24d, not regenerated to bless changes.
+ const hash=(value:unknown)=>{let h=2166136261;for(const c of json(value))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;};
+ assert(hash(model.water)===95071542,'original water geography/palette unchanged');
+ assert(hash(model.ice)===855573291,'original ice geography/palette unchanged');
+ for(const layers of [model.water,model.ice])for(const part of layers){
   assert(part.coarse.every(p=>part.full.includes(p)),'LOD reuses exact immutable points');
   assert(part.full.every(p=>p.every(Number.isFinite)),'finite normalized geography');
  }
@@ -41,8 +46,7 @@ try{
   const at=(angle:number,layers:typeof model.ice)=>layers.some(p=>inside(p[lod],Math.cos(angle)*.985,-Math.sin(angle)*.985));
   assert(at(-2,model.ice),'Bingjie existing rim on floating sea ice at both LODs');
   for(const angle of [-.1,1.15,2.45])assert(!at(angle,model.ice),'other cities retain ocean at existing rim');
-  for(const angle of [-.1,2.45])assert(!at(angle,[...model.clouds,...model.storms,...model.wisps]),'Fuyuan/Jiuyuan clear-water belt, not storm core');
-  assert(at(1.15,model.clouds),'Zhulong existing rim at cloudy storm-work belt');
+  for(const depth of [.88,.95,.985])assert(!model.ice.some(p=>inside(p[lod],Math.cos(1.15)*depth,-Math.sin(1.15)*depth)),'Zhulong marker and inward label area remain on open water, not ice');
  }
  for(const radius of [.25,3,8,14,59,60,220,2000]){
   const a=recorder(),b=recorder();assert(drawAuthoredWorldDisc(a.ctx,body.id,640,400,radius,body.color),'explicit Dahai dispatch');drawDahaiDisc(b.ctx,640,400,radius);
@@ -53,9 +57,9 @@ try{
   assert(a.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]==='#176da5'),'continuous opaque blue ocean base');
   assert(a.calls.filter(c=>c[0]==='stroke').length===1,'limb only, no cracks/coast/city strokes');
   assert(a.calls.filter(c=>c[0]==='arc').length===2,'clip/limb only, no craters');
-  assert(a.calls.filter(c=>c[0]==='lineTo').length<7000,'bounded renderer geometry');
+  assert(a.calls.filter(c=>c[0]==='lineTo').length<600,'bounded ocean/ice geometry');
   assert(a.calls.every(c=>c.slice(1).every(v=>typeof v!=='number'||Number.isFinite(v))),'finite coordinates');
-  assert(a.calls.filter(c=>c[0]==='moveTo').length===(radius<60?56:86),'LOD omits only fine wisps');
+  assert(a.calls.filter(c=>c[0]==='moveTo').length===8,'only six water and two ice layers at every LOD');
  }
  for(const [x,y,r]of [[0,0,0],[0,0,-1],[0,0,Infinity],[NaN,0,2],[0,Infinity,2]]){const a=recorder();drawDahaiDisc(a.ctx,x,y,r);assert(!a.calls.length,'invalid geometry skipped');}
 }finally{Math.random=originalRandom;}
@@ -90,4 +94,4 @@ for(const [i,target]of targets.entries()){
  }
 }
 assert(json([BODIES,SURFACE_POIS])===worldBefore,'body/atmosphere/colors/sites unchanged');
-console.log(`Dahai artwork passed: ${assertions} assertions; seed ${DAHAI_SEED}, ocean/cloud LOD, aligned rim sites, five real targets and outlined labels.`);
+console.log(`Dahai artwork passed: ${assertions} assertions; seed ${DAHAI_SEED}, ocean/ice only, original geography, Zhulong on water, aligned rim sites, five real targets and outlined labels.`);

@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: Stages1–5 approved; Pete authorized Stage6 Dahai, now implemented and awaiting review. Requested Acheron label contrast correction also implemented. Remaining custom worlds stay staged proposals; await go-ahead before Stage7. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: Stages1–5 approved; Pete authorized Stage6 Dahai, now revised to ocean/ice only and awaiting review. Labels approved. Realistic animated cloud patterns deferred to a separate pass across all atmospheric worlds. Remaining custom worlds stay staged proposals; await go-ahead before Stage7. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
@@ -9,7 +9,7 @@ Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
 - Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
 - Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
-- Acheron has an opaque ochre/cream cloud map; Dahai has blue ocean, broken cloud decks/clear belts and a small sea-ice margin. Shared local/stellar rendering and unchanged physical atmospheres. Acheron/Dahai labels now have dark outlines. Remaining custom globes are predominantly plain tinted discs/noisy outlines plus existing atmosphere treatment.
+- Acheron has an opaque ochre/cream cloud map; Dahai has blue ocean and a small sea-ice margin only; its cloud/storm layers were rejected and removed. Shared local/stellar rendering and unchanged physical atmospheres. Acheron/Dahai labels now have dark outlines. Remaining custom globes are predominantly plain tinted discs/noisy outlines plus existing atmosphere treatment.
 - Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds eight crack-free icy variants with varied art-only tints, preserving Mercy's atmosphere. Stage4 adds the three giants below. Remaining custom identities stay deferred.
 
 ## Rocky cratered family — 13, implemented in Stage2
@@ -62,7 +62,7 @@ Custom composition can still reuse common rendering helpers; it does not imply n
 | estella-i | Balor | Keep existing narrow lava Eye and local/system-facing rules. |
 | estella-ii | Acheron | Stage5 implemented: opaque ochre/cream cloud deck with broad sheared swirls and fine wisps, no visible terrain. Existing atmosphere/sites retained; chemistry unresolved. Review `/tests/acheron-world-preview.html`. |
 | estella-iii | Gaia | Keep approved green continents, smaller oceans and oversized caps; current site/rim alignment preserved. |
-| estella-iv | Dahai | Stage6 implemented: continuous blue ocean, broken silver cloud decks/clear-water belts, two storm swirls and a small sea-ice margin at Bingjie's existing rim. No continents/islands/site moves. Chart composition is not3D latitude or climate simulation. Review `/tests/dahai-world-preview.html`. |
+| estella-iv | Dahai | Stage6 revised: continuous blue ocean and existing sea ice only. Zhulong remains on water, Bingjie on ice; no continents/islands/site moves. Cloud/storm layers removed for future realistic animated weather art. Approved label halos retained. Review `/tests/dahai-world-preview.html`. |
 | estella-v | Hartwell | Rusty dry plains, dark uplands/large erosion features and dust; impact craters secondary. |
 | estella-vi | Kuznia | Cold slate/blue-grey world under heavy weather. Industry alone is not a reason for global lava or orange pollution. |
 | estella-xd | Calatrava | Hybrid: rocky crater base with distinctive tectonic/geothermal belts and smoother resurfaced patches. Local heat, not a second Balor. |
@@ -91,5 +91,7 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Build/cache immutable normalized geometry once per body/profile. Close-up and system markers use the same underlying layout; small scales omit fine detail, not regenerate the world.
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
+
+Cloud follow-up: defer new cloud layers to a separate realistic, animated weather-art pass across all worlds with atmospheres. Other already-approved globe artwork remains unchanged; this is not authorization for new flight-weather physics or automatic animation implementation.
 
 Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout, icy family, three giants, Acheron and Dahai implemented. Stage7 and later work require separate confirmations.
