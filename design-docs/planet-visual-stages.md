@@ -6,7 +6,7 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 
 ## Approval protocol
 
-- Pete approved Stages1–5 and authorized Stage6 on2026-10-23, requesting more contrasting Acheron labels and continued bright-world readability checks. Stage6 is revised to ocean/ice only after cloud rejection; labels are approved. Await revised globe review; STOP before Stage7 until he explicitly authorizes continuing. Stages7–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
+- Pete approved Stages1–6, including Dahai's ocean/ice-only revision, and authorized Stage7 on2026-10-23. Stage7 Hartwell is implemented and awaiting review; STOP before Stage8 until he explicitly authorizes continuing. Stages8–11 have not started. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Cloud review follow-up: Pete rejects Dahai's storm swirls and asks for no clouds for now. A separate future weather-art pass should cover ALL worlds with atmospheres using more realistic, animated cloud patterns. No animation or physics/weather tuning is authorized now; do not add new cloud layers during the remaining base-globe stages. Existing other-world artwork remains unchanged pending that pass.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
@@ -23,12 +23,12 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 | 3 | Shared icy-world family: layered frost/material contrast, sparse impacts; review revision removes cracks and varies tints; review a full comparison sheet. Retain Mercy's existing thin atmosphere. | Estella IX, Beira, Macao, Mercy, Teide, Estella XIII, Estella XIV, captured rogue/KBO planetoid. | Approved after crack-free/tint revision |
 | 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Approved |
 | 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Approved; requested label contrast correction implemented |
-| 6 | Ocean and ice only; cloud/storm artwork removed for a later animated-weather pass. Zhulong on open water, Bingjie on ice; no invented continents. | Dahai only. | Revised; labels approved, globe awaiting review / Stage7 go-ahead |
-| 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Not started |
-| 8 | Cold slate/blue-grey world under heavy weather, distinct from volcanic worlds. | Kuznia only. | Not started |
+| 6 | Ocean and ice only; cloud/storm artwork removed for a later animated-weather pass. Zhulong on open water, Bingjie on ice; no invented continents. | Dahai only. | Approved after ocean/ice-only revision |
+| 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Implemented; awaiting review / Stage8 go-ahead |
+| 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Not started |
 | 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Not started |
 | 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Not started |
-| 11 | Thick cold haze and cloud layers, preserving the current cool palette family. | Marisma only. | Not started |
+| 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Not started |
 
 ## Per-stage review checklist
 
@@ -110,4 +110,14 @@ Cloud/storm portion superseded by the revision below; retained here as the initi
 - Removed cloud/storm/wisp geometry, generation and painting entirely from Dahai. Exact original water and sea-ice shapes/palettes retained; pre-edit hashes95071542/855573291 captured from6515c25/88ae24d and pinned in tests. Existing seed1709551853, immutable cache, point-subset LOD and label halos unchanged. No site movement, atmosphere/physics/lore changes or changes to other worlds.
 - Zhulong's former white patch was cloud, not ice; removal reveals blue water at its unchanged1.15 angle. Tests cover its marker/inward-label region at both LODs; Bingjie−2 stays on the retained sea-ice margin. No new opposite ice cap added under Zhulong.
 - Revised preview65 native checks, identical reload pixels and all five actual orbital destinations pass. Gallery/Zhulong flight inspected. Dahai929 + all existing world/label suites, markers41 and build/diff pass. Assertion count drops because removed cloud geometry is no longer traversed; retained geometry and no-cloud scope are now explicitly pinned.
-- Await revised globe review; Stage7 and the future animated-weather pass are not started.
+- Pete subsequently approved this revision and authorized Stage7; the future animated-weather pass remains unstarted.
+
+## Stage7 result — Hartwell, 2026-10-23
+
+- `src/hartwell-appearance.ts`: rusty plains, four dark upland layers, three ochre sediment/dust deposits, two broad dry erosion paths with three filled terraces each,14 subdued impacts. Surface dust only, no airborne haze/clouds, animated storms, ice cracks or settlement scenery. This is illustrative geology, not new flight terrain or named lore features.
+- Permanent body-ID seed2051664115; independent upland/deposit streams and impact profile reuse the stable crater geometry machinery without opting Hartwell into the rocky-world registry. One lazy deeply frozen normalized model; full/coarse paths share exact points. Craters occupy less than3% of projected disc area before overlap/clipping; omit them below14px, show first3 below60px, all14 above. No crater-cache eviction can change retained geography.
+- Shared central/stellar dispatcher adds only Hartwell. Existing55km thin CO2 atmosphere/density.18/scale height11km, all five ground angles, Roadstead/Ascension targets, Pike/orbits, weather, physics, access and saves unchanged. First Landing remains reserved in actual gameplay; preview uses synthetic missions, not new public travel authorization.
+- Reused approved dark3px label halo for Hartwell only; existing Acheron/Dahai labels and other-world pixels unchanged. `/tests/hartwell-world-preview.html`: full/small globe, true rim guides, unchanged Pike and approved ocean-only Dahai comparisons, seven actual orbital destinations.64 native checks/reload/all7 views pass; final gallery and Dawes Cut flight inspected. Warm opaque ground at all actual rim sites checked at two LODs.
+- Tests: Hartwell2056, labels34, all prior world suites (foundation5069/rocky610/ice5664/giants12058/Acheron9036/Dahai929/general294), markers41, Camps43488+review17055, Balor8721+Eye2204, empty2872+render35 and build/diff pass. Prior native Dahai64/Acheron160/giants60/ice140/rocky226 and all orbital views pass; prior image hashes unchanged. Each former fallback count drops by one for Hartwell's new opt-in.
+- Vite initially served a stale label helper after a missed file event; touching that source invalidated the cache without restarting the service. All final native checks use current code. No mobile/live saves/push.
+- STOP here. Stage8 (Kuznia base globe only, no new clouds/weather) requires explicit confirmation.

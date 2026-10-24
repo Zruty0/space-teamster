@@ -9,6 +9,7 @@ import { gasGiantProfileFor } from './content/estella/gas-giant-appearance';
 import { drawGasGiantDisc } from './gas-giant-appearance';
 import { drawAcheronDisc } from './acheron-appearance';
 import { drawDahaiDisc } from './dahai-appearance';
+import { drawHartwellDisc } from './hartwell-appearance';
 import { trace, beginDisc, finishDisc, type WorldTint } from './world-disc-primitives';
 export type { WorldTint } from './world-disc-primitives';
 type Point = readonly [number, number];
@@ -108,6 +109,10 @@ export function drawCrateredDisc(ctx: CanvasRenderingContext2D, cx: number, cy: 
 
 /** Common dispatch for close orbital discs and moving system/moon markers. */
 export function drawAuthoredWorldDisc(ctx: CanvasRenderingContext2D, bodyId: string, cx: number, cy: number, radius: number, tint: WorldTint): boolean {
+  if (bodyId === 'estella-v') {
+    drawHartwellDisc(ctx, cx, cy, radius);
+    return true;
+  }
   if (bodyId === 'estella-iv') {
     drawDahaiDisc(ctx, cx, cy, radius);
     return true;
