@@ -58,6 +58,10 @@ for(const [i,target]of ['estella-ii-commercial-hub-dock','estella-ii-olympos','e
  for(const time of [0,123456]){
   const a=render(local,time);segment(a.calls,640-a.cam.x*a.cam.zoom,400+a.cam.y*a.cam.zoom,body.radius*a.cam.zoom);
   assert(a.calls.some(c=>c[0]==='fillText'&&c[1]==='ACHERON'),'central name retained');
+  for(const label of ['ACHERON',['ACHERON COMMERCIAL HUB','OLYMPOS','NIMBUS CRUCIBLE','PANDEMONIUM'][i]]){
+   const fill=a.calls.find(c=>c[0]==='fillText'&&c[1]===label),outline=a.calls.find(c=>c[0]==='strokeText'&&c[1]===label);
+   assert(fill&&outline&&json(fill.slice(1))===json(outline.slice(1)),'body and destination labels get contrast without moving text');
+  }
   assert(a.calls.some(c=>c[0]==='fillText'&&c[1]===['ACHERON COMMERCIAL HUB','OLYMPOS','NIMBUS CRUCIBLE','PANDEMONIUM'][i]),'real target marker retained over cloud artwork');
   assert(a.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.15)`),'existing atmospheric layer still rendered');
   const b=render({...star,targetBodyId:body.id},time),pos=transferBodyState(star,body.id,time)!;

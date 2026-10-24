@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stage 6 — Dahai ocean globe and label contrast</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}canvas{display:block;margin-top:12px}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}</style>
+<h1>STAGE 6 — DAHAI</h1>
+<p>Open blue ocean, silver cloud decks, clear-water belts, storm spirals and a small floating sea-ice margin.</p>
+<p>Rim guides use the four existing site angles. Chart composition, not new 3D latitude, moving cities or weather mechanics.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Globe / label comparison</a> · <a href="?view=flight">Production orbital view</a> · <select id="target"></select></p>
+<canvas id="view" width="1200" height="680"></canvas>
+<script type="module">
+import {drawDahaiDisc,dahaiGeometry,DAHAI_SEED} from '/src/dahai-appearance.ts';
+import {drawAcheronDisc} from '/src/acheron-appearance.ts';
+import {drawOrbitalWorldLabel} from '/src/orbital-world-label.ts';
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+ let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+ const body=bodyById('estella-iv'),worldBefore=JSON.stringify([BODIES,SURFACE_POIS]);
+ const probe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+ const p=probe(),q=probe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+ const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+ const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
+ const hashes=[];
+ for(const r of [3,8,14,32,60,100]){
+  const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,body.id,128,128,r,body.color),'live Dahai dispatcher'));
+  hashes.push(hash(actual));assert(same(actual,pixels(q,ctx=>drawDahaiDisc(ctx,128,128,r))),'dispatch uses exact shared ocean painter');
+  assert(same(actual,pixels(q,ctx=>drawDahaiDisc(ctx,128,128,r))),'repeat pixels stable');
+  assert(p.getImageData(128,128,1,1).data[3]===255,'opaque small/full disc center');
+  assert(p.getImageData(235,128,1,1).data[3]===0,'original clipped silhouette');
+ }
+ assert(dahaiGeometry()===dahaiGeometry(),'same immutable cached map');
+ p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(3,5);drawDahaiDisc(p,128,128,100);
+ assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===3&&p.getTransform().f===5,'native canvas state restored');p.setTransform(1,0,0,1,0,0);p.lineWidth=1;
+ for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
+  const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
+ }
+ for(const id of ['estella-v','estella-vi','estella-xd','estella-xia','estella-xib','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
+ // Native glyph halo on a bright background, including state/anchor preservation.
+ for(const id of ['estella-ii','estella-iv']){
+  p.fillStyle='#f5dfb0';p.fillRect(0,0,256,256);p.fillStyle='#00ffcc';p.strokeStyle='#ff00ff';p.lineWidth=7;p.font='bold 10px monospace';
+  drawOrbitalWorldLabel(p,id,'BRIGHT WORLD',50,100);
+  const data=p.getImageData(45,85,100,25).data;let dark=0;for(let i=0;i<data.length;i+=4)if(data[i]<30&&data[i+1]<40&&data[i+2]<50)dark++;
+  assert(dark>50,'opaque dark halo separates glyphs from bright globe');assert(p.strokeStyle==='#ff00ff'&&p.lineWidth===7&&p.fillStyle==='#00ffcc','halo preserves native styles');
+ }
+ assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'body/atmosphere/sites untouched');
+ const targets=[['estella-iv-main-orbital-station','Dahai Main Orbital Station'],['estella-iv-primary-city','Fuyuan'],['estella-iv-climate-poi-1','Zhulong'],['estella-iv-climate-poi-2','Jiuyuan'],['estella-iv-climate-poi-3','Bingjie']];
+ const select=document.getElementById('target');targets.forEach(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;select.append(o);});
+ const requested=new URLSearchParams(location.search).get('target');select.value=targets.some(([id])=>id===requested)?requested:targets[1][0];
+ select.onchange=()=>{location.href=`?view=flight&target=${encodeURIComponent(select.value)}`;};
+ const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+ if(new URLSearchParams(location.search).get('view')==='flight'){
+  const before=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-iii-main-customs',select.value,undefined,9995);
+  const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===body.id);
+  const state=createOrbitalState(level,{x:level.planetRadius*1.5,y:0,vx:0,vy:-300,time:12345});renderOrbital(ctx,canvas,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
+ }else{
+  ctx.fillStyle='#080d15';ctx.fillRect(0,0,1200,680);ctx.textAlign='center';ctx.fillStyle='#cfdfeb';ctx.font='18px monospace';ctx.fillText('DAHAI — OPEN OCEAN / CLOUD BELTS',320,35);
+  drawDahaiDisc(ctx,320,292,220);
+  ctx.font='11px monospace';ctx.fillStyle='rgba(120,180,255,0.9)';drawOrbitalWorldLabel(ctx,body.id,'DAHAI',320,292);
+  for(const [i,a]of [-.1,1.15,2.45,-2].entries()){
+   const x=Math.cos(a),y=-Math.sin(a);ctx.fillStyle='#00ffcc';ctx.beginPath();ctx.arc(320+x*220,292+y*220,3,0,Math.PI*2);ctx.fill();
+   ctx.font='bold 10px monospace';ctx.textAlign=x>=0?'right':'left';drawOrbitalWorldLabel(ctx,body.id,targets[i+1][1].toUpperCase(),320+x*190,292+y*190);
+  }
+  ctx.textAlign='center';ctx.fillStyle='#9db2c2';ctx.font='13px monospace';ctx.fillText(`Stable ocean/cloud seed ${DAHAI_SEED} · original site angles`,320,545);
+  [3,8,14,28,50].forEach((r,i)=>drawDahaiDisc(ctx,100+i*110,610,r));
+  for(const [y,halo]of [[190,false],[480,true]]){
+   drawAcheronDisc(ctx,900,y,105);ctx.font='11px monospace';ctx.fillStyle='rgba(120,180,255,0.9)';
+   if(halo)drawOrbitalWorldLabel(ctx,'estella-ii','ACHERON',900,y);else ctx.fillText('ACHERON',900,y);
+   ctx.fillStyle='#9db2c2';ctx.font='14px monospace';ctx.fillText(halo?'ACHERON — NEW DARK LABEL HALO':'ACHERON — PREVIOUS LABEL',900,y+135);
+  }
+ }
+ document.getElementById('status').textContent=`PASS — ${checks} native checks; same geography at every scale. No saves read/written.`;
+ window.dahaiStage6Preview={passed:true,checks,stage:6,seed:DAHAI_SEED,hashes,targets:targets.map(([id])=>id)};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.dahaiStage6Preview={passed:false,error:String(error)};throw error;}
+</script>

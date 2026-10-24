@@ -1,12 +1,12 @@
 # Planet visual stages — operator approval gates
 
-Updated: 2026-10-23
+Updated: 2026-10-24
 
 Pete requires this work in stages, with confirmation between stages. Scope/assignments: [visual inventory](planet-visual-inventory.md).
 
 ## Approval protocol
 
-- Pete approved Stages1–4 and authorized Stage5 on2026-10-23. Stage5 is implemented and awaiting review; STOP before Stage6 until he explicitly authorizes continuing. Stages6–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
+- Pete approved Stages1–5 and authorized Stage6 on2026-10-24, requesting more contrasting Acheron labels and continued bright-world readability checks. Stage6 and the label correction are implemented, awaiting review; STOP before Stage7 until he explicitly authorizes continuing. Stages7–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
@@ -21,8 +21,8 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 | 2 | Roll out approved rocky family with individual persistent seeds/palettes and modest per-world settings. | Celeste baseline; Pike, Svarog, Kalyna, Tessera, Weymark, Tinto, Thronehold, Cadiz, Oathmark, Coimbra, Vigil, Ceuta. | Approved |
 | 3 | Shared icy-world family: layered frost/material contrast, sparse impacts; review revision removes cracks and varies tints; review a full comparison sheet. Retain Mercy's existing thin atmosphere. | Estella IX, Beira, Macao, Mercy, Teide, Estella XIII, Estella XIV, captured rogue/KBO planetoid. | Approved after crack-free/tint revision |
 | 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Approved |
-| 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Implemented; awaiting review / Stage6 go-ahead |
-| 6 | Ocean world with cloud patterns distinguishing calm latitude belts; no invented continental settlement foundation. | Dahai only. | Not started |
+| 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Approved; requested label contrast correction implemented |
+| 6 | Ocean world with cloud patterns distinguishing calm latitude belts; no invented continental settlement foundation. | Dahai only. | Implemented; awaiting review / Stage7 go-ahead |
 | 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Not started |
 | 8 | Cold slate/blue-grey world under heavy weather, distinct from volcanic worlds. | Kuznia only. | Not started |
 | 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Not started |
@@ -31,7 +31,7 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 
 ## Per-stage review checklist
 
-- Full disc and small-marker previews; production orbital rendering for affected families.
+- Full disc and small-marker previews; production orbital rendering for affected families. Check body/site label contrast over bright artwork; Acheron and Dahai now use dark glyph outlines, retaining colours and anchors.
 - Stable seed/geometry across repeated renders and visits; no per-frame generation.
 - Celeste baseline preserved in stage1; unaffected body artwork preserved in every stage.
 - Surface positions/landing objectives agree with approved geography; no cosmetic-only target offsets.
@@ -90,4 +90,13 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 - Illustration stays within the existing disc radius, not a new physical cloud-top altitude. Existing120km atmospheric envelope/density/scale height, Olympos/Nimbus altitudes, Pandemonium surface angle, hub/orbits and objectives unchanged. No chemistry decision, weather/hazard tuning, scenery, dialogue or economy/save changes. Earlier approved worlds intact; IX sand conversion still pending.
 - Review `/tests/acheron-world-preview.html`: full globe and markers, unchanged Gryphon/Hydra comparison, real orbital selector for Commercial Hub/Olympos/Nimbus/Pandemonium.162 native checks, opaque interior samples, exact repeat/reload hashes and all four orbital views pass. Final gallery and Pandemonium flight screenshot inspected; Olympos view also checked during work.
 - Tests: cloud9020 + foundation5069 + rocky610 + ice5664 + giants12058 + world294 assertions. Real local/stellar paths at two epochs for all four targets preserve atmosphere/flight state. Acheron gameplay10388, Balor8721+Eye2204, markers41, empty2872+render35 and build pass. Giant native62/all three orbital views pass with unchanged hashes (Acheron removed from former fallback checks); prior ice142/rocky228 native previews and all their orbital views also pass with that single fallback exclusion updated. Existing Vite warnings only; concurrent Camps review changes untouched. No live saves/mobile/push.
-- STOP here. Stage6 (Dahai ocean/cloud globe only) requires explicit confirmation.
+- Pete subsequently approved Stage5, requested contrasting Acheron labels and authorized Stage6.
+
+## Stage6 result / Acheron label follow-up — 2026-10-24
+
+- `src/dahai-appearance.ts`: continuous blue ocean, tonal water layers, three broken silver cloud decks with clear-water belts, two storm spirals and a small floating sea-ice margin. No continents/islands, city scenery, ice cracks or new weather mechanics. Permanent ID seed1709551853; independent water/cloud/storm/wisp streams, one lazy deep-frozen normalized map. Small markers subset the same points and omit fine wisps; shared central/stellar dispatcher adds only Dahai.
+- Art composition matches existing rim positions: Fuyuan−0.1/Jiuyuan2.45 in clear water, Zhulong1.15 at the cloudy work belt, Bingjie−2.0 on sea ice. No site relocation or cosmetic marker offsets. This chart orientation is not physical axial tilt/3D latitude or a global climate claim; the current2D equatorial placement metadata is unchanged. Atmosphere75km/density1/scale height8500, targets, orbits, flight profiles and established floating-settlement history retained. No hydrogen-canopy chemistry, moving cities/decks, underwater flight, hazards, economy or save edits.
+- `orbital-world-label.ts`:3px dark rounded glyph halo for Acheron and Dahai central names, visible system labels, POIs and legacy LZ. Original text, colours, fonts, anchors and visibility rules preserved; canvas state restored. Other worlds remain unchanged pending readability review. Acheron globe pixels unchanged.
+- `/tests/dahai-world-preview.html`: full/small globe, actual rim guides, Acheron before/after label comparison, five real orbital destinations.56 native checks, identical reload pixels, all five orbital views pass; gallery and Bingjie flight inspected. Acheron161 native/all four orbital views pass; Pandemonium label correction inspected.
+- Tests: Dahai8285 + labels28 + Acheron9036 + foundation5069 + rocky610 + ice5664 + giants12058 + general294; actual local/stellar render, marker anchors, rim alignment at both LODs and unchanged flight state/atmosphere. Dahai shipping82652/240 playable pairs, Acheron10388, Balor8721+Eye2204, markers41, empty2872+render35 and build pass. Prior native giant61/ice141/rocky227 and all their orbital views pass (Dahai newly excluded from fallback checks); previous image hashes unchanged. No saves/mobile/push; Vite available.
+- STOP here. Stage7 (Hartwell only) requires explicit confirmation.

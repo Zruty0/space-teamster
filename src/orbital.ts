@@ -6,6 +6,7 @@ import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfo
 import { InputState } from './input';
 import { drawBalorDisc } from './balor-appearance';
 import { drawAuthoredWorldDisc } from './world-disc-appearance';
+import { drawOrbitalWorldLabel } from './orbital-world-label';
 import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-orientation';
 import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
@@ -2797,7 +2798,7 @@ function drawCentralBodyLabel(
   ctx.textBaseline = 'middle';
   const isStar = bodyById(level.bodyId).id === 'estella';
   ctx.fillStyle = isStar ? 'rgba(255, 210, 80, 0.95)' : 'rgba(120, 180, 255, 0.9)';
-  ctx.fillText(orbitalBodyName(level).toUpperCase(), cx, isStar ? cy - Math.max(14, level.planetRadius * cam.zoom + 10) : cy);
+  drawOrbitalWorldLabel(ctx, level.bodyId, orbitalBodyName(level).toUpperCase(), cx, isStar ? cy - Math.max(14, level.planetRadius * cam.zoom + 10) : cy);
   ctx.textBaseline = 'alphabetic';
 }
 
@@ -2959,7 +2960,7 @@ function drawSystemBodies(
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
-      ctx.fillText(body.name.toUpperCase(), bx, by - br - 6);
+      drawOrbitalWorldLabel(ctx, body.id, body.name.toUpperCase(), bx, by - br - 6);
     } else if (isTargetBody) {
       const dx = bx - W / 2;
       const dy = by - H / 2;
@@ -3125,7 +3126,7 @@ function drawOrbitingPoiMarkers(
     ctx.textAlign = outwardX >= 0 ? 'left' : 'right';
     ctx.textBaseline = outwardY >= 0 ? 'top' : 'bottom';
     ctx.fillStyle = col;
-    ctx.fillText(marker.name.toUpperCase(), labelX, labelY);
+    drawOrbitalWorldLabel(ctx, level.bodyId, marker.name.toUpperCase(), labelX, labelY);
     ctx.textBaseline = 'alphabetic';
   }
 }
@@ -3180,7 +3181,7 @@ function drawSurfacePoiMarkers(
     ctx.fillStyle = col;
     ctx.textAlign = outwardX >= 0 ? 'right' : 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(marker.name.toUpperCase(), lsx, lsy);
+    drawOrbitalWorldLabel(ctx, level.bodyId, marker.name.toUpperCase(), lsx, lsy);
     ctx.textBaseline = 'alphabetic';
   }
 }
@@ -3223,7 +3224,7 @@ function drawLandingSite(
   const lx = labelR * Math.cos(angle);
   const ly = labelR * Math.sin(angle);
   const [lsx, lsy] = ws(lx, ly, cam, W, H);
-  ctx.fillText('LZ', lsx, lsy + 4);
+  drawOrbitalWorldLabel(ctx, level.bodyId, 'LZ', lsx, lsy + 4);
 }
 
 function drawEscapeGuidance(

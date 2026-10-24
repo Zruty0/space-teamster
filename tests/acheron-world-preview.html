@@ -38,7 +38,7 @@ try{
  for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
   const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
  }
- for(const id of ['estella-iv','estella-v','estella-vi','estella-xd','estella-xia','estella-xib','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
+ for(const id of ['estella-v','estella-vi','estella-xd','estella-xia','estella-xib','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
  assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'body/atmosphere/sites untouched');
  const targets=[['estella-ii-commercial-hub-dock','Commercial Hub'],['estella-ii-olympos','Olympos'],['estella-ii-nimbus-crucible','Nimbus Crucible'],['estella-ii-pandemonium','Pandemonium']];
  const select=document.getElementById('target');targets.forEach(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;select.append(o);});
