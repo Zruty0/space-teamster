@@ -1,7 +1,7 @@
 # Estella VI, Kuznia
 
-Updated: 2026-10-23
-Camps integration/review: [camps-review.md](../camps-review.md). Inline `zzz` review is pending there.
+Updated: 2026-10-24
+Camps integration/review: [camps-review.md](../camps-review.md). Both inline `zzz` comments are implemented.
 
 A cold, heavy, storm-wracked industrial world under a thick N₂/CO₂ sky — and the only planet in the Estella system governed by its own workers. Kuznia is the industrial backbone of the Camps: foundries, machine cities, feedstock intake, and the hardest physical labor in the system. It is operated by the **Steel Combine** — at once a republic, a company, and a commune — and it is the reason the Camps corridor *Belt → Camps → everywhere* runs on collectivized steel.
 
@@ -64,9 +64,9 @@ Both of Kuznia's moons carry Slavic names — christened in the Udarnik renaming
 
 ### Svarog
 
-The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a yard. It is run by **Svarog Yard Company (SYC)**, a single independent commercial landlord which owns the shared yard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Veles Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
+The airless shipyard moon (VIa), named for the forge-god. **Svarog Shipyard** was founded *after* Kuznia had already grown into the Camps' natural transport and industrial hub, when the sustained demand to build and service ships finally justified a shipyard. It is run by **Svarog Shipyard Company (SSC)**, a single independent commercial landlord which owns the shared shipyard infrastructure and **leases berths and space to many manufacturers** — the luxury marque Kisaragi and others are tenants, not owners. **Veles Terminal** (VIa.2) is its controlled materials-and-logistics airlock; **Black Vein Mine** (VIa.4) feeds specialty rare-alloy and refractory work; **Anchorhold** (VIa.3) is the surface ballast, power, and mooring infrastructure.
 
-> **Camps pass, implemented for review:** SYC operates shared docks/utilities/alignment at the yard, controlled materials handling at Veles and ground-side infrastructure at Anchorhold. Its growth followed Kuznia's industrial transport demand; it remains politically independent. Kisaragi's tenant contracts and Black Vein's existing extraction operators stay separate. SYC now books its own infrastructure freight/technicians. Named owners, shareholder history and deeper relations with the commune remain open; see the central review file.
+> **Camps pass, review corrections implemented:** SSC operates shared docks/utilities/alignment at the shipyard, controlled materials handling at Veles and ground-side infrastructure at Anchorhold. Its growth followed Kuznia's industrial transport demand; it remains politically independent. Kisaragi's tenant contracts and Black Vein's existing extraction operators stay separate. SSC now books its own infrastructure freight/technicians. Named owners, shareholder history and deeper relations with the commune remain open; see the central review file.
 
 ### Kalyna
 

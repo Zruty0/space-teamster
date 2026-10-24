@@ -195,7 +195,7 @@ The Camps' planets (six bodies in three planetary systems) cover an unusually wi
 
 ## The Camps' bodies and POIs
 
-2026-10-23: all31 site roles expanded in runtime terminal copy;164 added daily orders. Implemented choices, complete shipping audit and Pete's inline `zzz` review: [Camps review](camps-review.md). Hartwell/Tessera eligible surface trade uses50/50 gateway/direct handling; native station work and dedicated Pike refinery legs retained. Kuznia/Kalyna controlled interfaces unchanged.
+2026-10-23: all31 site roles expanded in runtime terminal copy;164 added daily orders. Implemented choices, complete shipping audit and resolved inline `zzz` review (2026-10-24): [Camps review](camps-review.md). Hartwell/Tessera eligible surface trade uses50/50 gateway/direct handling; native station work and dedicated Pike refinery legs retained. Kuznia/Kalyna controlled interfaces unchanged.
 
 ### Hartwell
 Mars-like frontier capital, old gateway to the Belt and beyond, thin CO₂ atmosphere, dust storms, dome farms, regional offices, and local production of necessities.
@@ -215,7 +215,7 @@ Small airless moon of Hartwell used for ore handling, strip mining, and old fron
 
 | ID | Type | Description |
 |---|---|---|
-| Estella Va.1 | Ridgeback Mine | Established independent claims and sorting benches; existing mining companies retained |
+| Estella Va.1 | Flint Mine | Established independent claims and sorting benches; existing mining companies retained |
 | Estella Va.2 | Switchback | Mining settlement with households, clinic, workshops, training and rotational accommodation |
 | Estella Va.3 | Pike Depot | Shared orbital weighing/storage/assay/export; dedicated ore-lift/refinery chain retained |
 
@@ -234,12 +234,12 @@ Mid rocky heavy-industrial planet, thick cold N₂/CO₂ atmosphere, quota cultu
 | Estella VI.8 | Kopanka Mine | Mountain mining (specialty ore, hard pad, altitude) |
 
 ### Svarog
-Small airless shipyard moon of Kuznia, named for the Slavic forge god. Politically separate from the commune. **Svarog Yard Company (SYC)** is the shared-infrastructure landlord at the yard/Veles/Anchorhold; Kisaragi and other tenant manufacturers remain independent.
+Small airless shipyard moon of Kuznia, named for the Slavic forge god. Politically separate from the commune. **Svarog Shipyard Company (SSC)** is the shared-infrastructure landlord at the shipyard/Veles/Anchorhold; Kisaragi and other tenant manufacturers remain independent.
 
 | ID | Type | Description |
 |---|---|---|
 | Estella VIa.1 | Svarog Shipyard | Estella's largest conventional shipyard and drydock complex |
-| Estella VIa.2 | Veles Terminal | Controlled logistics and materials hub for certified shipyard stock, feedstock, parts, and yard-chain routing |
+| Estella VIa.2 | Veles Terminal | Controlled logistics and materials hub for certified shipyard stock, feedstock, parts, and shipyard-chain routing |
 | Estella VIa.3 | Anchorhold | Surface ballast/anchor, buried power, radiators, mooring fields, worker shelters, and alignment infrastructure |
 | Estella VIa.4 | Black Vein Mine | High-spec rare alloy and refractory dopant extraction |
 
@@ -384,7 +384,7 @@ Small SOI, airless, low-gravity. The Belt's first proper orbital body — many T
 
 | ID | Type | Description |
 |---|---|---|
-| Estella VIII.1 | Nell's Rest | Guild-facing first-rendezvous station, maintenance yard, and mechanics hub |
+| Estella VIII.1 | Nell's Rest | Guild-facing first-rendezvous station, maintenance shipyard, and mechanics hub |
 | Estella VIII.2 | Bruckner Weymark Depot | High-orbit BFS distribution and precision-service hub |
 | Estella VIII.3 | Weymark Town | Small civic settlement |
 | Estella VIII.4 | Low Gauge Mine | Airless dwarf mining site |
@@ -423,7 +423,7 @@ The Wells were not born feudal. In the first serious rush to exploit the three o
 
 The crisis ended in the **Accord of Oathmark**. Rodrigo accepted the burden of building, maintaining, and defending the **Serrat Domain Shipyard** at Oathmark; in return, the Estella Commonwealth recognized him as hereditary governor of Gryphon, Hydra, and Manticore. The corporations kept leases, the Guild kept fuel neutrality, and the EDF kept red-line authority, but the Serratine governorship became the constitutional frame through which nearly all Wells law, dues, militia obligations, and settlement rights passed.
 
-The **Oathmark Accord Authority** is the neutral statutory operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. Its grey-sealed warrants move proofed components, yard work, inspectors, referees, and arbitration panels. It does not operate Banner Forge, which belongs to the separate House Mendes martial economy. **Lord Marshal Vasco Mendes** directs the House’s muster warrants from Castle Mendes while Banner Forge stages deployments and receives returned equipment. The Authority’s neutrality is institutional rather than apolitical: every House needs its facilities, contests its decisions, and still recognizes its custody seals when disputes threaten shared infrastructure.
+The **Oathmark Accord Authority** is the neutral statutory operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. Its grey-sealed warrants move proofed components, shipyard work, inspectors, referees, and arbitration panels. It does not operate Banner Forge, which belongs to the separate House Mendes martial economy. **Lord Marshal Vasco Mendes** directs the House’s muster warrants from Castle Mendes while Banner Forge stages deployments and receives returned equipment. The Authority’s neutrality is institutional rather than apolitical: every House needs its facilities, contests its decisions, and still recognizes its custody seals when disputes threaten shared infrastructure.
 
 Rodrigo's fatal mistake was succession. He divided duties rather than territory, assuming his sons loved one another enough to remain one House. **Alvaro** received Thronehold, the seal, the chancery, the public archives, and the right to speak for the Wells. **Mendo** received Oathmark, the shipyard obligation, militia readiness, household guard standards, and emergency mustering rights. **Nuno** received Manticore patrols, outer relays, Reach-route wardenship, rescue duties, quarantine and exile administration, and the private archives. Rodrigo meant them to be voice, hand, and watch. Each son concluded that his office was the one without which the Wells could not survive.
 

@@ -24,8 +24,8 @@ Current implementation:
 - Balor Advanced Materials generator: `src/content/estella/faction-contracts/bam-contracts.ts`; paired dispatch routing: `src/content/estella/balor-logistics.ts`
 - Bruckner Field Services generator: `src/content/estella/faction-contracts/bruckner-contracts.ts`
 - Voss-Heinkel Metricwerke generator: `src/content/estella/faction-contracts/vhm-contracts.ts`
-- Kisaragi Yards Estella generator: `src/content/estella/faction-contracts/kisaragi-estella-contracts.ts`
-- Kisaragi Harmony Yards generator: `src/content/estella/faction-contracts/kisaragi-contracts.ts`
+- Kisaragi Shipyards Estella generator: `src/content/estella/faction-contracts/kisaragi-estella-contracts.ts`
+- Kisaragi Harmony Shipyards generator: `src/content/estella/faction-contracts/kisaragi-contracts.ts`
 - Teamsters' Guild generator: `src/content/estella/faction-contracts/teamsters-guild-contracts.ts`
 - Steel Combine generator: `src/content/estella/faction-contracts/steel-combine-contracts.ts`
 - Glitterfield miners generator: `src/content/estella/faction-contracts/glitterfield-miners-contracts.ts`
@@ -70,9 +70,9 @@ Per-faction pay formulas (`fixed + reimbursement`, at-par net in parentheses):
 | Bruckner Field Services | 0.80 + 0.45 (+25%) | returns 1.20 + 0.25 (+45%); crew passengers 0.50 + 0.60 (+10%) |
 | Cerberus Human Resources | 0.85 + 0.40 (+25%) | rare-metal/corporate 1.20 + 0.25 (+45%); workforce manifests 1.25 + 0.20 (+45%); people 0.50 + 0.60 (+10%) |
 | Balor Advanced Materials | 1.00 + 0.40 (+40%) | personnel 1.00 + 0.50 (+50%); cap2; no flat rewards |
-| Kisaragi Yards Estella | 0.80 + 0.45 (+25%) | freight-only |
+| Kisaragi Shipyards Estella | 0.80 + 0.45 (+25%) | freight-only |
 | Voss-Heinkel Metricwerke | 1.55 + 0 (+55%) | hazard returns 1.70 + 0 (+70%); people 1.15 + 0 (+15%) |
-| Kisaragi Harmony Yards | 1.50 + 0 (+50%) | Celadon 1.70 + 0 (+70%); people 1.20 + 0 (+20%) |
+| Kisaragi Harmony Shipyards | 1.50 + 0 (+50%) | Celadon 1.70 + 0 (+70%); people 1.20 + 0 (+20%) |
 | Steel Combine | 0 + 1.00 fuel comp (0%) | exports 0.15 + 1.00 (+15%); no flat rewards |
 | Glitterfield mining companies | outbound ore/ingots 0.80 + 0.40 (+20%) | depot→Cupola ore 0.35 + 0.65 (0%); supplies 0.65 + 0.45 (+10%); crews 0.30 + 0.60 (-10%) |
 | Halloran Smelting House | 0.80 + 0.40 (+20%) | refinery crews 0.40 + 0.60 (0%); Gaia experts/delegations 0.50 + 0.60 (+10%) |
@@ -103,13 +103,13 @@ Fuyuan, Zhulong, Jiuyuan and Bingjie reuse the four existing surface IDs. Fuyuan
 
 All eligible public Dahai surface/offworld candidates use approximately50/50 orbital/direct dispatch before quoting; new orders exact paired50/50. Gaia/Balor choices remain independent. Native station/local/contact/timed work, accepted quotes/history/saves and physical-terminal naming remain intact. No forced second player leg. Civilian/Institute freight0.80+0.45, passengers0.60+0.60, cap2; other providers retain their own terms. Scientific specimens/archival originals travel physically, ordinary data electronically. Detailed ledger, roles, scope and120-epoch audit: [Dahai shipping](dahai-shipping.md); `npm run test:dahai-shipping`, `npm run audit:dahai`.
 
-## Camps completion pass — implemented for review2026-10-23
+## Camps completion pass — review corrections implemented2026-10-24
 
-Runtime/tests89317da. All31 existing site roles now appear in terminal copy; Pike functional names become Ridgeback Mine/Switchback/Pike Depot. Ascension Scaffold operates as a refit/remanufacturing station. Svarog Yard Company names the existing single independent landlord, separate from Kisaragi tenants and the commune. Tessera has independent physical-metrology/precision-workshop identity and ordinary civic services.
+Runtime/tests89317da. All31 existing site roles now appear in terminal copy; Pike functional names become Flint Mine/Switchback/Pike Depot. Ascension Scaffold operates as a refit/remanufacturing station. Svarog Shipyard Company names the existing single independent landlord, separate from Kisaragi tenants and the commune. Tessera has independent physical-metrology/precision-workshop identity and ordinary civic services.
 
-164 new daily logical orders:110 unnamed civilian,17 SYC,14 EIP,7 Steel,4 Hartwell Shipping,4 Daedalus,3 machinery brokers,3 GOV,2 Guild. Original30 providers' entire raw economies remain frozen except three approved-for-review place-name substitutions; all additions are outside seeded pools.32 registered providers. Existing company rates preserved; new civilians freight0.80+0.45/passengers0.60+0.60; SYC0.75+0.45/0.55+0.60; cap2.
+164 new daily logical orders:110 unnamed civilian,17 SSC,14 EIP,7 Steel,4 Hartwell Shipping,4 Daedalus,3 machinery brokers,3 GOV,2 Guild. Original30 providers' entire raw economies remain frozen except three approved-for-review place-name substitutions; all additions are outside seeded pools.32 registered providers. Existing company rates preserved; new civilians freight0.80+0.45/passengers0.60+0.60; SSC0.75+0.45/0.55+0.60; cap2.
 
-Hartwell/Tessera eligible ordinary surface/offworld trade chooses50/50 gateway/direct, independently at each end and alongside Gaia/Dahai/Balor. Native station business is not relocated to force an overall quota: Roadstead's brokerage creates substantially higher whole-world gateway shares. Dedicated Pike ore/refinery legs, Kuznia/Kalyna trade membranes, local/contact/timed work and saved/accepted contracts remain intact. First Landing and Black Tile stay reserves; the other29 Camps sites now have sampled traffic both ways. No new NPC/service/physics/visual layer. Full decisions, routes, audit and operator `zzz` comments: [Camps review](camps-review.md). Commands: `npm run test:camps`, `npm run audit:camps`.
+Hartwell/Tessera eligible ordinary surface/offworld trade chooses50/50 gateway/direct, independently at each end and alongside Gaia/Dahai/Balor. Native station business is not relocated to force an overall quota: Roadstead's brokerage creates substantially higher whole-world gateway shares. Dedicated Pike ore/refinery legs, Kuznia/Kalyna trade membranes, local/contact/timed work and saved/accepted contracts remain intact. First Landing and Black Tile stay reserves; the other29 Camps sites now have sampled traffic both ways. No new NPC/service/physics/visual layer. Full decisions, routes, audit and operator `zzz` comments: [Camps review](camps-review.md). Commands: `npm run test:camps`, `npm run audit:camps`. Both `zzz` comments resolved: Flint Mine and Svarog Shipyard Company/SSC; public shipbuilding terminology now uses shipyard throughout, including Kisaragi/maintenance copy. Legacy internal names/IDs/cargo labels are retained where they seed economics; presentation aliases do not reprice or rewrite records. A pre-review b4f3a6c snapshot protects all15669 candidates/7503 quoted postings across32 providers.
 
 ## Faction: Balor Advanced Materials (BAM)
 
@@ -118,7 +118,7 @@ Hartwell/Tessera eligible ordinary surface/offworld trade chooses50/50 gateway/d
 - Extraction: cutters, hot-zone actuators/sensors and seals inbound; refractory concentrates and overhaul returns outbound.
 - Foundry: pumps, finished Daedalus controller racks/predictive-maintenance processors, Olympos graphite/oxygen inbound; refractory alloy billets, linings, thermal tiles, high-purity ceramics and rebuildable pumps outbound. No unqualified prototype hardware in ordinary production procurement.
 - Shade: food, medical lockers, water and scrubbers; rated specialist recruitment and paid leave/return rotations. Field/commissioning deployment and return also serve the industrial sites. Passenger manifests use elevated comfort; no coerced or cheap crew blocks.
--18 external sites; Kuznia uses Hammer/Anvil, Kalyna uses its orbital hub, Daedalus uses Systems Campus (not Server Farm/Icarus). Yard and Still thermal-material orders do not manufacture Guild fuel or proprietary drives.
+-18 external sites; Kuznia uses Hammer/Anvil, Kalyna uses its orbital hub, Daedalus uses Systems Campus (not Server Farm/Icarus). Shipyard and Still thermal-material orders do not manufacture Guild fuel or proprietary drives.
 - Each logical consignment has one posting per day, either consolidated at Balor Orbital or direct to its proper surface site. Two-day dispatch pairs assign one day to each route, with pair-specific deterministic hashing. This gives exactly50/50 over complete pairs by count AND likelihood, independently inbound/outbound and freight/passenger. Cargo mass is keyed to the logical order, not gateway/day. Posting details preserve the originating/receiving surface site and explain BAM-arranged local handling.
 - No extra player leg, self-route, local Balor shuttle or mine-to-foundry posting. Actual completed flights and capped boards are not constrained to50/50. The subsequent multi-provider expansion adds35 ordinary logical orders with the same paired dispatch policy and10 orbital-only Guild skim orders; existing candidate paths remain unchanged.
 - Existing shared neutral completion receipt used; bespoke narrative copy/recruitment slogans remain subject to approval. No new named contact, save schema, deadline or heat mechanic.
@@ -156,7 +156,7 @@ Each lane draws from a cargo pool, sampled per route and world-day, so goods var
 
 ### Kuznia membrane rule
 
-Only the Steel Combine operates on Kuznia's surface. Every other faction interfaces exclusively at the orbital membrane — Hammer (bulk) and Anvil (parts/personnel/light) — never a surface node. Redirected accordingly: Co-op (tailings/basalt → Hammer; seals/recycler/rations → Anvil), Cerberus (rare metals/carbon-fiber/valves → Hammer; workforce recruitment removed from Kuznia entirely), Bruckner & VHM (parts/technicians → Anvil), Kisaragi Yards Estella (supplier inputs → Hammer). The moons Svarog and Kalyna are independent polities and exempt.
+Only the Steel Combine operates on Kuznia's surface. Every other faction interfaces exclusively at the orbital membrane — Hammer (bulk) and Anvil (parts/personnel/light) — never a surface node. Redirected accordingly: Co-op (tailings/basalt → Hammer; seals/recycler/rations → Anvil), Cerberus (rare metals/carbon-fiber/valves → Hammer; workforce recruitment removed from Kuznia entirely), Bruckner & VHM (parts/technicians → Anvil), Kisaragi Shipyards Estella (supplier inputs → Hammer). The moons Svarog and Kalyna are independent polities and exempt.
 
 ### Pay
 
@@ -189,7 +189,7 @@ Combine reputation is a cost-and-access ladder, not a pay ladder: at-cost repair
 
 ### Buyer side
 
-Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers source directly from Cupola — the Steel Combine's `import-glitterfield` lane (Cupola → Hammer) and Kisaragi Yards Estella's finished-goods sourcing.
+Refined metal reaches the Camps two ways: the miners haul ingots out, and buyers source directly from Cupola — the Steel Combine's `import-glitterfield` lane (Cupola → Hammer) and Kisaragi Shipyards Estella's finished-goods sourcing.
 
 ## Pike mining companies
 
@@ -272,7 +272,7 @@ All Merren contracts have zero flat award. Internal movement, procurement, and r
 - Public name: The Teamsters' Guild
 - Key nodes: the Still (`still-distribution-bay`, `still-guild-hq`, `still-skim-runner-berth-poi`), Skim Hubs (`skim-hub-alpha-precursor-dock`, `skim-hub-beta-precursor-dock`), Certification Authority (`caravanserai-certification-authority`)
 
-The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Balor Orbital → the Still, hazard-premium pay), fuel distribution (the Still → high-traffic hubs and Wells fuel-chain anchors), engine/RCS supply (the Still → outfitters and yards), and certification/insurance/debt paperwork.
+The system-wide fuel-and-engine monopoly. Guild work is posted only at Guild nodes — it is not a jobs-everywhere faction. Route families: precursor skim-in (near-star hubs / Balor Orbital → the Still, hazard-premium pay), fuel distribution (the Still → high-traffic hubs and Wells fuel-chain anchors), engine/RCS supply (the Still → outfitters and shipyards), and certification/insurance/debt paperwork.
 
 ### Pay
 
@@ -471,17 +471,17 @@ Low-rep CHR work can be ordinary corporate cargo, legal archives, and bulk mater
 
 ## Interstellar shipbuilding actors
 
-### Kisaragi Harmony Yards / Kisaragi Yards Estella
+### Kisaragi Harmony Shipyards / Kisaragi Shipyards Estella
 
-- Parent: Kisaragi Harmony Yards
+- Parent: Kisaragi Harmony Shipyards
 - Parent ID: `kisaragi-harmony-yards`
 - Parent tag: `KIS`
-- Estella subsidiary: Kisaragi Yards Estella
+- Estella subsidiary: Kisaragi Shipyards Estella
 - Subsidiary ID: `kisaragi-yards-estella`
 - Subsidiary tag: `KIS-E`
 - Gaia corporate HQ for now: `estella-iii-finance-city`
 
-Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole yards: Caravanserai Outfitter/Drydock, Svarog Shipyard, and Estella XIe Outer-Spec Drydock. The Svarog Shipyard facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
+Kisaragi is the luxury-prestige hull side of the hulls/engines duo. It does not build normal rank-and-file Teamster rigs. It rents substantial facilities at massive shipyard stations instead of owning whole shipyards: Caravanserai Outfitter/Drydock, Svarog Shipyard, and Estella XIe Outer-Spec Drydock. The Svarog Shipyard facility focuses on luxury yachts, specialty ships, and high-end cruise liners. The XIe facility focuses on extra-large mobile refineries and gas-giant industrial hulls. KIS-E handles in-system freight and local shipping representation; it does not generate passenger contracts. KIS proper handles prestige cargo and Kisaragi personnel movement.
 
 Kisaragi ship tiers:
 
@@ -489,7 +489,7 @@ Kisaragi ship tiers:
 - Porcelain-class: true luxury vessels for clients who expect quiet perfection in every finish, fit, and pressure boundary
 - Celadon-class: barely-affordable masterpieces; Celadon personal yachts are numbered in the hundreds across the whole galaxy
 
-Kisaragi sells finished ships, not loose components. Cargo labels such as `Porcelain-class viewport assemblies` or `Celadon-class hull elements` refer to internal Kisaragi-certified parts and modules moving through the yard chain for those vessels. A ship may use components of its own class or higher, so a Porcelain-class liner uses Porcelain-or-better parts, while a Celadon-class yacht requires Celadon-grade work throughout. Finished Celadon-class components generally originate off-system through Highliner Bay or move between Kisaragi facilities after import, matching, or rework. Estella suppliers do not manufacture finished Celadon-class components; they provide Silk/Porcelain-class goods and non-classed premium inputs.
+Kisaragi sells finished ships, not loose components. Cargo labels such as `Porcelain-class viewport assemblies` or `Celadon-class hull elements` refer to internal Kisaragi-certified parts and modules moving through the shipyard chain for those vessels. A ship may use components of its own class or higher, so a Porcelain-class liner uses Porcelain-or-better parts, while a Celadon-class yacht requires Celadon-grade work throughout. Finished Celadon-class components generally originate off-system through Highliner Bay or move between Kisaragi facilities after import, matching, or rework. Estella suppliers do not manufacture finished Celadon-class components; they provide Silk/Porcelain-class goods and non-classed premium inputs.
 
 KIS-E current route families:
 
@@ -516,7 +516,7 @@ KIS-E cargo palette:
 - acoustic metamaterial stock
 - corrosion-shield laminate blanks
 - precision frame castings
-- yard acceptance documents
+- shipyard acceptance documents
 - client specification archives
 - hull warranty packets
 
@@ -548,7 +548,7 @@ KIS proper cargo/passenger palette:
 - owner representative party
 - Kisaragi recovery rotation crew
 
-Reputation hooks later: KIS-E should be the entry path for Kisaragi yard logistics and should never carry Celadon-class items. KIS proper should unlock after trust/reputation and should carry Celadon-class prestige work, shipwright delegations, client-facing acceptance work, and luxury/highliner hull contracts.
+Reputation hooks later: KIS-E should be the entry path for Kisaragi shipyard logistics and should never carry Celadon-class items. KIS proper should unlock after trust/reputation and should carry Celadon-class prestige work, shipwright delegations, client-facing acceptance work, and luxury/highliner hull contracts.
 
 ## Faction: Voss-Heinkel Metricwerke
 
@@ -609,7 +609,7 @@ BFS's central Estella logistics foothold is on Weymark, not Caravanserai. Carava
 Weymark naming:
 
 - `estella-viii`: Weymark
-- `estella-viii-first-rendezvous-station`: Nell's Rest, Guild-facing first-rendezvous station, maintenance yard, and mechanics hub
+- `estella-viii-first-rendezvous-station`: Nell's Rest, Guild-facing first-rendezvous station, maintenance shipyard, and mechanics hub
 - `estella-viii-harder-approach-station`: Bruckner Weymark Depot, BFS distribution and precision-service hub
 - `estella-viii-settlement`: Weymark Town
 - `estella-viii-mining-site`: Low Gauge Mine
@@ -662,7 +662,7 @@ BFS cargo palette:
 
 ## Faction: Oathmark Accord Authority
 
-The Oathmark Accord Authority is the neutral operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. It issues grey-sealed single-leg warrants through Serrat Domain Yard Dispatch, the Keelwright Works Warrant Office, the Oathmark Academy Registrar, and the Accord Custody Office. Banner Forge and overt House military traffic belong to the separate House Mendes provider.
+The Oathmark Accord Authority is the neutral operator of Serrat Domain Shipyard, Keelwright Works, and Oathmark Academy. It issues grey-sealed single-leg warrants through Serrat Domain Shipyard Dispatch, the Keelwright Works Warrant Office, the Oathmark Academy Registrar, and the Accord Custody Office. Banner Forge and overt House military traffic belong to the separate House Mendes provider.
 
 Core flows:
 
@@ -751,7 +751,7 @@ Scope:
 
 Current source pool: Castle Beira, Castle Tinto, Calatrava Keep, Castle Almaden, Castle Marisma, Shipwright Keep, Castle Teide, Serratine, Herald Gate, Macao Palace, Garden of Rebirth, The Great Arena, Manticore Observatory, and selected Hearth elite origins. Serrat Domain Shipyard, Keelwright Works, Oathmark Academy, and Banner Forge remain eligible noble destinations but no longer originate generic Wells Noble Houses work.
 
-Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, yard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilt-yard drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
+Current cargo families: exotic gift caskets, ceremonial armor cases, court wine and stasis delicacies, sculpted hunting beasts, marriage exchange gifts, tournament prizes, sealed petition archives, petition counsel, household guards, duelists/seconds, heralds, and incognito luxury retinues. Oathmark/shipyard legs use specialized names by direction: house yacht refit bonds, heraldic hull patterns, stateroom fittings, shipyard counsel, proofed yacht components, shipwright witnesses, household guard candidates, challenge writs, unproofed armor, disassembled siege engine kits, robotic destriers, shock-lance racks, tilting-ground drones, proofed honor blades, academy verdict rolls, and graduated guard cadres.
 
 Pay: noble work uses `0.30 + 0.70` plus a flat honorarium. At par, net is the honorarium only; beating par keeps 30% of fuel savings and overruns cost 30% until the compensation cap. Same-SOI/ordinary legs use `12,000 cr`; Macao/Oathmark/court/special legs use `20,000 cr`; rare Hearth elite legs use `30,000 cr`. This prevents overestimated cross-SOI par costs from creating giant windfalls while still rewarding efficient flying.
 

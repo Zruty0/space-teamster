@@ -1,20 +1,20 @@
 # Camps complete pass — review copy
 
-Updated: 2026-10-23
-Status: **implemented locally for Pete's review**. Runtime/tests: `89317da`. Nothing pushed or deployed.
+Updated: 2026-10-24
+Status: **implemented; both zzz comments addressed**. Original runtime/tests: `89317da`; review implementation: `4a3ca52` (details below). Nothing pushed or deployed.
 
-Leave comments beginning with **`zzz`** anywhere under the relevant section. These are implemented choices, not a list of work waiting to start. Individual naming/economic choices remain open to revision after your comments. Preserve operator comments when revising this file.
+Leave comments beginning with **`zzz`** anywhere under the relevant section. These are implemented choices, not a list of work waiting to start. Pete authorized the reviewed pass and requested implementation of his two comments; both are resolved below. Preserve operator comments when revising this file.
 
 ## 1. Quick review: the consequential choices
 
-1. **Pike names:** Ridgeback Mine, Switchback and Pike Depot replace the three functional labels. IDs and existing mining companies remain unchanged.
-2. **Ascension Scaffold is still working:** a populated refit/remanufacturing station with a preserved historical core, rather than a dead museum or another Svarog-scale new-build yard.
-3. **Svarog's landlord is named Svarog Yard Company (SYC):** independent commercial infrastructure operator of the yard, Veles and Anchorhold. Kisaragi and other tenants retain their own brands/contracts. No named owner or new planetary government.
+1. **Pike names:** Flint Mine (zzz: rename Ridgeback, to not sound too similar to Switchback), Switchback and Pike Depot replace the three functional labels. **Resolved2026-10-24: Flint Mine replaces the rejected name throughout live content.** IDs and existing mining companies remain unchanged.
+2. **Ascension Scaffold is still working:** a populated refit/remanufacturing station with a preserved historical core, rather than a dead museum or another Svarog-scale new-build shipyard.
+3. **Svarog's landlord is named Svarog Shipyard Company (SSC):** independent commercial infrastructure operator of the shipyard (zzz: it's not a yard, it's a shipyard. Rename accordingly. No 'yards' anywhere please), Veles and Anchorhold. **Resolved2026-10-24: name/tag and player-facing terminology updated throughout the game; details below.** Kisaragi and other tenants retain their own brands/contracts. No named owner or new planetary government.
 4. **Hartwell and Tessera use50/50 orbital/direct for eligible surface trade.** This does NOT mean50% of all planetary activity: Roadstead's large pre-existing native brokerage business remains at Roadstead. Actual all-traffic percentages are in section9.
 5. **Kuznia/Kalyna retain their existing controlled trade interfaces.** No automatic50/50 direct surface imports. Pike's dedicated ore lifts and direct Cinderhook refinery legs also remain intact.
 6. **Tessera specializes in physical metrology and precision fabrication:** independent workshops, not another giant electronics corporation. Roster Hall has ordinary civic life alongside shift work.
 7. **First Landing and Black Tile remain deliberate reserves.** No filler shipments, automatic access or invented secrets.
-8. **The economic pass adds164 daily logical orders:**110 ordinary civilian,17 SYC,37 across existing providers including14 Institute orders.
+8. **The economic pass adds164 daily logical orders:**110 ordinary civilian,17 SSC,37 across existing providers including14 Institute orders.
 
 The pass covers settlement identity, economic relationships, shipping and visible terminal descriptions. Bespoke NPCs, mission chains, new shop mechanics and planetary/settlement art remain later layers; this pass does not quietly start them.
 
@@ -73,18 +73,18 @@ All seven existing locations retain their names and IDs. Their expanded descript
 - Svarog handles the largest new-build work; the Scaffold serves the older working fleet. Its industrial heritage is a preserved core within a living station.
 - Imports: machine tools, lifting gear, inspection benches, controllers, shared tooling, lubricants, Guild fuel and authorized drive-service kits.
 - Exports/returns: remanufactured tug modules, refurbished pressure-room modules, handling equipment and heritage exhibition loans; worn units return for rework.
-- People: refit specialists, small-business visitors, yard infrastructure staff, heritage visitors and commissioning engineers.
+- People: refit specialists, small-business visitors, shipyard infrastructure staff, heritage visitors and commissioning engineers.
 - No new dominant named Scaffold corporation. Workshops/purchasing offices use descriptive issuers or existing brokers.
 
 ## 3. Pike — three names and a resident community
 
 | Existing ID | Previous name | Implemented name |
 |---|---|---|
-| `estella-va-strip-mine` | Pike Strip Mine | **Ridgeback Mine** |
+| `estella-va-strip-mine` | Pike Strip Mine | **Flint Mine** |
 | `estella-va-miner-hab` | Pike Miner Hab | **Switchback** |
 | `estella-va-ore-handling-depot` | Pike Ore-Handling Depot | **Pike Depot** |
 
-- **Ridgeback Mine:** linked claims and sorting benches. Existing20-company Pike mining roster still owns its orders; no consolidation into one new corporation.
+- **Flint Mine:** linked claims and sorting benches. Existing20-company Pike mining roster still owns its orders; no consolidation into one new corporation.
 - **Switchback:** a settled mining community around protected haul-road junctions, with permanent households, workshops, a clinic, technical classrooms and rotational accommodation. Added civilian supplies, clinical stock, study and family visits.
 - **Pike Depot:** weighing, storage, assay segregation and export dispatch. Institute field teams/specimens use it as their lunar interface.
 - Existing strip→depot lifts, strip→Cinderhook processing and depot exports retain their authored structure and economics. No blanket lunar50/50 conversion.
@@ -117,32 +117,32 @@ A small documentation cleanup removes the old blanket statement that no standing
 
 ## 5. Svarog — distinguish landlord from shipbuilders
 
-### Svarog Yard Company (SYC)
+### Svarog Shipyard Company (SSC)
 
 This names the previously unspecified **single independent commercial landlord/operator**. It grew with Kuznia's industrial transport demand, while remaining politically separate from the commune.
 
-It operates shared yard infrastructure, Veles logistics and Anchorhold support; it leases working space to tenant manufacturers. Kisaragi remains a tenant with its own facilities, products, staff arrangements and contracts. SYC does not manufacture proprietary Guild drives or own every supplier/mine.
+It operates shared shipyard infrastructure, Veles logistics and Anchorhold support; it leases working space to tenant manufacturers. Kisaragi remains a tenant with its own facilities, products, staff arrangements and contracts. SSC does not manufacture proprietary Guild drives or own every supplier/mine.
 
 No shareholder genealogy, named CEO, detailed charter, new local NPC or political allegiance was invented.
 
 | Location | Implemented clarification |
 |---|---|
-| **Svarog Shipyard** | Largest conventional yard; landlord's shared docks/utilities/alignment work separated from tenant new-build production. |
+| **Svarog Shipyard** | Largest conventional shipyard; landlord's shared docks/utilities/alignment work separated from tenant new-build production. |
 | **Veles Terminal** | Landlord-controlled certified materials/handling interface; each tenant's custody and consignments remain distinct. |
-| **Anchorhold** | Ground-side power, ballast, mooring/alignment and worker infrastructure maintained by SYC. |
-| **Black Vein Mine** | Existing extraction contractors supply certified specialty material into the yard chain. Not declared SYC property. |
+| **Anchorhold** | Ground-side power, ballast, mooring/alignment and worker infrastructure maintained by SSC. |
+| **Black Vein Mine** | Existing extraction contractors supply certified specialty material into the shipyard chain. Not declared SSC property. |
 
-**17 SYC orders/day:**9 freight and8 passenger.
+**17 SSC orders/day:**9 freight and8 passenger.
 
 - Hammer supplies shared drydock utility assemblies.
-- Mosaic supplies physical yard-alignment instruments.
+- Mosaic supplies physical shipyard-alignment instruments.
 - Veles supplies Anchorhold power modules.
-- Yard↔Anchorhold carries maintenance kits, overhaul cores and staff rotations.
+- Shipyard↔Anchorhold carries maintenance kits, overhaul cores and staff rotations.
 - Old Scaffold workshops supply/refit shared handling equipment via Veles.
 - Counterpart docks receive physical survey instrument sets.
 - Infrastructure technicians travel between Svarog, Ascension, Concord, Cadiz and Anchorhold.
 
-Rates: freight0.75 fixed +0.45 reimbursement; people0.55+0.60; cap2. No flat bounty or guaranteed board slot. `SYC` is its contract tag, not a new stock-trading mechanic.
+Rates: freight0.75 fixed +0.45 reimbursement; people0.55+0.60; cap2. No flat bounty or guaranteed board slot. `SSC` is its contract tag, not a new stock-trading mechanic.
 
 ## 6. Kalyna — clarify, do not rebuild Merren's economy
 
@@ -171,7 +171,7 @@ Airlessness alone is not treated as a cleanroom: the copy explicitly places prod
 | **Roster Hall** | Clinics, accommodation, technical classrooms, recreation, assignment offices and household services. Family/cultural/study travel complements—not replaces—employer crew rotations. |
 | **Black Tile** | Operator/programme remain undisclosed. No invented public supply chain, revealed secret, new access or ordinary traffic. Deliberate story reserve. |
 
-Mosaic sells physical standards/assemblies to appropriate manufacturers, labs, yards and field operators. Daedalus remains the supplier of electronic systems; Gaia still has its own precision/civil manufacturing. These are differentiated specialties, not exclusive monopolies.
+Mosaic sells physical standards/assemblies to appropriate manufacturers, labs, shipyards and field operators. Daedalus remains the supplier of electronic systems; Gaia still has its own precision/civil manufacturing. These are differentiated specialties, not exclusive monopolies.
 
 ## 8. Routing choice: which worlds get50/50?
 
@@ -188,7 +188,7 @@ The adapters handle both ends of Hartwell↔Tessera work and compose with existi
 ### Explicitly unchanged/exempt
 
 - **Kuznia and Kalyna:** existing trade membranes and authorized exceptions.
-- **Svarog:** yard/station infrastructure and existing physical sites; no blanket moon gateway.
+- **Svarog:** shipyard/station infrastructure and existing physical sites; no blanket moon gateway.
 - **Pike:** explicit ore lift/refinery/depot chain. Dedicated Pike strip→Cinderhook consignments remain direct facility-bound deliveries.
 - **Ascension and native Roadstead/Tessera Orbital work:** stations keep their own orders.
 - Same-body station/surface services, certification/contact work, Old Nell and timed departures.
@@ -204,7 +204,7 @@ The adapters handle both ends of Hartwell↔Tessera work and compose with existi
 | Originator/provider | Orders/day | Main additions |
 |---|---:|---|
 | Unnamed Camps civilian customers |110|Concord produce/utility work; Dawes concentrate/assays; Gale instruments; Scaffold refit/heritage; Pike civilian life; Tessera precision products; household/study/family/cultural travel |
-| Svarog Yard Company |17|Shared infrastructure, upkeep, contractor work and technicians |
+| Svarog Shipyard Company |17|Shared infrastructure, upkeep, contractor work and technicians |
 | Estella Institute of Planetology |14|Gale/Pike/Kuznia partnerships plus Mosaic reference calibration |
 | Steel Combine |7|Morana supply/rotations, Stribog returns, Mokosh upkeep |
 | Hartwell Shipping |4|Scaffold consumables, refurbished habitats and rework fittings |
@@ -214,9 +214,9 @@ The adapters handle both ends of Hartwell↔Tessera work and compose with existi
 | Teamsters' Guild |2|Scaffold fuel and authorized drive-service kits |
 | **Total** |**164**|Additions to the established regional economy, not its entire volume |
 
-Two provider registrations were added: unnamed Camps bookings and SYC. **32 total providers** now. The Institute totals92 daily orders across its original78 and these14; its original Dahai-programme identities remain stable.
+Two provider registrations were added: unnamed Camps bookings and SSC. **32 total providers** now. The Institute totals92 daily orders across its original78 and these14; its original Dahai-programme identities remain stable.
 
-Civilian manifests have descriptive issuer names and no faction/market tag. Weight1.6 represents aggregated ordinary demand; SYC and most other additions use0.6. No forced sampling priority. Existing Hartwell/Daedalus/Guild/Combine rate families are retained. New civilian/GOV/EIP freight uses0.80+0.45 and passengers0.60+0.60, cap2. Fresh produce travels in shipper packaging; no new refrigeration/decay simulation.
+Civilian manifests have descriptive issuer names and no faction/market tag. Weight1.6 represents aggregated ordinary demand; SSC and most other additions use0.6. No forced sampling priority. Existing Hartwell/Daedalus/Guild/Combine rate families are retained. New civilian/GOV/EIP freight uses0.80+0.45 and passengers0.60+0.60, cap2. Fresh produce travels in shipper packaging; no new refrigeration/decay simulation.
 
 The precise route/cargo ledger is in `src/content/estella/faction-contracts/camps-contracts.ts` and `camps-partner-lanes.ts`. Existing companies call the additions from their own provider modules, outside the seeded legacy lane pools.
 
@@ -258,10 +258,10 @@ Small eligible-trade departures from exactly50% come from legacy daily cargo/des
 
 - `nodes.ts`: all31 Camps POI roles plus six body summaries; three Pike display-name changes (including depot parent station), stable IDs/tags/physical definitions.
 - `location-copy.ts`: expose all31 existing site summaries in terminal scenes.
-- `institutions.ts`: register SYC and its bounded landlord role.
+- `institutions.ts`: register SSC and its bounded landlord role.
 - `camps-sites.ts`: stable IDs and the two explicitly eligible gateway groups.
 - `camps-logistics.ts`: outermost public-candidate adapter, before quotes; gathers redirected departures at the correct hubs and preserves independent decisions at other worlds.
-- `camps-contracts.ts`:110 civilian and17 SYC orders.
+- `camps-contracts.ts`:110 civilian and17 SSC orders.
 - `camps-partner-lanes.ts` / `camps-trade-contracts.ts`:37 additive actor-owned orders and shared stable consignment construction.
 - Existing provider modules: Institute, GOV, Steel, Daedalus, Hartwell carriers/brokers and Guild integrate those additions; Pike's source comment reflects its renamed depot.
 - `cargo-handling.ts` / `passenger-comfort.ts`: explicit classifications for new manifest labels. Physical standards/optics/heritage objects receive appropriate fragile handling; new civilian/technical passengers standard comfort. Fuel retains its volatile qualification.
@@ -285,14 +285,24 @@ Small eligible-trade departures from exactly50% come from legacy daily cargo/des
 - Existing equipment, maintenance, par, Balor/BAM/expansion, Gaia, Dahai, Acheron, empty-run, menu, marker, station/parked-ship and globe tests pass; production build passes with pre-existing Vite warnings.
 - Contract-presentation audit covers32 providers and nine contact postings. Menus tested2429 scenes.
 - Acheron's rare-board follow-up test now waits for both equipment templates at both original sources over the existing one-year window, rather than stopping as soon as only the cutter order appears. No production weight/priority was changed to satisfy it.
-- Desktop preview: `http://127.0.0.1:5173/tests/camps-preview.html`. Real module worker:66 requests/783 postings; all31 terminal screens plus civilian/SYC/EIP views rendered. Isolated browser profile; no mobile tests or live-save access.
+- Desktop preview: `http://127.0.0.1:5173/tests/camps-preview.html`. Real module worker:66 requests/783 postings; all31 terminal screens plus civilian/SSC/EIP views rendered. Isolated browser profile; no mobile tests or live-save access.
+
+## Review implementation — 2026-10-24
+
+Both original comments remain verbatim in section1, with their resolutions beside them.
+
+- **Flint Mine** replaces the rejected Pike name in the catalog, navigation, terminal copy and contract presentation, including cached titles. Switchback and Pike Depot are unchanged. The mining location ID stays `estella-va-strip-mine`.
+- **Svarog Shipyard Company / SSC** replaces the initial company name/tag. Its institution, issuer and provider IDs remain unchanged; no roster, order or route replacement.
+- The terminology instruction also applies outside this new company: public names now read **Kisaragi Harmony Shipyards**, **Kisaragi Shipyards Estella**, **Serrat Domain Shipyard Office/Dispatch**, **High Pennant Shipyard**, and **Keeper of the Shipyard Seal**. These are wording changes to existing entities, not new companies/services. Shipbuilding contracts, manifest captions, receipts, shop dialogue and terminal descriptions consistently say shipyard. Non-shipbuilding uses become assay works, cargo/equipment depots, cargo tractors or tilting-ground drones as appropriate.
+- `src/content-terminology.ts` normalizes player-facing text at the existing contract-presentation boundary, after routing, sampling and pricing. Legacy generator strings and IDs remain internal because some participate in deterministic economic seeds. Historical source documents, test baselines and operator comments are not rewritten to erase the old wording.
+- Cached/accepted postings get current wording through read-only views. Quotes, saved objects, histories, cargo type IDs, handling and passenger comfort are unchanged. Cargo/comfort catalogs accept both old and displayed labels; the posting's manifest row uses the current display caption rather than exposing the quote's historical label.
+- New `tests/camps-review.test.ts` runs under `npm run test:camps`:17055 assertions. Frozen pre-review snapshot from`b4f3a6c` verifies15669 generated candidates and7503 complete quoted postings across all32 providers. Comparison permits only reviewed text/tag changes; source traversal uses stable IDs because alphabetic navigation legitimately moves Flint Mine.714 old/new manifest-label combinations checked. Existing frozen economic baselines remain intact.
+- Camps43488, presentation117393, equipment4535, maintenance55, menus273502, Gaia shipping100357, Dahai82652, Balor expansion67782, Acheron10388, empty-runs2872+35 and par60 assertions pass; production build passes with existing Vite warnings. Desktop worker66 requests/783 postings passes, with Flint Mine/SSC screens inspected. No live-save/mobile/push/deploy work. Concurrent Stage5 Acheron artwork was left to the other agent.
 
 ## 11. Deliberately still later work
-
-- Your `zzz` review and revisions to the names, operator identity, civic descriptions or routing choices above.
 - Named local characters, personal contacts, mission chains, bespoke shops and fuller political/governance detail.
 - Ostrander's contact-led storyline; First Landing investigations/salvage; Black Tile's undisclosed programme.
 - Actual weather closures, surface transport simulation, manufacturing inventories or a full population economy.
 - Planetary/settlement art under the other agent's explicit stage approvals.
 
-The broad Camps settlement-and-shipping pass is ready for review. It is not a claim that every later narrative/service layer is implemented, and it does not authorize automatically moving on to the Belt.
+The broad Camps settlement-and-shipping pass and the two requested review corrections are implemented. It is not a claim that every later narrative/service layer is implemented, and it does not authorize automatically moving on to the Belt.
