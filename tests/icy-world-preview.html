@@ -14,6 +14,7 @@ import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
 import {drawIcyDisc} from '/src/icy-world-appearance.ts';
 import {ESTELLA_ICY_WORLD_PROFILES,icyWorldProfileFor,icyWorldTintFor} from '/src/content/estella/icy-world-appearance.ts';
 import {icyWorldGeometry,icyWorldProfile,ICE_GEOMETRY_CACHE_LIMIT} from '/src/icy-world-geometry.ts';
+import {gasGiantProfileFor} from '/src/content/estella/gas-giant-appearance.ts';
 import {rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
 import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
 import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
@@ -57,7 +58,7 @@ try{
     const tint=bodyById(id).color;
     assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Celeste/Gaia native pixels preserved');
   }
-  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!rockyWorldProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved bodies keep their old renderer');
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!rockyWorldProfileFor(b.id)&&!gasGiantProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved bodies keep their old renderer');
   assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'physics/palettes/sites untouched');
   const select=document.getElementById('body');ids.forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=bodyById(id).name;select.append(o);});
   const requested=new URLSearchParams(location.search).get('body');select.value=ids.includes(requested)?requested:'estella-xa';

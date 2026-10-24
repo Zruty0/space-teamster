@@ -12,6 +12,7 @@ import {drawAuthoredWorldDisc,drawCrateredDisc} from '/src/world-disc-appearance
 import {ESTELLA_ROCKY_WORLD_PROFILES,rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
 import {crateredWorldGeometry} from '/src/cratered-world-geometry.ts';
 import {drawCrateredDisc as originalCeleste} from './fixtures/world-disc-v1.ts';
+import {gasGiantProfileFor} from '/src/content/estella/gas-giant-appearance.ts';
 import {icyWorldProfileFor} from '/src/content/estella/icy-world-appearance.ts';
 import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
 import {createPlayableEstellaMission} from '/src/estella-playable.ts';
@@ -46,7 +47,7 @@ try{
     }
   }
   for(let i=0;i<greyImages.length;i++)for(let j=i+1;j<greyImages.length;j++)assert(!same(greyImages[i],greyImages[j]),'each world has distinct geometry even in identical grey');
-  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!icyWorldProfileFor(b.id))){
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!icyWorldProfileFor(b.id)&&!gasGiantProfileFor(b.id))){
     assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),`${body.name}: unchanged fallback/custom family`);
   }
   assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/palettes/sites untouched');

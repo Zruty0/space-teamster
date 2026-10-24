@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stage 4 — gas giants</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}#views{display:grid;grid-template-columns:repeat(3,380px);gap:12px;margin-top:12px}.card{background:#080d15}.card h2{font:17px monospace;text-align:center;margin:12px 8px 0}canvas{display:block}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}#flight{margin-top:12px}</style>
+<h1>STAGE 4 — THREE DISTINCT GAS GIANTS</h1>
+<p>Gryphon: soft gold/fine bands. Hydra: cream/rust turbulent belts and vortices. Manticore: broad blue bands/dark storms.</p>
+<p>Static seeded cloud maps at every scale. No planetary rings; existing atmospheres, moons and skim physics unchanged.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Full gallery</a> · <a href="?view=flight">Production orbital view</a> · <label><input id="grey" type="checkbox">Shared grey palette</label> · <select id="body"></select></p>
+<div id="views"></div><canvas id="flight" width="1200" height="680" hidden></canvas>
+<script type="module">
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {drawGasGiantDisc} from '/src/gas-giant-appearance.ts';
+import {ESTELLA_GAS_GIANT_PROFILES,gasGiantProfileFor} from '/src/content/estella/gas-giant-appearance.ts';
+import {gasGiantGeometry,defineGasGiantProfile,GIANT_GEOMETRY_CACHE_LIMIT} from '/src/gas-giant-geometry.ts';
+import {rockyWorldProfileFor} from '/src/content/estella/rocky-world-appearance.ts';
+import {icyWorldProfileFor} from '/src/content/estella/icy-world-appearance.ts';
+import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+ let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+ const ids=Object.keys(ESTELLA_GAS_GIANT_PROFILES),hubs=['estella-x-observation-skim-hub','estella-xi-skim-hub','estella-xii-observation-post'];
+ const greyProfile=p=>({...p,palette:[[160,160,160],[205,205,205],[120,120,120],[180,180,180],[225,225,225]],stormColors:[[85,85,85],[210,210,210]],filamentOpacity:.15});
+ const probe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+ const p=probe(),q=probe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+ const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+ const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
+ const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]),greys=[],hashes=[];
+ assert(ids.length===3,'exactly three giants');
+ for(const id of ids){
+  const body=bodyById(id),profile=gasGiantProfileFor(id);
+  const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,id,128,128,100,body.color),'live dispatcher'));
+  hashes.push(hash(actual));
+  assert(same(actual,pixels(q,ctx=>drawGasGiantDisc(ctx,128,128,100,profile))),'live painter matches profile');
+  assert(p.getImageData(235,128,1,1).data[3]===0,'no off-limb art/rings');
+  const original=gasGiantGeometry(profile);
+  for(let i=0;i<GIANT_GEOMETRY_CACHE_LIMIT+1;i++)gasGiantGeometry(defineGasGiantProfile(`preview-evict-${i}`,profile));
+  assert(original!==gasGiantGeometry(profile),'bounded cache eviction');
+  assert(same(actual,pixels(q,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,100,body.color))),'cache rebuild preserves pixels');
+  greys.push(pixels(q,ctx=>drawGasGiantDisc(ctx,128,128,100,greyProfile(profile))));
+  for(const r of [3,8,14,18,28]){
+   pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,body.color));
+   assert(p.getImageData(128,128,1,1).data[3]===255,'visible small marker');
+  }
+  p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(3,5);drawAuthoredWorldDisc(p,id,128,128,100,body.color);
+  assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===3&&p.getTransform().f===5,'native state restored');p.setTransform(1,0,0,1,0,0);p.lineWidth=1;
+ }
+ for(let i=0;i<greys.length;i++)for(let j=i+1;j<greys.length;j++)assert(!same(greys[i],greys[j]),'different maps even with the same palette');
+ for(const [id,old] of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
+  const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
+ }
+ for(const body of BODIES.filter(b=>!ids.includes(b.id)&&b.id!=='estella-iii'&&!rockyWorldProfileFor(b.id)&&!icyWorldProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved worlds unchanged');
+ assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/colors/sites untouched');
+ const select=document.getElementById('body');ids.forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=bodyById(id).name;select.append(o);});
+ const requested=new URLSearchParams(location.search).get('body');select.value=ids.includes(requested)?requested:'estella-xi';
+ select.onchange=()=>{location.href=`?view=flight&body=${encodeURIComponent(select.value)}`;};
+ const gallery=document.getElementById('views'),flight=document.getElementById('flight'),inFlight=new URLSearchParams(location.search).get('view')==='flight';document.getElementById('grey').disabled=inFlight;
+ function galleryView(){
+  gallery.replaceChildren();
+  for(const id of ids){
+   const body=bodyById(id),original=gasGiantProfileFor(id),profile=document.getElementById('grey').checked?greyProfile(original):original;
+   const card=document.createElement('div');card.className='card';const name=document.createElement('h2');name.textContent=body.name.toUpperCase();card.append(name);
+   const canvas=document.createElement('canvas');canvas.width=380;canvas.height=425;card.append(canvas);gallery.append(card);
+   const ctx=canvas.getContext('2d');drawGasGiantDisc(ctx,190,170,150,profile);
+   ctx.textAlign='center';ctx.font='12px monospace';ctx.fillStyle='#9db2c2';ctx.fillText(`${profile.edges.length+1} bands / ${profile.storms.length} storms / seed ${profile.seed}`,190,344);
+   [3,8,14,18,28].forEach((r,i)=>drawGasGiantDisc(ctx,50+i*70,390,r,profile));
+  }
+ }
+ if(inFlight){
+  gallery.style.display='none';flight.hidden=false;
+  const id=select.value,before=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-iii-main-customs',hubs[ids.indexOf(id)],undefined,9986);
+  const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===id);
+  const state=createOrbitalState(level,{x:level.planetRadius*1.45,y:0,vx:0,vy:-300,time:12345});renderOrbital(flight.getContext('2d'),flight,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
+ }else{flight.style.display='none';galleryView();document.getElementById('grey').onchange=galleryView;}
+ document.getElementById('status').textContent=`PASS — ${checks} native checks; three distinct live profiles; no saves read/written.`;
+ window.giantStage4Preview={passed:true,checks,stage:4,ids,hashes};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.giantStage4Preview={passed:false,error:String(error)};throw error;}
+</script>

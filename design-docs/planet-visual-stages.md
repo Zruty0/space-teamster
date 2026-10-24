@@ -6,7 +6,7 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 
 ## Approval protocol
 
-- Pete approved Stages1–2 and authorized Stage3 on2026-10-23. Stage3 is implemented and awaiting review; STOP before Stage4 until he explicitly authorizes continuing. Stages4–11 have not started.
+- Pete approved Stages1–3 (including the crack-free ice revision) and authorized Stage4 on2026-10-23. Stage4 is implemented and awaiting review; STOP before Stage5 until he explicitly authorizes continuing. Stages5–11 have not started. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
@@ -19,8 +19,8 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 |---|---|---|---|
 | 1 | Seeded rocky renderer foundation; vary craters AND basins, density/scale/contrast controls, cached normalized geometry. Desktop comparison sheet using representative palettes/seeds. Preserve current Celeste appearance exactly. | Infrastructure/preview only at this stage; Celeste preserved. | Approved |
 | 2 | Roll out approved rocky family with individual persistent seeds/palettes and modest per-world settings. | Celeste baseline; Pike, Svarog, Kalyna, Tessera, Weymark, Tinto, Thronehold, Cadiz, Oathmark, Coimbra, Vigil, Ceuta. | Approved |
-| 3 | Shared icy-world family: layered frost/material contrast, sparse impacts; review revision removes cracks and varies tints; review a full comparison sheet. Retain Mercy's existing thin atmosphere. | Estella IX, Beira, Macao, Mercy, Teide, Estella XIII, Estella XIV, captured rogue/KBO planetoid. | Implemented; awaiting review / Stage4 go-ahead |
-| 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Not started |
+| 3 | Shared icy-world family: layered frost/material contrast, sparse impacts; review revision removes cracks and varies tints; review a full comparison sheet. Retain Mercy's existing thin atmosphere. | Estella IX, Beira, Macao, Mercy, Teide, Estella XIII, Estella XIV, captured rogue/KBO planetoid. | Approved after crack-free/tint revision |
+| 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Implemented; awaiting review / Stage5 go-ahead |
 | 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Not started |
 | 6 | Ocean world with cloud patterns distinguishing calm latitude belts; no invented continental settlement foundation. | Dahai only. | Not started |
 | 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Not started |
@@ -72,4 +72,13 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 - Added eight frozen art-only palettes: muted lavender IX, glacial cyan Beira, jade Macao, ivory Mercy, dusty taupe Teide, pearl-blue XIII, dusky violet-grey XIV, ash/sage rogue. Common production dispatcher uses these in both local and parent-frame views; core body/terrain/atmosphere colors remain unchanged. Preview same-tint mode remains a genuine override.
 - Revised preview stays `/tests/icy-world-preview.html`;146 native checks, identical reload/rebuild pixels and all eight actual orbital renders pass. Icy5664 + foundation5069 + rocky610 + world294 assertions; Balor8393/Eye2204, markers41, build/diff pass. Tests explicitly reject crack paths and non-crater strokes. No physics/sites/saves/mobile/push changes.
 - IX sand-world question remains a proposal: cold airless regolith over buried ice fits its present Belt/dwarf role and ice mine; ordinary wind-carved dunes require an atmosphere and revisiting retention/lore. Do not derive a real equilibrium temperature from gameplay-scaled orbital distances. No IX terrain-type/atmosphere/role conversion authorized or implemented.
-- Still Stage3 review. Stage4 remains blocked on explicit confirmation.
+- Pete subsequently approved this revision and authorized Stage4. IX conversion was not included.
+
+## Stage4 result — 2026-10-23
+
+- Shared `drawGasGiantDisc` plus three explicit frozen profiles in `content/estella/gas-giant-appearance.ts`. Gryphon:22 fine gold/cream bands,2 subdued storms; Hydra:15 stronger rust/cream bands,4 vortices including a dominant storm; Manticore:7 broad subtle blue/cyan bands,2 dark storms. Different widths, turbulence, detail density, storm positions/scales and palettes, not merely recolors.
+- `gas-giant-geometry.ts`: stable ID-derived v1 seeds (1305871086/166064809/1677540320), independent band/filament/storm streams, deeply immutable normalized models and16-entry LRU. Author profiles validated/bounded. Colors/opacity do not move features; changing fine-detail count preserves bands/storms. Small markers use an exact subset of band-edge points and the same main storm outline; fine filaments/swirl ribbons and secondary storms appear at larger scales. No frame/visit randomness or weather simulation.
+- `drawAuthoredWorldDisc` serves both local and stellar markers. Removed old nine-straight-band/single-oval painter. Existing atmosphere layers, skim/observatory targets, marker sizing, moon orbits, gravity and hazards unchanged. No planetary rings or landing sites added/moved. All previous approved world artwork remains intact; IX still icy pending its separate decision.
+- Review `/tests/gas-giant-preview.html`: three full globes, small markers, shared-grey comparison, actual orbital selector (`?view=flight&body=estella-xi` for Hydra).63 native checks pass, identical reload/cache-rebuild pixels, distinct same-palette images, original Celeste/Gaia pixels at six sizes, all three actual orbital views. Gallery and Hydra flight screenshot inspected.
+- Validation: giants12058 + foundation5069 + rocky610 + ice5664 + world294 assertions. Covers exact IDs/seeds, frozen profiles/data, stable LOD, non-crossing bands, cache eviction, author input guards, actual central/stellar paint at two epochs and retained atmospheric rendering/physical state. Prior native ice143 and rocky229 pass including all their actual orbital views (three newly authorized giants removed from former fallback checks); ice pixel hashes match the accepted revision. Balor8721+Eye2204, markers41, empty2872+render35 and production build pass; existing Vite warnings only. No saves/mobile/push.
+- STOP here. Stage5 (Acheron cloud globe only) requires explicit confirmation.

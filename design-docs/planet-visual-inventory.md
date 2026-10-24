@@ -1,16 +1,16 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-23
-Status: Stages1–2 approved; Pete authorized Stage3 icy rollout, now implemented and awaiting review. Later families remain staged proposals; await go-ahead before Stage4. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: Stages1–3 approved; Pete authorized Stage4 giants, now implemented and awaiting review. Later custom worlds remain staged proposals; await go-ahead before Stage5. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
 Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
 - Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the13 rocky worlds listed below now use individually seeded crater profiles.
-- Giants share nine straight bands and the same oval storm placement, with palette differences.
+- Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
 - Other listed globes are predominantly plain tinted discs/noisy outlines plus their existing atmosphere treatment.
-- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds the eight icy variants below, preserving existing hue families and Mercy's atmosphere. Other families remain deferred.
+- Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds eight crack-free icy variants with varied art-only tints, preserving Mercy's atmosphere. Stage4 adds the three giants below. Remaining custom identities stay deferred.
 
 ## Rocky cratered family — 13, implemented in Stage2
 
@@ -69,7 +69,7 @@ Custom composition can still reuse common rendering helpers; it does not imply n
 | estella-xia | Almaden | Sulfur-yellow/ochre volcanic terrain, dark calderas and resurfaced areas. Thin SO2 atmosphere retained. |
 | estella-xib | Marisma | Thick cold haze and broad cloud layers, keeping current cool blue-grey family; terrain mostly obscured. No automatic Titan-orange palette change. |
 
-## Giants: one richer cloud-band family, three authored profiles
+## Giants: three authored profiles, implemented in Stage4
 
 | ID | World | Recommendation |
 |---|---|---|
@@ -77,7 +77,7 @@ Custom composition can still reuse common rendering helpers; it does not imply n
 | estella-xi | Hydra | High-contrast cream/rust belts, turbulent edges, multiple vortices and a dominant storm. |
 | estella-xii | Manticore | Deep blue/cyan, broad subtler bands and a few dark storm features. |
 
-Existing shared straight bands/same storm are too uniform. Use separate stable seeds and authored band widths/contrast/storm distributions, not cratered terrain.
+`src/content/estella/gas-giant-appearance.ts`: Gryphon22 bands/2 storms, Hydra15/4, Manticore7/2, with separate stable seeds, widths, wave amplitudes, filament density and storm positions/scales. Shared normalized map across central and stellar views; small-marker LOD omits detail. Review `/tests/gas-giant-preview.html`. Existing atmosphere/skim physics, moon orbits and sites unchanged.
 
 ## Captured moonlets / small-body boundary
 
@@ -92,4 +92,4 @@ Nell's Lantern (`estella-viii-captured-moonlet`) and Estella IX Captured Moonlet
 - Each world stays recognizable across visits, save reloads and renames. Seed changes never alter landing physics or orbit ephemerides.
 - For custom land/ocean/ice/volcanic globes, review actual rim-site placement against the approved art as done for Gaia. Avoid cosmetic marker offsets that diverge from landing objectives; do not relocate sites without approval.
 
-Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout and icy family implemented. Stage4 and later work require separate confirmations.
+Sequence and current approval status are tracked in [planet visual stages](planet-visual-stages.md). Seeded foundation, rocky rollout, icy family and three giants implemented. Stage5 and later work require separate confirmations.

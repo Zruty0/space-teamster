@@ -2,6 +2,7 @@ import './svg-dom';
 import './cratered-world.test';
 import { EXPECTED_ROCKY_IDS } from './rocky-world-rollout.test';
 import { EXPECTED_ICY_IDS } from './icy-world.test';
+import { EXPECTED_GIANT_IDS } from './gas-giant.test';
 import { drawGaiaDisc, drawCrateredDisc, drawAuthoredWorldDisc, type WorldTint } from '../src/world-disc-appearance';
 import { bodyById, BODIES, SURFACE_POIS } from '../src/world';
 import { createPlayableEstellaMission } from '../src/estella-playable';
@@ -50,8 +51,8 @@ const geometry = (calls: unknown[][]) => JSON.stringify(calls.filter(c => c[0] !
 assert(tinted.every(c => geometry(c) === geometry(tinted[0])), 'recoloring keeps the same crater relief');
 assert(new Set(tinted.map(c => JSON.stringify(c))).size === 3, 'different palettes produce different paints');
 for (const body of BODIES) {
-  const rec = recorder(); const optedIn = body.id === 'estella-iii' || EXPECTED_ROCKY_IDS.includes(body.id) || EXPECTED_ICY_IDS.includes(body.id);
-  assert(drawAuthoredWorldDisc(rec.ctx, body.id, 0, 0, 200, body.color) === optedIn, 'only Gaia, 13 rocky and 8 icy approved worlds opt in');
+  const rec = recorder(); const optedIn = body.id === 'estella-iii' || EXPECTED_ROCKY_IDS.includes(body.id) || EXPECTED_ICY_IDS.includes(body.id) || EXPECTED_GIANT_IDS.includes(body.id);
+  assert(drawAuthoredWorldDisc(rec.ctx, body.id, 0, 0, 200, body.color) === optedIn, 'only Gaia, 13 rocky, 8 icy and 3 approved giants opt in');
   assert((rec.calls.length > 0) === optedIn, 'all other body art left untouched');
 }
 
