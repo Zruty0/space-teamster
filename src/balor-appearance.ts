@@ -15,19 +15,6 @@ export function balorShoreX(y:number):number{
 }
 const freeze=(points:Point[])=>Object.freeze(points.map(p=>Object.freeze(p)));
 const SHORE=freeze(Array.from({length:81},(_,i)=>{const y=EYE_HEIGHT*(-1+2*i/80);return[balorShoreX(y),y];}));
-function tendril(startY:number,endX:number,endY:number,width:number,bend:number,phase:number,scale=1):readonly Point[]{
-  const edge=(side:number)=>Array.from({length:41},(_,i):Point=>{
-    const u=i/40,x=.92+u*(endX-.92);
-    const mid=startY+(endY-startY)*u+bend*Math.sin(u*Math.PI)+.007*Math.sin(u*15+phase)*Math.sin(u*Math.PI);
-    const spread=width*Math.pow(1-u,.85)*scale;
-    const limit=Math.min(EYE_HEIGHT*.98,x*Math.tan(HALF_ARC)*.96);
-    return[x,Math.max(-limit,Math.min(limit,mid+side*spread))];
-  });
-  return freeze([...edge(-1),...edge(1).reverse()]);
-}
-const specs:readonly(readonly[number,number,number,number,number,number])[]=[[-.16,.65,-.11,.022,.015,1],[-.08,.52,-.035,.028,-.026,2],[.02,.62,.10,.024,.02,3],[.12,.72,.16,.018,-.018,4]];
-export const BALOR_EYE_TENDRILS=Object.freeze(specs.map(s=>tendril(...s)));
-const CORES=Object.freeze(specs.map(s=>tendril(...s,.28)));
 const CRUST=Object.freeze([[.91,-.09,.012,.019],[.94,.07,.008,.027],[.88,.025,.008,.01]].map(([x,y,rx,ry],phase)=>freeze(Array.from({length:17},(_,i):Point=>{
   const a=i/17*Math.PI*2,r=1+.18*Math.sin(a*3+phase)+.1*Math.cos(a*5-phase);
   return[x+Math.cos(a)*rx*r,y+Math.sin(a)*ry*r];
@@ -40,14 +27,9 @@ export function drawBalorDisc(ctx:CanvasRenderingContext2D,cx:number,cy:number,r
   // Same crater/basin renderer and nested LOD as the other airless worlds.
   drawCrateredDisc(ctx,0,0,radius,BALOR_ROCK_TINT,BALOR_CRATER_PROFILE);
   ctx.scale(radius,radius);ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.clip();
-  // Even glow and tendrils stay inside the ORIGINAL angular wedge and limb.
+  // The Eye stays inside the ORIGINAL angular wedge and limb.
   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,1,-HALF_ARC,HALF_ARC);ctx.closePath();ctx.clip();
   const detailed=radius>=14;
-  for(const path of BALOR_EYE_TENDRILS){trace(ctx,path);ctx.closePath();ctx.fillStyle=detailed?'#92361f':'#ed8634';ctx.fill();}
-  if(detailed){
-    const heat=ctx.createLinearGradient(.5,0,1,0);heat.addColorStop(0,'#a3391c');heat.addColorStop(.5,'#ed6e25');heat.addColorStop(1,'#ffc15c');
-    for(const path of CORES){trace(ctx,path);ctx.closePath();ctx.fillStyle=heat;ctx.fill();}
-  }
   cap(ctx);ctx.fillStyle=detailed?'#8e301d':'#ff9d32';ctx.fill();
   if(detailed){
     trace(ctx,SHORE);ctx.strokeStyle='rgba(225,65,20,.3)';ctx.lineWidth=.008;ctx.stroke();

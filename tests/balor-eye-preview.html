@@ -3,7 +3,7 @@
 <title>Balor Eye — desktop rendering fixture</title>
 <style>body{margin:0;background:#080d15;color:#c4d0dd;font:14px monospace}h1{margin:24px 30px 8px;font-size:23px}p{margin:8px 30px}#views{display:flex;gap:16px;margin:22px 30px}canvas{display:block}h2{font-size:15px;font-weight:normal;color:#8fa0b4}#status{color:#ffbd4b}</style>
 <h1>BALOR — STATIC ENTRY-ORIENTED EYE</h1>
-<p>30° total surface arc (±15°), deeper molten interior and four tendrils over cratered basalt. No animation, no atmospheric halo. Desktop-only visual fixture.</p>
+<p>30° total surface arc (±15°), deeper molten interior over cratered basalt, without tendrils. No animation, no atmospheric halo. Desktop-only visual fixture.</p>
 <p id="status">Loading…</p>
 <div id="views"><section><h2>ART / ORIENTATION / SMALL-MARKER DETAIL</h2><canvas id="art" width="580" height="690"></canvas></section><section><h2>PRODUCTION ORBITAL VIEW — SHADE APPROACH</h2><canvas id="orbit" width="580" height="690"></canvas></section></div>
 <script type="module">
@@ -23,6 +23,10 @@ try {
     const hot = color(217), cold = color(-180), outside = color(227);
     const inward = color(200);
     assert(inward[0] > 150 && inward[0] > inward[1], 'Eye now extends inward from its unchanged rim arc');
+    for (const [x,y] of [[.72,-.13],[.64,-.08],[.72,.08],[.79,.15]]) {
+      const rock=px.getImageData(Math.round(256+220*(x*Math.cos(angle)+y*Math.sin(angle))),Math.round(256+220*(-x*Math.sin(angle)+y*Math.cos(angle))),1,1).data;
+      assert(rock[0]<140,'former tendril region is cratered rock');
+    }
     const core=color(88);
     assert(core[0]<140,'central globe remains cratered rock, not lava');
     const off=px.getImageData(Math.round(256+213*Math.cos(angle+.45)),Math.round(256-213*Math.sin(angle+.45)),1,1).data;

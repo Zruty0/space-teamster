@@ -43,6 +43,6 @@ Permanent terrain is unchanged. Acheron uses the approved opaque cloud underdeck
 
 Desktop Edge/D3D11 driver `Temp/st-weather-rollout-cdp-20261024.mjs` additionally checks actual `Game.start()` seed persistence across reload without career-byte changes, page lifecycle, and original-art fallback on lost/missing WebGL in an isolated browser profile. Atlas/Dahai/Gaia/Balor/parent/system/fallback screenshots retained. Compare exact transparent weather-layer pixels independently of the atlas: repeated complex terrain-edge rasterization can vary under Skia's path cache; do not relax the weather-layer replay assertion.
 
-Balor:2538 Eye/unit assertions plus28 real-canvas checks, including unchanged30° arc, deeper core/tendrils, stable crater map, actual orientation/flight invariants. Label72/world-disc suites and build pass. Existing Vite warnings only. v2 gallery196 native checks plus controls/URL replay pass; the seven unchanged worlds retain prior native hashes.
+Balor after tendril removal:2208 Eye/unit assertions plus44 real-canvas checks, including unchanged30° arc, deeper core/rock in former tendril regions, stable crater map, actual orientation/flight invariants. Label72/world-disc suites and build pass. Existing Vite warnings only. v2 gallery196 native checks plus controls/URL replay pass; the seven unchanged worlds retain prior native hashes.
 
 No mobile testing, manual live-save modification, baked sequence or push/deployment. Review URLs remain available alongside the game.

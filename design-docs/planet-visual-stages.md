@@ -12,7 +12,7 @@ Pete originally required confirmation between stages. On2026-10-24 he explicitly
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
 - Permanent terrain must remain stable across frames, visits, renames and map scales; weather is deterministic from its persistent seed and shared simulation epoch. Check actual rim-site alignment where geographic features matter; include any necessary proposed placement changes in that stage's review.
-- Gaia terrain remains unchanged. Separately approved2026-10-24: Balor uses cratered airless terrain and a deeper Eye/four tendrils within the unchanged30° rim arc. Captured moonlets/dock-only asteroid scenes and giant rings remain outside scope.
+- Gaia terrain remains unchanged. Separately approved2026-10-24: Balor uses cratered airless terrain and a deeper Eye (tendrils rejected and removed) within the unchanged30° rim arc. Captured moonlets/dock-only asteroid scenes and giant rings remain outside scope.
 
 ## Sequence
 

@@ -7,7 +7,7 @@ Status: All Stages1–11 complete and approved; Pete approved the final combined
 
 Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
-- Balor now has a68-impact cratered airless base and deeper bespoke lava Eye/four tendrils, still within the original30° arc; Gaia has continents/ocean/large ice caps; the14 rocky/regolith worlds listed below now use individually seeded crater profiles.
+- Balor now has a68-impact cratered airless base and deeper bespoke lava Eye (tendrils rejected and removed), still within the original30° arc; Gaia has continents/ocean/large ice caps; the14 rocky/regolith worlds listed below now use individually seeded crater profiles.
 - Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
 - Original Acheron ochre/cream and Dahai ocean/ice painters remain fallback/reference. Production overlays approved dynamic weather on Acheron/Gaia/Dahai/Hartwell/Kuznia/Almaden/Marisma/Mercy; Acheron uses an opaque cloud underdeck, not exposed terrain. Dahai's original rejected polygon storms remain removed. Physical atmospheres/sites unchanged; contrasting labels retained/extended.
 - Hartwell keeps its rusty plains/uplands, dry erosion terraces, surface dust deposits and subdued impacts beneath sparse dust veils.
