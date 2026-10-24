@@ -27,14 +27,15 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 const pois = ESTELLA_NODES.filter(n => n.kind === 'poi');
 const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const isNew = (c: {templateId?: string}) => !!c.templateId?.startsWith('sahra:');
+const isWeymarkAddition = (c: {templateId?: string}) => !!c.templateId?.startsWith('weymark:');
 const isFuel = (c: {cargo: {label: string}}) => c.cargo.label === 'stable fuel canisters';
 const isSahra = (id: string) => (SAHRA_SITES as readonly string[]).includes(id);
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 33, 'one civilian aggregator added, all original32 providers retained');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 34, 'Sahra/Weymark booking aggregators added, all original32 providers retained');
 // Frozen at6067506 BEFORE any economy edits. The only raw deletions permitted
 // are the eleven finished-fuel consignments. All other old fields remain exact.
 for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   const expected = (baseline.providers as Record<string, number[]>)[p.id];
-  if (!expected) { assert(p.id === SAHRA_CIVILIAN_ID, 'only authorized new actor'); continue; }
+  if (!expected) { assert([SAHRA_CIVILIAN_ID, 'weymark-independent-operators'].includes(p.id), 'only authorized subsequent actors'); continue; }
   const rows = baseline.providerDays.flatMap(day => pois.flatMap(n => p.generateContracts({sourceId: n.id, worldTime: day * 86400}).filter(c => !isNew(c))));
   assert(!rows.some(isFuel), 'no raw provider still produces finished-fuel loads');
   assert(same(reviewFingerprint(rows), expected), `${p.id}: every non-fuel old candidate, seed, mass, rate and receipt retained`);
@@ -50,7 +51,7 @@ const actors = new Map<string, Set<string>>();
 let ice = 0, gems = 0, raqib = 0, oldPrecursor = 0;
 for (let day = 0; day < 48; day++) for (const n of pois) {
   const all = generateFactionContractCandidates({sourceId: n.id, worldTime: day * 86400});
-  if (all.some(c => isNew(c) || isSahra(c.sourceId) || isSahra(c.destinationId))) affectedPhysical.add(contractLocationId(n.id));
+  if (all.some(c => isNew(c) || isWeymarkAddition(c) || isSahra(c.sourceId) || isSahra(c.destinationId))) affectedPhysical.add(contractLocationId(n.id));
   for (const c of all) {
     assert(!isFuel(c), 'system-wide new-board fuel retirement, not just Sahra');
     if (c.factionId === 'teamsters-guild' && c.cargo.label === 'sealed antimatter precursor canisters') oldPrecursor++;
@@ -109,7 +110,7 @@ assert(paired > 0 && localRotations > 0 && combinations.size === 4, 'native/loca
 const raw: FactionContractCandidate[] = []; let exactBoards = 0, exactRows = 0, allRows = 0, observedCivilian = false, observedInstitute = false;
 let accepted: CareerContract | undefined;
 for (const day of [0,1,20,21]) {
-  for (const n of pois) raw.push(...generateFactionContractCandidates({sourceId: n.id, worldTime: day * 86400}).filter(c => !isSahra(c.sourceId) && !isSahra(c.destinationId)));
+  for (const n of pois) raw.push(...generateFactionContractCandidates({sourceId: n.id, worldTime: day * 86400}).filter(c => !isSahra(c.sourceId) && !isSahra(c.destinationId) && !isWeymarkAddition(c)));
   for (const n of estellaSelectableNavTargets().sort((a,b) => a.id.localeCompare(b.id))) {
     const rows = [...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400)]; allRows += rows.length;
     if (!affectedPhysical.has(contractLocationId(n.id))) {

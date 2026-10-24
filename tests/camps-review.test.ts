@@ -42,7 +42,9 @@ for (const day of [0, 1, 20, 21]) {
     boards.push(...rows); contexts.push({day,source:n.id,rows});
   }
 }
-const touchesSahra = (c:FactionContractCandidate) => [c.sourceId,c.destinationId].some(id=>id.startsWith('estella-ix'));
+// Weymark additions are separately pinned against their own pre-change snapshot;
+// do not regenerate the earlier Sahra baseline or ignore old Weymark candidates.
+const touchesSahra = (c:FactionContractCandidate) => c.templateId.startsWith('weymark:') || [c.sourceId,c.destinationId].some(id=>id.startsWith('estella-ix'));
 assert(JSON.stringify(reviewFingerprint(raw.filter(c=>!touchesSahra(c)))) === JSON.stringify(economyBaseline.unaffectedRouted), 'all unrelated non-fuel routed candidates remain exact');
 const affected = new Set(['still-distribution-bay', ...raw.filter(touchesSahra).map(c=>c.sourceId)].map(contractLocationId));
 const unaffectedBoards: CareerContract[] = [];

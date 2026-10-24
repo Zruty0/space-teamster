@@ -47,7 +47,7 @@ for(const [id,name] of Object.entries(sites)){
  assert(createPlayableEstellaMission(id,'caravanserai-main-commercial-dock',undefined,9876).start,'playable departure');
 }
 for(const id of retired){assert(!canTravelEmpty(profile,id),'retired destination not advertised');assert(createEmptyRun({...profile,locationId:id},'caravanserai-main-commercial-dock').sourceId===hub,'old save can depart');const before=new Set(DOCKING_LEVELS.map(l=>l.id));assert(createPlayableEstellaMission('caravanserai-main-commercial-dock',id,undefined,9876).start,'old accepted arrival remains playable');assert(DOCKING_LEVELS.some(l=>!before.has(l.id)&&!l.exitMode&&l.finalDestinationName==='Suhail Anchorage'),'retired arrival actually targets surviving anchorage');}
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===33,'approved economic follow-up adds one civilian aggregator');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===34,'approved Sahra and subsequent Weymark booking aggregators');
 const raw:FactionContractCandidate[]=[],boards:CareerContract[]=[];
 for(const day of [0,1,20,21]){for(const n of ESTELLA_NODES.filter(n=>n.kind==='poi'))raw.push(...generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}));for(const n of estellaSelectableNavTargets().sort((a,b)=>a.id.localeCompare(b.id)))boards.push(...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400));}
 // Original pre-identity snapshot still pins geometry/physics above. New

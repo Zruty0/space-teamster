@@ -31,7 +31,7 @@ function body(id: string): string | undefined {
   return n?.placement?.parentId;
 }
 assert(CAMPS_LOCATION_IDS.length === 31 && new Set(CAMPS_LOCATION_IDS).size === 31, 'all31 Camps sites, no invented duplicate destinations');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 33, 'original Camps actors plus approved Sahra civilians');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 34, 'original Camps actors plus approved Sahra/Weymark bookings');
 for (const id of CAMPS_LOCATION_IDS) {
   assert(ESTELLA_NODES_BY_ID.get(id)?.regionId === 'camps' && nav.has(id), `existing selectable Camps ID ${id}`);
   assert((estellaLocationIntroduction(id)?.length ?? 0) > 100, 'authored role visible in terminal, not just notes');

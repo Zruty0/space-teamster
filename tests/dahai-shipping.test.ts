@@ -25,8 +25,8 @@ const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const isNew = (c: FactionContractCandidate) => c.templateId.startsWith('dahai:');
 const isDahai = (id: string) => id === DAHAI_ORBITAL || isDahaiSurface(id);
 const isGaia = (id: string) => id === RICHELIEU || isGaiaSurface(id);
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33, 'Dahai providers retained with later Camps/Sahra additions');
-assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 33, 'unique registrations');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34, 'Dahai providers retained with later Camps/Sahra/Weymark additions');
+assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 34, 'unique registrations');
 assert(ESTELLA_INSTITUTIONS.some(i => i.id === PLANETOLOGY_ID && i.summary.includes('Fuyuan')), 'Institute institution and HQ');
 assert(!ESTELLA_INSTITUTIONS.some(i => /Deepworks/.test(i.name)), 'rejected industrial entity absent');
 for (const site of DAHAI_SURFACE_SITES) {

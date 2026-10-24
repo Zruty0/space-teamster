@@ -8,6 +8,7 @@ import { generateDahaiRoutedContracts } from '../dahai-logistics';
 import { generateCampsRoutedContracts } from '../camps-logistics';
 import { generateSahraRoutedContracts } from '../sahra-logistics';
 import { SAHRA_CIVILIAN_PROVIDER } from './sahra-contracts';
+import { WEYMARK_OPERATORS_PROVIDER } from './weymark-contracts';
 import { CAMPS_CIVILIAN_PROVIDER, SVAROG_YARD_COMPANY_PROVIDER } from './camps-contracts';
 import { DAHAI_CIVILIAN_PROVIDER, PLANETOLOGY_PROVIDER } from './dahai-contracts';
 import { GAIA_CIVILIAN_PROVIDER, GOVERNMENT_PROVIDER, EDF_PROVIDER } from './gaia-contracts';
@@ -157,6 +158,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   CAMPS_CIVILIAN_PROVIDER,
   SVAROG_YARD_COMPANY_PROVIDER,
   SAHRA_CIVILIAN_PROVIDER,
+  WEYMARK_OPERATORS_PROVIDER,
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {

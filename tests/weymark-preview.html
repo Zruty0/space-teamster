@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8"><title>Weymark desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"></select><span id="status">Checking live worker…</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {ESTELLA_NODES_BY_ID} from '/src/content/estella/index.ts';
+import {WEYMARK_SITES,LOW_GAUGE,LANTERN_DOCK,OLD_SURVEY_CAMP} from '/src/content/estella/weymark-sites.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+const sites=Object.fromEntries(WEYMARK_SITES.map(id=>[ESTELLA_NODES_BY_ID.get(id).name,id]));
+const menu=document.getElementById('view'),canvas=document.getElementById('screen'),ctx=canvas.getContext('2d'),contracts={};
+for(const name of [...Object.keys(sites),'Mining freight','Crew transfer']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
+const game=Object.create(Game.prototype);game.career={...defaultCareerProfile(),certifications:[...TEAMSTER_CERTIFICATION_IDS]};game.canvas=canvas;
+function show(){canvas.width=innerWidth-24;canvas.height=innerHeight-60;const key=menu.value,c=contracts[key];if(key in sites){game.career.locationId=sites[key];drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'stationTerminal',selectedIndex:0}),0);}else if(c){game.career.locationId=c.sourceId;drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'contractPosting',contracts:[c],contractIndex:0,selectedIndex:0}),0);}}
+menu.onchange=show;window.addEventListener('resize',show);menu.value='Low Gauge Mine';show();
+const requests=[];for(const day of [0,1,20,21])for(const sourceId of [...WEYMARK_SITES,'caravanserai-main-commercial-dock','estella-via-component-supply-station','harlan-dock','estella-vi-heavy-cargo-station'])requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const started=performance.now(),worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){document.title='FAIL — Weymark';document.getElementById('status').textContent=message;worker.terminate();}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{try{
+ if(data.error)throw Error(data.error);const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+ if([LANTERN_DOCK,OLD_SURVEY_CAMP].includes(requests[complete].sourceId)&&rows.length)throw Error('abandoned site originates traffic');
+ contracts['Mining freight']??=rows.find(c=>c.cargo.label==='Weymark metal concentrates');contracts['Crew transfer']??=rows.find(c=>c.templateId?.startsWith('weymark:')&&c.category==='passenger'&&[c.sourceId,c.destinationId].includes(LOW_GAUGE));
+ for(const c of rows){
+  if(contractLocationId(c.sourceId)!==contractLocationId(requests[complete].sourceId)||c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)throw Error('quote/source mismatch');
+  if([c.sourceId,c.destinationId].some(id=>id===LANTERN_DOCK||id===OLD_SURVEY_CAMP))throw Error('abandoned site traffic');
+  if(c.sourceName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name||c.destinationName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name)throw Error('physical name mismatch');
+ }
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+ worker.terminate();if(!contracts['Mining freight']||!contracts['Crew transfer'])throw Error('missing new live freight/passenger posting');
+ for(const o of menu.options){menu.value=o.value;show();}menu.value='Low Gauge Mine';show();document.title='PASS — Weymark';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings; six terminals + mining/crew postings; Lantern and Survey Camp empty; ${(performance.now()-started).toFixed(0)} ms`;
+}catch(e){fail(e.stack??String(e));}};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Isolated synthetic profile: no Game constructor or save loading/writes.
+</script>

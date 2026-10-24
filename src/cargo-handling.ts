@@ -195,6 +195,11 @@ const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
 };
 
 const ORDINARY_CARGO = new Set<string>([
+  'Weymark metal concentrates',
+  'Weymark mining crews',
+  'Weymark depot personnel',
+  'mine equipment technicians',
+  'visiting claim crews',
   'Sahra ice blocks',
   'empty water tank racks',
   'caravan household passengers',

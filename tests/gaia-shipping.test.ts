@@ -30,7 +30,7 @@ assert(ESTELLA_NODES_BY_ID.get('estella-iii-main-customs-station')?.name==='Rich
 assert(estellaDisplayPath(RICHELIEU).includes('Richelieu Orbital Terminal'),'navigation uses live name');
 assert(estellaLocationIntroduction(RICHELIEU)?.includes('biggest transit hub'),'actual terminal describes system-scale role');
 for(const id of [GOVERNMENT_ID,EDF_ID])assert(ESTELLA_INSTITUTIONS.some(i=>i.id===id),'institution catalog registered');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===33,'33 provider families including Sahra civilians');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===34,'34 provider families including independent Weymark bookings');
 
 const orders=new Map<string,Map<number,FactionContractCandidate>>();
 const pairs=new Map<string,FactionContractCandidate>();

@@ -47,7 +47,7 @@ const legacy: Record<string, [number, number]> = {
   'merren-conservatory': [340,2674462853], 'daedalus-systems': [445,1210869324],
 };
 const providers = ESTELLA_FACTION_CONTRACT_PROVIDERS.filter(p => legacy[p.id]);
-assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 33, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
+assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 34, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
 for (const p of providers) {
   // Merren's approved Dahai culture/specialist sites changed roles. Its complete
   // non-Dahai baseline is frozen independently in dahai-shipping.test.ts.
