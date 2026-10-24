@@ -19,7 +19,7 @@ for (let day = 0; day < 120; day++) for (const node of pois) {
     const row = tally.get(key) ?? {count:0,weight:0,hub:0,hubWeight:0,civilian:0,civilianWeight:0};
     row.count++; row.weight += c.likelihood;
     if (c.sourceId === RICHELIEU || c.destinationId === RICHELIEU) {row.hub++;row.hubWeight += c.likelihood;}
-    if (c.factionId === GAIA_CIVILIAN_ID) {row.civilian++;row.civilianWeight += c.likelihood;}
+    if ([GAIA_CIVILIAN_ID, 'dahai-civilian-bookings', 'camps-civilian-bookings', 'sahra-civilian-bookings'].includes(c.factionId)) {row.civilian++;row.civilianWeight += c.likelihood;}
     tally.set(key,row);
     sources.add(c.sourceId);
     if ([GAIA_CIVILIAN_ID,GOVERNMENT_ID,EDF_ID].includes(c.factionId)) newOrders.set(c.factionId, (newOrders.get(c.factionId) ?? 0)+1);
@@ -35,7 +35,7 @@ for (const day of [0,1,2,3,10,11,20,21,30,31,60,61]) for (const source of source
     const key = `${isGaia(c.sourceId)?'out':'in'}:${c.category}`;
     const r = boards.get(key) ?? {count:0,hub:0,civilian:0};r.count++;
     if(c.sourceId===RICHELIEU||c.destinationId===RICHELIEU) r.hub++;
-    if(c.factionId===GAIA_CIVILIAN_ID)r.civilian++;
+    if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings','camps-civilian-bookings','sahra-civilian-bookings'].includes(c.factionId??''))r.civilian++;
     boards.set(key,r);
   }
 }

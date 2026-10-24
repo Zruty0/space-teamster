@@ -8,6 +8,8 @@ import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_MACHINERY_LANES } from './dahai-partner-lanes';
 import { campsTradeContracts } from './camps-trade-contracts';
 import { CAMPS_MACHINERY_LANES } from './camps-partner-lanes';
+import { sahraTradeContracts } from './sahra-trade-contracts';
+import { SAHRA_MACHINERY_LANES } from './sahra-partner-lanes';
 
 const HARTWELL_MACHINERY_ID = 'hartwell-machinery-brokers';
 const HAMMER = 'estella-vi-heavy-cargo-station';
@@ -231,6 +233,9 @@ export const HARTWELL_MACHINERY_BROKERS_PROVIDER: FactionContractProvider = {
   name: 'Hartwell Machinery Brokers',
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return [...generateMachineryContracts(ctx), ...CAMPS_MACHINERY_LANES.flatMap((lane, index) => campsTradeContracts(ctx, {
+      factionId: HARTWELL_MACHINERY_ID, factionName: ROSTER[index % ROSTER.length].name,
+      ...(lane.massClass === 'heavy' ? HEAVY_PAY : ROUTINE_PAY),
+    }, [lane])), ...SAHRA_MACHINERY_LANES.flatMap((lane, index) => sahraTradeContracts(ctx, {
       factionId: HARTWELL_MACHINERY_ID, factionName: ROSTER[index % ROSTER.length].name,
       ...(lane.massClass === 'heavy' ? HEAVY_PAY : ROUTINE_PAY),
     }, [lane])), ...DAHAI_MACHINERY_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {

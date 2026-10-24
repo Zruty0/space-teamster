@@ -31,7 +31,7 @@ function body(id: string): string | undefined {
   return n?.placement?.parentId;
 }
 assert(CAMPS_LOCATION_IDS.length === 31 && new Set(CAMPS_LOCATION_IDS).size === 31, 'all31 Camps sites, no invented duplicate destinations');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 32 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 32, '30 established plus civilians and yard operator');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 33, 'original Camps actors plus approved Sahra civilians');
 for (const id of CAMPS_LOCATION_IDS) {
   assert(ESTELLA_NODES_BY_ID.get(id)?.regionId === 'camps' && nav.has(id), `existing selectable Camps ID ${id}`);
   assert((estellaLocationIntroduction(id)?.length ?? 0) > 100, 'authored role visible in terminal, not just notes');
@@ -44,9 +44,11 @@ for(const id of [STRIBOG,MORANA,'estella-vib-pharma-horticulture']) assert(empty
 // Captured at dae6547, BEFORE the pass. All30 raw actor rosters, seeded choices,
 // prices and receipts remain exact except the three approved place-name edits.
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
-  if(!(p.id in baseline)) continue;
+  // Guild finished-fuel deletion is intentional; its entire surviving roster is
+  // frozen independently before the change in sahra-economy.test.ts.
+  if(!(p.id in baseline) || p.id === 'teamsters-guild') continue;
   const rows: FactionContractCandidate[]=[];
-  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)));
+  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!c.templateId.startsWith('sahra:')));
   let h=2166136261;for(const ch of preCampsNames(JSON.stringify(rows))){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
   const expected=(baseline as Record<string,number[]>)[p.id];
   assert(rows.length===expected[0]&&(h>>>0)===expected[1], `${p.id}: entire pre-pass raw economy preserved`);
@@ -74,7 +76,7 @@ for(let day=0;day<20;day++)for(const n of pois)for(const c of generateFactionCon
   assert(c.details&&c.completionMessage,'operational details/receipt');
   if(c.category==='passenger')assert(c.cargo.passengerComfort?.expectation===passengerComfortTerms(c.cargo.label).expectation,'explicit passenger handling');
   if(c.cargo.fragile)assert(c.requiredCertification==='fragile-cargo','fragile qualification');
-  if(c.factionId==='teamsters-guild'&&c.cargo.label==='stable fuel canisters')assert(c.requiredCertification==='volatile-cargo','fuel stays certified');
+  assert(c.cargo.label!=='stable fuel canisters','finished-fuel container work retired');
   if(c.factionId==='steel-combine')assert(c.generosity===0&&c.compensationRatio===1&&c.issuerName==='Steel Combine Planning Office','internal Combine compensation/authority retained');
   if(c.factionId===CAMPS_CIVILIAN_ID)assert(!c.factionTag&&c.issuerName!==c.factionName,'descriptive ordinary customers');
   if(c.factionId===SVAROG_YARD_COMPANY_ID)assert(c.factionTag==='SSC','shipyard identity distinct from Kisaragi');
@@ -85,7 +87,7 @@ for(let day=0;day<20;day++)for(const n of pois)for(const c of generateFactionCon
 }
 for(const id of [DAWES,ASCENSION,STRIBOG,MORANA])assert(traffic.get(id)!.in>0&&traffic.get(id)!.out>0,`identified working-site gap filled ${id}`);
 for(const id of [FIRST_LANDING,BLACK_TILE])assert(!traffic.has(id),'deliberately reserved locations remain without public demand');
-assert(orders.size===164&&actors.get(CAMPS_CIVILIAN_ID)===110&&actors.get(SVAROG_YARD_COMPANY_ID)===17,'164 additions:110 ordinary civilian,17 landlord,37 existing-provider orders');
+assert(orders.size===163&&actors.get(CAMPS_CIVILIAN_ID)===110&&actors.get(SVAROG_YARD_COMPANY_ID)===17,'163 original-program orders after one fuel retirement:110 civilian,17 landlord,36 existing-provider');
 const combinations=new Set<string>();let crossGaia=0,crossDahai=0;
 for(const [key,days] of orders) {
   assert(days.size===20,`daily coverage ${key}`);assert(new Set([...days.values()].map(c=>c.cargo.massTons)).size===1,'stable mass');

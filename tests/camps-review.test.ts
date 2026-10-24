@@ -1,7 +1,6 @@
 import './svg-dom';
-import baseline from './fixtures/camps-review-baseline.json';
-import sahraBaseline from './fixtures/sahra-baseline.json';
-import { preSahraNames } from './fixtures/pre-sahra-names';
+import economyBaseline from './fixtures/sahra-economy-baseline.json';
+import { contractLocationId } from '../src/contract-presentation';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
 import { publicContentText } from '../src/content-terminology';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
@@ -31,18 +30,26 @@ for (const shop of MAINTENANCE_SHOPS) assert(clean(JSON.stringify({name: shop.na
 assert(publicContentText('cargo yards, assay yards, equipment yard, tilt-yard drone packs') === 'cargo depots, assay works, equipment depot, tilting-ground drone packs', 'non-shipbuilding uses get appropriate nouns');
 assert(publicContentText('shipyard shipyards dockyard backyard') === 'shipyard shipyards dockyard backyard', 'word boundaries, no double ship prefixes');
 
-// Frozen BEFORE these edits at b4f3a6c; not regenerated to bless new behaviour.
+// Original review snapshots remain historical fixtures. The approved Sahra
+// routing/fuel deletion now has a separate BEFORE-change6067506 baseline.
 const raw: FactionContractCandidate[] = [], boards: CareerContract[] = [];
+const contexts: Array<{day:number;source:string;rows:CareerContract[]}> = [];
 for (const day of [0, 1, 20, 21]) {
   for (const n of ESTELLA_NODES.filter(n => n.kind === 'poi')) raw.push(...generateFactionContractCandidates({sourceId: n.id, worldTime: day * 86400}));
   // The nav menu legitimately reorders renamed sites; compare boards by stable source ID.
-  for (const n of estellaSelectableNavTargets().sort((a, b) => a.id.localeCompare(b.id))) boards.push(...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400));
+  for (const n of estellaSelectableNavTargets().sort((a, b) => a.id.localeCompare(b.id))) {
+    const rows = [...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400)];
+    boards.push(...rows); contexts.push({day,source:n.id,rows});
+  }
 }
-assert(JSON.stringify(reviewFingerprint(JSON.parse(preSahraNames(JSON.stringify(raw))))) === JSON.stringify(baseline.raw), 'all32 candidates: reviewed names/tags and two retired Sahra receiving points only; sampling, masses, handling and rates retained');
-// Sahra's approved station removal changes its incident quotes; the independent
-// pre-Sahra snapshot pins every unrelated posting, including ordering/prices.
-const unaffectedBoards = boards.filter(c => ![c.sourceId, c.destinationId].some(id => id.startsWith('estella-ix')));
-assert(JSON.stringify(reviewFingerprint(unaffectedBoards)) === JSON.stringify(sahraBaseline.unaffectedBoards), 'all7463 non-Sahra postings retain exact quotes, IDs, availability and ordering');
+const touchesSahra = (c:FactionContractCandidate) => [c.sourceId,c.destinationId].some(id=>id.startsWith('estella-ix'));
+assert(JSON.stringify(reviewFingerprint(raw.filter(c=>!touchesSahra(c)))) === JSON.stringify(economyBaseline.unaffectedRouted), 'all unrelated non-fuel routed candidates remain exact');
+const affected = new Set(['still-distribution-bay', ...raw.filter(touchesSahra).map(c=>c.sourceId)].map(contractLocationId));
+const unaffectedBoards: CareerContract[] = [];
+for(const {day,source,rows} of contexts) if(!affected.has(contractLocationId(source))) {
+  assert(JSON.stringify(reviewFingerprint(rows)) === JSON.stringify((economyBaseline.boardSources as Record<string,number[]>)[`${day}:${source}`]), 'untouched source board: exact original order, IDs, availability and quotes');
+  unaffectedBoards.push(...rows);
+}
 const labels = new Set<string>();
 for (const c of raw) {
   if (labels.has(c.cargo.label)) continue;

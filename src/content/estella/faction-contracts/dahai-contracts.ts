@@ -3,6 +3,8 @@ import { dahaiTradeContracts, type DahaiTradeLane } from './dahai-trade-contract
 import type { FactionContractProvider } from './index';
 import { campsTradeContracts } from './camps-trade-contracts';
 import { CAMPS_PLANETOLOGY_LANES } from './camps-partner-lanes';
+import { sahraTradeContracts } from './sahra-trade-contracts';
+import { SAHRA_PLANETOLOGY_LANES } from './sahra-partner-lanes';
 
 export const DAHAI_CIVILIAN_ID = 'dahai-civilian-bookings';
 export const PLANETOLOGY_ID = 'estella-institute-of-planetology';
@@ -106,6 +108,11 @@ export const PLANETOLOGY_PROVIDER: FactionContractProvider = {
     generosity: lane.category === 'passenger' ? 0.6 : 0.8,
     compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
   }, [lane])), ...CAMPS_PLANETOLOGY_LANES.flatMap(lane => campsTradeContracts(ctx, {
+    factionId: PLANETOLOGY_ID, factionName: 'Estella Institute of Planetology', factionTag: 'EIP',
+    issuerId: PLANETOLOGY_ID, issuerName: 'Estella Institute of Planetology',
+    generosity: lane.category === 'passenger' ? 0.6 : 0.8,
+    compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
+  }, [lane])), ...SAHRA_PLANETOLOGY_LANES.flatMap(lane => sahraTradeContracts(ctx, {
     factionId: PLANETOLOGY_ID, factionName: 'Estella Institute of Planetology', factionTag: 'EIP',
     issuerId: PLANETOLOGY_ID, issuerName: 'Estella Institute of Planetology',
     generosity: lane.category === 'passenger' ? 0.6 : 0.8,

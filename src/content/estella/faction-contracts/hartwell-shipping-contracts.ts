@@ -7,6 +7,8 @@ import { dahaiTradeContracts } from './dahai-trade-contracts';
 import { DAHAI_CARRIER_LANES } from './dahai-partner-lanes';
 import { campsTradeContracts } from './camps-trade-contracts';
 import { CAMPS_CARRIER_LANES } from './camps-partner-lanes';
+import { sahraTradeContracts } from './sahra-trade-contracts';
+import { SAHRA_CARRIER_LANES } from './sahra-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
 
 // Hartwell shipping houses live on route arbitrage: Wells raw/resource lots into Camps demand,
@@ -423,6 +425,9 @@ export const HARTWELL_SHIPPING_COMPANIES_PROVIDER: FactionContractProvider = {
   generateContracts(ctx: FactionContractContext): FactionContractCandidate[] {
     return [...generateHartwellShippingContracts(ctx), ...balorCarrierContracts(ctx),
       ...CAMPS_CARRIER_LANES.flatMap((lane, index) => campsTradeContracts(ctx, {
+        factionId: HARTWELL_SHIPPING_ID, factionName: ROSTER[index % ROSTER.length].name, ...ROUTINE_PAY,
+      }, [lane])),
+      ...SAHRA_CARRIER_LANES.flatMap((lane, index) => sahraTradeContracts(ctx, {
         factionId: HARTWELL_SHIPPING_ID, factionName: ROSTER[index % ROSTER.length].name, ...ROUTINE_PAY,
       }, [lane])),
       ...DAHAI_CARRIER_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {

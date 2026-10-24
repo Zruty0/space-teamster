@@ -16,10 +16,8 @@ interface GuildContractTemplate {
   requiredCertification?: TeamsterCertificationId;
 }
 
-import { FUYUAN, BINGJIE } from '../dahai-sites';
 import { ASCENSION } from '../camps-sites';
 import { campsTradeContracts } from './camps-trade-contracts';
-import { dahaiTradeContracts } from './dahai-trade-contracts';
 
 const GUILD_ID = 'teamsters-guild';
 const GUILD_NAME = 'The Teamsters\' Guild';
@@ -48,8 +46,9 @@ const COMPLETION_BLURBS: CompletionBlurb[] = [
 
 // Guild flight-control / fuel-chain nodes. Guild work is only posted at these docks.
 // Precursor skim-in originates at the near-star skim hubs and Balor Orbital.
-// Fuel distribution and hardware originate at the Still; paperwork at Guild offices.
-// Bulk fuel canisters move to high-throughput traffic hubs and Wells fuel-chain anchors.
+// Hardware originates at the Still; paperwork at Guild offices. Finished fuel
+// mass is too small for dedicated container jobs; dispensary distribution stays
+// in the background. Industrial skim precursor feedstock remains separate.
 const SKIM_STAGING_DOCK = 'estella-i-transit-customs';
 const STILL_SKIM_BERTH = 'still-skim-runner-berth-poi';
 const STILL_DISTRIBUTION = 'still-distribution-bay';
@@ -69,11 +68,6 @@ const GUILD_TEMPLATES: GuildContractTemplate[] = [
   { templateId: 'skim-precursor-alpha', sourceIds: ['skim-hub-alpha-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 1.2, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
   { templateId: 'skim-precursor-beta', sourceIds: ['skim-hub-beta-precursor-dock'], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'sealed antimatter precursor canisters', massClass: 'dense', likelihood: 0.8, generosity: SKIM_GENEROSITY, compensationRatio: SKIM_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
   { templateId: 'skim-staging-precursor', sourceIds: [SKIM_STAGING_DOCK], destinationIds: [STILL_SKIM_BERTH], cargoLabel: 'staged precursor lot', massClass: 'heavy', likelihood: 0.7, generosity: SKIM_STAGING_GENEROSITY, compensationRatio: SKIM_STAGING_COMPENSATION_RATIO, requiredCertification: 'volatile-cargo' },
-
-  // Fuel distribution-out: limited bulk canister runs from the Still to major traffic hubs and fuel-chain anchors.
-  { templateId: 'fuel-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-refuel-depot'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.9, requiredCertification: 'volatile-cargo' },
-  { templateId: 'fuel-wells-hub', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-x-observation-skim-hub', 'estella-xc-transit-refuel', 'estella-x-captive-refuel-relay', 'estella-xi-skim-hub', 'estella-xid-main-port', 'estella-xii-observation-post'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.55, requiredCertification: 'volatile-cargo' },
-  { templateId: 'fuel-reach-port', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['estella-xiii-main-port'], cargoLabel: 'stable fuel canisters', massClass: 'standard', likelihood: 0.45, requiredCertification: 'volatile-cargo' },
 
   // Engine / RCS supply: Guild-controlled propulsion hardware out to outfitters and maintenance yards.
   { templateId: 'engine-outfitter-serai', sourceIds: [STILL_DISTRIBUTION], destinationIds: ['caravanserai-outfitter-drydock'], cargoLabel: 'certified maneuvering engine units', massClass: 'heavy', likelihood: 0.8 },
@@ -325,18 +319,8 @@ export const TEAMSTERS_GUILD_PROVIDER: FactionContractProvider = {
     return [...candidatesFromTemplates(ctx), ...balorSkimContracts(ctx),
       ...campsTradeContracts(ctx, { factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
         generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
-      }, [{ id: 'scaffold-fuel', from: STILL_DISTRIBUTION, to: [ASCENSION], label: 'stable fuel canisters', massClass: 'standard',
-        purpose: 'Guild spacecraft fuel for the operating workboat and refit station.' }]).map(c => ({ ...c, requiredCertification: 'volatile-cargo' as const })),
-      ...campsTradeContracts(ctx, { factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
-        generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
       }, [{ id: 'scaffold-drive-service', from: STILL_DISTRIBUTION, to: [ASCENSION], label: 'engine overhaul kits', massClass: 'heavy',
-        purpose: 'Authorized drive-service kits for refit contractors; proprietary drive manufacture stays with the Guild.' }]),
-      ...([FUYUAN, BINGJIE] as const).flatMap(site => dahaiTradeContracts(ctx, {
-        factionId: GUILD_ID, factionName: GUILD_NAME, factionTag: GUILD_TAG,
-        generosity: GUILD_BASE_GENEROSITY, compensationRatio: GUILD_BASE_COMPENSATION_RATIO, maxCompAllowance: 2,
-      }, [{ id: 'dahai-port-fuel', site, externalIds: [STILL_DISTRIBUTION], direction: 'in', label: 'stable fuel canisters', massClass: 'standard',
-        purpose: 'Guild spacecraft fuel supply for Dahai port operations; industrial hydrogen is not drive fuel.' }])
-        .map(c => ({ ...c, requiredCertification: 'volatile-cargo' as const })))];
+        purpose: 'Authorized drive-service kits for refit contractors; proprietary drive manufacture stays with the Guild.' }])];
   },
   generateContactContracts(ctx: FactionContactContractContext): FactionContractCandidate[] {
     if (ctx.issuer.missionTags.includes('old-nell-passage')) return oldNellPassageCandidates(ctx);

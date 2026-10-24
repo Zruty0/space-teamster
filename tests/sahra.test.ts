@@ -1,7 +1,7 @@
 import './svg-dom';
 import baseline from './fixtures/sahra-baseline.json';
-import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
-import { preSahraNames } from './fixtures/pre-sahra-names';
+// The approved economic follow-up has its own pre-change roster/quote baseline.
+import './sahra-economy.test';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_VALIDATION_ISSUES } from '../src/content/estella';
 import { ESTELLA_BODY_PHYSICS, ESTELLA_BODY_FLIGHT_PROFILES } from '../src/content/estella/physics';
 import { ESTELLA_PLACEMENTS } from '../src/content/estella/placements';
@@ -47,13 +47,12 @@ for(const [id,name] of Object.entries(sites)){
  assert(createPlayableEstellaMission(id,'caravanserai-main-commercial-dock',undefined,9876).start,'playable departure');
 }
 for(const id of retired){assert(!canTravelEmpty(profile,id),'retired destination not advertised');assert(createEmptyRun({...profile,locationId:id},'caravanserai-main-commercial-dock').sourceId===hub,'old save can depart');const before=new Set(DOCKING_LEVELS.map(l=>l.id));assert(createPlayableEstellaMission('caravanserai-main-commercial-dock',id,undefined,9876).start,'old accepted arrival remains playable');assert(DOCKING_LEVELS.some(l=>!before.has(l.id)&&!l.exitMode&&l.finalDestinationName==='Suhail Anchorage'),'retired arrival actually targets surviving anchorage');}
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===32,'no new economy providers');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===33,'approved economic follow-up adds one civilian aggregator');
 const raw:FactionContractCandidate[]=[],boards:CareerContract[]=[];
 for(const day of [0,1,20,21]){for(const n of ESTELLA_NODES.filter(n=>n.kind==='poi'))raw.push(...generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}));for(const n of estellaSelectableNavTargets().sort((a,b)=>a.id.localeCompare(b.id)))boards.push(...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400));}
-const unaffected=(c:{sourceId:string;destinationId:string})=>![c.sourceId,c.destinationId].some(id=>id.startsWith('estella-ix'));
-assert(JSON.stringify(reviewFingerprint(JSON.parse(preSahraNames(JSON.stringify(raw)))))===JSON.stringify(baseline.raw),'all pre-existing raw orders/rates/masses/seed keys retained; only names and two retired endpoints reconciled');
-assert(JSON.stringify(reviewFingerprint(raw.filter(unaffected)))===JSON.stringify(baseline.unaffectedRaw),'all unrelated raw traffic unchanged');
-assert(JSON.stringify(reviewFingerprint(boards.filter(unaffected)))===JSON.stringify(baseline.unaffectedBoards),'all7463 unrelated postings and quotes unchanged');
+// Original pre-identity snapshot still pins geometry/physics above. New
+// routing and explicit fuel deletions supersede its aggregate economy hash;
+// sahra-economy.test.ts protects every surviving raw order and untouched board.
 let redirected=0;
 for(const c of raw){assert(!retired.includes(c.sourceId)&&!retired.includes(c.destinationId),'no generated job points at removed station');if(c.templateId.includes(oldPoi)){redirected++;assert(c.destinationId===hub,'existing research cargo received through Suhail');}}
 assert(redirected===8,'exactly two old logical orders/day redirected over four epochs');
@@ -71,4 +70,4 @@ assert(presentCareerContract({...accepted,details:'Reception at Estella IX Resea
 game.career={...profile};game.activeCareerContract=accepted;game.activeMissionQuote=accepted.quote;game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};game.loadStationTerminal=()=>{};game.finishCareerDelivery();
 assert(game.career.locationId===hub&&loadCareerProfile().locationId===hub,'real old-contract settlement resumes at Suhail');
 assert(JSON.stringify(accepted)===snapshot&&storage.get('space-teamster.missionProfiles.v1')===history,'accepted quote/history never rewritten');
-console.log(`Sahra passed: ${checks} assertions; five destinations, removed station, original physics/placements, ${raw.length} retained candidates, ${boards.filter(unaffected).length} unchanged unrelated quotes. New economic programme remains unimplemented.`);
+console.log(`Sahra identity passed: ${checks} assertions; five destinations, removed station, original physics/placements, ${raw.length} candidates. Economic follow-up checked against its independent pre-change snapshot.`);

@@ -30,7 +30,7 @@ assert(ESTELLA_NODES_BY_ID.get('estella-iii-main-customs-station')?.name==='Rich
 assert(estellaDisplayPath(RICHELIEU).includes('Richelieu Orbital Terminal'),'navigation uses live name');
 assert(estellaLocationIntroduction(RICHELIEU)?.includes('biggest transit hub'),'actual terminal describes system-scale role');
 for(const id of [GOVERNMENT_ID,EDF_ID])assert(ESTELLA_INSTITUTIONS.some(i=>i.id===id),'institution catalog registered');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===32,'32 provider families including Camps civilians and yard operator');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===33,'33 provider families including Sahra civilians');
 
 const orders=new Map<string,Map<number,FactionContractCandidate>>();
 const pairs=new Map<string,FactionContractCandidate>();
@@ -45,7 +45,7 @@ for(let day=0;day<20;day++)for(const node of pois) {
       const r=totals.get(key)??{count:0,hub:0,civilian:0,weight:0,hubWeight:0,civilianWeight:0};
       r.count++;r.weight+=c.likelihood;
       if(c.sourceId===RICHELIEU||c.destinationId===RICHELIEU){r.hub++;r.hubWeight+=c.likelihood;}
-      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings','camps-civilian-bookings'].includes(c.factionId)){r.civilian++;r.civilianWeight+=c.likelihood;}
+      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings','camps-civilian-bookings','sahra-civilian-bookings'].includes(c.factionId)){r.civilian++;r.civilianWeight+=c.likelihood;}
       totals.set(key,r);sources.add(c.sourceId);
     }
     if(!isNew(c)||!c.templateId.startsWith('gaia:'))continue;
@@ -149,7 +149,7 @@ for(const day of [0,1,2,3,10,11,20,21,30,31,60,61])for(const source of sources) 
     if(isGaia(c.sourceId)!==isGaia(c.destinationId)) {
       const key=`${isGaia(c.sourceId)?'out':'in'}:${c.category}`;
       const r=boardShares.get(key)??{total:0,civilian:0};r.total++;
-      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings','camps-civilian-bookings'].includes(c.factionId!))r.civilian++;
+      if([GAIA_CIVILIAN_ID,'dahai-civilian-bookings','camps-civilian-bookings','sahra-civilian-bookings'].includes(c.factionId!))r.civilian++;
       boardShares.set(key,r);
     }
     if(!isNew(c))continue;

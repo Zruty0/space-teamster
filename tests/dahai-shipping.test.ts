@@ -25,8 +25,8 @@ const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const isNew = (c: FactionContractCandidate) => c.templateId.startsWith('dahai:');
 const isDahai = (id: string) => id === DAHAI_ORBITAL || isDahaiSurface(id);
 const isGaia = (id: string) => id === RICHELIEU || isGaiaSurface(id);
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 32, '28 existing providers and two new providers');
-assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 32, 'unique registrations');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33, 'Dahai providers retained with later Camps/Sahra additions');
+assert(new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 33, 'unique registrations');
 assert(ESTELLA_INSTITUTIONS.some(i => i.id === PLANETOLOGY_ID && i.summary.includes('Fuyuan')), 'Institute institution and HQ');
 assert(!ESTELLA_INSTITUTIONS.some(i => /Deepworks/.test(i.name)), 'rejected industrial entity absent');
 for (const site of DAHAI_SURFACE_SITES) {
@@ -40,10 +40,12 @@ assert(estellaLocationIntroduction(DAHAI_ORBITAL)?.includes('half'), 'hub role i
 // Frozen BEFORE implementation at 1aa0309. All 28 providers retain every
 // unrelated candidate, including seeded identities, rates, mass and receipts.
 for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
-  if (!(p.id in baseline)) continue;
+  // Authorized finished-fuel removal: sahra-economy.test.ts freezes the whole
+  // surviving Guild roster independently; other historic hashes stay intact.
+  if (!(p.id in baseline) || p.id === 'teamsters-guild') continue;
   const rows: FactionContractCandidate[] = [];
   for (const day of [0, 1, 7, 20]) for (const n of pois) for (const c of p.generateContracts({ sourceId: n.id, worldTime: day * 86400 })) {
-    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:')) rows.push(c);
+    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:')) rows.push(c);
   }
   let h = 2166136261;
   for (const ch of preCampsNames(JSON.stringify(rows))) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -65,7 +67,7 @@ for (let day = 0; day < 20; day++) for (const n of pois) {
       const r = traffic.get(k) ?? { total: 0, hub: 0, weight: 0, hubWeight: 0, civilianWeight: 0 };
       r.total++; r.weight += c.likelihood;
       if (c.sourceId === DAHAI_ORBITAL || c.destinationId === DAHAI_ORBITAL) { r.hub++; r.hubWeight += c.likelihood; }
-      if ([DAHAI_CIVILIAN_ID, 'gaia-civilian-bookings', 'camps-civilian-bookings'].includes(c.factionId)) r.civilianWeight += c.likelihood;
+      if ([DAHAI_CIVILIAN_ID, 'gaia-civilian-bookings', 'camps-civilian-bookings', 'sahra-civilian-bookings'].includes(c.factionId)) r.civilianWeight += c.likelihood;
       traffic.set(k, r);
     }
     if (!isNew(c)) continue;
@@ -84,7 +86,7 @@ for (let day = 0; day < 20; day++) for (const n of pois) {
     if (c.category === 'passenger') assert(c.cargo.passengerComfort?.expectation === passengerComfortTerms(c.cargo.label).expectation, 'explicit passenger comfort');
     if (c.factionId === DAHAI_CIVILIAN_ID) assert(!c.factionTag && c.issuerName !== c.factionName, 'descriptive civilian issuers, not new megacorporation');
     if (c.factionId === PLANETOLOGY_ID) assert(c.factionTag === 'EIP', 'Institute identity');
-    if (c.factionId === 'teamsters-guild') assert(c.requiredCertification === 'volatile-cargo', 'Guild fuel remains certified');
+    assert(c.cargo.label !== 'stable fuel canisters', 'Dahai finished-fuel container work retired');
     const key = `${c.factionId}:${c.templateId}`;
     const days = orders.get(key) ?? new Map<number, FactionContractCandidate>();
     assert(!days.has(day), `one logical dispatch/day, no duplicates: ${key}`);
@@ -99,7 +101,7 @@ for (let day = 0; day < 20; day++) for (const n of pois) {
     }
   }
 }
-assert(orders.size === 340 && actorCounts.get(DAHAI_CIVILIAN_ID) === 214 && actorCounts.get(PLANETOLOGY_ID) === 78, '340 additions:214 civilian,78 Institute,48 existing-provider consignments');
+assert(orders.size === 338 && actorCounts.get(DAHAI_CIVILIAN_ID) === 214 && actorCounts.get(PLANETOLOGY_ID) === 78, '338 original-program orders after two fuel retirements:214 civilian,78 Institute,46 existing-provider');
 let crossGaia = 0, crossBalor = 0;
 const gatewayCombinations = new Set<string>();
 for (const [key, days] of orders) {

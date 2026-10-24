@@ -9,7 +9,7 @@ import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
 const pois = ESTELLA_NODES.filter(n => n.kind === 'poi');
 const local = new Set<string>([DAHAI_ORBITAL, ...DAHAI_SURFACE_SITES]);
 const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
-const civil = (id?: string) => id === DAHAI_CIVILIAN_ID || id === 'gaia-civilian-bookings';
+const civil = (id?: string) => [DAHAI_CIVILIAN_ID, 'gaia-civilian-bookings', 'camps-civilian-bookings', 'sahra-civilian-bookings'].includes(id ?? '');
 const actorScope = ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => {
   let existing = 0, added = 0;
   for (const n of pois) for (const c of p.generateContracts({sourceId:n.id, worldTime:0})) {

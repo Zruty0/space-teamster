@@ -17,6 +17,8 @@ export const FRAGILITY_LEVELS: Readonly<Record<FragilityLevel, { name: string; i
 };
 
 const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
+  'cut veil-opal cases': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.60 },
+  'veil-opal rough cases': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.55 },
   'weather instrument service returns': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
   'greenhouse produce trays': { level: 'somewhat-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.40 },
   'teaching laboratory kits': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
@@ -193,6 +195,11 @@ const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
 };
 
 const ORDINARY_CARGO = new Set<string>([
+  'Sahra ice blocks',
+  'empty water tank racks',
+  'caravan household passengers',
+  'opal buyers and cutters',
+  'prospectors and survey specialists',
   'Dawes alloy concentrates',
   'anchor-grid power modules',
   'civic service equipment',

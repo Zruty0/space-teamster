@@ -6,6 +6,8 @@ import { passengerComfortTerms } from '../../../passenger-comfort';
 import { generateGaiaRoutedContracts } from '../gaia-logistics';
 import { generateDahaiRoutedContracts } from '../dahai-logistics';
 import { generateCampsRoutedContracts } from '../camps-logistics';
+import { generateSahraRoutedContracts } from '../sahra-logistics';
+import { SAHRA_CIVILIAN_PROVIDER } from './sahra-contracts';
 import { CAMPS_CIVILIAN_PROVIDER, SVAROG_YARD_COMPANY_PROVIDER } from './camps-contracts';
 import { DAHAI_CIVILIAN_PROVIDER, PLANETOLOGY_PROVIDER } from './dahai-contracts';
 import { GAIA_CIVILIAN_PROVIDER, GOVERNMENT_PROVIDER, EDF_PROVIDER } from './gaia-contracts';
@@ -68,6 +70,8 @@ export interface FactionContractCandidate {
   dahaiDispatchKey?: string;
   /** Shared stable consignment identity; Hartwell/Tessera hash independently. */
   campsDispatchKey?: string;
+  /** Stable identity for Sahra's independent ordinary surface/hub choice. */
+  sahraDispatchKey?: string;
   /** Optional authored title; ordinary contracts derive a title from cargo and destination. */
   title?: string;
   cargo: MissionCargoSpec;
@@ -152,6 +156,7 @@ export const ESTELLA_FACTION_CONTRACT_PROVIDERS: FactionContractProvider[] = [
   PLANETOLOGY_PROVIDER,
   CAMPS_CIVILIAN_PROVIDER,
   SVAROG_YARD_COMPANY_PROVIDER,
+  SAHRA_CIVILIAN_PROVIDER,
 ];
 
 function withDefaultCompletion(candidate: FactionContractCandidate): FactionContractCandidate {
@@ -168,10 +173,12 @@ function withDefaultCompletion(candidate: FactionContractCandidate): FactionCont
 }
 
 export function generateFactionContractCandidates(ctx: FactionContractContext): FactionContractCandidate[] {
-  return generateCampsRoutedContracts(ctx, campsSource =>
-    generateDahaiRoutedContracts(campsSource, dahaiSource =>
-      generateGaiaRoutedContracts(dahaiSource, source =>
-        ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+  return generateSahraRoutedContracts(ctx, sahraSource =>
+    generateCampsRoutedContracts(sahraSource, campsSource =>
+      generateDahaiRoutedContracts(campsSource, dahaiSource =>
+        generateGaiaRoutedContracts(dahaiSource, source =>
+          ESTELLA_FACTION_CONTRACT_PROVIDERS.flatMap(provider => provider.generateContracts(source)),
+        ),
       ),
     ),
   ).map(withDefaultCompletion);

@@ -47,13 +47,15 @@ const legacy: Record<string, [number, number]> = {
   'merren-conservatory': [340,2674462853], 'daedalus-systems': [445,1210869324],
 };
 const providers = ESTELLA_FACTION_CONTRACT_PROVIDERS.filter(p => legacy[p.id]);
-assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 32 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 32, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
+assert(providers.length === 8 && ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 33 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size === 33, 'eight existing actors retained; three Gaia provider registrations added without duplicates');
 for (const p of providers) {
   // Merren's approved Dahai culture/specialist sites changed roles. Its complete
   // non-Dahai baseline is frozen independently in dahai-shipping.test.ts.
-  if (p.id === 'merren-conservatory') continue;
+  // Finished-fuel removal is approved; the complete surviving Guild roster,
+  // including skim feedstock, is pinned by sahra-economy.test.ts.
+  if (p.id === 'merren-conservatory' || p.id === 'teamsters-guild') continue;
   let hash = 2166136261, count = 0;
-  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('dahai:') && !c.templateId.startsWith('camps:'))) {
+  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('dahai:') && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:'))) {
     count++;
     for (const char of legacyCandidateJson(c)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash,16777619); }
   }
