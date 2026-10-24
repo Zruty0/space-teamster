@@ -47,7 +47,7 @@ try{
     }
   }
   for(let i=0;i<greyImages.length;i++)for(let j=i+1;j<greyImages.length;j++)assert(!same(greyImages[i],greyImages[j]),'each world has distinct geometry even in identical grey');
-  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&!['estella-ii','estella-iii','estella-iv','estella-v'].includes(b.id)&&!icyWorldProfileFor(b.id)&&!gasGiantProfileFor(b.id))){
+  for(const body of BODIES.filter(b=>!ids.includes(b.id)&&!['estella-ii','estella-iii','estella-iv','estella-v','estella-vi'].includes(b.id)&&!icyWorldProfileFor(b.id)&&!gasGiantProfileFor(b.id))){
     assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),`${body.name}: unchanged fallback/custom family`);
   }
   assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/palettes/sites untouched');

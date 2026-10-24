@@ -46,6 +46,7 @@ function draw(level: OrbitalLevel) {
     save() { saved.push({ fillStyle: this.fillStyle, strokeStyle: this.strokeStyle, lineWidth: this.lineWidth, font: this.font, globalAlpha: this.globalAlpha }); },
     restore() { Object.assign(this, saved.pop()); },
     measureText(text: string) { return { width: text.length * 8 }; },
+    createRadialGradient() { return { addColorStop() {} }; },
   };
   const ctx = new Proxy(raw, { get(target, key) { return key in target ? target[key] : () => {}; } }) as CanvasRenderingContext2D;
   const state = createOrbitalState(level);

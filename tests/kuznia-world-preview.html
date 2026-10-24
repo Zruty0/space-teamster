@@ -1,0 +1,83 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Stage 8 — Kuznia cold surface</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 8px}p{margin:6px 0}canvas{display:block;margin-top:12px}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:4px}</style>
+<h1>STAGE 8 — KUZNIA</h1>
+<p>Cold slate/blue-grey ground: smooth lowlands, mountain relief and lighter polar terrain. No lava or industrial glow.</p>
+<p>Clouds deferred. Existing thick atmosphere, six site angles and Kopanka's 4km altitude retained; no resource/physics changes.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Globe / comparisons</a> · <a href="?view=flight">Production orbital view</a> · <select id="target"></select></p>
+<canvas id="view" width="1200" height="680"></canvas>
+<script type="module">
+import {drawKuzniaDisc,kuzniaGeometry,KUZNIA_SEED} from '/src/kuznia-appearance.ts';
+import {drawOrbitalWorldLabel} from '/src/orbital-world-label.ts';
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+ let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+ const body=bodyById('estella-vi'),worldBefore=JSON.stringify([BODIES,SURFACE_POIS]);
+ const probe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+ const p=probe(),q=probe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+ const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+ const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
+ const hashes=[];
+ for(const r of [3,8,14,32,60,100]){
+  const actual=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,body.id,128,128,r,body.color),'live Kuznia dispatcher'));
+  hashes.push(hash(actual));assert(same(actual,pixels(q,ctx=>drawKuzniaDisc(ctx,128,128,r))),'dispatch uses shared surface painter');
+  assert(same(actual,pixels(q,ctx=>drawKuzniaDisc(ctx,128,128,r))),'repeat pixels stable');
+  assert(p.getImageData(128,128,1,1).data[3]===255,'opaque full/small disc');
+  assert(p.getImageData(235,128,1,1).data[3]===0,'original clipped silhouette');
+ }
+ assert(kuzniaGeometry()===kuzniaGeometry(),'same immutable cached map');
+ assert(JSON.stringify(Object.keys(kuzniaGeometry()).sort())===JSON.stringify(['highlands','lowlands','polarGround','slopes']),'ground only, no cloud/resource layers');
+ for(const radius of [32,100]){
+  pixels(p,ctx=>drawKuzniaDisc(ctx,128,128,radius));
+  for(const angle of [-.15,.95,1.85,2.7,-2.55,-1.25]){
+   const rgba=p.getImageData(Math.round(128+Math.cos(angle)*radius*.95),Math.round(128-Math.sin(angle)*radius*.95),1,1).data;
+   assert(rgba[2]>=rgba[1]&&rgba[1]>rgba[0]&&rgba[3]===255,'all actual surface targets remain opaque cool terrain at both LODs');
+  }
+  const sample=angle=>p.getImageData(Math.round(128+Math.cos(angle)*radius*.95),Math.round(128-Math.sin(angle)*radius*.95),1,1).data;
+  assert(sample(-1.25)[0]>sample(2.7)[0],'Kopanka massif differentiated from Mokosh lowlands');
+ }
+ p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(3,5);drawKuzniaDisc(p,128,128,100);
+ assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===3&&p.getTransform().f===5,'native canvas state restored');p.setTransform(1,0,0,1,0,0);p.lineWidth=1;
+ for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
+  const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
+ }
+ for(const id of ['estella-xd','estella-xia','estella-xib','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
+ p.fillStyle='#91a3a7';p.fillRect(0,0,256,256);p.fillStyle='#00ffcc';p.strokeStyle='#ff00ff';p.lineWidth=7;p.font='bold 10px monospace';
+ drawOrbitalWorldLabel(p,body.id,'MORANA STATION',40,100);
+ const data=p.getImageData(35,85,170,25).data;let dark=0;for(let i=0;i<data.length;i+=4)if(data[i]<30&&data[i+1]<40&&data[i+2]<50)dark++;
+ assert(dark>50,'dark halo separates glyphs from pale terrain');assert(p.strokeStyle==='#ff00ff'&&p.lineWidth===7&&p.fillStyle==='#00ffcc','halo preserves native styles');
+ assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'body/atmosphere/sites untouched');
+ const targets=[['estella-vi-main-transit-dispatch','Anvil Station'],['estella-vi-heavy-cargo-station','Hammer Station'],['estella-vi-industrial-city','Perun City'],['estella-vi-foundry-complex','Gornilo Crucible'],['estella-vi-spaceport','Port Stribog'],['estella-vi-agricultural-lowlands','Mokosh Lowlands'],['estella-vi-polar-weather-research','Morana Station'],['estella-vi-mountain-mining','Kopanka Mine']];
+ const select=document.getElementById('target');targets.forEach(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;select.append(o);});
+ const requested=new URLSearchParams(location.search).get('target');select.value=targets.some(([id])=>id===requested)?requested:targets[2][0];
+ select.onchange=()=>{location.href=`?view=flight&target=${encodeURIComponent(select.value)}`;};
+ const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+ if(new URLSearchParams(location.search).get('view')==='flight'){
+  const before=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-iii-main-customs',select.value,undefined,10400);
+  const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.bodyId===body.id);
+  const state=createOrbitalState(level,{x:level.planetRadius*1.5,y:0,vx:0,vy:-300,time:12345});renderOrbital(ctx,canvas,{x:0,y:0,zoom:215/level.planetRadius},state,level,0);
+ }else{
+  ctx.fillStyle='#080d15';ctx.fillRect(0,0,1200,680);ctx.textAlign='center';ctx.fillStyle='#cfdfeb';ctx.font='18px monospace';ctx.fillText('KUZNIA — COLD SOLID GROUND',320,35);
+  drawKuzniaDisc(ctx,320,292,220);
+  ctx.font='11px monospace';ctx.fillStyle='rgba(120,180,255,0.9)';drawOrbitalWorldLabel(ctx,body.id,'KUZNIA',320,292);
+  for(const [i,a]of [-.15,.95,1.85,2.7,-2.55,-1.25].entries()){
+   const x=Math.cos(a),y=-Math.sin(a),r=220*(1+(i===5?4000/body.radius:0));ctx.fillStyle='#00ffcc';ctx.beginPath();ctx.arc(320+x*r,292+y*r,3,0,Math.PI*2);ctx.fill();
+   ctx.font='bold 10px monospace';ctx.textAlign=x>=0?'right':'left';drawOrbitalWorldLabel(ctx,body.id,targets[i+2][1].toUpperCase(),320+x*190,292+y*190);
+  }
+  ctx.textAlign='center';ctx.fillStyle='#9db2c2';ctx.font='13px monospace';ctx.fillText(`Stable surface seed ${KUZNIA_SEED} · original site angles`,320,545);
+  [3,8,14,28,50].forEach((r,i)=>drawKuzniaDisc(ctx,100+i*110,610,r));
+  for(const [id,y,label]of [['estella-v',190,'HARTWELL — APPROVED DRY TERRAIN'],['estella-iv',480,'DAHAI — APPROVED OCEAN / ICE']]){
+   const other=bodyById(id);drawAuthoredWorldDisc(ctx,id,900,y,105,other.color);
+   ctx.fillStyle='#9db2c2';ctx.font='14px monospace';ctx.fillText(label,900,y+135);
+  }
+ }
+ document.getElementById('status').textContent=`PASS — ${checks} native checks; fixed ground, original targets. Synthetic missions, no saves/access changes.`;
+ window.kuzniaStage8Preview={passed:true,checks,stage:8,seed:KUZNIA_SEED,hashes,targets:targets.map(([id])=>id)};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.kuzniaStage8Preview={passed:false,error:String(error)};throw error;}
+</script>

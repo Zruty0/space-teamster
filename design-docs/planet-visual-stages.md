@@ -1,12 +1,12 @@
 # Planet visual stages — operator approval gates
 
-Updated: 2026-10-23
+Updated: 2026-10-24
 
 Pete requires this work in stages, with confirmation between stages. Scope/assignments: [visual inventory](planet-visual-inventory.md).
 
 ## Approval protocol
 
-- Pete approved Stages1–6, including Dahai's ocean/ice-only revision, and authorized Stage7 on2026-10-23. Stage7 Hartwell is implemented and awaiting review; STOP before Stage8 until he explicitly authorizes continuing. Stages8–11 have not started. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
+- Pete approved Stages1–7 and authorized Stage8 on2026-10-24. Stage8 Kuznia is implemented and awaiting review; STOP before Stage9 until he explicitly authorizes continuing. Stages9–11 have not started. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
 - Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Cloud review follow-up: Pete rejects Dahai's storm swirls and asks for no clouds for now. A separate future weather-art pass should cover ALL worlds with atmospheres using more realistic, animated cloud patterns. No animation or physics/weather tuning is authorized now; do not add new cloud layers during the remaining base-globe stages. Existing other-world artwork remains unchanged pending that pass.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
@@ -24,8 +24,8 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 | 4 | Richer shared giant renderer with individually authored band/storm profiles. No rings in this stage. | Gryphon, Hydra, Manticore. | Approved |
 | 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Approved; requested label contrast correction implemented |
 | 6 | Ocean and ice only; cloud/storm artwork removed for a later animated-weather pass. Zhulong on open water, Bingjie on ice; no invented continents. | Dahai only. | Approved after ocean/ice-only revision |
-| 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Implemented; awaiting review / Stage8 go-ahead |
-| 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Not started |
+| 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Approved |
+| 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Implemented; awaiting review / Stage9 go-ahead |
 | 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Not started |
 | 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Not started |
 | 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Not started |
@@ -120,4 +120,13 @@ Cloud/storm portion superseded by the revision below; retained here as the initi
 - Reused approved dark3px label halo for Hartwell only; existing Acheron/Dahai labels and other-world pixels unchanged. `/tests/hartwell-world-preview.html`: full/small globe, true rim guides, unchanged Pike and approved ocean-only Dahai comparisons, seven actual orbital destinations.64 native checks/reload/all7 views pass; final gallery and Dawes Cut flight inspected. Warm opaque ground at all actual rim sites checked at two LODs.
 - Tests: Hartwell2056, labels34, all prior world suites (foundation5069/rocky610/ice5664/giants12058/Acheron9036/Dahai929/general294), markers41, Camps43488+review17055, Balor8721+Eye2204, empty2872+render35 and build/diff pass. Prior native Dahai64/Acheron160/giants60/ice140/rocky226 and all orbital views pass; prior image hashes unchanged. Each former fallback count drops by one for Hartwell's new opt-in.
 - Vite initially served a stale label helper after a missed file event; touching that source invalidated the cache without restarting the service. All final native checks use current code. No mobile/live saves/push.
-- STOP here. Stage8 (Kuznia base globe only, no new clouds/weather) requires explicit confirmation.
+- Pete subsequently approved Stage7 and authorized Stage8.
+
+## Stage8 result — Kuznia, 2026-10-24
+
+- `src/kuznia-appearance.ts`: cold slate/blue-grey solid terrain, three lowland layers, three highland masses, five relief/slopes and two lighter polar-ground layers. No clouds, storm symbols, airborne haze, lava, industrial glow, cities, ice cracks or new resource claims. Pale polar colouring is not an authored water/ice reserve.
+- Permanent body-ID seed248294852; independent lowland/highland/slope/polar streams; one lazy deeply frozen normalized model with exact full/coarse point subsets. Both marker and central views share the same map; no generic lunar craters or reused Hartwell valleys.
+- Actual geography/objectives retained: Mokosh2.7 in lowlands, Kopanka−1.25 on the main massif with existing4000m marker altitude, Morana−2.55 in lighter polar ground. Perun−.15/Gornilo.95/Stribog1.85 unchanged. Existing95km N2/CO2 atmosphere/density2.2/scale11.5km, weather/physics, Anvil/Hammer trade membrane, moons/access/economy/saves intact. No site relocation or cosmetic marker offsets.
+- Approved dark label halo extended to Kuznia. `/tests/kuznia-world-preview.html`: full/small globe, actual rim/altitude guides, Hartwell/Dahai comparisons and all eight synthetic production orbital destinations.67 native checks, identical reload pixels and all8 views pass; gallery/Kopanka flight inspected. Cool opaque ground and lowland/massif contrast checked at two LODs.
+- Kuznia1660 + labels40 + all prior world suites pass. Markers41 required adding the standard radial-gradient API to its recording canvas now that its Kuznia fixture uses shared disc shading; no production workaround/assertion removal. Camps43488+review17055, Balor8721+Eye2204, empty2872+render35 and build/diff pass. Prior native Hartwell63/Dahai63/Acheron159/giants59/ice139/rocky225 and all their views pass with old image hashes unchanged (one fallback exclusion per newly opted-in Kuznia).
+- No mobile/live-save/push work. Vite remains available. STOP for explicit Stage9 Calatrava approval; realistic animated clouds across atmospheric worlds remain a separate future pass.
