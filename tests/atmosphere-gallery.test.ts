@@ -1,4 +1,4 @@
-import { WEATHER_DIRECTIONS, WEATHER_SAMPLE_COUNT, weatherSampleSets } from '../src/atmosphere-gallery-profiles';
+import { WEATHER_DIRECTIONS, WEATHER_SAMPLE_COUNT, WEATHER_LEGACY_RANGE_VERSION, weatherSampleSets } from '../src/atmosphere-gallery-profiles';
 import { atmosphereProfile } from '../src/atmosphere-prototype-profile';
 import { ESTELLA_NODE_BLUEPRINTS } from '../src/content/estella';
 import { ESTELLA_ATMOSPHERE_PHYSICS } from '../src/content/estella/physics';
@@ -15,6 +15,14 @@ try{
  Date.now=()=>{throw Error('no wall clock inside model');};Math.random=()=>{throw Error('no unseeded randomness');};
  const batch=weatherSampleSets(1792879200123);
  assert(Object.isFrozen(batch)&&json(batch)===json(weatherSampleSets(1792879200123)),'repeat batch deterministic and frozen');
+ const legacy=weatherSampleSets(1792879200123,WEATHER_LEGACY_RANGE_VERSION);
+ for(let i=0;i<batch.length;i++)for(let j=0;j<10;j++){
+  const current=batch[i].samples[j],old=legacy[i].samples[j];
+  if(batch[i].direction.id==='estella-iv'){
+   assert(Math.abs(current.coverage-old.coverage*.75)<1e-12,'Dahai amount reduced25%');
+   assert(json({...current,coverage:old.coverage})===json(old),'Dahai colors/noise/speeds otherwise preserved');
+  }else assert(json(current)===json(old),'other seven worlds keep identical samples across range versions');
+ }
  assert(json(batch)!==json(weatherSampleSets(1792879200124)),'new timestamp changes batch');
  const seeds=new Set<number>();
  for(const set of batch){

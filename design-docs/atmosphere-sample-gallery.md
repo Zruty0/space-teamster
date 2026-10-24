@@ -1,7 +1,7 @@
 # Atmospheric-world sample gallery
 
 Updated: 2026-10-24
-Status: review page implemented; selections/production rollout not yet approved.
+Status: approved and integrated into the game. Current v2 reduces Dahai's cloud amount25%; historical v1 links remain reproducible. See [runtime](atmosphere-runtime.md).
 
 ## Scope and review
 
@@ -25,14 +25,14 @@ Generator amount is a normalized art control, NOT literal global coverage or phy
 |---|---|---|---|---|
 |Acheron|Ochre/brass/cream, dense fast broad decks|.72–.96|4.5–7|400–700|
 |Gaia|Bright water clouds, blue limb, broken fronts|.30–.68|2.5–4.5|300–500|
-|Dahai|Silvery marine decks, ocean/ice underneath|.58–.86|3.8–6|240–420|
+|Dahai|Silvery marine decks, ocean/ice underneath|.435–.645 (v2)|3.8–6|240–420|
 |Hartwell|Sparse copper/ochre dust veils|.15–.40|.5–1.8|360–720|
 |Kuznia|Steel-grey banks and strong cold fronts|.60–.90|3.5–6.5|240–420|
 |Almaden|Faint sulfur-cream wisps|.12–.34|.4–1.3|350–600|
 |Marisma|Amber/tan haze and slow broad cloud masses|.50–.80|2.5–5|500–850|
 |Mercy|Very thin pearl-violet high wisps|.10–.28|.35–1|600–1000|
 
-These are visual proposals, not new atmospheric chemistry, hazards or resource claims. Solid-world painters/geography remain fixed. Acheron's candidate uses an opaque atmospheric underdeck instead of stacking new weather over its old static cloud shapes; it never exposes invented terrain. Original Acheron remains visible in the corner and original-art mode. Production Acheron/Dahai/giant painters are not changed.
+These are approved visual directions, not new atmospheric chemistry, hazards or resource claims. Solid-world painters/geography remain fixed. Acheron's candidate uses an opaque atmospheric underdeck instead of stacking new weather over its old static cloud shapes; it never exposes invented terrain. Original Acheron remains visible in the corner and original-art mode. Their original painters remain fallback/reference art. Production now composites weather on the eight eligible worlds; giant artwork remains unchanged.
 
 ## Implementation
 
@@ -44,10 +44,10 @@ These are visual proposals, not new atmospheric chemistry, hazards or resource c
 
 ## Validation
 
-- Profile/noise tests127 assertions; timer tests356; gallery tests2002: exact non-giant catalog/physics roster,80 distinct seeds/profiles, deep immutability, full parameter strata, bounded ranges without silent renderer clipping, deterministic replay without internal clock/RNG, silver Dahai and sparse thin atmospheres.
+- Profile/noise tests127 assertions; timer tests356; gallery tests2092 (including v1/v2 compatibility): exact non-giant catalog/physics roster,80 distinct seeds/profiles, deep immutability, full parameter strata, bounded ranges without silent renderer clipping, deterministic replay without internal clock/RNG, silver Dahai and sparse thin atmospheres.
 -196 native gallery assertions on desktop Edge/D3D11: every candidate renders distinctly and exactly repeats at its own loop endpoint; original reference pixels fixed, independent selectors, animation, shared-output snapshot isolation, seed replay after eviction, original-art toggle, bounded noise cache and no GL errors.
 - UI driver verifies URL reload (all samples10 at3s), play/pause, offscreen canvas culling, hidden-page gate, fresh time-seeded batch, context-loss and missing-WebGL handling. Sample1/sample10 galleries inspected. Driver/report/screenshots: `Temp/st-atmosphere-gallery-*-20261024.*`.
 - Existing Gaia pilot23 native checks/UI/failure paths still pass; original SwiftShader hashes2363045251/3007250900/2313460865 and vortex-off2523478143 unchanged after resource-cache extension.
-- Build and previous world-disc suites pass. Shared tree contains another worker's Sahra economy implementation; its production module/artifact changes are unrelated to this preview. No mobile testing, live saves, physical weather changes, production installation or push.
+- Build and previous world-disc suites pass. Shared tree contains another worker's Sahra economy implementation; its production module/artifact changes are unrelated to this preview. No mobile testing, manual live-save edits, physical weather changes or push. The later production installation is documented separately in atmosphere-runtime.md.
 
-Next: Pete chooses sample numbers (retain the batch seed/link or exported profiles), or requests range/palette adjustments. Do not silently reroll an approved selection. Game integration, production clock/seed policy and fallback remain separate decisions.
+Pete subsequently approved rollout without choosing specific sample numbers. Production picks one stable candidate per body from its separate time-seeded cosmetic configuration. Review links/exports still preserve exact choices for future tuning. v1 uses the original Dahai amount; v2 changes only that amount by.75. Current runtime clock/seed/fallback policy is in atmosphere-runtime.md.

@@ -1,6 +1,8 @@
 // Game loop, state machine, collision detection, level management.
 
 import { config } from './config';
+import { createWorldWeather } from './world-weather';
+import { loadAtmosphereArtSeed } from './atmosphere-art-state';
 import { BALOR_BODY_ID, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from './balor-orientation';
 import { InputState, readInput } from './input';
 import {
@@ -264,6 +266,7 @@ export class Game {
   private accumulator = 0;
   private time = 0;
   private worldTime = 0;
+  private orbitalWeather: ReturnType<typeof createWorldWeather> | undefined;
   private lastFrameTime = 0;
   private menuSelection = 0;
   private flightMenuSelection = 0;
@@ -304,6 +307,23 @@ export class Game {
   }
 
   start(): void {
+    if (!this.orbitalWeather) {
+      let storage: Storage | undefined;
+      try { storage = window.localStorage; } catch { /* visual seed stays session-local */ }
+      const seed = loadAtmosphereArtSeed(storage, Date.now());
+      this.orbitalWeather = createWorldWeather(seed);
+      const warm = () => this.orbitalWeather?.prewarm();
+      if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 1500 });
+      else setTimeout(warm, 0);
+      window.addEventListener('pagehide', () => this.orbitalWeather?.dispose());
+      window.addEventListener('pageshow', event => {
+        if (event.persisted) {
+          this.orbitalWeather?.dispose();
+          this.orbitalWeather = createWorldWeather(seed);
+          warm();
+        }
+      });
+    }
     this.lastFrameTime = performance.now() / 1000;
     requestAnimationFrame(this.loop);
   }
@@ -3560,7 +3580,7 @@ export class Game {
       rightHudBottom = drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
       const atmosphericPackageInstalled = maintenanceSystemFullyInstalled(this.career.rig, 'atmospheric-package');
-      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time, atmosphericPackageInstalled, showContainer);
+      renderOrbital(this.ctx, this.canvas, p.cam, p.os, p.level, this.time, atmosphericPackageInstalled, showContainer, this.orbitalWeather);
       rightHudBottom = drawOrbitalHUD(this.ctx, this.canvas, p.os, p.level, p.state, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays, atmosphericPackageInstalled, p.crashReason);
     } else if (p.kind === 'docking') {
       renderDocking(this.ctx, this.canvas, p.cam, p.ds, p.level, this.time, showContainer);

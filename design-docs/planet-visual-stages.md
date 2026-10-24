@@ -7,12 +7,12 @@ Pete originally required confirmation between stages. On2026-10-24 he explicitly
 ## Approval protocol
 
 - All Stages1–11 approved. Pete approved the combined Calatrava/Almaden/Marisma preview on2026-10-24; the eleven-stage base-globe sequence is complete. Preview: `/tests/final-moons-preview.html`. This approval alone does not authorize broader cloud/weather rollout; the Gaia pilot was separately requested below. Labels retain the approved contrasting style. Sahra/IX's separately approved regolith identity and five destinations implementedd08aea7; original physics retained. See [Sahra](locations/sahra.md).
-- Implement only the approved current scope (Stages9–11 together by explicit exception). Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
-- Cloud review follow-up: Pete rejects Dahai's storm swirls and asks for no clouds for now. A separate future weather-art pass should cover ALL worlds with atmospheres using more realistic, animated cloud patterns. Gaia-only animation review prototype is now authorized (see [atmosphere prototype](atmosphere-visual-prototype.md)); production rollout and physics/weather tuning remain separate. No other world receives new cloud layers yet. Existing other-world artwork remains unchanged pending that pass.
+- Implement only the approved current scope. Base stages are complete; later approvals are recorded separately, not inferred from earlier stage gates.
+- Weather follow-up2026-10-24: the old Dahai polygon swirls were removed, then Pete approved the Gaia generator, eight-world sample gallery, and production rollout. Giants explicitly excluded. Dahai's silvery cloud amount is reduced25%. See [runtime](atmosphere-runtime.md); physical flight weather remains unchanged.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
-- Shared artwork must remain deterministic across frames, visits, renames and map scales. Check actual rim-site alignment where geographic features matter; include any necessary proposed placement changes in that stage's review.
-- Existing Gaia/Balor artwork remains unchanged. Captured moonlets/dock-only asteroid scenes and giant rings are outside this sequence unless separately authorized.
+- Permanent terrain must remain stable across frames, visits, renames and map scales; weather is deterministic from its persistent seed and shared simulation epoch. Check actual rim-site alignment where geographic features matter; include any necessary proposed placement changes in that stage's review.
+- Gaia terrain remains unchanged. Separately approved2026-10-24: Balor uses cratered airless terrain and a deeper Eye/four tendrils within the unchanged30° rim arc. Captured moonlets/dock-only asteroid scenes and giant rings remain outside scope.
 
 ## Sequence
 

@@ -1,4 +1,4 @@
-// Visual-only Gaia pilot. Not imported by production orbital/flight code.
+// Visual atmosphere parameters shared by game and previews; not flight weather.
 // Pure seed + periodic phase inputs also permit a future offline frame baker.
 import { crateredWorldProfile } from './cratered-world-geometry';
 export interface AtmosphereProfile {

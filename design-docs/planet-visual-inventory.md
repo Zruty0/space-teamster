@@ -1,17 +1,17 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-24
-Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Gaia-only dynamic-atmosphere prototype now under review; production rollout to atmospheric worlds remains separate. See [atmosphere prototype](atmosphere-visual-prototype.md). All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. Sahra/IX's separately approved regolith conversion is implemented in d08aea7. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. The separately approved eight-world live atmosphere rollout is implemented (giants excluded), with Dahai cloud amount reduced25%. See [runtime](atmosphere-runtime.md). All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. Sahra/IX's separately approved regolith conversion is implemented in d08aea7. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 
 Verified against nodes.ts, physics.ts, orbital.ts and world-disc-appearance.ts:
 -33 catalog bodies:7 planets,18 moons,5 dwarf planets,3 gas giants. Star/stations/asteroid clusters excluded. Two additional explicitly moon-tagged captured asteroids are noted below.
-- Balor has its bespoke lava Eye; Gaia has continents/ocean/large ice caps; the14 rocky/regolith worlds listed below now use individually seeded crater profiles.
+- Balor now has a68-impact cratered airless base and deeper bespoke lava Eye/four tendrils, still within the original30° arc; Gaia has continents/ocean/large ice caps; the14 rocky/regolith worlds listed below now use individually seeded crater profiles.
 - Giants now share a richer painter with three individual band/filament/vortex maps, stable ID seeds and palettes. Old nine-band/single-oval painter removed; no rings.
-- Acheron has an opaque ochre/cream cloud map; Dahai has blue ocean and a small sea-ice margin only; its cloud/storm layers were rejected and removed. Shared local/stellar rendering and unchanged physical atmospheres. Acheron/Dahai labels now have dark outlines. All remaining custom globes now have authored surface maps; existing atmosphere treatment remains independent.
-- Hartwell now has bespoke rusty plains/uplands, dry erosion terraces, surface dust deposits and subdued impacts; existing atmosphere/sites retained. No new weather/cloud art.
-- Kuznia now has slate/blue-grey lowlands, mountain relief and lighter polar ground at existing sites, with original thick atmosphere retained. No new clouds, industry glow or resource/ice-deposit claims.
+- Original Acheron ochre/cream and Dahai ocean/ice painters remain fallback/reference. Production overlays approved dynamic weather on Acheron/Gaia/Dahai/Hartwell/Kuznia/Almaden/Marisma/Mercy; Acheron uses an opaque cloud underdeck, not exposed terrain. Dahai's original rejected polygon storms remain removed. Physical atmospheres/sites unchanged; contrasting labels retained/extended.
+- Hartwell keeps its rusty plains/uplands, dry erosion terraces, surface dust deposits and subdued impacts beneath sparse dust veils.
+- Kuznia keeps slate/blue-grey lowlands, mountain relief and lighter polar ground beneath cold cloud banks. No industry glow or new resource/ice-deposit claims.
 - Celeste retains58 craters from seed41873 and its original two basins, unchanged. Stage1 added optional per-body profiles with seeded craters AND basins, bounded immutable caching and density/scale/coverage/contrast controls. Stage2 applies explicit profiles to all13 rocky worlds, retaining the existing palettes. Stage3 adds eight crack-free icy variants with varied art-only tints, preserving Mercy's atmosphere. Stage4 adds the three giants below. Stages9–11 complete Calatrava/Almaden/Marisma without new clouds.
 
 ## Rocky cratered family — 13 Stage2 worlds + Sahra

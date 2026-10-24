@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>Production weather and Balor review</title>
+<style>body{margin:20px;background:#050b13;color:#bbd6e8;font:14px system-ui;max-width:1240px}button,select{background:#183048;color:#def;padding:6px;border:1px solid #567}canvas{display:block;max-width:100%;height:auto;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}#status{color:#9ed6ba}</style>
+<h1>PRODUCTION WEATHER + BALOR</h1>
+<p>Actual production painters and orbital scenes. Fixed test seed, in-memory mission fixtures; no career saves accessed. Weather uses simulation time; this review advances it at60× for1× cloud motion.</p>
+<button id="play">Play</button> <button id="reset">Reset</button> <button id="checks">Run native checks</button> <select id="scene"></select><span id="status">Loading…</span>
+<canvas id="atlas" width="1200" height="670"></canvas><canvas id="flight" width="1200" height="720"></canvas>
+<details><summary>Runtime diagnostics / selected profiles</summary><pre id="diagnostics"></pre></details>
+<script type="module" src="/tests/world-weather-preview.ts"></script>

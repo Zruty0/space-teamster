@@ -1,6 +1,6 @@
 // Desktop review gallery only. No production renderer, weather, saves or clock integration.
 import { createAtmospherePrototype } from './atmosphere-prototype';
-import { weatherSampleSets, WEATHER_DIRECTIONS, WEATHER_SAMPLE_COUNT, WEATHER_RANGE_VERSION, type WeatherSet } from './atmosphere-gallery-profiles';
+import { weatherSampleSets, WEATHER_DIRECTIONS, WEATHER_SAMPLE_COUNT, WEATHER_RANGE_VERSION, WEATHER_RANGE_VERSIONS, type WeatherSet } from './atmosphere-gallery-profiles';
 import { drawAuthoredWorldDisc } from './world-disc-appearance';
 import { ESTELLA_BODY_FLIGHT_PROFILES } from './content/estella/physics';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id)as T;
@@ -8,10 +8,11 @@ const status=el('status'),positions=Object.freeze([[215,151,132],[132,319,5],[20
 interface Card{set:WeatherSet;index:number;root:HTMLElement;canvas:HTMLCanvasElement;base:HTMLCanvasElement;original:HTMLCanvasElement;input:HTMLInputElement;output:HTMLOutputElement;summary:HTMLElement;parameters:HTMLElement;visible:boolean;draws:number;}
 let generator:ReturnType<typeof createAtmospherePrototype>|undefined;
 try{
-  const url=new URL(location.href),version=url.searchParams.get('version');
-  if(version&&version!==WEATHER_RANGE_VERSION)throw Error('Unsupported weather range version; open this page without its query to start a new batch.');
+  const url=new URL(location.href);
+  let rangeVersion=url.searchParams.get('version')??WEATHER_RANGE_VERSION;
+  if(!WEATHER_RANGE_VERSIONS.includes(rangeVersion))throw Error('Unsupported weather range version; open this page without its query to start a new batch.');
   let batchSeed=url.searchParams.has('seed')?Number(url.searchParams.get('seed')):Date.now();
-  let sets=weatherSampleSets(batchSeed),seconds=Number(url.searchParams.get('t')??0);
+  let sets=weatherSampleSets(batchSeed,rangeVersion),seconds=Number(url.searchParams.get('t')??0);
   if(!Number.isFinite(seconds)||seconds<0)seconds=0;
   let playing=!url.searchParams.has('test'),last=performance.now(),lastPaint=0,disposed=false,lastTimeSeed=Date.now();
   // One WebGL context/output; eight cached noise seeds (2MiB R8 total), not80
@@ -52,7 +53,7 @@ try{
     if(pendingURL&&!disposed){history.replaceState(null,'',pendingURL);pendingURL=undefined;lastURLWrite=performance.now();}
   }
   function syncURL(){
-    const next=new URL(location.href);next.searchParams.set('version',WEATHER_RANGE_VERSION);next.searchParams.set('seed',String(batchSeed));next.searchParams.set('t',String(seconds));
+    const next=new URL(location.href);next.searchParams.set('version',rangeVersion);next.searchParams.set('seed',String(batchSeed));next.searchParams.set('t',String(seconds));
     for(const card of cards)next.searchParams.set(card.set.direction.id,String(card.index+1));
     // Keep the review link exact immediately, but limit address-bar writes.
     // Rapid scrubbing/testing otherwise triggers Chromium's history flood guard.
@@ -72,7 +73,7 @@ try{
     const start=performance.now();let painted=0;
     for(const card of cards)if(all||card.visible){drawCard(card);painted++;}
     const gpu=engine.timing();
-    status.textContent=`Batch ${batchSeed} · ${sets.length} worlds × 10 samples · ${painted} cards updated · one 256px generator · ${(performance.now()-start).toFixed(1)}ms CPU submission${gpu.meanMs===null?'':` · ${gpu.meanMs.toFixed(2)}ms mean GPU cloud draw (excludes copies/composite)`}`;
+    status.textContent=`Batch ${batchSeed} · ${rangeVersion===WEATHER_RANGE_VERSION?'Dahai amount reduced 25%':'historical original Dahai amount'} · ${sets.length} worlds × 10 samples · ${painted} cards updated · one 256px generator · ${(performance.now()-start).toFixed(1)}ms CPU submission${gpu.meanMs===null?'':` · ${gpu.meanMs.toFixed(2)}ms mean GPU cloud draw (excludes copies/composite)`}`;
     syncTransport();
   }
   function select(id:string,index:number){
@@ -96,16 +97,16 @@ try{
     const card:Card={set,index,root,canvas,base,original:approved,input,output,summary,parameters,visible:true,draws:0};cards.push(card);
     input.oninput=()=>select(set.direction.id,Number(input.value)-1);syncCard(card);
   }
-  function reroll(seed:number){
-    const next=weatherSampleSets(seed);sets=next;batchSeed=seed;el('seed-error').textContent='';
+  function reroll(seed:number,version=rangeVersion){
+    const next=weatherSampleSets(seed,version);sets=next;batchSeed=seed;rangeVersion=version;el('seed-error').textContent='';
     cards.forEach((card,i)=>{card.set=next[i];syncCard(card);});syncURL();draw(true);
   }
   el('play').onclick=()=>{playing=!playing;last=performance.now();syncTransport();syncURL();};
   el('reset').onclick=()=>{seconds=0;syncURL();draw(true);};
-  el('reroll').onclick=()=>{lastTimeSeed=Math.max(Date.now(),lastTimeSeed+1);reroll(lastTimeSeed);};
+  el('reroll').onclick=()=>{lastTimeSeed=Math.max(Date.now(),lastTimeSeed+1);reroll(lastTimeSeed,WEATHER_RANGE_VERSION);};
   el('seed-form').onsubmit=e=>{e.preventDefault();try{reroll(Number(el<HTMLInputElement>('batch').value));}catch(error){el('seed-error').textContent=String(error);}};
   el('weather').onchange=()=>draw(true);
-  function snapshot(){return{version:WEATHER_RANGE_VERSION,batchSeed,seconds,worlds:cards.map(card=>({id:card.set.direction.id,name:card.set.direction.name,selectedSample:card.index+1,profile:selectedProfile(card),samples:card.set.samples}))};}
+  function snapshot(){return{version:rangeVersion,batchSeed,seconds,worlds:cards.map(card=>({id:card.set.direction.id,name:card.set.direction.name,selectedSample:card.index+1,profile:selectedProfile(card),samples:card.set.samples}))};}
   el('export').onclick=()=>{
     const objectURL=URL.createObjectURL(new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=objectURL;link.download=`weather-review-${batchSeed}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(objectURL),1000);

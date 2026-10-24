@@ -1,8 +1,12 @@
-// Review-only art directions. These ranges do not alter atmospheric physics.
+// Approved visual directions shared by the gallery and runtime artwork.
+// These ranges do not alter atmospheric physics.
 import { atmosphereProfile, type AtmosphereProfile } from './atmosphere-prototype-profile';
 import { crateredWorldProfile } from './cratered-world-geometry';
 export const WEATHER_SAMPLE_COUNT=10;
-export const WEATHER_RANGE_VERSION='atmosphere-gallery-v1';
+export const WEATHER_RANGE_VERSION='atmosphere-gallery-v2';
+export const WEATHER_LEGACY_RANGE_VERSION='atmosphere-gallery-v1';
+export const WEATHER_RANGE_VERSIONS=Object.freeze([WEATHER_LEGACY_RANGE_VERSION,WEATHER_RANGE_VERSION]);
+export const DAHAI_CLOUD_AMOUNT_SCALE=.75;
 type Color=readonly[number,number,number];
 type NumericKey=Exclude<keyof AtmosphereProfile,'seed'|'cloudColor'|'hazeColor'>;
 type Range=readonly[number,number];
@@ -28,7 +32,7 @@ export const WEATHER_DIRECTIONS:readonly WeatherDirection[]=Object.freeze([
   },'#93692f'),
   direction('estella-iii','Gaia','Bright water clouds, blue limb, broken fronts and distinct rotating systems.',[[.92,.94,.98],[.99,.99,1]],[[.25,.48,.78],[.4,.65,.95]],{coverage:[.3,.68]}),
   direction('estella-iv','Dahai','Silvery marine clouds over the unchanged blue ocean and polar ice.',[[.68,.72,.76],[.9,.93,.96]],[[.45,.57,.65],[.66,.75,.8]],{
-    coverage:[.58,.86],opticalDepth:[3.8,6],haze:[.22,.5],cirrus:[.3,.65],fronts:[.55,1.2],vortexCount:[3,5],vortexSize:[.25,.44],vortexStrength:[1,1.7],loopSeconds:[240,420],
+    coverage:[.58*DAHAI_CLOUD_AMOUNT_SCALE,.86*DAHAI_CLOUD_AMOUNT_SCALE],opticalDepth:[3.8,6],haze:[.22,.5],cirrus:[.3,.65],fronts:[.55,1.2],vortexCount:[3,5],vortexSize:[.25,.44],vortexStrength:[1,1.7],loopSeconds:[240,420],
   }),
   direction('estella-v','Hartwell','Thin copper and ochre dust veils; broad sparse movement, little high cloud.',[[.61,.34,.18],[.9,.62,.35]],[[.55,.29,.16],[.83,.49,.27]],{
     coverage:[.15,.4],scale:[.6,1.1],fronts:[0,.2],opticalDepth:[.5,1.8],cirrus:[0,.06],haze:[.08,.22],shadow:[.02,.08],vortexCount:[0,2],vortexSize:[.12,.25],vortexStrength:[.25,.65],vortexEye:[0,.2],vortexSpeed:[1,1],loopSeconds:[360,720],
@@ -57,10 +61,15 @@ function strata(key:string){
 const integerKeys=new Set<NumericKey>(['vortexCount','vortexSpeed','zonalTurns','tropicalTurns','cirrusTurns']);
 export interface WeatherSet{readonly direction:WeatherDirection;readonly samples:readonly AtmosphereProfile[];}
 /** Time is supplied ONCE by the page. No Date.now/Math.random inside generation. */
-export function weatherSampleSets(batchSeed:number):readonly WeatherSet[]{
+export function weatherSampleSets(batchSeed:number,version=WEATHER_RANGE_VERSION):readonly WeatherSet[]{
   if(!Number.isSafeInteger(batchSeed)||batchSeed<1)throw Error('Batch seed must be a positive safe integer');
-  return Object.freeze(WEATHER_DIRECTIONS.map(direction=>{
-    const key=`${WEATHER_RANGE_VERSION}:${batchSeed}:${direction.id}`;
+  if(!WEATHER_RANGE_VERSIONS.includes(version))throw Error('Unsupported weather range version');
+  return Object.freeze(WEATHER_DIRECTIONS.map(current=>{
+    // Old review links reproduce the old amount. All other parameters/noise
+    // streams remain identical; v2 reduces only Dahai's amount by one quarter.
+    const direction=version===WEATHER_LEGACY_RANGE_VERSION&&current.id==='estella-iv'
+      ?Object.freeze({...current,ranges:Object.freeze({...current.ranges,coverage:Object.freeze([.58,.86]as const)})}):current;
+    const key=`${WEATHER_LEGACY_RANGE_VERSION}:${batchSeed}:${direction.id}`;
     const inputs=Array.from({length:WEATHER_SAMPLE_COUNT},(_,i):Partial<AtmosphereProfile>=>({seed:crateredWorldProfile(`${key}:sample:${i}`).seed}));
     for(const name of Object.keys(direction.ranges)as NumericKey[]){
       const [low,high]=direction.ranges[name];

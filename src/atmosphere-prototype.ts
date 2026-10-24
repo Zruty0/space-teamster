@@ -4,7 +4,7 @@ import { createAtmosphereGpuTimer } from './atmosphere-prototype-timing';
 export { GAIA_ATMOSPHERE_PROFILE, atmosphereProfile, atmospherePhase } from './atmosphere-prototype-profile';
 export type { AtmosphereProfile } from './atmosphere-prototype-profile';
 
-/** Review tools only. Bounded seeded-noise cache / one output texture; no
+/** Visual core shared by game and review tools. Bounded seed cache / one output; no
  * accumulated frame cache. This generator can later be used by an offline baker.
  * No imports from orbital, missions, physics, weather, saves or world catalog. */
 export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1){

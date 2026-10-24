@@ -1,6 +1,7 @@
 import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, GAIA_ATMOSPHERE_PROFILE } from '../src/atmosphere-prototype-profile';
 import './atmosphere-timing.test';
 import './atmosphere-gallery.test';
+import './atmosphere-art-state.test';
 import { createAtmospherePrototype } from '../src/atmosphere-prototype';
 let checks=0;
 function assert(ok:unknown,message:string):asserts ok{checks++;if(!ok)throw Error(message);}

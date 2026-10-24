@@ -6,6 +6,7 @@ import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfo
 import { InputState } from './input';
 import { drawBalorDisc } from './balor-appearance';
 import { drawAuthoredWorldDisc } from './world-disc-appearance';
+import type { OrbitalWeatherPainter } from './world-weather';
 import { drawOrbitalWorldLabel } from './orbital-world-label';
 import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-orientation';
 import { dynamicLambertDepartureVInf } from './lambert';
@@ -2676,16 +2677,18 @@ export function renderOrbital(
   cam: OrbitalCamera, s: OrbitalState, level: OrbitalLevel, time: number,
   atmosphericPackageInstalled = true,
   showContainer = true,
+  weather?: OrbitalWeatherPainter,
 ): void {
   const W = canvas.width, H = canvas.height;
+  weather?.beginFrame(s.time);
 
   ctx.fillStyle = '#030308';
   ctx.fillRect(0, 0, W, H);
 
   drawStars(ctx, W, H);
-  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle);
+  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle, level.systemBodies ? undefined : weather);
   drawAtmosphere(ctx, cam, level, W, H);
-  if (level.systemBodies) drawSystemBodies(ctx, cam, s, level, W, H);
+  if (level.systemBodies) drawSystemBodies(ctx, cam, s, level, W, H, weather);
   else drawCentralBodyLabel(ctx, cam, level, W, H);
   drawOrbitingPoiMarkers(ctx, cam, s, level, W, H);
   drawSurfacePoiMarkers(ctx, cam, level, W, H);
@@ -2708,6 +2711,9 @@ export function renderOrbital(
   }
   if (!rendezvousZoomed && _maneuverCache) drawManeuverMarker(ctx, cam, _maneuverCache, W, H);
   drawOrbitalShip(ctx, cam, s, level, W, H, time, showContainer);
+  // Refresh after all views/labels have painted: a world uses the same cached
+  // weather at every scale throughout this frame. No generation in physics.
+  weather?.endFrame();
 }
 
 // --- Stars ---
@@ -2738,7 +2744,7 @@ function isGasGiantBodyId(bodyId: string): boolean {
 
 function drawPlanet(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  level: OrbitalLevel, W: number, H: number, balorEyeAngle?: number,
+  level: OrbitalLevel, W: number, H: number, balorEyeAngle?: number, weather?: OrbitalWeatherPainter,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
   if (level.bodyId === BALOR_BODY_ID) {
@@ -2748,6 +2754,7 @@ function drawPlanet(
   const body = bodyById(level.bodyId);
   const isStar = body.id === 'estella';
   const r = isStar ? Math.max(level.planetRadius * cam.zoom, 8) : level.planetRadius * cam.zoom;
+  if (weather?.draw(ctx, level.bodyId, cx, cy, r, body.color)) return;
   if (drawAuthoredWorldDisc(ctx, level.bodyId, cx, cy, r, body.color)) return;
 
   ctx.beginPath();
@@ -2891,10 +2898,10 @@ function drawFarSystemBands(ctx: CanvasRenderingContext2D, cam: OrbitalCamera, W
 
 function drawSystemBodies(
   ctx: CanvasRenderingContext2D, cam: OrbitalCamera,
-  s: OrbitalState, level: OrbitalLevel, W: number, H: number,
+  s: OrbitalState, level: OrbitalLevel, W: number, H: number, weather?: OrbitalWeatherPainter,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle);
+  drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle, weather);
   drawCentralBodyLabel(ctx, cam, level, W, H);
   if (farSystemView(level)) drawFarSystemBands(ctx, cam, W, H);
   else drawAsteroidBelt(ctx, cam, level, W, H);
@@ -2927,7 +2934,7 @@ function drawSystemBodies(
       // The chart body moves: point the Eye at the central star from the same
       // live ephemeris used to place its marker, not a local-visit snapshot.
       drawBalorDisc(ctx, bx, by, br, Math.atan2(-pos.y, -pos.x));
-    } else if (!drawAuthoredWorldDisc(ctx, body.id, bx, by, br, body.color)) {
+    } else if (!weather?.draw(ctx, body.id, bx, by, br, body.color) && !drawAuthoredWorldDisc(ctx, body.id, bx, by, br, body.color)) {
       ctx.beginPath();
       ctx.arc(bx, by, br, 0, Math.PI * 2);
       ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
