@@ -360,15 +360,15 @@ Bulk processor on a metallic-class asteroid. The asteroid itself is a substantia
 | ES-M-0002.3 | Surface / interior | Staff hab |
 
 ### Weymark
-Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification at Nell's Rest. Weymark also hosts Bruckner Field Services' quiet high-orbit distribution foothold near Caravanserai.
+Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification at Nell's Rest. Weymark also hosts Bruckner Field Services' quiet high-orbit distribution foothold near Caravanserai.66d2dfb adds modest independent mining and crew movement on the existing sites:20 daily orders, with old trade/training retained and no blanket gateway rerouting. [Weymark ledger](locations/weymark.md).
 
 | ID | Type | Description |
 |---|---|---|
 | Estella VIII.1 | Nell's Rest | Guild-facing first-rendezvous station, maintenance shipyard, and mechanics hub |
 | Estella VIII.2 | Bruckner Weymark Depot | High-orbit BFS distribution and precision-service hub |
 | Estella VIII.3 | Weymark Town | Small civic settlement |
-| Estella VIII.4 | Low Gauge Mine | Airless dwarf mining site |
-| Estella VIII.5 | Nell's Lantern | Captured moonlet with Lantern Dock |
+| Estella VIII.4 | Low Gauge Mine | Shared landing/service settlement for small independent metal claims and quarries |
+| Estella VIII.5 | Nell's Lantern | Captured moonlet with abandoned navigation outpost and Lantern Dock; no freight or passenger traffic |
 | Estella VIII.6 | Old Survey Camp | Abandoned survey camp with salvage potential |
 
 ### Sahra — Estella IX

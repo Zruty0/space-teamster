@@ -111,6 +111,12 @@ Ordinary surface/offworld work uses independently paired50/50 Suhail/direct, inc
 
 **System-wide finished-fuel policy:** no dedicated full-container spacecraft-fuel jobs; fuel mass is too small. Remove11 Guild orders (eight legacy destinations, Scaffold1, Dahai2). Fuel services/background dispensary distribution and proprietary propulsion remain; industrial skim precursor feedstock/hardware/certifications unchanged. Old accepted fuel jobs retain classification/quotes and still settle. No new fuel chemistry or consumption tuning.
 
+## Weymark small mining and crew travel — implemented2026-10-24
+
+`66d2dfb`:20 daily additional orders through descriptive Independent Weymark bookings (34 providers total):8 modest mining/supply/repair consignments and12 crew bookings across six bidirectional pairs. Low Gauge produces selected12t concentrates for Cupola/Hammer and16t shielding stock for Nell's Rest; assay samples, drill heads, pressure stores and pump overhauls support the workings. Crews connect mine/town/Nell's Rest/Bruckner depot with limited Caravanserai/Harlan/Veles visits. Existing food/civilian/Bruckner/VHM/Guild networks remain intact.
+
+Freight0.75+0.40, passengers0.60+0.60, cap2; standard crew comfort, assay fragility retained. Town/mine surface movement stays on the ground; no blanket Weymark gateway rerouting or compulsory second leg. **Nell's Lantern is an abandoned navigation outpost with zero freight/passenger traffic**; Old Survey Camp remains reserved. IDs/access/physics and all15899 old routed candidates preserved. Ledger/testing: [Weymark](locations/weymark.md).
+
 ## Camps completion pass — review corrections implemented2026-10-24
 
 Runtime/tests89317da. All31 existing site roles now appear in terminal copy; Pike functional names become Flint Mine/Switchback/Pike Depot. Ascension Scaffold operates as a refit/remanufacturing station. Svarog Shipyard Company names the existing single independent landlord, separate from Kisaragi tenants and the commune. Tessera has independent physical-metrology/precision-workshop identity and ordinary civic services.
