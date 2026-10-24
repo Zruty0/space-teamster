@@ -1,7 +1,7 @@
 # Planet / moon visual inventory
 
 Updated: 2026-10-24
-Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Realistic animated cloud patterns deferred to a separate pass across all atmospheric worlds. All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
+Status: All Stages1–11 complete and approved; Pete approved the final combined preview on2026-10-24. Labels retain the approved style. Gaia-only dynamic-atmosphere prototype now under review; production rollout to atmospheric worlds remains separate. See [atmosphere prototype](atmosphere-visual-prototype.md). All planned base-globe stages are implemented; review the final three together at `/tests/final-moons-preview.html`. IX sand-world conversion remains pending. See [approval gates](planet-visual-stages.md). Scope is globe artwork, not settlement scenery or physics.
 
 ## Current rendering
 

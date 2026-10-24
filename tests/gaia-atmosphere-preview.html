@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Gaia — dynamic atmosphere study</title>
+<style>
+body{margin:20px;background:#03080e;color:#b8cedd;font:13px system-ui,sans-serif;max-width:1200px}h1{font-size:23px;margin:0 0 8px}p{margin:7px 0;line-height:1.5}button,select,input{accent-color:#71b9d9}button,select,input[type=number]{background:#142638;color:#d7e9f3;border:1px solid #37566c;border-radius:4px;padding:5px 9px}button{cursor:pointer}canvas{display:block;max-width:100%;height:auto}#controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 24px;padding:15px;background:#0c1722;border-radius:6px}label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px}input[type=range]{width:100%}#transport{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0}#scrub{width:280px}#status{color:#9bcfc3}pre{white-space:pre-wrap;overflow-wrap:anywhere}.muted{color:#7795aa}a{color:#8dcbe4}
+</style>
+<h1>GAIA — DYNAMIC ATMOSPHERE STUDY</h1>
+<p>Original geography beside moving cloud banks, fronts and cirrus. Preview only: the live game and flight weather are unchanged.</p>
+<p id="status">Preparing seeded cloud texture…</p>
+<div id="transport">
+<button id="play">Pause</button><button id="reset">Restart loop</button>
+<label>Preview speed <select id="speed"><option value=".25">¼×</option><option value="1" selected>1×</option><option value="4">4×</option><option value="12">12×</option></select></label>
+<label>Loop position <input id="scrub" type="range" min="0" max="360" value="0" step=".1"></label><span id="clock"></span>
+<label><input id="cloudOnly" type="checkbox"> Clouds on dark background</label>
+</div>
+<canvas id="view" width="1200" height="660"></canvas>
+<p><button id="balanced">Gaia starting point</button> <button id="broken">Broken cloud cover</button> <button id="fronts">Strong frontal systems</button> <button id="export">Export transparent cloud frame</button> <button id="checks">Run visual checks</button> <label style="display:inline-flex">Seed <input id="seed" type="number" min="1" max="2147483646"></label></p>
+<div id="controls"></div>
+<p class="muted">The 6-minute preview loop is an art timing choice, not a planet rotation or weather forecast. Every frame is reproducible from seed, settings and loop position. The cloud field closes seamlessly for future baking; no frame sequence is stored yet.</p>
+<details><summary>Current generator parameters</summary><pre id="profile"></pre></details>
+<p><a href="/tests/world-disc-preview.html">Approved Gaia / Celeste baseline</a> · No clouds added to other worlds.</p>
+<script type="module" src="/src/gaia-atmosphere-preview.ts"></script>

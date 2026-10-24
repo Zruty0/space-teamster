@@ -80,9 +80,9 @@ Pete explicitly grouped the remaining three stages for joint delivery. Modules `
 
 All three use approved label halos with original text/status colours/fonts/anchors. Preview `/tests/final-moons-preview.html` presents all three together, small discs, actual rim-site guides, fourteen synthetic local orbital destinations and three parent-system views. No access/physics/saves changes; Pete approved the combined review on2026-10-24. This finishes the base-globe sequence, not the separate weather-art work.
 
-## Deferred cloud/weather-art pass
+## Cloud/weather-art pass — Gaia review prototype
 
-Pete rejects Dahai's stylized storm swirls and requests ocean/ice only for now. A future separate pass should add more realistic **animated cloud patterns across all worlds with atmospheres**. Do not add new cloud layers during the remaining base-globe stages or start this pass automatically. Existing other-world art is retained pending that review; permanent terrain/ice geography stays fixed. No new flight-weather physics, hazards or atmosphere chemistry follows from this visual request.
+Pete rejected Dahai's stylized storm swirls; its approved game globe remains ocean/ice only. On2026-10-24 he authorized a **Gaia-only dynamic-atmosphere review prototype**, with eventual reuse across atmospheric worlds. He suggests a long precomputed loop but wants appearance established first. Preview `/tests/gaia-atmosphere-preview.html`; implementation/validation and deferred baking options in [atmosphere visual prototype](atmosphere-visual-prototype.md). No production renderer or other-world art changed. Permanent geography stays fixed; integration, other presets and baking await review. No new flight-weather physics, hazards or chemistry.
 
 ## Validation
 
