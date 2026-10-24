@@ -1,9 +1,9 @@
 # Dahai shipping
 
-Updated: 2026-10-23
+Updated: 2026-10-24
 Status: implemented in71fe113 after Pete's approval to integrate all existing providers, unnamed Dahai originators and the Institute. No push/deploy.
 
-Camps follow-up89317da: the original340-order Dahai programme is retained. EIP adds14 Camps-linked orders, bringing the Institute total to92; eligible Hartwell/Tessera counterparts now independently dispatch through their gateways. [Camps review](camps-review.md) records the added scope. No Dahai city/physics/save changes.
+Follow-ups: Camps89317da added14 Institute orders; Sahra c49726d adds14 more (10 occasional), bringing EIP to106 distinct orders/98.5 average daily availability. Sahra also retires all dedicated finished-fuel jobs, including Dahai's two port orders: **338 original-programme Dahai orders/day remain**. Eligible Hartwell/Tessera/Sahra counterparts independently dispatch through their gateways. [Camps review](camps-review.md), [Sahra ledger](locations/sahra.md). No Dahai city/physics/save changes.
 
 ## Cities and Institute
 
@@ -25,14 +25,14 @@ Pete rejected a named industrial entity. There is no Jiuyuan Deepworks provider.
 
 - Approximately50% orbital /50% direct, independently inbound/outbound and freight/passengers. Each new logical consignment uses an exact deterministic two-day pair, one day each route, with stable mass and demand weight. Not a tonnage quota or a forced fraction of every capped board.
 - Orbital delivery/pickup includes issuer-arranged background distribution. Settlement finishes at the contracted station/city; no mandatory second player leg.
-- All30 providers pass the public-candidate adapters: Gaia first for each queried source, then Dahai. The Dahai orbital query collects all four cities plus native terminal work so redirected departures are not lost.
+- All33 current providers pass the public-candidate adapters: Gaia first for each queried source, then Dahai, Camps and Sahra. The Dahai orbital query collects all four cities plus native terminal work so redirected departures are not lost.
 - New lanes have stable dispatch identities. Existing-provider keys ignore rotating cargo labels and normalize the independently selected Gaia/Balor gateway. Neither planet's dispatch undoes the other. New Balor-linked Institute/holiday work uses Balor's established dispatcher and explains handling at both worlds.
 - Native orbital services, local same-body trips, certification/contact work and timed departures keep their actual endpoints. Native station activity explains small deviations from50% when auditing ALL traffic.
 - Routing happens before quotes. Accepted contracts, recorded prices/history, saves, access rules, original berth IDs and existing provider pay remain untouched. Renames require no eager save migration.
 
 ## New consignments
 
-340 logical orders/day, across11 issuer families:
+338 original-programme logical orders/day, across10 issuer families (originally340/11 before the two finished-fuel retirements):
 
 | Provider | Added orders/day | Scope |
 |---|---:|---|
@@ -46,11 +46,10 @@ Pete rejected a named industrial entity. There is no Jiuyuan Deepworks provider.
 | Merren Conservatory |4|Certified cultivation inputs, processed marine ingredients and reusable racks |
 | Steel Combine |4|Material/machinery exports under Foreign Trade Committee terms |
 | Cinderhook Refining Houses |1|Certified material for local maintenance workshops, from an existing roster company |
-| Teamsters' Guild |2|Certified spacecraft fuel for Fuyuan/Bingjie port operations; volatile credential retained |
 
 The 214 civilian orders represent many unnamed customers, not one new corporation. No market tag. They receive demand weight2; Institute and most additions to existing providers use0.6 (Cinderhook0.3). No forced board priority, flat bounty or minimum provider slot. Established seeded company rosters are unchanged; additive lanes belong to their existing provider modules.
 
-New civilian/Institute/GOV/EDF freight uses0.80×par fuel fixed plus45% actual-fuel reimbursement; passengers0.60+0.60. Cap2×par. Existing-company additions use those companies' established rate families, including Steel export0.15+1.00, Merren standard0.30+0.75/return0.25+0.80, and Guild0.85+0.40. Explicit handling/comfort catalogs cover new manifests. Refrigeration/preservation travels with packaged consignments; no new decay or cold-chain simulation.
+New civilian/Institute/GOV/EDF freight uses0.80×par fuel fixed plus45% actual-fuel reimbursement; passengers0.60+0.60. Cap2×par. Existing-company additions use those companies' established rate families, including Steel export0.15+1.00, Merren standard0.30+0.75/return0.25+0.80. Explicit handling/comfort catalogs cover new manifests. Refrigeration/preservation travels with packaged consignments; no new decay or cold-chain simulation.
 
 ### City trade
 
@@ -69,7 +68,9 @@ Institute field programs connect Fuyuan with Balor extraction, Olympos, Cousteau
 - **Other providers:** Miners Mutual, BFS, VHM, KIS-E, Kisaragi parent, Halloran, Glitterfield, Pike, Roadstead brokers, Oathmark, the three senior Houses, Covenant and minor Wells nobility were audited through the shared registry. Their unrelated roles/routes/pay remain intact; do not manufacture Dahai ore exports, direct factory franchises, noble claims or restricted religious/research access just to give every actor an arbitrary new lane. They automatically use the shared policy for any eligible Dahai surface consignment.
 - Keep local nutrient distribution and same-body Institute coordination in the background. Do not mirror an existing counterparty's procurement order as a duplicate new civilian posting. Notably Merren owns the new Kalyna marine-ingredient purchase; it is absent from the civilian lane roster.
 
-## Audit — 2026-10-23
+## Historical original-pass audit — 2026-10-23
+
+Current follow-up regression:89077 assertions,338 original-programme orders/242 playable endpoint pairs. Authorized fuel deletions and Sahra routing supersede affected aggregate hashes; the independent pre-Sahra economy snapshot protects all surviving old raw orders. The figures below describe the original pass, not a fresh full-system census.
 
 `npm run audit:dahai`:120 raw epochs and12 sampled-board epochs. Civilian share below includes unnamed Gaia and Dahai issuers; native terminal services remain included.
 

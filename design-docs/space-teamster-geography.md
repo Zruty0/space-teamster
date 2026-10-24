@@ -334,7 +334,7 @@ A major **metallic-class asteroid** given over almost entirely to the **Teamster
 | ES-M-0001.1 | Public Approach Dock | Civilian fuel sales, customs, the only place most Teamsters ever set foot on the Still |
 | ES-M-0001.2 | Guild HQ | Faction headquarters; alternative cert / upgrade authority for high-rep Guild members |
 | ES-M-0001.3 | Refinery Core | Restricted. The actual synthesis facility. Most Teamsters never see this. |
-| ES-M-0001.4 | Distribution Bay | Guild-licensed; where fuel canisters get loaded for system-wide distribution |
+| ES-M-0001.4 | Distribution Bay | Guild-licensed propulsion-hardware dispatch; tiny finished-fuel consignments use background distribution, not dedicated container jobs |
 | ES-M-0001.5 | Worker Hab / Foreign Quarter | Refiner workforce, rumor mill |
 | ES-M-0001.6 | Skim-Runner Berth | Where Hearth skim ships deliver precursor canisters |
 
@@ -402,7 +402,7 @@ Cold airless regolith desert over buried ice and opal-bearing rock. Sealed carav
 | Estella IX.5 | Captured moonlet | **Raqib** — astronomical/navigation outpost, existing dock-only geometry |
 | Estella IX.6 | Surface | **Wadi al-Layl** — opal-bearing fracture valley and public fixed field landing |
 
-The proposed Manara research station (IX.1) is removed, not renamed or hidden. Old station saves/accepted flights resolve to Suhail; its two existing Gaia research consignments now arrive there for onward handling. No new economic programme or compulsory orbital gateway yet.
+The proposed Manara research station (IX.1) is removed, not renamed or hidden. Old station saves/accepted flights resolve to Suhail; its two existing Gaia research consignments now arrive there for onward handling. Sahra economy c49726d adds ice/opal/civilian trade and independently paired50/50 ordinary Suhail/direct dispatch. Raqib's traffic is exclusively Institute-issued. No compulsory second player leg; [ledger](locations/sahra.md).
 
 ---
 
@@ -587,7 +587,7 @@ The Guild's fuel is synthesized by a process which (depending on whom you ask, i
 1. Skim ships harvest **stellar antimatter precursor** from the Hearth's near-star skim hubs (Skim Hub Alpha, Skim Hub Beta, Coronal Observation Post).
 2. Skim ships transit precursor to the Belt and deliver to **the Still**.
 3. The Still synthesizes precursor into stable fuel canisters.
-4. The Still distributes fuel canisters to dispensaries throughout the system.
+4. The Still distributes tiny finished-fuel consignments to dispensaries through background logistics. Their mass does not justify dedicated full-container fuel contracts (retired system-wide inc49726d); refuelling services remain.
 
 The chain is system-spanning, single-vendor, and proprietary. Disruption to any single stage is, in principle, a system-wide fuel crisis. In practice, the Guild has been operating long enough that it has redundancies the rest of the system does not see.
 

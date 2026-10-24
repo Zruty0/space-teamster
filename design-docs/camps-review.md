@@ -3,6 +3,8 @@
 Updated: 2026-10-24
 Status: **implemented; both zzz comments addressed**. Original runtime/tests: `89317da`; review implementation: `4a3ca52` (details below). Nothing pushed or deployed.
 
+Sahra/fuel follow-up`c49726d`: Pete removes dedicated finished-fuel shipments system-wide. Scaffold's one fuel order is retired; **163 original Camps-programme orders/day remain**. Guild drive-service work is retained. New Sahra counterpart traffic is counted separately in [Sahra](locations/sahra.md). Original audit figures below remain dated history; no operator comments removed.
+
 Leave comments beginning with **`zzz`** anywhere under the relevant section. These are implemented choices, not a list of work waiting to start. Pete authorized the reviewed pass and requested implementation of his two comments; both are resolved below. Preserve operator comments when revising this file.
 
 ## 1. Quick review: the consequential choices
@@ -14,7 +16,7 @@ Leave comments beginning with **`zzz`** anywhere under the relevant section. The
 5. **Kuznia/Kalyna retain their existing controlled trade interfaces.** No automatic50/50 direct surface imports. Pike's dedicated ore lifts and direct Cinderhook refinery legs also remain intact.
 6. **Tessera specializes in physical metrology and precision fabrication:** independent workshops, not another giant electronics corporation. Roster Hall has ordinary civic life alongside shift work.
 7. **First Landing and Black Tile remain deliberate reserves.** No filler shipments, automatic access or invented secrets.
-8. **The economic pass adds164 daily logical orders:**110 ordinary civilian,17 SSC,37 across existing providers including14 Institute orders.
+8. **The economic pass retains163 daily logical orders after fuel retirement:**110 ordinary civilian,17 SSC,36 across existing providers including14 Institute orders. Original pass164; one Scaffold fuel order removed by explicit later direction.
 
 The pass covers settlement identity, economic relationships, shipping and visible terminal descriptions. Bespoke NPCs, mission chains, new shop mechanics and planetary/settlement art remain later layers; this pass does not quietly start them.
 
@@ -71,7 +73,7 @@ All seven existing locations retain their names and IDs. Their expanded descript
 - Remains a historic Camps orbital factory and outward-colonization staging point.
 - **Present function:** independent workshops refit tugs and survey craft, remanufacture standard service modules, restore pressure-room fittings and inspect reclaimed hardware.
 - Svarog handles the largest new-build work; the Scaffold serves the older working fleet. Its industrial heritage is a preserved core within a living station.
-- Imports: machine tools, lifting gear, inspection benches, controllers, shared tooling, lubricants, Guild fuel and authorized drive-service kits.
+- Imports: machine tools, lifting gear, inspection benches, controllers, shared tooling, lubricants and authorized Guild drive-service kits. Finished fuel reaches dispensaries in background logistics, not full-container jobs.
 - Exports/returns: remanufactured tug modules, refurbished pressure-room modules, handling equipment and heritage exhibition loans; worn units return for rework.
 - People: refit specialists, small-business visitors, shipyard infrastructure staff, heritage visitors and commissioning engineers.
 - No new dominant named Scaffold corporation. Workshops/purchasing offices use descriptive issuers or existing brokers.
@@ -211,8 +213,8 @@ The adapters handle both ends of Hartwell↔Tessera work and compose with existi
 | Daedalus Systems |4|Scaffold controls, hardware returns and integration engineers |
 | Hartwell Machinery Brokers |3|Scaffold tools, assay benches and lifting machinery |
 | Sector Government |3|Concord/Roster civic exchanges and Switchback clinic equipment |
-| Teamsters' Guild |2|Scaffold fuel and authorized drive-service kits |
-| **Total** |**164**|Additions to the established regional economy, not its entire volume |
+| Teamsters' Guild |1|Authorized drive-service kits; finished-fuel order retired |
+| **Total** |**163**|Original-programme additions after fuel retirement, not the entire regional volume |
 
 Two provider registrations were added: unnamed Camps bookings and SSC. **32 total providers** now. The Institute totals92 daily orders across its original78 and these14; its original Dahai-programme identities remain stable.
 
