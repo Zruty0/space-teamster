@@ -1,7 +1,7 @@
 # Gaia dynamic atmosphere — visual prototype
 
 Updated: 2026-10-24
-Status: Gaia-only review prototype. Pete likes the effects and requested visible spin plus individual vortex parameters; that revision now awaits review. Not installed in the game. Pete approved the generator approach and suggested precomputing a long repeating sequence, but asked to establish the look first. Other atmospheric worlds, production integration and a sequence baker are not implemented.
+Status: Gaia tuning prototype retained. Pete approved the effect and requested an eight-world randomized review gallery; see [atmosphere-sample-gallery.md](atmosphere-sample-gallery.md). Giants explicitly excluded. Neither preview is installed in the game; production integration and a sequence baker remain unimplemented. The original Gaia-specific implementation/measurements below are retained as reference.
 
 ## Review
 
@@ -71,4 +71,4 @@ Memory matters more than the nominal loop duration:600 uncompressed RGBA frames 
 - Seven loop-phase screenshots (including2s/4s) plus broken/frontal/cyclonic presets captured on both backends; default and early spinning hardware phases inspected. Play/pause, reload, check-button option restoration, context-loss shutdown and explicit missing-WebGL failure tested. Software-rendered checks establish correctness, not hardware performance. Driver/screenshots: Temp/st-gaia-atmosphere-*-20261024.*.
 - All existing world-disc suites and production build pass; existing Vite warnings only. No mobile testing, live-save work or push.
 
-Next: review appearance/motion on Gaia; revise as requested, then separately choose baking/playback and production integration. Keep other approved globes intact until their atmospheric presets are authorized.
+Next: review the eight-world sample gallery and retain chosen seed/sample profiles. The original Gaia control page remains available. Production integration stays separate; giants retain their existing artwork. The shared generator now optionally caches1–16 seed volumes (gallery8, Gaia default1); original Gaia native hashes remain unchanged.

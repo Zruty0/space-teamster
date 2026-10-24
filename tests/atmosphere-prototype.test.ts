@@ -1,5 +1,7 @@
 import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, GAIA_ATMOSPHERE_PROFILE } from '../src/atmosphere-prototype-profile';
 import './atmosphere-timing.test';
+import './atmosphere-gallery.test';
+import { createAtmospherePrototype } from '../src/atmosphere-prototype';
 let checks=0;
 function assert(ok:unknown,message:string):asserts ok{checks++;if(!ok)throw Error(message);}
 const json=(x:unknown)=>JSON.stringify(x),p=GAIA_ATMOSPHERE_PROFILE;
@@ -22,6 +24,10 @@ for(const t of [-720,-361,-360,-1,0,.01,90,180,359.99,360,720,123456]){
  assert(Math.abs(phase-atmospherePhase(t+360,360))<1e-12,'periodic through negative/positive time');
 }
 for(const args of [[NaN,360],[Infinity,360],[3,0],[2,-1],[1,Infinity]])assert(atmospherePhase(args[0],args[1])===0,'invalid time guarded');
+for(const capacity of [0,-1,17,1.5,NaN,Infinity]){
+ let message='';try{createAtmospherePrototype(256,capacity);}catch(error){message=String(error);}
+ assert(message.includes('Noise cache capacity must be 1–16'),'invalid cache bound rejected before allocating a canvas');
+}
 const random=Math.random;
 try{
  Math.random=()=>{throw Error('unseeded RNG forbidden');};

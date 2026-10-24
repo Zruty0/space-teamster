@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estella — atmosphere sample gallery</title>
+<style>
+body{margin:24px auto;padding:0 20px;max-width:1400px;background:#040a11;color:#c4d8e5;font:14px system-ui,sans-serif}h1{font-size:26px;margin-bottom:8px}h2{margin:0;font-size:22px}p{line-height:1.5}a{color:#88d1f3}button,select,input[type=number]{background:#172c3e;color:#d9eef7;border:1px solid #446179;border-radius:5px;padding:7px;font:inherit}button{cursor:pointer}input{accent-color:#89cce7}#toolbar{position:sticky;top:0;z-index:1;background:#08121ff5;padding:12px;border:1px solid #243d51;border-radius:6px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}#seed-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#batch{width:17ch}#worlds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;margin-top:16px}.world{background:#0b1824;border:1px solid #294358;border-radius:8px;padding:14px;min-width:0}.world p{min-height:42px;margin:7px 0}.world canvas{display:block;width:100%;height:auto;background:#07111b}.world label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding-top:12px}.world input[type=range]{width:100%}.metrics{color:#9ab8ca;font-size:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}summary{cursor:pointer;color:#9dd4e6}#status{color:#8ecbbb}#seed-error{color:#ffbba7}.note{color:#8da8ba}
+</style>
+<h1>ESTELLA — ATMOSPHERE SAMPLE GALLERY</h1>
+<p>Eight atmospheric worlds, ten randomized samples each. Choose a sample independently for each world. Dahai uses silvery marine clouds; thin atmospheres retain sparse veils. <strong>Giants excluded.</strong></p>
+<p class="note">Review only: approved surfaces, production artwork and flight weather are unchanged. The small corner globe is the original illustration. Acheron's large candidate replaces its static cloud illustration with a dynamic opaque cloud deck, not exposed terrain. Cloud amount is an art control, not a physical coverage percentage.</p>
+<div id="toolbar">
+<button id="play" type="button">Pause</button><button id="reset" type="button">Restart motion</button>
+<label>Speed <select id="speed"><option value=".25">¼×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label><span id="clock"></span>
+<label><input id="weather" type="checkbox" checked> Show candidate weather</label>
+<button id="reroll" type="button">New time-seeded batch</button>
+<form id="seed-form"><label>Batch seed <input id="batch" type="number" min="1" max="9007199254740991" step="1" required></label><button type="submit">Load seed</button></form>
+<button id="export" type="button">Export all samples + choices</button><a id="permalink" href="">Review link</a>
+</div>
+<p id="seed-error" role="alert"></p><p id="status" aria-live="polite">Preparing weather samples…</p>
+<div id="worlds"></div>
+<p class="note">A new batch takes its seed from the current time, once—not every animation frame. The URL retains the seed and your choices; a review link reproduces them within this range version. Export JSON to keep the exact profiles. One shared 256px generator updates visible cards at about 10 Hz; only visible cards animate and hidden pages pause. No game saves are accessed.</p>
+<p><a href="/tests/gaia-atmosphere-preview.html">Gaia generator controls</a> · <a href="/tests/world-disc-preview.html">Original Gaia / Celeste reference</a></p>
+<script type="module" src="/src/atmosphere-gallery.ts"></script>

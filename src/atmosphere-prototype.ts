@@ -4,18 +4,20 @@ import { createAtmosphereGpuTimer } from './atmosphere-prototype-timing';
 export { GAIA_ATMOSPHERE_PROFILE, atmosphereProfile, atmospherePhase } from './atmosphere-prototype-profile';
 export type { AtmosphereProfile } from './atmosphere-prototype-profile';
 
-/** Gaia review tool only. One bounded noise volume / one output texture; no
+/** Review tools only. Bounded seeded-noise cache / one output texture; no
  * accumulated frame cache. This generator can later be used by an offline baker.
  * No imports from orbital, missions, physics, weather, saves or world catalog. */
-export function createAtmospherePrototype(resolution=512){
+export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1){
   if(!Number.isInteger(resolution)||resolution<64||resolution>1024)throw Error('Atmosphere resolution must be 64–1024');
+  if(!Number.isInteger(noiseCacheCapacity)||noiseCacheCapacity<1||noiseCacheCapacity>16)throw Error('Noise cache capacity must be 1–16');
   const canvas=document.createElement('canvas');canvas.width=canvas.height=resolution;
   const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,preserveDrawingBuffer:true,depth:false,stencil:false});
   if(!gl)throw Error('This atmosphere preview needs WebGL2. The game renderer is unchanged.');
   const timer=createAtmosphereGpuTimer(gl);
   const shaders:WebGLShader[]=[];
-  let program:WebGLProgram|null=null,buffer:WebGLBuffer|null=null,texture:WebGLTexture|null=null;
-  const cleanup=()=>{timer.dispose();if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));};
+  let program:WebGLProgram|null=null,buffer:WebGLBuffer|null=null;
+  const noiseCache=new Map<number,{texture:WebGLTexture;centers:Float32Array;properties:Float32Array}>();
+  const cleanup=()=>{timer.dispose();for(const entry of noiseCache.values())gl.deleteTexture(entry.texture);noiseCache.clear();if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));};
   try{
     const compile=(type:number,source:string)=>{
       const s=gl.createShader(type);if(!s)throw Error('Cannot create atmosphere shader');shaders.push(s);
@@ -26,13 +28,11 @@ export function createAtmospherePrototype(resolution=512){
     program=gl.createProgram();if(!program)throw Error('Cannot create atmosphere program');
     gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)??'Atmosphere linking failed');
-    gl.useProgram(program);buffer=gl.createBuffer();texture=gl.createTexture();
-    if(!buffer||!texture)throw Error('Cannot allocate atmosphere resources');
+    gl.useProgram(program);buffer=gl.createBuffer();
+    if(!buffer)throw Error('Cannot allocate atmosphere resources');
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
     const position=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
-    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_3D,texture);
-    gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    for(const axis of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T,gl.TEXTURE_WRAP_R])gl.texParameteri(gl.TEXTURE_3D,axis,gl.REPEAT);
+    gl.activeTexture(gl.TEXTURE0);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.uniform1i(gl.getUniformLocation(program,'noiseVolume'),0);
     const keys=['phase','coverage','scale','fronts','detail','shear','evolution','cirrus','opticalDepth','zonalTurns','tropicalTurns','cirrusTurns','vortexCount','vortexSize','vortexStrength','vortexEye','vortexSpeed']as const;
     const locations=Object.fromEntries(keys.map(k=>[k,gl.getUniformLocation(program!,k)]))as Record<typeof keys[number],WebGLUniformLocation|null>;
@@ -55,10 +55,23 @@ export function createAtmospherePrototype(resolution=512){
       render(seconds:number,input:Partial<AtmosphereProfile>){
         check();const profile=atmosphereProfile(input);
         if(profile.seed!==seed){
-          gl.texImage3D(gl.TEXTURE_3D,0,gl.R8,64,64,64,0,gl.RED,gl.UNSIGNED_BYTE,atmosphereNoise(profile.seed));
-          const systems=atmosphereVortices(profile.seed);
-          gl.uniform4fv(vortices,new Float32Array(systems.flatMap(v=>[...v.center,v.phase])));
-          gl.uniform4fv(vortexProperties,new Float32Array(systems.flatMap(v=>[v.sizeScale,v.strengthScale,v.eyeScale,v.turns])));
+          seed=-1;
+          let entry=noiseCache.get(profile.seed);
+          if(!entry){
+            // Evict BEFORE allocating. The gallery shares one context across
+            // worlds without rebuilding their 64³ noise on every frame.
+            if(noiseCache.size>=noiseCacheCapacity){const oldest=noiseCache.keys().next().value!;gl.deleteTexture(noiseCache.get(oldest)!.texture);noiseCache.delete(oldest);}
+            const texture=gl.createTexture();if(!texture)throw Error('Cannot allocate atmosphere noise');
+            gl.bindTexture(gl.TEXTURE_3D,texture);
+            gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+            for(const axis of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T,gl.TEXTURE_WRAP_R])gl.texParameteri(gl.TEXTURE_3D,axis,gl.REPEAT);
+            gl.texImage3D(gl.TEXTURE_3D,0,gl.R8,64,64,64,0,gl.RED,gl.UNSIGNED_BYTE,atmosphereNoise(profile.seed));
+            const systems=atmosphereVortices(profile.seed);
+            entry={texture,centers:new Float32Array(systems.flatMap(v=>[...v.center,v.phase])),properties:new Float32Array(systems.flatMap(v=>[v.sizeScale,v.strengthScale,v.eyeScale,v.turns]))};
+          }
+          noiseCache.delete(profile.seed);noiseCache.set(profile.seed,entry);
+          gl.bindTexture(gl.TEXTURE_3D,entry.texture);
+          gl.uniform4fv(vortices,entry.centers);gl.uniform4fv(vortexProperties,entry.properties);
           seed=profile.seed;
         }
         gl.viewport(0,0,resolution,resolution);
@@ -89,9 +102,13 @@ export function createAtmospherePrototype(resolution=512){
         halo.addColorStop(0,`rgba(${rgb},0)`);halo.addColorStop(.25,`rgba(${rgb},${p.haze*.22})`);halo.addColorStop(1,`rgba(${rgb},0)`);
         ctx.fillStyle=halo;ctx.fillRect(cx-radius*1.04,cy-radius*1.04,radius*2.08,radius*2.08);ctx.restore();
       },
+      releaseNoise(noiseSeed:number){
+        check();const entry=noiseCache.get(noiseSeed);if(!entry)return;
+        gl.deleteTexture(entry.texture);noiseCache.delete(noiseSeed);if(seed===noiseSeed)seed=-1;
+      },
       timing(){return timer.snapshot();},
       resetTiming(){timer.reset();},
-      diagnostics(){return{gpu:timer.snapshot(),renderer:String(gl.getParameter(gl.RENDERER)),error:gl.getError(),resolution,noiseBytes:64**3};},
+      diagnostics(){return{gpu:timer.snapshot(),renderer:String(gl.getParameter(gl.RENDERER)),error:gl.getError(),resolution,noiseBytes:64**3*noiseCache.size,noiseCacheEntries:noiseCache.size,noiseCacheCapacity};},
       dispose(){if(!disposed){cleanup();for(const mip of mipmaps)for(const c of [mip.cloud,mip.shadow])c.width=c.height=1;disposed=true;}},
     };
   }catch(error){cleanup();throw error;}
