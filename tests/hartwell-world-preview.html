@@ -45,7 +45,7 @@ try{
  for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
   const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
  }
- for(const id of ['estella-xd','estella-xia','estella-xib','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
+ for(const id of ['estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,body.color),'deferred worlds not opted in');
  p.fillStyle='#c38e65';p.fillRect(0,0,256,256);p.fillStyle='#00ffcc';p.strokeStyle='#ff00ff';p.lineWidth=7;p.font='bold 10px monospace';
  drawOrbitalWorldLabel(p,body.id,'CINDERHOOK REFINERY',40,100);
  const data=p.getImageData(35,85,170,25).data;let dark=0;for(let i=0;i<data.length;i+=4)if(data[i]<30&&data[i+1]<40&&data[i+2]<50)dark++;

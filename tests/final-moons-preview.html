@@ -1,0 +1,94 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Calatrava · Almaden · Marisma — final globe review</title>
+<style>body{margin:20px;background:#030308;color:#b5c9d5;font:13px monospace}h1{font-size:22px;margin:0 0 10px}p{margin:7px 0}canvas{display:block;margin-top:14px}#status{color:#8dc}a{color:#9ce}select{background:#102030;color:#def;padding:5px;max-width:600px}</style>
+<h1>CALATRAVA · ALMADEN · MARISMA</h1>
+<p>Stages 9–11 together: cratered geothermal rock, sulfur-volcanic terrain, and cool methane-world ground.</p>
+<p>No new clouds or haze. Original atmospheres, site angles, access and flight physics retained.</p>
+<p id="status">Checking native rendering…</p>
+<p><a href="?">Three-world comparison</a> · <select id="target"><option value="">Select a real orbital destination…</option></select></p>
+<p>Parent-system views: <a href="?view=parent&body=estella-xd">Calatrava / Gryphon</a> · <a href="?view=parent&body=estella-xia">Almaden / Hydra</a> · <a href="?view=parent&body=estella-xib">Marisma / Hydra</a></p>
+<canvas id="view" width="1200" height="800"></canvas>
+<script type="module">
+import {FINAL_MOONS} from './final-moons-fixture.ts';
+import {drawAuthoredWorldDisc} from '/src/world-disc-appearance.ts';
+import {drawOrbitalWorldLabel} from '/src/orbital-world-label.ts';
+import {drawCrateredDisc as originalCeleste,drawGaiaDisc as originalGaia} from './fixtures/world-disc-v1.ts';
+import {BODIES,SURFACE_POIS,bodyById} from '/src/world.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,createOrbitalState,renderOrbital} from '/src/orbital.ts';
+try{
+ let checks=0;const assert=(ok,msg)=>{if(!ok)throw Error(msg);checks++;};
+ const worldBefore=JSON.stringify([BODIES,SURFACE_POIS]);
+ const probe=()=>{const c=document.createElement('canvas');c.width=c.height=256;return c.getContext('2d',{willReadFrequently:true});};
+ const p=probe(),q=probe(),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+ const pixels=(ctx,paint)=>{ctx.clearRect(0,0,256,256);paint(ctx);return ctx.getImageData(0,0,256,256).data;};
+ const hash=data=>{let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;};
+ const hashes=[];
+ for(const moon of FINAL_MOONS){
+  const body=bodyById(moon.id);
+  assert(moon.model()===moon.model(),'retained immutable map');
+  for(const r of [3,8,14,32,60,100]){
+   const image=pixels(p,ctx=>assert(drawAuthoredWorldDisc(ctx,moon.id,128,128,r,body.color),'explicit dispatch'));
+   hashes.push(hash(image));assert(same(image,pixels(q,ctx=>moon.paint(ctx,128,128,r))),'shared native full/small painter');
+   assert(same(image,pixels(q,ctx=>moon.paint(ctx,128,128,r))),'repeat pixels stable');
+   assert(p.getImageData(128,128,1,1).data[3]===255,'opaque interior');
+   assert(p.getImageData(235,128,1,1).data[3]===0,'clipped original silhouette');
+  }
+  for(const radius of [32,100]){
+   pixels(p,ctx=>moon.paint(ctx,128,128,radius));
+   for(const [,name,angle]of moon.targets){if(angle===null)continue;
+    const rgba=p.getImageData(Math.round(128+Math.cos(angle)*radius*.95),Math.round(128-Math.sin(angle)*radius*.95),1,1).data;
+    assert(rgba[3]===255&& (moon.stage===11?rgba[2]>rgba[0]:rgba[0]>rgba[2]),`${name}: real rim has original-family solid ground at both LODs`);
+   }
+  }
+  p.fillStyle='#ff00ff';p.lineWidth=7;p.translate(3,5);moon.paint(p,128,128,100);
+  assert(p.fillStyle==='#ff00ff'&&p.lineWidth===7&&p.getTransform().e===3&&p.getTransform().f===5,'canvas state restored');p.setTransform(1,0,0,1,0,0);
+  p.fillStyle=moon.base;p.fillRect(0,0,256,256);p.fillStyle='#00ffcc';p.font='bold 10px monospace';p.strokeStyle='#ff00ff';
+  drawOrbitalWorldLabel(p,moon.id,'FULL DESTINATION LABEL',30,100);
+  const data=p.getImageData(25,85,210,25).data;let dark=0;for(let i=0;i<data.length;i+=4)if(data[i]<30&&data[i+1]<40&&data[i+2]<50)dark++;
+  assert(dark>50,'readable dark halo on bright surface');assert(p.fillStyle==='#00ffcc'&&p.strokeStyle==='#ff00ff'&&p.lineWidth===7,'label preserves styles');
+  p.lineWidth=1;
+ }
+ for(const [id,old]of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
+  const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
+ }
+ for(const id of ['estella-viii-captured-moonlet','estella-ix-captured-moonlet','unknown'])assert(!drawAuthoredWorldDisc(p,id,128,128,100,[100,100,100]),'captured moonlets/unknown untouched');
+ const params=new URLSearchParams(location.search),select=document.getElementById('target');
+ for(const moon of FINAL_MOONS){const group=document.createElement('optgroup');group.label=moon.name;for(const [id,name]of moon.targets){const option=document.createElement('option');option.value=id;option.textContent=name;group.append(option);}select.append(group);}
+ select.value=params.get('target')??'';select.onchange=()=>{if(select.value)location.href=`?view=flight&target=${encodeURIComponent(select.value)}`;};
+ const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),mode=params.get('view');
+ if(mode==='flight'||mode==='parent'){
+  const moon=FINAL_MOONS.find(m=>m.id===params.get('body')||m.targets.some(([id])=>id===params.get('target')))??FINAL_MOONS[0];
+  const target=moon.targets.find(([id])=>id===params.get('target'))?.[0]??moon.targets[0][0];
+  const before=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-iii-main-customs',target,undefined,11500);
+  const body=bodyById(moon.id),created=ORBITAL_LEVELS.filter(l=>!before.has(l.id));
+  let level=created.find(l=>l.bodyId===(mode==='parent'?body.orbit.parentBodyId:moon.id));
+  if(mode==='parent')level={...level,targetBodyId:moon.id};
+  const reach=mode==='parent'?Math.max(...level.systemBodies.map(b=>b.orbitRadius)):0;
+  const zoom=mode==='parent'?300/reach:230/level.planetRadius;
+  const state=createOrbitalState(level,{x:level.planetRadius*1.5,y:0,vx:0,vy:-300,time:12345}),snapshot=JSON.stringify({level,state});
+  renderOrbital(ctx,canvas,{x:0,y:0,zoom},state,level,0);assert(JSON.stringify({level,state})===snapshot,'native flight state unchanged');
+ }else{
+  ctx.fillStyle='#080d15';ctx.fillRect(0,0,1200,800);ctx.textAlign='center';
+  FINAL_MOONS.forEach((moon,i)=>{
+   const x=200+i*400;
+   ctx.fillStyle='#d1e2ed';ctx.font='20px monospace';ctx.fillText(moon.name.toUpperCase(),x,35);
+   ctx.font='12px monospace';ctx.fillStyle='#9db2c2';ctx.fillText(moon.note,x,59);
+   moon.paint(ctx,x,245,160);
+   ctx.fillStyle='#9db2c2';ctx.font='12px monospace';ctx.fillText(moon.stage===9?'Airless · 52 seeded older impacts':moon.stage===10?'Thin SO₂ envelope retained':'Thick cold N₂ / methane retained',x,435);
+   [3,8,14,32].forEach((r,j)=>moon.paint(ctx,x-105+j*70,488,r));
+   ctx.fillStyle='#9db2c2';ctx.fillText('UNCHANGED SURFACE SITE ANGLES',x,550);
+   moon.paint(ctx,x,665,102);
+   for(const [,name,angle]of moon.targets){if(angle===null)continue;
+    const dx=Math.cos(angle),dy=-Math.sin(angle);ctx.fillStyle='#00ffcc';ctx.beginPath();ctx.arc(x+dx*102,665+dy*102,3,0,Math.PI*2);ctx.fill();
+    ctx.textAlign=dx>=0?'right':'left';ctx.font='bold 10px monospace';drawOrbitalWorldLabel(ctx,moon.id,name.toUpperCase(),x+dx*90,665+dy*90);
+   }
+   ctx.textAlign='center';ctx.font='11px monospace';ctx.fillStyle='#9db2c2';ctx.fillText(`PERMANENT ID SEED ${moon.seed}`,x,792);
+  });
+ }
+ assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'catalog/body/atmosphere/sites unchanged');
+ document.getElementById('status').textContent=`PASS — ${checks} native checks. Synthetic mission previews; no saves or access changes.`;
+ window.finalMoonsPreview={passed:true,checks,hashes,targets:FINAL_MOONS.flatMap(m=>m.targets.map(([id])=>id)),bodies:FINAL_MOONS.map(m=>m.id)};
+}catch(error){document.getElementById('status').textContent=`FAIL — ${error.stack}`;window.finalMoonsPreview={passed:false,error:String(error)};throw error;}
+</script>

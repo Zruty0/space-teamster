@@ -2,12 +2,12 @@
 
 Updated: 2026-10-24
 
-Pete requires this work in stages, with confirmation between stages. Scope/assignments: [visual inventory](planet-visual-inventory.md).
+Pete originally required confirmation between stages. On2026-10-24 he explicitly grouped the remaining Stages9–11 into one implementation/review batch. Scope/assignments: [visual inventory](planet-visual-inventory.md).
 
 ## Approval protocol
 
-- Pete approved Stages1–7 and authorized Stage8 on2026-10-24. Stage8 Kuznia is implemented and awaiting review; STOP before Stage9 until he explicitly authorizes continuing. Stages9–11 have not started. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
-- Implement only the approved current stage. Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
+- Stages1–8 approved. Pete first authorized Stage9, then explicitly requested all remaining stages together. Stages9–11 are implemented and awaiting combined review at `/tests/final-moons-preview.html`; the eleven-stage base-globe sequence is complete. This does not authorize the separate cloud/weather-art pass. Labels retain the approved contrasting style. IX's possible sand-world conversion remains a separate pending choice.
+- Implement only the approved current scope (Stages9–11 together by explicit exception). Show a desktop preview, summarize validation and make a scoped local commit; then STOP for explicit go-ahead before the next stage.
 - Cloud review follow-up: Pete rejects Dahai's storm swirls and asks for no clouds for now. A separate future weather-art pass should cover ALL worlds with atmospheres using more realistic, animated cloud patterns. No animation or physics/weather tuning is authorized now; do not add new cloud layers during the remaining base-globe stages. Existing other-world artwork remains unchanged pending that pass.
 - Requested revisions stay within the current stage. Approval of a preview does not authorize unrelated features or an automatic multi-stage rollout.
 - No push/deployment, mobile testing, settlement scenery, new gameplay hazards or physics/weather tuning. Preserve other workers' changes, saves, accepted contracts and history.
@@ -25,10 +25,10 @@ Pete requires this work in stages, with confirmation between stages. Scope/assig
 | 5 | Opaque ochre/cream cloud world, broad atmospheric swirls. | Acheron only. | Approved; requested label contrast correction implemented |
 | 6 | Ocean and ice only; cloud/storm artwork removed for a later animated-weather pass. Zhulong on open water, Bingjie on ice; no invented continents. | Dahai only. | Approved after ocean/ice-only revision |
 | 7 | Rusty dry plains, dark uplands/erosion features and dust; craters secondary. | Hartwell only. | Approved |
-| 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Implemented; awaiting review / Stage9 go-ahead |
-| 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Not started |
-| 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Not started |
-| 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Not started |
+| 8 | Cold slate/blue-grey base globe, distinct from volcanic worlds; retain existing atmosphere, new clouds deferred. | Kuznia only. | Approved |
+| 9 | Rocky-crater hybrid with localized tectonic/geothermal belts and resurfaced areas. | Calatrava only. | Implemented; combined review pending |
+| 10 | Sulfur-volcanic globe, dark calderas and contrasting resurfaced areas; existing thin atmosphere retained. | Almaden only. | Implemented; combined review pending |
+| 11 | Cool base globe and retained existing atmosphere; new haze/cloud artwork deferred to the separate weather pass. | Marisma only. | Implemented; combined review pending |
 
 ## Per-stage review checklist
 
@@ -129,4 +129,14 @@ Cloud/storm portion superseded by the revision below; retained here as the initi
 - Actual geography/objectives retained: Mokosh2.7 in lowlands, Kopanka−1.25 on the main massif with existing4000m marker altitude, Morana−2.55 in lighter polar ground. Perun−.15/Gornilo.95/Stribog1.85 unchanged. Existing95km N2/CO2 atmosphere/density2.2/scale11.5km, weather/physics, Anvil/Hammer trade membrane, moons/access/economy/saves intact. No site relocation or cosmetic marker offsets.
 - Approved dark label halo extended to Kuznia. `/tests/kuznia-world-preview.html`: full/small globe, actual rim/altitude guides, Hartwell/Dahai comparisons and all eight synthetic production orbital destinations.67 native checks, identical reload pixels and all8 views pass; gallery/Kopanka flight inspected. Cool opaque ground and lowland/massif contrast checked at two LODs.
 - Kuznia1660 + labels40 + all prior world suites pass. Markers41 required adding the standard radial-gradient API to its recording canvas now that its Kuznia fixture uses shared disc shading; no production workaround/assertion removal. Camps43488+review17055, Balor8721+Eye2204, empty2872+render35 and build/diff pass. Prior native Hartwell63/Dahai63/Acheron159/giants59/ice139/rocky225 and all their views pass with old image hashes unchanged (one fallback exclusion per newly opted-in Kuznia).
-- No mobile/live-save/push work. Vite remains available. STOP for explicit Stage9 Calatrava approval; realistic animated clouds across atmospheric worlds remain a separate future pass.
+- No mobile/live-save/push work. Vite remains available. Pete subsequently approved Kuznia, then explicitly grouped Stages9–11 for joint delivery; realistic animated clouds across atmospheric worlds remain separate.
+
+## Stages9–11 result — combined review, 2026-10-24
+
+- Explicit operator exception to the earlier one-at-a-time gate: complete Calatrava, Almaden and Marisma together and show them side by side. `/tests/final-moons-preview.html` includes all three full discs, small markers, actual site-angle guides,14 real orbital destinations and three parent-system views.
+- Calatrava (`calatrava-appearance.ts`): seed1274548594;52 older impacts, seeded basins, three resurfaced regions/three filled muted geothermal layers. Belts occupy <10% of projected disc area; resurfacing <40%; not global lava/glowing cracks. Marcher Wells−1.2 aligns with resurfacing; Keep1.45/Iron Lists2.55/Redoubt Field−2.45 stay outside geothermal interiors. Airless; Alembic Ring and restricted-range access unchanged.
+- Almaden (`almaden-appearance.ts`): seed155964474; four ochre/russet flow fields, three sulfur regions, four irregular three-layer dark calderas. Yellow Pit.2 on sulfur ground, Castle1.65 and Cinnabar Cut−2.25 outside calderas. Existing38km/.22/8km SO2 envelope retained; no new plumes/haze/hazards.
+- Marisma (`marisma-appearance.ts`): seed1940068925; three cool lowlands, two pale uplands, three surface-tone layers. Blue Fen.85/Blackwater2.65 on lowlands, Coldgate−.15/Cauldron1.75/Castle−2.4 unchanged. Existing85km/1.6/13km atmosphere retained; no Titan-orange recolour, invented seas/resources or new cloud layers.
+- New shared `authored-ground-geometry.ts` supports only these new worlds: independent permanent-ID-seeded feature streams, immutable normalized regions/volcanic ovals, exact point-subset LOD below60px. One lazy frozen model per moon; Calatrava retains crater geometry even after shared-cache eviction. Old painters/generators unchanged. Approved dark label halos extend to all three without text/anchor/visibility changes.
+- Final moons4769 assertions + labels58 + all earlier world suites pass; native142 gallery/143 per flight, reload hashes identical, all14 local and3 parent views checked. Gallery and representative Marcher Wells/Yellow Pit/Blue Fen flights inspected. All prior seven galleries/all targets pass; prior image hashes retained. Their native counts now rocky222/ice136/giants56/Acheron156/Dahai60/Hartwell60/Kuznia64 (three former fallback exclusions removed).
+- Markers41, Camps43488+review17055, Balor8721+Eye2204, empty2872+render35, contract presentation117393 and build/diff pass. No content IDs, body/flight physics, atmospheres, placements, access, quotes/history or saves changed. No mobile/push; Vite remains available. STOP for combined review; cloud animation/IX conversion/settlement scenery remain separate work.

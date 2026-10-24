@@ -51,7 +51,7 @@ try{
  for(const [id,old] of [['estella-iiia',originalCeleste],['estella-iii',originalGaia]])for(const r of [3,8,14,32,80,100]){
   const tint=bodyById(id).color;assert(same(pixels(p,ctx=>drawAuthoredWorldDisc(ctx,id,128,128,r,tint)),pixels(q,ctx=>old(ctx,128,128,r,tint))),'original Gaia/Celeste pixels preserved');
  }
- for(const body of BODIES.filter(b=>!ids.includes(b.id)&&!['estella-ii','estella-iii','estella-iv','estella-v','estella-vi'].includes(b.id)&&!rockyWorldProfileFor(b.id)&&!icyWorldProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved worlds unchanged');
+ for(const body of BODIES.filter(b=>!ids.includes(b.id)&&!['estella-ii','estella-iii','estella-iv','estella-v','estella-vi','estella-xd','estella-xia','estella-xib'].includes(b.id)&&!rockyWorldProfileFor(b.id)&&!icyWorldProfileFor(b.id)))assert(!drawAuthoredWorldDisc(p,body.id,128,128,100,body.color),'unapproved worlds unchanged');
  assert(JSON.stringify([BODIES,SURFACE_POIS])===worldBefore,'world physics/colors/sites untouched');
  const select=document.getElementById('body');ids.forEach(id=>{const o=document.createElement('option');o.value=id;o.textContent=bodyById(id).name;select.append(o);});
  const requested=new URLSearchParams(location.search).get('body');select.value=ids.includes(requested)?requested:'estella-xi';

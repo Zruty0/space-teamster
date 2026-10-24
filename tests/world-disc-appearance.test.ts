@@ -4,6 +4,7 @@ import './acheron-world.test';
 import './dahai-world.test';
 import './hartwell-world.test';
 import './kuznia-world.test';
+import './final-moons.test';
 import './orbital-world-label.test';
 import { EXPECTED_ROCKY_IDS } from './rocky-world-rollout.test';
 import { EXPECTED_ICY_IDS } from './icy-world.test';
@@ -56,7 +57,7 @@ const geometry = (calls: unknown[][]) => JSON.stringify(calls.filter(c => c[0] !
 assert(tinted.every(c => geometry(c) === geometry(tinted[0])), 'recoloring keeps the same crater relief');
 assert(new Set(tinted.map(c => JSON.stringify(c))).size === 3, 'different palettes produce different paints');
 for (const body of BODIES) {
-  const rec = recorder(); const optedIn = ['estella-ii','estella-iii','estella-iv','estella-v','estella-vi'].includes(body.id) || EXPECTED_ROCKY_IDS.includes(body.id) || EXPECTED_ICY_IDS.includes(body.id) || EXPECTED_GIANT_IDS.includes(body.id);
+  const rec = recorder(); const optedIn = ['estella-ii','estella-iii','estella-iv','estella-v','estella-vi','estella-xd','estella-xia','estella-xib'].includes(body.id) || EXPECTED_ROCKY_IDS.includes(body.id) || EXPECTED_ICY_IDS.includes(body.id) || EXPECTED_GIANT_IDS.includes(body.id);
   assert(drawAuthoredWorldDisc(rec.ctx, body.id, 0, 0, 200, body.color) === optedIn, 'only Acheron/Gaia/Dahai/Hartwell/Kuznia, 13 rocky, 8 icy and 3 approved giants opt in');
   assert((rec.calls.length > 0) === optedIn, 'all other body art left untouched');
 }
