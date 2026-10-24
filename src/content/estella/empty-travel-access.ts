@@ -7,7 +7,7 @@ const RESTRICTED = [
   'estella-vib-vat-protein', 'estella-vib-pharma-horticulture', 'estella-vib-aquaculture',
   'estella-vii-black-project-outpost',
   'still-guild-hq', 'still-refinery-core', 'still-distribution-bay', 'still-worker-hab', 'still-skim-runner-berth-poi',
-  'ark-quarantine-station-poi', 'casino-private-berth', 'science-asteroid-listening-array', 'science-asteroid-sealed-research',
+  'ark-quarantine-station-poi',
   'estella-xa-exobiology-research', 'estella-xb-luxury-retreat', 'estella-xd-redoubt-field',
   'estella-xic-deep-ice-exobiology', 'estella-xif-observatory', 'estella-xif-sealed-research-outpost',
   'estella-xiia-deep-ice-mine', 'estella-xiia-isolated-settlement', 'estella-xiib-outpost',
@@ -15,7 +15,7 @@ const RESTRICTED = [
   'estella-xiii-prison-exile-colony', 'estella-xiii-classified-research',
 ] as const;
 const UNLISTED = [
-  'arkfall-apocrypha-cache-poi', 'casino-backstairs-bay', 'estella-xid-specialty-cargo',
+  'arkfall-apocrypha-cache-poi', 'estella-xid-specialty-cargo',
   'estella-xi-smuggler-deaddrop-poi', 'estella-xi-fence-poi', 'estella-xii-smuggler-waypoint-poi',
   'estella-xiid-mirror-clinic', 'estella-xiv-smuggler-haven', 'reach-comet-fragment-3-poi',
   // Abandoned, isolated and lore sites: no empty arrival until a contact is known.
@@ -42,7 +42,6 @@ const PUBLIC: readonly string[] = [
   'caravanserai-free-trader-anchorage', 'caravanserai-lookout-spire', 'still-public-approach-dock', 'mercer-dock', 'harlan-dock',
   'industrial-refinery-ore-intake', 'industrial-refinery-finished-goods', 'industrial-refinery-staff-hab',
   'grubstake-depot-dock', 'highgrade-depot-dock', 'slagfoot-depot-dock', 'deepcut-depot-dock',
-  'casino-concourse', 'science-asteroid-main-observatory-dock',
   'estella-viii-first-rendezvous-station', 'estella-viii-harder-approach-station', 'estella-viii-settlement',
   'estella-viii-mining-site', 'estella-viii-moonlet-docking-site',
   'estella-ix-geological-feature', 'estella-ix-opposite-sense-supply-depot', 'estella-ix-research-base', 'estella-ix-ice-mine', 'estella-ix-moonlet-observation-outpost',

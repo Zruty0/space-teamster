@@ -4,7 +4,7 @@ import { defaultCareerProfile, loadCareerProfile, saveCareerProfile } from '../s
 import { LOCAL_DIRECTORY_ENTRIES, GIDEON_BELL, localTerminalScopeIds } from '../src/local-directory';
 import { contactSummary, knownMissionContacts, learnMissionContacts, missionContacts } from '../src/contact-knowledge';
 import { EMPTY_TRAVEL_ACCESS, emptyTravelAccess } from '../src/content/estella/empty-travel-access';
-import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
+import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_VALIDATION_ISSUES, ESTELLA_PLACEMENTS } from '../src/content/estella';
 import { estellaFolderEntries, navigationOrbitRadius, compareNavigationNodes, type EstellaFolderKey } from '../src/content/estella/navigation';
 import { canTravelEmpty, createEmptyRun, emptyRunDestinationIds, emptyRunDirectory, emptyRunLocationId, emptyRunLocationType } from '../src/empty-runs';
 import { createPlayableEstellaMission } from '../src/estella-playable';
@@ -23,6 +23,19 @@ const storage = new Map<string,string>(); let failSave=false, saves=0;
 const profile=defaultCareerProfile(); profile.certifications=['basic-1','basic-2','basic-3','line'];
 const unlisted=['estella-v-abandoned-colony','estella-viii-abandoned-site','reach-comet-fragment-2-poi','reach-rogue-lonely-beacon','deepest-dock-poi','reach-comet-fragment-4-poi','reach-comet-fragment-6-poi'];
 const pois=ESTELLA_NODES.filter(n=>n.kind==='poi');
+// Explicitly rejected expansion placeholders, not dormant destinations to revive.
+const removedBeltIds = [
+  'belt-cluster-outer-drift', 'belt-cluster-quiet-side',
+  'casino-asteroid-es-c-0002', 'casino-concourse', 'casino-backstairs-bay', 'casino-private-berth',
+  'science-asteroid-es-s-0001', 'science-asteroid-main-observatory-dock', 'science-asteroid-listening-array', 'science-asteroid-sealed-research',
+];
+for(const id of removedBeltIds) {
+  assert(!ESTELLA_NODES_BY_ID.has(id) && !ESTELLA_PLACEMENTS[id] && !EMPTY_TRAVEL_ACCESS[id], `removed Belt placeholder has no runtime/access entry: ${id}`);
+  assert(!canTravelEmpty(profile,id), 'removed placeholders are not empty-run destinations');
+  assert(!ESTELLA_NODES.some(n=>n.placement?.parentId===id), 'no orphaned child of removed cluster/asteroid');
+}
+assert(ESTELLA_NODES.filter(n=>n.kind==='cluster'&&n.regionId==='belt').map(n=>n.id).sort().join(',') === ['new-canaan-field','glitterfield','belt-cluster-wreckage-field'].sort().join(','), 'Belt retains exactly New Canaan, Glitterfield and Arkfall clusters');
+assert(!ESTELLA_VALIDATION_ISSUES.some(i=>i.severity==='error'), 'catalog valid after rejected cluster removal');
 assert(Object.keys(EMPTY_TRAVEL_ACCESS).length===pois.length,'every POI explicitly reviewed, no stale access entries');
 for(const n of pois) assert(Object.prototype.hasOwnProperty.call(EMPTY_TRAVEL_ACCESS,n.id),`access authored: ${n.id}`);
 assert(emptyTravelAccess('future-unreviewed-node')==='unlisted' && emptyTravelAccess('constructor')==='unlisted','new sites and prototype keys fail closed');

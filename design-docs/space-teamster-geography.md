@@ -274,7 +274,7 @@ The Belt is the diffuse ring of asteroids and small bodies that orbits the star 
 
 The Hearth has the population, in the sense that the great majority of the system's residents live there and stay there. The Camps have the labor, in the sense that the system's industrial work happens there on shift contracts. **The Belt has the *traffic*** — Highliners, immigrants, traders, smugglers, prospectors, faction couriers, fortune-seekers, fugitives, and the entire moving cast of independent operators that the regulated Hearth does not welcome and the contract-bound Camps do not pay. If the Hearth is where the system *lives*, the Belt is where it *moves*.
 
-The Belt is the home of the **Caravanserai**, the system's primary Highliner port; of **the Still**, the only fuel synthesis facility in Estella; and of two small dwarf planets, three major industrial asteroids, and approximately fifty smaller asteroids organized into five recognized clusters.
+The Belt is the home of the **Caravanserai**, the system's primary Highliner port; of **the Still**, the only fuel synthesis facility in Estella; and of the dwarf planets Weymark and Sahra, industrial asteroids and smaller claim rocks. Its three retained clusters are New Canaan Field, Glitterfield and Arkfall.
 
 It is also home to the **Teamsters' Guild**, in the sense that the Guild is everywhere but is *run* from here.
 
@@ -286,19 +286,17 @@ The Belt's own native economy is mining, refining, and refueling — not glamoro
 
 ## Cluster Mode
 
-A note on geography. The Belt's small asteroids are organized into five **clusters** — tight groups of bodies that occupy roughly the same orbital region. Within a cluster, asteroids are close enough that travel between them is simple, low-Δv, and works at a different scale than interplanetary flight. Travel *between* clusters, however, is a real orbital transfer.
+A note on geography. The Belt's small asteroids and wreckage are organized into three **clusters** — tight groups of bodies that occupy roughly the same orbital region. Within a cluster, asteroids are close enough that travel between them is simple, low-Δv, and works at a different scale than interplanetary flight. Travel *between* clusters, however, is a real orbital transfer.
 
-Three of the clusters share the Caravanserai's orbit and differ only by their phase angle. Two are in different orbits entirely; Arkfall is circular but at a distinct radius, while the Quiet Side is farther out.
+New Canaan Field and Glitterfield share the Caravanserai's orbital radius at different phases. Arkfall occupies a distinct circular orbit. The unimplemented Outer Drift and Quiet Side concepts, including their casino/science asteroids and all six child POIs, were explicitly removed on2026-10-24; they are not future expansion commitments.
 
 | Cluster | Position | Gating | Flavor |
 |---|---|---|---|
 | **New Canaan Field** | Co-orbital with the Caravanserai (close phase) | Open | Old titanium-rush field: mined-out claim rocks, marginal Co-op operations, and downward-mobile washouts. *Contains the Caravanserai itself.* |
-| **Cluster 2 — The Working** | Co-orbital, mid phase | Open | Active industrial mid-Belt |
-| **Cluster 3 — The Outer Drift** | Co-orbital, far phase | Open | Sparser, more varied, longer transfers |
+| **Glitterfield** | Co-orbital, mid phase | Open | Metal-rich mining field, four shared depots and Cupola Station |
 | **Arkfall** | Different circular Belt orbit | **Military exclusion / salvage license required** | Shattered remains of the Ark of the Covenant; war grave, navigation hazard, and restricted salvage zone |
-| **Cluster 5 — The Quiet Side** | Different orbit (outer co-planar) | **Reputation-gated** | Smuggler dead-drops, rare and valuable, fewer jobs |
 
-Most clusters contain roughly ten small asteroids, each one a single docking site. Arkfall is the exception: its playable traffic volume is deliberately sparse, with only two operational POIs inside a much larger military exclusion zone. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
+New Canaan contains Caravanserai, the Still, Mercer's Claim and Harlan's Station; Glitterfield contains Cupola Station and four mining depots. Background rocks are scenery, not promised additional destinations. Arkfall's playable traffic volume is deliberately sparse, with only two operational POIs inside a much larger military exclusion zone. Catalogue IDs are a mix of ES-C-NNNN, ES-S-NNNN, and ES-M-NNNN depending on composition (most are C-class, with a scattering of S and M asteroids prized by miners). Names of individual cluster asteroids are writer territory.
 
 ### Arkfall
 
@@ -360,24 +358,6 @@ Bulk processor on a metallic-class asteroid. The asteroid itself is a substantia
 | ES-M-0002.1 | Ore intake dock | Bulk receive |
 | ES-M-0002.2 | Finished goods bay | Bulk dispatch |
 | ES-M-0002.3 | Surface / interior | Staff hab |
-
-### ES-C-0002 — the shady casino asteroid
-A particular kind of place. Vice that is illegal elsewhere is legal — and very expensive — here. Underneath the legal vice is the *real* economy: fenced goods, faction politics, deniable meetings, and the occasional disappearance.
-
-| ID | Type | Description |
-|---|---|---|
-| ES-C-0002.1 | The Concourse | Legal vice, expensive resort, dazzling main dock |
-| ES-C-0002.2 | Backstairs Bay | Known-but-quiet criminal hideout, fenced goods |
-| ES-C-0002.3 | Private Berth | VIP / anonymous dock; faction politics happen here |
-
-### ES-S-0001 — science / observation asteroid
-A stony S-class rock. Quiet, structurally stable, scholarly, off-grid by inclination. Long-baseline observation, deep-listening, edge science.
-
-| ID | Type | Description |
-|---|---|---|
-| ES-S-0001.1 | Main observatory dock | Civilian-accessible |
-| ES-S-0001.2 | Listening array | Restricted |
-| ES-S-0001.3 | Sealed research outpost | Restricted |
 
 ### Weymark
 Small SOI, airless, low-gravity. The Belt's first proper orbital body — many Teamsters earn their station-rendezvous certification at Nell's Rest. Weymark also hosts Bruckner Field Services' quiet high-orbit distribution foothold near Caravanserai.
@@ -625,7 +605,7 @@ The following are explicitly **writer territory**:
 - The faction roster beyond the Teamsters' Guild.
 - The Highliner roster, history, and politics.
 - The deeper stories of the abandoned-but-active sites (Estella V.6, Estella XIV.4, the deepest dock, and several others throughout).
-- The actual industrial and political workings of ES-C-0002 the casino asteroid, and of the Foreign Quarter at the Caravanserai.
+- The actual social and political workings of the Foreign Quarter at the Caravanserai.
 - The cultural waves brought by historic Highliners.
 - Whatever, if anything, is buried in or behind the Reach.
 
