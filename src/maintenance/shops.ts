@@ -198,10 +198,10 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
   laborHoursMultiplier: 2,
   honesty: 1,
   copy: {
-    profileBlurb: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a yard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. [person]Sir Afonso de Lacerda[/person], Keeper of the Yard Seal, presides over the work.',
+    profileBlurb: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a shipyard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. [person]Sir Afonso de Lacerda[/person], Keeper of the Shipyard Seal, presides over the work.',
     levelBlurb: 'Ancient armorial repair court, rumored to offer ordinary workmanship with twice the ceremony',
-    diagnosisBlurb: '“Before a tool touches your rig, its condition will be entered in the yard book and properly witnessed.” [person]Sir Afonso de Lacerda[/person] gestures toward the framed parchment. “Our Guild certification bears wax because an oath deserves a physical seal. You will receive the finding beneath the arms of Shipwright Keep.”',
-    serviceBlurb: '“Maintenance is stewardship, and stewardship is among the oldest duties of rank.” [person]Sir Afonso de Lacerda[/person] surveys the assembled craftsmen. “Two journeymen will oversee each selected system. [person]Young Dom Rui[/person] is completing his yard rotation this month; if a squire’s hand assists the work, a master’s eye will follow it. Our cadenced keel will mark every completed adjustment.”',
+    diagnosisBlurb: '“Before a tool touches your rig, its condition will be entered in the shipyard book and properly witnessed.” [person]Sir Afonso de Lacerda[/person] gestures toward the framed parchment. “Our Guild certification bears wax because an oath deserves a physical seal. You will receive the finding beneath the arms of Shipwright Keep.”',
+    serviceBlurb: '“Maintenance is stewardship, and stewardship is among the oldest duties of rank.” [person]Sir Afonso de Lacerda[/person] surveys the assembled craftsmen. “Two journeymen will oversee each selected system. [person]Young Dom Rui[/person] is completing his shipyard rotation this month; if a squire’s hand assists the work, a master’s eye will follow it. Our cadenced keel will mark every completed adjustment.”',
     repairsBlurb: '“Damage shall be corrected with the ceremony due to a working rig.” [person]Sir Afonso de Lacerda[/person] selects a small heraldic punch from its fitted case. “When the repair passes inspection, the responsible journeyman will strike his device beside the crowned keel of this court. Those marks are our lineage, our warranty, and our answer to anyone who questions the work.”',
   },
 };
@@ -210,7 +210,7 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
   id: 'serrat-domain-civil-refit-office',
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Serrat Domain Civil Refit Office',
-  organizationName: 'Serrat Domain Yard Office',
+  organizationName: 'Serrat Domain Shipyard Office',
   locationIds: ['estella-xie-outer-spec-drydock'],
   diagnosticGrade: 'A',
   workQualityGrade: 'A',
@@ -222,11 +222,11 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
   laborHoursMultiplier: 1,
   honesty: 1,
   copy: {
-    profileBlurb: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. [person]Master Shipwright Beatriz Correia[/person] commands the civilian watch from the main dock board, assigning visiting craft among the yard’s structures, machinery, and electrical teams.',
+    profileBlurb: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. [person]Master Shipwright Beatriz Correia[/person] commands the civilian watch from the main dock board, assigning visiting craft among the shipyard’s structures, machinery, and electrical teams.',
     levelBlurb: 'Domain shipyard diagnostics and full-complexity civilian repair',
     diagnosisBlurb: '“Bring the rig onto line seven and give my surveyors clear access from the cargo spine forward.” [person]Master Shipwright Beatriz Correia[/person] marks three teams onto the dock board. “Structures, machinery, and controls will inspect in parallel. You’ll receive one consolidated finding, the work we can certify here, and the available replacement grades.”',
     serviceBlurb: '“Service work takes the same discipline as a major refit. The machine only cares whether the measurement is right.” [person]Beatriz Correia[/person] studies the selected systems. “My watch will renew the protective treatments, align the moving gear, test every adjusted circuit under load, and release the rig when each value holds.”',
-    repairsBlurb: '“Your rig is compact enough to finish in one bay and important enough to finish correctly.” [person]Beatriz Correia[/person] opens the work packages across the dock board. “Yard welders, machinists, electronics hands, and alignment crews are on this watch. Authorize the order, and the same people who build these systems will return yours to specification.”',
+    repairsBlurb: '“Your rig is compact enough to finish in one bay and important enough to finish correctly.” [person]Beatriz Correia[/person] opens the work packages across the dock board. “Shipyard welders, machinists, electronics hands, and alignment crews are on this watch. Authorize the order, and the same people who build these systems will return yours to specification.”',
   },
 };
 
@@ -257,7 +257,7 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
 export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
   id: 'oathmark-academy-high-pennant-yard',
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
-  name: 'The High Pennant Yard at Oathmark Academy',
+  name: 'The High Pennant Shipyard at Oathmark Academy',
   organizationName: 'Oathmark Academy',
   locationIds: ['estella-xie-oathmark-academy'],
   diagnosticGrade: 'C',
@@ -270,7 +270,7 @@ export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
   laborHoursMultiplier: 1.5,
   honesty: 1,
   copy: {
-    profileBlurb: 'The High Pennant Yard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. [person]Dames Margarida and Madalena de Sá[/person] operate the yard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
+    profileBlurb: 'The High Pennant Shipyard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. [person]Dames Margarida and Madalena de Sá[/person] operate the shipyard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
     levelBlurb: 'Standard maintenance with private-yacht discretion, ceremonial scheduling, and noble-client pricing',
     diagnosisBlurb: '“A working rig among the pleasure craft. How refreshing.” One of [person]the de Sá twins[/person] accepts the authorization while her sister seals the salon display. “The production floor will inspect every installed system under Academy protocol.” They exchange desks while the appointment clerk looks down. “Three hours. Your findings will return in a sealed folio.” Neither woman offers a name.',
     serviceBlurb: '“Service may proceed.” The twin seated on the left reviews the selected systems while her sister closes the privacy screen. By the time the screen seals, they have exchanged chairs. “The rig will pass behind the bulkhead. Each selected system will be maintained, tested, and presented at reception after the floor has been cleared.”',

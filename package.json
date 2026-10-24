@@ -14,7 +14,7 @@
     "test:gaia": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia.test.ts",
     "audit:dahai": "node tests/run-equipment.mjs tests/audit-dahai-shipping.ts",
     "audit:camps": "node tests/run-equipment.mjs tests/audit-camps.ts",
-    "test:camps": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/camps.test.ts",
+    "test:camps": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/camps.test.ts && node tests/run-equipment.mjs tests/camps-review.test.ts",
     "test:dahai-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/dahai-shipping.test.ts",
     "test:gaia-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia-shipping.test.ts",
     "audit:gaia": "node tests/run-equipment.mjs tests/audit-gaia-shipping.ts",

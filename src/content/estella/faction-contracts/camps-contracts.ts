@@ -1,4 +1,4 @@
-import { CONCORD, DAWES, GALE, ASCENSION, RIDGEBACK, SWITCHBACK, PIKE_DEPOT, ROADSTEAD, ANVIL, HAMMER, SVAROG_YARD, VELES, ANCHORHOLD, BLACK_VEIN, KALYNA, TESSERA_ORBITAL, MOSAIC, WHITE_QUARRY, ROSTER } from '../camps-sites';
+import { CONCORD, DAWES, GALE, ASCENSION, FLINT, SWITCHBACK, PIKE_DEPOT, ROADSTEAD, ANVIL, HAMMER, SVAROG_YARD, VELES, ANCHORHOLD, BLACK_VEIN, KALYNA, TESSERA_ORBITAL, MOSAIC, WHITE_QUARRY, ROSTER } from '../camps-sites';
 import { campsTradeContracts, type CampsTradeLane } from './camps-trade-contracts';
 import type { FactionContractProvider } from './index';
 
@@ -80,10 +80,10 @@ export const CAMPS_CIVILIAN_PROVIDER: FactionContractProvider = {
   }, [lane])),
 };
 export const SVAROG_YARD_COMPANY_PROVIDER: FactionContractProvider = {
-  id: SVAROG_YARD_COMPANY_ID, name: 'Svarog Yard Company',
+  id: SVAROG_YARD_COMPANY_ID, name: 'Svarog Shipyard Company',
   generateContracts: ctx => SVAROG_YARD_LANES.flatMap(lane => campsTradeContracts(ctx, {
-    factionId: SVAROG_YARD_COMPANY_ID, factionName: 'Svarog Yard Company', factionTag: 'SYC',
-    issuerId: SVAROG_YARD_COMPANY_ID, issuerName: 'Svarog Yard Company',
+    factionId: SVAROG_YARD_COMPANY_ID, factionName: 'Svarog Shipyard Company', factionTag: 'SSC',
+    issuerId: SVAROG_YARD_COMPANY_ID, issuerName: 'Svarog Shipyard Company',
     generosity: lane.category === 'passenger' ? 0.55 : 0.75,
     compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
   }, [lane])),

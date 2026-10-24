@@ -24,6 +24,7 @@ interface KisaragiCargoOption {
 }
 
 const KIS_ID = 'kisaragi-harmony-yards';
+// Legacy seed identity: public contract presentation uses Kisaragi Harmony Shipyards.
 const KIS_NAME = 'Kisaragi Harmony Yards';
 const KIS_TAG = 'KIS';
 

@@ -1,4 +1,5 @@
 import type { MissionCargoSpec } from './mission-cost';
+import { publicContentText } from './content-terminology';
 
 export type FragilityLevel = 'somewhat-fragile' | 'fragile' | 'very-fragile' | 'extremely-fragile';
 
@@ -780,7 +781,17 @@ const ORDINARY_CARGO = new Set<string>([
   'sulfide refinery concentrate',
 ]);
 
+// Display aliases do not create new cargo types or change accepted manifests.
+const DISPLAY_LABEL_ALIASES = new Map([...Object.keys(FRAGILE_CARGO), ...ORDINARY_CARGO]
+  .map(label => [publicContentText(label), label]));
+function legacyCargoLabel(label: string): string {
+  const tier = label.match(/^(Silk|Porcelain|Celadon)-class /)?.[0] ?? '';
+  const name = label.slice(tier.length);
+  return tier + (DISPLAY_LABEL_ALIASES.get(name) ?? name);
+}
+
 function catalogLabel(label: string): string {
+  label = legacyCargoLabel(label);
   if (FRAGILE_CARGO[label] || ORDINARY_CARGO.has(label)) return label;
   const tierless = label.replace(/^(Silk|Porcelain|Celadon)-class /, '');
   return tierless;
@@ -797,7 +808,7 @@ export function classifyMissionCargo(cargo: MissionCargoSpec): MissionCargoSpec 
     throw new Error(`Unclassified Estella cargo type: ${cargo.label}`);
   }
   const fragile = FRAGILE_CARGO[key];
-  return { ...cargo, cargoTypeId: cargo.cargoTypeId ?? cargoTypeId(cargo.label), fragile };
+  return { ...cargo, cargoTypeId: cargo.cargoTypeId ?? cargoTypeId(legacyCargoLabel(cargo.label)), fragile };
 }
 
 export function fragilityDisplay(terms: FragileCargoTerms): string {

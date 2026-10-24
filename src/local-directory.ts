@@ -492,7 +492,7 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: LocalOfficeDef = {
   organizationName: 'The Armorial Shipwrights',
   locationIds: ['estella-xid-services-outfitter-hangar'],
   summary: 'Heraldic repair court and noble outfitter.',
-  description: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a yard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. Sir Afonso de Lacerda, Keeper of the Yard Seal, presides over the work.',
+  description: 'The Armorial Shipwrights occupy the inner ward of Shipwright Keep, where vaulted service bays open beneath painted shields and long rolls of honored craftsmen. Journeymen wear immaculate house livery over their work clothes, apprentices carry silver-edged tool cases, and young squires occasionally complete a shipyard rotation under the masters. The carpets stop precisely at the painted bay line. The shop’s Teamsters’ Guild certification is an actual parchment displayed behind crystal, its heavy red wax seal resting in a velvet-lined mount. Sir Afonso de Lacerda, Keeper of the Shipyard Seal, presides over the work.',
   maintenanceShopId: 'cadiz-armorial-shipwrights',
   actions: [],
 };
@@ -501,10 +501,10 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: LocalOfficeDef = {
   kind: 'office',
   id: 'serrat-domain-civil-refit-office-directory',
   name: 'Serrat Domain Civil Refit Office',
-  organizationName: 'Serrat Domain Yard Office',
+  organizationName: 'Serrat Domain Shipyard Office',
   locationIds: ['estella-xie-outer-spec-drydock'],
   summary: 'High-capability civilian diagnostics, repair, and refit.',
-  description: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. Master Shipwright Beatriz Correia commands the civilian watch from the main dock board, assigning visiting craft among the yard’s structures, machinery, and electrical teams.',
+  description: 'The Civil Refit Office occupies a line of enclosed rig bays along Serrat Domain Shipyard’s inner service spine. Overhead carriers move drive cores, pressure sections, and frame members between calibrated lift frames, machine shops, and sealed test rooms. Master Shipwright Beatriz Correia commands the civilian watch from the main dock board, assigning visiting craft among the shipyard’s structures, machinery, and electrical teams.',
   maintenanceShopId: 'serrat-domain-civil-refit-office',
   actions: [],
 };
@@ -523,10 +523,10 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: LocalOfficeDef = {
 export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: LocalOfficeDef = {
   kind: 'office',
   id: 'oathmark-academy-high-pennant-yard-directory',
-  name: 'The High Pennant Yard at Oathmark Academy',
+  name: 'The High Pennant Shipyard at Oathmark Academy',
   locationIds: ['estella-xie-oathmark-academy'],
   summary: 'Discreet private-vessel maintenance under Oathmark Academy protocol.',
-  description: 'The High Pennant Yard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. Dames Margarida and Madalena de Sá operate the yard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
+  description: 'The High Pennant Shipyard receives clients in a silent salon of dark wood, pale stone, and smoked privacy glass. Its production floor lies beyond layered pressure bulkheads and acoustic isolation; tools, crews, machinery, and unfinished vessels remain entirely outside the reception experience. Dames Margarida and Madalena de Sá operate the shipyard from matching desks in matching ivory uniforms. Their badges both read M. DE SÁ, and neither sister volunteers which name belongs to which woman.',
   maintenanceShopId: 'oathmark-academy-high-pennant-yard',
   actions: [],
 };

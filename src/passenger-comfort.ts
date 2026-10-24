@@ -1,3 +1,5 @@
+import { publicContentText } from './content-terminology';
+
 export type ComfortExpectation = 'minimal' | 'standard' | 'elevated' | 'prestige';
 
 export interface PassengerComfortTerms {
@@ -179,8 +181,11 @@ const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
   'yard-lien examiner and valuation counsel': 'elevated',
 };
 
+const DISPLAY_PASSENGER_EXPECTATIONS = Object.fromEntries(Object.entries(PASSENGER_EXPECTATIONS)
+  .map(([label, expectation]) => [publicContentText(label), expectation]));
+
 export function passengerComfortTerms(label: string): PassengerComfortTerms {
-  const expectation = PASSENGER_EXPECTATIONS[label];
+  const expectation = PASSENGER_EXPECTATIONS[label] ?? DISPLAY_PASSENGER_EXPECTATIONS[label];
   if (!expectation) throw new Error(`Unclassified Estella passenger manifest: ${label}`);
   return { expectation, serviceRiskFraction: COMFORT_EXPECTATIONS[expectation].serviceRiskFraction };
 }
@@ -190,7 +195,7 @@ export function comfortExpectationDisplay(terms: PassengerComfortTerms): string 
 }
 
 export function isCatalogedPassengerLabel(label: string): boolean {
-  return PASSENGER_EXPECTATIONS[label] !== undefined;
+  return PASSENGER_EXPECTATIONS[label] !== undefined || DISPLAY_PASSENGER_EXPECTATIONS[label] !== undefined;
 }
 
 export const ESTELLA_PASSENGER_CATALOG_SIZE = Object.keys(PASSENGER_EXPECTATIONS).length;

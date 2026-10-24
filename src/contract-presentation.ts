@@ -3,6 +3,7 @@ import { ESTELLA_NODES_BY_ID } from './content/estella';
 import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { estellaDisplayPath } from './content/estella/navigation';
 import { sharedTerminalParentId } from './local-directory';
+import { publicContentText } from './content-terminology';
 
 /** A contract travels to the physical station/asteroid, not a separate city for
  * each receiving berth. This is presentation ONLY: never use this ID for flight,
@@ -35,7 +36,7 @@ function terminalReferences(text: string, contract: CareerContract): string {
     const pattern = new RegExp(`(?<![\\p{L}\\p{N}])(?:the )?${location}(?: (?:at|aboard|on) (?:the )?${parentName})?(?![\\p{L}\\p{N}])`, 'giu');
     text = text.replace(pattern, () => parent.name);
   }
-  return text;
+  return typeof text === 'string' ? publicContentText(text) : text;
 }
 
 /** Fresh public/contact contracts store physical display names. Render-time use
@@ -57,7 +58,11 @@ export function presentCareerContract(contract: CareerContract): CareerContract 
     ...contract,
     sourceName: source.name, sourcePath: source.path,
     destinationName: destination.name, destinationPath: destination.path,
-    title,
+    title: publicContentText(title),
+    issuerName: contract.issuerName === undefined ? undefined : publicContentText(contract.issuerName),
+    issuerTag: contract.factionId === 'svarog-yard-company' && contract.issuerTag === 'SYC' ? 'SSC' : contract.issuerTag,
+    cargo: typeof contract.cargo.label !== 'string' || publicContentText(contract.cargo.label) === contract.cargo.label ? contract.cargo
+      : { ...contract.cargo, label: publicContentText(contract.cargo.label) },
     details: contract.details === undefined ? undefined : terminalReferences(contract.details, contract),
     briefing: contract.briefing === undefined ? undefined : terminalReferences(contract.briefing, contract),
     completionMessage: terminalReferences(contract.completionMessage, contract),

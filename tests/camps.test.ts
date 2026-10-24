@@ -4,7 +4,7 @@ import { preCampsNames } from './fixtures/pre-camps-names';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS, generateFactionContractCandidates, type FactionContractCandidate } from '../src/content/estella/faction-contracts';
 import { CAMPS_CIVILIAN_ID, SVAROG_YARD_COMPANY_ID } from '../src/content/estella/faction-contracts/camps-contracts';
-import { CAMPS_LOCATION_IDS, CAMPS_TRADE_WORLDS, ROADSTEAD, CONCORD, DAWES, GALE, ASCENSION, RIDGEBACK, SWITCHBACK, PIKE_DEPOT, ANVIL, HAMMER, STRIBOG, MORANA, MOSAIC, ROSTER, FIRST_LANDING, BLACK_TILE } from '../src/content/estella/camps-sites';
+import { CAMPS_LOCATION_IDS, CAMPS_TRADE_WORLDS, ROADSTEAD, CONCORD, DAWES, GALE, ASCENSION, FLINT, SWITCHBACK, PIKE_DEPOT, ANVIL, HAMMER, STRIBOG, MORANA, MOSAIC, ROSTER, FIRST_LANDING, BLACK_TILE } from '../src/content/estella/camps-sites';
 import { generateCampsRoutedContracts, campsDispatchUsesTerminal } from '../src/content/estella/camps-logistics';
 import { RICHELIEU, isGaiaSurface } from '../src/content/estella/gaia-logistics';
 import { DAHAI_ORBITAL, DAHAI_SURFACE_SITES } from '../src/content/estella/dahai-sites';
@@ -36,7 +36,7 @@ for (const id of CAMPS_LOCATION_IDS) {
   assert(ESTELLA_NODES_BY_ID.get(id)?.regionId === 'camps' && nav.has(id), `existing selectable Camps ID ${id}`);
   assert((estellaLocationIntroduction(id)?.length ?? 0) > 100, 'authored role visible in terminal, not just notes');
 }
-for (const [id,name] of [[RIDGEBACK,'Ridgeback Mine'],[SWITCHBACK,'Switchback'],[PIKE_DEPOT,'Pike Depot']]) assert(ESTELLA_NODES_BY_ID.get(id)?.name===name, 'Pike proper names on stable IDs');
+for (const [id,name] of [[FLINT,'Flint Mine'],[SWITCHBACK,'Switchback'],[PIKE_DEPOT,'Pike Depot']]) assert(ESTELLA_NODES_BY_ID.get(id)?.name===name, 'Pike proper names on stable IDs');
 assert(ESTELLA_INSTITUTIONS.some(i=>i.id===SVAROG_YARD_COMPANY_ID&&i.summary.includes('Kisaragi')), 'landlord defined independently of tenants');
 assert(emptyTravelAccess(FIRST_LANDING)==='unlisted'&&emptyTravelAccess(BLACK_TILE)==='restricted', 'reserves retain access policy');
 for(const id of [STRIBOG,MORANA,'estella-vib-pharma-horticulture']) assert(emptyTravelAccess(id)==='restricted', 'controlled surface access retained');
@@ -59,7 +59,7 @@ const traffic=new Map<string,{in:number;out:number}>();
 const sources=new Set<string>(CAMPS_LOCATION_IDS);
 for(let day=0;day<20;day++)for(const n of pois)for(const c of generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400})) {
   for(const [id,direction] of [[c.sourceId,'out'],[c.destinationId,'in']] as const)if(camps.has(id)){const r=traffic.get(id)??{in:0,out:0};r[direction]++;traffic.set(id,r);}
-  if(c.factionId==='pike-mining-companies'&&c.templateId.includes(':strip-to-cinderhook:'))assert(c.sourceId===RIDGEBACK&&c.destinationId==='estella-v-atmo-refinery','dedicated Pike refinery leg stays direct');
+  if(c.factionId==='pike-mining-companies'&&c.templateId.includes(':strip-to-cinderhook:'))assert(c.sourceId===FLINT&&c.destinationId==='estella-v-atmo-refinery','dedicated Pike refinery leg stays direct');
   if(!isNew(c))continue;
   assert(c.sourceId===n.id&&nav.has(c.sourceId)&&nav.has(c.destinationId), `valid scoped endpoints ${c.templateId}: ${c.sourceId}->${c.destinationId}`);
   assert(camps.has(c.sourceId)||camps.has(c.destinationId),'new order involves Camps');
@@ -77,7 +77,7 @@ for(let day=0;day<20;day++)for(const n of pois)for(const c of generateFactionCon
   if(c.factionId==='teamsters-guild'&&c.cargo.label==='stable fuel canisters')assert(c.requiredCertification==='volatile-cargo','fuel stays certified');
   if(c.factionId==='steel-combine')assert(c.generosity===0&&c.compensationRatio===1&&c.issuerName==='Steel Combine Planning Office','internal Combine compensation/authority retained');
   if(c.factionId===CAMPS_CIVILIAN_ID)assert(!c.factionTag&&c.issuerName!==c.factionName,'descriptive ordinary customers');
-  if(c.factionId===SVAROG_YARD_COMPANY_ID)assert(c.factionTag==='SYC','yard identity distinct from Kisaragi');
+  if(c.factionId===SVAROG_YARD_COMPANY_ID)assert(c.factionTag==='SSC','shipyard identity distinct from Kisaragi');
   const key=`${c.factionId}:${c.templateId}`, days=orders.get(key)??new Map<number,FactionContractCandidate>();
   assert(!days.has(day),`one logical order per day ${key}`);days.set(day,c);orders.set(key,days);
   pairs.set(`${c.sourceId}->${c.destinationId}`,c);sources.add(c.sourceId);

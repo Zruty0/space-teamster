@@ -3,8 +3,8 @@ import { type HighlinerSeedDef, type InstitutionDef } from '../types';
 export const ESTELLA_INSTITUTIONS: InstitutionDef[] = [
   {
     id: 'svarog-yard-company',
-    name: 'Svarog Yard Company',
-    tags: ['shipyard', 'infrastructure', 'landlord', 'SYC'],
+    name: 'Svarog Shipyard Company',
+    tags: ['shipyard', 'infrastructure', 'landlord', 'SSC'],
     summary: 'The independent commercial landlord and infrastructure operator of Svarog Shipyard, Veles Terminal and Anchorhold. It maintains shared docks, utilities, alignment and mooring systems and leases working space to shipbuilders including Kisaragi. Its growth followed Kuznia\'s emergence as the Camps industrial hub; it remains politically separate from the Steel Combine.',
     services: ['yard-infrastructure', 'leased-facilities', 'port-logistics', 'shared-maintenance'],
     constraints: ['Tenant shipbuilders retain their brands and contracts.', 'Guild drive and fuel monopolies remain intact.'],

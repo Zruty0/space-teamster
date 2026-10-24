@@ -2639,10 +2639,10 @@ export class Game {
         subtitle: locationPath,
         bodyRows: [
           { kind: 'text', text: arrivingAtStill
-            ? 'Old Nell settles alongside the Still with familiar rattles. Yard tractors carry your rig to the Public Approach Dock while passengers file toward Guild processing.'
+            ? 'Old Nell settles alongside the Still with familiar rattles. Cargo tractors carry your rig to the Public Approach Dock while passengers file toward Guild processing.'
             : juniorPassage
-              ? 'Old Nell finishes its Weymark insertion with a long sequence of familiar shudders. Yard tractors carry your rig into Nell’s Rest while working passengers file toward the station concourse.'
-              : 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Yard tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
+              ? 'Old Nell finishes its Weymark insertion with a long sequence of familiar shudders. Cargo tractors carry your rig into Nell’s Rest while working passengers file toward the station concourse.'
+              : 'The old big iron finishes its Weymark insertion with a long sequence of shudders. Cargo tractors carry your rig into Nell’s Rest while apprentice passengers file toward the maintenance concourse.' },
           { kind: 'separator' },
           { kind: 'text', text: contract?.completionMessage ?? 'Your Guild passage is complete.', tone: 'success' },
           { kind: 'kv', label: 'Current location', value: locationPath },
@@ -2921,7 +2921,7 @@ export class Game {
           { kind: 'kv', label: 'Location', value: contract.destinationPath, valueSegments: contractLocationSegments(locationPath, contract.destinationPath), valueLineCount: 2 },
           { kind: 'kv', label: 'Route class', value: careerContractClassLabel(contract.routeClass) },
           { kind: 'separator' },
-          { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${quote.cargoLabel} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
+          { kind: 'kv', label: contract.category === 'passenger' ? 'Passengers' : contract.category === 'certification' ? 'Flight load' : 'Cargo', value: `${contract.cargo.label} (${quote.cargoMassTons} t manifest, ${quote.loadedMassTons} t loaded)` },
           ...(contract.cargo.fragile ? [
             { kind: 'kv' as const, label: 'Handling', value: fragilityDisplay(contract.cargo.fragile), icon: 'fragile' as const, tone: 'warning' as const },
             { kind: 'kv' as const, label: 'Mishandling penalty', value: `Up to ${formatCredits(Math.round(contractFixedReward(quote) * contract.cargo.fragile.conditionRiskFraction))}`, icon: 'fragile' as const, tone: 'warning' as const },

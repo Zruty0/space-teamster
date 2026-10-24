@@ -27,6 +27,7 @@ interface KisaragiCargoOption {
 }
 
 const KIS_E_ID = 'kisaragi-yards-estella';
+// Legacy seed identity: public contract presentation uses Kisaragi Shipyards Estella.
 const KIS_E_NAME = 'Kisaragi Yards Estella';
 const KIS_E_TAG = 'KIS-E';
 

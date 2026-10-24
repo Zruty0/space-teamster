@@ -6,7 +6,7 @@ export const CINDERHOOK = 'estella-v-atmo-refinery';
 export const GALE = 'estella-v-storm-research';
 export const FIRST_LANDING = 'estella-v-abandoned-colony';
 export const ASCENSION = 'estella-v-high-orbit-factory';
-export const RIDGEBACK = 'estella-va-strip-mine';
+export const FLINT = 'estella-va-strip-mine';
 export const SWITCHBACK = 'estella-va-miner-hab';
 export const PIKE_DEPOT = 'estella-va-ore-handling-depot';
 export const ANVIL = 'estella-vi-main-transit-dispatch';
@@ -27,7 +27,7 @@ export const HARTWELL_TRADE_SURFACES = [CONCORD, DAWES, CINDERHOOK, GALE] as con
 export const TESSERA_TRADE_SURFACES = [MOSAIC, WHITE_QUARRY, ROSTER] as const;
 export const CAMPS_LOCATION_IDS = [
   ROADSTEAD, CONCORD, DAWES, CINDERHOOK, GALE, FIRST_LANDING, ASCENSION,
-  RIDGEBACK, SWITCHBACK, PIKE_DEPOT,
+  FLINT, SWITCHBACK, PIKE_DEPOT,
   ANVIL, HAMMER, 'estella-vi-industrial-city', 'estella-vi-foundry-complex', STRIBOG,
   'estella-vi-agricultural-lowlands', MORANA, 'estella-vi-mountain-mining',
   SVAROG_YARD, VELES, ANCHORHOLD, BLACK_VEIN, KALYNA,
