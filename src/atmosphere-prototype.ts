@@ -1,4 +1,4 @@
-import { atmosphereNoise, atmospherePhase, atmosphereProfile, type AtmosphereProfile } from './atmosphere-prototype-profile';
+import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, type AtmosphereProfile } from './atmosphere-prototype-profile';
 import { ATMOSPHERE_VERTEX, ATMOSPHERE_FRAGMENT } from './atmosphere-prototype-shader';
 export { GAIA_ATMOSPHERE_PROFILE, atmosphereProfile, atmospherePhase } from './atmosphere-prototype-profile';
 export type { AtmosphereProfile } from './atmosphere-prototype-profile';
@@ -32,9 +32,10 @@ export function createAtmospherePrototype(resolution=512){
     gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     for(const axis of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T,gl.TEXTURE_WRAP_R])gl.texParameteri(gl.TEXTURE_3D,axis,gl.REPEAT);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.uniform1i(gl.getUniformLocation(program,'noiseVolume'),0);
-    const keys=['phase','coverage','scale','fronts','detail','shear','evolution','cirrus','opticalDepth','zonalTurns','tropicalTurns','cirrusTurns']as const;
+    const keys=['phase','coverage','scale','fronts','detail','shear','evolution','cirrus','opticalDepth','zonalTurns','tropicalTurns','cirrusTurns','vortexCount','vortexSize','vortexStrength','vortexEye']as const;
     const locations=Object.fromEntries(keys.map(k=>[k,gl.getUniformLocation(program!,k)]))as Record<typeof keys[number],WebGLUniformLocation|null>;
     const color=gl.getUniformLocation(program,'cloudColor');
+    const vortices=gl.getUniformLocation(program,'vortexCenters[0]');
     const shadow=document.createElement('canvas');shadow.width=shadow.height=resolution;
     const shadowCtx=shadow.getContext('2d')!;
     // Successive 2x area reductions avoid sparkling fine clouds on tiny markers.
@@ -50,7 +51,11 @@ export function createAtmospherePrototype(resolution=512){
       canvas,resolution,
       render(seconds:number,input:Partial<AtmosphereProfile>){
         check();const profile=atmosphereProfile(input);
-        if(profile.seed!==seed){gl.texImage3D(gl.TEXTURE_3D,0,gl.R8,64,64,64,0,gl.RED,gl.UNSIGNED_BYTE,atmosphereNoise(profile.seed));seed=profile.seed;}
+        if(profile.seed!==seed){
+          gl.texImage3D(gl.TEXTURE_3D,0,gl.R8,64,64,64,0,gl.RED,gl.UNSIGNED_BYTE,atmosphereNoise(profile.seed));
+          gl.uniform4fv(vortices,new Float32Array(atmosphereVortices(profile.seed).flatMap(v=>[...v.center,v.phase])));
+          seed=profile.seed;
+        }
         gl.viewport(0,0,resolution,resolution);
         for(const key of keys)gl.uniform1f(locations[key],key==='phase'?atmospherePhase(seconds,profile.loopSeconds):profile[key]);
         gl.uniform3f(color,...profile.cloudColor);gl.drawArrays(gl.TRIANGLES,0,6);

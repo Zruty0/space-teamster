@@ -42,6 +42,17 @@ export function checkAtmosphereNative(api:Scene,canvas:HTMLCanvasElement){
   let baseMaxDifference=0;for(let i=0;i<off.length;i++)baseMaxDifference=Math.max(baseMaxDifference,Math.abs(off[i]-expected[i]));
   // Separate accelerated/readback backing stores can round gradients by one byte.
   assert(baseMaxDifference<=1,'all layers off matches independent original Gaia within one channel level');
+  api.render(0,{vortexCount:0});const noVortices=api.cloudPixels();
+  api.render(0,{vortexStrength:0});assert(hash(api.cloudPixels())===hash(noVortices),'zero count/strength both restore original cloud field');
+  assert(hash(noVortices)!==hash(zero),'visible vortices at default settings');
+  let affected=0;for(let i=3;i<zero.length;i+=4)if(Math.abs(zero[i]-noVortices[i])>3)affected++;
+  assert(affected/(zero.length/4)>.005&&affected/(zero.length/4)<.40,'localized circulation, not a whole-world reroll');
+  api.render(0,{vortexCount:1});const one=hash(api.cloudPixels());api.render(0,{vortexCount:2});
+  assert(one!==hash(api.cloudPixels())&&one!==hash(noVortices),'count selects stable additional systems');
+  api.render(0,{vortexSize:.12});const small=hash(api.cloudPixels());api.render(0,{vortexSize:.5});
+  assert(small!==hash(api.cloudPixels()),'vortex size changes footprint');
+  api.render(0,{vortexEye:0});const noEye=hash(api.cloudPixels());api.render(0,{vortexEye:1});
+  assert(noEye!==hash(api.cloudPixels()),'eye clearing control');
   api.render(0,{seed:api.defaults.seed+1});assert(hash(api.cloudPixels())!==hash(zero),'different seed changes weather');
   api.render(0,{coverage:.2});const low=api.cloudPixels();api.render(0,{coverage:.8});const high=api.cloudPixels();
   let lowAlpha=0,highAlpha=0;for(let i=3;i<low.length;i+=4){lowAlpha+=low[i];highAlpha+=high[i];}
@@ -49,5 +60,5 @@ export function checkAtmosphereNative(api:Scene,canvas:HTMLCanvasElement){
   const slider=document.querySelector<HTMLInputElement>('[data-key=coverage]')!;slider.value='.35';slider.dispatchEvent(new Event('input',{bubbles:true}));
   assert(document.querySelector('output')!.textContent==='0.35','live control wiring');
   assert(api.render(0).error===0,'no WebGL error');
-  return{checks,hashes:[hash(zero),hash(quarter),hash(half)],seamMeanDifference:seam,cloudCoverage:visible/interior,opaqueFraction:opaque/interior,softFraction:soft/interior,baseMaxDifference};
+  return{checks,hashes:[hash(zero),hash(quarter),hash(half)],seamMeanDifference:seam,cloudCoverage:visible/interior,opaqueFraction:opaque/interior,softFraction:soft/interior,baseMaxDifference,noVortexHash:hash(noVortices),vortexAffectedFraction:affected/(zero.length/4)};
 }

@@ -1,4 +1,4 @@
-import { atmosphereNoise, atmospherePhase, atmosphereProfile, GAIA_ATMOSPHERE_PROFILE } from '../src/atmosphere-prototype-profile';
+import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, GAIA_ATMOSPHERE_PROFILE } from '../src/atmosphere-prototype-profile';
 let checks=0;
 function assert(ok:unknown,message:string):asserts ok{checks++;if(!ok)throw Error(message);}
 const json=(x:unknown)=>JSON.stringify(x),p=GAIA_ATMOSPHERE_PROFILE;
@@ -10,6 +10,10 @@ const bounded=atmosphereProfile({coverage:Infinity,scale:-99,shear:99,opticalDep
 assert(bounded.coverage===p.coverage&&bounded.scale===.4&&bounded.shear===1.5&&bounded.opticalDepth===p.opticalDepth,'finite bounded controls');
 assert(bounded.seed===1&&json(bounded.cloudColor)===json([p.cloudColor[0],0,1]),'safe seed/colours');
 assert(bounded.zonalTurns===1&&bounded.tropicalTurns===-2&&bounded.cirrusTurns===p.cirrusTurns,'integer winding preserves loop');
+const storms=atmosphereProfile({vortexCount:99,vortexSize:-1,vortexStrength:Infinity,vortexEye:5});
+assert(storms.vortexCount===6&&storms.vortexSize===.12&&storms.vortexStrength===p.vortexStrength&&storms.vortexEye===1,'bounded vortex controls');
+assert(atmosphereProfile({vortexCount:1.6}).vortexCount===2,'integer vortex count');
+assert(atmosphereProfile({vortexCount:-1,vortexStrength:0}).vortexCount===0,'vortices can be disabled');
 for(const t of [-720,-361,-360,-1,0,.01,90,180,359.99,360,720,123456]){
  const phase=atmospherePhase(t,360);assert(phase>=0&&phase<1,'normalized absolute phase');
  assert(Math.abs(phase-atmospherePhase(t+360,360))<1e-12,'periodic through negative/positive time');
@@ -18,6 +22,17 @@ for(const args of [[NaN,360],[Infinity,360],[3,0],[2,-1],[1,Infinity]])assert(at
 const random=Math.random;
 try{
  Math.random=()=>{throw Error('unseeded RNG forbidden');};
+ const systems=atmosphereVortices(p.seed);
+ assert(Object.isFrozen(systems)&&systems.length===6,'bounded frozen storm registry');
+ assert(json(systems)===json(atmosphereVortices(p.seed)),'seeded systems repeat');
+ assert(json(systems)!==json(atmosphereVortices(p.seed+1)),'system geography varies by seed');
+ for(const [i,system]of systems.entries()){
+  assert(Object.isFrozen(system)&&Object.isFrozen(system.center),'deep immutable storm descriptors');
+  assert(Math.abs(Math.hypot(...system.center)-1)<1e-12,'storm centers on unit sphere');
+  assert(system.center.every(Number.isFinite)&&Number.isFinite(system.phase),'finite storm descriptors');
+  assert(Math.sign(system.center[1])===(i%2===0?1:-1),'opposite hemisphere circulation anchors');
+  assert(Math.abs(system.center[1])>.3&&Math.abs(system.center[1])<.6,'midlatitude systems, not polar/equatorial singularities');
+ }
  const a=atmosphereNoise(p.seed),b=atmosphereNoise(p.seed),c=atmosphereNoise(p.seed+1);
  assert(a.length===64**3,'bounded 256KiB noise volume');
  assert(a.every((n,i)=>n===b[i]),'same seed exact noise');

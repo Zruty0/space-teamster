@@ -12,6 +12,8 @@ try{
     ['coverage','Lower cloud amount',0,1],['fronts','Frontal structure',0,1.5],['scale','Cloud feature scale',.4,2.5],['detail','Fine texture / erosion',0,1],
     ['shear','Wind shear',0,1.5],['evolution','Slow shape evolution',0,1.5],['cirrus','High cirrus',0,1],['opticalDepth','Cloud thickness',.2,8],
     ['haze','Blue atmospheric veil',0,1],['shadow','Cloud shadows',0,.5],
+    ['vortexCount','Vortex count',0,6],['vortexSize','Vortex size (angular radius)',.12,.5],
+    ['vortexStrength','Vortex strength',0,2],['vortexEye','Eye clearing',0,1],
   ];
   function sync(){
     for(const [key,input]of inputs){input.value=String(profile[key]);input.parentElement!.querySelector('output')!.textContent=Number(profile[key]).toFixed(2);}
@@ -39,7 +41,7 @@ try{
   function setProfile(changes:Partial<AtmosphereProfile>){profile=atmosphereProfile({...profile,...changes});sync();draw();}
   for(const [key,name,min,max]of specifications){
     const label=document.createElement('label'),title=document.createElement('span'),output=document.createElement('output'),input=document.createElement('input');
-    title.textContent=name;input.type='range';input.min=String(min);input.max=String(max);input.step='.01';input.dataset.key=key;
+    title.textContent=name;input.type='range';input.min=String(min);input.max=String(max);input.step=key==='vortexCount'?'1':'.01';input.dataset.key=key;
     input.oninput=()=>setProfile({[key]:Number(input.value)});label.append(title,output,input);controls.append(label);inputs.set(key,input);
   }
   element('play').onclick=()=>{playing=!playing;last=performance.now();sync();draw();};
@@ -50,6 +52,7 @@ try{
   element('balanced').onclick=()=>{profile=GAIA_ATMOSPHERE_PROFILE;sync();draw();};
   element('broken').onclick=()=>{profile=atmosphereProfile({...GAIA_ATMOSPHERE_PROFILE,coverage:.35,fronts:.4,cirrus:.16});sync();draw();};
   element('fronts').onclick=()=>{profile=atmosphereProfile({...GAIA_ATMOSPHERE_PROFILE,coverage:.60,fronts:1.2,cirrus:.4});sync();draw();};
+  element('cyclones').onclick=()=>{profile=atmosphereProfile({...GAIA_ATMOSPHERE_PROFILE,coverage:.42,fronts:.6,vortexCount:3,vortexSize:.40,vortexStrength:1.5,vortexEye:.85});sync();draw();};
   element('export').onclick=()=>{
     const filename=`gaia-cloud-${profile.seed}-${Math.round(seconds*10)}.png`;
     generator.canvas.toBlob(blob=>{
