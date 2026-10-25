@@ -111,7 +111,13 @@ Ordinary surface/offworld work uses independently paired50/50 Suhail/direct, inc
 
 **System-wide finished-fuel policy:** no dedicated full-container spacecraft-fuel jobs; fuel mass is too small. Remove11 Guild orders (eight legacy destinations, Scaffold1, Dahai2). Fuel services/background dispensary distribution and proprietary propulsion remain; industrial skim precursor feedstock/hardware/certifications unchanged. Old accepted fuel jobs retain classification/quotes and still settle. No new fuel chemistry or consumption tuning.
 
-## Barataria identity only — implemented2026-10-25
+## Thule and sparse Barataria public work — implemented2026-10-25
+
+Thule's tiny civic centre/common-share refuge and three cultural enclaves replace XIII's governor/relay/prison/classified placeholders.22 additional Thule orders (6 GOV/16 HSC;8 freight/14 passenger), six Barataria Observatory orders (2 HSC/4 EIP;4 freight/2 passenger).34 existing providers only; no new faction, company, broker or civilian aggregator. Two-day windows every8/12/16 days yield mean3.58 Thule/0.79 Barataria orders daily, ordinary board selection. Supplies, local water, repair returns, community/household passage and legitimate instruments/observers; no finished-fuel/speculative exports, compelled returns or surface smuggling.
+
+Nunes's old Thule custody/watch/inquiry-field roles and Daedalus's old XIII relay field work retired by post-generation filtering, preserving original seed pools/all unrelated programmes. All12 Inquiries remain playable; accepted retired jobs/history/quotes untouched. All six Thule receiving sites public; share/indenture residency policy is lore, not a new player debt system. Exact roster, manifests, cadence and validation: [Thule](locations/thule.md). Barataria's hidden surface contracts still await contact reputation.
+
+## Barataria identity only — initial pass2026-10-25
 
 Estella XIV becomes Barataria; orbital station Barataria Observatory remains public. The three surface slots are now **The Warren** (concealed settlement), **False Bottom Cache** (storage) and **Blind Drop** (unstaffed handoff). **No surface contracts yet**, no new providers or economic templates. All three are unlisted; future smuggling work must be contact-reputation-gated. Existing BFS/VHM orbital service jobs remain unchanged. [Barataria ledger](locations/barataria.md).
 

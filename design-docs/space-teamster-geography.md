@@ -491,7 +491,7 @@ It is not, technically, the end of the system. The Estella catalogue has bodies 
 
 ## The Reach's economy
 
-The Reach is, in net, an **import destination**. Most cargo into the Reach comes from elsewhere: supplies, food, parts, prisoners, exiles, scientists, religious pilgrims, rare equipment. A modest amount flows out: bulk ice, exotic isotopes, occasional research samples, occasional artifacts of dubious provenance.
+The Reach is, in net, an **import destination**. Its settled bases import supplies, food, parts and specialist equipment, alongside household arrivals, exiles and scientific personnel. Trade includes local ice/water deliveries, equipment returns and specialist work at the remaining outer sites. Thule is a refuge, not the old proposed prison colony; neither it nor Barataria needs an invented bulk export to balance its imports.
 
 There are no chained 3-stop loops in the Reach. The economic gameplay is **single-leg long-hauls**: a Teamster takes a contract from somewhere into the Reach, or from the Reach to somewhere else, and that single leg *is* the work.
 
@@ -499,17 +499,19 @@ A Reach contract is the highest-paying, lowest-volume, most prestigious work an 
 
 ## The Reach's bodies and POIs
 
-### Estella XIII — the primary ice dwarf
-The only Reach body with anything resembling civic infrastructure. Has a port, a settlement, a few specialty surface POIs. The Reach's de facto capital.
+### Thule / Estella XIII — the refuge at the edge
+A safe, lonely airless world for people leaving their old lives behind. A pragmatic, disillusioned politician governs from a tiny civic settlement. Residency requires a share funding one's life-support capacity, bought outright or paid off through indentured work. Distinct refugee communities keep cultural habits while building new lives; Thule is not a prison planet or a metropolis.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella XIII.1 | Station, low orbit | Main port — refuel, dispatch, customs |
-| Estella XIII.2 | Surface | Governor's outpost / settlement |
-| Estella XIII.3 | Surface | Deep ice mining |
-| Estella XIII.4 | Surface | Long-range comm relay / observatory |
-| Estella XIII.5 | Surface | Prison / exile colony |
-| Estella XIII.6 | Surface | Sealed classified research outpost |
+| Estella XIII.1 | Station, low orbit | **Thule Anchorage** — public civilian port, servicing, household arrivals and expedition support |
+| Estella XIII.2 | Surface | **Common Ground** — tiny governor/civic centre, share registry, clinic and communal rooms |
+| Estella XIII.3 | Surface | **Deepwell** — shared ice and life-support works |
+| Estella XIII.4 | Surface | **Volya** — Udarnik dissenters, cooperative workshops on their own terms |
+| Estella XIII.5 | Surface | **Freehold** — escaped Wells serfs and others leaving House authority |
+| Estella XIII.6 | Surface | **Bellevue** — disgraced Gaian politicians, displaced officials and their households |
+
+Approved2026-10-25: names/identity and22 sparse GOV/Hartwell Shipping orders, with no new entities. All receiving sites public; visiting is separate from buying permanent residence. Former prison/classified/relay roles and incompatible new Nunes/Daedalus postings retired without reseeding unrelated work or cancelling accepted flights. Physical IDs/geometry unchanged. [Thule ledger](locations/thule.md).
 
 ### Barataria / Estella XIV — concealed smuggler world
 An airless ice dwarf with a porous, fractured upper crust and extensive caves. Buried habitats and caches are concealed from above. Its publicly approachable orbital observatory is a legitimate small observation post and the meeting point for a smuggling network.
@@ -521,7 +523,7 @@ An airless ice dwarf with a porous, fractured upper crust and extensive caves. B
 | Estella XIV.3 | Surface | **The Warren** — the sole settlement, sealed habitats and households inside branching caverns |
 | Estella XIV.4 | Surface | **Blind Drop** — unstaffed handoff lockers inside a dogleg fissure |
 
-Approved2026-10-25: all three existing surface slots repurposed, unlisted and reserved for later smuggling work; **no surface contracts added**. The monastery/abandoned-mystery themes are retired, IDs and physical geometry retained. Future smuggling jobs require contact reputation; public work is limited to the observatory's legitimate role. Existing orbital service network unchanged. [Barataria ledger](locations/barataria.md).
+Approved2026-10-25: all three existing surface slots repurposed, unlisted and reserved for later smuggling work; **no surface contracts added**. The monastery/abandoned-mystery themes are retired, IDs and physical geometry retained. Future smuggling jobs require contact reputation; public work is limited to the observatory's legitimate role. Existing orbital service network retained. Subsequent Thule economic pass adds six sparse legitimate orbital orders through existing HSC/EIP providers: provisions, utility service returns, instruments and observers. Surface smuggling remains deferred. [Barataria ledger](locations/barataria.md); [shared economic ledger](locations/thule.md).
 
 ### Captured comet swarm (~6 fragments)
 A captured periodic comet that has fragmented over time into a tight swarm of small icy bodies. Cluster Mode applies. Catalogue IDs in the ES-I-NNNN range (icy class).

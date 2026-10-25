@@ -31,7 +31,7 @@ All ordinary commercial/civic destinations not excepted below, including:
 - Daedalus Systems Campus's commercial receiving area; not Server Farm or Icarus.
 - Pilgrim Gate and Vigil Gate as external trade/arrival interfaces; not unrestricted admission to the Covenant interiors.
 - Macao Palace and Great Arena; ordinary legal resorts/casinos, not invitation-only or hidden facilities.
-- Reach public settlements/ports and **Barataria Observatory**. All three Barataria surface sites are unlisted; Farwatch is contract-only.
+- All six **Thule** receiving sites (Anchorage, Common Ground, Deepwell, Freehold, Volya, Bellevue) and **Barataria Observatory**. Freehold/Bellevue no longer inherit prison/classified restrictions. Public landing is not a free residency share. All three Barataria surface sites remain unlisted; Farwatch is contract-only.
 
 Public classifications do not manufacture missing placements. The rejected casino/science asteroid concepts were removed entirely, not retained as promised destinations.
 
@@ -53,7 +53,6 @@ These are absent unless a known mission contact is physically based at the exact
 | Coimbra | `estella-xif-observatory`, `estella-xif-sealed-research-outpost` | Daedalus Server Farm and Icarus Lab; Campus commercial receiving remains public |
 | Covenant interiors | `estella-xiia-deep-ice-mine`, `estella-xiia-isolated-settlement`, `estella-xiib-outpost` | Preceptory of Toil, Cathedral of Testimony and Vigil Keep require sanctioned work/visits |
 | Ceuta | `estella-xiid-black-project-exile`, `estella-xiid-blackglass-observatory` | Castle Nunes and Blackglass Observatory controlled access |
-| Reach | `estella-xiii-prison-exile-colony`, `estella-xiii-classified-research` | Prison custody and classified research |
 
 ## Unlisted clandestine sites
 
