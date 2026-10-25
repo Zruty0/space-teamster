@@ -3,6 +3,7 @@ import { HARTWELL_APPROACH_BIOME, HARTWELL_APPROACH_TARGETS, hartwellApproachReg
 import { getApproachTerrainHeight } from '../src/approach';
 import { hartwellGroundMaterial, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from '../src/approach-ground-material';
 import { SURFACE_POIS } from '../src/world';
+import { groundCacheScale, groundStripRange, GROUND_CACHE_PIXELS, GROUND_CACHE_ENTRIES, GROUND_STRIP_WIDTH, GROUND_STRIP_BLEED, GROUND_STRIP_TOP, GROUND_STRIP_BOTTOM } from '../src/approach-ground-cache';
 let checks=0;
 function assert(ok: unknown, message: string): asserts ok { checks++;if(!ok)throw new Error(message); }
 const ids=SURFACE_POIS.filter(p=>p.bodyId==='estella-v').map(p=>p.id).sort();
@@ -66,5 +67,19 @@ for(const model of models){
 assert(materialHashes.size===5,'each target has distinct material');
 for(const seed of [-1,NaN,Infinity,1.5,0x100000000]){
  let rejected=false;try{hartwellGroundMaterial(seed);}catch{rejected=true;}assert(rejected,'invalid material seed rejected');
+}
+for(const width of [1200,1920,2560,3840,7680])for(const zoom of [.0001,.008,.01,.02,.025,.04,.05,.065,.08,.11,.5]){
+ const scale=groundCacheScale(zoom,width);
+ assert(scale>0&&Number.isFinite(scale),'bounded positive cache LOD');
+ for(const x of [-300000,-.01,0,.01,300000]){
+  const [first,last]=groundStripRange(x,zoom,width,scale),span=GROUND_STRIP_WIDTH/scale;
+  assert(first*span<=x-width/(2*zoom)&&(last+1)*span>=x+width/(2*zoom),'signed strips cover the complete viewport');
+  const bytes=(last-first+1)*(GROUND_STRIP_WIDTH+2*GROUND_STRIP_BLEED)*(Math.ceil((GROUND_STRIP_TOP-GROUND_STRIP_BOTTOM)*scale)+2*GROUND_STRIP_BLEED);
+  assert(bytes<GROUND_CACHE_PIXELS&&last-first+1<GROUND_CACHE_ENTRIES,'visible strip set fits cache without cyclic eviction');
+ }
+ assert(groundCacheScale(zoom,width)===scale,'deterministic LOD, no camera-history dependence');
+}
+for(const [zoom,width]of [[0,1200],[-1,1200],[NaN,1200],[Infinity,1200],[.04,0],[.04,Infinity]]){
+ let rejected=false;try{groundCacheScale(zoom,width);}catch{rejected=true;}assert(rejected,'invalid cache layout rejected');
 }
 console.log(`Approach biome study passed: ${checks} assertions; five target seeds, one biome.`);

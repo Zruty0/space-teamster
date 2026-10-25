@@ -1459,18 +1459,30 @@ function drawGate(
     const speedOk = speed <= level.gateMaxSpeed && speed >= level.gateMinSpeed;
     const col = speedOk ? COL_GATE : COL_GATE_DIM;
 
-    // Rectangle outline
+    // Dark continuous backing plus pale dash edges keep BOTH speed states visible
+    // on bright terrain. Original status color, dash pattern and gate bounds remain.
+    ctx.setLineDash([]);
+    ctx.strokeStyle = '#03070b';
+    ctx.lineWidth = 7;
+    ctx.strokeRect(leftX, topY, rectW, rectH);
+    ctx.setLineDash([8, 5]);
+    ctx.strokeStyle = '#d6e8e8';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(leftX, topY, rectW, rectH);
     ctx.strokeStyle = col;
     ctx.lineWidth = 2;
-    ctx.setLineDash([8, 5]);
     ctx.strokeRect(leftX, topY, rectW, rectH);
     ctx.setLineDash([]);
 
-    // Speed label at top
+    // Same speed text/anchor, on its own opaque backing rather than terrain.
     ctx.font = '11px monospace';
+    const speedText = `${level.gateMinSpeed}-${level.gateMaxSpeed} m/s`;
+    const labelWidth = ctx.measureText(speedText).width;
+    ctx.fillStyle = '#03070b';
+    ctx.fillRect(centerX - labelWidth / 2 - 5, topY - 19, labelWidth + 10, 17);
     ctx.fillStyle = COL_GATE_DIM;
     ctx.textAlign = 'center';
-    ctx.fillText(`${level.gateMinSpeed}-${level.gateMaxSpeed} m/s`, centerX, topY - 6);
+    ctx.fillText(speedText, centerX, topY - 6);
   }
 
   // Off-screen indicator

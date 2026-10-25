@@ -13,7 +13,8 @@ function fillToBottom(ctx: CanvasRenderingContext2D, points: readonly Point[], h
   path(ctx, points); ctx.lineTo(points[points.length-1][0], height+2);
   ctx.lineTo(points[0][0], height+2); ctx.closePath();
 }
-export function createHartwellScenery(region: ApproachRegion, detailedGround = true): ApproachSceneryPainter {
+export type HartwellSceneryPart = 'all' | 'background' | 'material';
+export function createHartwellScenery(region: ApproachRegion, detailedGround = true, part: HartwellSceneryPart = 'all'): ApproachSceneryPainter {
   // One small immutable material tile per target, built lazily; no animation-frame pixels.
   let grain: HTMLCanvasElement | undefined;
   function materialTile(): HTMLCanvasElement {
@@ -49,6 +50,7 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
     ctx.save();
     try {
       ctx.globalAlpha = 1; ctx.setLineDash([]);
+      if(part!=='material'){
       // Altitude-anchored light: moving/zooming the camera does not move the horizon.
       const sky = ctx.createLinearGradient(0, sy(18000), 0, sy(0));
       sky.addColorStop(0, '#050a15'); sky.addColorStop(.50, palette.sky);
@@ -96,14 +98,19 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
         ctx.restore();
       }
 
+      }
+      if(part==='background')return true;
       // The foreground boundary is the CURRENT gameplay terrain, unmodified.
       // Match the legacy renderer's sampling grid exactly; all material work is clipped below it.
       const step=4/zoom, start=cam.x-W/(2*zoom)-step, count=Math.ceil(W/4)+2;
       const surface: Point[]=[];
       for(let i=0;i<=count;i++){const x=start+i*step;surface.push([sx(x),sy(ground(x))]);}
       // High-altitude cameras need only the sky/distant relief. Don't build an invisible material tile.
-      if(surface.every(([,y])=>y>H+2))return true;
-      ctx.save();fillToBottom(ctx,surface,H);ctx.clip();
+      if(part!=='material'&&surface.every(([,y])=>y>H+2))return true;
+      ctx.save();
+      // Material strips are opaque and unclipped. Production clips them once against
+      // the exact live collision contour, rather than scaling a rasterized silhouette.
+      if(part!=='material'){fillToBottom(ctx,surface,H);ctx.clip();}
       const rock=ctx.createLinearGradient(0,sy(1300),0,sy(-2000));
       rock.addColorStop(0,palette.ground);rock.addColorStop(.45,'#754630');rock.addColorStop(1,palette.deep);
       ctx.fillStyle=rock;ctx.fillRect(0,0,W,H);
@@ -122,7 +129,7 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
       ctx.globalAlpha=1;
       // World-indexed talus/facets and erosion gullies. No frame RNG or moving texture.
       const cellSize=650;
-      for(let cell=Math.floor(regionLeft/cellSize)-1;cell<=Math.ceil(regionRight/cellSize)+1;cell++) {
+      for(let cell=Math.floor(regionLeft/cellSize)-2;cell<=Math.ceil(regionRight/cellSize)+2;cell++) {
         const x=fromRegion(cell*cellSize);
         const r=(channel:number)=>regionRandom(region.materialSeed,cell,channel);
         const width=state.localDir*cellSize*(.55+r(1)*.8), depth=350+r(2)*1450;
@@ -203,7 +210,7 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
       ctx.globalAlpha=1;ctx.fillStyle=deep;ctx.fillRect(0,0,W,H);
       ctx.restore();
       // A restrained lit edge makes the true flight plane unambiguous; no neon terrain mesh.
-      path(ctx,surface);ctx.strokeStyle='rgba(223,163,104,.58)';ctx.lineWidth=1;ctx.stroke();
+      if(part!=='material'){path(ctx,surface);ctx.strokeStyle='rgba(223,163,104,.58)';ctx.lineWidth=1;ctx.stroke();}
       return true;
     } finally { ctx.restore(); }
   };

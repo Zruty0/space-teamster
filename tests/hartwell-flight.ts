@@ -55,7 +55,7 @@ function advance(seconds:number,input:Partial<InputState>={}){
  for(let i=0;i<n&&current.state==='approaching';i++)step({...neutral,...input,toggleWings:i===0&&!!input.toggleWings},seconds/n);
  draw();return snapshot();
 }
-function snapshot(){return{site:site.value,departure:!!current.level.departure,elapsed,paused,state:{...current.as},camera:{...current.cam}};}
+function snapshot(){return{level:current.level,site:site.value,departure:!!current.level.departure,elapsed,paused,state:{...current.as},camera:{...current.cam}};}
 function checks(){
  paused=true;let count=0;
  const assert=(ok:unknown,message:string)=>{count++;if(!ok)throw Error(message);};
@@ -70,11 +70,22 @@ function checks(){
   const runtime=game.approachScenery;
   game.approachScenery=createHartwellScenery(hartwellApproachRegion(id));draw();
   const after=ctx.getImageData(0,0,1200,720).data;
-  // Independent rebuilt material/backing can differ by one AA channel at a terrain edge
-  // (observed one channel at379,347). Same-painter replay remains exact in the gallery.
-  assert(after.every((v,i)=>Math.abs(v-pixels[i])<=1),`${id}/${departing}: Game uses approved painter plus actual HUD`);
+  // Cached ground is filtered at its LOD; sky/background and overlays above the
+  // exact live collision contour must still match the approved direct renderer.
+  let sameSky=true;
+  for(let x=0;x<1200;x++){
+    const wx=current.cam.x+(x-600)/current.cam.zoom;
+    const edge=360-(getApproachTerrainHeight(wx,current.level)-current.cam.y)*current.cam.zoom;
+    for(let y=0;y<Math.min(720,edge-3);y++)for(let ch=0;ch<4;ch++){
+      const at=(y*1200+x)*4+ch;if(Math.abs(after[at]-pixels[at])>1)sameSky=false;
+    }
+  }
+  assert(sameSky,`${id}/${departing}: cache changes no sky/background/gate geometry`);
   game.approachScenery=()=>false;draw();assert(hash()!==live,`${id}/${departing}: new scenery enabled, not original fallback`);
   game.approachScenery=runtime;draw();assert(JSON.stringify(current.as)===state,'render does not change flight');
+  const cached=hash(),built=runtime.diagnostics().builds;draw();
+  assert(hash()===cached&&runtime.diagnostics().builds===built,'stationary frame reuses strips with identical pixels');
+  assert(runtime.diagnostics().pixels<=runtime.diagnostics().maxPixels&&runtime.diagnostics().entries<=32,'bounded cache');
   const first=advance(1,{throttleUp:true,pitch:.2});
   assert(first.elapsed>0&&first.state.dvUsed>0,'actual physics responds to flight controls');
   reset(id,departing,false);const replay=advance(1,{throttleUp:true,pitch:.2});
@@ -84,6 +95,37 @@ function checks(){
    current.cam.zoom=zoom;const t=performance.now();draw();timings.push(performance.now()-t);
    assert(Number.isFinite(current.cam.x)&&current.as.alive,'live-camera render remains valid');
   }
+ }
+ // Exact-size cached pixels, including the strip boundary atworld x=0, versus
+ // the original material. This catches gaps/coordinate shifts without comparing LODs.
+ reset(HARTWELL_APPROACH_TARGETS[0],false,false);
+ current.cam={x:0,y:2000,zoom:.08};draw();
+ const seamRow=ctx.getImageData(0,560,1200,1).data,runtime=game.approachScenery;
+ game.approachScenery=createHartwellScenery(hartwellApproachRegion(site.value));draw();
+ const directRow=ctx.getImageData(0,560,1200,1).data;
+ assert(seamRow.every((v,i)=>Math.abs(v-directRow[i])<=2),'native-scale strips retain original material across seams');
+ game.approachScenery=runtime;draw();const beforeEviction=ctx.getImageData(0,0,1200,720).data;
+ for(let i=0;i<24;i++){current.cam.x=i*30000;draw();}
+ assert(runtime.diagnostics().evictions>0&&runtime.diagnostics().pixels<=runtime.diagnostics().maxPixels,'moving camera evicts within budget');
+ current.cam.x=0;draw();const rebuilt=ctx.getImageData(0,0,1200,720).data;
+ assert(rebuilt.every((v,i)=>Math.abs(v-beforeEviction[i])<=1),'evicted strips replay deterministically');
+ const previousBuilds=runtime.diagnostics().builds;runtime.clear();draw();
+ assert(runtime.diagnostics().builds>previousBuilds,'explicit cache clear rebuilds');
+ for(const speed of [100,500]){
+  current.as.vx=speed;current.as.vy=0;draw();
+  const base=current.level.poi.altitude||getApproachTerrainHeight(current.level.gateX,current.level);
+  const left=600-current.level.gateRadius*.08,top=360-(base+current.level.gateY-2000)*.08;
+  const h=current.level.gateY*.08;let dark=0,pale=0,colored=0;
+  const strip=ctx.getImageData(Math.round(left)-3,Math.ceil(top)+6,4,Math.floor(h)-12).data;
+  const rgb=speed===100?[0,255,204]:[0,119,102];
+  for(let i=0;i<strip.length;i+=4){const r=strip[i],g=strip[i+1],b=strip[i+2];
+   if(r===3&&g===7&&b===11)dark++;
+   if(r===214&&g===232&&b===232)pale++;
+   if(r===rgb[0]&&g===rgb[1]&&b===rgb[2])colored++;
+  }
+  assert(dark>30&&pale>10&&colored>10,`gate has black/pale contrast and original speed color at${speed}`);
+  const label=ctx.getImageData(600,Math.ceil(top)-18,1,1).data;
+  assert(label[0]===3&&label[1]===7&&label[2]===11,'speed label has black backing');
  }
  const other={...current.level,body:{...current.level.body,id:'estella-iii'}};
  const dispatcher=createApproachScenery();
