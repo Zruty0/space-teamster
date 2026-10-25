@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS} from './fixtures/pre-thule-economy';
 import { preCampsNames } from './fixtures/pre-camps-names';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS, generateFactionContractCandidates, type FactionContractCandidate } from '../src/content/estella/faction-contracts';
@@ -53,15 +54,16 @@ for (const p of providers) {
   // non-Dahai baseline is frozen independently in dahai-shipping.test.ts.
   // Finished-fuel removal is approved; the complete surviving Guild roster,
   // including skim feedstock, is pinned by sahra-economy.test.ts.
-  if (p.id === 'merren-conservatory' || p.id === 'teamsters-guild') continue;
+  if (p.id === 'merren-conservatory' || p.id === 'teamsters-guild' || THULE_RETIRED_PROVIDER_IDS.has(p.id)) continue;
   let hash = 2166136261, count = 0;
-  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('dahai:') && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:'))) {
+  for (const day of [0,1,20,21,119]) for (const node of pois) for (const c of p.generateContracts({sourceId: node.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('dahai:') && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:') && !isReachSettlementAddition(c))) {
     count++;
     for (const char of legacyCandidateJson(c)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash,16777619); }
   }
   assert(count === legacy[p.id][0] && (hash >>> 0) === legacy[p.id][1], `${p.id}: every old candidate unchanged`);
 }
 
+assertPreThuleEconomy(assert);
 const routes = new Map<string, Map<number,FactionContractCandidate>>();
 const pairs = new Map<string, FactionContractCandidate>();
 const sources = new Set<string>(BALOR_TRADE_SITES);

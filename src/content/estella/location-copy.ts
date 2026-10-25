@@ -1,6 +1,7 @@
 import { ESTELLA_NODES_BY_ID } from './index';
 import { CAMPS_LOCATION_IDS } from './camps-sites';
 import { WEYMARK_SITES } from './weymark-sites';
+import { THULE_SITES } from './thule-sites';
 
 // Approved local prose. Keep worker-facing Pandemonium scenes separate from
 // CHR's offworld corporate receipts; Renard's covert aid is reserved for a story.
@@ -16,6 +17,7 @@ export const PANDEMONIUM_COPY = {
 const LOCATION_SUMMARY_IDS: Readonly<Record<string, string>> = {
   ...Object.fromEntries(CAMPS_LOCATION_IDS.map(id => [id, id])),
   ...Object.fromEntries(WEYMARK_SITES.map(id => [id, id])),
+  ...Object.fromEntries(THULE_SITES.map(id => [id, id])),
   ...Object.fromEntries([
     'estella-iii-capital-city', 'estella-iii-high-tech-city', 'estella-iii-coastal-resort',
     'estella-iii-agricultural-region', 'estella-iii-polar-science',

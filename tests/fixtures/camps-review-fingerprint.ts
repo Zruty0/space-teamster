@@ -1,5 +1,6 @@
 import { publicContentText } from '../../src/content-terminology';
 import { preBaratariaNames } from './pre-barataria-names';
+import { preThuleNames } from './pre-thule-names';
 
 // The review changes display text only. All IDs, seed keys, numeric terms,
 // cargo type IDs, quotes and routing remain included in the frozen comparison.
@@ -14,7 +15,7 @@ export function reviewFingerprint(rows: unknown[]): [number, number] {
     if (typeof value !== 'string') return value;
     // Farwatch is a display-only rename; retain old frozen name fingerprints.
     // Dedicated Farwatch tests assert the new actual UI strings separately.
-    if (textKeys.has(key)) return preBaratariaNames(publicContentText(value)).split('EDF Farwatch Station').join('The Deepest Dock');
+    if (textKeys.has(key)) return preThuleNames(preBaratariaNames(publicContentText(value))).split('EDF Farwatch Station').join('The Deepest Dock');
     if ((key === 'issuerTag' || key === 'factionTag') && value === 'SYC') return 'SSC';
     return value;
   });

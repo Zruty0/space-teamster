@@ -9,6 +9,8 @@ import {
   type ActiveNunesInquiry,
 } from './nunes-inquiries';
 
+import { retiredThuleLegacyOrder } from '../thule-sites';
+
 const NUNES_ID = 'house-nunes';
 const NUNES_NAME = 'House Nunes';
 const NUNES_TAG = 'NUNES';
@@ -519,5 +521,6 @@ function generateNunesContracts(ctx: FactionContractContext): FactionContractCan
 export const HOUSE_NUNES_PROVIDER: FactionContractProvider = {
   id: NUNES_ID,
   name: NUNES_NAME,
-  generateContracts: generateNunesContracts,
+  // Keep the historic pools/seeds, retire only incompatible Thule postings.
+  generateContracts: ctx => generateNunesContracts(ctx).filter(c => !retiredThuleLegacyOrder(c)),
 };

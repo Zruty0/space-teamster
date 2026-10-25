@@ -1,4 +1,5 @@
 import { cargoMassForClass, type CargoMassClass, type MissionCargoSpec } from '../../../mission-cost';
+import { retiredThuleLegacyOrder } from '../thule-sites';
 import { ESTELLA_NODES_BY_ID } from '..';
 import type { FactionContractCandidate, FactionContractContext, FactionContractProvider } from './index';
 
@@ -145,6 +146,8 @@ const PRODUCTS: readonly CargoOption[] = [
   { label: 'automation interface units', massClass: 'standard' },
 ];
 
+// Legacy sampling pools remain intact; retired Thule field work is filtered
+// after generation, so no unrelated customer or cargo seed moves.
 const PRODUCT_DESTINATIONS = [
   'caravanserai-outfitter-drydock',
   'estella-iii-high-tech-city',
@@ -490,5 +493,5 @@ function generateDaedalusContracts(ctx: FactionContractContext): FactionContract
 export const DAEDALUS_SYSTEMS_PROVIDER: FactionContractProvider = {
   id: DAEDALUS_ID,
   name: DAEDALUS_NAME,
-  generateContracts: generateDaedalusContracts,
+  generateContracts: ctx => generateDaedalusContracts(ctx).filter(c => !retiredThuleLegacyOrder(c)),
 };

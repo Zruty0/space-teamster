@@ -14,7 +14,6 @@ const RESTRICTED = [
   'estella-xic-deep-ice-exobiology', 'estella-xif-observatory', 'estella-xif-sealed-research-outpost',
   'estella-xiia-deep-ice-mine', 'estella-xiia-isolated-settlement', 'estella-xiib-outpost',
   'estella-xiid-black-project-exile', 'estella-xiid-blackglass-observatory',
-  'estella-xiii-prison-exile-colony', 'estella-xiii-classified-research',
 ] as const;
 const UNLISTED = [
   'arkfall-apocrypha-cache-poi', 'estella-xid-specialty-cargo',
@@ -59,7 +58,9 @@ const PUBLIC: readonly string[] = [
   'estella-xif-deep-listening-array', 'estella-xi-science-waypoint-poi', 'estella-xi-religious-retreat-poi',
   'estella-xii-observation-post', 'estella-xiia-volatiles-transit', 'estella-xiib-transit-station-poi',
   'estella-xiic-isotope-mining', 'estella-xiic-comet-research', 'estella-xiic-castle-teide', 'estella-xii-comm-relay-poi',
+  // Public receiving sites; landing permission is not a free residency share.
   'estella-xiii-main-port', 'estella-xiii-governors-outpost', 'estella-xiii-deep-ice-mining', 'estella-xiii-long-range-observatory',
+  'estella-xiii-prison-exile-colony', 'estella-xiii-classified-research',
   'estella-xiv-transit-dock', 'reach-comet-fragment-1-poi', 'reach-comet-fragment-5-poi', 'reach-rogue-isotope-mine',
 ];
 export const EMPTY_TRAVEL_ACCESS: Readonly<Record<string, EmptyTravelAccess>> = Object.fromEntries([

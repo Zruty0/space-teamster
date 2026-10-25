@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/farwatch-baseline.json';
 import {reviewFingerprint} from './fixtures/camps-review-fingerprint';
 import {ESTELLA_NODES,ESTELLA_NODES_BY_ID,ESTELLA_BODY_PHYSICS,ESTELLA_VALIDATION_ISSUES} from '../src/content/estella';
@@ -44,13 +45,13 @@ try{
 assert(createEmptyRun({...profile,locationId:FARWATCH},'estella-xiii-main-port').category==='empty','private departure remains allowed');
 
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS){
- const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c))));
+ if(THULE_RETIRED_PROVIDER_IDS.has(p.id))continue; // Complete surviving rosters pinned below.
+ const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!isReachSettlementAddition(c))));
  assert(same(reviewFingerprint(rows),(baseline.providers as Record<string,number[]>)[p.id]),`${p.id}: all old raw jobs/seeded pools exact`);
 }
-const old=baseline.days.flatMap(day=>pois.flatMap(n=>generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c))));
-assert(same(reviewFingerprint(old),baseline.raw),'15979 old dispatched candidates unchanged');
+assertPreThuleEconomy(assert); // Authorized Thule retirement supersedes the old whole-system hash.
 const orders=new Map<string,Map<number,FactionContractCandidate>>(),pairs=new Map<string,FactionContractCandidate>();
-const affected=new Set<string>();let edf=0,eip=0,incoming=0,outgoing=0;
+const affected=thuleAffectedBoardSources();let edf=0,eip=0,incoming=0,outgoing=0;
 for(let day=0;day<24;day++)for(const n of pois)for(const c of generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}).filter(isNew)){
  assert(c.sourceId===n.id&&[c.sourceId,c.destinationId].includes(FARWATCH),'correct source scope and Farwatch endpoint');
  assert(['estella-defence-force','estella-institute-of-planetology'].includes(c.factionId)&&c.issuerId===c.factionId,'only station operator and scientific institution issue additions');
@@ -89,7 +90,7 @@ for(const day of baseline.days)for(const n of nav){
   accepted??=c;if(c.destinationId===FARWATCH)arrival??=c;
  }
 }
-assert(exactRows>6000&&exactBoards>600&&newFreight>0&&newPeople>0&&accepted&&arrival,'real boards contain both new categories with broad unchanged-board coverage');
+assert(exactRows>5000&&exactBoards>500&&newFreight>0&&newPeople>0&&accepted&&arrival,'real boards contain both new categories with broad unchanged-board coverage');
 assert(oldInbound>0&&oldOutbound>0,'old BFS/VHM public contract work remains both ways');
 const oldAccepted=baseline.accepted as CareerContract,before=JSON.stringify(oldAccepted),view=presentCareerContract(oldAccepted);
 assert(view.sourceName==='EDF Farwatch Station'&&!view.sourcePath.includes('The Deepest Dock'),'old accepted contract displays approved name');

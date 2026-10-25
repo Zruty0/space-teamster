@@ -10,6 +10,7 @@ import { CAMPS_CARRIER_LANES } from './camps-partner-lanes';
 import { sahraTradeContracts } from './sahra-trade-contracts';
 import { SAHRA_CARRIER_LANES } from './sahra-partner-lanes';
 import { balorTradeContracts, type BalorTradeLane } from './balor-trade-contracts';
+import { reachSettlementContracts } from './reach-settlement-contracts';
 
 // Hartwell shipping houses live on route arbitrage: Wells raw/resource lots into Camps demand,
 // basic Hartwell/Kuznia life-support backhauls into all Wells destinations, and industrial
@@ -433,6 +434,6 @@ export const HARTWELL_SHIPPING_COMPANIES_PROVIDER: FactionContractProvider = {
       ...DAHAI_CARRIER_LANES.flatMap((lane, index) => dahaiTradeContracts(ctx, {
         factionId: HARTWELL_SHIPPING_ID, factionName: ROSTER[index % ROSTER.length].name,
         ...(lane.direction === 'out' ? BACKHAUL_PAY : ROUTINE_PAY),
-      }, [lane]))];
+      }, [lane])), ...reachSettlementContracts(ctx, 'HSC')];
   },
 };

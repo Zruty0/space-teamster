@@ -35,7 +35,7 @@ worker.onmessage=({data})=>{try{
  worker.terminate();const visitor={...game.career,locationId:'estella-xiii-main-port'};
  if(!canTravelEmpty(visitor,BARATARIA_OBSERVATORY)||BARATARIA_SURFACE_SITES.some(id=>canTravelEmpty(visitor,id)))throw Error('wrong empty access');
  if(emptyRunDirectory(visitor,`node:${BARATARIA}`).some(e=>BARATARIA_SURFACE_SITES.includes(e.target?.id))||visibleOrbitalSurfaceMarkers(level).length)throw Error('surface exposed in picker/orbit');
- for(const o of menu.options){menu.value=o.value;show();}menu.value='The Warren';show();document.title='PASS — Barataria';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} existing orbital postings; three empty surface boards; public observatory only`;
+ for(const o of menu.options){menu.value=o.value;show();}menu.value='The Warren';show();document.title='PASS — Barataria';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} orbital postings; three empty surface boards; public observatory only`;
 }catch(e){fail(e.stack??String(e));}};
 worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
 // Synthetic profile only; no Game constructor or live save read/write.

@@ -1,0 +1,3418 @@
+{
+  "commit": "7ed42b63b9e9347943fd68319c180d4ebfb3a48b",
+  "days": [
+    0,
+    1,
+    20,
+    21
+  ],
+  "providers": {
+    "new-canaan-miners-mutual": [
+      108,
+      165937336
+    ],
+    "balor-advanced-materials": [
+      224,
+      1869127411
+    ],
+    "cerberus-human-resources": [
+      388,
+      475185040
+    ],
+    "bruckner-field-services": [
+      924,
+      3614096440
+    ],
+    "voss-heinkel-metricwerke": [
+      348,
+      4018848219
+    ],
+    "kisaragi-yards-estella": [
+      188,
+      1412310283
+    ],
+    "kisaragi-harmony-yards": [
+      120,
+      2218501048
+    ],
+    "teamsters-guild": [
+      88,
+      1972990626
+    ],
+    "steel-combine": [
+      204,
+      833910717
+    ],
+    "halloran-smelting-house": [
+      44,
+      397208861
+    ],
+    "glitterfield-miners": [
+      940,
+      902497392
+    ],
+    "pike-mining-companies": [
+      632,
+      1760270000
+    ],
+    "cinderhook-refining-houses": [
+      268,
+      2650201822
+    ],
+    "roadstead-export-brokers": [
+      324,
+      458440296
+    ],
+    "hartwell-machinery-brokers": [
+      2304,
+      2681993187
+    ],
+    "hartwell-shipping-companies": [
+      2596,
+      1087076629
+    ],
+    "hartwell-labor-exchange": [
+      1328,
+      485884465
+    ],
+    "merren-conservatory": [
+      316,
+      138844251
+    ],
+    "oathmark-accord-authority": [
+      92,
+      1184531831
+    ],
+    "house-mendes": [
+      40,
+      2192363065
+    ],
+    "house-alvares": [
+      124,
+      705445907
+    ],
+    "house-nunes": [
+      148,
+      3749811613
+    ],
+    "covenant-remnants": [
+      84,
+      1707530621
+    ],
+    "daedalus-systems": [
+      434,
+      2549854247
+    ],
+    "wells-noble-houses": [
+      308,
+      1753382780
+    ],
+    "gaia-civilian-bookings": [
+      1080,
+      401080461
+    ],
+    "estella-government": [
+      156,
+      3269001045
+    ],
+    "estella-defence-force": [
+      112,
+      3610010839
+    ],
+    "dahai-civilian-bookings": [
+      856,
+      3249030641
+    ],
+    "estella-institute-of-planetology": [
+      404,
+      796094375
+    ],
+    "camps-civilian-bookings": [
+      440,
+      613749565
+    ],
+    "svarog-yard-company": [
+      68,
+      3077656577
+    ],
+    "sahra-civilian-bookings": [
+      150,
+      601838835
+    ],
+    "weymark-independent-operators": [
+      80,
+      2295204509
+    ]
+  },
+  "raw": [
+    15913,
+    1628301567
+  ],
+  "retired": [
+    82,
+    2232628533
+  ],
+  "retiredBoardSources": [
+    "estella-xiid-black-project-exile",
+    "estella-xiid-blackglass-observatory",
+    "estella-xiid-mirror-clinic",
+    "estella-xiii-main-port-station",
+    "estella-xiii-long-range-observatory",
+    "estella-xiii-prison-exile-colony",
+    "estella-xiii-classified-research",
+    "estella-xa-exobiology-research",
+    "estella-xif-deep-listening-array"
+  ],
+  "boardSources": {
+    "0:ark-quarantine-station-poi": [
+      0,
+      1947613349
+    ],
+    "0:arkfall-apocrypha-cache-poi": [
+      0,
+      1947613349
+    ],
+    "0:caravanserai-certification-authority": [
+      28,
+      1414277381
+    ],
+    "0:caravanserai-customs-inspection": [
+      28,
+      3134215566
+    ],
+    "0:caravanserai-foreign-quarter": [
+      28,
+      3226115908
+    ],
+    "0:caravanserai-free-trader-anchorage": [
+      28,
+      24827839
+    ],
+    "0:caravanserai-highliner-bay-poi": [
+      28,
+      2232940851
+    ],
+    "0:caravanserai-lookout-spire": [
+      28,
+      1154960672
+    ],
+    "0:caravanserai-main-commercial-dock": [
+      28,
+      184085443
+    ],
+    "0:caravanserai-outfitter-drydock": [
+      28,
+      3693853818
+    ],
+    "0:caravanserai-player-hangar": [
+      28,
+      2355048013
+    ],
+    "0:caravanserai-refuel-depot": [
+      28,
+      3737251836
+    ],
+    "0:deepcut-depot-dock": [
+      13,
+      3168637119
+    ],
+    "0:deepest-dock-poi": [
+      8,
+      1024744089
+    ],
+    "0:estella-i-hot-processing": [
+      13,
+      474467739
+    ],
+    "0:estella-i-refractory-mine": [
+      3,
+      1487875660
+    ],
+    "0:estella-i-transit-customs": [
+      20,
+      722362360
+    ],
+    "0:estella-i-worker-hab": [
+      5,
+      3620378962
+    ],
+    "0:estella-ii-commercial-hub-dock": [
+      15,
+      525774313
+    ],
+    "0:estella-ii-nimbus-crucible": [
+      0,
+      1947613349
+    ],
+    "0:estella-ii-olympos": [
+      14,
+      3998210593
+    ],
+    "0:estella-ii-pandemonium": [
+      3,
+      103292643
+    ],
+    "0:estella-iii-agricultural-region": [
+      11,
+      2077493125
+    ],
+    "0:estella-iii-capital-city": [
+      28,
+      4005800762
+    ],
+    "0:estella-iii-coastal-resort": [
+      18,
+      2318274305
+    ],
+    "0:estella-iii-finance-city": [
+      28,
+      4005800762
+    ],
+    "0:estella-iii-high-tech-city": [
+      23,
+      2587983343
+    ],
+    "0:estella-iii-historic-site": [
+      28,
+      4005800762
+    ],
+    "0:estella-iii-luxury-orbital-habitat": [
+      3,
+      875611330
+    ],
+    "0:estella-iii-main-customs": [
+      28,
+      4056484736
+    ],
+    "0:estella-iii-polar-science": [
+      3,
+      399143590
+    ],
+    "0:estella-iiia-helium-mining": [
+      4,
+      3047461801
+    ],
+    "0:estella-iiia-heritage-site": [
+      28,
+      1689158302
+    ],
+    "0:estella-iiia-main-port-transit": [
+      7,
+      539296916
+    ],
+    "0:estella-iiia-science-settlement": [
+      17,
+      199193145
+    ],
+    "0:estella-iv-climate-poi-1": [
+      16,
+      1958940186
+    ],
+    "0:estella-iv-climate-poi-2": [
+      8,
+      1194564568
+    ],
+    "0:estella-iv-climate-poi-3": [
+      18,
+      437003053
+    ],
+    "0:estella-iv-main-orbital-station": [
+      28,
+      2404950042
+    ],
+    "0:estella-iv-primary-city": [
+      28,
+      425250334
+    ],
+    "0:estella-ix-geological-feature": [
+      3,
+      1763445049
+    ],
+    "0:estella-ix-ice-mine": [
+      4,
+      3805414883
+    ],
+    "0:estella-ix-moonlet-observation-outpost": [
+      1,
+      1668229330
+    ],
+    "0:estella-ix-opposite-sense-supply-depot": [
+      22,
+      172991935
+    ],
+    "0:estella-ix-research-base": [
+      7,
+      1054793995
+    ],
+    "0:estella-v-abandoned-colony": [
+      0,
+      1947613349
+    ],
+    "0:estella-v-atmo-refinery": [
+      10,
+      1677277521
+    ],
+    "0:estella-v-capital-settlement": [
+      28,
+      1546125763
+    ],
+    "0:estella-v-high-orbit-factory": [
+      18,
+      2975550033
+    ],
+    "0:estella-v-open-cast-mine": [
+      0,
+      1947613349
+    ],
+    "0:estella-v-storm-research": [
+      5,
+      1798470431
+    ],
+    "0:estella-v-transit-customs": [
+      28,
+      261145880
+    ],
+    "0:estella-va-miner-hab": [
+      13,
+      492229141
+    ],
+    "0:estella-va-ore-handling-depot": [
+      14,
+      36477331
+    ],
+    "0:estella-va-strip-mine": [
+      13,
+      746125519
+    ],
+    "0:estella-vi-agricultural-lowlands": [
+      1,
+      536839905
+    ],
+    "0:estella-vi-foundry-complex": [
+      3,
+      1132492784
+    ],
+    "0:estella-vi-heavy-cargo-station": [
+      14,
+      3822277755
+    ],
+    "0:estella-vi-industrial-city": [
+      4,
+      1719666670
+    ],
+    "0:estella-vi-main-transit-dispatch": [
+      28,
+      3390303711
+    ],
+    "0:estella-vi-mountain-mining": [
+      2,
+      3340089546
+    ],
+    "0:estella-vi-polar-weather-research": [
+      2,
+      3597438867
+    ],
+    "0:estella-vi-spaceport": [
+      2,
+      1373473021
+    ],
+    "0:estella-via-component-supply-station": [
+      28,
+      3388117892
+    ],
+    "0:estella-via-drydock-station": [
+      28,
+      922807363
+    ],
+    "0:estella-via-rare-alloy-extraction": [
+      3,
+      1295074477
+    ],
+    "0:estella-via-surface-anchor": [
+      5,
+      165066446
+    ],
+    "0:estella-vib-aquaculture": [
+      2,
+      1656140444
+    ],
+    "0:estella-vib-cold-chain-station": [
+      16,
+      1389129764
+    ],
+    "0:estella-vib-pharma-horticulture": [
+      2,
+      1231349707
+    ],
+    "0:estella-vib-vat-protein": [
+      3,
+      1837095948
+    ],
+    "0:estella-vii-black-project-outpost": [
+      0,
+      1947613349
+    ],
+    "0:estella-vii-feedstock-mine": [
+      6,
+      2709941987
+    ],
+    "0:estella-vii-high-vacuum-factory": [
+      16,
+      860852437
+    ],
+    "0:estella-vii-transit-export": [
+      28,
+      2293091553
+    ],
+    "0:estella-vii-worker-hab": [
+      9,
+      3374026400
+    ],
+    "0:estella-viii-abandoned-site": [
+      0,
+      1947613349
+    ],
+    "0:estella-viii-first-rendezvous-station": [
+      14,
+      2352364645
+    ],
+    "0:estella-viii-harder-approach-station": [
+      15,
+      801455983
+    ],
+    "0:estella-viii-mining-site": [
+      7,
+      3513276531
+    ],
+    "0:estella-viii-moonlet-docking-site": [
+      0,
+      1947613349
+    ],
+    "0:estella-viii-settlement": [
+      19,
+      792741194
+    ],
+    "0:estella-x-captive-refuel-relay": [
+      7,
+      4207219406
+    ],
+    "0:estella-x-observation-skim-hub": [
+      14,
+      3313924144
+    ],
+    "0:estella-xa-deep-ice-mine": [
+      10,
+      2168495491
+    ],
+    "0:estella-xa-exobiology-research": [
+      7,
+      2474314377
+    ],
+    "0:estella-xa-volatiles-transit": [
+      7,
+      4064452613
+    ],
+    "0:estella-xb-luxury-retreat": [
+      2,
+      3733568583
+    ],
+    "0:estella-xb-rare-element-mine": [
+      10,
+      540634788
+    ],
+    "0:estella-xb-smelting-processing": [
+      13,
+      3089775936
+    ],
+    "0:estella-xb-worker-hab": [
+      8,
+      776040358
+    ],
+    "0:estella-xc-castle-alvares": [
+      0,
+      1947613349
+    ],
+    "0:estella-xc-castle-mendes": [
+      0,
+      1947613349
+    ],
+    "0:estella-xc-main-outpost": [
+      20,
+      249952432
+    ],
+    "0:estella-xc-transit-refuel": [
+      19,
+      2322021782
+    ],
+    "0:estella-xd-chem-station": [
+      13,
+      1628188217
+    ],
+    "0:estella-xd-geothermal-extraction": [
+      14,
+      1581778342
+    ],
+    "0:estella-xd-iron-lists": [
+      0,
+      1947613349
+    ],
+    "0:estella-xd-proving-grounds": [
+      6,
+      307948863
+    ],
+    "0:estella-xd-redoubt-field": [
+      0,
+      1947613349
+    ],
+    "0:estella-xi-fence-poi": [
+      0,
+      1947613349
+    ],
+    "0:estella-xi-religious-retreat-poi": [
+      0,
+      1947613349
+    ],
+    "0:estella-xi-science-waypoint-poi": [
+      1,
+      1692981084
+    ],
+    "0:estella-xi-skim-hub": [
+      13,
+      1641089968
+    ],
+    "0:estella-xi-smuggler-deaddrop-poi": [
+      0,
+      1947613349
+    ],
+    "0:estella-xia-chem-station": [
+      14,
+      2406315999
+    ],
+    "0:estella-xia-rare-element-extraction": [
+      10,
+      370856540
+    ],
+    "0:estella-xia-sealed-worker-hab": [
+      7,
+      1239222320
+    ],
+    "0:estella-xia-sulfur-mine": [
+      13,
+      3537344567
+    ],
+    "0:estella-xib-cryo-transit": [
+      14,
+      430239110
+    ],
+    "0:estella-xib-hydrocarbon-extraction": [
+      13,
+      3586893799
+    ],
+    "0:estella-xib-methane-refinery": [
+      10,
+      328729301
+    ],
+    "0:estella-xib-organic-chemistry": [
+      15,
+      3350749188
+    ],
+    "0:estella-xib-science-settlement": [
+      7,
+      559574427
+    ],
+    "0:estella-xic-deep-ice-exobiology": [
+      5,
+      1035815353
+    ],
+    "0:estella-xic-ice-mining": [
+      10,
+      2220205066
+    ],
+    "0:estella-xic-last-breath-lists": [
+      5,
+      157844212
+    ],
+    "0:estella-xic-research-station-poi": [
+      6,
+      1048625200
+    ],
+    "0:estella-xid-customs-transit": [
+      10,
+      1520518449
+    ],
+    "0:estella-xid-main-port": [
+      28,
+      277309158
+    ],
+    "0:estella-xid-services-outfitter-hangar": [
+      17,
+      2429934076
+    ],
+    "0:estella-xid-specialty-cargo": [
+      0,
+      1947613349
+    ],
+    "0:estella-xie-component-fabrication": [
+      6,
+      3166379636
+    ],
+    "0:estella-xie-oathmark-academy": [
+      13,
+      2888171946
+    ],
+    "0:estella-xie-outer-spec-drydock": [
+      17,
+      212255488
+    ],
+    "0:estella-xie-rare-alloy-extraction": [
+      17,
+      2253456240
+    ],
+    "0:estella-xif-deep-listening-array": [
+      16,
+      1006401914
+    ],
+    "0:estella-xif-observatory": [
+      0,
+      1947613349
+    ],
+    "0:estella-xif-sealed-research-outpost": [
+      0,
+      1947613349
+    ],
+    "0:estella-xii-comm-relay-poi": [
+      13,
+      1490972825
+    ],
+    "0:estella-xii-observation-post": [
+      24,
+      1758817989
+    ],
+    "0:estella-xii-smuggler-waypoint-poi": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiia-deep-ice-mine": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiia-isolated-settlement": [
+      1,
+      979128324
+    ],
+    "0:estella-xiia-volatiles-transit": [
+      7,
+      2144733472
+    ],
+    "0:estella-xiib-outpost": [
+      1,
+      565090713
+    ],
+    "0:estella-xiib-transit-station-poi": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiic-castle-teide": [
+      12,
+      1399140390
+    ],
+    "0:estella-xiic-comet-research": [
+      12,
+      3558108437
+    ],
+    "0:estella-xiic-isotope-mining": [
+      16,
+      3341343491
+    ],
+    "0:estella-xiid-black-project-exile": [
+      3,
+      3229867194
+    ],
+    "0:estella-xiid-blackglass-observatory": [
+      8,
+      4258269596
+    ],
+    "0:estella-xiid-mirror-clinic": [
+      3,
+      1883059377
+    ],
+    "0:estella-xiii-classified-research": [
+      3,
+      3729420201
+    ],
+    "0:estella-xiii-deep-ice-mining": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiii-governors-outpost": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiii-long-range-observatory": [
+      8,
+      1813141791
+    ],
+    "0:estella-xiii-main-port": [
+      18,
+      3438143561
+    ],
+    "0:estella-xiii-prison-exile-colony": [
+      2,
+      1698380532
+    ],
+    "0:estella-xiv-abandoned-active-site": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiv-religious-retreat": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiv-smuggler-haven": [
+      0,
+      1947613349
+    ],
+    "0:estella-xiv-transit-dock": [
+      7,
+      670039715
+    ],
+    "0:grubstake-depot-dock": [
+      13,
+      2470738253
+    ],
+    "0:harlan-dock": [
+      11,
+      1818235138
+    ],
+    "0:highgrade-depot-dock": [
+      13,
+      629581840
+    ],
+    "0:industrial-refinery-finished-goods": [
+      20,
+      3223257380
+    ],
+    "0:industrial-refinery-ore-intake": [
+      20,
+      2106272667
+    ],
+    "0:industrial-refinery-staff-hab": [
+      20,
+      1775737624
+    ],
+    "0:mercer-dock": [
+      10,
+      2861323096
+    ],
+    "0:reach-comet-fragment-1-poi": [
+      0,
+      1947613349
+    ],
+    "0:reach-comet-fragment-2-poi": [
+      7,
+      1363092028
+    ],
+    "0:reach-comet-fragment-3-poi": [
+      0,
+      1947613349
+    ],
+    "0:reach-comet-fragment-4-poi": [
+      0,
+      1947613349
+    ],
+    "0:reach-comet-fragment-5-poi": [
+      7,
+      3727769128
+    ],
+    "0:reach-comet-fragment-6-poi": [
+      0,
+      1947613349
+    ],
+    "0:reach-rogue-isotope-mine": [
+      7,
+      1940439256
+    ],
+    "0:reach-rogue-lonely-beacon": [
+      10,
+      1839276924
+    ],
+    "0:skim-hub-alpha-precursor-dock": [
+      10,
+      1315296829
+    ],
+    "0:skim-hub-beta-precursor-dock": [
+      10,
+      3863035511
+    ],
+    "0:slagfoot-depot-dock": [
+      13,
+      1006094288
+    ],
+    "0:still-distribution-bay": [
+      13,
+      2883574398
+    ],
+    "0:still-guild-hq": [
+      13,
+      896860953
+    ],
+    "0:still-public-approach-dock": [
+      13,
+      1890410997
+    ],
+    "0:still-refinery-core": [
+      13,
+      2441357995
+    ],
+    "0:still-skim-runner-berth-poi": [
+      13,
+      1293725463
+    ],
+    "0:still-worker-hab": [
+      13,
+      3090959930
+    ],
+    "1:ark-quarantine-station-poi": [
+      0,
+      1947613349
+    ],
+    "1:arkfall-apocrypha-cache-poi": [
+      0,
+      1947613349
+    ],
+    "1:caravanserai-certification-authority": [
+      28,
+      799474295
+    ],
+    "1:caravanserai-customs-inspection": [
+      28,
+      613427524
+    ],
+    "1:caravanserai-foreign-quarter": [
+      28,
+      1461490303
+    ],
+    "1:caravanserai-free-trader-anchorage": [
+      28,
+      1816324468
+    ],
+    "1:caravanserai-highliner-bay-poi": [
+      28,
+      4076840306
+    ],
+    "1:caravanserai-lookout-spire": [
+      28,
+      782448646
+    ],
+    "1:caravanserai-main-commercial-dock": [
+      28,
+      598710115
+    ],
+    "1:caravanserai-outfitter-drydock": [
+      28,
+      2023456163
+    ],
+    "1:caravanserai-player-hangar": [
+      28,
+      556952921
+    ],
+    "1:caravanserai-refuel-depot": [
+      28,
+      1248600950
+    ],
+    "1:deepcut-depot-dock": [
+      13,
+      4257416828
+    ],
+    "1:deepest-dock-poi": [
+      8,
+      391896136
+    ],
+    "1:estella-i-hot-processing": [
+      15,
+      560540648
+    ],
+    "1:estella-i-refractory-mine": [
+      6,
+      427316443
+    ],
+    "1:estella-i-transit-customs": [
+      19,
+      4118411294
+    ],
+    "1:estella-i-worker-hab": [
+      1,
+      3440472577
+    ],
+    "1:estella-ii-commercial-hub-dock": [
+      15,
+      1239915070
+    ],
+    "1:estella-ii-nimbus-crucible": [
+      0,
+      1947613349
+    ],
+    "1:estella-ii-olympos": [
+      14,
+      1702460042
+    ],
+    "1:estella-ii-pandemonium": [
+      3,
+      2626977379
+    ],
+    "1:estella-iii-agricultural-region": [
+      13,
+      4116618554
+    ],
+    "1:estella-iii-capital-city": [
+      28,
+      86680341
+    ],
+    "1:estella-iii-coastal-resort": [
+      14,
+      700123324
+    ],
+    "1:estella-iii-finance-city": [
+      28,
+      86680341
+    ],
+    "1:estella-iii-high-tech-city": [
+      21,
+      2330158521
+    ],
+    "1:estella-iii-historic-site": [
+      28,
+      86680341
+    ],
+    "1:estella-iii-luxury-orbital-habitat": [
+      3,
+      2852670801
+    ],
+    "1:estella-iii-main-customs": [
+      28,
+      1499150750
+    ],
+    "1:estella-iii-polar-science": [
+      8,
+      2432013245
+    ],
+    "1:estella-iiia-helium-mining": [
+      4,
+      1199225346
+    ],
+    "1:estella-iiia-heritage-site": [
+      28,
+      3953871909
+    ],
+    "1:estella-iiia-main-port-transit": [
+      7,
+      373071135
+    ],
+    "1:estella-iiia-science-settlement": [
+      17,
+      2263623229
+    ],
+    "1:estella-iv-climate-poi-1": [
+      15,
+      129286186
+    ],
+    "1:estella-iv-climate-poi-2": [
+      12,
+      4146349632
+    ],
+    "1:estella-iv-climate-poi-3": [
+      11,
+      1166539797
+    ],
+    "1:estella-iv-main-orbital-station": [
+      28,
+      4062002468
+    ],
+    "1:estella-iv-primary-city": [
+      28,
+      427416810
+    ],
+    "1:estella-ix-geological-feature": [
+      2,
+      4127334260
+    ],
+    "1:estella-ix-ice-mine": [
+      8,
+      3308606225
+    ],
+    "1:estella-ix-moonlet-observation-outpost": [
+      1,
+      2428340376
+    ],
+    "1:estella-ix-opposite-sense-supply-depot": [
+      15,
+      1183480828
+    ],
+    "1:estella-ix-research-base": [
+      11,
+      268891011
+    ],
+    "1:estella-v-abandoned-colony": [
+      0,
+      1947613349
+    ],
+    "1:estella-v-atmo-refinery": [
+      11,
+      4257649773
+    ],
+    "1:estella-v-capital-settlement": [
+      28,
+      1923441550
+    ],
+    "1:estella-v-high-orbit-factory": [
+      18,
+      3582101752
+    ],
+    "1:estella-v-open-cast-mine": [
+      2,
+      2662079156
+    ],
+    "1:estella-v-storm-research": [
+      5,
+      3903733332
+    ],
+    "1:estella-v-transit-customs": [
+      28,
+      1082747595
+    ],
+    "1:estella-va-miner-hab": [
+      13,
+      3733692186
+    ],
+    "1:estella-va-ore-handling-depot": [
+      14,
+      797387013
+    ],
+    "1:estella-va-strip-mine": [
+      13,
+      2018454755
+    ],
+    "1:estella-vi-agricultural-lowlands": [
+      1,
+      2095320304
+    ],
+    "1:estella-vi-foundry-complex": [
+      4,
+      2807898011
+    ],
+    "1:estella-vi-heavy-cargo-station": [
+      14,
+      2472866537
+    ],
+    "1:estella-vi-industrial-city": [
+      3,
+      270539598
+    ],
+    "1:estella-vi-main-transit-dispatch": [
+      28,
+      2713027890
+    ],
+    "1:estella-vi-mountain-mining": [
+      2,
+      3425549681
+    ],
+    "1:estella-vi-polar-weather-research": [
+      2,
+      3274817212
+    ],
+    "1:estella-vi-spaceport": [
+      2,
+      1373473021
+    ],
+    "1:estella-via-component-supply-station": [
+      28,
+      3117249833
+    ],
+    "1:estella-via-drydock-station": [
+      28,
+      2491300144
+    ],
+    "1:estella-via-rare-alloy-extraction": [
+      3,
+      4090860994
+    ],
+    "1:estella-via-surface-anchor": [
+      5,
+      1946037514
+    ],
+    "1:estella-vib-aquaculture": [
+      3,
+      3772662549
+    ],
+    "1:estella-vib-cold-chain-station": [
+      16,
+      2963574940
+    ],
+    "1:estella-vib-pharma-horticulture": [
+      2,
+      777900718
+    ],
+    "1:estella-vib-vat-protein": [
+      2,
+      556478502
+    ],
+    "1:estella-vii-black-project-outpost": [
+      0,
+      1947613349
+    ],
+    "1:estella-vii-feedstock-mine": [
+      4,
+      1787145379
+    ],
+    "1:estella-vii-high-vacuum-factory": [
+      19,
+      4084862434
+    ],
+    "1:estella-vii-transit-export": [
+      28,
+      3301553148
+    ],
+    "1:estella-vii-worker-hab": [
+      14,
+      216165286
+    ],
+    "1:estella-viii-abandoned-site": [
+      0,
+      1947613349
+    ],
+    "1:estella-viii-first-rendezvous-station": [
+      14,
+      629666867
+    ],
+    "1:estella-viii-harder-approach-station": [
+      15,
+      1858961800
+    ],
+    "1:estella-viii-mining-site": [
+      7,
+      2383589427
+    ],
+    "1:estella-viii-moonlet-docking-site": [
+      0,
+      1947613349
+    ],
+    "1:estella-viii-settlement": [
+      19,
+      2438417934
+    ],
+    "1:estella-x-captive-refuel-relay": [
+      7,
+      591640955
+    ],
+    "1:estella-x-observation-skim-hub": [
+      14,
+      2371936266
+    ],
+    "1:estella-xa-deep-ice-mine": [
+      10,
+      2224564361
+    ],
+    "1:estella-xa-exobiology-research": [
+      7,
+      1007803687
+    ],
+    "1:estella-xa-volatiles-transit": [
+      7,
+      3021976392
+    ],
+    "1:estella-xb-luxury-retreat": [
+      2,
+      956288708
+    ],
+    "1:estella-xb-rare-element-mine": [
+      10,
+      2232784092
+    ],
+    "1:estella-xb-smelting-processing": [
+      13,
+      4202368169
+    ],
+    "1:estella-xb-worker-hab": [
+      8,
+      2425824850
+    ],
+    "1:estella-xc-castle-alvares": [
+      0,
+      1947613349
+    ],
+    "1:estella-xc-castle-mendes": [
+      0,
+      1947613349
+    ],
+    "1:estella-xc-main-outpost": [
+      20,
+      2714374244
+    ],
+    "1:estella-xc-transit-refuel": [
+      19,
+      3226247327
+    ],
+    "1:estella-xd-chem-station": [
+      13,
+      202536356
+    ],
+    "1:estella-xd-geothermal-extraction": [
+      14,
+      817087631
+    ],
+    "1:estella-xd-iron-lists": [
+      0,
+      1947613349
+    ],
+    "1:estella-xd-proving-grounds": [
+      6,
+      2260999283
+    ],
+    "1:estella-xd-redoubt-field": [
+      0,
+      1947613349
+    ],
+    "1:estella-xi-fence-poi": [
+      0,
+      1947613349
+    ],
+    "1:estella-xi-religious-retreat-poi": [
+      0,
+      1947613349
+    ],
+    "1:estella-xi-science-waypoint-poi": [
+      1,
+      1692981084
+    ],
+    "1:estella-xi-skim-hub": [
+      13,
+      2885576554
+    ],
+    "1:estella-xi-smuggler-deaddrop-poi": [
+      0,
+      1947613349
+    ],
+    "1:estella-xia-chem-station": [
+      15,
+      1846048345
+    ],
+    "1:estella-xia-rare-element-extraction": [
+      10,
+      2330326557
+    ],
+    "1:estella-xia-sealed-worker-hab": [
+      7,
+      3870914886
+    ],
+    "1:estella-xia-sulfur-mine": [
+      13,
+      3214656822
+    ],
+    "1:estella-xib-cryo-transit": [
+      14,
+      2783304212
+    ],
+    "1:estella-xib-hydrocarbon-extraction": [
+      13,
+      583709248
+    ],
+    "1:estella-xib-methane-refinery": [
+      10,
+      2875150275
+    ],
+    "1:estella-xib-organic-chemistry": [
+      14,
+      3884694887
+    ],
+    "1:estella-xib-science-settlement": [
+      7,
+      1746966241
+    ],
+    "1:estella-xic-deep-ice-exobiology": [
+      6,
+      2391837093
+    ],
+    "1:estella-xic-ice-mining": [
+      10,
+      3250315156
+    ],
+    "1:estella-xic-last-breath-lists": [
+      5,
+      307482062
+    ],
+    "1:estella-xic-research-station-poi": [
+      6,
+      1774579435
+    ],
+    "1:estella-xid-customs-transit": [
+      10,
+      668968642
+    ],
+    "1:estella-xid-main-port": [
+      28,
+      3511125394
+    ],
+    "1:estella-xid-services-outfitter-hangar": [
+      17,
+      3300908684
+    ],
+    "1:estella-xid-specialty-cargo": [
+      0,
+      1947613349
+    ],
+    "1:estella-xie-component-fabrication": [
+      6,
+      208141008
+    ],
+    "1:estella-xie-oathmark-academy": [
+      13,
+      3207992743
+    ],
+    "1:estella-xie-outer-spec-drydock": [
+      17,
+      2027734885
+    ],
+    "1:estella-xie-rare-alloy-extraction": [
+      17,
+      2237124013
+    ],
+    "1:estella-xif-deep-listening-array": [
+      16,
+      2425544245
+    ],
+    "1:estella-xif-observatory": [
+      0,
+      1947613349
+    ],
+    "1:estella-xif-sealed-research-outpost": [
+      0,
+      1947613349
+    ],
+    "1:estella-xii-comm-relay-poi": [
+      17,
+      1748221576
+    ],
+    "1:estella-xii-observation-post": [
+      23,
+      3611543027
+    ],
+    "1:estella-xii-smuggler-waypoint-poi": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiia-deep-ice-mine": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiia-isolated-settlement": [
+      1,
+      1025984277
+    ],
+    "1:estella-xiia-volatiles-transit": [
+      7,
+      578626589
+    ],
+    "1:estella-xiib-outpost": [
+      1,
+      1592199553
+    ],
+    "1:estella-xiib-transit-station-poi": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiic-castle-teide": [
+      12,
+      3993552870
+    ],
+    "1:estella-xiic-comet-research": [
+      8,
+      1720573565
+    ],
+    "1:estella-xiic-isotope-mining": [
+      16,
+      269679385
+    ],
+    "1:estella-xiid-black-project-exile": [
+      3,
+      675199510
+    ],
+    "1:estella-xiid-blackglass-observatory": [
+      6,
+      2319420692
+    ],
+    "1:estella-xiid-mirror-clinic": [
+      3,
+      3483099869
+    ],
+    "1:estella-xiii-classified-research": [
+      5,
+      1535760772
+    ],
+    "1:estella-xiii-deep-ice-mining": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiii-governors-outpost": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiii-long-range-observatory": [
+      6,
+      2630315656
+    ],
+    "1:estella-xiii-main-port": [
+      18,
+      2365159333
+    ],
+    "1:estella-xiii-prison-exile-colony": [
+      2,
+      521672805
+    ],
+    "1:estella-xiv-abandoned-active-site": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiv-religious-retreat": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiv-smuggler-haven": [
+      0,
+      1947613349
+    ],
+    "1:estella-xiv-transit-dock": [
+      7,
+      3369933227
+    ],
+    "1:grubstake-depot-dock": [
+      13,
+      3423618680
+    ],
+    "1:harlan-dock": [
+      11,
+      868972578
+    ],
+    "1:highgrade-depot-dock": [
+      13,
+      2603430826
+    ],
+    "1:industrial-refinery-finished-goods": [
+      20,
+      3760429043
+    ],
+    "1:industrial-refinery-ore-intake": [
+      20,
+      503851047
+    ],
+    "1:industrial-refinery-staff-hab": [
+      20,
+      3301134011
+    ],
+    "1:mercer-dock": [
+      10,
+      745807857
+    ],
+    "1:reach-comet-fragment-1-poi": [
+      0,
+      1947613349
+    ],
+    "1:reach-comet-fragment-2-poi": [
+      7,
+      793487282
+    ],
+    "1:reach-comet-fragment-3-poi": [
+      0,
+      1947613349
+    ],
+    "1:reach-comet-fragment-4-poi": [
+      0,
+      1947613349
+    ],
+    "1:reach-comet-fragment-5-poi": [
+      7,
+      267570043
+    ],
+    "1:reach-comet-fragment-6-poi": [
+      0,
+      1947613349
+    ],
+    "1:reach-rogue-isotope-mine": [
+      7,
+      56182943
+    ],
+    "1:reach-rogue-lonely-beacon": [
+      10,
+      2841761396
+    ],
+    "1:skim-hub-alpha-precursor-dock": [
+      10,
+      3302830116
+    ],
+    "1:skim-hub-beta-precursor-dock": [
+      10,
+      3340573144
+    ],
+    "1:slagfoot-depot-dock": [
+      13,
+      2674144869
+    ],
+    "1:still-distribution-bay": [
+      13,
+      2077540207
+    ],
+    "1:still-guild-hq": [
+      13,
+      2229930160
+    ],
+    "1:still-public-approach-dock": [
+      13,
+      1173578897
+    ],
+    "1:still-refinery-core": [
+      13,
+      2703206124
+    ],
+    "1:still-skim-runner-berth-poi": [
+      13,
+      2561181287
+    ],
+    "1:still-worker-hab": [
+      13,
+      2719804439
+    ],
+    "20:ark-quarantine-station-poi": [
+      0,
+      1947613349
+    ],
+    "20:arkfall-apocrypha-cache-poi": [
+      0,
+      1947613349
+    ],
+    "20:caravanserai-certification-authority": [
+      28,
+      1725581322
+    ],
+    "20:caravanserai-customs-inspection": [
+      28,
+      2452622198
+    ],
+    "20:caravanserai-foreign-quarter": [
+      28,
+      3394254245
+    ],
+    "20:caravanserai-free-trader-anchorage": [
+      28,
+      4265354318
+    ],
+    "20:caravanserai-highliner-bay-poi": [
+      28,
+      4042469060
+    ],
+    "20:caravanserai-lookout-spire": [
+      28,
+      943140159
+    ],
+    "20:caravanserai-main-commercial-dock": [
+      28,
+      4210285680
+    ],
+    "20:caravanserai-outfitter-drydock": [
+      28,
+      3507509559
+    ],
+    "20:caravanserai-player-hangar": [
+      28,
+      3457408814
+    ],
+    "20:caravanserai-refuel-depot": [
+      28,
+      1954972828
+    ],
+    "20:deepcut-depot-dock": [
+      13,
+      2491958941
+    ],
+    "20:deepest-dock-poi": [
+      9,
+      1785312325
+    ],
+    "20:estella-i-hot-processing": [
+      13,
+      2846733996
+    ],
+    "20:estella-i-refractory-mine": [
+      4,
+      2794905114
+    ],
+    "20:estella-i-transit-customs": [
+      21,
+      1043965210
+    ],
+    "20:estella-i-worker-hab": [
+      4,
+      3955830075
+    ],
+    "20:estella-ii-commercial-hub-dock": [
+      15,
+      1905516066
+    ],
+    "20:estella-ii-nimbus-crucible": [
+      0,
+      1947613349
+    ],
+    "20:estella-ii-olympos": [
+      14,
+      1606366463
+    ],
+    "20:estella-ii-pandemonium": [
+      3,
+      952828179
+    ],
+    "20:estella-iii-agricultural-region": [
+      11,
+      1886176355
+    ],
+    "20:estella-iii-capital-city": [
+      28,
+      3116815265
+    ],
+    "20:estella-iii-coastal-resort": [
+      14,
+      1123042244
+    ],
+    "20:estella-iii-finance-city": [
+      28,
+      3116815265
+    ],
+    "20:estella-iii-high-tech-city": [
+      24,
+      1431040664
+    ],
+    "20:estella-iii-historic-site": [
+      28,
+      3116815265
+    ],
+    "20:estella-iii-luxury-orbital-habitat": [
+      3,
+      1962214659
+    ],
+    "20:estella-iii-main-customs": [
+      28,
+      2079238221
+    ],
+    "20:estella-iii-polar-science": [
+      5,
+      1966483585
+    ],
+    "20:estella-iiia-helium-mining": [
+      4,
+      202397119
+    ],
+    "20:estella-iiia-heritage-site": [
+      28,
+      2995579110
+    ],
+    "20:estella-iiia-main-port-transit": [
+      7,
+      2194124067
+    ],
+    "20:estella-iiia-science-settlement": [
+      17,
+      2539334752
+    ],
+    "20:estella-iv-climate-poi-1": [
+      19,
+      3093498915
+    ],
+    "20:estella-iv-climate-poi-2": [
+      9,
+      1432804213
+    ],
+    "20:estella-iv-climate-poi-3": [
+      18,
+      3456580289
+    ],
+    "20:estella-iv-main-orbital-station": [
+      28,
+      1351707228
+    ],
+    "20:estella-iv-primary-city": [
+      28,
+      1321300029
+    ],
+    "20:estella-ix-geological-feature": [
+      2,
+      3011505951
+    ],
+    "20:estella-ix-ice-mine": [
+      3,
+      1449708457
+    ],
+    "20:estella-ix-moonlet-observation-outpost": [
+      1,
+      546283383
+    ],
+    "20:estella-ix-opposite-sense-supply-depot": [
+      19,
+      319236831
+    ],
+    "20:estella-ix-research-base": [
+      8,
+      1239819773
+    ],
+    "20:estella-v-abandoned-colony": [
+      0,
+      1947613349
+    ],
+    "20:estella-v-atmo-refinery": [
+      11,
+      2658460266
+    ],
+    "20:estella-v-capital-settlement": [
+      28,
+      1216657377
+    ],
+    "20:estella-v-high-orbit-factory": [
+      18,
+      2468927238
+    ],
+    "20:estella-v-open-cast-mine": [
+      0,
+      1947613349
+    ],
+    "20:estella-v-storm-research": [
+      5,
+      2678748322
+    ],
+    "20:estella-v-transit-customs": [
+      28,
+      580973228
+    ],
+    "20:estella-va-miner-hab": [
+      13,
+      4147033806
+    ],
+    "20:estella-va-ore-handling-depot": [
+      14,
+      2915349268
+    ],
+    "20:estella-va-strip-mine": [
+      13,
+      2836049610
+    ],
+    "20:estella-vi-agricultural-lowlands": [
+      1,
+      2976202708
+    ],
+    "20:estella-vi-foundry-complex": [
+      3,
+      4232993568
+    ],
+    "20:estella-vi-heavy-cargo-station": [
+      14,
+      2963805742
+    ],
+    "20:estella-vi-industrial-city": [
+      4,
+      3411375589
+    ],
+    "20:estella-vi-main-transit-dispatch": [
+      28,
+      1245840985
+    ],
+    "20:estella-vi-mountain-mining": [
+      2,
+      3921675907
+    ],
+    "20:estella-vi-polar-weather-research": [
+      2,
+      458868571
+    ],
+    "20:estella-vi-spaceport": [
+      2,
+      1373473021
+    ],
+    "20:estella-via-component-supply-station": [
+      28,
+      3828885769
+    ],
+    "20:estella-via-drydock-station": [
+      28,
+      1754876634
+    ],
+    "20:estella-via-rare-alloy-extraction": [
+      3,
+      2546161757
+    ],
+    "20:estella-via-surface-anchor": [
+      5,
+      1128781156
+    ],
+    "20:estella-vib-aquaculture": [
+      2,
+      1348486768
+    ],
+    "20:estella-vib-cold-chain-station": [
+      16,
+      3273328096
+    ],
+    "20:estella-vib-pharma-horticulture": [
+      2,
+      2668200110
+    ],
+    "20:estella-vib-vat-protein": [
+      3,
+      1260079369
+    ],
+    "20:estella-vii-black-project-outpost": [
+      0,
+      1947613349
+    ],
+    "20:estella-vii-feedstock-mine": [
+      5,
+      1579521660
+    ],
+    "20:estella-vii-high-vacuum-factory": [
+      21,
+      3601299471
+    ],
+    "20:estella-vii-transit-export": [
+      28,
+      2907458551
+    ],
+    "20:estella-vii-worker-hab": [
+      11,
+      1423374776
+    ],
+    "20:estella-viii-abandoned-site": [
+      0,
+      1947613349
+    ],
+    "20:estella-viii-first-rendezvous-station": [
+      14,
+      1002360252
+    ],
+    "20:estella-viii-harder-approach-station": [
+      15,
+      3591166126
+    ],
+    "20:estella-viii-mining-site": [
+      7,
+      2165609019
+    ],
+    "20:estella-viii-moonlet-docking-site": [
+      0,
+      1947613349
+    ],
+    "20:estella-viii-settlement": [
+      19,
+      3856701146
+    ],
+    "20:estella-x-captive-refuel-relay": [
+      7,
+      4131723282
+    ],
+    "20:estella-x-observation-skim-hub": [
+      14,
+      3378413332
+    ],
+    "20:estella-xa-deep-ice-mine": [
+      10,
+      2286877544
+    ],
+    "20:estella-xa-exobiology-research": [
+      7,
+      1114753976
+    ],
+    "20:estella-xa-volatiles-transit": [
+      7,
+      3366384420
+    ],
+    "20:estella-xb-luxury-retreat": [
+      2,
+      851251905
+    ],
+    "20:estella-xb-rare-element-mine": [
+      10,
+      2022565212
+    ],
+    "20:estella-xb-smelting-processing": [
+      13,
+      696427796
+    ],
+    "20:estella-xb-worker-hab": [
+      8,
+      597697246
+    ],
+    "20:estella-xc-castle-alvares": [
+      0,
+      1947613349
+    ],
+    "20:estella-xc-castle-mendes": [
+      0,
+      1947613349
+    ],
+    "20:estella-xc-main-outpost": [
+      20,
+      721226906
+    ],
+    "20:estella-xc-transit-refuel": [
+      19,
+      1049323269
+    ],
+    "20:estella-xd-chem-station": [
+      13,
+      3385417102
+    ],
+    "20:estella-xd-geothermal-extraction": [
+      14,
+      4022675116
+    ],
+    "20:estella-xd-iron-lists": [
+      0,
+      1947613349
+    ],
+    "20:estella-xd-proving-grounds": [
+      6,
+      2738696395
+    ],
+    "20:estella-xd-redoubt-field": [
+      0,
+      1947613349
+    ],
+    "20:estella-xi-fence-poi": [
+      0,
+      1947613349
+    ],
+    "20:estella-xi-religious-retreat-poi": [
+      0,
+      1947613349
+    ],
+    "20:estella-xi-science-waypoint-poi": [
+      3,
+      263140323
+    ],
+    "20:estella-xi-skim-hub": [
+      13,
+      3360213833
+    ],
+    "20:estella-xi-smuggler-deaddrop-poi": [
+      0,
+      1947613349
+    ],
+    "20:estella-xia-chem-station": [
+      15,
+      3190973040
+    ],
+    "20:estella-xia-rare-element-extraction": [
+      10,
+      1872726867
+    ],
+    "20:estella-xia-sealed-worker-hab": [
+      7,
+      2055209418
+    ],
+    "20:estella-xia-sulfur-mine": [
+      13,
+      3117037172
+    ],
+    "20:estella-xib-cryo-transit": [
+      14,
+      4024042490
+    ],
+    "20:estella-xib-hydrocarbon-extraction": [
+      13,
+      281074297
+    ],
+    "20:estella-xib-methane-refinery": [
+      10,
+      3676716361
+    ],
+    "20:estella-xib-organic-chemistry": [
+      14,
+      382046012
+    ],
+    "20:estella-xib-science-settlement": [
+      7,
+      3369987252
+    ],
+    "20:estella-xic-deep-ice-exobiology": [
+      6,
+      3230047528
+    ],
+    "20:estella-xic-ice-mining": [
+      10,
+      3992782522
+    ],
+    "20:estella-xic-last-breath-lists": [
+      5,
+      3597716589
+    ],
+    "20:estella-xic-research-station-poi": [
+      6,
+      3409850841
+    ],
+    "20:estella-xid-customs-transit": [
+      10,
+      3416999191
+    ],
+    "20:estella-xid-main-port": [
+      28,
+      462490044
+    ],
+    "20:estella-xid-services-outfitter-hangar": [
+      17,
+      2515945488
+    ],
+    "20:estella-xid-specialty-cargo": [
+      1,
+      1940680835
+    ],
+    "20:estella-xie-component-fabrication": [
+      6,
+      3896870197
+    ],
+    "20:estella-xie-oathmark-academy": [
+      13,
+      897169435
+    ],
+    "20:estella-xie-outer-spec-drydock": [
+      17,
+      3525447774
+    ],
+    "20:estella-xie-rare-alloy-extraction": [
+      17,
+      306879929
+    ],
+    "20:estella-xif-deep-listening-array": [
+      16,
+      3187454149
+    ],
+    "20:estella-xif-observatory": [
+      0,
+      1947613349
+    ],
+    "20:estella-xif-sealed-research-outpost": [
+      0,
+      1947613349
+    ],
+    "20:estella-xii-comm-relay-poi": [
+      13,
+      1238078086
+    ],
+    "20:estella-xii-observation-post": [
+      23,
+      767859262
+    ],
+    "20:estella-xii-smuggler-waypoint-poi": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiia-deep-ice-mine": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiia-isolated-settlement": [
+      1,
+      2269016974
+    ],
+    "20:estella-xiia-volatiles-transit": [
+      7,
+      1338775811
+    ],
+    "20:estella-xiib-outpost": [
+      1,
+      2569576407
+    ],
+    "20:estella-xiib-transit-station-poi": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiic-castle-teide": [
+      12,
+      1867202669
+    ],
+    "20:estella-xiic-comet-research": [
+      12,
+      2225698019
+    ],
+    "20:estella-xiic-isotope-mining": [
+      16,
+      3154523611
+    ],
+    "20:estella-xiid-black-project-exile": [
+      3,
+      3055416127
+    ],
+    "20:estella-xiid-blackglass-observatory": [
+      6,
+      2533931625
+    ],
+    "20:estella-xiid-mirror-clinic": [
+      3,
+      1318164289
+    ],
+    "20:estella-xiii-classified-research": [
+      3,
+      1623266937
+    ],
+    "20:estella-xiii-deep-ice-mining": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiii-governors-outpost": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiii-long-range-observatory": [
+      6,
+      3355041379
+    ],
+    "20:estella-xiii-main-port": [
+      17,
+      244721682
+    ],
+    "20:estella-xiii-prison-exile-colony": [
+      2,
+      4192026923
+    ],
+    "20:estella-xiv-abandoned-active-site": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiv-religious-retreat": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiv-smuggler-haven": [
+      0,
+      1947613349
+    ],
+    "20:estella-xiv-transit-dock": [
+      7,
+      2393420238
+    ],
+    "20:grubstake-depot-dock": [
+      13,
+      77106745
+    ],
+    "20:harlan-dock": [
+      11,
+      1083794578
+    ],
+    "20:highgrade-depot-dock": [
+      13,
+      189922380
+    ],
+    "20:industrial-refinery-finished-goods": [
+      20,
+      1923331042
+    ],
+    "20:industrial-refinery-ore-intake": [
+      20,
+      1188527175
+    ],
+    "20:industrial-refinery-staff-hab": [
+      20,
+      1757921853
+    ],
+    "20:mercer-dock": [
+      10,
+      1198791579
+    ],
+    "20:reach-comet-fragment-1-poi": [
+      0,
+      1947613349
+    ],
+    "20:reach-comet-fragment-2-poi": [
+      7,
+      369651187
+    ],
+    "20:reach-comet-fragment-3-poi": [
+      0,
+      1947613349
+    ],
+    "20:reach-comet-fragment-4-poi": [
+      0,
+      1947613349
+    ],
+    "20:reach-comet-fragment-5-poi": [
+      7,
+      353168852
+    ],
+    "20:reach-comet-fragment-6-poi": [
+      0,
+      1947613349
+    ],
+    "20:reach-rogue-isotope-mine": [
+      7,
+      1346253805
+    ],
+    "20:reach-rogue-lonely-beacon": [
+      12,
+      2312568743
+    ],
+    "20:skim-hub-alpha-precursor-dock": [
+      10,
+      1512340498
+    ],
+    "20:skim-hub-beta-precursor-dock": [
+      10,
+      3466360310
+    ],
+    "20:slagfoot-depot-dock": [
+      13,
+      2927301886
+    ],
+    "20:still-distribution-bay": [
+      13,
+      1946529916
+    ],
+    "20:still-guild-hq": [
+      13,
+      1044178610
+    ],
+    "20:still-public-approach-dock": [
+      13,
+      3450380687
+    ],
+    "20:still-refinery-core": [
+      13,
+      765507719
+    ],
+    "20:still-skim-runner-berth-poi": [
+      13,
+      2604223148
+    ],
+    "20:still-worker-hab": [
+      13,
+      2394351387
+    ],
+    "21:ark-quarantine-station-poi": [
+      0,
+      1947613349
+    ],
+    "21:arkfall-apocrypha-cache-poi": [
+      0,
+      1947613349
+    ],
+    "21:caravanserai-certification-authority": [
+      28,
+      3001317634
+    ],
+    "21:caravanserai-customs-inspection": [
+      28,
+      3213515677
+    ],
+    "21:caravanserai-foreign-quarter": [
+      28,
+      1627867575
+    ],
+    "21:caravanserai-free-trader-anchorage": [
+      28,
+      2219964465
+    ],
+    "21:caravanserai-highliner-bay-poi": [
+      28,
+      278152475
+    ],
+    "21:caravanserai-lookout-spire": [
+      28,
+      2757686101
+    ],
+    "21:caravanserai-main-commercial-dock": [
+      28,
+      422896899
+    ],
+    "21:caravanserai-outfitter-drydock": [
+      28,
+      736558184
+    ],
+    "21:caravanserai-player-hangar": [
+      28,
+      989690325
+    ],
+    "21:caravanserai-refuel-depot": [
+      28,
+      1303220973
+    ],
+    "21:deepcut-depot-dock": [
+      13,
+      3219255135
+    ],
+    "21:deepest-dock-poi": [
+      9,
+      2612765374
+    ],
+    "21:estella-i-hot-processing": [
+      15,
+      3593890098
+    ],
+    "21:estella-i-refractory-mine": [
+      5,
+      2337036692
+    ],
+    "21:estella-i-transit-customs": [
+      18,
+      26308854
+    ],
+    "21:estella-i-worker-hab": [
+      2,
+      3965715734
+    ],
+    "21:estella-ii-commercial-hub-dock": [
+      15,
+      2383036782
+    ],
+    "21:estella-ii-nimbus-crucible": [
+      0,
+      1947613349
+    ],
+    "21:estella-ii-olympos": [
+      14,
+      3030378571
+    ],
+    "21:estella-ii-pandemonium": [
+      3,
+      4139739670
+    ],
+    "21:estella-iii-agricultural-region": [
+      13,
+      95661953
+    ],
+    "21:estella-iii-capital-city": [
+      28,
+      311541512
+    ],
+    "21:estella-iii-coastal-resort": [
+      16,
+      2574518582
+    ],
+    "21:estella-iii-finance-city": [
+      28,
+      311541512
+    ],
+    "21:estella-iii-high-tech-city": [
+      21,
+      3591898989
+    ],
+    "21:estella-iii-historic-site": [
+      28,
+      311541512
+    ],
+    "21:estella-iii-luxury-orbital-habitat": [
+      3,
+      1980013239
+    ],
+    "21:estella-iii-main-customs": [
+      28,
+      1380505171
+    ],
+    "21:estella-iii-polar-science": [
+      6,
+      805272671
+    ],
+    "21:estella-iiia-helium-mining": [
+      4,
+      334025818
+    ],
+    "21:estella-iiia-heritage-site": [
+      28,
+      4041424839
+    ],
+    "21:estella-iiia-main-port-transit": [
+      7,
+      2305399215
+    ],
+    "21:estella-iiia-science-settlement": [
+      17,
+      3960210724
+    ],
+    "21:estella-iv-climate-poi-1": [
+      13,
+      3425553007
+    ],
+    "21:estella-iv-climate-poi-2": [
+      11,
+      3872646049
+    ],
+    "21:estella-iv-climate-poi-3": [
+      11,
+      1897767587
+    ],
+    "21:estella-iv-main-orbital-station": [
+      28,
+      3181846794
+    ],
+    "21:estella-iv-primary-city": [
+      28,
+      2420802224
+    ],
+    "21:estella-ix-geological-feature": [
+      3,
+      1009333464
+    ],
+    "21:estella-ix-ice-mine": [
+      9,
+      3674109118
+    ],
+    "21:estella-ix-moonlet-observation-outpost": [
+      1,
+      3875667721
+    ],
+    "21:estella-ix-opposite-sense-supply-depot": [
+      14,
+      1811871838
+    ],
+    "21:estella-ix-research-base": [
+      7,
+      3466182768
+    ],
+    "21:estella-v-abandoned-colony": [
+      0,
+      1947613349
+    ],
+    "21:estella-v-atmo-refinery": [
+      10,
+      1600225216
+    ],
+    "21:estella-v-capital-settlement": [
+      28,
+      199288064
+    ],
+    "21:estella-v-high-orbit-factory": [
+      18,
+      2323804091
+    ],
+    "21:estella-v-open-cast-mine": [
+      2,
+      892306465
+    ],
+    "21:estella-v-storm-research": [
+      5,
+      2907785402
+    ],
+    "21:estella-v-transit-customs": [
+      28,
+      3846773655
+    ],
+    "21:estella-va-miner-hab": [
+      13,
+      2589861725
+    ],
+    "21:estella-va-ore-handling-depot": [
+      14,
+      884896481
+    ],
+    "21:estella-va-strip-mine": [
+      13,
+      1129698335
+    ],
+    "21:estella-vi-agricultural-lowlands": [
+      1,
+      536839905
+    ],
+    "21:estella-vi-foundry-complex": [
+      4,
+      1675322857
+    ],
+    "21:estella-vi-heavy-cargo-station": [
+      14,
+      1324553921
+    ],
+    "21:estella-vi-industrial-city": [
+      3,
+      2435478932
+    ],
+    "21:estella-vi-main-transit-dispatch": [
+      28,
+      3841208361
+    ],
+    "21:estella-vi-mountain-mining": [
+      2,
+      1715331307
+    ],
+    "21:estella-vi-polar-weather-research": [
+      2,
+      3274817212
+    ],
+    "21:estella-vi-spaceport": [
+      2,
+      1373473021
+    ],
+    "21:estella-via-component-supply-station": [
+      28,
+      687232730
+    ],
+    "21:estella-via-drydock-station": [
+      28,
+      903894329
+    ],
+    "21:estella-via-rare-alloy-extraction": [
+      3,
+      1220439271
+    ],
+    "21:estella-via-surface-anchor": [
+      5,
+      3017942696
+    ],
+    "21:estella-vib-aquaculture": [
+      3,
+      2450309071
+    ],
+    "21:estella-vib-cold-chain-station": [
+      16,
+      2934319898
+    ],
+    "21:estella-vib-pharma-horticulture": [
+      2,
+      2668200110
+    ],
+    "21:estella-vib-vat-protein": [
+      2,
+      647805998
+    ],
+    "21:estella-vii-black-project-outpost": [
+      0,
+      1947613349
+    ],
+    "21:estella-vii-feedstock-mine": [
+      5,
+      3321224797
+    ],
+    "21:estella-vii-high-vacuum-factory": [
+      17,
+      2716074078
+    ],
+    "21:estella-vii-transit-export": [
+      28,
+      3881775517
+    ],
+    "21:estella-vii-worker-hab": [
+      12,
+      4287749246
+    ],
+    "21:estella-viii-abandoned-site": [
+      0,
+      1947613349
+    ],
+    "21:estella-viii-first-rendezvous-station": [
+      14,
+      3503976763
+    ],
+    "21:estella-viii-harder-approach-station": [
+      15,
+      362246579
+    ],
+    "21:estella-viii-mining-site": [
+      7,
+      454886698
+    ],
+    "21:estella-viii-moonlet-docking-site": [
+      0,
+      1947613349
+    ],
+    "21:estella-viii-settlement": [
+      19,
+      1682619164
+    ],
+    "21:estella-x-captive-refuel-relay": [
+      7,
+      1743609171
+    ],
+    "21:estella-x-observation-skim-hub": [
+      14,
+      875754061
+    ],
+    "21:estella-xa-deep-ice-mine": [
+      10,
+      3959881135
+    ],
+    "21:estella-xa-exobiology-research": [
+      9,
+      2207805634
+    ],
+    "21:estella-xa-volatiles-transit": [
+      7,
+      3812322481
+    ],
+    "21:estella-xb-luxury-retreat": [
+      2,
+      151116205
+    ],
+    "21:estella-xb-rare-element-mine": [
+      10,
+      300774267
+    ],
+    "21:estella-xb-smelting-processing": [
+      13,
+      2299463719
+    ],
+    "21:estella-xb-worker-hab": [
+      8,
+      2871505800
+    ],
+    "21:estella-xc-castle-alvares": [
+      0,
+      1947613349
+    ],
+    "21:estella-xc-castle-mendes": [
+      0,
+      1947613349
+    ],
+    "21:estella-xc-main-outpost": [
+      20,
+      848067200
+    ],
+    "21:estella-xc-transit-refuel": [
+      20,
+      1419002594
+    ],
+    "21:estella-xd-chem-station": [
+      13,
+      3716875504
+    ],
+    "21:estella-xd-geothermal-extraction": [
+      14,
+      4221814183
+    ],
+    "21:estella-xd-iron-lists": [
+      0,
+      1947613349
+    ],
+    "21:estella-xd-proving-grounds": [
+      6,
+      191473254
+    ],
+    "21:estella-xd-redoubt-field": [
+      0,
+      1947613349
+    ],
+    "21:estella-xi-fence-poi": [
+      0,
+      1947613349
+    ],
+    "21:estella-xi-religious-retreat-poi": [
+      0,
+      1947613349
+    ],
+    "21:estella-xi-science-waypoint-poi": [
+      1,
+      1692981084
+    ],
+    "21:estella-xi-skim-hub": [
+      13,
+      3975058132
+    ],
+    "21:estella-xi-smuggler-deaddrop-poi": [
+      0,
+      1947613349
+    ],
+    "21:estella-xia-chem-station": [
+      14,
+      966731001
+    ],
+    "21:estella-xia-rare-element-extraction": [
+      10,
+      3245702063
+    ],
+    "21:estella-xia-sealed-worker-hab": [
+      7,
+      797309498
+    ],
+    "21:estella-xia-sulfur-mine": [
+      13,
+      1129389643
+    ],
+    "21:estella-xib-cryo-transit": [
+      14,
+      2124778861
+    ],
+    "21:estella-xib-hydrocarbon-extraction": [
+      13,
+      1604929063
+    ],
+    "21:estella-xib-methane-refinery": [
+      10,
+      530772609
+    ],
+    "21:estella-xib-organic-chemistry": [
+      15,
+      3217654285
+    ],
+    "21:estella-xib-science-settlement": [
+      7,
+      1810362587
+    ],
+    "21:estella-xic-deep-ice-exobiology": [
+      5,
+      3022767442
+    ],
+    "21:estella-xic-ice-mining": [
+      10,
+      2130987714
+    ],
+    "21:estella-xic-last-breath-lists": [
+      5,
+      3649977185
+    ],
+    "21:estella-xic-research-station-poi": [
+      6,
+      3761561286
+    ],
+    "21:estella-xid-customs-transit": [
+      10,
+      3557493284
+    ],
+    "21:estella-xid-main-port": [
+      28,
+      2409693271
+    ],
+    "21:estella-xid-services-outfitter-hangar": [
+      17,
+      811112018
+    ],
+    "21:estella-xid-specialty-cargo": [
+      0,
+      1947613349
+    ],
+    "21:estella-xie-component-fabrication": [
+      6,
+      2371090978
+    ],
+    "21:estella-xie-oathmark-academy": [
+      13,
+      1331284563
+    ],
+    "21:estella-xie-outer-spec-drydock": [
+      17,
+      1682055266
+    ],
+    "21:estella-xie-rare-alloy-extraction": [
+      17,
+      3617167650
+    ],
+    "21:estella-xif-deep-listening-array": [
+      16,
+      3766341315
+    ],
+    "21:estella-xif-observatory": [
+      0,
+      1947613349
+    ],
+    "21:estella-xif-sealed-research-outpost": [
+      0,
+      1947613349
+    ],
+    "21:estella-xii-comm-relay-poi": [
+      15,
+      3399423033
+    ],
+    "21:estella-xii-observation-post": [
+      22,
+      769352864
+    ],
+    "21:estella-xii-smuggler-waypoint-poi": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiia-deep-ice-mine": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiia-isolated-settlement": [
+      1,
+      3549514276
+    ],
+    "21:estella-xiia-volatiles-transit": [
+      7,
+      1702551047
+    ],
+    "21:estella-xiib-outpost": [
+      1,
+      2864993870
+    ],
+    "21:estella-xiib-transit-station-poi": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiic-castle-teide": [
+      12,
+      3371354971
+    ],
+    "21:estella-xiic-comet-research": [
+      8,
+      3762721540
+    ],
+    "21:estella-xiic-isotope-mining": [
+      16,
+      1672236125
+    ],
+    "21:estella-xiid-black-project-exile": [
+      3,
+      1604671513
+    ],
+    "21:estella-xiid-blackglass-observatory": [
+      6,
+      2039850534
+    ],
+    "21:estella-xiid-mirror-clinic": [
+      1,
+      3336240662
+    ],
+    "21:estella-xiii-classified-research": [
+      5,
+      499420927
+    ],
+    "21:estella-xiii-deep-ice-mining": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiii-governors-outpost": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiii-long-range-observatory": [
+      8,
+      3804486526
+    ],
+    "21:estella-xiii-main-port": [
+      17,
+      2882667033
+    ],
+    "21:estella-xiii-prison-exile-colony": [
+      2,
+      2440480844
+    ],
+    "21:estella-xiv-abandoned-active-site": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiv-religious-retreat": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiv-smuggler-haven": [
+      0,
+      1947613349
+    ],
+    "21:estella-xiv-transit-dock": [
+      7,
+      2054628155
+    ],
+    "21:grubstake-depot-dock": [
+      13,
+      4046145304
+    ],
+    "21:harlan-dock": [
+      11,
+      1878388973
+    ],
+    "21:highgrade-depot-dock": [
+      13,
+      1064354713
+    ],
+    "21:industrial-refinery-finished-goods": [
+      20,
+      2588861132
+    ],
+    "21:industrial-refinery-ore-intake": [
+      20,
+      1581832298
+    ],
+    "21:industrial-refinery-staff-hab": [
+      20,
+      3423262782
+    ],
+    "21:mercer-dock": [
+      10,
+      258062073
+    ],
+    "21:reach-comet-fragment-1-poi": [
+      0,
+      1947613349
+    ],
+    "21:reach-comet-fragment-2-poi": [
+      7,
+      2812380762
+    ],
+    "21:reach-comet-fragment-3-poi": [
+      0,
+      1947613349
+    ],
+    "21:reach-comet-fragment-4-poi": [
+      0,
+      1947613349
+    ],
+    "21:reach-comet-fragment-5-poi": [
+      7,
+      3797750221
+    ],
+    "21:reach-comet-fragment-6-poi": [
+      0,
+      1947613349
+    ],
+    "21:reach-rogue-isotope-mine": [
+      7,
+      3171618970
+    ],
+    "21:reach-rogue-lonely-beacon": [
+      10,
+      3713681166
+    ],
+    "21:skim-hub-alpha-precursor-dock": [
+      10,
+      1241869296
+    ],
+    "21:skim-hub-beta-precursor-dock": [
+      10,
+      1512323079
+    ],
+    "21:slagfoot-depot-dock": [
+      13,
+      119611502
+    ],
+    "21:still-distribution-bay": [
+      13,
+      680189941
+    ],
+    "21:still-guild-hq": [
+      13,
+      1819286134
+    ],
+    "21:still-public-approach-dock": [
+      13,
+      375389251
+    ],
+    "21:still-refinery-core": [
+      13,
+      4075379938
+    ],
+    "21:still-skim-runner-berth-poi": [
+      13,
+      1028105033
+    ],
+    "21:still-worker-hab": [
+      13,
+      3764986831
+    ]
+  },
+  "physics": {
+    "radius": 145000,
+    "gm": 15768750000,
+    "rotationPeriod": 60000,
+    "notes": "Primary Reach ice dwarf and de facto outer capital."
+  },
+  "placements": {
+    "estella-xiii": {
+      "kind": "orbit",
+      "parentId": "estella",
+      "usage": "stellar",
+      "orbit": {
+        "kind": "circular",
+        "radius": 4800000000,
+        "epochAngle": 0.35,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-xiii-main-port-station": {
+      "kind": "orbit",
+      "parentId": "estella-xiii",
+      "usage": "low",
+      "orbit": {
+        "kind": "circular",
+        "radius": 225000,
+        "altitude": 80000,
+        "epochAngle": -0.55,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-xiii-main-port": {
+      "kind": "aboard",
+      "parentId": "estella-xiii-main-port-station"
+    },
+    "estella-xiii-governors-outpost": {
+      "kind": "surface",
+      "parentId": "estella-xiii",
+      "angle": 0.25,
+      "side": "equatorial"
+    },
+    "estella-xiii-deep-ice-mining": {
+      "kind": "surface",
+      "parentId": "estella-xiii",
+      "angle": 1.35,
+      "side": "equatorial"
+    },
+    "estella-xiii-long-range-observatory": {
+      "kind": "surface",
+      "parentId": "estella-xiii",
+      "angle": 2.55,
+      "side": "unspecified"
+    },
+    "estella-xiii-prison-exile-colony": {
+      "kind": "surface",
+      "parentId": "estella-xiii",
+      "angle": -2.25,
+      "side": "unspecified"
+    },
+    "estella-xiii-classified-research": {
+      "kind": "surface",
+      "parentId": "estella-xiii",
+      "angle": -0.95,
+      "side": "unspecified"
+    }
+  },
+  "profiles": {
+    "estella-xiii-governors-outpost": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-xiii-deep-ice-mining": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-xiii-long-range-observatory": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-xiii-prison-exile-colony": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      },
+      "labelVisibility": "target"
+    },
+    "estella-xiii-classified-research": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      },
+      "labelVisibility": "target"
+    }
+  },
+  "accepted": {
+    "id": "house-nunes:quiet-custody:estella-xiii-prison-exile-colony->estella-xiid-mirror-clinic:0:estella-xiii-prison-exile-colony->estella-xiid-mirror-clinic:0",
+    "sourceId": "estella-xiii-prison-exile-colony",
+    "sourceName": "Prison / Exile Colony",
+    "sourcePath": "The Reach -> Estella XIII -> Prison / Exile Colony",
+    "destinationId": "estella-xiid-mirror-clinic",
+    "destinationName": "Mirror Clinic",
+    "destinationPath": "The Wells -> Manticore -> Ceuta -> Mirror Clinic",
+    "routeClass": "long",
+    "title": "Deliver sealed evidence lockers to Mirror Clinic",
+    "factionId": "house-nunes",
+    "issuerId": "house-nunes-sealed-custody",
+    "issuerName": "House Nunes Sealed Custody",
+    "issuerTag": "NUNES",
+    "templateId": "quiet-custody:estella-xiii-prison-exile-colony->estella-xiid-mirror-clinic:0",
+    "category": "freight",
+    "requiredCertification": "fragile-cargo",
+    "cargo": {
+      "label": "sealed evidence lockers",
+      "massTons": 31,
+      "cargoTypeId": "sealed-evidence-lockers",
+      "fragile": {
+        "level": "somewhat-fragile",
+        "shockAbsorbingContainer": true,
+        "conditionRiskFraction": 0.4
+      }
+    },
+    "quote": {
+      "sourceId": "estella-xiii-prison-exile-colony",
+      "destinationId": "estella-xiid-mirror-clinic",
+      "cargoLabel": "sealed evidence lockers",
+      "cargoMassTons": 31,
+      "loadedMassTons": 159,
+      "parDv": 1587,
+      "fuelPricePerTonMps": 1,
+      "parFuelCost": 252333,
+      "pay": {
+        "generosity": 0.25,
+        "flatReward": 30000,
+        "compensationRatio": 0.75,
+        "maxCompAllowance": 2
+      },
+      "generosity": 0.25,
+      "grossPay": 282333,
+      "expectedMargin": 30000,
+      "breakdown": [
+        {
+          "label": "Launch to parking orbit: Prison / Exile Colony",
+          "dv": 556
+        },
+        {
+          "label": "Escape from parking orbit",
+          "dv": 166
+        },
+        {
+          "label": "Midcourse correction reserve",
+          "dv": 10
+        },
+        {
+          "label": "Capture into moon-intercept ellipse",
+          "dv": 85
+        },
+        {
+          "label": "Capture to child parking orbit",
+          "dv": 527
+        },
+        {
+          "label": "Descent/landing: Mirror Clinic",
+          "dv": 243
+        }
+      ]
+    },
+    "selectedTransfer": {
+      "id": "best",
+      "label": "Lowest ΔV",
+      "waitTime": 5040000,
+      "transferTime": 24704586.40873688,
+      "departureVInf": 173.06163520605259,
+      "departureVInfAngle": -0.3285436157196736,
+      "arrivalVInf": 148.01337372571018,
+      "totalDeltaV": 321.0750089317628,
+      "sourceBodyId": "estella-xiii",
+      "destinationBodyId": "estella-xii"
+    },
+    "details": "The appointing office committed the sealed evidence lockers to House Nunes for quiet custody. Mirror Clinic will receive the seal intact and ask no declaration beyond the manifest.",
+    "completionMessage": "At Mirror Clinic, two custody clerks examine the seal and take charge of the sealed evidence lockers. Your warrant closes without amendment."
+  }
+}

@@ -7,6 +7,7 @@ import { DAHAI_GOVERNMENT_LANES, DAHAI_EDF_LANES } from './dahai-partner-lanes';
 import { campsTradeContracts } from './camps-trade-contracts';
 import { CAMPS_GOVERNMENT_LANES } from './camps-partner-lanes';
 import { farwatchContracts } from './farwatch-contracts';
+import { reachSettlementContracts } from './reach-settlement-contracts';
 
 export const GAIA_CIVILIAN_ID = 'gaia-civilian-bookings';
 export const GOVERNMENT_ID = 'estella-government';
@@ -161,7 +162,7 @@ function provider(id: string, name: string, lanes: readonly Lane[], tag?: string
       factionId: id, factionName: name, factionTag: tag, issuerId: id,
       generosity: lane.category === 'passenger' ? 0.6 : 0.8,
       compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
-    }, [lane])), ...(id === EDF_ID ? farwatchContracts(ctx, 'EDF') : [])];
+    }, [lane])), ...(id === EDF_ID ? farwatchContracts(ctx, 'EDF') : []), ...(id === GOVERNMENT_ID ? reachSettlementContracts(ctx, 'GOV') : [])];
   } };
 }
 

@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,assertPreThuleBoards,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/barataria-baseline.json';
 import {reviewFingerprint} from './fixtures/camps-review-fingerprint';
 import {ESTELLA_NODES,ESTELLA_NODES_BY_ID,ESTELLA_BODY_PHYSICS,ESTELLA_VALIDATION_ISSUES} from '../src/content/estella';
@@ -47,15 +48,15 @@ for(const id of BARATARIA_SURFACE_SITES){
  assert(!ESTELLA_NODES_BY_ID.get(id)?.tags?.some(t=>['religious','abandoned','writer-territory'].includes(t)),'monastery and abandoned mystery themes superseded');
  assert(createEmptyRun({...profile,locationId:id},BARATARIA_OBSERVATORY).destinationId===BARATARIA_OBSERVATORY,'legacy resident can leave for public observatory');
 }
-// Full pre-change economic fingerprint: this pass adds NO jobs or provider edits.
+// Identity added no jobs; the subsequent sparse observatory/Thule programme
+// has its own pre-change snapshot including the approved role retirements.
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS){
- const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400})));
+ if(THULE_RETIRED_PROVIDER_IDS.has(p.id))continue;
+ const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isReachSettlementAddition(c))));
  assert(same(reviewFingerprint(rows),(baseline.providers as Record<string,number[]>)[p.id]),`${p.id}: full old roster/seed/mass/pay/receipt exact`);
 }
-const raw=baseline.days.flatMap(day=>pois.flatMap(n=>generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400})));
-assert(same(reviewFingerprint(raw),baseline.raw),'all15995 dispatched orders unchanged apart from approved names');
-const boards=baseline.days.flatMap(day=>nav.flatMap(n=>[...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400)]));
-assert(same(reviewFingerprint(boards),baseline.boards),'all7704 postings retain selection/order/IDs/quotes with display-only rename');
+assertPreThuleEconomy(assert);
+assertPreThuleBoards(assert);
 let existingIn=0,existingOut=0;
 for(let day=0;day<24;day++)for(const n of pois)for(const c of generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400})){
  assert(!surface(c.sourceId)&&!surface(c.destinationId),'zero surface contracts from every provider');
@@ -83,4 +84,4 @@ for(const id of BARATARIA_SURFACE_SITES){
  const landing=ORBITAL_LEVELS.filter(l=>!before.has(l.id)).find(l=>l.bodyId===BARATARIA&&orbitalHasSurfaceObjective(l));
  assert(landing&&visibleOrbitalSurfaceMarkers(landing).length===1&&visibleOrbitalSurfaceMarkers(landing)[0].id===id,'explicit future target marks only its own approach');
 }
-console.log(`Barataria: ${checks} checks;one settlement/two caches,zero surface jobs;all15995 routed candidates/7704 postings unchanged apart from names;orbital24-day ${existingIn}in/${existingOut}out.`);
+console.log(`Barataria: ${checks} checks;one settlement/two caches,zero surface jobs;pre-Thule surviving rosters/unchanged quoted boards exact;orbital24-day ${existingIn}in/${existingOut}out.`);

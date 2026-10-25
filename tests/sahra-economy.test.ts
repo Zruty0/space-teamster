@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/sahra-economy-baseline.json';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
@@ -32,12 +33,13 @@ const isWeymarkAddition = (c: {templateId?: string}) => !!c.templateId?.startsWi
 const isFuel = (c: {cargo: {label: string}}) => c.cargo.label === 'stable fuel canisters';
 const isSahra = (id: string) => (SAHRA_SITES as readonly string[]).includes(id);
 assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 34, 'Sahra/Weymark booking aggregators added, all original32 providers retained');
-// Frozen at6067506 BEFORE any economy edits. The only raw deletions permitted
-// are the eleven finished-fuel consignments. All other old fields remain exact.
+// Frozen6067506 protects original fuel retirement. Later Thule role removals
+// have an independent before-change fixture, including full surviving rosters.
 for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
+  if (THULE_RETIRED_PROVIDER_IDS.has(p.id)) continue; // Complete surviving rosters pinned below.
   const expected = (baseline.providers as Record<string, number[]>)[p.id];
   if (!expected) { assert([SAHRA_CIVILIAN_ID, 'weymark-independent-operators'].includes(p.id), 'only authorized subsequent actors'); continue; }
-  const rows = baseline.providerDays.flatMap(day => pois.flatMap(n => p.generateContracts({sourceId: n.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('farwatch:'))));
+  const rows = baseline.providerDays.flatMap(day => pois.flatMap(n => p.generateContracts({sourceId: n.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('farwatch:') && !isReachSettlementAddition(c))));
   assert(!rows.some(isFuel), 'no raw provider still produces finished-fuel loads');
   assert(same(reviewFingerprint(rows), expected), `${p.id}: every non-fuel old candidate, seed, mass, rate and receipt retained`);
 }
@@ -47,7 +49,7 @@ assert(estellaLocationIntroduction(SUHAIL)?.includes('half'), 'Suhail explains o
 const orders = new Map<string, Map<number, FactionContractCandidate>>();
 const pairs = new Map<string, FactionContractCandidate>();
 const coverage = new Map<string, {in: number; out: number}>();
-const affectedPhysical = new Set<string>([contractLocationId('still-distribution-bay')]);
+const affectedPhysical = new Set<string>([contractLocationId('still-distribution-bay'), ...thuleAffectedBoardSources()]);
 const actors = new Map<string, Set<string>>();
 let ice = 0, gems = 0, raqib = 0, oldPrecursor = 0;
 for (let day = 0; day < 48; day++) for (const n of pois) {
@@ -108,10 +110,9 @@ for (const days of orders.values()) {
 }
 assert(paired > 0 && localRotations > 0 && combinations.size === 4, 'native/local work retained, independent world choices');
 
-const raw: FactionContractCandidate[] = []; let exactBoards = 0, exactRows = 0, allRows = 0, observedCivilian = false, observedInstitute = false;
+let exactBoards = 0, exactRows = 0, allRows = 0, observedCivilian = false, observedInstitute = false;
 let accepted: CareerContract | undefined;
 for (const day of [0,1,20,21]) {
-  for (const n of pois) raw.push(...generateFactionContractCandidates({sourceId: n.id, worldTime: day * 86400}).filter(c => !isSahra(c.sourceId) && !isSahra(c.destinationId) && !isWeymarkAddition(c)));
   for (const n of estellaSelectableNavTargets().sort((a,b) => a.id.localeCompare(b.id))) {
     const rows = [...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400)]; allRows += rows.length;
     if (!affectedPhysical.has(contractLocationId(n.id))) {
@@ -129,8 +130,8 @@ for (const day of [0,1,20,21]) {
     }
   }
 }
-assert(same(reviewFingerprint(raw), baseline.unaffectedRouted), 'all15569 unrelated routed candidates exact; only authorized fuel removals/Sahra work differ');
-assert(exactRows > 4000 && exactBoards > 400 && observedCivilian && observedInstitute && accepted, 'substantial independent unchanged-board baseline plus real new public work');
+assertPreThuleEconomy(assert); // Latest independent snapshot protects all surviving old Sahra/non-Sahra orders.
+assert(exactRows > 3000 && exactBoards > 400 && observedCivilian && observedInstitute && accepted, 'substantial independent unchanged-board baseline plus real new public work');
 for (const c of pairs.values()) {
   const q = estimateEstellaMissionCost(c.sourceId, c.destinationId, c.cargo, undefined, makePayTerms(c));
   assert(Number.isFinite(q.parDv) && q.parDv > 0 && q.grossPay > 0, 'finite real route quote');

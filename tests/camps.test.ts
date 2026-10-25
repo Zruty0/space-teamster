@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/camps-existing-baseline.json';
 import { preCampsNames } from './fixtures/pre-camps-names';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
@@ -46,14 +47,15 @@ for(const id of [STRIBOG,MORANA,'estella-vib-pharma-horticulture']) assert(empty
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   // Guild finished-fuel deletion is intentional; its entire surviving roster is
   // frozen independently before the change in sahra-economy.test.ts.
-  if(!(p.id in baseline) || p.id === 'teamsters-guild') continue;
+  if(!(p.id in baseline) || p.id === 'teamsters-guild' || THULE_RETIRED_PROVIDER_IDS.has(p.id)) continue;
   const rows: FactionContractCandidate[]=[];
-  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!c.templateId.startsWith('sahra:')&&!c.templateId.startsWith('farwatch:')));
+  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!c.templateId.startsWith('sahra:')&&!c.templateId.startsWith('farwatch:')&&!isReachSettlementAddition(c)));
   let h=2166136261;for(const ch of preCampsNames(JSON.stringify(rows))){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
   const expected=(baseline as Record<string,number[]>)[p.id];
   assert(rows.length===expected[0]&&(h>>>0)===expected[1], `${p.id}: entire pre-pass raw economy preserved`);
 }
 
+assertPreThuleEconomy(assert); // Full surviving Nunes/Daedalus and all other raw programmes.
 const orders=new Map<string,Map<number,FactionContractCandidate>>();
 const actors=new Map<string,number>();
 const pairs=new Map<string,FactionContractCandidate>();

@@ -2,6 +2,7 @@ import './svg-dom';
 import economyBaseline from './fixtures/sahra-economy-baseline.json';
 import { contractLocationId } from '../src/contract-presentation';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
+import {assertPreThuleEconomy,isReachSettlementAddition,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import { publicContentText } from '../src/content-terminology';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
 import { generateFactionContractCandidates, type FactionContractCandidate } from '../src/content/estella/faction-contracts';
@@ -45,8 +46,8 @@ for (const day of [0, 1, 20, 21]) {
 // Weymark additions are separately pinned against their own pre-change snapshot;
 // do not regenerate the earlier Sahra baseline or ignore old Weymark candidates.
 const touchesSahra = (c:FactionContractCandidate) => c.templateId.startsWith('weymark:') || c.templateId.startsWith('farwatch:') || [c.sourceId,c.destinationId].some(id=>id.startsWith('estella-ix'));
-assert(JSON.stringify(reviewFingerprint(raw.filter(c=>!touchesSahra(c)))) === JSON.stringify(economyBaseline.unaffectedRouted), 'all unrelated non-fuel routed candidates remain exact');
-const affected = new Set(['still-distribution-bay', ...raw.filter(touchesSahra).map(c=>c.sourceId)].map(contractLocationId));
+assertPreThuleEconomy(assert); // New frozen pre-Thule snapshot covers authorized custody/research retirement.
+const affected = new Set(['still-distribution-bay', ...thuleAffectedBoardSources(), ...raw.filter(c=>touchesSahra(c)||isReachSettlementAddition(c)).map(c=>c.sourceId)].map(contractLocationId));
 const unaffectedBoards: CareerContract[] = [];
 for(const {day,source,rows} of contexts) if(!affected.has(contractLocationId(source))) {
   assert(JSON.stringify(reviewFingerprint(rows)) === JSON.stringify((economyBaseline.boardSources as Record<string,number[]>)[`${day}:${source}`]), 'untouched source board: exact original order, IDs, availability and quotes');

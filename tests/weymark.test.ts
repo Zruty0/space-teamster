@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/weymark-baseline.json';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_BODY_PHYSICS, ESTELLA_VALIDATION_ISSUES } from '../src/content/estella';
@@ -39,20 +40,19 @@ const profile={...defaultCareerProfile(),certifications:[...TEAMSTER_CERTIFICATI
 assert(canTravelEmpty(profile,LANTERN_DOCK)&&!canTravelEmpty(profile,OLD_SURVEY_CAMP),'Lantern still visitable at own expense; camp stays unlisted');
 for(const id of WEYMARK_SITES)assert((estellaLocationIntroduction(id)?.length??0)>100&&nav.has(id),'six existing roles authored, no added locations');
 
-// Independent BEFORE-change snapshot678a9c0: no exemptions for renamed cargo,
-// altered sampling, quotes, rates or rerouted old Weymark work are needed.
+// Original678a9c0 fixture remains frozen. Later additions are excluded here;
+// Thule's independent snapshot below protects both retired-role providers.
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS){
+ if(THULE_RETIRED_PROVIDER_IDS.has(p.id))continue; // Entire surviving programmes pinned below.
  const expected=(baseline.providers as Record<string,number[]>)[p.id];
  if(!expected){assert(p.id===WEYMARK_OPERATORS_ID,'only authorized new provider');continue;}
- const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isFarwatch(c))));
+ const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isFarwatch(c)&&!isReachSettlementAddition(c))));
  assert(same(reviewFingerprint(rows),expected),`${p.id}: complete pre-existing raw programme retained`);
 }
-const oldRouted: FactionContractCandidate[]=[];
-for(const day of baseline.days)for(const n of pois)oldRouted.push(...generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!isFarwatch(c)));
-assert(same(reviewFingerprint(oldRouted),baseline.raw),'all15899 old dispatched candidates remain exact');
+assertPreThuleEconomy(assert); // Independent pre-Thule snapshot covers the authorized retirements.
 
 const orders=new Map<string,Map<number,FactionContractCandidate>>(),pairs=new Map<string,FactionContractCandidate>();
-const affected=new Set<string>(),coverage=new Map<string,{in:number;out:number}>();
+const affected=thuleAffectedBoardSources(),coverage=new Map<string,{in:number;out:number}>();
 for(let day=0;day<24;day++)for(const n of pois)for(const c of generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400})){
  assert(![c.sourceId,c.destinationId].some(id=>id===LANTERN_DOCK||id===OLD_SURVEY_CAMP),'Lantern and Old Survey Camp have zero freight/passenger traffic from every provider');
  assert(c.cargo.label!=='stable fuel canisters','no revived finished-fuel loads');
@@ -91,9 +91,9 @@ for(const day of baseline.days)for(const n of estellaSelectableNavTargets().sort
   if(c.destinationId===LOW_GAUGE)accepted=c;
  }
 }
-// Farwatch adds demand on40 more historical boards; its independent fixture
-// protects all old Weymark orders and6743 postings immediately before that pass.
-assert(exactRows>5000&&exactBoards>600&&newFreight>0&&newPeople>0&&accepted,`unaffected full-board baseline and both real new categories: ${exactRows} rows/${exactBoards} boards; ${newFreight} freight/${newPeople} crew; accepted=${!!accepted}`);
+// Later Farwatch/Thule work legitimately changes additional source boards;
+// their separate pre-change fixtures protect every surviving old order.
+assert(exactRows>5000&&exactBoards>500&&newFreight>0&&newPeople>0&&accepted,`unaffected full-board baseline and both real new categories: ${exactRows} rows/${exactBoards} boards; ${newFreight} freight/${newPeople} crew; accepted=${!!accepted}`);
 // Existing progression: timed training and Old Nell passage remain contact-only,
 // not absorbed into the new local crew board or redirected to another station.
 const training=generateFactionContactContractCandidates({sourceId:WEYMARK_TOWN,worldTime:0,issuer:{id:GIDEON_BELL.id,name:GIDEON_BELL.name,factionId:'teamsters-guild',missionTags:['certification-basic']},availableSourceIds:[WEYMARK_TOWN],progress:{basic1:1,basic2:1}});

@@ -1,4 +1,5 @@
 import './svg-dom';
+import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/dahai-unrelated-baseline.json';
 import { preCampsNames } from './fixtures/pre-camps-names';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
@@ -42,10 +43,10 @@ assert(estellaLocationIntroduction(DAHAI_ORBITAL)?.includes('half'), 'hub role i
 for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   // Authorized finished-fuel removal: sahra-economy.test.ts freezes the whole
   // surviving Guild roster independently; other historic hashes stay intact.
-  if (!(p.id in baseline) || p.id === 'teamsters-guild') continue;
+  if (!(p.id in baseline) || p.id === 'teamsters-guild' || THULE_RETIRED_PROVIDER_IDS.has(p.id)) continue;
   const rows: FactionContractCandidate[] = [];
   for (const day of [0, 1, 7, 20]) for (const n of pois) for (const c of p.generateContracts({ sourceId: n.id, worldTime: day * 86400 })) {
-    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:') && !c.templateId.startsWith('farwatch:')) rows.push(c);
+    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:') && !c.templateId.startsWith('farwatch:') && !isReachSettlementAddition(c)) rows.push(c);
   }
   let h = 2166136261;
   for (const ch of preCampsNames(JSON.stringify(rows))) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -53,6 +54,7 @@ for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   assert(rows.length === expected[0] && (h >>> 0) === expected[1], `${p.id}: all unrelated original candidates unchanged`);
 }
 
+assertPreThuleEconomy(assert); // Independent snapshot retains entire surviving old rosters.
 const orders = new Map<string, Map<number, FactionContractCandidate>>();
 const pairs = new Map<string, FactionContractCandidate>();
 const actorCounts = new Map<string, number>();
