@@ -111,6 +111,10 @@ Ordinary surface/offworld work uses independently paired50/50 Suhail/direct, inc
 
 **System-wide finished-fuel policy:** no dedicated full-container spacecraft-fuel jobs; fuel mass is too small. Remove11 Guild orders (eight legacy destinations, Scaffold1, Dahai2). Fuel services/background dispensary distribution and proprietary propulsion remain; industrial skim precursor feedstock/hardware/certifications unchanged. Old accepted fuel jobs retain classification/quotes and still settle. No new fuel chemistry or consumption tuning.
 
+## Barataria identity only — implemented2026-10-25
+
+Estella XIV becomes Barataria; orbital station Barataria Observatory remains public. The three surface slots are now **The Warren** (concealed settlement), **False Bottom Cache** (storage) and **Blind Drop** (unstaffed handoff). **No surface contracts yet**, no new providers or economic templates. All three are unlisted; future smuggling work must be contact-reputation-gated. Existing BFS/VHM orbital service jobs remain unchanged. [Barataria ledger](locations/barataria.md).
+
 ## EDF Farwatch Station — implemented2026-10-25
 
 Former Deepest Dock, now an EDF expedition/observation base investigating the Reach space-ghost phenomena. Contract-only arrivals: no empty runs even for known contacts. Public commercial postings supply authorization; existing BFS/VHM service traffic remains. No new provider or assumed ghost harvesting/data-courier trade.

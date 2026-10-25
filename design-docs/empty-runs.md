@@ -31,7 +31,7 @@ All ordinary commercial/civic destinations not excepted below, including:
 - Daedalus Systems Campus's commercial receiving area; not Server Farm or Icarus.
 - Pilgrim Gate and Vigil Gate as external trade/arrival interfaces; not unrestricted admission to the Covenant interiors.
 - Macao Palace and Great Arena; ordinary legal resorts/casinos, not invitation-only or hidden facilities.
-- Reach settlements and monasteries. Abandoned/remote/lore exceptions are listed below; Farwatch is contract-only.
+- Reach public settlements/ports and **Barataria Observatory**. All three Barataria surface sites are unlisted; Farwatch is contract-only.
 
 Public classifications do not manufacture missing placements. The rejected casino/science asteroid concepts were removed entirely, not retained as promised destinations.
 
@@ -63,7 +63,9 @@ These are absent unless a known mission contact is physically based at the exact
 - `estella-xi-fence-poi` — Black Exchange.
 - `estella-xii-smuggler-waypoint-poi` — Rookery of Knives.
 - `estella-xiid-mirror-clinic` — Mirror Clinic.
-- `estella-xiv-smuggler-haven` — Smuggler Haven.
+- `estella-xiv-smuggler-haven` — The Warren, Barataria's concealed settlement.
+- `estella-xiv-religious-retreat` — False Bottom Cache; the former public monastery role is superseded.
+- `estella-xiv-abandoned-active-site` — Blind Drop, an unstaffed handoff site rather than an abandoned mystery.
 - `reach-comet-fragment-3-poi` — Reach comet Dead-Drop.
 
 Hide these from the empty-run picker, including empty parent branches, unless a mission contact there is known. Public postings may name and authorize them. Visiting on a contract does not automatically teach a contact or permanently unlock empty travel.
@@ -71,7 +73,7 @@ Hide these from the empty-run picker, including empty parent branches, unless a 
 ## Reserved / not ready
 
 - Coronal Observation Post: retain endgame reserve and missing authored orbit; no new placement as part of empty runs.
-- `estella-xiv-abandoned-active-site`: recommend excluding the Abandoned-but-Active Site until its mystery/entry conditions are authored. Treat as reserved access, not a claim of military ownership.
+- Barataria's three surface sites are unlisted for later smuggling work. No current contracts/contacts; contact-reputation mechanics remain unimplemented. [Barataria](locations/barataria.md).
 
 ## Unlisted abandoned / remote / lore sites
 
@@ -86,7 +88,7 @@ Retained unlisted destinations from the original reviewed roster:
 
 Sahra follow-upd08aea7: former IX Geological Feature (`estella-ix-geological-feature`) is now **Wadi al-Layl**, an approved public field landing. The removed IX research station is no longer a destination; old parked saves resolve to Suhail Anchorage.
 
-Still unlisted: Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
+Still unlisted: Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. Apocrypha Cache remains excluded/reserved. The former XIV mystery site is now unlisted Blind Drop; all Barataria surface sites are hidden from independent arrivals.
 
 Farwatch follow-up2026-10-25: former Deepest Dock is **EDF Farwatch Station**, explicitly contract-only rather than unlisted. No known-contact exception.15 additional regular EDF/EIP orders support its working expedition base; see [ledger](locations/farwatch.md).
 

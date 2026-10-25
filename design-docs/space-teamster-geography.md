@@ -511,15 +511,17 @@ The only Reach body with anything resembling civic infrastructure. Has a port, a
 | Estella XIII.5 | Surface | Prison / exile colony |
 | Estella XIII.6 | Surface | Sealed classified research outpost |
 
-### Estella XIV — smaller ice dwarf / rogue planetoid
-Less developed, more eccentric inhabitants.
+### Barataria / Estella XIV — concealed smuggler world
+An airless ice dwarf with a porous, fractured upper crust and extensive caves. Buried habitats and caches are concealed from above. Its publicly approachable orbital observatory is a legitimate small observation post and the meeting point for a smuggling network.
 
 | ID | Type | Description |
 |---|---|---|
-| Estella XIV.1 | Station, low orbit | Transit dock; minimal services |
-| Estella XIV.2 | Surface | Religious retreat / monastery |
-| Estella XIV.3 | Surface | Smuggler haven (reputation-gated) |
-| Estella XIV.4 | Surface | Abandoned-but-active site (mystery, writer territory) |
+| Estella XIV.1 | Station, low orbit | **Barataria Observatory** — public observation-post cover / smuggling hub |
+| Estella XIV.2 | Surface | **False Bottom Cache** — concealed storage beyond an apparent shallow recess |
+| Estella XIV.3 | Surface | **The Warren** — the sole settlement, sealed habitats and households inside branching caverns |
+| Estella XIV.4 | Surface | **Blind Drop** — unstaffed handoff lockers inside a dogleg fissure |
+
+Approved2026-10-25: all three existing surface slots repurposed, unlisted and reserved for later smuggling work; **no surface contracts added**. The monastery/abandoned-mystery themes are retired, IDs and physical geometry retained. Future smuggling jobs require contact reputation; public work is limited to the observatory's legitimate role. Existing orbital service network unchanged. [Barataria ledger](locations/barataria.md).
 
 ### Captured comet swarm (~6 fragments)
 A captured periodic comet that has fragmented over time into a tight swarm of small icy bodies. Cluster Mode applies. Catalogue IDs in the ES-I-NNNN range (icy class).
@@ -606,7 +608,7 @@ The following are explicitly **writer territory**:
 - The history and reception of the star's name (was the marriage public? was Estella herself ever invited? did she refuse? did she eventually visit?).
 - The faction roster beyond the Teamsters' Guild.
 - The Highliner roster, history, and politics.
-- The deeper stories of the abandoned-but-active sites (Estella V.6, Estella XIV.4, and several others throughout); Farwatch's working EDF role is now established separately.
+- The deeper stories of the abandoned-but-active sites (Estella V.6 and other retained reserves); Barataria's former mystery site is now Blind Drop, while Farwatch's working EDF role is established separately.
 - The actual social and political workings of the Foreign Quarter at the Caravanserai.
 - The cultural waves brought by historic Highliners.
 - Whatever, if anything, is buried in or behind the Reach.
