@@ -20,6 +20,7 @@
     "test:dahai-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/dahai-shipping.test.ts",
     "test:gaia-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia-shipping.test.ts",
     "audit:gaia": "node tests/run-equipment.mjs tests/audit-gaia-shipping.ts",
+    "test:approach-biomes": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/approach-biomes.test.ts",
     "test:atmosphere": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/atmosphere-prototype.test.ts",
     "test:world-discs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/world-disc-appearance.test.ts",
     "test:empty-runs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/empty-runs.test.ts",

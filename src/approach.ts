@@ -1055,7 +1055,7 @@ function perlin1D(x: number, freq: number, seed: number): number {
 }
 
 /** Get approach terrain height at world x. Two octaves of Perlin noise. */
-function getApproachTerrainHeight(x: number, level?: ApproachLevel): number {
+export function getApproachTerrainHeight(x: number, level?: ApproachLevel): number {
   // Large rolling hills
   const h1 = perlin1D(x, 0.00008, 42.0) * 1200;
   // Medium detail
@@ -1075,17 +1075,26 @@ function tempColor(t: number): string {
   return '#ff2200';
 }
 
+/** Optional scenery study hook. Game callers retain the original renderer. */
+export type ApproachSceneryPainter = (
+  ctx: CanvasRenderingContext2D, cam: Readonly<ApproachCamera>, s: Readonly<ApproachState>,
+  level: Readonly<ApproachLevel>, width: number, height: number,
+) => boolean;
+
+export const drawOriginalApproachScenery: ApproachSceneryPainter = (ctx, cam, _s, level, W, H) => {
+  drawAtmoBackground(ctx, cam, W, H, level);
+  drawApproachTerrain(ctx, cam, level, W, H);
+  return true;
+};
+
 export function renderApproach(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   cam: ApproachCamera, s: ApproachState, level: ApproachLevel, time: number, showContainer = true,
+  scenery?: ApproachSceneryPainter,
 ): void {
   const W = canvas.width, H = canvas.height;
 
-  // --- Background: atmosphere gradient ---
-  drawAtmoBackground(ctx, cam, W, H, level);
-
-  // --- Terrain (Perlin noise ground) ---
-  drawApproachTerrain(ctx, cam, level, W, H);
+  if (!scenery?.(ctx, cam, s, level, W, H)) drawOriginalApproachScenery(ctx, cam, s, level, W, H);
 
 
   // --- Wind layers ---

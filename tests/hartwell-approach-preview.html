@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hartwell — approach biome study</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1018;color:#c7ced6;font:14px system-ui,sans-serif}main{max-width:1256px;margin:28px auto;padding:0 24px}h1{font-size:25px;margin:0 0 12px;color:#f3d4ad}p{line-height:1.5;margin:8px 0}a{color:#a9cddd}small{color:#acb7c3}.controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:16px 0;border-block:1px solid #34404c;margin:20px 0}label{display:flex;gap:8px;align-items:center}button,select{background:#25303c;color:#e8d5bc;border:1px solid #56616a;padding:6px 10px;border-radius:4px}input[type=range]{width:180px}article{margin:24px 0 36px;border:1px solid #34404c;background:#111923}header{padding:14px 16px;display:flex;gap:12px;justify-content:space-between;align-items:center}h2{font-size:18px;font-weight:500;margin:0 0 4px;color:#e2c2a0}canvas{display:block;width:100%;height:auto}footer{padding:10px 16px;color:#95a4b4;font-size:12px;line-height:1.5}#status{color:#91c9b8}#error{color:#ff9999;white-space:pre-wrap}
+</style></head><body><main>
+<h1>HARTWELL / APPROACH LANDSCAPES</h1>
+<p>One biome: rusty dry plains, eroded uplands and layered rock. Five target rectangles, five persistent scenery seeds.</p>
+<p><small>Scenery study only — not installed in the game. Soft distant relief is background; the crisp foreground edge is the unchanged flight/collision surface. Existing ship, gates, wind and trajectory graphics are retained. No settlement buildings or new hazards.</small></p>
+<div class="controls">
+<label>View <select id="height"><option value="regional">Regional approach</option><option value="wide">Upper approach</option><option value="close">Low corridor</option></select></label>
+<label>Phase <select id="phase"><option value="approach">Approach</option><option value="departure">Departure</option></select></label>
+<label>Along-track <input id="offset" type="range" min="-16000" max="16000" step="250" value="0"><output id="distance">0 km</output></label>
+<label><input id="original" type="checkbox"> Original scenery</label>
+<label><input id="overlays" type="checkbox" checked> Flight overlay</label>
+<button id="reset">Reset view</button><button id="checks">Run native checks</button>
+</div>
+<p id="status">Loading the five surface targets…</p><p id="error"></p><section id="views"></section>
+<p><small>Concord · Dawes Cut · Cinderhook Refinery · Gale Survey · First Landing. Roadstead and Ascension are orbital sites, so excluded. First Landing is rendered as a synthetic fixture only; its career access and reserved content remain unchanged.</small></p>
+</main><script type="module" src="./hartwell-approach-preview.ts"></script></body></html>
