@@ -111,6 +111,12 @@ Ordinary surface/offworld work uses independently paired50/50 Suhail/direct, inc
 
 **System-wide finished-fuel policy:** no dedicated full-container spacecraft-fuel jobs; fuel mass is too small. Remove11 Guild orders (eight legacy destinations, Scaffold1, Dahai2). Fuel services/background dispensary distribution and proprietary propulsion remain; industrial skim precursor feedstock/hardware/certifications unchanged. Old accepted fuel jobs retain classification/quotes and still settle. No new fuel chemistry or consumption tuning.
 
+## EDF Farwatch Station — implemented2026-10-25
+
+Former Deepest Dock, now an EDF expedition/observation base investigating the Reach space-ghost phenomena. Contract-only arrivals: no empty runs even for known contacts. Public commercial postings supply authorization; existing BFS/VHM service traffic remains. No new provider or assumed ghost harvesting/data-courier trade.
+
+15 additional logical orders:9 EDF (station provisions/maintenance, equipment returns, duty/technical rotations),6 EIP (observation instruments/recalibration, researchers, Tessera optics).9 freight/6 passenger. Whole two-day windows every4/6/8 days:mean16/3 available orders daily, ordinary weighted boards, not guaranteed departures. Freight.80+.45/passengers.60+.60, cap2; instruments protected, standard passenger comfort. Existing Orselle/Fuyuan/Mosaic orbital/direct policies retained; no new Reach gateway. Detailed manifests, baseline and validation: [Farwatch](locations/farwatch.md).
+
 ## Weymark small mining and crew travel — implemented2026-10-24
 
 `66d2dfb`:20 daily additional orders through descriptive Independent Weymark bookings (34 providers total):8 modest mining/supply/repair consignments and12 crew bookings across six bidirectional pairs. Low Gauge produces selected12t concentrates for Cupola/Hammer and16t shielding stock for Nell's Rest; assay samples, drill heads, pressure stores and pump overhauls support the workings. Crews connect mine/town/Nell's Rest/Bruckner depot with limited Caravanserai/Harlan/Veles visits. Existing food/civilian/Bruckner/VHM/Guild networks remain intact.

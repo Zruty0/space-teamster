@@ -1,11 +1,11 @@
 # Empty runs and contact-authorized travel
 
-Updated: 2026-10-22
-Status: implemented. Pete approved the access roster, made all eight abandoned/remote/lore sites unlisted, and clarified that public contracts include authorization. A known mission-giving contact permits empty travel to that contact's site.
+Updated: 2026-10-25
+Status: implemented. Pete approved the access roster, made all eight abandoned/remote/lore sites unlisted, and clarified that public contracts include authorization. A known mission-giving contact permits empty travel to that contact's site unless explicitly marked contract-only (Farwatch).
 
 ## Requested mechanism
 
-Station Terminal → Plan Empty Run → region/body/moon/station navigation → destination → route/cost confirmation → normal playable mission. Origin is the current career location. No cargo, pay or fuel reimbursement; normal fuel/time/wear and flight restrictions. Destination must be physically playable and either public or the location of a known mission contact. Departures from restricted delivery sites remain possible. Public postings may freely direct to non-public sites: the assignment supplies authorization. Existing contract generation is unaffected.
+Station Terminal → Plan Empty Run → region/body/moon/station navigation → destination → route/cost confirmation → normal playable mission. Origin is the current career location. No cargo, pay or fuel reimbursement; normal fuel/time/wear and flight restrictions. Destination must be physically playable, not contract-only, and either public or the location of a known mission contact. Departures from restricted delivery sites remain possible. Public postings may freely direct to non-public sites: the assignment supplies authorization. Existing contract generation is unaffected.
 
 Bookkeeping: distinguish empty runs from commercial deliveries, no qualification/reputation rewards; settlement and wear commit only on successful arrival, normal deterministic retries. Public surface-to-surface personal relocation is allowed; this does not add routine local supply jobs to boards. Omit current-terminal destinations and prune empty folders.
 
@@ -15,7 +15,7 @@ Sort regions inner-to-outer; orbiting siblings by radius around their shared par
 
 Public means an independent Teamster may arrive at the site's receiving pad/dock without a sponsoring assignment. It does not grant access to a factory floor, palace interior, data centre or every onboard department. Danger, remoteness, private ownership, expensive clientele and scientific work do not by themselves make a destination restricted.
 
-Explicit per-POI empty-travel access: public / restricted / unlisted. Unlisted includes clandestine, abandoned and remote/lore destinations; it does NOT hide contracts or require discoveries before commercial postings. Classify existing inventory deliberately; require review for new POIs rather than automatically exposing them. Do not derive access from free-text tags or propagate a parent's restriction without public-entry exceptions. Access metadata for this feature is not a new universal law/customs simulation.
+Explicit per-POI empty-travel access: public / restricted / unlisted / contract-only. **EDF Farwatch Station** (`deepest-dock-poi`) is contract-only: never an empty-run arrival, even with a known local contact. Existing accepted flights and empty departures remain valid. Unlisted includes clandestine, abandoned and remote/lore destinations; it does NOT hide contracts or require discoveries before commercial postings. Classify existing inventory deliberately; require review for new POIs rather than automatically exposing them. Do not derive access from free-text tags or propagate a parent's restriction without public-entry exceptions. Access metadata for this feature is not a new universal law/customs simulation.
 
 ## Public receiving destinations
 
@@ -31,9 +31,9 @@ All ordinary commercial/civic destinations not excepted below, including:
 - Daedalus Systems Campus's commercial receiving area; not Server Farm or Icarus.
 - Pilgrim Gate and Vigil Gate as external trade/arrival interfaces; not unrestricted admission to the Covenant interiors.
 - Macao Palace and Great Arena; ordinary legal resorts/casinos, not invitation-only or hidden facilities.
-- Reach settlements and monasteries. The eight abandoned/remote/lore sites listed below are unlisted for empty travel.
+- Reach settlements and monasteries. Abandoned/remote/lore exceptions are listed below; Farwatch is contract-only.
 
-Public classifications do not manufacture missing placements: casino Concourse and civilian Main Observatory Dock should be public when playable, but unfinished placement chains remain unavailable.
+Public classifications do not manufacture missing placements. The rejected casino/science asteroid concepts were removed entirely, not retained as promised destinations.
 
 ## Restricted empty-arrival sites
 
@@ -75,7 +75,7 @@ Hide these from the empty-run picker, including empty parent branches, unless a 
 
 ## Unlisted abandoned / remote / lore sites
 
-All eight are now unlisted for empty travel, as requested:
+Retained unlisted destinations from the original reviewed roster:
 
 | Site | ID | Existing description |
 |---|---|---|
@@ -83,19 +83,20 @@ All eight are now unlisted for empty travel, as requested:
 | Old Survey Camp | `estella-viii-abandoned-site` | Abandoned Weymark survey camp |
 | Prospector Cache | `reach-comet-fragment-2-poi` | Reach comet fragment2 supply/salvage cache |
 | Lonely Beacon / Lone-Operator Station | `reach-rogue-lonely-beacon` | Isolated, inhabited station on the rogue KBO fragment |
-| The Deepest Dock | `deepest-dock-poi` | Writer-defined settled outer-limit dock; not explicitly abandoned |
 
 Sahra follow-upd08aea7: former IX Geological Feature (`estella-ix-geological-feature`) is now **Wadi al-Layl**, an approved public field landing. The removed IX research station is no longer a destination; old parked saves resolve to Suhail Anchorage.
 
 Still unlisted: Isolated Science Cell (`reach-comet-fragment-4-poi`) and Outer Science Cell (`reach-comet-fragment-6-poi`). These are not described as abandoned. The XIV Abandoned-but-Active Site and Apocrypha Cache were already excluded/reserved.
 
-**No public-advertisement removal.** Prospector Cache, Lonely Beacon and Deepest Dock retain their ordinary BFS/VHM work. Posting authorization and independent empty-travel access are separate.
+Farwatch follow-up2026-10-25: former Deepest Dock is **EDF Farwatch Station**, explicitly contract-only rather than unlisted. No known-contact exception.15 additional regular EDF/EIP orders support its working expedition base; see [ledger](locations/farwatch.md).
+
+**No public-advertisement removal.** Prospector Cache, Lonely Beacon and Farwatch retain their ordinary BFS/VHM work. Posting authorization and independent empty-travel access are separate.
 
 ## Contacts and implementation
 
 - Contacts are mission-giving people/faction representatives. Only `gideon-gid-bell` currently qualifies; named shop staff and institutional offices do not.
 - `CareerProfile.knownContactIds` persists introductions. Viewing a locally accessible office's introduction or an actual contact listing learns registered mission contacts, atomically clone→save→publish. Failures do not unlock travel. A new career knows nobody. Legacy saves without this field infer Gid only from completed basic/line practicals; explicit new-save empty knowledge is authoritative.
-- Known contacts authorize their exact `locationIds`, not all physical-terminal siblings. Gid is at Guild HQ, not every office carrying his remote link.
+- Known contacts authorize their exact `locationIds`, not all physical-terminal siblings, and cannot override explicit contract-only access. Gid is at Guild HQ, not every office carrying his remote link.
 - The destination tree shows a single known person's name, or `N contacts` for multiple known people; zero omitted. Parent folders aggregate distinct known contacts at eligible descendant destinations. Local Directory also summarizes known people physically present. Contact views show their location.
 - `empty-travel-access.ts`: every retained POI explicitly classified; registry/catalog parity tested. Outer Drift/Quiet Side and all six casino/science POIs removed2026-10-24 by explicit direction, not retained as restricted/unlisted expansion hooks. They were never selectable, so playable destinations and existing travel permissions are unchanged. New IDs fail closed pending authoring. Missing physical placement still blocks travel even when a contact is known.
 - Orselle consolidation (2026-10-22): finance/First Dome compatibility IDs are not separate destinations. City scope excludes all three IDs when departing, combines district services, normalizes known-contact locations, and reports one physical Orselle destination. The former government/military spaceport was removed2026-10-23; its old ID is save/accepted-flight compatibility only, redirecting to Orselle.

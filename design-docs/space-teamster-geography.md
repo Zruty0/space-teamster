@@ -536,12 +536,14 @@ Lonely, eccentric.
 | ES-I-NNNN.1 | Surface | Specialty isotope mine |
 | ES-I-NNNN.2 | Surface | Lonely beacon / lone-operator station |
 
-### The deepest dock
-A small dead asteroid or comet fragment on the far side of the Reach. Has one POI. Whether it is abandoned-but-active or fully dead is, deliberately, writer territory. Either way, it is *the deepest dock* — the literal end of the line.
+### EDF Farwatch Station
+Formerly The Deepest Dock: an EDF-operated expedition and observation base anchored to a small comet fragment at the settled outer limit. Its scientific attachment investigates the unexplained phenomena first reported in Reach outer space, informally called **space ghosts**. Their appearance, nature and origin remain unresolved. Existing body/berth IDs, anchorage and flight geometry are retained.
 
 | ID | Type | Description |
 |---|---|---|
-| ES-I-NNNN.1 | Surface | Writer's discretion |
+| ES-I-DD-0001.1 | Dock-only station on comet fragment | Contract-only arrivals, no independent empty runs even with a known contact; regular EDF/EIP support work and retained BFS/VHM service contracts both ways |
+
+Approved2026-10-25:15 recurring logical orders,9 EDF/6 EIP (9 freight/6 passenger); provisions, station maintenance, instrument service and personnel rotations. Occasional availability rather than a busy daily shipping hub. No ghost harvesting, specimen exports or new encounter mechanics. [Farwatch ledger](locations/farwatch.md).
 
 ---
 
@@ -604,7 +606,7 @@ The following are explicitly **writer territory**:
 - The history and reception of the star's name (was the marriage public? was Estella herself ever invited? did she refuse? did she eventually visit?).
 - The faction roster beyond the Teamsters' Guild.
 - The Highliner roster, history, and politics.
-- The deeper stories of the abandoned-but-active sites (Estella V.6, Estella XIV.4, the deepest dock, and several others throughout).
+- The deeper stories of the abandoned-but-active sites (Estella V.6, Estella XIV.4, and several others throughout); Farwatch's working EDF role is now established separately.
 - The actual social and political workings of the Foreign Quarter at the Caravanserai.
 - The cultural waves brought by historic Highliners.
 - Whatever, if anything, is buried in or behind the Reach.
