@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8"><title>Barataria desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"></select><span id="status">Checking live worker…</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {ESTELLA_NODES_BY_ID} from '/src/content/estella/index.ts';
+import {BARATARIA,BARATARIA_OBSERVATORY,BARATARIA_SURFACE_SITES} from '/src/content/estella/barataria-sites.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+import {canTravelEmpty,emptyRunDirectory} from '/src/empty-runs.ts';
+import {createPlayableEstellaMission} from '/src/estella-playable.ts';
+import {ORBITAL_LEVELS,visibleOrbitalSurfaceMarkers,createOrbitalState,createOrbitalCamera,renderOrbital} from '/src/orbital.ts';
+const sites=[BARATARIA_OBSERVATORY,...BARATARIA_SURFACE_SITES];
+const menu=document.getElementById('view'),canvas=document.getElementById('screen'),ctx=canvas.getContext('2d');
+for(const id of sites){const o=document.createElement('option');o.value=ESTELLA_NODES_BY_ID.get(id).name;o.textContent=o.value;menu.append(o);}
+const option=document.createElement('option');option.value='Observatory orbit';option.textContent=option.value;menu.append(option);
+const game=Object.create(Game.prototype);game.career={...defaultCareerProfile(),certifications:[...TEAMSTER_CERTIFICATION_IDS]};game.canvas=canvas;
+const before=new Set(ORBITAL_LEVELS.map(l=>l.id));createPlayableEstellaMission('estella-xiii-main-port',BARATARIA_OBSERVATORY,undefined,63001);
+const level=ORBITAL_LEVELS.find(l=>!before.has(l.id)&&l.station?.id==='estella-xiv-transit-dock-station');
+const state=createOrbitalState(level),camera=createOrbitalCamera(level);
+function show(){canvas.width=innerWidth-24;canvas.height=innerHeight-60;const id=sites.find(id=>ESTELLA_NODES_BY_ID.get(id).name===menu.value);if(id){game.career.locationId=id;drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'stationTerminal',selectedIndex:0}),0);}else renderOrbital(ctx,canvas,camera,state,level,0);}
+menu.onchange=show;window.addEventListener('resize',show);show();
+const requests=[];for(const day of [0,1,20,21])for(const sourceId of sites)requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0;const worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){document.title='FAIL — Barataria';document.getElementById('status').textContent=message;worker.terminate();}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{try{
+ if(data.error)throw Error(data.error);const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+ if(BARATARIA_SURFACE_SITES.includes(requests[complete].sourceId)&&rows.length)throw Error('surface board not empty');
+ for(const c of rows){if([c.sourceId,c.destinationId].some(id=>BARATARIA_SURFACE_SITES.includes(id)))throw Error('surface traffic');if(c.sourceName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name||c.destinationName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name)throw Error('old display name');}
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+ worker.terminate();const visitor={...game.career,locationId:'estella-xiii-main-port'};
+ if(!canTravelEmpty(visitor,BARATARIA_OBSERVATORY)||BARATARIA_SURFACE_SITES.some(id=>canTravelEmpty(visitor,id)))throw Error('wrong empty access');
+ if(emptyRunDirectory(visitor,`node:${BARATARIA}`).some(e=>BARATARIA_SURFACE_SITES.includes(e.target?.id))||visibleOrbitalSurfaceMarkers(level).length)throw Error('surface exposed in picker/orbit');
+ for(const o of menu.options){menu.value=o.value;show();}menu.value='The Warren';show();document.title='PASS — Barataria';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} existing orbital postings; three empty surface boards; public observatory only`;
+}catch(e){fail(e.stack??String(e));}};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Synthetic profile only; no Game constructor or live save read/write.
+</script>

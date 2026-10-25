@@ -19,12 +19,12 @@ const RESTRICTED = [
 const UNLISTED = [
   'arkfall-apocrypha-cache-poi', 'estella-xid-specialty-cargo',
   'estella-xi-smuggler-deaddrop-poi', 'estella-xi-fence-poi', 'estella-xii-smuggler-waypoint-poi',
-  'estella-xiid-mirror-clinic', 'estella-xiv-smuggler-haven', 'reach-comet-fragment-3-poi',
+  'estella-xiid-mirror-clinic', 'estella-xiv-smuggler-haven', 'estella-xiv-religious-retreat', 'estella-xiv-abandoned-active-site', 'reach-comet-fragment-3-poi',
   // Abandoned, isolated and lore sites: no empty arrival until a contact is known.
   'estella-v-abandoned-colony', 'estella-viii-abandoned-site', 'reach-comet-fragment-2-poi',
   'reach-rogue-lonely-beacon',
   'reach-comet-fragment-4-poi', 'reach-comet-fragment-6-poi',
-  'coronal-observation-post-ops', 'estella-xiv-abandoned-active-site',
+  'coronal-observation-post-ops',
 ] as const;
 const PUBLIC: readonly string[] = [
   'estella-i-transit-customs', 'estella-i-worker-hab', 'estella-i-refractory-mine', 'estella-i-hot-processing',
@@ -60,7 +60,7 @@ const PUBLIC: readonly string[] = [
   'estella-xii-observation-post', 'estella-xiia-volatiles-transit', 'estella-xiib-transit-station-poi',
   'estella-xiic-isotope-mining', 'estella-xiic-comet-research', 'estella-xiic-castle-teide', 'estella-xii-comm-relay-poi',
   'estella-xiii-main-port', 'estella-xiii-governors-outpost', 'estella-xiii-deep-ice-mining', 'estella-xiii-long-range-observatory',
-  'estella-xiv-transit-dock', 'estella-xiv-religious-retreat', 'reach-comet-fragment-1-poi', 'reach-comet-fragment-5-poi', 'reach-rogue-isotope-mine',
+  'estella-xiv-transit-dock', 'reach-comet-fragment-1-poi', 'reach-comet-fragment-5-poi', 'reach-rogue-isotope-mine',
 ];
 export const EMPTY_TRAVEL_ACCESS: Readonly<Record<string, EmptyTravelAccess>> = Object.fromEntries([
   ...PUBLIC.map(id => [id, 'public'] as const),

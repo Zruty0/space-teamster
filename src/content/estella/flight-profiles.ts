@@ -501,7 +501,7 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-xiii-long-range-observatory': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
   'estella-xiii-prison-exile-colony': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-xiii-classified-research': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
-  'estella-xiv-religious-retreat': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,
+  'estella-xiv-religious-retreat': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-xiv-smuggler-haven': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-xiv-abandoned-active-site': { ...ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE, labelVisibility: 'target' },
   'reach-rogue-isotope-mine': ESTELLA_WELLS_AIRLESS_SURFACE_PROFILE,

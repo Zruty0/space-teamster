@@ -1,0 +1,453 @@
+{
+  "commit": "3ffd4bf2fc6ece76c77236b6d0b240f8e371d1ae",
+  "days": [
+    0,
+    1,
+    20,
+    21
+  ],
+  "providers": {
+    "new-canaan-miners-mutual": [
+      108,
+      165937336
+    ],
+    "balor-advanced-materials": [
+      224,
+      1869127411
+    ],
+    "cerberus-human-resources": [
+      388,
+      475185040
+    ],
+    "bruckner-field-services": [
+      924,
+      3614096440
+    ],
+    "voss-heinkel-metricwerke": [
+      348,
+      4018848219
+    ],
+    "kisaragi-yards-estella": [
+      188,
+      1412310283
+    ],
+    "kisaragi-harmony-yards": [
+      120,
+      2218501048
+    ],
+    "teamsters-guild": [
+      88,
+      1972990626
+    ],
+    "steel-combine": [
+      204,
+      833910717
+    ],
+    "halloran-smelting-house": [
+      44,
+      397208861
+    ],
+    "glitterfield-miners": [
+      940,
+      902497392
+    ],
+    "pike-mining-companies": [
+      632,
+      1760270000
+    ],
+    "cinderhook-refining-houses": [
+      268,
+      2650201822
+    ],
+    "roadstead-export-brokers": [
+      324,
+      458440296
+    ],
+    "hartwell-machinery-brokers": [
+      2304,
+      2681993187
+    ],
+    "hartwell-shipping-companies": [
+      2596,
+      1087076629
+    ],
+    "hartwell-labor-exchange": [
+      1328,
+      485884465
+    ],
+    "merren-conservatory": [
+      316,
+      138844251
+    ],
+    "oathmark-accord-authority": [
+      92,
+      1184531831
+    ],
+    "house-mendes": [
+      40,
+      2192363065
+    ],
+    "house-alvares": [
+      124,
+      705445907
+    ],
+    "house-nunes": [
+      216,
+      196900789
+    ],
+    "covenant-remnants": [
+      84,
+      1707530621
+    ],
+    "daedalus-systems": [
+      448,
+      271416112
+    ],
+    "wells-noble-houses": [
+      308,
+      1753382780
+    ],
+    "gaia-civilian-bookings": [
+      1080,
+      401080461
+    ],
+    "estella-government": [
+      156,
+      3269001045
+    ],
+    "estella-defence-force": [
+      112,
+      3610010839
+    ],
+    "dahai-civilian-bookings": [
+      856,
+      3249030641
+    ],
+    "estella-institute-of-planetology": [
+      404,
+      796094375
+    ],
+    "camps-civilian-bookings": [
+      440,
+      613749565
+    ],
+    "svarog-yard-company": [
+      68,
+      3077656577
+    ],
+    "sahra-civilian-bookings": [
+      150,
+      601838835
+    ],
+    "weymark-independent-operators": [
+      80,
+      2295204509
+    ]
+  },
+  "raw": [
+    15995,
+    1761722015
+  ],
+  "boards": [
+    7704,
+    2747128827
+  ],
+  "physics": {
+    "radius": 107000,
+    "gm": 5152050000,
+    "rotationPeriod": 54000,
+    "notes": "Smaller Reach ice dwarf / rogue planetoid with sparse settlement."
+  },
+  "placements": {
+    "estella-xiv": {
+      "kind": "orbit",
+      "parentId": "estella",
+      "usage": "stellar",
+      "orbit": {
+        "kind": "circular",
+        "radius": 6150000000,
+        "epochAngle": -1.8,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-xiv-transit-dock-station": {
+      "kind": "orbit",
+      "parentId": "estella-xiv",
+      "usage": "low",
+      "orbit": {
+        "kind": "circular",
+        "radius": 162000,
+        "altitude": 55000,
+        "epochAngle": 0.85,
+        "epochTime": 0,
+        "orbitSense": -1
+      }
+    },
+    "estella-xiv-transit-dock": {
+      "kind": "aboard",
+      "parentId": "estella-xiv-transit-dock-station"
+    },
+    "estella-xiv-religious-retreat": {
+      "kind": "surface",
+      "parentId": "estella-xiv",
+      "angle": -0.35,
+      "side": "equatorial"
+    },
+    "estella-xiv-smuggler-haven": {
+      "kind": "surface",
+      "parentId": "estella-xiv",
+      "angle": 1.75,
+      "side": "unspecified"
+    },
+    "estella-xiv-abandoned-active-site": {
+      "kind": "surface",
+      "parentId": "estella-xiv",
+      "angle": -2.45,
+      "side": "unspecified"
+    }
+  },
+  "profiles": {
+    "estella-xiv-religious-retreat": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      }
+    },
+    "estella-xiv-smuggler-haven": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      },
+      "labelVisibility": "target"
+    },
+    "estella-xiv-abandoned-active-site": {
+      "subtitle": "Generated Wells airless moon site",
+      "padCenterX": 1000,
+      "padHalfWidth": 28,
+      "padY": 30,
+      "roughness": 0.6,
+      "features": [
+        {
+          "xStart": 820,
+          "xEnd": 870,
+          "height": 30
+        },
+        {
+          "xStart": 1140,
+          "xEnd": 1195,
+          "height": 44
+        }
+      ],
+      "landingStart": {
+        "x": 1000,
+        "y": 260,
+        "vx": 0,
+        "vy": -3,
+        "landingMaxVSpeed": 4,
+        "landingMaxHSpeed": 3,
+        "landingMaxAngle": 0.26
+      },
+      "descentProfile": {
+        "startX": -55000,
+        "startY": 7000,
+        "startVX": 360,
+        "startVY": -18,
+        "startAngle": 1.5,
+        "gateY": 1200,
+        "gateRadius": 1400,
+        "gateMaxSpeed": 120,
+        "gateMinSpeed": 10
+      },
+      "departureProfile": {
+        "startY": 260,
+        "startVY": 0,
+        "exitAltitude": 5500,
+        "thresholdApoapsisAltitude": 45000,
+        "targetOrbitAltitude": 60000,
+        "orbitDir": 1,
+        "fuelSeconds": 160
+      },
+      "departurePar": {
+        "speedMultiplier": 1.03,
+        "fixedAllowanceDv": 10
+      },
+      "labelVisibility": "target"
+    }
+  },
+  "accepted": {
+    "id": "voss-heinkel-metricwerke:direct-return-to-weymark:sealed-accident-telemetry-core:estella-xiv-transit-dock->estella-viii-harder-approach-station:0",
+    "sourceId": "estella-xiv-transit-dock",
+    "sourceName": "Estella XIV Transit Dock",
+    "sourcePath": "The Reach -> Estella XIV -> Estella XIV Transit Dock",
+    "destinationId": "estella-viii-harder-approach-station",
+    "destinationName": "Bruckner Weymark Depot",
+    "destinationPath": "The Belt -> Weymark -> Bruckner Weymark Depot",
+    "routeClass": "long",
+    "title": "Deliver sealed accident telemetry core to Bruckner Weymark Depot",
+    "factionId": "voss-heinkel-metricwerke",
+    "issuerId": "voss-heinkel-metricwerke",
+    "issuerName": "Voss-Heinkel Metricwerke",
+    "issuerTag": "VHM",
+    "templateId": "direct-return-to-weymark:sealed-accident-telemetry-core",
+    "category": "freight",
+    "requiredCertification": "fragile-cargo",
+    "cargo": {
+      "label": "sealed accident telemetry core",
+      "massClass": "light",
+      "massTons": 11,
+      "cargoTypeId": "sealed-accident-telemetry-core",
+      "fragile": {
+        "level": "very-fragile",
+        "shockAbsorbingContainer": true,
+        "conditionRiskFraction": 0.6
+      }
+    },
+    "quote": {
+      "sourceId": "estella-xiv-transit-dock",
+      "destinationId": "estella-viii-harder-approach-station",
+      "cargoLabel": "sealed accident telemetry core",
+      "cargoMassTons": 11,
+      "loadedMassTons": 139,
+      "parDv": 736,
+      "fuelPricePerTonMps": 1,
+      "parFuelCost": 102304,
+      "pay": {
+        "generosity": 1.7,
+        "flatReward": 0,
+        "compensationRatio": 0,
+        "maxCompAllowance": 2
+      },
+      "generosity": 1.7,
+      "grossPay": 173917,
+      "expectedMargin": 71613,
+      "breakdown": [
+        {
+          "label": "Undock: Estella XIV Transit Dock",
+          "dv": 15
+        },
+        {
+          "label": "Escape from departure orbit",
+          "dv": 281
+        },
+        {
+          "label": "Midcourse correction reserve",
+          "dv": 26
+        },
+        {
+          "label": "Capture to destination orbit",
+          "dv": 396
+        },
+        {
+          "label": "Dock: Bruckner Weymark Depot",
+          "dv": 18
+        }
+      ]
+    },
+    "selectedTransfer": {
+      "id": "best",
+      "label": "Lowest ΔV",
+      "waitTime": 4675325.668098629,
+      "transferTime": 10101002.498851007,
+      "departureVInf": 353.40508823301036,
+      "departureVInfAngle": -0.9957602110931788,
+      "arrivalVInf": 509.6718425214218,
+      "totalDeltaV": 863.0769307544322,
+      "sourceBodyId": "estella-xiv",
+      "destinationBodyId": "estella-viii"
+    },
+    "completionMessage": "Voss-Heinkel Metricwerke accepts the sealed accident telemetry core at Bruckner Weymark Depot in a silent clean bay. \"Performance acceptable,\" the inspector says, which from VHM counts as lavish praise."
+  }
+}

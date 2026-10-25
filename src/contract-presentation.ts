@@ -35,7 +35,7 @@ function terminalReferences(text: string, contract: CareerContract): string {
     // this posting's own saved endpoint label, never a global "Research Base"
     // replacement that could rename unrelated worlds or cargo.
     const savedName = id === contract.sourceId ? contract.sourceName : contract.destinationName;
-    if ((id.startsWith('estella-ix') || id === 'deepest-dock-poi' || id === 'deepest-dock-body') && savedName && savedName !== parent.name) {
+    if ((id.startsWith('estella-ix') || id.startsWith('estella-xiv') || id === 'deepest-dock-poi' || id === 'deepest-dock-body') && savedName && savedName !== parent.name) {
       text = text.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(savedName)}(?![\\p{L}\\p{N}])`, 'gu'), () => parent.name);
     }
     if (node.id === parent.id || node.name === parent.name) continue;
