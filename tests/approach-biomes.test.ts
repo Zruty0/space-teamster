@@ -1,6 +1,7 @@
 import './svg-dom';
 import { HARTWELL_APPROACH_BIOME, HARTWELL_APPROACH_TARGETS, hartwellApproachRegion, approachRidgeHeight, regionCoordinate, regionNoise, regionRandom } from '../src/approach-biomes';
 import { getApproachTerrainHeight } from '../src/approach';
+import { hartwellGroundMaterial, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from '../src/approach-ground-material';
 import { SURFACE_POIS } from '../src/world';
 let checks=0;
 function assert(ok: unknown, message: string): asserts ok { checks++;if(!ok)throw new Error(message); }
@@ -45,4 +46,25 @@ function legacyHeight(x:number){
  return Math.max(0,noise(x*.00008+42)*1200+noise(x*.0003+97)*400+300);
 }
 for(let x=-250000;x<=250000;x+=500)assert(getApproachTerrainHeight(x)===legacyHeight(x),'flight/collision terrain unchanged');
+const materialHashes=new Set<number>();
+for(const model of models){
+ const pixels=hartwellGroundMaterial(model.materialSeed),replay=hartwellGroundMaterial(model.materialSeed);
+ assert(pixels.length===GROUND_MATERIAL_WIDTH*GROUND_MATERIAL_HEIGHT*4,'bounded material tile');
+ assert(pixels!==replay&&pixels.every((v,i)=>v===replay[i]),'independent repeatable material buffers');
+ let hash=2166136261,strong=0,seam=0,interior=0;
+ for(let i=0;i<pixels.length;i++)hash=Math.imul(hash^pixels[i],16777619);
+ for(let i=3;i<pixels.length;i+=4){assert(pixels[i]<=145,'material opacity bounded');if(pixels[i]>20)strong++;}
+ assert(strong>pixels.length/4*.2,'visible multi-scale material contrast');
+ for(let y=0;y<GROUND_MATERIAL_HEIGHT;y++){
+  const row=y*GROUND_MATERIAL_WIDTH*4;
+  seam+=Math.abs(pixels[row+3]-pixels[row+(GROUND_MATERIAL_WIDTH-1)*4+3]);
+  for(let x=1;x<GROUND_MATERIAL_WIDTH;x++)interior+=Math.abs(pixels[row+x*4+3]-pixels[row+(x-1)*4+3]);
+ }
+ assert(seam/GROUND_MATERIAL_HEIGHT<interior/(GROUND_MATERIAL_HEIGHT*(GROUND_MATERIAL_WIDTH-1))*2+4,'no strong periodic alpha seam');
+ materialHashes.add(hash>>>0);
+}
+assert(materialHashes.size===5,'each target has distinct material');
+for(const seed of [-1,NaN,Infinity,1.5,0x100000000]){
+ let rejected=false;try{hartwellGroundMaterial(seed);}catch{rejected=true;}assert(rejected,'invalid material seed rejected');
+}
 console.log(`Approach biome study passed: ${checks} assertions; five target seeds, one biome.`);

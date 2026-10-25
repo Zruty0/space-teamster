@@ -6,10 +6,10 @@ import { BODIES, SURFACE_POIS, surfacePoiById } from '../src/world';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const ui = { height: $<HTMLSelectElement>('height'), phase: $<HTMLSelectElement>('phase'),
-  offset: $<HTMLInputElement>('offset'), original: $<HTMLInputElement>('original'), overlays: $<HTMLInputElement>('overlays') };
+  offset: $<HTMLInputElement>('offset'), detail: $<HTMLInputElement>('detail'), original: $<HTMLInputElement>('original'), overlays: $<HTMLInputElement>('overlays') };
 const views = { regional: { zoom: .065, y: 2300 }, wide: { zoom: .026, y: 5900 }, close: { zoom: .11, y: 1500 } };
-type Options = { height: keyof typeof views; phase: 'approach' | 'departure'; offset: number; original: boolean; overlays: boolean };
-const defaults: Options = { height: 'regional', phase: 'approach', offset: 0, original: false, overlays: true };
+type Options = { height: keyof typeof views; phase: 'approach' | 'departure'; offset: number; detail: boolean; original: boolean; overlays: boolean };
+const defaults: Options = { height: 'regional', phase: 'approach', offset: 0, detail: true, original: false, overlays: true };
 let options = { ...defaults };
 function flight(target: string, departure: boolean): ApproachLevel {
   const before = new Set(APPROACH_LEVELS.map(l => l.id));
@@ -21,7 +21,7 @@ function flight(target: string, departure: boolean): ApproachLevel {
 const worldBefore = JSON.stringify([BODIES, SURFACE_POIS]);
 try {
   const cards = HARTWELL_APPROACH_TARGETS.map(id => {
-    const region = hartwellApproachRegion(id), painter = createHartwellScenery(region);
+    const region = hartwellApproachRegion(id), painter = createHartwellScenery(region), plainPainter = createHartwellScenery(region, false);
     const approach = flight(id, false), departure = flight(id, true), name = surfacePoiById(id).name;
     const article = document.createElement('article');
     const header = document.createElement('header'), title = document.createElement('div');
@@ -34,7 +34,7 @@ try {
     const footer = document.createElement('footer'); footer.textContent = `Target: ${id} · same biome, target-seeded distant relief/materials · existing foreground contour`;
     article.append(header, canvas, footer); $('views').append(article);
     save.onclick = () => { const a = document.createElement('a'); a.download = `${id}-${options.phase}-${options.height}.png`; a.href = canvas.toDataURL('image/png'); a.click(); };
-    return { id, name, region, painter, approach, departure, canvas, ctx };
+    return { id, name, region, painter, plainPainter, approach, departure, canvas, ctx };
   });
   function draw(): void {
     const preset = views[options.height];
@@ -44,7 +44,7 @@ try {
       const x = cam.x - 280 / cam.zoom;
       const state = createApproachState(level, { x, y: Math.max(getApproachTerrainHeight(x, level)+900, cam.y+200),
         vx: options.phase === 'approach' ? 125 : 160, vy: options.phase === 'approach' ? -25 : 70, angle: 1.3, localDir: 1 });
-      const scenery = options.original ? drawOriginalApproachScenery : card.painter;
+      const scenery = options.original ? drawOriginalApproachScenery : options.detail ? card.painter : card.plainPainter;
       if (options.overlays) renderApproach(card.ctx, card.canvas, cam, state, level, 0, true, scenery);
       else scenery(card.ctx, cam, state, level, card.canvas.width, card.canvas.height);
     }
@@ -55,10 +55,10 @@ try {
     if (!(next.height in views) || !['approach','departure'].includes(next.phase) || !Number.isFinite(next.offset) || Math.abs(next.offset)>16000) throw new Error('Invalid preview view');
     options = next;
     ui.height.value = options.height; ui.phase.value = options.phase; ui.offset.value = String(options.offset);
-    ui.original.checked = options.original; ui.overlays.checked = options.overlays; draw();
+    ui.original.checked = options.original; ui.overlays.checked = options.overlays; ui.detail.checked = options.detail; draw();
   }
   for (const element of Object.values(ui)) element.oninput = () => set({ height: ui.height.value as Options['height'], phase: ui.phase.value as Options['phase'],
-    offset: Number(ui.offset.value), original: ui.original.checked, overlays: ui.overlays.checked });
+    offset: Number(ui.offset.value), detail: ui.detail.checked, original: ui.original.checked, overlays: ui.overlays.checked });
   $('reset').onclick = () => set(defaults);
   function checks() {
     let count = 0;
@@ -72,6 +72,25 @@ try {
       const levelsBefore=JSON.stringify(cards.map(c=>[c.approach,c.departure]));
       set({ ...defaults, overlays:false }); const hashes=cards.map(c=>hash(c.canvas));
       assert(new Set(hashes).size===5, 'five visually different landscapes');
+      set({detail:false});
+      const plain=cards.map(c=>c.ctx.getImageData(0,0,1200,420).data);
+      set({detail:true});
+      cards.forEach((c,i)=>{
+        const detailed=c.ctx.getImageData(0,0,1200,420).data;
+        let backdropSame=true,changed=0,groundPixels=0;
+        for(let x=0;x<1200;x++){
+          const edge=210-(getApproachTerrainHeight((x-600)/.065,c.approach)-2300)*.065;
+          for(let y=0;y<420;y++){
+            const at=(y*1200+x)*4;
+            const equal=detailed[at]===plain[i][at]&&detailed[at+1]===plain[i][at+1]&&detailed[at+2]===plain[i][at+2];
+            if(y<edge-3&&!equal)backdropSame=false;
+            if(y>edge+3){groundPixels++;if(!equal)changed++;}
+          }
+        }
+        assert(backdropSame,`${c.id}: detailed material leaves sky/background unchanged`);
+        assert(changed>groundPixels*.25,`${c.id}: substantial visible foreground detail`);
+        assert(hash(c.canvas)===hashes[i],`${c.id}: detail toggle exact replay`);
+      });
       set({phase:'departure'});
       cards.forEach((c,i)=>assert(hash(c.canvas)===hashes[i], `${c.id}: same landscape departing`));
       for(const height of ['wide','close'] as const)for(const offset of [-16000,16000]){

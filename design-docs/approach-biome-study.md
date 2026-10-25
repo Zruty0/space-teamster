@@ -23,7 +23,7 @@ The seed uses the target's persistent POI identity, not its display name, genera
 
 Roadstead/Ascension are orbital sites, not missing surface previews. First Landing is a synthetic rendering fixture only; no career access, reservation or story changes.
 
-Controls: regional/upper/low views, approach/departure, along-track pan, original scenery, flight-overlay toggle, reset, per-site PNG export and native checks. All five canvases use identical framing for comparison. No save is loaded; fixtures create real generated ApproachLevels in memory. Ship/gate/trajectory/wind graphics use the current production renderer, not a recreated UI.
+Controls: regional/upper/low views, approach/departure, along-track pan, detailed-foreground on/off (previous candidate comparison), original scenery, flight-overlay toggle, reset, per-site PNG export and native checks. All five canvases use identical framing for comparison. No save is loaded; fixtures create real generated ApproachLevels in memory. Ship/gate/trajectory/wind graphics use the current production renderer, not a recreated UI.
 
 ## Scope boundary: scenery versus collision surface
 
@@ -33,20 +33,22 @@ This first pass preserves the existing foreground/collision contour exactly. The
 - Two target-seeded background relief layers: broad mesa/shoulder geometry first, subordinate erosion noise, softer tones and restrained depth parallax. These are BACKGROUND scenery, not flyable/hittable mountains in the flight plane.
 - Clipped foreground rock: broad sediment bands, subdued talus/erosion and deterministic material grain. A restrained warm edge identifies the actual flight surface; no neon wireframe ground or grid.
 - Region-relative coordinates account for target position/local direction. No frame RNG. Signed indexed streams let camera movement visit arbitrary cells without regenerating a finite map or retaining unlimited tiles.
-- One lazily generated256² RGBA grain tile per preview target (~1.25MiB total raw pixels across five), placed in world coordinates, reused across draws. No WebGL context, animation sequence or unbounded terrain cache. This is not a mobile/performance-budget claim.
+- Foreground detail revision requested2026-10-24: patched angular bedrock/fissures, multi-scale regolith, faceted scree with contact shadows/lit bevels and broken fine bedding ledges. All below the same clipping boundary; original sky and background relief remain pixel-identical.
+- One lazily generated512×256 RGBA rock/regolith tile per target (~2.5MiB raw across five), sampled at two incommensurate world scales to suppress visible repetition. World-indexed clasts/ledges add non-repeating detail and fade continuously with zoom. Previous256² grain tiles remain behind the comparison toggle (~1.25MiB extra only after use). No WebGL context, animation sequence or unbounded terrain cache. This is not a mobile/performance-budget claim.
 - No city/industrial buildings, roads, vegetation, added atmospheric weather/hazards, chemistry/resource claims or terrain/geography changes to the globe.
 
 ## Implementation
 
 - `src/approach-biomes.ts`: shared biome definition, explicit five-target assignment, independent immutable region/relief/material seeds and continuous signed-coordinate relief sampling.
+- `src/approach-ground-material.ts`: pure seeded periodic material raster, patched cellular rock and granular regolith; no collision/terrain model changes.
 - `src/approach-scenery.ts`: Canvas2D painter factory, opt-in only for its assigned Hartwell target. Restores canvas state; declines other bodies/targets or invalid cameras.
 - `src/approach.ts`: optional final `ApproachSceneryPainter` argument to `renderApproach`; original background is the default/fallback. Existing Game calls supply no painter. Exposes unchanged original background and terrain sampling for comparisons.
 - `tests/hartwell-approach-preview.{html,ts}`: isolated five-site gallery using ten real approach/departure levels. No production import of the new biome or painter modules.
 
 ## Validation
 
-`npm run test:approach-biomes`:11421 assertions — complete surface roster, pinned seeds, shared frozen biome, independent streams, continuous negative/positive coordinate cells, bounded/repeatable relief, target translation/direction mapping and1001 exact comparisons against the original flight-height formula.
+`npm run test:approach-biomes`:666807 assertions (includes per-pixel material opacity bounds) — complete surface roster, pinned seeds, shared frozen biome, independent streams, continuous negative/positive coordinate cells, bounded/repeatable relief, target translation/direction mapping and1001 exact comparisons against the original flight-height formula.
 
-Desktop Edge native70 checks: five distinct scenery images, exact approach/departure and pan/zoom replay, all five real render paths, original-default/declined-hook pixel equality, canvas-state restoration, unchanged flight state/levels/weather/gates/catalog, other-world refusal. Reload reproduces all five hashes; actual slider/original-toggle controls and career-byte isolation checked externally. Regional/upper/low/departure/original and all five individual images inspected/captured. Driver/report/screenshots: `Temp/st-hartwell-approach-cdp-20261024.mjs`, `st-hartwell-approach-native-20261024.json`, `st-hartwell-approach-*-20261024.png`.
+Desktop Edge native85 checks: detailed mode changes substantial foreground area while preserving every tested backdrop pixel; detail-toggle replay is exact. Also five distinct scenery images, exact approach/departure and pan/zoom replay, all five real render paths, original-default/declined-hook pixel equality, canvas-state restoration, unchanged flight state/levels/weather/gates/catalog, other-world refusal. Reload reproduces all five hashes; actual slider/original-toggle controls and career-byte isolation checked externally. Regional/upper/low/departure/original and all five individual images inspected/captured. Driver/report/screenshots: `Temp/st-hartwell-approach-cdp-20261024.mjs`, `st-hartwell-approach-native-20261024.json`, `st-hartwell-approach-*-20261024.png`.
 
-Balor/empty-rig regressions and production build also checked. Any concurrent Farwatch economy/source edits belong to another worker; do not attribute their bundle/content changes to this scenery study. No mobile tests, manual live-save edits, push or deploy.
+Balor/empty-rig regressions and production build also checked. Farwatch economy/source work was committed separately in f119011/9a9f575; this foreground revision leaves production bundle hashes unchanged. No mobile tests, manual live-save edits, push or deploy.

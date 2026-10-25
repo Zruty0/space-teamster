@@ -2,6 +2,8 @@
 import { getApproachTerrainHeight, type ApproachSceneryPainter } from './approach';
 import { approachRidgeHeight, regionCoordinate, regionNoise, regionRandom, type ApproachRegion } from './approach-biomes';
 
+import { hartwellGroundMaterial, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from './approach-ground-material';
+
 type Point = readonly [number, number];
 function path(ctx: CanvasRenderingContext2D, points: readonly Point[]): void {
   ctx.beginPath();
@@ -11,13 +13,19 @@ function fillToBottom(ctx: CanvasRenderingContext2D, points: readonly Point[], h
   path(ctx, points); ctx.lineTo(points[points.length-1][0], height+2);
   ctx.lineTo(points[0][0], height+2); ctx.closePath();
 }
-export function createHartwellScenery(region: ApproachRegion): ApproachSceneryPainter {
+export function createHartwellScenery(region: ApproachRegion, detailedGround = true): ApproachSceneryPainter {
   // One small immutable material tile per target, built lazily; no animation-frame pixels.
   let grain: HTMLCanvasElement | undefined;
   function materialTile(): HTMLCanvasElement {
     if (grain) return grain;
-    grain = document.createElement('canvas'); grain.width = grain.height = 256;
-    const context = grain.getContext('2d')!, image = context.createImageData(256,256);
+    grain = document.createElement('canvas');
+    grain.width = detailedGround ? GROUND_MATERIAL_WIDTH : 256;
+    grain.height = detailedGround ? GROUND_MATERIAL_HEIGHT : 256;
+    const context = grain.getContext('2d')!, image = context.createImageData(grain.width,grain.height);
+    if(detailedGround){
+      image.data.set(hartwellGroundMaterial(region.materialSeed));
+      context.putImageData(image,0,0);return grain;
+    }
     for (let i=0;i<256*256;i++) {
       const r=regionRandom(region.materialSeed,i,100), bright=r>.5;
       image.data[i*4]=bright?240:30;image.data[i*4+1]=bright?198:24;image.data[i*4+2]=bright?145:22;
@@ -127,8 +135,56 @@ export function createHartwellScenery(region: ApproachRegion): ApproachSceneryPa
       }
       const texture=ctx.createPattern(materialTile(),'repeat');
       if(texture){
-        texture.setTransform(new DOMMatrix([16*zoom*state.localDir,0,0,-16*zoom,sx(level.gateX),sy(0)]));
-        ctx.globalAlpha=1;ctx.fillStyle=texture;ctx.fillRect(0,0,W,H);
+        const scale=detailedGround?8:16;
+        texture.setTransform(new DOMMatrix([scale*zoom*state.localDir,0,0,-scale*zoom,sx(level.gateX),sy(0)]));
+        ctx.globalAlpha=detailedGround ? .72 : 1;ctx.fillStyle=texture;ctx.fillRect(0,0,W,H);
+        if(detailedGround){
+          // Incommensurate world scales conceal repeated patches without another bitmap.
+          const second=scale*Math.SQRT2;
+          texture.setTransform(new DOMMatrix([second*zoom*state.localDir,0,0,-second*zoom,sx(level.gateX+913*state.localDir),sy(457)]));
+          ctx.globalAlpha=.48;ctx.fillStyle=texture;ctx.fillRect(0,0,W,H);
+        }
+      }
+      if(detailedGround){
+        // Target-local, world-sized clasts/outcrop fragments, not screen-space speckle.
+        // Everything stays below the original collision edge: no new obstacles.
+        const fade=Math.min(1,Math.max(0,(zoom-.022)/.04));
+        const bottom=cam.y-H/(2*zoom),cellWidth=170,rowHeight=135;
+        for(let cell=Math.floor(regionLeft/cellWidth)-1;cell<=Math.ceil(regionRight/cellWidth)+1;cell++){
+          const maxDepth=Math.max(0,ground(fromRegion(cell*cellWidth))-bottom+300);
+          for(let row=0;row<Math.min(64,Math.ceil(maxDepth/rowHeight));row++){
+            const r=(channel:number)=>regionRandom(region.materialSeed,cell,150+row*13+channel);
+            const x=fromRegion((cell+r(0))*cellWidth),depth=24+(row+r(1)) * rowHeight;
+            const y=ground(x)-depth,px=sx(x),py=sy(y);
+            if(px< -20||px>W+20||py< -20||py>H+20||r(2)>.72)continue;
+            const patch=.45+.55*noise(x,850,row%3+140);
+            const rx=(13+r(3)*48)*zoom,ry=rx*(.25+r(4)*.4);
+            if(rx<.5)continue;
+            const shape:Point[]=[];
+            for(let i=0;i<6;i++){
+              const a=i*Math.PI/3+.35,rough=.72+.28*r(i+5);
+              shape.push([px+Math.cos(a)*rx*rough,py+Math.sin(a)*ry*rough]);
+            }
+            ctx.globalAlpha=fade*patch*(.28+r(5)*.25);
+            // Dark contact shadow, ochre face and one lit bevel give actual relief.
+            path(ctx,shape.map(([a,b])=>[a+1,b+1]));ctx.closePath();ctx.fillStyle='#241c19';ctx.fill();
+            path(ctx,shape);ctx.closePath();ctx.fillStyle=r(6)>.5?'#b58051':'#4b3227';ctx.fill();
+            path(ctx,[shape[3],shape[4],shape[5],[px,py]]);ctx.closePath();ctx.fillStyle='#d2a06a';ctx.globalAlpha=fade*patch*.24;ctx.fill();
+          }
+        }
+        // Broken, fine bedding ledges: irregular lengths, each anchored in world space.
+        for(let cell=Math.floor(regionLeft/450)-1;cell<=Math.ceil(regionRight/450);cell++)for(let row=0;row<14;row++){
+          const r=(c:number)=>regionRandom(region.materialSeed,cell,1100+row*7+c);
+          if(r(0)>.55)continue;
+          const x=fromRegion((cell+r(1)*.6)*450),y=ground(x)-80-row*170-r(2)*90;
+          if(sy(y)<-4||sy(y)>H+4)continue;
+          const length=(80+r(3)*270)*state.localDir;
+          const endY=ground(x+length)-(ground(x)-y)+35*(r(4)-.5);
+          ctx.globalAlpha=fade*.24;ctx.strokeStyle='#291f1c';ctx.lineWidth=Math.max(.65,12*zoom);
+          ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.lineTo(sx(x+length*.45),sy(y-12));ctx.lineTo(sx(x+length),sy(endY));ctx.stroke();
+          ctx.strokeStyle='#ce9860';ctx.globalAlpha=fade*.18;ctx.lineWidth=.7;
+          ctx.beginPath();ctx.moveTo(sx(x),sy(y)+1.2);ctx.lineTo(sx(x+length*.45),sy(y-12)+1.2);ctx.stroke();
+        }
       }
       // Sparse tiny scree strokes appear continuously with zoom; locations never reshuffle.
       ctx.globalAlpha=Math.min(.18,Math.max(0,(zoom-.025)*2));
