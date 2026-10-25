@@ -117,7 +117,7 @@ try {
       return { passed:true,checks:count,hashes,seeds:cards.map(c=>({id:c.id,seed:c.region.seed})) };
     } finally { set(saved); }
   }
-  $('checks').onclick=()=>{try{const result=checks();$('status').textContent=`PASS — ${result.checks} native checks. Five stable targets, one biome; no game/save changes.`;}catch(e){$('error').textContent=String(e);throw e;}};
+  $('checks').onclick=()=>{try{const result=checks();$('status').textContent=`PASS — ${result.checks} native checks. Five stable targets, one biome; no save changes.`;}catch(e){$('error').textContent=String(e);throw e;}};
   draw(); $('status').textContent='Five Hartwell surface approaches ready. Adjust view, pan or phase; no saves are loaded.';
   (window as any).hartwellApproachPreview={ready:true,render:set,checks,canvas:(id:string)=>cards.find(c=>c.id===id)?.canvas,
     snapshot:()=>({options:{...options},targets:cards.map(c=>({id:c.id,name:c.name,region:c.region}))})};

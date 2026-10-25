@@ -2,6 +2,7 @@
 
 import { config } from './config';
 import { createWorldWeather } from './world-weather';
+import { createApproachScenery } from './approach-scenery-runtime';
 import { loadAtmosphereArtSeed } from './atmosphere-art-state';
 import { BALOR_BODY_ID, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from './balor-orientation';
 import { InputState, readInput } from './input';
@@ -267,6 +268,7 @@ export class Game {
   private time = 0;
   private worldTime = 0;
   private orbitalWeather: ReturnType<typeof createWorldWeather> | undefined;
+  private approachScenery: ReturnType<typeof createApproachScenery> | undefined;
   private lastFrameTime = 0;
   private menuSelection = 0;
   private flightMenuSelection = 0;
@@ -3576,7 +3578,7 @@ export class Game {
       render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time, showContainer);
       rightHudBottom = drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'approach') {
-      renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time, showContainer);
+      renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time, showContainer, this.approachScenery ??= createApproachScenery());
       rightHudBottom = drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {
       const atmosphericPackageInstalled = maintenanceSystemFullyInstalled(this.career.rig, 'atmospheric-package');

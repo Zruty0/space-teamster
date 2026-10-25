@@ -1075,7 +1075,7 @@ function tempColor(t: number): string {
   return '#ff2200';
 }
 
-/** Optional scenery study hook. Game callers retain the original renderer. */
+/** Optional scenery hook; unsupported regions retain the original renderer. */
 export type ApproachSceneryPainter = (
   ctx: CanvasRenderingContext2D, cam: Readonly<ApproachCamera>, s: Readonly<ApproachState>,
   level: Readonly<ApproachLevel>, width: number, height: number,

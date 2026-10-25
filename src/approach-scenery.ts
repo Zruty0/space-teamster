@@ -1,4 +1,4 @@
-// Preview-only Hartwell scenery. No Game import/automatic production opt-in.
+// Approved Hartwell scenery, shared by the production dispatcher and review gallery.
 import { getApproachTerrainHeight, type ApproachSceneryPainter } from './approach';
 import { approachRidgeHeight, regionCoordinate, regionNoise, regionRandom, type ApproachRegion } from './approach-biomes';
 
@@ -101,6 +101,8 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
       const step=4/zoom, start=cam.x-W/(2*zoom)-step, count=Math.ceil(W/4)+2;
       const surface: Point[]=[];
       for(let i=0;i<=count;i++){const x=start+i*step;surface.push([sx(x),sy(ground(x))]);}
+      // High-altitude cameras need only the sky/distant relief. Don't build an invisible material tile.
+      if(surface.every(([,y])=>y>H+2))return true;
       ctx.save();fillToBottom(ctx,surface,H);ctx.clip();
       const rock=ctx.createLinearGradient(0,sy(1300),0,sy(-2000));
       rock.addColorStop(0,palette.ground);rock.addColorStop(.45,'#754630');rock.addColorStop(1,palette.deep);
@@ -145,7 +147,7 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
           ctx.globalAlpha=.48;ctx.fillStyle=texture;ctx.fillRect(0,0,W,H);
         }
       }
-      if(detailedGround){
+      if(detailedGround && zoom>.022){
         // Target-local, world-sized clasts/outcrop fragments, not screen-space speckle.
         // Everything stays below the original collision edge: no new obstacles.
         const fade=Math.min(1,Math.max(0,(zoom-.022)/.04));
@@ -188,12 +190,17 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
       }
       // Sparse tiny scree strokes appear continuously with zoom; locations never reshuffle.
       ctx.globalAlpha=Math.min(.18,Math.max(0,(zoom-.025)*2));
-      for(let cell=Math.floor(regionLeft/140);cell<=Math.ceil(regionRight/140);cell++) {
+      if(zoom>.025)for(let cell=Math.floor(regionLeft/140);cell<=Math.ceil(regionRight/140);cell++) {
         const x=fromRegion(cell*140);
         const y=ground(x)-80-regionRandom(region.materialSeed,cell,90)*1100;
         ctx.strokeStyle=palette.light;ctx.lineWidth=.7;
         ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.lineTo(sx(x+state.localDir*(20+regionRandom(region.materialSeed,cell,91)*60)),sy(y-12));ctx.stroke();
       }
+      // Wide ascent cameras expose kilometres of the schematic cutaway. Fade deep
+      // material rather than filling half the screen with repeated rock texture.
+      const deep=ctx.createLinearGradient(0,sy(-2000),0,sy(-8000));
+      deep.addColorStop(0,'rgba(33,27,27,0)');deep.addColorStop(.7,'rgba(33,27,27,.85)');deep.addColorStop(1,'#211b1b');
+      ctx.globalAlpha=1;ctx.fillStyle=deep;ctx.fillRect(0,0,W,H);
       ctx.restore();
       // A restrained lit edge makes the true flight plane unambiguous; no neon terrain mesh.
       path(ctx,surface);ctx.strokeStyle='rgba(223,163,104,.58)';ctx.lineWidth=1;ctx.stroke();

@@ -1,7 +1,7 @@
 # Hartwell approach / departure biome study
 
 Updated: 2026-10-24 (Pacific)
-Status: preview implemented for all five surface sites; awaiting visual review. Not enabled in Game. No landing/takeoff redesign or other-world rollout.
+Status: Pete approved production integration2026-10-24. Enabled in Game for Hartwell approach/departure only. No landing/takeoff redesign or other-world rollout.
 
 ## Approved model
 
@@ -21,7 +21,7 @@ The seed uses the target's persistent POI identity, not its display name, genera
 | Gale Survey | storm-research | 1520306920 |
 | First Landing | abandoned-colony | 999795556 |
 
-Roadstead/Ascension are orbital sites, not missing surface previews. First Landing is a synthetic rendering fixture only; no career access, reservation or story changes.
+Roadstead/Ascension are orbital sites, not missing surface previews. First Landing remains reserved; rendering it in the fixtures does not grant career access. No reservation or story changes.
 
 Controls: regional/upper/low views, approach/departure, along-track pan, detailed-foreground on/off (previous candidate comparison), original scenery, flight-overlay toggle, reset, per-site PNG export and native checks. All five canvases use identical framing for comparison. No save is loaded; fixtures create real generated ApproachLevels in memory. Ship/gate/trajectory/wind graphics use the current production renderer, not a recreated UI.
 
@@ -42,8 +42,11 @@ This first pass preserves the existing foreground/collision contour exactly. The
 - `src/approach-biomes.ts`: shared biome definition, explicit five-target assignment, independent immutable region/relief/material seeds and continuous signed-coordinate relief sampling.
 - `src/approach-ground-material.ts`: pure seeded periodic material raster, patched cellular rock and granular regolith; no collision/terrain model changes.
 - `src/approach-scenery.ts`: Canvas2D painter factory, opt-in only for its assigned Hartwell target. Restores canvas state; declines other bodies/targets or invalid cameras.
-- `src/approach.ts`: optional final `ApproachSceneryPainter` argument to `renderApproach`; original background is the default/fallback. Existing Game calls supply no painter. Exposes unchanged original background and terrain sampling for comparisons.
-- `tests/hartwell-approach-preview.{html,ts}`: isolated five-site gallery using ten real approach/departure levels. No production import of the new biome or painter modules.
+- `src/approach.ts`: optional final `ApproachSceneryPainter` argument to `renderApproach`; original background is the default/fallback. Game now supplies the approved Hartwell dispatcher; other bodies/unknown targets fall back unchanged. Exposes unchanged original background and terrain sampling for comparisons.
+- `src/approach-scenery-runtime.ts`: lazy per-Game dispatcher, at most five cached painters/material tiles, same seeds through visits/retries/approach/departure. No save IO or new seed key. Detailed mode only; comparison textures are gallery-only.
+- `tests/hartwell-approach-preview.{html,ts}`: retained five-site gallery using ten real approach/departure levels.
+- `tests/hartwell-flight.{html,ts}`: optional save-free playable practice at `/tests/hartwell-flight.html`. Uses actual `updateApproach`, production camera/keyboard and `Game.renderGameplayPhase`, synthetic nearby or full-entry starts. Starts paused; site/phase selectors, Fly/Pause/restart, hidden/focus-loss pause. Fixed1×, no career cargo/maintenance modifiers, settlement or phase handoff; stops at success/failure. Does not load/save career or unlock First Landing.
+- Runtime camera safeguards: skip invisible foreground/material allocation above the ground; skip zero-opacity small geometry at wide zoom. Deep cutaway texture fades between−2km and−8km so wide ascent does not expose a screen full of repetitive underground material. Regional/low gallery appearance unchanged.
 
 ## Validation
 
@@ -51,4 +54,6 @@ This first pass preserves the existing foreground/collision contour exactly. The
 
 Desktop Edge native85 checks: detailed mode changes substantial foreground area while preserving every tested backdrop pixel; detail-toggle replay is exact. Also five distinct scenery images, exact approach/departure and pan/zoom replay, all five real render paths, original-default/declined-hook pixel equality, canvas-state restoration, unchanged flight state/levels/weather/gates/catalog, other-world refusal. Reload reproduces all five hashes; actual slider/original-toggle controls and career-byte isolation checked externally. Regional/upper/low/departure/original and all five individual images inspected/captured. Driver/report/screenshots: `Temp/st-hartwell-approach-cdp-20261024.mjs`, `st-hartwell-approach-native-20261024.json`, `st-hartwell-approach-*-20261024.png`.
 
-Balor/empty-rig regressions and production build also checked. Farwatch economy/source work was committed separately in f119011/9a9f575; this foreground revision leaves production bundle hashes unchanged. No mobile tests, manual live-save edits, push or deploy.
+Production integration:104 native checks across all five real approach/departure scenes, actual Game hook/HUD versus approved painter, original-fallback differences, actual control/physics advance and deterministic retry, real camera zoom.008–.08, other-world exact fallback, unchanged career/levels/catalog. The independent rebuilt painter comparison allows≤1 channel rounding (observed one changed AA channel at379,347); gallery same-painter replay remains exact. Live keyboard thrust, pause and safe paused reload/career isolation also pass. `Temp/st-hartwell-flight-cdp-20261024.mjs` and matching report/screenshots retain evidence.
+
+Desktop CPU submission sampling across40 full Game draws per run: mean5.1–5.8ms/p9515.3–18.5ms in two runs; includes trajectory/HUD, follows readback checks and is NOT synchronized GPU time or gameplay FPS. No mobile budget established. Balor/empty-rig regressions and production build pass. Farwatch/Barataria changes were committed separately and retained. No mobile tests, manual live-save edits, push or deploy.
