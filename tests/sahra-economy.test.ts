@@ -27,7 +27,8 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 const pois = ESTELLA_NODES.filter(n => n.kind === 'poi');
 const nav = new Set(estellaSelectableNavTargets().map(n => n.id));
 const isNew = (c: {templateId?: string}) => !!c.templateId?.startsWith('sahra:');
-const isWeymarkAddition = (c: {templateId?: string}) => !!c.templateId?.startsWith('weymark:');
+// Later additive programmes each have an independent old-roster baseline.
+const isWeymarkAddition = (c: {templateId?: string}) => !!c.templateId?.startsWith('weymark:') || !!c.templateId?.startsWith('farwatch:');
 const isFuel = (c: {cargo: {label: string}}) => c.cargo.label === 'stable fuel canisters';
 const isSahra = (id: string) => (SAHRA_SITES as readonly string[]).includes(id);
 assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id)).size === 34, 'Sahra/Weymark booking aggregators added, all original32 providers retained');
@@ -36,7 +37,7 @@ assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && new Set(ESTELLA_FACTI
 for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   const expected = (baseline.providers as Record<string, number[]>)[p.id];
   if (!expected) { assert([SAHRA_CIVILIAN_ID, 'weymark-independent-operators'].includes(p.id), 'only authorized subsequent actors'); continue; }
-  const rows = baseline.providerDays.flatMap(day => pois.flatMap(n => p.generateContracts({sourceId: n.id, worldTime: day * 86400}).filter(c => !isNew(c))));
+  const rows = baseline.providerDays.flatMap(day => pois.flatMap(n => p.generateContracts({sourceId: n.id, worldTime: day * 86400}).filter(c => !isNew(c) && !c.templateId.startsWith('farwatch:'))));
   assert(!rows.some(isFuel), 'no raw provider still produces finished-fuel loads');
   assert(same(reviewFingerprint(rows), expected), `${p.id}: every non-fuel old candidate, seed, mass, rate and receipt retained`);
 }

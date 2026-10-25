@@ -21,7 +21,7 @@ function assert(ok: unknown, message: string): asserts ok { assertions++; if (!o
 const storage = new Map<string,string>(); let failSave=false, saves=0;
 (globalThis as any).localStorage={ getItem:(k:string)=>storage.get(k)??null, setItem:(k:string,v:string)=>{if(failSave)throw Error('test storage failure');saves++;storage.set(k,v);}, removeItem:(k:string)=>storage.delete(k) };
 const profile=defaultCareerProfile(); profile.certifications=['basic-1','basic-2','basic-3','line'];
-const unlisted=['estella-v-abandoned-colony','estella-viii-abandoned-site','reach-comet-fragment-2-poi','reach-rogue-lonely-beacon','deepest-dock-poi','reach-comet-fragment-4-poi','reach-comet-fragment-6-poi'];
+const unlisted=['estella-v-abandoned-colony','estella-viii-abandoned-site','reach-comet-fragment-2-poi','reach-rogue-lonely-beacon','reach-comet-fragment-4-poi','reach-comet-fragment-6-poi'];
 const pois=ESTELLA_NODES.filter(n=>n.kind==='poi');
 // Explicitly rejected expansion placeholders, not dormant destinations to revive.
 const removedBeltIds = [
@@ -39,7 +39,8 @@ assert(!ESTELLA_VALIDATION_ISSUES.some(i=>i.severity==='error'), 'catalog valid 
 assert(Object.keys(EMPTY_TRAVEL_ACCESS).length===pois.length,'every POI explicitly reviewed, no stale access entries');
 for(const n of pois) assert(Object.prototype.hasOwnProperty.call(EMPTY_TRAVEL_ACCESS,n.id),`access authored: ${n.id}`);
 assert(emptyTravelAccess('future-unreviewed-node')==='unlisted' && emptyTravelAccess('constructor')==='unlisted','new sites and prototype keys fail closed');
-for(const id of unlisted) assert(emptyTravelAccess(id)==='unlisted' && !canTravelEmpty(profile,id),'eight debated sites hidden for empty travel');
+for(const id of unlisted) assert(emptyTravelAccess(id)==='unlisted' && !canTravelEmpty(profile,id),'unlisted sites hidden for empty travel');
+assert(emptyTravelAccess('deepest-dock-poi')==='contract-only' && !canTravelEmpty(profile,'deepest-dock-poi'),'Farwatch forbids independent empty arrivals');
 for(const id of ['estella-i-worker-hab','estella-ii-pandemonium','estella-xif-deep-listening-array','estella-xc-castle-mendes','estella-xiia-volatiles-transit','still-public-approach-dock']) assert(canTravelEmpty(profile,id),`public receiving exception: ${id}`);
 for(const id of ['estella-vi-spaceport','estella-vib-vat-protein','still-refinery-core','estella-xif-observatory','estella-xif-sealed-research-outpost','estella-xiid-mirror-clinic']) assert(!canTravelEmpty(profile,id),`closed destination: ${id}`);
 for(const id of localTerminalScopeIds(profile.locationId)) assert(!canTravelEmpty(profile,id),'no same-terminal repositioning');
@@ -149,7 +150,7 @@ for(const [source,destination] of [['estella-xif-sealed-research-outpost','estel
 let denied=false; try{createEmptyRun(profile,unlisted[2]);}catch{denied=true;}
 assert(denied,'direct factory call cannot generate unauthorized empty run');
 let publicPosting=false;
-for(const id of [unlisted[2],unlisted[3],unlisted[4]]) for(const day of [0,1,10]) {
+for(const id of [unlisted[2],unlisted[3],'deepest-dock-poi']) for(const day of [0,1,10]) {
   const board=generateCareerContracts(id,day*86400);
   if(board.some(c=>c.sourceId===id)) publicPosting=true;
 }

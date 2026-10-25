@@ -11,7 +11,9 @@ export function reviewFingerprint(rows: unknown[]): [number, number] {
       return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
     }
     if (typeof value !== 'string') return value;
-    if (textKeys.has(key)) return publicContentText(value);
+    // Farwatch is a display-only rename; retain old frozen name fingerprints.
+    // Dedicated Farwatch tests assert the new actual UI strings separately.
+    if (textKeys.has(key)) return publicContentText(value).split('EDF Farwatch Station').join('The Deepest Dock');
     if ((key === 'issuerTag' || key === 'factionTag') && value === 'SYC') return 'SSC';
     return value;
   });

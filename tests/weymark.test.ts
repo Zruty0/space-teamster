@@ -24,6 +24,8 @@ let checks = 0;
 function assert(ok: unknown, text: string): asserts ok { checks++; if (!ok) throw Error(text); }
 const same = (a: unknown,b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const isNew = (c: {templateId?:string}) => !!c.templateId?.startsWith('weymark:');
+// Additive Farwatch programme has its own independent pre-change baseline.
+const isFarwatch = (c: {templateId?:string}) => !!c.templateId?.startsWith('farwatch:');
 const pois = ESTELLA_NODES.filter(n=>n.kind==='poi');
 const nav = new Set(estellaSelectableNavTargets().map(n=>n.id));
 assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length===34 && new Set(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p=>p.id)).size===34, 'one independent booking aggregator, all33 existing providers');
@@ -42,11 +44,11 @@ for(const id of WEYMARK_SITES)assert((estellaLocationIntroduction(id)?.length??0
 for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS){
  const expected=(baseline.providers as Record<string,number[]>)[p.id];
  if(!expected){assert(p.id===WEYMARK_OPERATORS_ID,'only authorized new provider');continue;}
- const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400})));
+ const rows=baseline.days.flatMap(day=>pois.flatMap(n=>p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isFarwatch(c))));
  assert(same(reviewFingerprint(rows),expected),`${p.id}: complete pre-existing raw programme retained`);
 }
 const oldRouted: FactionContractCandidate[]=[];
-for(const day of baseline.days)for(const n of pois)oldRouted.push(...generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)));
+for(const day of baseline.days)for(const n of pois)oldRouted.push(...generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!isFarwatch(c)));
 assert(same(reviewFingerprint(oldRouted),baseline.raw),'all15899 old dispatched candidates remain exact');
 
 const orders=new Map<string,Map<number,FactionContractCandidate>>(),pairs=new Map<string,FactionContractCandidate>();
@@ -54,6 +56,7 @@ const affected=new Set<string>(),coverage=new Map<string,{in:number;out:number}>
 for(let day=0;day<24;day++)for(const n of pois)for(const c of generateFactionContractCandidates({sourceId:n.id,worldTime:day*86400})){
  assert(![c.sourceId,c.destinationId].some(id=>id===LANTERN_DOCK||id===OLD_SURVEY_CAMP),'Lantern and Old Survey Camp have zero freight/passenger traffic from every provider');
  assert(c.cargo.label!=='stable fuel canisters','no revived finished-fuel loads');
+ if(isFarwatch(c))affected.add(contractLocationId(c.sourceId));
  if(!isNew(c))continue;
  assert(c.factionId===WEYMARK_OPERATORS_ID&&!c.factionTag&&c.issuerName!==c.factionName,'independent small customers, not a planet-owning company');
  assert(c.sourceId===n.id&&nav.has(c.sourceId)&&nav.has(c.destinationId)&&c.sourceId!==c.destinationId,'scoped playable endpoints');
@@ -88,7 +91,9 @@ for(const day of baseline.days)for(const n of estellaSelectableNavTargets().sort
   if(c.destinationId===LOW_GAUGE)accepted=c;
  }
 }
-assert(exactRows>6000&&exactBoards>600&&newFreight>0&&newPeople>0&&accepted,`unaffected full-board baseline and both real new categories: ${exactRows} rows/${exactBoards} boards; ${newFreight} freight/${newPeople} crew; accepted=${!!accepted}`);
+// Farwatch adds demand on40 more historical boards; its independent fixture
+// protects all old Weymark orders and6743 postings immediately before that pass.
+assert(exactRows>5000&&exactBoards>600&&newFreight>0&&newPeople>0&&accepted,`unaffected full-board baseline and both real new categories: ${exactRows} rows/${exactBoards} boards; ${newFreight} freight/${newPeople} crew; accepted=${!!accepted}`);
 // Existing progression: timed training and Old Nell passage remain contact-only,
 // not absorbed into the new local crew board or redirected to another station.
 const training=generateFactionContactContractCandidates({sourceId:WEYMARK_TOWN,worldTime:0,issuer:{id:GIDEON_BELL.id,name:GIDEON_BELL.name,factionId:'teamsters-guild',missionTags:['certification-basic']},availableSourceIds:[WEYMARK_TOWN],progress:{basic1:1,basic2:1}});

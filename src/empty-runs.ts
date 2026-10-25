@@ -14,6 +14,7 @@ export function emptyRunDestinationIds(profile: Pick<CareerProfile, 'locationId'
   const local = new Set(localTerminalScopeIds(profile.locationId));
   const contacts = new Set(knownMissionContacts(profile).flatMap(contact => contact.locationIds.map(canonicalEstellaLocationId)));
   return new Set(estellaSelectableNavTargets().filter(target => canonicalEstellaLocationId(target.id) === target.id && !local.has(target.id)
+    && emptyTravelAccess(target.id) !== 'contract-only'
     && (emptyTravelAccess(target.id) === 'public' || contacts.has(target.id))).map(target => target.id));
 }
 export function canTravelEmpty(profile: Pick<CareerProfile, 'locationId' | 'knownContactIds'>, destinationId: string): boolean {

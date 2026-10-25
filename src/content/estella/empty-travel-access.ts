@@ -1,6 +1,8 @@
 // Empty-run discovery/arrival policy ONLY. Contract postings carry their own
 // authorization and must never be filtered through this registry.
-export type EmptyTravelAccess = 'public' | 'restricted' | 'unlisted';
+export type EmptyTravelAccess = 'public' | 'restricted' | 'unlisted' | 'contract-only';
+// Explicitly no empty arrivals, even with a known local mission contact.
+const CONTRACT_ONLY = ['deepest-dock-poi'] as const;
 const RESTRICTED = [
   'estella-vi-industrial-city', 'estella-vi-foundry-complex', 'estella-vi-spaceport',
   'estella-vi-agricultural-lowlands', 'estella-vi-polar-weather-research', 'estella-vi-mountain-mining',
@@ -20,7 +22,7 @@ const UNLISTED = [
   'estella-xiid-mirror-clinic', 'estella-xiv-smuggler-haven', 'reach-comet-fragment-3-poi',
   // Abandoned, isolated and lore sites: no empty arrival until a contact is known.
   'estella-v-abandoned-colony', 'estella-viii-abandoned-site', 'reach-comet-fragment-2-poi',
-  'reach-rogue-lonely-beacon', 'deepest-dock-poi',
+  'reach-rogue-lonely-beacon',
   'reach-comet-fragment-4-poi', 'reach-comet-fragment-6-poi',
   'coronal-observation-post-ops', 'estella-xiv-abandoned-active-site',
 ] as const;
@@ -64,6 +66,7 @@ export const EMPTY_TRAVEL_ACCESS: Readonly<Record<string, EmptyTravelAccess>> = 
   ...PUBLIC.map(id => [id, 'public'] as const),
   ...RESTRICTED.map(id => [id, 'restricted'] as const),
   ...UNLISTED.map(id => [id, 'unlisted'] as const),
+  ...CONTRACT_ONLY.map(id => [id, 'contract-only'] as const),
 ]);
 // Unknown/new IDs fail closed until their access is explicitly authored.
 export function emptyTravelAccess(id: string): EmptyTravelAccess {

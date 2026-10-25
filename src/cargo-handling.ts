@@ -17,6 +17,7 @@ export const FRAGILITY_LEVELS: Readonly<Record<FragilityLevel, { name: string; i
 };
 
 const FRAGILE_CARGO: Readonly<Record<string, FragileCargoTerms>> = {
+  'Farwatch observation instrument chests': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.50 },
   'cut veil-opal cases': { level: 'very-fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.60 },
   'veil-opal rough cases': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.55 },
   'weather instrument service returns': { level: 'fragile', shockAbsorbingContainer: true, conditionRiskFraction: 0.45 },
@@ -227,6 +228,12 @@ const ORDINARY_CARGO = new Set<string>([
   'worn tug service modules',
   'worn yard handling modules',
   'yard infrastructure technicians',
+  'EDF Farwatch duty personnel',
+  'Farwatch station technicians',
+  'Farwatch station provisions',
+  'Farwatch life-support service kits',
+  'Farwatch station maintenance assemblies',
+  'Farwatch reusable expedition fittings',
   'Institute field researchers',
   'Institute visiting fellows',
   'archive conservators and historians',

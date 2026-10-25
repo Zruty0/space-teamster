@@ -31,6 +31,8 @@ const PASSENGER_EXPECTATIONS: Readonly<Record<string, ComfortExpectation>> = {
   'marine fleet technicians': 'standard',
   'archive conservators and historians': 'standard',
   'civilian port personnel': 'standard',
+  'EDF Farwatch duty personnel': 'standard',
+  'Farwatch station technicians': 'standard',
   'Institute field researchers': 'standard',
   'Institute visiting fellows': 'elevated',
   'civilian business passengers': 'standard',

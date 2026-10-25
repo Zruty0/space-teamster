@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8"><title>Farwatch desktop check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:16px}</style>
+<select id="view"></select><span id="status">Checking live worker…</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+import {Game} from '/src/game.ts';
+import {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS} from '/src/career-state.ts';
+import {drawInteractiveScene} from '/src/interactive-scene.ts';
+import {defaultNunesInquirySnapshot} from '/src/content/estella/faction-contracts/nunes-inquiries.ts';
+import {ESTELLA_NODES_BY_ID} from '/src/content/estella/index.ts';
+import {FARWATCH} from '/src/content/estella/faction-contracts/farwatch-contracts.ts';
+import {contractLocationId} from '/src/contract-presentation.ts';
+import {emptyRunDirectory,canTravelEmpty} from '/src/empty-runs.ts';
+const menu=document.getElementById('view'),canvas=document.getElementById('screen'),ctx=canvas.getContext('2d'),contracts={};
+const views=['Farwatch terminal','EDF provisions','EDF rotation','Institute instruments','Institute researchers','Equipment return'];
+for(const name of views){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
+const game=Object.create(Game.prototype);game.career={...defaultCareerProfile(),certifications:[...TEAMSTER_CERTIFICATION_IDS]};game.canvas=canvas;
+function show(){canvas.width=innerWidth-24;canvas.height=innerHeight-60;const key=menu.value,c=contracts[key];if(key==='Farwatch terminal'){game.career.locationId=FARWATCH;drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'stationTerminal',selectedIndex:0}),0);}else if(c){game.career.locationId=c.sourceId;drawInteractiveScene(ctx,canvas,game.buildInteractiveScene({id:'contractPosting',contracts:[c],contractIndex:0,selectedIndex:0}),0);}}
+menu.onchange=show;window.addEventListener('resize',show);show();
+const sources=[FARWATCH,'estella-xiii-main-port','estella-iii-capital-city','estella-iii-main-customs','estella-iv-primary-city','estella-iv-main-orbital-station','estella-vii-high-vacuum-factory','estella-vii-transit-export'];
+const requests=[];for(let day=0;day<24;day++)for(const sourceId of sources)requests.push({sourceId,worldTime:day*86400});
+let complete=0,rowsSeen=0,newRows=0;const started=performance.now(),worker=new Worker(new URL('../src/contract-board-worker.ts',import.meta.url),{type:'module'});
+function fail(message){document.title='FAIL — Farwatch';document.getElementById('status').textContent=message;worker.terminate();}
+worker.onerror=e=>fail(e.message);
+worker.onmessage=({data})=>{try{
+ if(data.error)throw Error(data.error);const rows=[...data.boards.freight,...data.boards.passenger];rowsSeen+=rows.length;
+ for(const c of rows){
+  if(contractLocationId(c.sourceId)!==contractLocationId(requests[complete].sourceId)||c.quote.sourceId!==c.sourceId||c.quote.destinationId!==c.destinationId)throw Error('quote/source mismatch');
+  if(c.sourceName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name||c.destinationName!==ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name)throw Error('physical name mismatch');
+  if(!c.templateId?.startsWith('farwatch:'))continue;newRows++;
+  if(c.templateId==='farwatch:provisions:out')contracts['EDF provisions']??=c;
+  if(c.templateId==='farwatch:duty-rotations:out')contracts['EDF rotation']??=c;
+  if(c.cargo.label==='Farwatch observation instrument chests')contracts['Institute instruments']??=c;
+  if(c.templateId.startsWith('farwatch:research-rotations:'))contracts['Institute researchers']??=c;
+  if(c.templateId==='farwatch:overhaul-returns:out')contracts['Equipment return']??=c;
+ }
+ complete++;if(complete<requests.length){worker.postMessage({requestId:complete,...requests[complete],nunesInquiries:defaultNunesInquirySnapshot(requests[complete].worldTime)});return;}
+ worker.terminate();for(const key of views.slice(1))if(!contracts[key])throw Error(`missing live posting: ${key}`);
+ const visitor={...game.career,locationId:'estella-xiii-main-port'};
+ if(canTravelEmpty(visitor,FARWATCH)||emptyRunDirectory(visitor,'region:reach').some(e=>e.target?.id===FARWATCH||e.key==='node:deepest-dock-body'))throw Error('Farwatch exposed in empty travel');
+ for(const o of menu.options){menu.value=o.value;show();}menu.value='Farwatch terminal';show();document.title='PASS — Farwatch';document.getElementById('status').textContent=`PASS — ${complete} worker requests; ${rowsSeen} postings (${newRows} new); no empty arrival; ${(performance.now()-started).toFixed(0)} ms`;
+}catch(e){fail(e.stack??String(e));}};
+worker.postMessage({requestId:0,...requests[0],nunesInquiries:defaultNunesInquirySnapshot(0)});
+// Isolated synthetic profile: no Game constructor or save loading/writes.
+</script>

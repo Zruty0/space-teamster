@@ -48,7 +48,7 @@ for(const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   // frozen independently before the change in sahra-economy.test.ts.
   if(!(p.id in baseline) || p.id === 'teamsters-guild') continue;
   const rows: FactionContractCandidate[]=[];
-  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!c.templateId.startsWith('sahra:')));
+  for(const day of [0,1,7,20]) for(const n of pois) rows.push(...p.generateContracts({sourceId:n.id,worldTime:day*86400}).filter(c=>!isNew(c)&&!c.templateId.startsWith('sahra:')&&!c.templateId.startsWith('farwatch:')));
   let h=2166136261;for(const ch of preCampsNames(JSON.stringify(rows))){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}
   const expected=(baseline as Record<string,number[]>)[p.id];
   assert(rows.length===expected[0]&&(h>>>0)===expected[1], `${p.id}: entire pre-pass raw economy preserved`);

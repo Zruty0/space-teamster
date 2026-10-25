@@ -5,6 +5,7 @@ import { campsTradeContracts } from './camps-trade-contracts';
 import { CAMPS_PLANETOLOGY_LANES } from './camps-partner-lanes';
 import { sahraTradeContracts } from './sahra-trade-contracts';
 import { SAHRA_PLANETOLOGY_LANES } from './sahra-partner-lanes';
+import { farwatchContracts } from './farwatch-contracts';
 
 export const DAHAI_CIVILIAN_ID = 'dahai-civilian-bookings';
 export const PLANETOLOGY_ID = 'estella-institute-of-planetology';
@@ -117,5 +118,5 @@ export const PLANETOLOGY_PROVIDER: FactionContractProvider = {
     issuerId: PLANETOLOGY_ID, issuerName: 'Estella Institute of Planetology',
     generosity: lane.category === 'passenger' ? 0.6 : 0.8,
     compensationRatio: lane.category === 'passenger' ? 0.6 : 0.45, maxCompAllowance: 2,
-  }, [lane]))],
+  }, [lane])), ...farwatchContracts(ctx, 'EIP')],
 };

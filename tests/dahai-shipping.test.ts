@@ -45,7 +45,7 @@ for (const p of ESTELLA_FACTION_CONTRACT_PROVIDERS) {
   if (!(p.id in baseline) || p.id === 'teamsters-guild') continue;
   const rows: FactionContractCandidate[] = [];
   for (const day of [0, 1, 7, 20]) for (const n of pois) for (const c of p.generateContracts({ sourceId: n.id, worldTime: day * 86400 })) {
-    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:')) rows.push(c);
+    if (!c.sourceId.startsWith('estella-iv-') && !c.destinationId.startsWith('estella-iv-') && !isNew(c) && !c.templateId.startsWith('camps:') && !c.templateId.startsWith('sahra:') && !c.templateId.startsWith('farwatch:')) rows.push(c);
   }
   let h = 2166136261;
   for (const ch of preCampsNames(JSON.stringify(rows))) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
