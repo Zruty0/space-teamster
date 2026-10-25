@@ -1,6 +1,6 @@
 # Hartwell approach / departure biome study
 
-Updated: 2026-10-24 (Pacific)
+Updated: 2026-10-25 (Pacific)
 Status: Pete approved production integration2026-10-24. Enabled in Game for Hartwell approach/departure only. No landing/takeoff redesign or other-world rollout.
 
 ## Approved model
@@ -54,6 +54,8 @@ This first pass preserves the existing foreground/collision contour exactly. The
 
 Desktop Edge native85 checks: detailed mode changes substantial foreground area while preserving every tested backdrop pixel; detail-toggle replay is exact. Also five distinct scenery images, exact approach/departure and pan/zoom replay, all five real render paths, original-default/declined-hook pixel equality, canvas-state restoration, unchanged flight state/levels/weather/gates/catalog, other-world refusal. Reload reproduces all five hashes; actual slider/original-toggle controls and career-byte isolation checked externally. Regional/upper/low/departure/original and all five individual images inspected/captured. Driver/report/screenshots: `Temp/st-hartwell-approach-cdp-20261024.mjs`, `st-hartwell-approach-native-20261024.json`, `st-hartwell-approach-*-20261024.png`.
 
-Production integration:104 native checks across all five real approach/departure scenes, actual Game hook/HUD versus approved painter, original-fallback differences, actual control/physics advance and deterministic retry, real camera zoom.008–.08, other-world exact fallback, unchanged career/levels/catalog. The independent rebuilt painter comparison allows≤1 channel rounding (observed one changed AA channel at379,347); gallery same-painter replay remains exact. Live keyboard thrust, pause and safe paused reload/career isolation also pass. `Temp/st-hartwell-flight-cdp-20261024.mjs` and matching report/screenshots retain evidence.
+Controls-legibility follow-up: the bottom34px controls strip now has an opaque black backing in approach/departure; text, font, colors and position unchanged.
+
+Production integration:114 native checks across all five real approach/departure scenes, actual Game hook/HUD versus approved painter, original-fallback differences, actual control/physics advance and deterministic retry, real camera zoom.008–.08, other-world exact fallback, unchanged career/levels/catalog. The independent rebuilt painter comparison allows≤1 channel rounding (observed one changed AA channel at379,347); gallery same-painter replay remains exact. Live keyboard thrust, pause and safe paused reload/career isolation also pass. `Temp/st-hartwell-flight-cdp-20261024.mjs` and matching report/screenshots retain evidence.
 
 Desktop CPU submission sampling across40 full Game draws per run: mean5.1–5.8ms/p9515.3–18.5ms in two runs; includes trajectory/HUD, follows readback checks and is NOT synchronized GPU time or gameplay FPS. No mobile budget established. Balor/empty-rig regressions and production build pass. Farwatch/Barataria changes were committed separately and retained. No mobile tests, manual live-save edits, push or deploy.

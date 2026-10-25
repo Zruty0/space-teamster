@@ -1943,6 +1943,10 @@ function drawApproachHUD(
   }
 
   if (state === 'approaching') {
+    // Keep the controls readable over textured terrain in both flight directions.
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, H - 34, W, 34);
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;

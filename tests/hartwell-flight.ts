@@ -64,6 +64,8 @@ function checks(){
  const timings:number[]=[];
  for(const id of HARTWELL_APPROACH_TARGETS)for(const departing of [false,true]){
   reset(id,departing,false);const state=JSON.stringify(current.as),live=hash(),pixels=ctx.getImageData(0,0,1200,720).data;
+  const footer=ctx.getImageData(0,686,1,34).data;
+  assert(footer.every((v,i)=>v===(i%4===3?255:0)),`${id}/${departing}: controls have opaque black backing`);
   assert(typeof game.approachScenery==='function','actual Game hook initializes runtime scenery');
   const runtime=game.approachScenery;
   game.approachScenery=createHartwellScenery(hartwellApproachRegion(id));draw();
