@@ -1,96 +1,69 @@
-# System-wide maintenance coverage — proposed staged plan
+# System-wide maintenance coverage — approved staged plan
 
 Updated: 2026-10-26
-Status: **five-stage outline approved2026-10-26; Stage1 design completed for review.** [Specification](maintenance-stage-1-specification.md) and [complete roster](maintenance-stage-1-roster.md) await approval before Stage2. Exhaustive Stage3 Markdown copy review remains required before rollout. No runtime changes or later stages started.
+Status: Stage 1 reviewed; Stage 2 implemented for review. Stop before Stage 3 rollout. Each stage requires separate approval.
 
-## Requested shape
+Canonical details: [reviewed specification](maintenance-stage-1-specification.md), [complete roster](maintenance-stage-1-roster.md), [Stage 2 handoff](maintenance-stage-2.md). Pete's original `zzz` comments and their resolutions remain in the specification.
 
-Four internal facility tiers, never shown to the player:
+## Service model
 
-| Internal tier | Player experience | Distribution/copy |
-|---|---|---|
-| 0 | Look for a local mechanic; limited tools, basic diagnosis/service/repairs and inexpensive replacement parts | Fallback at staffed working destinations; regional/planetary shared archetypes, not a named NPC at every dock |
-| 1 | Modest professional workshop; ordinary servicing and repairs, standard parts | Common facilities; usually one shared copy set per planet, local shop/location substitutions |
-| 2 | Full-service workshop; everything except the most complex repair work | Bespoke business, staff and dialogue; approximately one per inhabited planet or practical settlement group, explicit exceptions |
-| 3 | Exceptional specialist service; all existing repair complexities and full equipment-installation capability | Few system-wide landmarks; fully bespoke |
+| Internal class | Experience |
+|---|---|
+| −1 | Free emergency self-help where no staffed service exists; no invented resident mechanic |
+| 0 | Look for a local mechanic; basic servicing, limited repairs and inexpensive parts |
+| 1 | Modest professional workshop; mostly shared planetary prose |
+| 2 | Bespoke full-service workshop, approximately one per inhabited world or practical service area |
+| 3 | Rare elite facility supporting all existing repair complexities and equipment installations |
 
-“Everywhere” is proposed to mean every staffed, operational destination, including private sites once legitimately reached. Unstaffed drops, abandoned outposts and reserved sites need explicit exclusions rather than invented resident mechanics. Existing access rules remain unchanged. Coverage is by physical terminal scope, not raw catalog IDs or duplicate city districts.
+Never show these numbers or the word “tier” to players. Existing A–F diagnosis, work quality and stock rules remain distinct from facility classification. Preserve universal standardized component replacement at staffed workshops.
 
-Honesty is independent of facility capability. Recommend new generic mechanics and ordinary professional shops be honest by default; scarcity/tools/stock differentiate them. Preserve deliberate characters such as Red Dust's Calder family. Stage 1 explicitly reviews whether the existing Wells generic's honesty should increase; do not silently change its social setting or export its dishonesty everywhere.
+Approved basic-mechanic honesty: **0.95 generally, 0.8 in the Wells**. Professional defaults remain honest; deliberate named exceptions such as Red Dust remain. Four elite landmarks: Bruckner, Serrat, Rochefort and Svarog. Only the first two already exist as staffed elite businesses.
 
-## Verified starting point
+One free referral interaction names the normal higher facility and, if it is not already elite, an elite alternative. Authored practical service catchments are approved; do not claim dynamically shortest travel times. Approved future shops may be named before implementation. Referrals do not activate shops, expose private locations or grant flight permission.
 
-Read against game0324dea on2026-10-26:
-- Twelve authored shops plus generated Wells fallback shops. Bruckner Central Service Hall and Serrat Domain Civil Refit Office already have A diagnostic/work capability. Other named shops vary independently in capability, stock, prices, hours and honesty.
-- `src/maintenance/shops.ts` separates diagnostic/work/stock grades, labor rate, hours multiplier, markup and honesty. Current maintenance transactions, inspections/credits, fault knowledge, optional equipment and shop-local access already exist.
-- `src/local-directory.ts` independently generates Wells fallback entries. Consolidate coverage decisions so shop and directory registries cannot disagree; retain authored bespoke entries and avoid circular imports.
-- **Universal replacement is intentional:** existing design makes standardized component replacement F-complexity, available at every mechanic, even when the mechanic cannot identify or repair the fault. Parts quality/service result differ. Preserve this safety valve, not a new capability restriction that grounds players permanently.
-- Existing A–F component/work grades are separate from the new four facility tiers. Parts grades remain in replacement quotes; facility tiers never appear in player text. Replace the current generic profile heading “Shop level” with “Facilities” or “Services”.
+Emergency restart is also available at staffed shops, avoiding maintenance stranding when the player cannot afford work. It restores minimum operating condition without replenishing routine service protection, changing component grades or granting optional equipment. No towing, teleportation, new economic provider or wear-system rewrite.
 
-## Proposed implementation principles
+## Stage 1 — Coverage map and specification
 
-### Capability and economics
+**Completed and reviewed.** Audit physical scopes rather than raw catalog IDs. The final map specifies 150 staffed facilities and nine emergency-only locations across 159 physical destinations; nonselectable Coronal remains outside the rollout.
 
-Provisional new-shop defaults: tier0 diagnostic E/work F; tier1 diagnostic C/work D (current standard professional baseline); tier2 diagnostic B/work B (repairs B–F); tier3 diagnostic A/work A (repairs A–F). Stage 1 verifies these against the actual fault catalog and representative quotes before approval. Existing named B/C and other intermediate shops need individual classification; no automatic capability upgrade just because a shop is bespoke.
+The specification records exact service defaults, commercial exceptions, 26 full-service anchors, four elites, account IDs and all review resolutions. Existing reports/credits use existing rules; no policy-version migration layer.
 
-Tier is organizational metadata, not a second competing quote/capability engine. Existing grades still drive diagnosis, repair eligibility and service results. Stock, equipment installations, markup, labor speed, honesty and price remain explicit shop attributes. Stage 1 specifies each default and exception, including sensible upgrade/install availability. Tier3 means all supported kinds of work, not that every business must stock every component grade. Do not silently change existing named-shop rates/stock/capabilities to force a neat ladder.
+## Stage 2 — Shared machinery and Weymark pilot
 
-Shared planetary copy does not mean shared shop state: each physical branch keeps its own stable ID, inspection and credit. Upgrade existing shops in place where possible. If a fallback is replaced by a different business or duplicate scopes are consolidated, explicitly approve a legacy-ID/credit-history mapping rather than dropping old balances or granting credit at unrelated branches.
+**Implemented for review.**
+- One shop registry supplies generated directory entries; shared physical scope logic prevents duplicate berth services.
+- Internal facility metadata and natural-language facilities descriptions.
+- Free normal/elite referrals, including references to approved future facilities.
+- Low Gauge mechanic, Weymark Town Workshop, bespoke Nell's Rest Shipworks and existing Bruckner.
+- Emergency self-help fills current unserved locations; the same recovery action is available at normal shops. Abandoned sites remain unstaffed.
+- Approved basic honesty values. Existing named shops otherwise retain prices, capabilities and prose; Cadiz's later upgrade has not happened.
+- Synthetic-profile desktop preview, real transaction tests, save-failure checks and ordinary regressions.
 
-No wear/telemetry/RNG rebalance, changed fault libraries, new equipment, finite inventory, parts-delivery simulation, towing/rescue or added transport missions. No new system-wide corporation/faction required. Preserve existing shop IDs, branch-specific inspections, unused credits, saved claims, career state, quotes outside approved changes and all shipping programmes.
+**Gate:** review the pilot's actual interactions, writing, distinctions, referrals and emergency recovery before broader rollout.
 
-### One referral interaction
+## Stage 3 — Everyday system-wide coverage
 
-Every lower-tier shop gets a free service-desk action, available before paid inspection: **“Where can I get more advanced work done?”** The response names a real higher-tier shop, its physical location and useful capabilities. Shared archetypes frame the same data in regional language; bespoke shops speak in their own voice. It is advice, not teleportation or automatic flight booking.
+1. Generate `maintenance-stage-3-copy-review.md` containing **all Stage 3 copy, not samples**: shared planetary/regional sets, reused text, local exceptions, shop/directory names, profiles, facilities, diagnosis, service, repairs, referrals and any new UI wording.
+2. Include the exact location-to-template mapping and substitution values. Shared prose appears once; every distinct variant is included.
+3. Deliver the Markdown for comments. Preserve every `zzz` comment verbatim, record resolutions alongside it and wait for explicit copy approval.
+4. Only then implement the approved ordinary coverage, including professional interim workshops at future bespoke sites. Existing authored businesses take precedence. Temporary emergency entries disappear when staffed service opens; the free restart remains available there.
+5. Check runtime prose against the approved Markdown and audit every physical scope.
 
-Proposed definition of nearest: another shop in the same physical terminal scope first; otherwise shortest normal flight-time estimate using existing route machinery at inquiry time, deterministic tie-breaking. Choose among **all strictly higher tiers**, not necessarily exactly the next tier. No raw catalog-coordinate distance across unrelated reference frames. Stage1 found that existing transfer estimates omit local/cluster travel and do not provide comparable door-to-door ETAs. Its specification proposes authored nearest-practical service catchments instead, **pending explicit approval of that interpretation**; the original nearest-location requirement is not silently waived. No expensive route search each render frame.
+**Gate:** full-copy approval before rollout, followed by coverage and desktop review. No automatic continuation.
 
-Only activated shops with legitimate destination access qualify as ordinary referrals. Default to public destinations; respect exact known-contact access where applicable. Never reveal undiscovered Barataria surfaces, grant contact reputation, or imply Farwatch permits an empty arrival. Private destination servicing may exist locally without becoming a public referral. No referral cycles (strictly increasing tiers), self-referrals, duplicate physical destinations or references to future-stage shops.
+## Stage 4 — Bespoke full-service anchors
 
-A referral does not diagnose unknown faults or promise that every higher shop can repair every problem. When discussing already confirmed work, distinguish general improvement from a destination actually capable of that work. Current rig/flight restrictions remain enforced; a grounded player may receive advice but cannot fly away until locally restored. Universal local replacement supports recovery at staffed sites, subject to normal money/stock rules. Exhausted funds and deliberately unstaffed sites are not silently solved by a new rescue system.
+Implement the remaining 25 full-service anchors beyond the pilot. Each receives distinctive premises, personnel and separate diagnosis/service/repair/referral dialogue. Vary staging and describe competence affirmatively. Existing civic/industrial operators can host workshops without creating new system-wide corporations.
 
-## Five approval-gated stages
+Cadiz's Vilar flagship gains B-quality work while retaining its other commercial terms. Preserve existing account IDs. All but the highest-complexity repairs must actually work, not merely be advertised.
 
-### 1 — Coverage map and service specification (design only)
+**Gate:** review the complete bespoke roster, writing and actual offerings before elite expansion.
 
-- Audit every playable physical destination and current shop, including aliases, orbital/surface separation, private access and unstaffed reserves.
-- Produce a reviewable table: location, existing/proposed shop, tier, planet/copy family, operators, diagnostic/work/stock/equipment capability, prices/time/honesty, referral options and exclusions.
-- Select the approximately one-per-world tier2 anchors and small tier3 shortlist; state exceptions for moons, gas-giant systems, sparse Reach sites and large industrial worlds.
-- Inventory existing named-shop exceptions, grade coverage, earliest-career equipment access, local replacement recovery and preservation of old inspection IDs.
-- Recommend the exact Wells honesty policy. No invented staffing at Nell's Lantern, Old Survey Camp, hidden dead drops or other deliberately empty sites.
-- **Review gate:** approve the coverage roster, economic defaults, exceptions and nearest-referral rule. No runtime changes in this stage.
+## Stage 5 — Elite landmarks and acceptance
 
-### 2 — Shared implementation and Weymark pilot
+Add Rochefort and Svarog elite service, retaining Bruckner and Serrat's established identities. Do not invent new equipment, technologies, dealership rights or additional locations merely to fill a regional quota.
 
-- Add internal tier metadata, coverage/copy-family resolution and shared directory registration; preserve stable existing shop IDs. Reuse existing service/quote/transaction code.
-- Implement the free referral interaction and player-safe facilities descriptions. Test hidden tier labels, stale actions, physical scope, access, deterministic referrals and no remote transactions.
-- Proposed pilot: Low Gauge local mechanic (0), Weymark Town professional workshop (1), bespoke Nell's Rest facility (2), existing Bruckner Central Service Hall (3). Leave Nell's Lantern and Old Survey Camp unstaffed. Exact names/capabilities come from the approved stage1 roster.
-- Synthetic desktop walkthrough of all four experiences, service/repair/replacement/equipment and referral chains. Test old credits/reports and a grounded rig; retain current Bruckner behavior unless explicitly changed in stage1.
-- **Review gate:** approve the actual interaction, copy style, capability/price distinctions and four-level pilot. No automatic system-wide expansion.
+Validate final coverage, referrals, all repair complexities, equipment, emergency departure, inspection credits, exact charges/time, failed persistence, private access and hidden internal labels. Shipping and flight physics remain unchanged. Desktop/synthetic profiles only unless asked otherwise.
 
-### 3 — Everyday system-wide coverage (0 and 1)
-
-- First generate `design-docs/maintenance-stage-3-copy-review.md` for Pete's inline comments, covering **all Stage3 copy, not samples**: shop/directory names and descriptions, facilities summaries, profiles, diagnosis, service, repairs, referral prompts/responses and any other new or revised player-facing strings.
-- Include every shared planetary/regional text set (including reused copy), all exceptions/overrides, and an exact location-to-template mapping with substitution values. Shared prose need only appear once, but no unique wording or local variant may be omitted. Small location substitutions; moon/cluster exceptions only where setting warrants them. Tier0 may share broader regional archetypes, but Wells serf copy stays local to its setting.
-- **Pre-rollout copy gate:** deliver the complete Markdown for review, preserve Pete's `zzz` comments verbatim with resolutions alongside, revise, and wait for explicit copy approval. Do not implement unreviewed Stage3 prose. Later wording changes must be reflected in the review Markdown.
-- After approval, apply the per-location map outside the pilot, using mechanic fallbacks and modest professional facilities; authored shops take precedence. No blanket generation at every catalog node. Apply only approved Wells honesty/template changes; retain distinct named businesses and historical saved state.
-- Referral searches use only currently live shops; existing advanced anchors remain available while later shops await implementation.
-- **Completion gate:** coverage report and desktop checks verifying runtime text against the approved full Markdown; every intended working stop has a functioning service option, exclusions explicit, no shop/directory duplication or leaked private destinations.
-
-### 4 — Bespoke full-service regional anchors (2)
-
-- Author the approved roughly one-per-world facilities, with distinctive premises, operator/personality, prices/stock, and separate diagnosis/service/repair/referral dialogue.
-- Use existing industrial/civic operators where appropriate; local shop names/staff do not require new economic providers. Do not make every shop another diagnostic cradle/flight recorder scene; describe competence affirmatively.
-- Existing named businesses are retained, explicitly reclassified or deliberately upgraded according to the approved roster, never overwritten by generated prose.
-- All repairs except the highest complexity are actually available; routine equipment installations and stock follow the approved matrix. Referral names/destinations update from live data automatically.
-- **Review gate:** regional shop roster, bespoke text, actual service coverage/quotes and equipment availability. Stop before adding further elite sites.
-
-### 5 — Elite landmarks and system-wide acceptance (3)
-
-- Retain Bruckner/Weymark and Serrat Domain as natural existing advanced anchors. Propose only a small additional shortlist, likely a Hearth industrial hub; exact count/locations approved in stage1, not one per region by default.
-- Finish bespoke elite service identities and the complete existing-work/equipment capability, preserving approved specialist stock/pricing differences. No new engine technology or unsupported work categories.
-- Exhaustive coverage/referral tests, representative damaged/grounded rigs at every facility class, money/time/inspection-credit accounting, old save/reload behavior, hidden/internal labels, private and contract-only access, atomic failures and all equipment/replacement rules.
-- Verify all non-maintenance economies/flight physics/accepted contracts remain unchanged. Run relevant regressions/build and isolated native desktop flows; no mobile or live-save edits.
-- **Review gate:** final coverage matrix, remaining intentional exceptions, referral destinations and price/service comparisons. Only then declare maintenance coverage complete.
-
-Every runtime stage is independently testable, committed locally and followed by review. Approval of a stage does not approve the next stage; no push/deploy without request.
+**Gate:** final network review. Commit locally at each stage; no push or deploy without request.

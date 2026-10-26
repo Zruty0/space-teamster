@@ -1,201 +1,217 @@
-# Maintenance Stage 1 — coverage and service specification
+# Maintenance coverage — reviewed specification
 
 Updated: 2026-10-26
-Status: **Stage1 design deliverable for approval. No runtime/shop rollout. Stage2 awaits approval.**
+Status: Stage 1 reviewed and accepted with the comments below. Stage 2 implements the shared machinery, Weymark pilot and emergency recovery. Later stages remain approval-gated; Stage 3 requires a complete Markdown copy review before rollout.
 
-Review this specification together with the [complete location roster](maintenance-stage-1-roster.md). All proposed names, prices, capability changes and exceptions below await approval. The [five-stage outline](maintenance-coverage-plan.md) remains the delivery plan. Preserve Pete's inline `zzz` comments and record resolutions alongside them.
+See the [complete roster](maintenance-stage-1-roster.md), [delivery plan](maintenance-coverage-plan.md) and [Stage 2 handoff](maintenance-stage-2.md). Original comments were committed unchanged in `23821fa`; each is preserved verbatim below with its resolution.
 
-## 1. Verified inventory and proposed coverage
+## 1. Coverage
 
-Read-only audit against6f52a62 (the concurrent Dawes Cut scenery work is retained):178 catalogued POIs,177 selectable operational destinations, **159 physical terminal/site scopes** after consolidating shared stations and Orselle's districts. Coronal is the sole catalogued POI without an exact selectable chain. Current maintenance:12 authored shops +51 Wells fallback shops = **63 physical sites covered**; shop and Local Directory registries agree at every site.
+The initial read-only audit at `6f52a62` found 178 catalogued POIs, 177 selectable operational destinations and **159 physical terminal/site scopes**. Shared station berths and Orselle's compatibility districts are not separate maintenance locations. Coronal is nonselectable and remains outside the rollout.
 
-Proposal: **150 serviced physical sites**, nine deliberately unstaffed/reserved selectable sites, plus nonselectable Coronal. This adds service at87 previously unserved physical sites. It does not create extra worlds, settlements, transport missions, economic providers or access permissions.
+The reviewed final network contains **150 staffed facilities plus nine emergency-only self-help locations**. No permanent crew or commercial service is invented at abandoned sites or caches.
 
-| Region | Physical sites | Tier0 | Tier1 | Tier2 | Tier3 | No service |
+| Region | Physical sites | Basic mechanic | Professional | Full service | Elite | Emergency only |
 |---|---:|---:|---:|---:|---:|---:|
-| Hearth |26|7|13|5|1|0|
-| Camps |31|12|10|7|0|2|
-| Belt |22|4|10|4|1|3|
-| Wells |61|26|24|10|1|0|
-| Reach |19|8|6|1|0|4|
-| **Total** |**159**|**57**|**63**|**27**|**3**|**9**|
+| Hearth | 26 | 7 | 13 | 5 | 1 | 0 |
+| Camps | 31 | 12 | 10 | 6 | 1 | 2 |
+| Belt | 22 | 4 | 10 | 4 | 1 | 3 |
+| Wells | 61 | 26 | 24 | 10 | 1 | 0 |
+| Reach | 19 | 8 | 6 | 1 | 0 | 4 |
+| **Total** | **159** | **57** | **63** | **26** | **4** | **9** |
 
-These are final proposed facility classes, **not live counts or exposed player labels**. Every site, receiving-ID mapping, copy family, commercial terms code and proposed referral appears in the roster. Shared station berths get one service account, not duplicate mechanics. A surface city never gets free access to its orbital shop merely by sharing a planet.
+The internal classes are −1, 0, 1, 2 and 3. These numbers and the word “tier” never appear in player-facing shop UI. The player sees a mechanic, workshop, service centre or emergency procedure and a plain description of its facilities.
 
-## 2. Proposed default service standards
+Before this pass there were 63 shops: 12 authored businesses and 51 Wells fallbacks. Stage 2 adds three staffed Weymark facilities, for **66 staffed shops**, and supplies self-help at the remaining **93 physical locations**. Those temporary self-help entries disappear automatically as later approved workshops open. The final nine emergency-only sites remain unstaffed.
 
-Tier is internal categorization only. Existing A–F mechanics continue to determine actual repair/diagnosis/parts outcomes; do not build a second parallel rules engine.
+## 2. Service standards and honesty
 
-| Code | Internal tier | Diagnosis / work | Parts stock | Labor cr/h | Hours multiplier | Parts multiplier | Honesty |
+| Terms code | Internal class | Diagnosis / work | Stock | Labor, cr/hour | Hours multiplier | Parts multiplier | Honesty |
 |---|---:|---|---|---:|---:|---:|---:|
-| S0 |0|E / F|F only|250|1.00|1.15|1.00|
-| W0 |0|E / F|F only|250|1.00|1.50|**1.00**, changed from0.25|
-| S1 |1|C / D|D only|500|1.00|1.00|1.00|
-| S2 |2|B / B|B–D|800|0.90|1.00|1.00|
-| S3 |3|A / A|A–D|1400|0.80|1.10|1.00|
+| E0 | −1 | Self-help only | None | 0 | No elapsed work time | No sales | No fabricated findings |
+| S0 | 0 | E / F | F | 250 | 1.00 | 1.15 | **0.95** |
+| W0 | 0 | E / F | F | 250 | 1.00 | 1.50 | **0.80** |
+| S1 | 1 | C / D | D | 500 | 1.00 | 1.00 | 1.00 |
+| S2 | 2 | B / B | B–D | 800 | 0.90 | 1.00 | 1.00 |
+| S3 | 3 | A / A | A–D | 1,400 | 0.80 | 1.10 | 1.00 |
+
 (zzz: for S0, make them all 0.95 honesty, except the Wells ones, who should be 0.8 honesty)
-S3 applies only to the proposed Rochefort elite shop. Existing Bruckner and Serrat retain their individual terms below. Two authored hours per diagnostic inspection before the hours multiplier. These are proposed defaults, not a forced price ladder: a constrained remote mechanic may charge more for inferior parts than a well-supplied professional shop.
 
-### What the capability steps actually buy
+**Resolution:** Adopted. Low Gauge's new basic mechanic uses 0.95; the existing Wells fallback mechanics now use 0.8. Ordinary professional facilities remain honest. Red Dust retains its deliberately dishonest authored exception. These probabilities use the existing eligible-system fabrication checks, not a public honesty score or a simple per-visit scam percentage.
 
-The actual catalog contains320 unique repairable fault definitions, reused across520 component/fault combinations:
+S3 applies to the future Rochefort and Svarog elite facilities. Bruckner and Serrat retain their established commercial terms. Ordinary inspections take two authored hours before the hours multiplier. Work quality, stock, speed, price and honesty remain separate attributes; classification does not replace the existing A–F rules.
+
+### Actual capability coverage
+
+The repair catalog contains 320 unique fault definitions, reused in 520 component/fault combinations.
 
 | Work capability | Unique repairable faults | Component/fault combinations |
 |---|---:|---:|
-| F (S0/W0) |45/320|71/520|
-| D (S1) |201/320|340/520|
-| B (S2) |314/320|513/520|
-| A (elite) |320/320|520/520|
+| F | 45 / 320 | 71 / 520 |
+| D | 201 / 320 | 340 / 520 |
+| B | 314 / 320 | 513 / 520 |
+| A | 320 / 320 | 520 / 520 |
 
-These are catalog coverage counts, not probability-weighted failure rates. Tier2 therefore really does cover all but the most complex repair work. The six A-only fault definitions concern a buckled keel, collapsed pressure section, partly collapsed structural member (cargo spine or landing gear), fractured converter lattice, distorted core containment housing, and coil-insulation breakdown.
+These are catalog counts, not probability-weighted failure rates. The six A-only definitions concern a buckled keel, a collapsed pressure section, a partly collapsed structural member, a fractured converter lattice, distorted core containment and coil-insulation breakdown. B-quality workshops therefore handle all but the most complex repairs.
 
-Diagnosis remains separate: a C diagnostic shop can identify a C fault even when its D workshop cannot repair it. An unknown fault stays unknown until an adequate diagnosis; referral text cannot reveal hidden fault truth. Total failure still requires replacement at every facility, not miraculous repair at an elite shop.
+Diagnosis remains separate from repair skill. A C diagnostic facility can identify a C fault that its D workshop cannot repair. Unknown faults remain unknown; referral text does not reveal hidden fault truth. Total failures require replacement, including at elite shops.
 
-### Servicing, replacement and equipment
+### Service, replacement and equipment
 
-- Preserve universal standardized replacement, including unknown faults and Total failures, with the shop's stocked grade and explicit downgrade/upgrade confirmation. Tier0 can help an adequately funded grounded rig recover through replacement; it cannot perform advanced rebuilding or restore elite service quality.
-- Service never reduces existing protection, restores HP, or clears faults. Higher-quality service uses the existing nonstacking AP rules; no wear/telemetry changes.
-- S0/W0 sell no new optional installations. They can maintain/replace already installed optional components under the existing engine rules.
-- S1 supplies all four existing equipment installations at D: Atmospheric Package, Heavy Heat Shielding, Cargo Shock Absorbers, Passenger Comfort Package. Existing requirements such as shielding needing an Atmospheric Package remain.
-- S2 supplies those installations with B/C/D component choices where grades apply; S3 with A/B/C/D. Heavy Heat Shielding itself has no component-grade choice. No new equipment invented.
-- Existing named shops retain current equipment catalogs; all eleven non-Red-Dust authored shops already offer all four installations. Red Dust retains no equipment sales.
+- Preserve universal standardized replacement at every staffed mechanic, including unknown faults and Total failures. The player explicitly confirms the closest stocked grade, including downgrades. Emergency-only self-help does not sell parts.
+- Routine service restores protection using existing nonstacking AP rules; it does not restore HP or clear faults. No wear, telemetry or RNG rebalance.
+- S0/W0 do not sell new optional installations. They can maintain or replace already installed optional components under the existing rules.
+- S1 offers all four current installations at D: Atmospheric Package, Heavy Heat Shielding, Cargo Shock Absorbers and Passenger Comfort Package.
+- S2 offers B/C/D choices where grades apply; S3 offers A/B/C/D. Heavy Heat Shielding has no component-grade choice and still requires an Atmospheric Package.
+- Existing named shops retain their equipment catalogs. All eleven non-Red-Dust authored businesses already offer the four installations; Red Dust sells none.
 
-### Representative quotes, computed with the actual engine
+### Representative engine-computed quotes
 
-Gross quotes before inspection credit. Service sample: installed baseline grade-D rig including Atmospheric Package, no optional cargo/passenger modules, all AP depleted, no faults. Drive sample: Total main-drive failure, originally D. Costs are not promises of affordability; player cash rules remain.
+Gross quotes before inspection credit. Service uses a baseline D-grade rig with Atmospheric Package, no optional cargo/passenger modules, all AP depleted and no faults. Drive replacement starts with a Total failure of a D-grade main drive.
 
-| Facility | Diagnosis cr / hours | Depleted service cr / hours | Replacement drive cr / hours / resulting grade |
+| Facility | Diagnosis: cr / hours | Depleted service: cr / hours | Drive replacement: cr / hours / grade |
 |---|---|---|---|
-| S0 |500 /2|3625 /14.5|280500 /18 /F|
-| W0 |500 /2|3625 /14.5|364500 /18 /F|
-| S1 |1000 /2|10000 /20|309000 /18 /D|
-| S2 |1440 /1.8|14400 /18|312960 /16.2 /D|
-| Proposed Rochefort S3 |2240 /1.6|22400 /16|350160 /14.4 /D|
-| Existing Bruckner |2400 /1.5|24000 /15|321600 /13.5 /D|
-| Existing Serrat |2000 /2|20000 /20|318000 /18 /D|
+| S0 | 500 / 2 | 3,625 / 14.5 | 280,500 / 18 / F |
+| W0 | 500 / 2 | 3,625 / 14.5 | 364,500 / 18 / F |
+| S1 | 1,000 / 2 | 10,000 / 20 | 309,000 / 18 / D |
+| S2 | 1,440 / 1.8 | 14,400 / 18 | 312,960 / 16.2 / D |
+| S3 | 2,240 / 1.6 | 22,400 / 16 | 350,160 / 14.4 / D |
+| Bruckner | 2,400 / 1.5 | 24,000 / 15 | 321,600 / 13.5 / D |
+| Serrat | 2,000 / 2 | 20,000 / 20 | 318,000 / 18 / D |
 
-Tier0's14.5-hour service reflects fewer components able to gain protection at F-quality work, **not faster or equally protective full servicing**. Prices/hours vary with actual installed components and condition.
+The basic mechanic's 14.5-hour service reflects fewer components able to gain protection at F quality, not faster or equally protective service. The Wells scarcity markup is deliberately retained; a lower-quality fallback need not be the cheapest supplier.
 
-| Installation at D where applicable | S1 cr / hours | S2 cr / hours | Rochefort S3 cr / hours |
+| Installation at D where applicable | S1: cr / hours | S2: cr / hours | S3: cr / hours |
 |---|---|---|---|
-| Atmospheric Package |129500 /19|133680 /17.1|153280 /15.2|
-| Heavy Heat Shielding |63000 /6|64320 /5.4|72720 /4.8|
-| Cargo Shock Absorbers |42000 /4|42880 /3.6|48480 /3.2|
-| Passenger Comfort Package |52500 /5|53600 /4.5|60600 /4|
+| Atmospheric Package | 129,500 / 19 | 133,680 / 17.1 | 153,280 / 15.2 |
+| Heavy Heat Shielding | 63,000 / 6 | 64,320 / 5.4 | 72,720 / 4.8 |
+| Cargo Shock Absorbers | 42,000 / 4 | 42,880 / 3.6 | 48,480 / 3.2 |
+| Passenger Comfort Package | 52,500 / 5 | 53,600 / 4.5 | 60,600 / 4 |
 
-Caravanserai gets standard installations during Stage3, then the S2 workshop in Stage4; Nell's Rest offers them in the Stage2 pilot. Existing Still/Nell certification locations and Old Nell passage remain unchanged. New careers start with zero cash and a healthy rig; this pass adds availability, **not free equipment, loans or a guaranteed rescue from insolvency**. No paid inspection is needed to ask for directions or buy equipment; normal local inspection is still needed for service/repair/replacement. The existing one-use, nonstacking diagnostic credit offsets subsequent work, not cash refunds.
+Normal inspections, branch-specific one-use credits, payments and elapsed work time remain. Directions, emergency recovery and equipment browsing do not require a paid inspection. Equipment purchases retain their existing credit rules. New careers still start with a healthy rig and no cash; this pass adds free emergency recovery, not free optional equipment or a loan system.
 
-## 3. Existing authored shops — explicit treatment
+## 3. Existing businesses
 
-Preserve all12 stable shop IDs, people, staging, organizations and commercial terms except the one stated flagship capability upgrade. Bespoke text does not automatically make a shop tier2. Several existing intermediate B/C shops remain superior professionals within tier1, not additional fractional tiers.
+Retain all 12 authored shops, names, staff, accounts, equipment, prices and timing. The one later capability upgrade is Cadiz's Vilar flagship: Work C becomes B in Stage 4; its diagnosis, C–D stock, 600 cr/hour rate and normal hours remain unchanged.
 
-| Existing shop | Proposed tier | Diagnostic/work; stock | cr/h; hours×; parts× | Decision |
-|---|---:|---|---|---|
-| Vilar, Gryphon Aerie |1|C/D; D|500;1;1|Retain |
-| Vilar, Herald Gate |1|C/D; D|500;1;1|Retain |
-| Vilar, Cadiz Highport |2|B/**B**; C–D|600;1;1|**Only named-shop capability upgrade:** Work C→B in Stage4; rates, hours, stock and diagnosis unchanged. Terms code V2. |
-| Vilar, Hydra Maw |1|C/D; D|500;1;1|Retain |
-| Vilar, Macao Palace |1|C/D; D|500;1;1|Retain; Cadiz provides nearby advanced work |
-| Vilar, Manticore Observatory |1|C/D; D|500;1;1|Retain; Teide supplies the local full-service anchor |
-| Armorial Shipwrights, Shipwright Keep |1|B/C; C–D|600;2;2|Retain skilled-but-ceremonial intermediate capability and price |
-| Serrat Domain Civil Refit Office |3|A/A; C–D|1000;1;1|Retain elite work with limited stock range |
-| Seconds Gate, Keelwright Works |1|B/C; B–C|1600;0.5;0.85|Retain industrial seconds/exchange specialization |
-| High Pennant Shipyard, Oathmark Academy |1|C/D; D|500;1.5;1.5|Retain yacht-oriented service |
-| Bruckner Central Service Hall |3|A/A; A–D|1600;0.75;1|Retain elite precision/dealer identity |
-| Red Dust, Concord |0 exception|D/E; E|500;1;1.35|Retain named premises and deliberate dishonesty0; tier0 here means limited workshop, not anonymous search |
+| Existing business | Final internal class | Diagnostic/work; stock | Rate; hours multiplier; parts multiplier |
+|---|---:|---|---|
+| Vilar, Gryphon Aerie | 1 | C/D; D | 500; 1; 1 |
+| Vilar, Herald Gate | 1 | C/D; D | 500; 1; 1 |
+| Vilar, Cadiz Highport | 2 | B/**B**; C–D | 600; 1; 1 |
+| Vilar, Hydra Maw | 1 | C/D; D | 500; 1; 1 |
+| Vilar, Macao Palace | 1 | C/D; D | 500; 1; 1 |
+| Vilar, Manticore Observatory | 1 | C/D; D | 500; 1; 1 |
+| Armorial Shipwrights | 1 | B/C; C–D | 600; 2; 2 |
+| Serrat Domain Civil Refit Office | 3 | A/A; C–D | 1,000; 1; 1 |
+| Seconds Gate, Keelwright Works | 1 | B/C; B–C | 1,600; 0.5; 0.85 |
+| High Pennant Shipyard | 1 | C/D; D | 500; 1.5; 1.5 |
+| Bruckner Central Service Hall | 3 | A/A; A–D | 1,600; 0.75; 1 |
+| Red Dust, Concord | 0 exception | D/E; E | 500; 1; 1.35 |
 
-All other authored shops have honesty1. Cadiz's change adds B-complexity repairs and B-quality service protection, **not merely a new label**; its price/hours remain unchanged. It retains its branch account and requires the report compatibility treatment below. 
+Red Dust remains a named, limited workshop rather than an anonymous search; its honesty stays at 0. Several B/C specialists remain stronger professional exceptions within class 1. Bespoke prose alone does not turn a facility into a full-service centre.
 
-### Wells fallback recommendation
+### Wells fallbacks
 
-Make all remaining anonymous/local fallback mechanics honest: honesty0.25→1.00. Keep their constrained E/F capability, F parts,250cr/hour and1.5× parts price. Scarce stock and lower quality still distinguish them; low facility quality no longer automatically means fabricated bills. Honesty is an internal probability parameter, not a public score or a75%-per-visit statistic. (zzz: as mentioned above raise honesty to 0.8 to these 0-tier shops)
+(zzz: as mentioned above raise honesty to 0.8 to these 0-tier shops)
 
-Of the51 existing fallback accounts,26 remain basic mechanics,16 become professional shops, nine become future full-service anchors (professional interim service in Stage3). Their existing IDs remain the account identity. Professional conversions use S1/S2 terms, not W0. Wells serf-side-trade copy is retained/revised only where appropriate; Daedalus and Covenant sites get institutional copy, not implausible rotating serfs. This text is subject to the full Stage3 Markdown review. Deliberate named Red Dust dishonesty is not changed or generalized elsewhere.
+**Resolution:** Adopted as 0.8, not the original proposal's 1.0. The 51 current Wells fallbacks retain their existing prices and accounts in Stage 2. In the final map, 26 remain basic mechanics, 16 become professionals, and nine become full-service anchors. Later professional conversions use S1/S2 terms. Wells serf-side-trade prose stays local to appropriate settings; Daedalus and Covenant institutional variants belong to the complete Stage 3 copy review.
 
-## 4. Proposed bespoke full-service anchors
+## 4. Full-service and elite locations
 
-Names below are **working names for roster approval**, not final dialogue or a new economic-provider registry. Local service shops/teams can exist without establishing new system-wide corporations. Twenty-seven tier2 facilities, including the Weymark pilot and upgraded Cadiz flagship:
+Twenty-six full-service anchors remain after moving Svarog into the elite group. Working names await their respective copy stages; none establishes a new economic provider.
 
 | Location | Working shop name | Operator/role |
 |---|---|---|
 | Balor Orbital | Balor Orbital Service Works | Independent orbital workshop |
 | Acheron Commercial Hub | Acheron Transfer Engineering | Port service contractor |
-| Richelieu Orbital Terminal | Richelieu Fleet Service | Independent commercial workshop |
+| Richelieu | Richelieu Fleet Service | Independent commercial workshop |
 | Celeste Main Port | Celeste Port Engineering | Lunar port workshop |
-| Fuyuan | Fuyuan Ship Service Cooperative | Local workshop cooperative |
-| Roadstead Station | Roadstead Rig Works | Independent workshop |
+| Fuyuan | Fuyuan Ship Service Cooperative | Local cooperative |
+| Roadstead | Roadstead Rig Works | Independent workshop |
 | Switchback | Switchback Service Hall | Mining-settlement workshop |
-| Anvil Station | Anvil Visiting-Rig Works | Steel Combine's external interface |
-| Perun City | Perun Rig Workshop | Steel Combine, for legitimate local arrivals |
-| Svarog Shipyard | Svarog Visiting-Rig Service | SSC shared visiting-rig infrastructure; tenant builders retain their identity |
+| Anvil | Anvil Visiting-Rig Works | Combine external interface |
+| Perun | Perun Rig Workshop | Combine controlled surface economy |
 | Kalyna Orbital | Kalyna Port Engineering | Port service contractor |
-| Mosaic Assembly Lab | Mosaic Rig and Instrument Service | Local workshop consortium |
-| Caravanserai | Caravanserai Drydock Service | Existing outfitter/drydock district |
-| Cupola Station | Halloran Rig Service | Halloran Smelting House |
+| Mosaic | Mosaic Rig and Instrument Service | Local workshop consortium |
+| Caravanserai | Caravanserai Drydock Service | Existing outfitter district |
+| Cupola | Halloran Rig Service | Halloran Smelting House |
 | Bir Safa | Bir Safa Service House | Local service households |
 | Nell's Rest | Nell's Rest Shipworks | Independent station workshop; pilot |
 | Thule Anchorage | Anchorage Community Workshop | Community service team |
-| Castle Beira | Beira Port Workshop | Count's licensed port workshop |
-| Ember Court Foundry | Ember Court Rig Works | Foundry service concession |
+| Castle Beira | Beira Port Workshop | Licensed port workshop |
+| Ember Court | Ember Court Rig Works | Foundry concession |
 | Serratine | Serratine Civil Workshop | Civilian licensed workshop |
 | Alembic Ring | Alembic Ring Service Works | Orbital industrial workshop |
-| Almaden Orbital | Almaden Orbital Engineering | Station service concession |
-| Coldgate | Coldgate Cryogenic Service | Port engineering concession |
-| Cadiz Highport | Existing Vilar flagship | Existing House Vilar business, explicit V2 upgrade |
-| Daedalus Systems Campus | Daedalus Visiting-Rig Workshop | Public commercial campus services; no Icarus disclosure |
+| Almaden Orbital | Almaden Orbital Engineering | Station concession |
+| Coldgate | Coldgate Cryogenic Service | Port engineering |
+| Cadiz Highport | Existing Vilar flagship | Approved later capability upgrade |
+| Daedalus Systems Campus | Daedalus Visiting-Rig Workshop | Public commercial campus service |
 | Pilgrim Gate | Pilgrim Gate Repair Hall | Covenant receiving-gate service |
-| Castle Teide | Teide Charter Workshop | Count's licensed service workshop |
+| Castle Teide | Teide Charter Workshop | Licensed service workshop |
 
-All use S2 except V2. The count is not one shop for every rock: inhabited moons and industrial asteroid hubs count as practical service areas. Kuznia has both Anvil for ordinary foreign traffic and Perun for its controlled surface economy. Oathmark's existing elite shop substitutes for a separate tier2. Macao and sparse Vigil use neighboring Cadiz/Mercy advanced services; the gas giants rely on their moon networks. Barataria Observatory is modest tier1, with Thule providing full service. Comet fragments, rogue outposts, Raqib and Farwatch do not become implausible full-service centres. 
+Oathmark's elite substitutes for a separate full-service shop. Kuznia has both Anvil and Perun because ordinary foreign visitors cannot freely enter its surface economy. Macao and Vigil use neighbouring Cadiz/Mercy advanced services; gas giants use their moon networks. Small science, mining and comet outposts do not become full-service centres. Barataria Observatory stays modest, with Thule supporting advanced work.
 
-### Three elite landmarks
+### Four elite landmarks
 
-1. **Bruckner Central Service Hall, Weymark** — existing; widest civilian stock and fastest benchmark service.
-2. **Serrat Domain Civil Refit Office, Oathmark** — existing; complete repair capability, conservative C–D stock.
-3. **Rochefort Precision Service, Gaia** — proposed new industrial precision workshop; S3 terms. No new manufacturing monopoly, VHM dealership or warranty authority: obtain proprietary parts through existing supply channels. Bruckner retains its established dealer role.
+(zzz: add also an elite workshop at Svarog Shipyard)
 
-No automatic elite shop at Svarog, a government capital, every gas giant, or every region. Existing repair competence and parts inventory are separate; an elite can rebuild any repairable fault without promising every possible replacement grade. (zzz: add also an elite workshop at Svarog Shipyard)
+**Resolution:** Added Svarog as the fourth elite, replacing its proposed class 2 workshop rather than adding a duplicate business. Camps elite referrals now name Svarog. Its actual workshop opens in Stage 5, but referrals may name it now.
 
-## 5. Referrals — explicit decision needed
+1. **Bruckner Central Service Hall, Weymark** — existing precision/dealer landmark; broad stock and fast service.
+2. **Serrat Domain Civil Refit Office, Oathmark** — existing complete repair capability with conservative C–D stock.
+3. **Rochefort Precision Service, Gaia** — future S3 industrial precision workshop.
+4. **Svarog Visiting-Rig Service, Svarog Shipyard** — future S3 elite workshop using SSC's shared infrastructure; tenant builders retain their own identity.
 
-**Audit finding:** the current route planner does not provide complete end-to-end travel time. `generateEstellaMission()` supplies transfer options for certain interbody pairs; ordinary same-body and cluster legs can return no transfer options. An empty array is not zero travel time. `waitTime` is an absolute departure timestamp, not a duration; existing empty travel selects the `soon` preference, not necessarily the fastest possible arrival. Comparing raw X/Y between unrelated frames would also be wrong.
+Bruckner remains the established VHM dealer; other shops obtain proprietary parts through existing channels without claiming a new dealership or warranty monopoly.
 
-**Recommendation for this pass: authored nearest-practical-service catchments**, rather than inventing a new ETA/routing simulation. The roster's referral column gives the proposed normal next facility, chosen by local service geography and existing port interfaces. This is a **change from the outline's provisional shortest-flight-time suggestion** and requires approval. It means a stable local recommendation, not a mathematically proven minimum over current orbital configurations. Player wording should say “For more advanced work, go to…” rather than assert an unmeasured exact travel time or universal fastest route. (zzz: approved)
+## 5. Referrals
 
-If Pete wants dynamically shortest actual trips instead, design a complete comparable route metric before Stage2; do not pretend the current transfer-only estimator already solves that requirement.
+(zzz: approved)
 
-### Referral implementation contract, if the catchment approach is approved
+**Resolution:** Authored practical service catchments are approved. The initial planner audit found no comparable end-to-end ETA for local, cluster and interbody routes. Referrals therefore give stable local recommendations, not unmeasured fastest-trip claims. The roster records the normal destination and elite alternative.
 
-- Free before diagnosis; one action with shop name, physical destination and useful capabilities. No tier, hidden fault, raw ID or honesty score in the response.
-- Same-terminal higher shop first if such a shop exists. Otherwise follow the roster's approved ordered service chain to a currently active strictly higher-tier shop. It may skip tiers. No hidden/private primary referrals appear in this proposed roster.
-- If an intermediate future-stage shop is not implemented, walk its proposed chain without displaying unimplemented names. If that ends at future Rochefort before it is active, use existing Bruckner as the explicit Hearth fallback; Camps/Belt also use Bruckner, Wells/Reach use Serrat. Stop only at an active accessible higher facility. Strictly increasing tiers prevent cycles. No extra tier3 recruitment/unlock mechanic. (zzz: no need, do not worry of inconsistency, refer to non-implemented shop. We will implement all.)
-- Treat public receiving permission per **operational POI**, then display its physical parent. The Still is reached through its public approach dock, not a restricted sibling. Never bypass a permit, reveal a secret surface site or turn Farwatch into an empty-arrival destination. No new contact/reputation knowledge is granted.
-- Private shops can serve rigs already legitimately present. The Warren's shop remains entirely local, with no public smuggling bookings or referrals disclosing its coordinates. Farwatch remains contract-only for arrivals. (zzz: if the referral is not the top tier workshop, add also referral to the top tier one. "Or, of course, you can go to XXX - they do all sorts of wonders" type of message)
-- A generic higher-shop referral is not a claim that it fixes every fault. For a confirmed unsupported repair, follow the same chain until diagnosis/work capabilities suffice, or state the limitation honestly. A tier3 shop has no mandatory upward referral.
-- Advice does not launch a ship. Current grounding, route/atmosphere restrictions, normal cost and payment constraints remain. In particular, an unequipped rig cannot fly to surface Rochefort for repairs; it may still replace components locally or use another accessible elite. Any route-specific accessibility filtering must not make the free advice screen disappear simply because the rig is grounded.
+(zzz: no need, do not worry of inconsistency, refer to non-implemented shop. We will implement all.)
 
-## 6. Explicit exclusions and local-only cases
+**Resolution:** Removed temporary availability/fallback-chain machinery. A referral can name its approved future facility before that shop is implemented. This is advice only: it does not activate a shop, sell work remotely or change arrival permission. A temporary self-help desk at a future elite site may name the eventual on-site workshop.
 
-No resident mechanic at: **First Landing, Black Tile, Nell's Lantern, Old Survey Camp, Apocrypha Cache, False Bottom Cache, Blind Drop, Comet Fragment2's prospector cache, Comet Fragment3's dead drop.** Coronal remains nonselectable/unexpanded. These are deliberate exclusions, not unexplained coverage holes.
+(zzz: if the referral is not the top tier workshop, add also referral to the top tier one. "Or, of course, you can go to XXX - they do all sorts of wonders" type of message)
 
-Working but isolated sites such as Raqib, Gale Survey, the two comet science cells and the lone-operator rogue beacon get limited on-site technical help only. Their ordinary staff are not expanded into new settlements or named mechanics; science-cell staffing is a proposed reading of their working-site role, not new lore canon. Restricted facilities require legitimate arrival. Concealment, reputation and story reserves remain untouched.
+**Resolution:** One free interaction gives the normal higher-facility recommendation and, unless that destination is already elite, an additional elite recommendation. An elite primary is not repeated. Low Gauge therefore names the Town Workshop and Bruckner; Nell's Rest names Bruckner once. Camps recommendations include Svarog, even while it is a future shop.
 
-No new rescue/towing system is included. A player at an unstaffed site can still be stranded by existing damage/funds rules; exclusions explicitly retain that limitation rather than conjuring a mechanic. If universal rescue is wanted, that is a separate design decision. (zzz: we need to ensure that there's no way to get completely stuck. For locations with no S0 shop, add a (-1) tier shop that just 'resets the lights' and un-grounds the rig.)
- 
-## 7. IDs, reports, credits and staged delivery
+The interaction is available before paid diagnosis. It names the shop and physical location, never an internal class or hidden fault. Ordinary referral destinations have public operational entrances; The Still uses its public approach, not a restricted berth. Private service remains local after legitimate arrival. No hidden Barataria coordinates, reputation, contact knowledge, Farwatch empty-arrival bypass or travel booking is granted. Actual flight requirements still apply.
 
-- Keep all63 existing shop IDs and matching directory IDs. The51 `wells-frontier-outfitter-*` IDs remain compatibility identifiers even when a location gains a proper workshop; no gratuitous save rename.
-- New shops use `maintenance-<physicalId>` and directory ID `maintenance-<physicalId>-office`, one stable account per physical scope from their first introduction. The companion JSON explicitly records every proposed and retained account/directory ID. A Stage3 professional placeholder promoted to bespoke2/3 keeps its account ID. Planetary shared prose never means shared credits or diagnosis state.
-- Introduce a small **shop policy revision** on inspection records when implementing capability/honesty changes. Old reports at unchanged shops remain valid under existing mission-expiry rules. Reports at changed shops become stale once, without modifying rig condition, past receipts, money, mission counters or unused credit balances. A fresh inspection uses current skill/honesty; stale fabricated claims cannot authorize new fake work. Normal successful reinspection supersedes active claims and replaces rather than stacks its credit, just as today. Equipment may still consume an unused old credit under existing rules. Test old saves with claims/credits explicitly; do not refund old transactions or silently transfer credit between unrelated branches. (zzz: do not worry about back compat, do the least code solution)
-- Stage2: existing12 shops gain metadata without repricing; add Low Gauge0/Town1/Nell's Rest2, using existing Bruckner3. Expected66 covered physical sites; no other coverage expansion.
-- Stage3: complete150-site baseline, including professional interim workshops at future bespoke locations; preserve existing authored exceptions. Expected57 tier0 /90 tier1 /1 tier2 /2 tier3. All Stage3 copy must first be delivered in Markdown, including shared/reused text, overrides, names, substitutions, referrals and location mapping. The proposed family mapping currently has43 shared families before bespoke/existing exceptions; it is a review inventory, not permission to skip any prose. Pilot/existing named text remains identifiable separately.
-- Stage4: promote the remaining26 tier2 anchors, including Cadiz; expected57/64/27/2. Review bespoke identities and retain old accounts.
-- Stage5: promote Rochefort to the third elite, final57/63/27/3. No additional location count or filler businesses.
+## 6. Emergency recovery and unstaffed sites
 
-## 8. Reproduction and acceptance scope
+(zzz: we need to ensure that there's no way to get completely stuck. For locations with no S0 shop, add a (-1) tier shop that just 'resets the lights' and un-grounds the rig.)
 
-`node tests/run-equipment.mjs tests/audit-maintenance-coverage.ts > <report.json>` inventories live physical scopes, memberships, shop/directory agreement, actual existing/default quotes, fault coverage and four representative route-planner probes. It reads the companion `maintenance-stage-1-roster.json` and checks exact159-site coverage, exact177 receiving-ID membership, unique proposed accounts, preservation of all63 existing account/directory IDs, retained authored-shop references, all proposed upward referrals and public arrival permission. JSON is planning data only; no production module imports it.
+**Resolution:** Added a free **Emergency restart procedure** wherever no staffed workshop currently exists. It is self-help, not invented resident staff. Staffed shops expose the same free restart so a zero or negative balance cannot leave operational damage unrepairable merely because a paid mechanic is present.
 
-The prose roster and specification are the human review documents; update the companion JSON when locations/tiers/referrals change. Proposed operational restrictions, sparse service-site exclusions and legacy report migrations receive runtime tests in Stage2 and later; Stage1 does not claim those unimplemented systems already pass.
+The restart:
+- Requires no paid inspection, credits, work time or parts purchase.
+- Clears faults causing operating restrictions and raises those installed components only to minimum fault-free operating HP.
+- Preserves component grade, AP, installed equipment, RNG, mission counters, money and world time. It does not provide full servicing, improve parts or repair unrelated nonblocking faults.
+- Clears stale inspection findings after the reset while retaining unused credits. No new compatibility schema is introduced.
+- Saves once before publishing the new state; failed persistence changes nothing. Repeating a completed reset does nothing.
+- Retains permissions, certifications and requirements for equipment never installed. It does not give a free Atmospheric Package, teleport the rig or clear legitimate restricted-site access rules.
 
-**Approve or comment on:** the complete location map; nine service exclusions; S0/W0/S1/S2/S3 economics; honest Wells defaults while retaining named Red Dust; the single Cadiz capability upgrade;27 full-service anchors/three elites; and especially the authored-referral interpretation versus a new dynamic nearest-trip metric. Stop here for review before Stage2.
+Every selectable physical location has either staffed service or the self-help procedure. Tests exercise operational recovery and a public outbound empty route from every selectable POI with zero/negative funds; normal travel can still incur fuel costs. The mechanism addresses maintenance stranding, not an unrelated qualification or save-corruption repair system.
+
+The final emergency-only sites are **First Landing, Black Tile, Nell's Lantern, Old Survey Camp, Apocrypha Cache, False Bottom Cache, Blind Drop, Comet Fragment 2's cache and Comet Fragment 3's dead drop**. Coronal remains nonselectable. Limited local help at working science cells, Raqib and the lone-operator beacon does not create additional settlements or shipping.
+
+## 7. Accounts and compatibility
+
+(zzz: do not worry about back compat, do the least code solution)
+
+**Resolution:** Removed the proposed shop-policy revision system and migration layer. Retain existing account IDs naturally; use existing inspection expiry, credits and save fields. Historical reports follow their ordinary mission-based expiry, rather than an extra policy-version check. A fresh inspection uses current honesty/capability. Emergency reset explicitly invalidates its superseded findings without erasing credits.
+
+New staffed accounts use `maintenance-<physicalId>`; self-help uses `emergency-<physicalId>`. Generated directory IDs append `-office`; authored existing directory IDs remain. Upgrading a later professional placeholder to a bespoke shop does not require a new account. Shared planetary prose never means shared inspection or credit state.
+
+## 8. Stage gates and verification
+
+- **Stage 2:** Low Gauge mechanic, Town workshop, Nell's Rest Shipworks, existing Bruckner; shared registry, referrals, approved honesty and universal emergency fallback. Other staffed facilities remain unchanged.
+- **Stage 3:** Complete ordinary coverage, with professional interim shops where later bespoke anchors will open. Expected final-stage snapshot: 57 basic, 90 professional, one full-service pilot, two existing elites and nine emergency-only locations. Supply **all copy in Markdown for comments before implementation**: every shared/reused set, variant, name, substitution, referral and location map. Preserve `zzz` comments.
+- **Stage 4:** Promote the remaining 25 full-service anchors, including Cadiz. Expected 57 / 65 / 26 / 2, plus nine emergency-only sites.
+- **Stage 5:** Open Rochefort and Svarog as elites. Final 57 / 63 / 26 / 4, plus nine emergency-only sites.
+
+`tests/audit-maintenance-coverage.ts` inventories physical scopes, account/directory agreement, service quotes, fault coverage and referral records. The roster JSON is review data, not imported into production. The production referral network is checked against it. `npm run test:maintenance-coverage` validates the pilot, emergency coverage, public directions, exact legacy quotes, atomic save failure and hidden internal labels. See the Stage 2 handoff for validation and the desktop preview.
