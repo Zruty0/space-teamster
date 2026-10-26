@@ -9,6 +9,7 @@ import {
 import { LevelDef } from './levels';
 import { TerrainData, checkLandingCollision } from './terrain';
 import type { LandingSceneryPainter } from './landing-scenery';
+import { surfaceShipCollision } from './surface-ship-collision';
 
 // --- Colors ---
 const COL_BG = '#050510';
@@ -382,6 +383,7 @@ function predictLandingTrajectory(
   const collisionPoints = sim.gearDeployed ? GEAR_COLLISION_POINTS : COLLISION_POINTS;
 
   for (let t = 0; t < horizon; t += dt) {
+    const previous=terrain.surfaceSite?{...sim}:undefined;
     let ax = 0;
     let ay = -config.gravity;
     let angAccel = 0;
@@ -425,7 +427,7 @@ function predictLandingTrajectory(
     sim.y += sim.vy * dt;
     points.push([sim.x, sim.y]);
 
-    let hit = false;
+    let hit = surfaceShipCollision(terrain,sim,previous);
     for (const [lx, ly] of collisionPoints) {
       const [wx, wy] = localToWorld(lx, ly, sim.x, sim.y, sim.angle, sim.facingSign);
       if (checkLandingCollision(level, terrain, wx, wy).hit) {

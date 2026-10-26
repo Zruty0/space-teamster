@@ -1,5 +1,7 @@
 // Desktop-only render benchmark, invoked from the save-free flight fixture.
 // Includes cold frames and repeated LOD changes; no readbacks in timed loops.
+// Since the outline rollout, synchronous v1 retains HISTORICAL FILLED art. This
+// is no longer a same-art scheduling comparison; report the art style explicitly.
 import { createApproachScenery } from '../src/approach-scenery-runtime';
 import { createSynchronousGroundReference } from './fixtures/approach-ground-sync-v1';
 import type { ApproachSceneryPainter } from '../src/approach';
@@ -23,7 +25,7 @@ export async function measureApproachCache(render:(painter:ApproachSceneryPainte
     trace.push({i,zoom,cpu:cost,...d});
    }
    const raf=stats(intervals);
-   reports.push({scenario,mode,width:1920,height:1080,frames,firstFrameMs:cpu[0],cpu:stats(cpu),raf,fps:1000/raf.mean,
+   reports.push({scenario,mode,art:mode==='synchronous'?'historical-filled-v1':'current-outline',width:1920,height:1080,frames,firstFrameMs:cpu[0],cpu:stats(cpu),raf,fps:1000/raf.mean,
     intervalsOver20ms:intervals.filter(v=>v>20).length,readyFrame,readyMs,maxPixels,maxEntries,diagnostics:painter.diagnostics(),trace});
   }finally{painter.clear();}
  }

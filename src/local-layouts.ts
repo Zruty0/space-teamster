@@ -290,7 +290,7 @@ function arcPoints(
   return points;
 }
 
-function flattenPath(data: string): { points: { x: number; y: number }[]; closed: boolean } {
+export function flattenPath(data: string): { points: { x: number; y: number }[]; closed: boolean } {
   const tokens = pathTokens(data);
   const points: { x: number; y: number }[] = [];
   let index = 0;

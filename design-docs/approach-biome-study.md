@@ -1,7 +1,9 @@
 # Hartwell approach / departure biome study
 
 Updated: 2026-10-26 (Pacific)
-Status: Pete approved production integration2026-10-24. Hartwell approach/departure live. Separate Dawes Cut surface-art test bed approved/enabled2026-10-26: [surface-poi-art.md](surface-poi-art.md). Other landing sites/worlds and all flight physics unchanged. Pete subsequently requests a wireframe-like visual backtrack: [wireframe-visual-review.md](wireframe-visual-review.md). Current filled implementation is still live while the planet comparison is reviewed; these earlier style approvals are superseded.
+Status: the approved dark outline-led treatment is LIVE on all five Hartwell approach/departure regions. `approach-outline-scenery.ts` replaces painted grain with subdued strata and large rock boundaries, retaining geography and the existing bounded incremental cache. Wind arrows/labels remain; band fills become faint outlines only for handled scenes. Other-world fallback is unchanged. Dawes additionally has authorized foreground grading/building collisions: [surface-poi-art.md](surface-poi-art.md). Orbital rollout: [wireframe-visual-review.md](wireframe-visual-review.md).
+
+Current flight: `http://127.0.0.1:5173/tests/hartwell-flight.html`. The gallery and filled-art implementation/measurements below are retained historical references, not current colors. Its five hashes remain unchanged. The old synchronous performance fixture still paints that historical art and is no longer a same-art comparison with production.
 
 ## Approved model
 
@@ -27,7 +29,7 @@ Controls: regional/upper/low views, approach/departure, along-track pan, detaile
 
 ## Scope boundary: scenery versus collision surface
 
-This first pass preserves the existing foreground/collision contour exactly. The old fixed noise height function is exported without modifying its calculations, and the new foreground uses the same sampling grid. Therefore the foreground outline is intentionally identical at equally framed Hartwell targets. Target seeds currently vary the background massifs and surface materials, not flight obstacles. Replacement of physical terrain, target grounding and physical phase continuity require a subsequent approved step. Dawes Cut now shares the biome palette, material seed and sky/relief painter in its final landing view; its original separate landing mesh and handoff are retained (see surface-poi-art.md).
+This first pass preserves the existing foreground/collision contour exactly. The old fixed noise height function is exported without modifying its calculations, and the new foreground uses the same sampling grid. Therefore the foreground outline is intentionally identical at equally framed Hartwell targets. Target seeds currently vary the background massifs and surface materials, not flight obstacles. Replacement of physical terrain, target grounding and physical phase continuity require a subsequent approved step. Dawes Cut now shares the dark palette and sky/relief painter in its final landing view. Its separate phase handoff and pad are retained, but the explicitly authorized foreground site replaces ground inside its 224 m footprint and adds real building/cut-face collision (see surface-poi-art.md).
 
 - One frozen biome, `hartwell-dry-uplands-v1`: rusty ground, ochre beds, muted distant relief, altitude-anchored dusty sky.
 - Two target-seeded background relief layers: broad mesa/shoulder geometry first, subordinate erosion noise, softer tones and restrained depth parallax. These are BACKGROUND scenery, not flyable/hittable mountains in the flight plane.

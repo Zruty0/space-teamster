@@ -5,17 +5,18 @@ import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight, checkLandingCollision } from '../src/terrain';
 import { landingSurfacePoints, landingBackdropCamera } from '../src/landing-scenery';
 import { getApproachTerrainHeight } from '../src/approach';
-import { HARTWELL_APPROACH_BIOME } from '../src/approach-biomes';
+import { HARTWELL_SURFACE_STYLE } from '../src/flight-surface-style';
+import { pointHitsSite } from '../src/surface-site';
 let checks=0;function assert(ok:unknown,message:string):asserts ok {checks++;if(!ok)throw Error(message);}
 const asset=basicOutpost(),level=createLandingLevel(DAWES_CUT_ID,90001),terrain=generateTerrain(level),before=JSON.stringify([level,terrain,asset]);
 assert(asset===basicOutpost()&&Object.isFrozen(asset)&&Object.isFrozen(asset.modules),'immutable parsed asset cached');
-assert(asset.modules.length===4&&asset.beacons.length===2,'two warehouses/dome/pad and paired beacon anchors');
+assert(asset.modules.length===5&&asset.beacons.length===2,'deck/two warehouses/dome/pad and paired beacon anchors');
 assert(JSON.stringify(terrain.pad)===JSON.stringify({left:972,right:1028,y:30,centerX:1000}),'original Dawes pad geometry');
 assert(level.roughness===.6&&JSON.stringify(level.features)===JSON.stringify([{xStart:820,xEnd:860,height:26},{xStart:1140,xEnd:1190,height:32}]),'original terrain profile and obstacles');
 assert(usesDawesSurfaceArt(level),'Dawes opt-in');
 for(const id of ['estella-v-capital-settlement','estella-v-atmo-refinery','estella-v-storm-research','estella-v-abandoned-colony'])assert(!usesDawesSurfaceArt({...level,poi:{id}}),'no other Hartwell rollout');
 assert(!usesDawesSurfaceArt({...level,body:{id:'estella-iii'}})&&!usesDawesSurfaceArt({...level,landingLayout:{kind:'cloud-city'}}),'foreign/cloud platform refused');
-assert(HARTWELL_OUTPOST_THEME.dust===HARTWELL_APPROACH_BIOME.palette.ground,'dust inherits biome ground tone');
+assert(HARTWELL_OUTPOST_THEME.dust===HARTWELL_SURFACE_STYLE.ground,'dust inherits biome ground tone');
 for(const width of [28,56,140])for(const center of [-500,0,1000])for(const altitude of [0,30,4000]){
  const pad={left:center-width/2,right:center+width/2,y:altitude,centerX:center};
  const p=placeSurfacePoi(asset,pad,x=>altitude+2*Math.sin(x/20));
@@ -23,22 +24,25 @@ for(const width of [28,56,140])for(const center of [-500,0,1000])for(const altit
  assert(p.x+asset.pad.left*p.scale===pad.left&&p.x+asset.pad.right*p.scale===pad.right,'SVG pad never widens/offsets landing zone');
  const deck=p.modules.find(m=>m.module.layer==='pad')!;
  assert(deck.y-asset.pad.y*p.scale===pad.y,'deck aligned to real collision altitude');
- for(const m of p.modules.filter(m=>m.module.layer==='backdrop'))assert(m.y>=altitude-2,'portable module footing uses supplied environment');
+ for(const m of p.modules)assert(m.y===altitude+asset.pad.y*p.scale,'foreground modules share the engineered deck');
 }
-// Exact physical mesh remains the visible silhouette, including off-mesh clamping.
+// Original outer mesh plus explicit vertical cut faces and replacement deck.
 for(const [a,b]of [[-500,500],[883.5,1010.2],[990,1200],[1700,2300]]){
  const points=landingSurfacePoints(terrain,a,b);
  assert(points[0][0]===a&&points[points.length-1][0]===b,'complete visible terrain span');
- for(const [x,y]of points)assert(y===getTerrainHeight(terrain,x),'every painted contour vertex is physical terrain');
- for(const p of terrain.points.filter(([x])=>x>a&&x<b))assert(points.some(([x,y])=>x===p[0]&&y===p[1]),'no native collision vertex skipped');
+ for(const [x,y]of points)assert(y===getTerrainHeight(terrain,x)||(y===terrain.pad.y&&(x===terrain.surfaceSite!.left||x===terrain.surfaceSite!.right)),'every vertex lies on the deck/cut/native ground');
+ for(const p of terrain.points.filter(([x])=>x>a&&x<b&&(x<terrain.surfaceSite!.left||x>terrain.surfaceSite!.right)))assert(points.some(([x,y])=>x===p[0]&&y===p[1]),'no outer native collision vertex skipped');
 }
 for(let x=0;x<=2000;x+=2){
  let y=60+27*Math.sin(x*.0025+.5)+18*Math.sin(x*.007+1.2)+10.8*Math.sin(x*.018+3.1)+6*Math.sin(x*.045+.7)+3*Math.sin(x*.11+2.3);
  const blend=Math.min(1,Math.max(0,Math.abs(x-1000)-28)/40);y=30+(y-30)*blend*blend;
  for(const f of [{xStart:820,xEnd:860,height:26},{xStart:1140,xEnd:1190,height:32}])if(x>=f.xStart&&x<=f.xEnd)y=Math.max(y,30+f.height);
  if(x>150&&x<450)y=Math.max(y,30+Math.max(0,36-Math.abs(x-300)*.4));y=Math.max(0,y);
- assert(Math.abs(getTerrainHeight(terrain,x)-y)<1e-10,'pre-art terrain formula unchanged');
- assert(checkLandingCollision(level,terrain,x,y-1).hit&&!checkLandingCollision(level,terrain,x,y+1).hit,'collision boundary unchanged');
+ assert(Math.abs(terrain.points[x/2][1]-y)<1e-10,'original terrain samples retained');
+ const site=terrain.surfaceSite!,expected=x>site.left&&x<site.right?site.deckY:y;
+ assert(Math.abs(getTerrainHeight(terrain,x)-expected)<1e-10,'terrain only replaced inside authorized site footprint');
+ assert(checkLandingCollision(level,terrain,x,expected-1).hit,'solid ground/deck below surface');
+ assert(checkLandingCollision(level,terrain,x,expected+1).hit===pointHitsSite(site,x,expected+1),'building masks above replacement deck');
 }
 for(const zoom of [.065,1,2.6,4.5]){
  const cam={x:1100,y:130,zoom},bg=landingBackdropCamera(cam,terrain);

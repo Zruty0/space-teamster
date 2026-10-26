@@ -1094,11 +1094,12 @@ export function renderApproach(
 ): void {
   const W = canvas.width, H = canvas.height;
 
-  if (!scenery?.(ctx, cam, s, level, W, H)) drawOriginalApproachScenery(ctx, cam, s, level, W, H);
+  const authored=!!scenery?.(ctx, cam, s, level, W, H);
+  if (!authored) drawOriginalApproachScenery(ctx, cam, s, level, W, H);
 
 
   // --- Wind layers ---
-  drawWindLayers(ctx, cam, level, W, H, time);
+  drawWindLayers(ctx, cam, level, W, H, time, authored&&(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
 
   // --- Trajectory preview ---
   drawTrajectory(ctx, cam, s, level, W, H, time);
@@ -1198,7 +1199,7 @@ function drawApproachTerrain(
 
 function drawWindLayers(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
-  level: ApproachLevel, W: number, H: number, time: number,
+  level: ApproachLevel, W: number, H: number, time: number, outline=false,
 ): void {
   const volatility = level.poi.weatherProfile?.volatility ?? 1;
   for (let i = 0; i < level.windLayers.length; i++) {
@@ -1221,7 +1222,9 @@ function drawWindLayers(
     ctx.fillStyle = isHead
       ? `rgba(60, 100, 200, ${alpha})`
       : `rgba(200, 150, 60, ${alpha})`;
-    ctx.fillRect(0, syTop, W, bandH);
+    if(outline){
+      ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,syTop);ctx.lineTo(W,syTop);ctx.moveTo(0,syBot);ctx.lineTo(W,syBot);ctx.stroke();
+    }else ctx.fillRect(0, syTop, W, bandH);
 
     // Arrow indicators showing wind direction
     const arrowSpacing = 120;

@@ -1,12 +1,13 @@
 // Hartwell only. Live background/clearance contour; bounded, cooperatively prepared ground.
 import { getApproachTerrainHeight, type ApproachSceneryPainter } from './approach';
 import { HARTWELL_APPROACH_TARGETS, hartwellApproachRegion } from './approach-biomes';
-import { createHartwellScenery, createHartwellScenerySteps } from './approach-scenery';
+import { createHartwellOutlineScenery, createHartwellOutlineScenerySteps } from './approach-outline-scenery';
+import { HARTWELL_SURFACE_STYLE as ink } from './flight-surface-style';
 import { groundCacheScale, groundStripRange, GROUND_CACHE_PIXELS, GROUND_CACHE_ENTRIES,
   GROUND_STRIP_WIDTH as TILE, GROUND_STRIP_BLEED as BLEED, GROUND_STRIP_TOP as TOP, GROUND_STRIP_BOTTOM as BOTTOM } from './approach-ground-cache';
 
 type Args=Parameters<ApproachSceneryPainter>;
-type Source={background:ApproachSceneryPainter;material:ReturnType<typeof createHartwellScenerySteps>};
+type Source={background:ApproachSceneryPainter;material:ReturnType<typeof createHartwellOutlineScenerySteps>};
 interface Job { key:string; identity:string; tile:number; scale:number; source:Source; state:Args[2]; level:Args[3]; }
 interface Strip { canvas:HTMLCanvasElement; pixels:number; ready:boolean; job:Job; }
 const SLICE_MS=2;
@@ -113,7 +114,7 @@ export function createApproachScenery() {
     let source=sources.get(level.poi.id);
     if(!source){
       const region=hartwellApproachRegion(level.poi.id);
-      source={background:createHartwellScenery(region,true,'background'),material:createHartwellScenerySteps(region)};
+      source={background:createHartwellOutlineScenery(region,'background'),material:createHartwellOutlineScenerySteps(region)};
       sources.set(level.poi.id,source);
     }
     source.background(ctx,cam,state,level,W,H);
@@ -132,23 +133,8 @@ export function createApproachScenery() {
       ctx.globalAlpha=1;ctx.setLineDash([]);
       ctx.beginPath();surface.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
       ctx.lineTo(W+8,H+8);ctx.lineTo(-8,H+8);ctx.closePath();ctx.clip();
-      // First-use coverage until the complete visible LOD is ready. It uses the
-      // approved rock palette/depth shading, not black holes or lower-detail tiles.
-      let covered=sy(BOTTOM)<=0;
-      if(display?.identity===identity){
-        const [a,b]=groundStripRange(cam.x,z,W,display.scale);
-        covered=Array.from({length:b-a+1},(_,i)=>cache.get(`${identity}:${display!.scale}:${a+i}`)?.ready).every(Boolean);
-      }
-      if(covered){ctx.fillStyle='#211b1b';ctx.fillRect(0,0,W,H);}
-      else{
-      const palette=hartwellApproachRegion(level.poi.id).biome.palette;
-      const rock=ctx.createLinearGradient(0,sy(1300),0,sy(-2000));
-      rock.addColorStop(0,palette.ground);rock.addColorStop(.45,'#754630');rock.addColorStop(1,palette.deep);
-      ctx.fillStyle=rock;ctx.fillRect(0,0,W,H);
-      const deep=ctx.createLinearGradient(0,sy(-2000),0,sy(BOTTOM));
-      deep.addColorStop(0,'rgba(33,27,27,0)');deep.addColorStop(.7,'rgba(33,27,27,.85)');deep.addColorStop(1,'#211b1b');
-      ctx.fillStyle=deep;ctx.fillRect(0,0,W,H);
-      }
+      // Same dark ground during preparation and below the cached cutaway.
+      ctx.fillStyle=ink.ground;ctx.fillRect(0,0,W,H);
       if(display?.identity===identity){
         const lod=display.scale,span=TILE/lod,[first,last]=groundStripRange(cam.x,z,W,lod);
         for(let tile=first;tile<=last;tile++){
@@ -161,9 +147,10 @@ export function createApproachScenery() {
     }finally{ctx.restore();}
     ctx.save();ctx.globalAlpha=1;ctx.setLineDash([]);ctx.beginPath();
     surface.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
-    ctx.strokeStyle='rgba(223,163,104,.58)';ctx.lineWidth=1;ctx.stroke();ctx.restore();return true;
+    ctx.strokeStyle=ink.edge;ctx.lineWidth=2.5;ctx.stroke();ctx.restore();return true;
   };
   return Object.assign(draw,{
+    outlineWind:true,
     diagnostics:()=>({entries:cache.size,pixels,maxPixels:GROUND_CACHE_PIXELS,builds,hits,evictions,targets:sources.size,
       pending:pending(),visibleMissing:visible.filter(key=>!cache.get(key)?.ready).length,active:!!active,displayScale:display?.scale,plannedEntries:wanted.size,
       slices,lastSliceMs,maxSliceMs,sliceBudgetMs:SLICE_MS,cancellations,failures,disabled}),

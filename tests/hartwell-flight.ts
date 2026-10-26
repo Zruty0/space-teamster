@@ -1,7 +1,7 @@
 import { Game } from '../src/game';
 import { defaultCareerProfile } from '../src/career-state';
 import { HARTWELL_APPROACH_TARGETS } from '../src/approach-biomes';
-import { createHartwellScenery } from '../src/approach-scenery';
+import { createHartwellOutlineScenery as createHartwellScenery } from '../src/approach-outline-scenery';
 import { hartwellApproachRegion } from '../src/approach-biomes';
 import { createApproachScenery } from '../src/approach-scenery-runtime';
 import { APPROACH_LEVELS, createApproachState, createApproachCamera, updateApproachCamera, updateApproach, applyApproachWeather, getApproachTerrainHeight, renderApproach, type ApproachLevel } from '../src/approach';
@@ -130,9 +130,9 @@ async function checks(){
  current.cam.x=0;current.cam.zoom=.04;draw();
  assert(runtime.diagnostics().displayScale===.08&&runtime.diagnostics().visibleMissing>0,'old detailed LOD retained while new zoom prepares');
  await settle();assert(runtime.diagnostics().displayScale===.04,'complete replacement LOD becomes visible');
- runtime.clear();draw();
- for(let i=0;i<8&&!runtime.diagnostics().active;i++){await new Promise(requestAnimationFrame);draw();}
- assert(runtime.diagnostics().active,'incremental strip suspends between frames');
+ runtime.clear();const slicesBefore=runtime.diagnostics().slices;draw();
+ for(let i=0;i<8&&runtime.diagnostics().slices===slicesBefore;i++){await new Promise(requestAnimationFrame);draw();}
+ assert(runtime.diagnostics().slices>slicesBefore,'cooperative preparation runs outside draw; lighter outline strips may finish in one slice');
  runtime.clear();const canceledBuilds=runtime.diagnostics().builds;
  for(let i=0;i<3;i++)await new Promise(requestAnimationFrame);
  assert(runtime.diagnostics().pixels===0&&!runtime.diagnostics().active&&!runtime.diagnostics().pending&&runtime.diagnostics().builds===canceledBuilds,'clear cancels pending callbacks and in-progress backing');
@@ -149,7 +149,7 @@ async function checks(){
  try{(window as any).requestIdleCallback=undefined;draw();await settle();assert(runtime.diagnostics().visibleMissing===0,'RAF-only fallback completes without idle API');}
  finally{window.requestIdleCallback=idleCallback;}
  current.cam={x:0,y:-20000,zoom:.08};draw();const deep=ctx.getImageData(600,600,1,1).data;
- assert(deep[0]===33&&deep[1]===27&&deep[2]===27,`below-cache cutaway stays solid dark: ${[...deep]}`);
+ assert(deep[0]===10&&deep[1]===7&&deep[2]===5,`below-cache cutaway stays solid dark: ${[...deep]}`);
  current.cam={x:0,y:2000,zoom:.08};draw();await settle();
  const pressure=createApproachScenery(),scratch=document.createElement('canvas');scratch.height=1080;
  const scratchCtx=scratch.getContext('2d')!;

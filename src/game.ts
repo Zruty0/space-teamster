@@ -4,6 +4,7 @@ import { config } from './config';
 import { createWorldWeather } from './world-weather';
 import { createApproachScenery } from './approach-scenery-runtime';
 import { createLandingScenery } from './landing-scenery';
+import { surfaceShipCollision } from './surface-ship-collision';
 import { loadAtmosphereArtSeed } from './atmosphere-art-state';
 import { BALOR_BODY_ID, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from './balor-orientation';
 import { InputState, readInput } from './input';
@@ -1185,6 +1186,7 @@ export class Game {
           this.clampLaunchShipToPad(p);
         } else {
           const dvBefore = p.ship.dvUsed;
+          const previousShip=p.terrain.surfaceSite?{...p.ship}:undefined;
           updateShip(p.ship, input, PHYSICS_DT, this.time);
           const dvDelta = Math.max(0, p.ship.dvUsed - dvBefore);
           const mainDriveDv = p.ship.thrustFiring ? Math.min(dvDelta, p.ship.thrustVisualLevel * config.mainEngineAccel * PHYSICS_DT) : 0;
@@ -1204,7 +1206,7 @@ export class Game {
             : 'none';
           applyIntegrityExposure(this.activeManifestCondition.integrity, PHYSICS_DT, landingThrust);
           applyComfortExposure(this.activeManifestCondition.comfort, PHYSICS_DT, landingThrust);
-          this.checkLandingCollision(p);
+          this.checkLandingCollision(p,previousShip);
         }
         if (!p.launchGuidance && (p.state as GameState) === 'landed') {
           const ratingColors = { PERFECT: '#00ffff', GOOD: '#00ff88', HARD: '#ffaa00' } as const;
@@ -1266,7 +1268,8 @@ export class Game {
     updateCamera(p.camera, p.ship, th, frameTime);
   }
 
-  private checkLandingCollision(p: Extract<Phase, { kind: 'landing' }>): void {
+  private checkLandingCollision(p: Extract<Phase, { kind: 'landing' }>,previousShip?:ShipState): void {
+    if(surfaceShipCollision(p.terrain,p.ship,previousShip)){p.state='crashed';return;}
     const pts = [...COLLISION_POINTS, ...(p.ship.gearDeployed ? GEAR_COLLISION_POINTS : [])];
     for (const [lx, ly] of pts) {
       const [wx, wy] = localToWorld(lx, ly, p.ship.x, p.ship.y, p.ship.angle, p.ship.facingSign);

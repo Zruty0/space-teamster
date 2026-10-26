@@ -9,7 +9,7 @@ import { readInput, type InputState } from '../src/input';
 import { DAWES_CUT_ID, HARTWELL_OUTPOST_THEME, basicOutpost, placeSurfacePoi, createSurfacePoiArtwork } from '../src/surface-poi';
 import { createLandingScenery, landingBackdropCamera } from '../src/landing-scenery';
 import { hartwellApproachRegion } from '../src/approach-biomes';
-import { createHartwellScenery } from '../src/approach-scenery';
+import { createHartwellOutlineScenery } from '../src/approach-outline-scenery';
 import { APPROACH_LEVELS, createApproachState, applyApproachWeather } from '../src/approach';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { BODIES, SURFACE_POIS } from '../src/world';
@@ -30,21 +30,28 @@ function reset(mode=view.value){
  const ship=createShip(),camera=createCamera();
  if(mode!=='entry'){ship.x=level.padCenterX;ship.y=level.padY+85;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=level.gravity/config.mainEngineAccel;}
  updateCamera(camera,ship,landingReferenceHeight(level,terrain,ship.x),0);
+ if(mode==='takeoff'){ship.x=level.padCenterX;ship.y=level.padY+4.05;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=0;}
  if(mode==='overview')Object.assign(camera,{x:level.padCenterX,y:level.padY+100,zoom:2.6});
  if(mode==='close')Object.assign(camera,{x:level.padCenterX,y:level.padY+50,zoom:4.5});
- current={kind:'landing',level,terrain,ship,camera,state:'flying',score:null,worldTimeStart:12345,missionDvStart:0};draw();
+ current={kind:'landing',level,terrain,ship,camera,state:'flying',score:null,worldTimeStart:12345,missionDvStart:0,...(mode==='takeoff'?{launchGuidance:{targetAltitude:500,orbitDir:1,nextApproachLevelId:approachLevel.id}}:{})};draw();
 }
 function draw(){
  game.time=elapsed;
- if(scenery)game.landingScenery=original.checked?()=>false:scenery;
+ if(scenery)game.landingScenery=scenery;
  game.renderGameplayPhase(view.value==='approach'?approach:current,'Practice complete',level.poi.name,'Hartwell',false);
+ if(original.checked&&view.value!=='approach'){
+  ctx.save();ctx.strokeStyle='#ff9b88';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  for(const s of terrain.surfaceSite!.solids){ctx.beginPath();s.points.forEach(([x,y],i)=>{const a=canvas.width/2+(x-current.camera.x)*current.camera.zoom,b=canvas.height/2-(y-current.camera.y)*current.camera.zoom;i?ctx.lineTo(a,b):ctx.moveTo(a,b);});ctx.closePath();ctx.stroke();}ctx.restore();
+ }
  status.textContent=`Dawes Cut · ${view.value} · ${paused?'paused':'flying'} · ${elapsed.toFixed(1)}s · ${current.state} · no career/save changes`;
 }
 function step(input:InputState,dt:number){
  if(current.state!=='flying')return;
  if(input.toggleGear){current.ship.gearDeployed=!current.ship.gearDeployed;current.ship.autoRotateEnabled=true;}
  if(input.toggleSAS)current.ship.sas=!current.ship.sas;
- elapsed+=dt;updateShip(current.ship,input,dt,elapsed);game.checkLandingCollision(current);
+ elapsed+=dt;
+ if(game.shouldHoldLaunchOnPad(current,input))game.clampLaunchShipToPad(current);
+ else{const previous={...current.ship};updateShip(current.ship,input,dt,elapsed);game.checkLandingCollision(current,previous);}
  updateCamera(current.camera,current.ship,landingReferenceHeight(level,terrain,current.ship.x),dt);
  if(current.state!=='flying'){paused=true;play.textContent='Fly';}
 }
@@ -64,7 +71,7 @@ async function checks(){
  try{
   original.checked=false;reset('overview');await scenery.prepare(level);draw();
   assert(scenery.diagnostics().ready&&scenery.diagnostics().materialReady&&!scenery.diagnostics().failed,'SVG and material preparation succeed');
-  assert(scenery.diagnostics().images===4&&scenery.diagnostics().pixels!<1048576,'bounded four-part SVG raster set');
+  assert(scenery.diagnostics().images===5&&scenery.diagnostics().pixels!<1048576,'bounded five-part foreground SVG raster set');
   const on=image();draw();assert(hash(image())===hash(on),'stationary scene repeats exactly');
   const state=JSON.stringify(current.ship);
   elapsed=.8;draw();const off=image();assert(hash(off)!==hash(on),'beacons blink');
@@ -75,14 +82,22 @@ async function checks(){
    if(!basicOutpost().beacons.some(b=>Math.hypot(x-(600+(placement.x+b.x*placement.scale-current.camera.x)*z),y-(360-(terrain.pad.y-b.y*placement.scale-current.camera.y)*z))<Math.max(4,2*z)+2))outside++;
   }
   assert(changed>10&&outside===0,'only the two beacon lights animate');
+  for(const [i,b]of basicOutpost().beacons.entries()){
+   const x=Math.round(600+(placement.x+b.x*placement.scale-current.camera.x)*z),y=Math.round(360-(terrain.pad.y-b.y*placement.scale-current.camera.y)*z),at=(y*1200+x)*4;
+   assert(i?on[at]>on[at+1]*2&&on[at]>on[at+2]:on[at+1]>on[at]*2&&on[at+1]>on[at+2],i?'right beacon red':'left beacon green');
+  }
   elapsed=1.4;draw();assert(hash(image())===hash(on),'beacon cycle replays exactly');
   assert(JSON.stringify(current.ship)===state,'rendering/blink does not change physics');
   const footer=ctx.getImageData(0,686,1,34).data;assert(footer.every((v,i)=>v===(i%4===3?255:0)),'opaque black control strip');
   const scratch=document.createElement('canvas');scratch.width=1200;scratch.height=720;const s=scratch.getContext('2d',{willReadFrequently:false})!;
   scenery(s,current.camera,terrain,level,1200,720,0);const scene=s.getImageData(0,0,1200,180).data;
-  createHartwellScenery(hartwellApproachRegion(DAWES_CUT_ID),true,'background')(s,landingBackdropCamera(current.camera,terrain),{localDir:-1},{body:level.body,poi:level.poi,gateX:0},1200,720);
+  const cutX=Math.round(600+(930-current.camera.x)*z),cutY=Math.round(360-(60-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
+  const deckPixel=s.getImageData(Math.round(600+(960-current.camera.x)*z),Math.round(360-(15-current.camera.y)*z),1,1).data;
+  assert(deckPixel[0]===18&&deckPixel[1]===16&&deckPixel[2]===14&&deckPixel[3]===255,'opaque SVG deck replaces natural terrain across footprint');
+  createHartwellOutlineScenery(hartwellApproachRegion(DAWES_CUT_ID),'background')(s,landingBackdropCamera(current.camera,terrain),{localDir:-1},{body:level.body,poi:level.poi,gateX:0},1200,720);
+  const bareCut=s.getImageData(cutX,cutY,1,1).data;assert(cut.every((v,i)=>Math.abs(v-bareCut[i])<=1),'no old hillside passes through the outpost');
   const sky=s.getImageData(0,0,1200,180).data;assert(scene.every((v,i)=>Math.abs(v-sky[i])<=1),'landing uses exact shared Hartwell backdrop');
-  assert(sky.some((v,i)=>i%4===0&&v>40),'sky is colored, not legacy black');
+  assert(sky.some((v,i)=>i%4!==3&&v>0)&&sky.every((v,i)=>i%4===3||v<20),'sky is near-black planetary tint, not painted daylight');
   const warm=createSurfacePoiArtwork(HARTWELL_OUTPOST_THEME),cool=createSurfacePoiArtwork({dust:'#879ba8',wall:'#344958',roof:'#7b919c',pad:'#596d79',trim:'#c2d1d4',light:'#bcd7d9'});
   await Promise.all([warm.ready,cool.ready]);assert(!warm.diagnostics().failed&&!cool.diagnostics().failed,'same SVG decodes in independent environment palettes');
   for(const module of basicOutpost().modules){
@@ -90,6 +105,10 @@ async function checks(){
    const wa=a.getContext('2d')!.getImageData(0,0,a.width,a.height).data,cb=b.getContext('2d')!.getImageData(0,0,b.width,b.height).data;
    assert(wa.every((v,i)=>i%4!==3||v===cb[i]),`${module.id}: palette swap preserves silhouette/anchors`);
    assert(wa.some((v,i)=>i%4!==3&&wa[(i>>2)*4+3]>200&&v!==cb[i]),`${module.id}: SVG responds to environment palette`);
+  }
+  for(const [id,x,y]of [['warehouse-main',-326,-20],['warehouse-rear',-410,-35],['residential-dome',336,-50]]as const){
+   const m=basicOutpost().modules.find(m=>m.id===id)!,c=warm.images.get(id)!;
+   assert(c.getContext('2d')!.getImageData((x-m.bounds.x)*2,(y-m.bounds.y)*2,1,1).data[3]===255,`${id}: solid opaque building interior`);
   }
   for(const mode of ['overview','close','entry']){
    reset(mode);const actual=hash(image());game.landingScenery=()=>false;game.renderGameplayPhase(current,'Practice complete',level.poi.name,'Hartwell',false);
@@ -105,6 +124,11 @@ async function checks(){
   assert(current.state==='landed','real pad touchdown still works');
   reset('close');current.ship.x=820;current.ship.y=getTerrainHeight(terrain,820);game.checkLandingCollision(current);
   assert(current.state==='crashed','original terrain obstacles still collide');
+  for(const [x,y]of [[918.5,40],[1084,53]]){reset('close');current.ship.x=x;current.ship.y=y;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
+  reset('close');const previous={...current.ship,x:1040,y:56,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:1104});game.checkLandingCollision(current);
+  assert(current.state==='flying','fast sweep endpoint clear');game.checkLandingCollision(current,previous);assert(current.state==='crashed','actual Game swept hull cannot cross a dome');
+  reset('takeoff');advance(.3);assert(current.state==='flying'&&Math.abs(current.ship.y-(level.padY+4.05))<.01,'real launch hold on original pad');
+  advance(3,{throttleUp:true});assert(current.state==='flying'&&current.ship.y>level.padY+10,'takeoff from foreground pad works');
   const other=createLandingLevel('estella-v-capital-settlement',990027),otherTerrain=generateTerrain(other);
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0);const old=hash(image());
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0,true,scenery);assert(hash(image())===old,'unreviewed surface sites retain exact original rendering');

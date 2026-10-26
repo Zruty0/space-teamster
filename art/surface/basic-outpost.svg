@@ -1,15 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="896" height="256" viewBox="-448 -160 896 256">
   <title>Basic surface outpost — side elevation</title>
-  <desc>Portable modular art. Pad deck is y=0, x=-112..112. Ground is not part of this asset. Terrain-mounted modules can move vertically; deep plinths are buried by the foreground. Beacon lamps are animated separately using the metadata anchors.</desc>
-  <metadata>{"version":1,"id":"basic-outpost-v1","bounds":{"x":-448,"y":-160,"width":896,"height":256},"pad":{"left":-112,"right":112,"y":0},"beacons":[{"x":-110,"y":-10},{"x":110,"y":-10}],"modules":[{"id":"warehouse-rear","layer":"backdrop","footLeft":-446,"footRight":-374,"bounds":{"x":-448,"y":-92,"width":78,"height":188}},{"id":"warehouse-main","layer":"backdrop","footLeft":-408,"footRight":-244,"bounds":{"x":-412,"y":-88,"width":172,"height":184}},{"id":"residential-dome","layer":"backdrop","footLeft":244,"footRight":428,"bounds":{"x":232,"y":-114,"width":208,"height":210}},{"id":"landing-pad","layer":"pad","footLeft":-112,"footRight":112,"bounds":{"x":-120,"y":-16,"width":240,"height":34}}]}</metadata>
+  <desc>Foreground outpost on one engineered deck. Pad y=0, x=-112..112; site edges x=-448..448. Paths marked data-solid supply building collision directly. Beacon overlays blink green on the left, red on the right.</desc>
+  <metadata>{"version":1,"id":"basic-outpost-v1","bounds":{"x":-448,"y":-160,"width":896,"height":256},"pad":{"left":-112,"right":112,"y":0},"beacons":[{"x":-110,"y":-10},{"x":110,"y":-10}],"modules":[{"id":"site-deck","layer":"deck","footLeft":-448,"footRight":448,"bounds":{"x":-448,"y":0,"width":896,"height":96}},{"id":"warehouse-rear","layer":"foreground","footLeft":-446,"footRight":-374,"bounds":{"x":-448,"y":-92,"width":78,"height":188}},{"id":"warehouse-main","layer":"foreground","footLeft":-408,"footRight":-244,"bounds":{"x":-412,"y":-88,"width":172,"height":184}},{"id":"residential-dome","layer":"foreground","footLeft":244,"footRight":428,"bounds":{"x":232,"y":-114,"width":208,"height":210}},{"id":"landing-pad","layer":"pad","footLeft":-112,"footRight":112,"bounds":{"x":-120,"y":-16,"width":240,"height":34}}]}</metadata>
   <style>
-    :root { --poi-wall:#39464b; --poi-roof:#697477; --poi-edge:#172329; --poi-trim:#adb4ac; --poi-dust:#797466; --poi-glass:#405e68; --poi-light:#dacda0; --poi-pad:#43484a; }
+    :root { --poi-wall:#0d0907; --poi-roof:#13100e; --poi-edge:#66584e; --poi-trim:#7c695c; --poi-dust:#0a0705; --poi-glass:#0b1114; --poi-light:#8c8172; --poi-pad:#12100e; }
     .edge { stroke:var(--poi-edge); stroke-width:2; stroke-linejoin:round; }
     .trim { fill:none; stroke:var(--poi-trim); stroke-width:1.4; stroke-linejoin:round; }
   </style>
+  <g id="site-deck">
+    <path class="edge" fill="var(--poi-pad)" d="M-448 0 H448 V96 H-448Z"/>
+    <path stroke="var(--poi-trim)" stroke-width="2" fill="none" d="M-448 0 H448 M-448 16 H448"/>
+  </g>
   <g id="warehouse-rear" transform="translate(-410 0)">
     <path class="edge" fill="var(--poi-dust)" d="M-36 -2 H36 V96 H-36Z"/>
-    <path class="edge" fill="var(--poi-wall)" d="M-36 0 V-64 L-22 -82 H22 L36 -64 V0Z"/>
+    <path data-solid="warehouse-rear" class="edge" fill="var(--poi-wall)" d="M-36 0 V-64 L-22 -82 H22 L36 -64 V0Z"/>
     <path class="edge" fill="var(--poi-roof)" d="M-36 -64 L-22 -82 H22 L36 -64Z"/>
     <path class="trim" d="M-20 -62 V-4 M0 -62 V-4 M20 -62 V-4"/>
     <rect x="-25" y="-47" width="50" height="7" fill="var(--poi-edge)"/>
@@ -19,10 +23,10 @@
   <g id="warehouse-main" transform="translate(-326 0)">
     <path class="edge" fill="var(--poi-dust)" d="M-82 -2 H82 V96 H-82Z"/>
     <path stroke="var(--poi-edge)" stroke-opacity=".4" d="M-80 12 H80 M-80 28 H80 M-80 44 H80 M-80 60 H80"/>
-    <path class="edge" fill="var(--poi-wall)" d="M-82 0 V-62 L-66 -78 H59 L82 -62 V0Z"/>
+    <path data-solid="warehouse-main" class="edge" fill="var(--poi-wall)" d="M-82 0 V-62 L-66 -78 H59 L82 -62 V0Z"/>
     <path class="edge" fill="var(--poi-roof)" d="M-82 -62 L-66 -78 H59 L82 -62Z"/>
     <path class="trim" d="M-74 -59 H73 M-70 -61 V-4 M-17 -61 V-4 M40 -61 V-4 M73 -61 V-4"/>
-    <path class="edge" fill="#263238" d="M-61 -48 H-25 V0 H-61Z M-7 -48 H31 V0 H-7Z"/>
+    <path class="edge" fill="var(--poi-wall)" d="M-61 -48 H-25 V0 H-61Z M-7 -48 H31 V0 H-7Z"/>
     <path stroke="var(--poi-roof)" stroke-width="1.4" d="M-58 -39 H-28 M-58 -30 H-28 M-58 -21 H-28 M-58 -12 H-28 M-4 -39 H28 M-4 -30 H28 M-4 -21 H28 M-4 -12 H28"/>
     <path stroke="var(--poi-light)" stroke-width="3" d="M-57 -53 H-29 M-2 -53 H26"/>
     <rect class="edge" x="47" y="-39" width="17" height="39" fill="var(--poi-roof)"/>
@@ -30,20 +34,21 @@
     <path stroke="var(--poi-trim)" stroke-width="2" d="M58 -19 H62"/>
     <path class="edge" fill="var(--poi-dust)" d="M-81 -5 H80 V2 H-81Z"/>
     <g transform="translate(57 -2)">
-      <path class="edge" fill="#68685a" d="M-16 -14 H7 V0 H-16Z M-10 -27 H10 V-14 H-10Z M9 -11 H24 V0 H9Z"/>
+      <path class="edge" fill="var(--poi-roof)" d="M-16 -14 H7 V0 H-16Z M-10 -27 H10 V-14 H-10Z M9 -11 H24 V0 H9Z"/>
       <path stroke="var(--poi-trim)" d="M-12 -13 V-1 M3 -13 V-1 M-6 -26 V-15 M6 -26 V-15 M13 -10 V-1 M20 -10 V-1"/>
     </g>
-    <path class="edge" fill="var(--poi-roof)" d="M-40 -78 V-85 H-12 V-78Z M17 -78 V-84 H39 V-78Z"/>
+    <path data-solid="vent-left" class="edge" fill="var(--poi-roof)" d="M-40 -78 V-85 H-12 V-78Z"/>
+    <path data-solid="vent-right" class="edge" fill="var(--poi-roof)" d="M17 -78 V-84 H39 V-78Z"/>
   </g>
   <g id="residential-dome" transform="translate(336 0)">
     <path class="edge" fill="var(--poi-dust)" d="M-92 -2 H92 V96 H-92Z"/>
     <path stroke="var(--poi-edge)" stroke-opacity=".4" d="M-90 12 H90 M-90 28 H90 M-90 44 H90"/>
-    <path class="edge" fill="var(--poi-wall)" d="M-92 0 C-92 -137 92 -137 92 0Z"/>
+    <path data-solid="dome" class="edge" fill="var(--poi-wall)" d="M-92 0 C-92 -137 92 -137 92 0Z"/>
     <path fill="var(--poi-roof)" d="M-88 -32 C-67 -119 57 -117 83 -38 C37 -64 -42 -65 -88 -32Z"/>
     <path class="edge" fill="var(--poi-glass)" d="M-86 -29 C-44 -59 43 -59 87 -29 L91 -10 H-91Z"/>
     <path class="trim" d="M0 -103 V-7 M-2 -102 C-52 -97 -58 -43 -56 -5 M2 -102 C51 -97 59 -43 57 -5 M-75 -61 C-36 -79 38 -79 75 -61 M-89 -29 C-48 -52 46 -52 89 -29"/>
-    <path class="edge" fill="var(--poi-roof)" d="M-94 -5 H94 V4 H-94Z"/>
-    <path class="edge" fill="var(--poi-wall)" d="M55 1 V-29 L63 -39 H86 L97 -29 V1Z"/>
+    <path data-solid="dome-footing" class="edge" fill="var(--poi-roof)" d="M-94 -5 H94 V4 H-94Z"/>
+    <path data-solid="airlock" class="edge" fill="var(--poi-wall)" d="M55 1 V-29 L63 -39 H86 L97 -29 V1Z"/>
     <rect class="edge" x="65" y="-28" width="20" height="29" fill="var(--poi-roof)"/>
     <rect x="69" y="-23" width="12" height="9" fill="var(--poi-light)"/>
     <path stroke="var(--poi-trim)" stroke-width="2" d="M77 -8 H82"/>
@@ -56,7 +61,7 @@
     <path stroke="var(--poi-light)" stroke-width="3" d="M-94 3 H-74 M-62 3 H-42 M-30 3 H-10 M10 3 H30 M42 3 H62 M74 3 H94"/>
     <path stroke="var(--poi-trim)" stroke-width="2" d="M-5 1 V6 M5 1 V6 M-5 3.5 H5"/>
     <path class="edge" fill="var(--poi-pad)" d="M-114 0 V-8 H-106 V0Z M106 0 V-8 H114 V0Z"/>
-    <circle cx="-110" cy="-10" r="3" fill="#596c55" stroke="var(--poi-edge)" stroke-width="1.5"/>
-    <circle cx="110" cy="-10" r="3" fill="#596c55" stroke="var(--poi-edge)" stroke-width="1.5"/>
+    <circle cx="-110" cy="-10" r="3" fill="#174c2c" stroke="var(--poi-edge)" stroke-width="1.5"/>
+    <circle cx="110" cy="-10" r="3" fill="#551e20" stroke="var(--poi-edge)" stroke-width="1.5"/>
   </g>
 </svg>

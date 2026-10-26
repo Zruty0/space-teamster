@@ -2,6 +2,7 @@
 // Terrain is a polyline of (x, y) points at regular spacing.
 
 import { LevelDef } from './levels';
+import { createSurfaceSite, pointHitsSite, type SurfaceSite } from './surface-site';
 
 export interface LandingPad {
   left: number;
@@ -16,6 +17,7 @@ export interface TerrainData {
   startX: number;
   endX: number;
   pad: LandingPad;
+  surfaceSite?: SurfaceSite;
 }
 
 export interface LandingCollision {
@@ -84,7 +86,7 @@ export function generateTerrain(level: LevelDef): TerrainData {
     points.push([x, y]);
   }
 
-  return {
+  const terrain:TerrainData = {
     points,
     spacing,
     startX,
@@ -96,10 +98,15 @@ export function generateTerrain(level: LevelDef): TerrainData {
       centerX: padCenterX,
     },
   };
+  const site=createSurfaceSite(level,terrain.pad,x=>getTerrainHeight(terrain,x));
+  if(site)terrain.surfaceSite=site;
+  return terrain;
 }
 
 // Get terrain height at any x by linear interpolation
 export function getTerrainHeight(terrain: TerrainData, x: number): number {
+  const site=terrain.surfaceSite;
+  if(site&&x>site.left&&x<site.right)return site.deckY;
   if (x <= terrain.startX) return terrain.points[0][1];
   if (x >= terrain.endX) return terrain.points[terrain.points.length - 1][1];
 
@@ -146,6 +153,7 @@ export function checkLandingCollision(level: LevelDef, terrain: TerrainData, x: 
     return { hit: false, onPad: false };
   }
 
+  if(terrain.surfaceSite&&pointHitsSite(terrain.surfaceSite,x,y))return{hit:true,onPad:false};
   return { hit: y <= getTerrainHeight(terrain, x), onPad: isOnPad(terrain, x) };
 }
 
