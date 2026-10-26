@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — proposed staged plan
 
 Updated: 2026-10-26
-Status: **proposal only; no implementation stage approved or started.** Pete requests separate approval for each stage. This document is not authorization to roll out shops.
+Status: **five-stage outline approved2026-10-26, with exhaustive Stage3 Markdown copy review required before rollout.** No individual implementation stage started; retain separate approval gates. Outline approval is not blanket authorization to roll out shops.
 
 ## Requested shape
 
@@ -70,11 +70,12 @@ A referral does not diagnose unknown faults or promise that every higher shop ca
 
 ### 3 — Everyday system-wide coverage (0 and 1)
 
-- Apply the approved per-location map outside the pilot, using mechanic fallbacks and modest professional facilities; authored shops take precedence. No blanket generation at every catalog node.
-- Write shared planetary copy sets for profiles, diagnosis, service, repairs and referrals. Small location substitutions; moon/cluster exceptions only where setting warrants them. Tier0 may share broader regional archetypes, but Wells serf copy stays local to its setting.
-- Apply only the approved Wells honesty/template changes; retain distinct named businesses and historical saved state.
+- First generate `design-docs/maintenance-stage-3-copy-review.md` for Pete's inline comments, covering **all Stage3 copy, not samples**: shop/directory names and descriptions, facilities summaries, profiles, diagnosis, service, repairs, referral prompts/responses and any other new or revised player-facing strings.
+- Include every shared planetary/regional text set (including reused copy), all exceptions/overrides, and an exact location-to-template mapping with substitution values. Shared prose need only appear once, but no unique wording or local variant may be omitted. Small location substitutions; moon/cluster exceptions only where setting warrants them. Tier0 may share broader regional archetypes, but Wells serf copy stays local to its setting.
+- **Pre-rollout copy gate:** deliver the complete Markdown for review, preserve Pete's `zzz` comments verbatim with resolutions alongside, revise, and wait for explicit copy approval. Do not implement unreviewed Stage3 prose. Later wording changes must be reflected in the review Markdown.
+- After approval, apply the per-location map outside the pilot, using mechanic fallbacks and modest professional facilities; authored shops take precedence. No blanket generation at every catalog node. Apply only approved Wells honesty/template changes; retain distinct named businesses and historical saved state.
 - Referral searches use only currently live shops; existing advanced anchors remain available while later shops await implementation.
-- **Review gate:** coverage report and representative planetary screens; every intended working stop has a functioning service option, exclusions explicit, no shop/directory duplication or leaked private destinations.
+- **Completion gate:** coverage report and desktop checks verifying runtime text against the approved full Markdown; every intended working stop has a functioning service option, exclusions explicit, no shop/directory duplication or leaked private destinations.
 
 ### 4 — Bespoke full-service regional anchors (2)
 
