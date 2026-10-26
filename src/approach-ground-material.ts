@@ -4,7 +4,12 @@ export const GROUND_MATERIAL_WIDTH = 512;
 export const GROUND_MATERIAL_HEIGHT = 256;
 const wrap = (n: number, size: number) => (n % size + size) % size;
 const smooth = (x: number) => x*x*(3-2*x);
+// The direct/gallery API drains the same steps; production yields between row groups.
 export function hartwellGroundMaterial(seed: number): Uint8ClampedArray {
+  const work=hartwellGroundMaterialSteps(seed);let step=work.next();
+  while(!step.done)step=work.next();return step.value;
+}
+export function* hartwellGroundMaterialSteps(seed: number): Generator<void,Uint8ClampedArray,void> {
   if (!Number.isInteger(seed) || seed<0 || seed>0xffffffff) throw new Error('Invalid ground material seed');
   const W=GROUND_MATERIAL_WIDTH,H=GROUND_MATERIAL_HEIGHT;
   const grid=(w:number,h:number,channel:number)=>Float64Array.from({length:w*h},(_,i)=>regionRandom(seed,i,channel));
@@ -16,7 +21,8 @@ export function hartwellGroundMaterial(seed: number): Uint8ClampedArray {
   };
   const features=Array.from({length:16*8},(_,i)=>({x:.12+.76*regionRandom(seed,i,122),y:.12+.76*regionRandom(seed,i,123),tone:regionRandom(seed,i,124)}));
   const pixels=new Uint8ClampedArray(W*H*4);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  for(let y=0;y<H;y++){
+  for(let x=0;x<W;x++){
     const gx=x/32,gy=y/32,cx=Math.floor(gx),cy=Math.floor(gy);
     let first=Infinity,second=Infinity,tone=0;
     for(let j=cy-1;j<=cy+1;j++)for(let i=cx-1;i<=cx+1;i++){
@@ -35,6 +41,8 @@ export function hartwellGroundMaterial(seed: number): Uint8ClampedArray {
     const bright=relief>0,k=(y*W+x)*4;
     pixels[k]=bright?237:28;pixels[k+1]=bright?179:20;pixels[k+2]=bright?116:18;
     pixels[k+3]=Math.min(145,Math.round(Math.abs(relief)*230));
+  }
+  if(y%4===3)yield;
   }
   return pixels;
 }

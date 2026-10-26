@@ -1,7 +1,7 @@
 import './svg-dom';
 import { HARTWELL_APPROACH_BIOME, HARTWELL_APPROACH_TARGETS, hartwellApproachRegion, approachRidgeHeight, regionCoordinate, regionNoise, regionRandom } from '../src/approach-biomes';
 import { getApproachTerrainHeight } from '../src/approach';
-import { hartwellGroundMaterial, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from '../src/approach-ground-material';
+import { hartwellGroundMaterial, hartwellGroundMaterialSteps, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from '../src/approach-ground-material';
 import { SURFACE_POIS } from '../src/world';
 import { groundCacheScale, groundStripRange, GROUND_CACHE_PIXELS, GROUND_CACHE_ENTRIES, GROUND_STRIP_WIDTH, GROUND_STRIP_BLEED, GROUND_STRIP_TOP, GROUND_STRIP_BOTTOM } from '../src/approach-ground-cache';
 let checks=0;
@@ -52,6 +52,9 @@ for(const model of models){
  const pixels=hartwellGroundMaterial(model.materialSeed),replay=hartwellGroundMaterial(model.materialSeed);
  assert(pixels.length===GROUND_MATERIAL_WIDTH*GROUND_MATERIAL_HEIGHT*4,'bounded material tile');
  assert(pixels!==replay&&pixels.every((v,i)=>v===replay[i]),'independent repeatable material buffers');
+ const steps=hartwellGroundMaterialSteps(model.materialSeed);let step=steps.next(),yields=0;
+ while(!step.done){yields++;assert(step.value===undefined,'partial pixels never published');step=steps.next();}
+ assert(yields===GROUND_MATERIAL_HEIGHT/4&&step.value.every((v,i)=>v===pixels[i]),'cooperative texture is byte-identical after64 bounded row chunks');
  let hash=2166136261,strong=0,seam=0,interior=0;
  for(let i=0;i<pixels.length;i++)hash=Math.imul(hash^pixels[i],16777619);
  for(let i=3;i<pixels.length;i+=4){assert(pixels[i]<=145,'material opacity bounded');if(pixels[i]>20)strong++;}

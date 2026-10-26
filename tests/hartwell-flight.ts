@@ -24,7 +24,7 @@ for(const id of HARTWELL_APPROACH_TARGETS)for(const departing of [false,true]){
  if(!departing)site.add(new Option(level.poi.name,id));
 }
 let paused=true,elapsed=0,accumulator=0,last=performance.now();
-let current:any;
+let current:any,checking=false,lastPaintedBuilds=-1;
 const neutral=readInput();
 function reset(id=site.value,departing=phase.value==='departure',entry=full.checked){
  const level=levels.get(`${id}:${departing}`);if(!level)throw Error('Unknown practice site');
@@ -40,6 +40,7 @@ function reset(id=site.value,departing=phase.value==='departure',entry=full.chec
 function draw(){
  game.time=elapsed;
  game.renderGameplayPhase(current,'Practice complete',current.level.poi.name,'Hartwell',false);
+ lastPaintedBuilds=game.approachScenery?.diagnostics?.().builds??-1;
  status.textContent=`${current.level.poi.name} · ${current.level.departure?'departure':'approach'} · ${paused?'paused':'flying'} · ${elapsed.toFixed(1)} s · no career/save changes`;
 }
 function step(input:InputState,dt:number){
@@ -56,14 +57,26 @@ function advance(seconds:number,input:Partial<InputState>={}){
  draw();return snapshot();
 }
 function snapshot(){return{level:current.level,site:site.value,departure:!!current.level.departure,elapsed,paused,state:{...current.as},camera:{...current.cam}};}
-function checks(){
- paused=true;let count=0;
+async function settle(){
+ const start=performance.now();
+ do{
+  await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));draw();
+  const d=game.approachScenery?.diagnostics?.();
+  if(d?.failures)throw Error(`Ground preparation failed: ${JSON.stringify(d)}`);
+  if(!d?.pending&&!d?.active)return;
+ }while(performance.now()-start<15000);
+ throw Error(`Ground preparation timed out: ${JSON.stringify(game.approachScenery?.diagnostics?.())}`);
+}
+async function checks(){
+ if(checking)throw Error('Checks already running');
+ paused=true;checking=true;let count=0;
+ try{
  const assert=(ok:unknown,message:string)=>{count++;if(!ok)throw Error(message);};
  const hash=()=>{let h=2166136261;for(const v of ctx.getImageData(0,0,1200,720).data)h=Math.imul(h^v,16777619);return h>>>0;};
  const career=JSON.stringify(game.career),levelState=JSON.stringify([...levels]);
  const timings:number[]=[];
  for(const id of HARTWELL_APPROACH_TARGETS)for(const departing of [false,true]){
-  reset(id,departing,false);const state=JSON.stringify(current.as),live=hash(),pixels=ctx.getImageData(0,0,1200,720).data;
+  reset(id,departing,false);await settle();const state=JSON.stringify(current.as),live=hash(),pixels=ctx.getImageData(0,0,1200,720).data;
   const footer=ctx.getImageData(0,686,1,34).data;
   assert(footer.every((v,i)=>v===(i%4===3?255:0)),`${id}/${departing}: controls have opaque black backing`);
   assert(typeof game.approachScenery==='function','actual Game hook initializes runtime scenery');
@@ -99,18 +112,57 @@ function checks(){
  // Exact-size cached pixels, including the strip boundary atworld x=0, versus
  // the original material. This catches gaps/coordinate shifts without comparing LODs.
  reset(HARTWELL_APPROACH_TARGETS[0],false,false);
- current.cam={x:0,y:2000,zoom:.08};draw();
+ current.cam={x:0,y:2000,zoom:.08};draw();await settle();
  const seamRow=ctx.getImageData(0,560,1200,1).data,runtime=game.approachScenery;
  game.approachScenery=createHartwellScenery(hartwellApproachRegion(site.value));draw();
  const directRow=ctx.getImageData(0,560,1200,1).data;
  assert(seamRow.every((v,i)=>Math.abs(v-directRow[i])<=2),'native-scale strips retain original material across seams');
  game.approachScenery=runtime;draw();const beforeEviction=ctx.getImageData(0,0,1200,720).data;
- for(let i=0;i<24;i++){current.cam.x=i*30000;draw();}
+ for(let i=0;i<24;i++){current.cam.x=i*30000;draw();await settle();}
  assert(runtime.diagnostics().evictions>0&&runtime.diagnostics().pixels<=runtime.diagnostics().maxPixels,'moving camera evicts within budget');
- current.cam.x=0;draw();const rebuilt=ctx.getImageData(0,0,1200,720).data;
+ current.cam.x=0;draw();await settle();const rebuilt=ctx.getImageData(0,0,1200,720).data;
  assert(rebuilt.every((v,i)=>Math.abs(v-beforeEviction[i])<=1),'evicted strips replay deterministically');
  const previousBuilds=runtime.diagnostics().builds;runtime.clear();draw();
- assert(runtime.diagnostics().builds>previousBuilds,'explicit cache clear rebuilds');
+ assert(runtime.diagnostics().builds===previousBuilds&&!runtime.diagnostics().active,'clear never rebuilds synchronously in draw');
+ await settle();assert(runtime.diagnostics().builds>previousBuilds,'explicit cache clear rebuilds cooperatively');
+ const warmBuilds=runtime.diagnostics().builds;current.cam.x+=512/.08;draw();
+ assert(runtime.diagnostics().visibleMissing===0&&runtime.diagnostics().builds===warmBuilds,'one-strip camera advance is prefetched');
+ current.cam.x=0;current.cam.zoom=.04;draw();
+ assert(runtime.diagnostics().displayScale===.08&&runtime.diagnostics().visibleMissing>0,'old detailed LOD retained while new zoom prepares');
+ await settle();assert(runtime.diagnostics().displayScale===.04,'complete replacement LOD becomes visible');
+ runtime.clear();draw();
+ for(let i=0;i<8&&!runtime.diagnostics().active;i++){await new Promise(requestAnimationFrame);draw();}
+ assert(runtime.diagnostics().active,'incremental strip suspends between frames');
+ runtime.clear();const canceledBuilds=runtime.diagnostics().builds;
+ for(let i=0;i<3;i++)await new Promise(requestAnimationFrame);
+ assert(runtime.diagnostics().pixels===0&&!runtime.diagnostics().active&&!runtime.diagnostics().pending&&runtime.diagnostics().builds===canceledBuilds,'clear cancels pending callbacks and in-progress backing');
+ const hiddenDescriptor=Object.getOwnPropertyDescriptor(document,'hidden');
+ try{
+  Object.defineProperty(document,'hidden',{configurable:true,value:true});draw();const before=runtime.diagnostics().slices;
+  for(let i=0;i<3;i++)await new Promise(requestAnimationFrame);
+  assert(runtime.diagnostics().slices===before,'hidden document performs no preparation');
+ }finally{if(hiddenDescriptor)Object.defineProperty(document,'hidden',hiddenDescriptor);else delete (document as any).hidden;}
+ draw();await settle();assert(runtime.diagnostics().visibleMissing===0,'visible document resumes preparation');
+ // Exercise a new build, not a warm no-op, without requestIdleCallback.
+ runtime.clear();
+ const idleCallback=window.requestIdleCallback;
+ try{(window as any).requestIdleCallback=undefined;draw();await settle();assert(runtime.diagnostics().visibleMissing===0,'RAF-only fallback completes without idle API');}
+ finally{window.requestIdleCallback=idleCallback;}
+ current.cam={x:0,y:-20000,zoom:.08};draw();const deep=ctx.getImageData(600,600,1,1).data;
+ assert(deep[0]===33&&deep[1]===27&&deep[2]===27,`below-cache cutaway stays solid dark: ${[...deep]}`);
+ current.cam={x:0,y:2000,zoom:.08};draw();await settle();
+ const pressure=createApproachScenery(),scratch=document.createElement('canvas');scratch.height=1080;
+ const scratchCtx=scratch.getContext('2d')!;
+ try{
+  for(let i=0;i<72;i++){
+   if(i%8===0)scratch.width=[1920,3840,7680][Math.floor(i/8)%3];
+   const target=HARTWELL_APPROACH_TARGETS[Math.floor(i/16)%5],level=levels.get(`${target}:false`)!;
+   pressure(scratchCtx,{x:(i%2?1:-1)*i*7000,y:2000,zoom:[.008,.015,.04,.08][Math.floor(i/6)%4]},current.as,level,scratch.width,1080);
+   await new Promise(requestAnimationFrame);const d=pressure.diagnostics();
+   assert(d.entries<=32&&d.pixels<=d.maxPixels&&d.plannedEntries<=32&&!d.failures,'resize/zoom/retarget pressure stays bounded');
+  }
+ }finally{pressure.clear();scratch.width=scratch.height=1;}
+ assert(pressure.diagnostics().pixels===0&&!pressure.diagnostics().active,'pressure cleanup releases suspended work');
  for(const speed of [100,500]){
   current.as.vx=speed;current.as.vy=0;draw();
   const base=current.level.poi.altitude||getApproachTerrainHeight(current.level.gateX,current.level);
@@ -137,13 +189,28 @@ function checks(){
  assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog unchanged');
  reset(HARTWELL_APPROACH_TARGETS[0],false,false);
  timings.sort((a,b)=>a-b);
- return{passed:true,checks:count,cpuSubmissionMean:timings.reduce((a,b)=>a+b,0)/timings.length,cpuSubmissionP95:timings[Math.ceil(timings.length*.95)-1]};
+ return{passed:true,checks:count,cache:runtime.diagnostics(),cpuSubmissionMean:timings.reduce((a,b)=>a+b,0)/timings.length,cpuSubmissionP95:timings[Math.ceil(timings.length*.95)-1]};
+ }finally{checking=false;}
+}
+async function performanceChecks(){
+ if(checking)throw Error('Checks already running');checking=true;paused=true;
+ const runtime=game.approachScenery;
+ try{
+  runtime?.clear?.();reset(HARTWELL_APPROACH_TARGETS[0],false,false);runtime?.clear?.();
+  canvas.width=1920;canvas.height=1080;
+  const {measureApproachCache}=await import('./approach-cache-performance');
+  return await measureApproachCache((painter,cam)=>{
+   game.approachScenery=painter;current.cam=cam;
+   game.renderGameplayPhase(current,'Practice complete',current.level.poi.name,'Hartwell',false);
+  });
+ }finally{canvas.width=1200;canvas.height=720;game.approachScenery=runtime;reset();await settle();checking=false;}
 }
 site.onchange=phase.onchange=full.onchange=()=>reset();
 document.getElementById('reset')!.onclick=()=>reset();
 play.onclick=()=>{if(current.state!=='approaching')reset();paused=!paused;last=performance.now();play.textContent=paused?'Fly':'Pause';canvas.focus();};
-document.getElementById('checks')!.onclick=()=>{const r=checks();status.textContent=`PASS — ${r.checks} production flight checks`;};
+document.getElementById('checks')!.onclick=async()=>{const r=await checks();status.textContent=`PASS — ${r.checks} production flight checks`;};
 function frame(now:number){
+ if(checking){last=now;requestAnimationFrame(frame);return;}
  const input=readInput(),dt=Math.min(.1,(now-last)/1000);last=now;
  if(input.reset)reset();
  if(input.levelSelect){paused=true;play.textContent='Fly';draw();}
@@ -152,9 +219,10 @@ function frame(now:number){
   while(accumulator>=1/120&&!paused){step({...input,toggleWings:first&&input.toggleWings},1/120);first=false;accumulator-=1/120;}
   draw();
  }
+ if(paused&&!document.hidden){const d=game.approachScenery?.diagnostics?.();if(d&&(d.pending||d.builds!==lastPaintedBuilds))draw();}
  requestAnimationFrame(frame);
 }
 window.addEventListener('blur',()=>{paused=true;play.textContent='Fly';});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;play.textContent='Fly';accumulator=0;}});
 reset();requestAnimationFrame(frame);
-(window as any).hartwellFlight={ready:true,reset,advance,snapshot,checks};
+(window as any).hartwellFlight={ready:true,reset,advance,snapshot,checks,settle,performance:performanceChecks};

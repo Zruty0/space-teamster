@@ -2,7 +2,7 @@
 import { getApproachTerrainHeight, type ApproachSceneryPainter } from './approach';
 import { approachRidgeHeight, regionCoordinate, regionNoise, regionRandom, type ApproachRegion } from './approach-biomes';
 
-import { hartwellGroundMaterial, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from './approach-ground-material';
+import { hartwellGroundMaterialSteps, GROUND_MATERIAL_WIDTH, GROUND_MATERIAL_HEIGHT } from './approach-ground-material';
 
 type Point = readonly [number, number];
 function path(ctx: CanvasRenderingContext2D, points: readonly Point[]): void {
@@ -15,26 +15,31 @@ function fillToBottom(ctx: CanvasRenderingContext2D, points: readonly Point[], h
 }
 export type HartwellSceneryPart = 'all' | 'background' | 'material';
 export function createHartwellScenery(region: ApproachRegion, detailedGround = true, part: HartwellSceneryPart = 'all'): ApproachSceneryPainter {
-  // One small immutable material tile per target, built lazily; no animation-frame pixels.
+  const paint=createHartwellScenerySteps(region,detailedGround,part);
+  return(...args)=>{const work=paint(...args);let step=work.next();while(!step.done)step=work.next();return step.value;};
+}
+// Each yielded chunk is small (four texture rows or one vector column/band).
+// Only cache-owned canvases are suspended; the live/gallery painter drains synchronously.
+export function createHartwellScenerySteps(region: ApproachRegion, detailedGround=true, part: HartwellSceneryPart='material') {
   let grain: HTMLCanvasElement | undefined;
-  function materialTile(): HTMLCanvasElement {
+  function* materialTile(): Generator<void,HTMLCanvasElement,void> {
     if (grain) return grain;
-    grain = document.createElement('canvas');
-    grain.width = detailedGround ? GROUND_MATERIAL_WIDTH : 256;
-    grain.height = detailedGround ? GROUND_MATERIAL_HEIGHT : 256;
-    const context = grain.getContext('2d')!, image = context.createImageData(grain.width,grain.height);
+    const tile = document.createElement('canvas');
+    tile.width = detailedGround ? GROUND_MATERIAL_WIDTH : 256;
+    tile.height = detailedGround ? GROUND_MATERIAL_HEIGHT : 256;
+    const context = tile.getContext('2d')!, image = context.createImageData(tile.width,tile.height);
     if(detailedGround){
-      image.data.set(hartwellGroundMaterial(region.materialSeed));
-      context.putImageData(image,0,0);return grain;
+      image.data.set(yield* hartwellGroundMaterialSteps(region.materialSeed));
+      context.putImageData(image,0,0);grain=tile;return tile;
     }
     for (let i=0;i<256*256;i++) {
       const r=regionRandom(region.materialSeed,i,100), bright=r>.5;
       image.data[i*4]=bright?240:30;image.data[i*4+1]=bright?198:24;image.data[i*4+2]=bright?145:22;
       image.data[i*4+3]=Math.round(Math.abs(r-.5)*50);
     }
-    context.putImageData(image,0,0); return grain;
+    context.putImageData(image,0,0);grain=tile;return tile;
   }
-  return (ctx, cam, state, level, W, H) => {
+  return function* (...[ctx, cam, state, level, W, H]: Parameters<ApproachSceneryPainter>): Generator<void,boolean,void> {
     if (level.body.id !== region.biome.bodyId || level.poi.id !== region.targetId) return false;
     if (!(cam.zoom > 0) || ![cam.x, cam.y, cam.zoom, W, H].every(Number.isFinite)) return false;
     const palette = region.biome.palette, zoom = cam.zoom;
@@ -125,6 +130,7 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
         }
         path(ctx,[...upper,...lower.reverse()]);ctx.closePath();
         ctx.fillStyle=band%2===0?palette.sediment:palette.shadow;ctx.globalAlpha=.18;ctx.fill();
+        yield;
       }
       ctx.globalAlpha=1;
       // World-indexed talus/facets and erosion gullies. No frame RNG or moving texture.
@@ -141,8 +147,9 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
         ctx.beginPath();ctx.moveTo(sx(x+width*.5),sy(top-90));
         ctx.bezierCurveTo(sx(x+width*.4),sy(top-depth*.35),sx(x+drift),sy(top-depth*.7),sx(x+drift+width*.1),sy(top-depth));
         ctx.strokeStyle=palette.shadow;ctx.lineWidth=Math.max(.5,Math.min(2,30*zoom));ctx.stroke();
+        yield;
       }
-      const texture=ctx.createPattern(materialTile(),'repeat');
+      const texture=ctx.createPattern(yield* materialTile(),'repeat');
       if(texture){
         const scale=detailedGround?8:16;
         texture.setTransform(new DOMMatrix([scale*zoom*state.localDir,0,0,-scale*zoom,sx(level.gateX),sy(0)]));
@@ -180,9 +187,11 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
             path(ctx,shape);ctx.closePath();ctx.fillStyle=r(6)>.5?'#b58051':'#4b3227';ctx.fill();
             path(ctx,[shape[3],shape[4],shape[5],[px,py]]);ctx.closePath();ctx.fillStyle='#d2a06a';ctx.globalAlpha=fade*patch*.24;ctx.fill();
           }
+          yield;
         }
         // Broken, fine bedding ledges: irregular lengths, each anchored in world space.
-        for(let cell=Math.floor(regionLeft/450)-1;cell<=Math.ceil(regionRight/450);cell++)for(let row=0;row<14;row++){
+        for(let cell=Math.floor(regionLeft/450)-1;cell<=Math.ceil(regionRight/450);cell++){
+        for(let row=0;row<14;row++){
           const r=(c:number)=>regionRandom(region.materialSeed,cell,1100+row*7+c);
           if(r(0)>.55)continue;
           const x=fromRegion((cell+r(1)*.6)*450),y=ground(x)-80-row*170-r(2)*90;
@@ -193,6 +202,8 @@ export function createHartwellScenery(region: ApproachRegion, detailedGround = t
           ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.lineTo(sx(x+length*.45),sy(y-12));ctx.lineTo(sx(x+length),sy(endY));ctx.stroke();
           ctx.strokeStyle='#ce9860';ctx.globalAlpha=fade*.18;ctx.lineWidth=.7;
           ctx.beginPath();ctx.moveTo(sx(x),sy(y)+1.2);ctx.lineTo(sx(x+length*.45),sy(y-12)+1.2);ctx.stroke();
+        }
+        yield;
         }
       }
       // Sparse tiny scree strokes appear continuously with zoom; locations never reshuffle.

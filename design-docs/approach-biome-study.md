@@ -50,13 +50,13 @@ This first pass preserves the existing foreground/collision contour exactly. The
 
 ## Validation
 
-`npm run test:approach-biomes`:667473 assertions (includes per-pixel material opacity bounds) — complete surface roster, pinned seeds, shared frozen biome, independent streams, continuous negative/positive coordinate cells, bounded/repeatable relief, target translation/direction mapping and1001 exact comparisons against the original flight-height formula.
+`npm run test:approach-biomes`:667798 assertions (includes per-pixel material opacity bounds) — complete surface roster, pinned seeds, shared frozen biome, independent streams, continuous negative/positive coordinate cells, bounded/repeatable relief, target translation/direction mapping and1001 exact comparisons against the original flight-height formula.
 
 Desktop Edge native85 checks: detailed mode changes substantial foreground area while preserving every tested backdrop pixel; detail-toggle replay is exact. Also five distinct scenery images, exact approach/departure and pan/zoom replay, all five real render paths, original-default/declined-hook pixel equality, canvas-state restoration, unchanged flight state/levels/weather/gates/catalog, other-world refusal. Reload reproduces all five hashes; actual slider/original-toggle controls and career-byte isolation checked externally. Regional/upper/low/departure/original and all five individual images inspected/captured. Driver/report/screenshots: `Temp/st-hartwell-approach-cdp-20261024.mjs`, `st-hartwell-approach-native-20261024.json`, `st-hartwell-approach-*-20261024.png`.
 
 Controls-legibility follow-up: the bottom34px controls strip now has an opaque black backing in approach/departure; text, font, colors and position unchanged.
 
-Production integration:142 native checks across all five real approach/departure scenes, actual Game hook/HUD versus approved painter, original-fallback differences, actual control/physics advance and deterministic retry, real camera zoom.008–.08, other-world exact fallback, unchanged career/levels/catalog. Cached ground is spatially filtered at its raster LOD, not expected to match direct vectors pixel-for-pixel at arbitrary zoom. Sky/background above the live contour match within1 channel; a native-scale material row through a strip seam matches within2 channels. Cached stationary replay is exact, eviction/rebuild within1 channel; gallery same-painter replay remains exact. Live keyboard thrust, pause and safe paused reload/career isolation also pass. `Temp/st-hartwell-flight-cdp-20261024.mjs` and matching report/screenshots retain evidence.
+Production integration:225 native checks across all five real approach/departure scenes, actual Game hook/HUD versus approved painter, original-fallback differences, actual control/physics advance and deterministic retry, real camera zoom.008–.08, other-world exact fallback, unchanged career/levels/catalog. Cached ground is spatially filtered at its raster LOD, not expected to match direct vectors pixel-for-pixel at arbitrary zoom. Sky/background above the live contour match within1 channel; a native-scale material row through a strip seam matches within2 channels. Cached stationary replay is exact, eviction/rebuild within1 channel; gallery same-painter replay remains exact. Live keyboard thrust, pause and safe paused reload/career isolation also pass. `Temp/st-hartwell-flight-cdp-20261024.mjs` and matching report/screenshots retain evidence.
 
 Historical initial CPU-only sampling (5.1–5.8ms means) was not a frame-rate budget. The subsequent FPS regression and fix are measured below. No mobile budget established. Balor/empty-rig regressions and production build pass. Farwatch/Barataria changes were committed separately and retained. No mobile tests, manual live-save edits, push or deploy.
 
@@ -69,7 +69,7 @@ Production now keeps live sky/background/parallax and rasterizes only static gro
 - A deterministic scale ladder and pure viewport-budget policy ensure the complete visible set fits the cache, avoiding eviction/rebuild loops. Global per-Game LRU:≤32 strips and≤8,388,608 pixel backing (32MiB raw RGBA, not a claim of total browser/GPU memory). Existing five material tiles add≤2.5MiB raw; no temporal animation cache.
 - Strips cover+2km to−8km; the actual height function remains≤1.9km, and the approved deeper cutaway is solid dark. Opaque overlapping bleed removes fractional-pixel gaps. Eviction releases old backing dimensions.
 - Live4px-sampled foreground clipping and edge are still drawn from the unchanged collision-height function every frame. Never use a cached/scaled silhouette for collision clearance. Physics, gate coordinates, wind, sky/background, HUD and ship are not cached.
-- Source direct painter remains in the gallery/reference tests. Runtime diagnostics expose builds/hits/evictions/pixel counts; clear/revisit reconstruct deterministically. Cold first-use or new-LOD strip builds can still cause brief hitches; observed initial cached-frame CPU34–50ms, warm moving-frame maxima6.6–10.5ms in the final run. No universal stutter-free/mobile claim.
+- Source direct painter remains in the gallery/reference tests. Runtime diagnostics expose builds/hits/evictions/pixel counts; clear/revisit reconstruct deterministically. The initial synchronous cache (4ce155e) still caused cold/new-LOD hitches: initial cached-frame CPU34–50ms, warm moving-frame maxima6.6–10.5ms. Cooperative preparation below replaces that blocking construction. No universal stutter-free/mobile claim.
 
 Target rect: continuous7px dark backing,4px pale dash edging, original2px speed-status color/dashes, opaque speed-label background. Bounds, speed checks, text/font/anchor and black controls strip unchanged. Native checks cover acceptable and excessive speed states, allfive sites/both phases, cache bounds/stationary hits/forced eviction/clear/seams/above-ground pixel identity, and unchanged flight/catalog/career state.
 
@@ -88,3 +88,34 @@ Headless Edge/D3D11, verified RTX5080; real Game approach render/HUD/trajectory,
 Repeat under concurrent unit/build activity: detailed direct19.30FPS versus cached119.98FPS at1080p; cached CPU mean.96ms/p951.20ms. Far/zoomed-out rendering was already near120FPS and remains so. Native stress tests alternate cold LODs and do pixel readbacks; their CPU averages are not these steady-state figures.
 
 Reproduction/evidence: `Temp/st-approach-perf-20261025.mjs`; `st-approach-perf-{before,after,after-final}-20261025.json` include raw CPU profiles, hardware strings, timings and cache counts. Isolated benchmark/native sessions block the Vite HMR client to avoid concurrent Thule edits reloading the page during measurements; the normal dev server/HMR remain untouched. Existing native flight driver/report/screenshots refreshed. Thule/economy work in the shared tree is unrelated and excluded from the scoped commit.
+
+## Cooperative preparation / look-ahead — 2026-10-25
+
+Pete requests the proposed further improvement: prepare ahead and spread construction across frames, keeping detail.
+
+- `hartwellGroundMaterialSteps` yields every4 rows (64 chunks); `createHartwellScenerySteps` yields after individual bands/vector columns. Same generation math/order, seeds and final pixels. Direct/gallery APIs synchronously drain these generators; production suspends only private cache canvases, never the live canvas. Incomplete material tiles are not published.
+- No texture generation/strip rasterization in `draw`. One RAF-scheduled cooperative slice, normally in `requestIdleCallback`, with a2ms soft CPU budget; one small chunk can overrun it. RAF-only fallback if idle API is absent. This is cooperative main-thread work, not a Worker or GPU-time guarantee.
+- Queue prioritizes visible missing strips, protects old displayed detail when space permits, then prepares one neighboring strip on either side and a bounded0.4s camera/zoom forecast. Predictive displacement capped at two strips; zoom forecast respects production.008–.08 limits. Camera motion/time influences preparation priority only, never geography/seed/pixels.
+- New zoom LOD replaces the old one only when its entire visible set is ready. On first use there is brief approved-palette/depth ground fill while full detail prepares (134ms in final close-view test); controls/physics continue immediately. No half-painted strips or changes to final resolution/detail. Exceptionally fast pan/eviction can expose the same temporary coverage fill.
+- In-progress backing counts inside the existing32-entry/8Mi-pixel budget. Desired work is itself budgeted; obsolete entries are evicted before allocation. Retarget/clear cancels obsolete suspended work; hidden documents and requests older than250ms stop processing, next draw resumes. Unsupported worlds/invalid or distant views cancel preparation. Canvas allocation/build failure disables preparation with diagnostic failure count instead of blocking flight; palette fill/background/real contour remain.
+- Paused practice redraws when prepared material becomes available without advancing physics. Async `checks()`/`settle()` wait for preparation before final-pixel comparisons. Native tests add no synchronous cold rebuild, margin hits, retained/replaced LOD, cancel/no-late-publication, hidden/resume, missing-idle fallback, deep cutaway, and72 frames of resize/pan/zoom/retarget pressure at desktop widths1920/3840/7680. All225 native +85 gallery checks pass; all five historical gallery hashes unchanged. Unit667798 includes exact chunked/full texture buffers and64 yields per target; Balor8865+2208, empty2913+35, build pass.
+
+### Cold / repeated-zoom comparison (no discarded cold frames)
+
+Reproduce on the save-free flight page: `await hartwellFlight.performance()`. `tests/approach-cache-performance.ts` compares current runtime against `tests/fixtures/approach-ground-sync-v1.ts` (4ce155e synchronous cache scheduling with the same current, byte-identical material source). Real Game renderer/HUD/trajectory, fixed flight state,1920×1080,120 moving close-view frames and360 pan/zoom frames traversing.008→.08→.008. No pixel readbacks in timed loops. These are controlled renderer tests, not full-career/mobile results.
+
+Final isolated Edge/D3D11/RTX5080 run:
+
+| Metric | Synchronous reference | Incremental |
+|---|---:|---:|
+|Cold close-view first draw CPU|43.7ms|0.7ms|
+|Cold close-view worst RAF interval|50.0ms|8.5ms|
+|Cold close-view delivery (includes startup)|111.55FPS|119.98FPS|
+|Repeated zoom worst draw CPU|71.2ms|3.3ms|
+|Repeated zoom worst RAF interval|141.8ms|16.7ms|
+|Repeated zoom intervals >20ms|20|0|
+|Repeated zoom delivery|87.91FPS|119.31FPS|
+
+Idle preparation is additional to draw CPU: largest slices2.1ms (cold)/2.4ms (zoom); native readback/stress runs observed up to3.7ms, so the2ms budget is not a hard real-time bound. Final zoom cache peaked at8,382,400/8,388,608 pixels and32 entries, zero failures. Prior run had a different scheduling cadence (~96FPS incremental) but the same improvement: cold draw40.7→.6ms; zoom worst draw73.3→2.5ms, worst interval172.1→20.5ms. Don't interpret differences in headless RAF scheduling as a universal device FPS promise.
+
+Evidence: `Temp/st-approach-streaming-cdp-20261025.mjs`, `st-approach-streaming-20261025.json`, `st-approach-streaming-final-20261025.json` (hardware, per-frame traces, cache counters, cold readiness). Actual keyboard flight/pause/reload/career isolation and settled screenshots pass. No mobile tests, save/physics changes, push or deploy.
