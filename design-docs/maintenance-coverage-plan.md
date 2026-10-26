@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — proposed staged plan
 
 Updated: 2026-10-26
-Status: **five-stage outline approved2026-10-26, with exhaustive Stage3 Markdown copy review required before rollout.** No individual implementation stage started; retain separate approval gates. Outline approval is not blanket authorization to roll out shops.
+Status: **five-stage outline approved2026-10-26; Stage1 design completed for review.** [Specification](maintenance-stage-1-specification.md) and [complete roster](maintenance-stage-1-roster.md) await approval before Stage2. Exhaustive Stage3 Markdown copy review remains required before rollout. No runtime changes or later stages started.
 
 ## Requested shape
 
@@ -43,7 +43,7 @@ No wear/telemetry/RNG rebalance, changed fault libraries, new equipment, finite 
 
 Every lower-tier shop gets a free service-desk action, available before paid inspection: **“Where can I get more advanced work done?”** The response names a real higher-tier shop, its physical location and useful capabilities. Shared archetypes frame the same data in regional language; bespoke shops speak in their own voice. It is advice, not teleportation or automatic flight booking.
 
-Proposed definition of nearest: another shop in the same physical terminal scope first; otherwise shortest normal flight-time estimate using existing route machinery at inquiry time, deterministic tie-breaking. Choose among **all strictly higher tiers**, not necessarily exactly the next tier. No raw catalog-coordinate distance across unrelated reference frames. Stage 1 confirms estimator suitability/cost and records any necessary explicitly authored fallback before implementation. No expensive route search each render frame.
+Proposed definition of nearest: another shop in the same physical terminal scope first; otherwise shortest normal flight-time estimate using existing route machinery at inquiry time, deterministic tie-breaking. Choose among **all strictly higher tiers**, not necessarily exactly the next tier. No raw catalog-coordinate distance across unrelated reference frames. Stage1 found that existing transfer estimates omit local/cluster travel and do not provide comparable door-to-door ETAs. Its specification proposes authored nearest-practical service catchments instead, **pending explicit approval of that interpretation**; the original nearest-location requirement is not silently waived. No expensive route search each render frame.
 
 Only activated shops with legitimate destination access qualify as ordinary referrals. Default to public destinations; respect exact known-contact access where applicable. Never reveal undiscovered Barataria surfaces, grant contact reputation, or imply Farwatch permits an empty arrival. Private destination servicing may exist locally without becoming a public referral. No referral cycles (strictly increasing tiers), self-referrals, duplicate physical destinations or references to future-stage shops.
 

@@ -1,0 +1,2087 @@
+[
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "arkfall-apocrypha-cache",
+    "receivingIds": [
+      "arkfall-apocrypha-cache-poi"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Unstaffed relic dead drop; reserved clandestine content."
+  },
+  {
+    "shopId": "maintenance-ark-quarantine-station",
+    "directoryId": "maintenance-ark-quarantine-station-office",
+    "physicalId": "ark-quarantine-station",
+    "receivingIds": [
+      "ark-quarantine-station-poi"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Arkfall professional",
+    "referralPhysicalId": "caravanserai",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-industrial-refinery-asteroid-es-m-0002",
+    "directoryId": "maintenance-industrial-refinery-asteroid-es-m-0002-office",
+    "physicalId": "industrial-refinery-asteroid-es-m-0002",
+    "receivingIds": [
+      "industrial-refinery-finished-goods",
+      "industrial-refinery-ore-intake",
+      "industrial-refinery-staff-hab"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Glitterfield professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-glitterfield-deepcut",
+    "directoryId": "maintenance-glitterfield-deepcut-office",
+    "physicalId": "glitterfield-deepcut",
+    "receivingIds": [
+      "deepcut-depot-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Glitterfield professional",
+    "referralPhysicalId": "industrial-refinery-asteroid-es-m-0002",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-glitterfield-grubstake",
+    "directoryId": "maintenance-glitterfield-grubstake-office",
+    "physicalId": "glitterfield-grubstake",
+    "receivingIds": [
+      "grubstake-depot-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Glitterfield professional",
+    "referralPhysicalId": "industrial-refinery-asteroid-es-m-0002",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-glitterfield-highgrade",
+    "directoryId": "maintenance-glitterfield-highgrade-office",
+    "physicalId": "glitterfield-highgrade",
+    "receivingIds": [
+      "highgrade-depot-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Glitterfield professional",
+    "referralPhysicalId": "industrial-refinery-asteroid-es-m-0002",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-glitterfield-slagfoot",
+    "directoryId": "maintenance-glitterfield-slagfoot-office",
+    "physicalId": "glitterfield-slagfoot",
+    "receivingIds": [
+      "slagfoot-depot-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Glitterfield professional",
+    "referralPhysicalId": "industrial-refinery-asteroid-es-m-0002",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-harlans-station",
+    "directoryId": "maintenance-harlans-station-office",
+    "physicalId": "harlans-station",
+    "receivingIds": [
+      "harlan-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "New Canaan Field professional",
+    "referralPhysicalId": "caravanserai",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-mercers-claim",
+    "directoryId": "maintenance-mercers-claim-office",
+    "physicalId": "mercers-claim",
+    "receivingIds": [
+      "mercer-dock"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Belt mechanic",
+    "referralPhysicalId": "harlans-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-caravanserai",
+    "directoryId": "maintenance-caravanserai-office",
+    "physicalId": "caravanserai",
+    "receivingIds": [
+      "caravanserai-certification-authority",
+      "caravanserai-customs-inspection",
+      "caravanserai-foreign-quarter",
+      "caravanserai-free-trader-anchorage",
+      "caravanserai-highliner-bay-poi",
+      "caravanserai-lookout-spire",
+      "caravanserai-main-commercial-dock",
+      "caravanserai-outfitter-drydock",
+      "caravanserai-player-hangar",
+      "caravanserai-refuel-depot"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "New Canaan Field professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-the-still",
+    "directoryId": "maintenance-the-still-office",
+    "physicalId": "the-still",
+    "receivingIds": [
+      "still-distribution-bay",
+      "still-guild-hq",
+      "still-public-approach-dock",
+      "still-refinery-core",
+      "still-skim-runner-berth-poi",
+      "still-worker-hab"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "New Canaan Field professional",
+    "referralPhysicalId": "caravanserai",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ix-ice-mine",
+    "directoryId": "maintenance-estella-ix-ice-mine-office",
+    "physicalId": "estella-ix-ice-mine",
+    "receivingIds": [
+      "estella-ix-ice-mine"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Sahra professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ix-research-base",
+    "directoryId": "maintenance-estella-ix-research-base-office",
+    "physicalId": "estella-ix-research-base",
+    "receivingIds": [
+      "estella-ix-research-base"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Sahra professional",
+    "referralPhysicalId": "estella-ix-ice-mine",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ix-captured-moonlet",
+    "directoryId": "maintenance-estella-ix-captured-moonlet-office",
+    "physicalId": "estella-ix-captured-moonlet",
+    "receivingIds": [
+      "estella-ix-moonlet-observation-outpost"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Sahra mechanic",
+    "referralPhysicalId": "estella-ix-supply-depot",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ix-supply-depot",
+    "directoryId": "maintenance-estella-ix-supply-depot-office",
+    "physicalId": "estella-ix-supply-depot",
+    "receivingIds": [
+      "estella-ix-opposite-sense-supply-depot"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Sahra professional",
+    "referralPhysicalId": "estella-ix-ice-mine",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ix-geological-feature",
+    "directoryId": "maintenance-estella-ix-geological-feature-office",
+    "physicalId": "estella-ix-geological-feature",
+    "receivingIds": [
+      "estella-ix-geological-feature"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Sahra mechanic",
+    "referralPhysicalId": "estella-ix-research-base",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "bruckner-central-service-hall",
+    "directoryId": "bruckner-central-service-hall-office",
+    "physicalId": "estella-viii-high-station",
+    "receivingIds": [
+      "estella-viii-harder-approach-station"
+    ],
+    "tier": 3,
+    "terms": "E-bruckner-central-service-hall",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": null,
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "maintenance-estella-viii-mining-site",
+    "directoryId": "maintenance-estella-viii-mining-site-office",
+    "physicalId": "estella-viii-mining-site",
+    "receivingIds": [
+      "estella-viii-mining-site"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Belt mechanic",
+    "referralPhysicalId": "estella-viii-settlement",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-viii-captured-moonlet",
+    "receivingIds": [
+      "estella-viii-moonlet-docking-site"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Abandoned navigation outpost; explicitly no resident crew."
+  },
+  {
+    "shopId": "maintenance-estella-viii-friendly-station",
+    "directoryId": "maintenance-estella-viii-friendly-station-office",
+    "physicalId": "estella-viii-friendly-station",
+    "receivingIds": [
+      "estella-viii-first-rendezvous-station"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Weymark professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-viii-abandoned-site",
+    "receivingIds": [
+      "estella-viii-abandoned-site"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Old Survey Camp remains a reserve, not a working settlement."
+  },
+  {
+    "shopId": "maintenance-estella-viii-settlement",
+    "directoryId": "maintenance-estella-viii-settlement-office",
+    "physicalId": "estella-viii-settlement",
+    "receivingIds": [
+      "estella-viii-settlement"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Weymark professional",
+    "referralPhysicalId": "estella-viii-friendly-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-v-orbital-factory",
+    "directoryId": "maintenance-estella-v-orbital-factory-office",
+    "physicalId": "estella-v-orbital-factory",
+    "receivingIds": [
+      "estella-v-high-orbit-factory"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Hartwell professional",
+    "referralPhysicalId": "estella-v-transit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-v-atmo-refinery",
+    "directoryId": "maintenance-estella-v-atmo-refinery-office",
+    "physicalId": "estella-v-atmo-refinery",
+    "receivingIds": [
+      "estella-v-atmo-refinery"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Hartwell professional",
+    "referralPhysicalId": "estella-v-transit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "red-dust-mechanical-reclamation",
+    "directoryId": "red-dust-mechanical-reclamation-office",
+    "physicalId": "estella-v-capital-settlement",
+    "receivingIds": [
+      "estella-v-capital-settlement"
+    ],
+    "tier": 0,
+    "terms": "E-red-dust-mechanical-reclamation",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-v-transit-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "maintenance-estella-v-open-cast-mine",
+    "directoryId": "maintenance-estella-v-open-cast-mine-office",
+    "physicalId": "estella-v-open-cast-mine",
+    "receivingIds": [
+      "estella-v-open-cast-mine"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-v-atmo-refinery",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-v-abandoned-colony",
+    "receivingIds": [
+      "estella-v-abandoned-colony"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "First Landing abandoned; no invented resident service."
+  },
+  {
+    "shopId": "maintenance-estella-v-storm-research",
+    "directoryId": "maintenance-estella-v-storm-research-office",
+    "physicalId": "estella-v-storm-research",
+    "receivingIds": [
+      "estella-v-storm-research"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-v-transit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-va-strip-mine",
+    "directoryId": "maintenance-estella-va-strip-mine-office",
+    "physicalId": "estella-va-strip-mine",
+    "receivingIds": [
+      "estella-va-strip-mine"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-va-miner-hab",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-va-ore-depot",
+    "directoryId": "maintenance-estella-va-ore-depot-office",
+    "physicalId": "estella-va-ore-depot",
+    "receivingIds": [
+      "estella-va-ore-handling-depot"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Pike professional",
+    "referralPhysicalId": "estella-va-miner-hab",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-va-miner-hab",
+    "directoryId": "maintenance-estella-va-miner-hab-office",
+    "physicalId": "estella-va-miner-hab",
+    "receivingIds": [
+      "estella-va-miner-hab"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Pike professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-v-transit-station",
+    "directoryId": "maintenance-estella-v-transit-station-office",
+    "physicalId": "estella-v-transit-station",
+    "receivingIds": [
+      "estella-v-transit-customs"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Hartwell professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vi-main-dispatch",
+    "directoryId": "maintenance-estella-vi-main-dispatch-office",
+    "physicalId": "estella-vi-main-dispatch",
+    "receivingIds": [
+      "estella-vi-main-transit-dispatch"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Kuznia professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vi-foundry-complex",
+    "directoryId": "maintenance-estella-vi-foundry-complex-office",
+    "physicalId": "estella-vi-foundry-complex",
+    "receivingIds": [
+      "estella-vi-foundry-complex"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Kuznia professional",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vi-heavy-cargo-dispatch",
+    "directoryId": "maintenance-estella-vi-heavy-cargo-dispatch-office",
+    "physicalId": "estella-vi-heavy-cargo-dispatch",
+    "receivingIds": [
+      "estella-vi-heavy-cargo-station"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Kuznia professional",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vib-aquaculture",
+    "directoryId": "maintenance-estella-vib-aquaculture-office",
+    "physicalId": "estella-vib-aquaculture",
+    "receivingIds": [
+      "estella-vib-aquaculture"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vib-cold-chain-transit",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vib-cold-chain-transit",
+    "directoryId": "maintenance-estella-vib-cold-chain-transit-office",
+    "physicalId": "estella-vib-cold-chain-transit",
+    "receivingIds": [
+      "estella-vib-cold-chain-station"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Kalyna professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vib-vat-protein",
+    "directoryId": "maintenance-estella-vib-vat-protein-office",
+    "physicalId": "estella-vib-vat-protein",
+    "receivingIds": [
+      "estella-vib-vat-protein"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vib-cold-chain-transit",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vib-pharma-horticulture",
+    "directoryId": "maintenance-estella-vib-pharma-horticulture-office",
+    "physicalId": "estella-vib-pharma-horticulture",
+    "receivingIds": [
+      "estella-vib-pharma-horticulture"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vib-cold-chain-transit",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vi-mountain-mining",
+    "directoryId": "maintenance-estella-vi-mountain-mining-office",
+    "physicalId": "estella-vi-mountain-mining",
+    "receivingIds": [
+      "estella-vi-mountain-mining"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vi-agricultural-lowlands",
+    "directoryId": "maintenance-estella-vi-agricultural-lowlands-office",
+    "physicalId": "estella-vi-agricultural-lowlands",
+    "receivingIds": [
+      "estella-vi-agricultural-lowlands"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vi-polar-weather-research",
+    "directoryId": "maintenance-estella-vi-polar-weather-research-office",
+    "physicalId": "estella-vi-polar-weather-research",
+    "receivingIds": [
+      "estella-vi-polar-weather-research"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-vi-industrial-city",
+    "directoryId": "maintenance-estella-vi-industrial-city-office",
+    "physicalId": "estella-vi-industrial-city",
+    "receivingIds": [
+      "estella-vi-industrial-city"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Kuznia professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "Local only; no public referral to this site; Second Kuznia anchor inside controlled surface economy"
+  },
+  {
+    "shopId": "maintenance-estella-vi-spaceport",
+    "directoryId": "maintenance-estella-vi-spaceport-office",
+    "physicalId": "estella-vi-spaceport",
+    "receivingIds": [
+      "estella-vi-spaceport"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Kuznia professional",
+    "referralPhysicalId": "estella-vi-main-dispatch",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-via-surface-anchor",
+    "directoryId": "maintenance-estella-via-surface-anchor-office",
+    "physicalId": "estella-via-surface-anchor",
+    "receivingIds": [
+      "estella-via-surface-anchor"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Svarog professional",
+    "referralPhysicalId": "estella-via-drydock",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-via-rare-alloy-extraction",
+    "directoryId": "maintenance-estella-via-rare-alloy-extraction-office",
+    "physicalId": "estella-via-rare-alloy-extraction",
+    "receivingIds": [
+      "estella-via-rare-alloy-extraction"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-via-component-supply",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-via-drydock",
+    "directoryId": "maintenance-estella-via-drydock-office",
+    "physicalId": "estella-via-drydock",
+    "receivingIds": [
+      "estella-via-drydock-station"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Svarog professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-via-component-supply",
+    "directoryId": "maintenance-estella-via-component-supply-office",
+    "physicalId": "estella-via-component-supply",
+    "receivingIds": [
+      "estella-via-component-supply-station"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Svarog professional",
+    "referralPhysicalId": "estella-via-drydock",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-vii-black-project-outpost",
+    "receivingIds": [
+      "estella-vii-black-project-outpost"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Black Tile remains sealed/reserved; no invented receiving office."
+  },
+  {
+    "shopId": "maintenance-estella-vii-high-vacuum-factory",
+    "directoryId": "maintenance-estella-vii-high-vacuum-factory-office",
+    "physicalId": "estella-vii-high-vacuum-factory",
+    "receivingIds": [
+      "estella-vii-high-vacuum-factory"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Tessera professional → bespoke",
+    "referralPhysicalId": "estella-viii-high-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vii-worker-hab",
+    "directoryId": "maintenance-estella-vii-worker-hab-office",
+    "physicalId": "estella-vii-worker-hab",
+    "receivingIds": [
+      "estella-vii-worker-hab"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Tessera professional",
+    "referralPhysicalId": "estella-vii-high-vacuum-factory",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vii-transit-station",
+    "directoryId": "maintenance-estella-vii-transit-station-office",
+    "physicalId": "estella-vii-transit-station",
+    "receivingIds": [
+      "estella-vii-transit-export"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Tessera professional",
+    "referralPhysicalId": "estella-vii-high-vacuum-factory",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-vii-feedstock-mine",
+    "directoryId": "maintenance-estella-vii-feedstock-mine-office",
+    "physicalId": "estella-vii-feedstock-mine",
+    "receivingIds": [
+      "estella-vii-feedstock-mine"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Camps mechanic",
+    "referralPhysicalId": "estella-vii-worker-hab",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ii-commercial-hub",
+    "directoryId": "maintenance-estella-ii-commercial-hub-office",
+    "physicalId": "estella-ii-commercial-hub",
+    "receivingIds": [
+      "estella-ii-commercial-hub-dock"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Acheron professional → bespoke",
+    "referralPhysicalId": "estella-iii-high-tech-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ii-nimbus-crucible",
+    "directoryId": "maintenance-estella-ii-nimbus-crucible-office",
+    "physicalId": "estella-ii-nimbus-crucible",
+    "receivingIds": [
+      "estella-ii-nimbus-crucible"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-ii-olympos",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ii-olympos",
+    "directoryId": "maintenance-estella-ii-olympos-office",
+    "physicalId": "estella-ii-olympos",
+    "receivingIds": [
+      "estella-ii-olympos"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Acheron professional",
+    "referralPhysicalId": "estella-ii-commercial-hub",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-ii-pandemonium",
+    "directoryId": "maintenance-estella-ii-pandemonium-office",
+    "physicalId": "estella-ii-pandemonium",
+    "receivingIds": [
+      "estella-ii-pandemonium"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-ii-commercial-hub",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-i-low-orbit-station",
+    "directoryId": "maintenance-estella-i-low-orbit-station-office",
+    "physicalId": "estella-i-low-orbit-station",
+    "receivingIds": [
+      "estella-i-transit-customs"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Balor professional → bespoke",
+    "referralPhysicalId": "estella-iii-high-tech-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-i-refractory-mine",
+    "directoryId": "maintenance-estella-i-refractory-mine-office",
+    "physicalId": "estella-i-refractory-mine",
+    "receivingIds": [
+      "estella-i-refractory-mine"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-i-hot-processing",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-i-hot-processing",
+    "directoryId": "maintenance-estella-i-hot-processing-office",
+    "physicalId": "estella-i-hot-processing",
+    "receivingIds": [
+      "estella-i-hot-processing"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Balor professional",
+    "referralPhysicalId": "estella-i-low-orbit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-i-worker-hab",
+    "directoryId": "maintenance-estella-i-worker-hab-office",
+    "physicalId": "estella-i-worker-hab",
+    "receivingIds": [
+      "estella-i-worker-hab"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Balor professional",
+    "referralPhysicalId": "estella-i-low-orbit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iv-climate-poi-3",
+    "directoryId": "maintenance-estella-iv-climate-poi-3-office",
+    "physicalId": "estella-iv-climate-poi-3",
+    "receivingIds": [
+      "estella-iv-climate-poi-3"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-iv-primary-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iv-main-station",
+    "directoryId": "maintenance-estella-iv-main-station-office",
+    "physicalId": "estella-iv-main-station",
+    "receivingIds": [
+      "estella-iv-main-orbital-station"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Dahai professional",
+    "referralPhysicalId": "estella-iv-primary-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iv-primary-city",
+    "directoryId": "maintenance-estella-iv-primary-city-office",
+    "physicalId": "estella-iv-primary-city",
+    "receivingIds": [
+      "estella-iv-primary-city"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Dahai professional → bespoke",
+    "referralPhysicalId": "estella-iii-high-tech-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iv-climate-poi-2",
+    "directoryId": "maintenance-estella-iv-climate-poi-2-office",
+    "physicalId": "estella-iv-climate-poi-2",
+    "receivingIds": [
+      "estella-iv-climate-poi-2"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Dahai professional",
+    "referralPhysicalId": "estella-iv-primary-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iv-climate-poi-1",
+    "directoryId": "maintenance-estella-iv-climate-poi-1-office",
+    "physicalId": "estella-iv-climate-poi-1",
+    "receivingIds": [
+      "estella-iv-climate-poi-1"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Dahai professional",
+    "referralPhysicalId": "estella-iv-primary-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iiia-helium-mining",
+    "directoryId": "maintenance-estella-iiia-helium-mining-office",
+    "physicalId": "estella-iiia-helium-mining",
+    "receivingIds": [
+      "estella-iiia-helium-mining"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Celeste professional",
+    "referralPhysicalId": "estella-iiia-main-port",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iiia-heritage-site",
+    "directoryId": "maintenance-estella-iiia-heritage-site-office",
+    "physicalId": "estella-iiia-heritage-site",
+    "receivingIds": [
+      "estella-iiia-heritage-site"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Celeste professional",
+    "referralPhysicalId": "estella-iiia-main-port",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iiia-main-port",
+    "directoryId": "maintenance-estella-iiia-main-port-office",
+    "physicalId": "estella-iiia-main-port",
+    "receivingIds": [
+      "estella-iiia-main-port-transit"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Celeste professional → bespoke",
+    "referralPhysicalId": "estella-iii-high-tech-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iiia-science-settlement",
+    "directoryId": "maintenance-estella-iiia-science-settlement-office",
+    "physicalId": "estella-iiia-science-settlement",
+    "receivingIds": [
+      "estella-iiia-science-settlement"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-iiia-main-port",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-polar-science",
+    "directoryId": "maintenance-estella-iii-polar-science-office",
+    "physicalId": "estella-iii-polar-science",
+    "receivingIds": [
+      "estella-iii-polar-science"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "estella-iii-main-customs-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-luxury-habitat",
+    "directoryId": "maintenance-estella-iii-luxury-habitat-office",
+    "physicalId": "estella-iii-luxury-habitat",
+    "receivingIds": [
+      "estella-iii-luxury-orbital-habitat"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Gaia professional",
+    "referralPhysicalId": "estella-iii-main-customs-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-coastal-resort",
+    "directoryId": "maintenance-estella-iii-coastal-resort-office",
+    "physicalId": "estella-iii-coastal-resort",
+    "receivingIds": [
+      "estella-iii-coastal-resort"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Gaia professional",
+    "referralPhysicalId": "estella-iii-main-customs-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-capital-city",
+    "directoryId": "maintenance-estella-iii-capital-city-office",
+    "physicalId": "estella-iii-capital-city",
+    "receivingIds": [
+      "estella-iii-capital-city",
+      "estella-iii-finance-city",
+      "estella-iii-historic-site"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Gaia professional",
+    "referralPhysicalId": "estella-iii-main-customs-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-main-customs-station",
+    "directoryId": "maintenance-estella-iii-main-customs-station-office",
+    "physicalId": "estella-iii-main-customs-station",
+    "receivingIds": [
+      "estella-iii-main-customs"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Gaia professional → bespoke",
+    "referralPhysicalId": "estella-iii-high-tech-city",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-iii-high-tech-city",
+    "directoryId": "maintenance-estella-iii-high-tech-city-office",
+    "physicalId": "estella-iii-high-tech-city",
+    "receivingIds": [
+      "estella-iii-high-tech-city"
+    ],
+    "tier": 3,
+    "terms": "S3",
+    "copyFamily": "Gaia professional → bespoke",
+    "referralPhysicalId": null,
+    "note": "Only new elite; Stage5"
+  },
+  {
+    "shopId": "maintenance-estella-iii-agricultural-region",
+    "directoryId": "maintenance-estella-iii-agricultural-region-office",
+    "physicalId": "estella-iii-agricultural-region",
+    "receivingIds": [
+      "estella-iii-agricultural-region"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Gaia professional",
+    "referralPhysicalId": "estella-iii-main-customs-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-skim-hub-alpha",
+    "directoryId": "maintenance-skim-hub-alpha-office",
+    "physicalId": "skim-hub-alpha",
+    "receivingIds": [
+      "skim-hub-alpha-precursor-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Stellar skim professional",
+    "referralPhysicalId": "estella-i-low-orbit-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-skim-hub-beta",
+    "directoryId": "maintenance-skim-hub-beta-office",
+    "physicalId": "skim-hub-beta",
+    "receivingIds": [
+      "skim-hub-beta-precursor-dock"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Hearth mechanic",
+    "referralPhysicalId": "skim-hub-alpha",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiv-transit-dock-station",
+    "directoryId": "maintenance-estella-xiv-transit-dock-station-office",
+    "physicalId": "estella-xiv-transit-dock-station",
+    "receivingIds": [
+      "estella-xiv-transit-dock"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Barataria professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-xiv-abandoned-active-site",
+    "receivingIds": [
+      "estella-xiv-abandoned-active-site"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Blind Drop: explicitly unstaffed."
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "estella-xiv-religious-retreat",
+    "receivingIds": [
+      "estella-xiv-religious-retreat"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "False Bottom Cache: no permanent settlement or public service."
+  },
+  {
+    "shopId": "maintenance-estella-xiv-smuggler-haven",
+    "directoryId": "maintenance-estella-xiv-smuggler-haven-office",
+    "physicalId": "estella-xiv-smuggler-haven",
+    "receivingIds": [
+      "estella-xiv-smuggler-haven"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Barataria professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-reach-comet-fragment-1",
+    "directoryId": "maintenance-reach-comet-fragment-1-office",
+    "physicalId": "reach-comet-fragment-1",
+    "receivingIds": [
+      "reach-comet-fragment-1-poi"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiv-transit-dock-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "reach-comet-fragment-2",
+    "receivingIds": [
+      "reach-comet-fragment-2-poi"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Prospector cache: no permanent staff established; defer service."
+  },
+  {
+    "shopId": null,
+    "directoryId": null,
+    "physicalId": "reach-comet-fragment-3",
+    "receivingIds": [
+      "reach-comet-fragment-3-poi"
+    ],
+    "tier": null,
+    "terms": "—",
+    "copyFamily": "—",
+    "referralPhysicalId": null,
+    "note": "Dead drop: no resident service established."
+  },
+  {
+    "shopId": "maintenance-reach-comet-fragment-4",
+    "directoryId": "maintenance-reach-comet-fragment-4-office",
+    "physicalId": "reach-comet-fragment-4",
+    "receivingIds": [
+      "reach-comet-fragment-4-poi"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiv-transit-dock-station",
+    "note": "Local only; no public referral to this site; Limited on-site technical help; no new settlement/NPC"
+  },
+  {
+    "shopId": "maintenance-reach-comet-fragment-5",
+    "directoryId": "maintenance-reach-comet-fragment-5-office",
+    "physicalId": "reach-comet-fragment-5",
+    "receivingIds": [
+      "reach-comet-fragment-5-poi"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiv-transit-dock-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-reach-comet-fragment-6",
+    "directoryId": "maintenance-reach-comet-fragment-6-office",
+    "physicalId": "reach-comet-fragment-6",
+    "receivingIds": [
+      "reach-comet-fragment-6-poi"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiv-transit-dock-station",
+    "note": "Local only; no public referral to this site; Limited on-site technical help; no new settlement/NPC"
+  },
+  {
+    "shopId": "maintenance-reach-rogue-lonely-beacon",
+    "directoryId": "maintenance-reach-rogue-lonely-beacon-office",
+    "physicalId": "reach-rogue-lonely-beacon",
+    "receivingIds": [
+      "reach-rogue-lonely-beacon"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "Local only; no public referral to this site; Limited on-site technical help; no new settlement/NPC"
+  },
+  {
+    "shopId": "maintenance-reach-rogue-isotope-mine",
+    "directoryId": "maintenance-reach-rogue-isotope-mine-office",
+    "physicalId": "reach-rogue-isotope-mine",
+    "receivingIds": [
+      "reach-rogue-isotope-mine"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Reach mechanic",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-deepest-dock-body",
+    "directoryId": "maintenance-deepest-dock-body-office",
+    "physicalId": "deepest-dock-body",
+    "receivingIds": [
+      "deepest-dock-poi"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "EDF expedition professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "Local only; no public referral to this site"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-classified-research",
+    "directoryId": "maintenance-estella-xiii-classified-research-office",
+    "physicalId": "estella-xiii-classified-research",
+    "receivingIds": [
+      "estella-xiii-classified-research"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Thule mechanic",
+    "referralPhysicalId": "estella-xiii-governors-outpost",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-governors-outpost",
+    "directoryId": "maintenance-estella-xiii-governors-outpost-office",
+    "physicalId": "estella-xiii-governors-outpost",
+    "receivingIds": [
+      "estella-xiii-governors-outpost"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Thule professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-deep-ice-mining",
+    "directoryId": "maintenance-estella-xiii-deep-ice-mining-office",
+    "physicalId": "estella-xiii-deep-ice-mining",
+    "receivingIds": [
+      "estella-xiii-deep-ice-mining"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Thule professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-prison-exile-colony",
+    "directoryId": "maintenance-estella-xiii-prison-exile-colony-office",
+    "physicalId": "estella-xiii-prison-exile-colony",
+    "receivingIds": [
+      "estella-xiii-prison-exile-colony"
+    ],
+    "tier": 0,
+    "terms": "S0",
+    "copyFamily": "Thule mechanic",
+    "referralPhysicalId": "estella-xiii-governors-outpost",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-main-port-station",
+    "directoryId": "maintenance-estella-xiii-main-port-station-office",
+    "physicalId": "estella-xiii-main-port-station",
+    "receivingIds": [
+      "estella-xiii-main-port"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Thule professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "maintenance-estella-xiii-long-range-observatory",
+    "directoryId": "maintenance-estella-xiii-long-range-observatory-office",
+    "physicalId": "estella-xiii-long-range-observatory",
+    "receivingIds": [
+      "estella-xiii-long-range-observatory"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Thule professional",
+    "referralPhysicalId": "estella-xiii-main-port-station",
+    "note": "New coverage"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xa-volatiles-transit",
+    "directoryId": "wells-frontier-outfitter-estella-xa-volatiles-transit-office",
+    "physicalId": "estella-xa-volatiles-transit",
+    "receivingIds": [
+      "estella-xa-volatiles-transit"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Beira professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xa-exobiology-research",
+    "directoryId": "wells-frontier-outfitter-estella-xa-exobiology-research-office",
+    "physicalId": "estella-xa-exobiology-research",
+    "receivingIds": [
+      "estella-xa-exobiology-research"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xa-volatiles-transit",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xa-deep-ice-mine",
+    "directoryId": "wells-frontier-outfitter-estella-xa-deep-ice-mine-office",
+    "physicalId": "estella-xa-deep-ice-mine",
+    "receivingIds": [
+      "estella-xa-deep-ice-mine"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xa-volatiles-transit",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xd-chem-station",
+    "directoryId": "wells-frontier-outfitter-estella-xd-chem-station-office",
+    "physicalId": "estella-xd-orbital-chem-station",
+    "receivingIds": [
+      "estella-xd-chem-station"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Calatrava professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xd-proving-grounds",
+    "directoryId": "wells-frontier-outfitter-estella-xd-proving-grounds-office",
+    "physicalId": "estella-xd-proving-grounds",
+    "receivingIds": [
+      "estella-xd-proving-grounds"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Calatrava professional",
+    "referralPhysicalId": "estella-xd-orbital-chem-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xd-iron-lists",
+    "directoryId": "wells-frontier-outfitter-estella-xd-iron-lists-office",
+    "physicalId": "estella-xd-iron-lists",
+    "receivingIds": [
+      "estella-xd-iron-lists"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xd-proving-grounds",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xd-geothermal-extraction",
+    "directoryId": "wells-frontier-outfitter-estella-xd-geothermal-extraction-office",
+    "physicalId": "estella-xd-geothermal-extraction",
+    "receivingIds": [
+      "estella-xd-geothermal-extraction"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xd-orbital-chem-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xd-redoubt-field",
+    "directoryId": "wells-frontier-outfitter-estella-xd-redoubt-field-office",
+    "physicalId": "estella-xd-redoubt-field",
+    "receivingIds": [
+      "estella-xd-redoubt-field"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xd-proving-grounds",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "vilar-gryphon-aerie-outfitter",
+    "directoryId": "vilar-gryphon-aerie-outfitter-office",
+    "physicalId": "estella-x-skim-hub",
+    "receivingIds": [
+      "estella-x-observation-skim-hub"
+    ],
+    "tier": 1,
+    "terms": "E-vilar-gryphon-aerie-outfitter",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xc-main-outpost",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-x-captive-refuel-relay",
+    "directoryId": "wells-frontier-outfitter-estella-x-captive-refuel-relay-office",
+    "physicalId": "estella-x-trojan-captive",
+    "receivingIds": [
+      "estella-x-captive-refuel-relay"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-x-skim-hub",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xc-castle-alvares",
+    "directoryId": "wells-frontier-outfitter-estella-xc-castle-alvares-office",
+    "physicalId": "estella-xc-castle-alvares",
+    "receivingIds": [
+      "estella-xc-castle-alvares"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xc-transit-refuel-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xc-castle-mendes",
+    "directoryId": "wells-frontier-outfitter-estella-xc-castle-mendes-office",
+    "physicalId": "estella-xc-castle-mendes",
+    "receivingIds": [
+      "estella-xc-castle-mendes"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xc-transit-refuel-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "vilar-herald-gate-outfitter",
+    "directoryId": "vilar-herald-gate-outfitter-office",
+    "physicalId": "estella-xc-transit-refuel-station",
+    "receivingIds": [
+      "estella-xc-transit-refuel"
+    ],
+    "tier": 1,
+    "terms": "E-vilar-herald-gate-outfitter",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xc-main-outpost",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xc-main-outpost",
+    "directoryId": "wells-frontier-outfitter-estella-xc-main-outpost-office",
+    "physicalId": "estella-xc-main-outpost",
+    "receivingIds": [
+      "estella-xc-main-outpost"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Thronehold professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xb-worker-hab",
+    "directoryId": "wells-frontier-outfitter-estella-xb-worker-hab-office",
+    "physicalId": "estella-xb-worker-hab",
+    "receivingIds": [
+      "estella-xb-worker-hab"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Tinto professional",
+    "referralPhysicalId": "estella-xb-smelting-processing",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xb-smelting-processing",
+    "directoryId": "wells-frontier-outfitter-estella-xb-smelting-processing-office",
+    "physicalId": "estella-xb-smelting-processing",
+    "receivingIds": [
+      "estella-xb-smelting-processing"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Tinto professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xb-rare-element-mine",
+    "directoryId": "wells-frontier-outfitter-estella-xb-rare-element-mine-office",
+    "physicalId": "estella-xb-rare-element-mine",
+    "receivingIds": [
+      "estella-xb-rare-element-mine"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xb-smelting-processing",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xb-luxury-retreat",
+    "directoryId": "wells-frontier-outfitter-estella-xb-luxury-retreat-office",
+    "physicalId": "estella-xb-luxury-retreat",
+    "receivingIds": [
+      "estella-xb-luxury-retreat"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Tinto professional",
+    "referralPhysicalId": "estella-xb-smelting-processing",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xi-science-waypoint-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xi-science-waypoint-poi-office",
+    "physicalId": "estella-xi-captive-science-waypoint",
+    "receivingIds": [
+      "estella-xi-science-waypoint-poi"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Hydra professional",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xia-chem-station",
+    "directoryId": "wells-frontier-outfitter-estella-xia-chem-station-office",
+    "physicalId": "estella-xia-orbital-chem-station",
+    "receivingIds": [
+      "estella-xia-chem-station"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Almaden professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xia-sealed-worker-hab",
+    "directoryId": "wells-frontier-outfitter-estella-xia-sealed-worker-hab-office",
+    "physicalId": "estella-xia-sealed-worker-hab",
+    "receivingIds": [
+      "estella-xia-sealed-worker-hab"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Almaden professional",
+    "referralPhysicalId": "estella-xia-orbital-chem-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xia-rare-element-extraction",
+    "directoryId": "wells-frontier-outfitter-estella-xia-rare-element-extraction-office",
+    "physicalId": "estella-xia-rare-element-extraction",
+    "receivingIds": [
+      "estella-xia-rare-element-extraction"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xia-orbital-chem-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xia-sulfur-mine",
+    "directoryId": "wells-frontier-outfitter-estella-xia-sulfur-mine-office",
+    "physicalId": "estella-xia-sulfur-mine",
+    "receivingIds": [
+      "estella-xia-sulfur-mine"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xia-orbital-chem-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "vilar-cadiz-highport-outfitter",
+    "directoryId": "vilar-cadiz-highport-outfitter-office",
+    "physicalId": "estella-xid-main-port-station",
+    "receivingIds": [
+      "estella-xid-main-port"
+    ],
+    "tier": 2,
+    "terms": "V2",
+    "copyFamily": "Existing bespoke; revision in Stage4",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain named shop; Stage4: repair C→B; other terms/stock unchanged"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xid-specialty-cargo",
+    "directoryId": "wells-frontier-outfitter-estella-xid-specialty-cargo-office",
+    "physicalId": "estella-xid-specialty-cargo",
+    "receivingIds": [
+      "estella-xid-specialty-cargo"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xid-customs-transit",
+    "directoryId": "wells-frontier-outfitter-estella-xid-customs-transit-office",
+    "physicalId": "estella-xid-customs-transit",
+    "receivingIds": [
+      "estella-xid-customs-transit"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Cadiz professional",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "cadiz-armorial-shipwrights",
+    "directoryId": "cadiz-armorial-shipwrights-office",
+    "physicalId": "estella-xid-services-outfitter-hangar",
+    "receivingIds": [
+      "estella-xid-services-outfitter-hangar"
+    ],
+    "tier": 1,
+    "terms": "E-cadiz-armorial-shipwrights",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xi-religious-retreat-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xi-religious-retreat-poi-office",
+    "physicalId": "estella-xi-captive-religious-retreat",
+    "receivingIds": [
+      "estella-xi-religious-retreat-poi"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xif-observatory",
+    "directoryId": "wells-frontier-outfitter-estella-xif-observatory-office",
+    "physicalId": "estella-xif-observatory",
+    "receivingIds": [
+      "estella-xif-observatory"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Coimbra professional",
+    "referralPhysicalId": "estella-xif-deep-listening-array",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xif-deep-listening-array",
+    "directoryId": "wells-frontier-outfitter-estella-xif-deep-listening-array-office",
+    "physicalId": "estella-xif-deep-listening-array",
+    "receivingIds": [
+      "estella-xif-deep-listening-array"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Coimbra professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xif-sealed-research-outpost",
+    "directoryId": "wells-frontier-outfitter-estella-xif-sealed-research-outpost-office",
+    "physicalId": "estella-xif-sealed-research-outpost",
+    "receivingIds": [
+      "estella-xif-sealed-research-outpost"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Coimbra mechanic",
+    "referralPhysicalId": "estella-xif-deep-listening-array",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "vilar-hydra-maw-outfitter",
+    "directoryId": "vilar-hydra-maw-outfitter-office",
+    "physicalId": "estella-xi-industrial-skim-hub",
+    "receivingIds": [
+      "estella-xi-skim-hub"
+    ],
+    "tier": 1,
+    "terms": "E-vilar-hydra-maw-outfitter",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xic-ice-mining",
+    "directoryId": "wells-frontier-outfitter-estella-xic-ice-mining-office",
+    "physicalId": "estella-xic-ice-mining",
+    "receivingIds": [
+      "estella-xic-ice-mining"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xic-research-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xic-deep-ice-exobiology",
+    "directoryId": "wells-frontier-outfitter-estella-xic-deep-ice-exobiology-office",
+    "physicalId": "estella-xic-deep-ice-exobiology",
+    "receivingIds": [
+      "estella-xic-deep-ice-exobiology"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xic-research-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "vilar-macao-palace-outfitter",
+    "directoryId": "vilar-macao-palace-outfitter-office",
+    "physicalId": "estella-xic-research-station",
+    "receivingIds": [
+      "estella-xic-research-station-poi"
+    ],
+    "tier": 1,
+    "terms": "E-vilar-macao-palace-outfitter",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xic-last-breath-lists",
+    "directoryId": "wells-frontier-outfitter-estella-xic-last-breath-lists-office",
+    "physicalId": "estella-xic-last-breath-lists",
+    "receivingIds": [
+      "estella-xic-last-breath-lists"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xic-research-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction",
+    "directoryId": "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction-office",
+    "physicalId": "estella-xib-hydrocarbon-extraction",
+    "receivingIds": [
+      "estella-xib-hydrocarbon-extraction"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xib-methane-refinery",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xib-methane-refinery",
+    "directoryId": "wells-frontier-outfitter-estella-xib-methane-refinery-office",
+    "physicalId": "estella-xib-methane-refinery",
+    "receivingIds": [
+      "estella-xib-methane-refinery"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Marisma professional",
+    "referralPhysicalId": "estella-xib-cryo-transit",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xib-science-settlement",
+    "directoryId": "wells-frontier-outfitter-estella-xib-science-settlement-office",
+    "physicalId": "estella-xib-science-settlement",
+    "receivingIds": [
+      "estella-xib-science-settlement"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Marisma professional",
+    "referralPhysicalId": "estella-xib-cryo-transit",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xib-cryo-transit",
+    "directoryId": "wells-frontier-outfitter-estella-xib-cryo-transit-office",
+    "physicalId": "estella-xib-cryo-transit",
+    "receivingIds": [
+      "estella-xib-cryo-transit"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Marisma professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xib-organic-chemistry",
+    "directoryId": "wells-frontier-outfitter-estella-xib-organic-chemistry-office",
+    "physicalId": "estella-xib-organic-chemistry",
+    "receivingIds": [
+      "estella-xib-organic-chemistry"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Marisma professional",
+    "referralPhysicalId": "estella-xib-cryo-transit",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xie-component-fabrication",
+    "directoryId": "wells-frontier-outfitter-estella-xie-component-fabrication-office",
+    "physicalId": "estella-xie-component-fabrication",
+    "receivingIds": [
+      "estella-xie-component-fabrication"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Oathmark professional",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "keelwright-works-seconds-gate",
+    "directoryId": "keelwright-works-seconds-gate-directory",
+    "physicalId": "estella-xie-rare-alloy-extraction",
+    "receivingIds": [
+      "estella-xie-rare-alloy-extraction"
+    ],
+    "tier": 1,
+    "terms": "E-keelwright-works-seconds-gate",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "oathmark-academy-high-pennant-yard",
+    "directoryId": "oathmark-academy-high-pennant-yard-directory",
+    "physicalId": "estella-xie-oathmark-academy",
+    "receivingIds": [
+      "estella-xie-oathmark-academy"
+    ],
+    "tier": 1,
+    "terms": "E-oathmark-academy-high-pennant-yard",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "serrat-domain-civil-refit-office",
+    "directoryId": "serrat-domain-civil-refit-office-directory",
+    "physicalId": "estella-xie-outer-spec-drydock-station",
+    "receivingIds": [
+      "estella-xie-outer-spec-drydock"
+    ],
+    "tier": 3,
+    "terms": "E-serrat-domain-civil-refit-office",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": null,
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xi-fence-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xi-fence-poi-office",
+    "physicalId": "estella-xi-captive-fence",
+    "receivingIds": [
+      "estella-xi-fence-poi"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi-office",
+    "physicalId": "estella-xi-captive-smuggler-deaddrop",
+    "receivingIds": [
+      "estella-xi-smuggler-deaddrop-poi"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xid-main-port-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiid-blackglass-observatory",
+    "directoryId": "wells-frontier-outfitter-estella-xiid-blackglass-observatory-office",
+    "physicalId": "estella-xiid-blackglass-observatory",
+    "receivingIds": [
+      "estella-xiid-blackglass-observatory"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Ceuta professional",
+    "referralPhysicalId": "estella-xiic-castle-teide",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiid-black-project-exile",
+    "directoryId": "wells-frontier-outfitter-estella-xiid-black-project-exile-office",
+    "physicalId": "estella-xiid-black-project-exile",
+    "receivingIds": [
+      "estella-xiid-black-project-exile"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Ceuta professional",
+    "referralPhysicalId": "estella-xiic-castle-teide",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiid-mirror-clinic",
+    "directoryId": "wells-frontier-outfitter-estella-xiid-mirror-clinic-office",
+    "physicalId": "estella-xiid-mirror-clinic",
+    "receivingIds": [
+      "estella-xiid-mirror-clinic"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xii-observation-post-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "vilar-manticore-observatory-outfitter",
+    "directoryId": "vilar-manticore-observatory-outfitter-office",
+    "physicalId": "estella-xii-observation-post-station",
+    "receivingIds": [
+      "estella-xii-observation-post"
+    ],
+    "tier": 1,
+    "terms": "E-vilar-manticore-observatory-outfitter",
+    "copyFamily": "Existing bespoke",
+    "referralPhysicalId": "estella-xiic-castle-teide",
+    "note": "Retain named shop"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiia-isolated-settlement",
+    "directoryId": "wells-frontier-outfitter-estella-xiia-isolated-settlement-office",
+    "physicalId": "estella-xiia-isolated-settlement",
+    "receivingIds": [
+      "estella-xiia-isolated-settlement"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Covenant mechanic",
+    "referralPhysicalId": "estella-xiia-volatiles-transit",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiia-volatiles-transit",
+    "directoryId": "wells-frontier-outfitter-estella-xiia-volatiles-transit-office",
+    "physicalId": "estella-xiia-volatiles-transit",
+    "receivingIds": [
+      "estella-xiia-volatiles-transit"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Mercy professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiia-deep-ice-mine",
+    "directoryId": "wells-frontier-outfitter-estella-xiia-deep-ice-mine-office",
+    "physicalId": "estella-xiia-deep-ice-mine",
+    "receivingIds": [
+      "estella-xiia-deep-ice-mine"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Mercy professional",
+    "referralPhysicalId": "estella-xiia-volatiles-transit",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi-office",
+    "physicalId": "estella-xii-captive-smuggler-waypoint",
+    "receivingIds": [
+      "estella-xii-smuggler-waypoint-poi"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xii-observation-post-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiic-isotope-mining",
+    "directoryId": "wells-frontier-outfitter-estella-xiic-isotope-mining-office",
+    "physicalId": "estella-xiic-isotope-mining",
+    "receivingIds": [
+      "estella-xiic-isotope-mining"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xiic-castle-teide",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiic-castle-teide",
+    "directoryId": "wells-frontier-outfitter-estella-xiic-castle-teide-office",
+    "physicalId": "estella-xiic-castle-teide",
+    "receivingIds": [
+      "estella-xiic-castle-teide"
+    ],
+    "tier": 2,
+    "terms": "S2",
+    "copyFamily": "Teide professional → bespoke",
+    "referralPhysicalId": "estella-xie-outer-spec-drydock-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiic-comet-research",
+    "directoryId": "wells-frontier-outfitter-estella-xiic-comet-research-office",
+    "physicalId": "estella-xiic-comet-research",
+    "receivingIds": [
+      "estella-xiic-comet-research"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Teide professional",
+    "referralPhysicalId": "estella-xiic-castle-teide",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xii-comm-relay-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xii-comm-relay-poi-office",
+    "physicalId": "estella-xii-captive-comm-relay",
+    "receivingIds": [
+      "estella-xii-comm-relay-poi"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Wells mechanic",
+    "referralPhysicalId": "estella-xii-observation-post-station",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiib-transit-station-poi",
+    "directoryId": "wells-frontier-outfitter-estella-xiib-transit-station-poi-office",
+    "physicalId": "estella-xiib-transit-station",
+    "receivingIds": [
+      "estella-xiib-transit-station-poi"
+    ],
+    "tier": 1,
+    "terms": "S1",
+    "copyFamily": "Vigil professional",
+    "referralPhysicalId": "estella-xiia-volatiles-transit",
+    "note": "Retain account ID"
+  },
+  {
+    "shopId": "wells-frontier-outfitter-estella-xiib-outpost",
+    "directoryId": "wells-frontier-outfitter-estella-xiib-outpost-office",
+    "physicalId": "estella-xiib-outpost",
+    "receivingIds": [
+      "estella-xiib-outpost"
+    ],
+    "tier": 0,
+    "terms": "W0",
+    "copyFamily": "Covenant mechanic",
+    "referralPhysicalId": "estella-xiib-transit-station",
+    "note": "Retain account ID; Local only; no public referral to this site"
+  }
+]
