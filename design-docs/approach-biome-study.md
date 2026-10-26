@@ -1,7 +1,7 @@
 # Hartwell approach / departure biome study
 
-Updated: 2026-10-25 (Pacific)
-Status: Pete approved production integration2026-10-24. Enabled in Game for Hartwell approach/departure only. No landing/takeoff redesign or other-world rollout.
+Updated: 2026-10-26 (Pacific)
+Status: Pete approved production integration2026-10-24. Hartwell approach/departure live. Separate Dawes Cut surface-art test bed approved/enabled2026-10-26: [surface-poi-art.md](surface-poi-art.md). Other landing sites/worlds and all flight physics unchanged.
 
 ## Approved model
 
@@ -27,7 +27,7 @@ Controls: regional/upper/low views, approach/departure, along-track pan, detaile
 
 ## Scope boundary: scenery versus collision surface
 
-This first pass preserves the existing foreground/collision contour exactly. The old fixed noise height function is exported without modifying its calculations, and the new foreground uses the same sampling grid. Therefore the foreground outline is intentionally identical at equally framed Hartwell targets. Target seeds currently vary the background massifs and surface materials, not flight obstacles. Replacement of physical terrain, target grounding and later landing continuity require a subsequent approved step.
+This first pass preserves the existing foreground/collision contour exactly. The old fixed noise height function is exported without modifying its calculations, and the new foreground uses the same sampling grid. Therefore the foreground outline is intentionally identical at equally framed Hartwell targets. Target seeds currently vary the background massifs and surface materials, not flight obstacles. Replacement of physical terrain, target grounding and physical phase continuity require a subsequent approved step. Dawes Cut now shares the biome palette, material seed and sky/relief painter in its final landing view; its original separate landing mesh and handoff are retained (see surface-poi-art.md).
 
 - One frozen biome, `hartwell-dry-uplands-v1`: rusty ground, ochre beds, muted distant relief, altitude-anchored dusty sky.
 - Two target-seeded background relief layers: broad mesa/shoulder geometry first, subordinate erosion noise, softer tones and restrained depth parallax. These are BACKGROUND scenery, not flyable/hittable mountains in the flight plane.
@@ -41,7 +41,7 @@ This first pass preserves the existing foreground/collision contour exactly. The
 
 - `src/approach-biomes.ts`: shared biome definition, explicit five-target assignment, independent immutable region/relief/material seeds and continuous signed-coordinate relief sampling.
 - `src/approach-ground-material.ts`: pure seeded periodic material raster, patched cellular rock and granular regolith; no collision/terrain model changes.
-- `src/approach-scenery.ts`: Canvas2D painter factory, opt-in only for its assigned Hartwell target. Restores canvas state; declines other bodies/targets or invalid cameras.
+- `src/approach-scenery.ts`: Canvas2D painter factory, opt-in only for its assigned Hartwell target. Art inputs are minimal camera/target/datum/orientation, allowing Dawes landing to share the exact backdrop without fabricating approach physics. Restores canvas state; declines other bodies/targets or invalid cameras. Existing approach/gallery pixels unchanged.
 - `src/approach.ts`: optional final `ApproachSceneryPainter` argument to `renderApproach`; original background is the default/fallback. Game now supplies the approved Hartwell dispatcher; other bodies/unknown targets fall back unchanged. Exposes unchanged original background and terrain sampling for comparisons.
 - `src/approach-scenery-runtime.ts`: lazy per-Game dispatcher with five source pairs; static foreground material is raster-cached in world-space strips (details below). Same seeds through visits/retries/approach/departure. No save IO or new seed key. Detailed mode only; comparison textures are gallery-only.
 - `tests/hartwell-approach-preview.{html,ts}`: retained five-site gallery using ten real approach/departure levels.

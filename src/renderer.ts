@@ -1,5 +1,5 @@
 // Canvas rendering: ship, terrain, effects.
-// Wireframe style on dark background.
+// Legacy wireframe fallback; optional authored scenery does not replace flight geometry.
 
 import { config } from './config';
 import {
@@ -8,6 +8,7 @@ import {
 } from './ship';
 import { LevelDef } from './levels';
 import { TerrainData, checkLandingCollision } from './terrain';
+import type { LandingSceneryPainter } from './landing-scenery';
 
 // --- Colors ---
 const COL_BG = '#050510';
@@ -81,6 +82,7 @@ export function render(
   level: LevelDef,
   time: number,
   showContainer = true,
+  scenery?: LandingSceneryPainter,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -89,15 +91,15 @@ export function render(
   ctx.fillStyle = COL_BG;
   ctx.fillRect(0, 0, W, H);
 
-  // Stars (simple static dots)
-  drawStars(ctx, cam, W, H);
+  const authored=scenery?.(ctx,cam,terrain,level,W,H,time)??false;
+  if(!authored){
+    drawStars(ctx, cam, W, H);
+    drawTerrain(ctx, cam, terrain, level, W, H);
+    drawCustomLandingLayout(ctx, cam, level, W, H);
+  }
 
-  // Terrain
-  drawTerrain(ctx, cam, terrain, level, W, H);
-  drawCustomLandingLayout(ctx, cam, level, W, H);
-
-  // Landing pad markings
-  drawPad(ctx, cam, terrain, level, W, H);
+  // Authored pads replace structure paint, never the real guidance target.
+  drawPad(ctx, cam, terrain, level, W, H, authored);
 
   // Predicted trajectory
   drawPredictedTrajectory(ctx, cam, ship, terrain, level, W, H, time);
@@ -283,7 +285,7 @@ function drawCustomLandingLayout(
 
 function drawPad(
   ctx: CanvasRenderingContext2D, cam: Camera,
-  terrain: TerrainData, level: LevelDef, W: number, H: number
+  terrain: TerrainData, level: LevelDef, W: number, H: number, authored=false,
 ): void {
   const pad = terrain.pad;
   const [lx, ly] = worldToScreen(pad.left, pad.y, cam, W, H);
@@ -292,6 +294,7 @@ function drawPad(
   const padCol = level.terrainBrightColor ?? COL_PAD;
   const padMarkCol = level.terrainStrokeColor ?? COL_PAD_MARKING;
 
+  if(!authored){
   // Pad surface line
   ctx.beginPath();
   ctx.moveTo(lx, ly);
@@ -311,6 +314,7 @@ function drawPad(
   ctx.lineWidth = 2;
   ctx.stroke();
 
+  }
   // Center marker (small diamond) — only when pad is on screen
   if (cx > 0 && cx < W && cy > 0 && cy < H) {
     ctx.beginPath();

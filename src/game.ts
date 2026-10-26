@@ -3,6 +3,7 @@
 import { config } from './config';
 import { createWorldWeather } from './world-weather';
 import { createApproachScenery } from './approach-scenery-runtime';
+import { createLandingScenery } from './landing-scenery';
 import { loadAtmosphereArtSeed } from './atmosphere-art-state';
 import { BALOR_BODY_ID, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from './balor-orientation';
 import { InputState, readInput } from './input';
@@ -269,6 +270,7 @@ export class Game {
   private worldTime = 0;
   private orbitalWeather: ReturnType<typeof createWorldWeather> | undefined;
   private approachScenery: ReturnType<typeof createApproachScenery> | undefined;
+  private landingScenery: ReturnType<typeof createLandingScenery> | undefined;
   private lastFrameTime = 0;
   private menuSelection = 0;
   private flightMenuSelection = 0;
@@ -410,6 +412,7 @@ export class Game {
     launchGuidance?: { targetAltitude: number; orbitDir: 1 | -1; nextApproachLevelId: number },
     worldTimeStart: number = this.worldTime,
   ): void {
+    void (this.landingScenery ??= createLandingScenery()).prepare(level);
     config.gravity = level.gravity;
     config.landingMaxVSpeed = level.landingMaxVSpeed;
     config.landingMaxHSpeed = level.landingMaxHSpeed;
@@ -449,6 +452,8 @@ export class Game {
   }
 
   private loadApproach(level: ApproachLevel, initOverride?: ApproachInitOverride, worldTimeStart: number = this.worldTime): void {
+    // Prepare Dawes' small surface assets during approach, not on the handoff frame.
+    void (this.landingScenery ??= createLandingScenery()).prepare(level);
     level = { ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) };
     applyApproachWeather(level, worldTimeStart);
     const as = createApproachState(level, initOverride);
@@ -3575,7 +3580,7 @@ export class Game {
     // Presentation only: retain the frame, collision footprint and flight tuning.
     const showContainer = this.activeCareerContract?.category !== 'empty';
     if (p.kind === 'landing') {
-      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time, showContainer);
+      render(this.ctx, this.canvas, p.camera, p.ship, p.terrain, p.level, this.time, showContainer, this.landingScenery ??= createLandingScenery());
       rightHudBottom = drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time, showContainer, this.approachScenery ??= createApproachScenery());

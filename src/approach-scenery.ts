@@ -14,7 +14,11 @@ function fillToBottom(ctx: CanvasRenderingContext2D, points: readonly Point[], h
   ctx.lineTo(points[0][0], height+2); ctx.closePath();
 }
 export type HartwellSceneryPart = 'all' | 'background' | 'material';
-export function createHartwellScenery(region: ApproachRegion, detailedGround = true, part: HartwellSceneryPart = 'all'): ApproachSceneryPainter {
+// Shared art inputs, independent of approach physics. The landing view can reuse
+// the exact sky/relief painter with its own projection and the same target seed.
+type HartwellSceneryArgs = [CanvasRenderingContext2D, Parameters<ApproachSceneryPainter>[1],
+  {localDir:1|-1}, {body:{id:string};poi:{id:string};gateX:number}, number, number];
+export function createHartwellScenery(region: ApproachRegion, detailedGround = true, part: HartwellSceneryPart = 'all'): (...args:HartwellSceneryArgs)=>boolean {
   const paint=createHartwellScenerySteps(region,detailedGround,part);
   return(...args)=>{const work=paint(...args);let step=work.next();while(!step.done)step=work.next();return step.value;};
 }
@@ -39,7 +43,7 @@ export function createHartwellScenerySteps(region: ApproachRegion, detailedGroun
     }
     context.putImageData(image,0,0);grain=tile;return tile;
   }
-  return function* (...[ctx, cam, state, level, W, H]: Parameters<ApproachSceneryPainter>): Generator<void,boolean,void> {
+  return function* (...[ctx, cam, state, level, W, H]: HartwellSceneryArgs): Generator<void,boolean,void> {
     if (level.body.id !== region.biome.bodyId || level.poi.id !== region.targetId) return false;
     if (!(cam.zoom > 0) || ![cam.x, cam.y, cam.zoom, W, H].every(Number.isFinite)) return false;
     const palette = region.biome.palette, zoom = cam.zoom;
@@ -49,7 +53,7 @@ export function createHartwellScenerySteps(region: ApproachRegion, detailedGroun
     const canonical = (x: number) => regionCoordinate(x, level.gateX, state.localDir);
     const fromRegion = (x: number) => level.gateX + x * state.localDir;
     const noise = (x: number, scale: number, channel: number) => regionNoise(region.materialSeed, canonical(x)/scale, channel);
-    const ground = (x: number) => getApproachTerrainHeight(x, level);
+    const ground = (x: number) => getApproachTerrainHeight(x);
     const left = wx(-12), right = wx(W+12);
     const regionLeft = Math.min(canonical(left), canonical(right)), regionRight = Math.max(canonical(left), canonical(right));
     ctx.save();

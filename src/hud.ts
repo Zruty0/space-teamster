@@ -4,6 +4,7 @@ import { config } from './config';
 import { ShipState } from './ship';
 import { TerrainData, getTerrainHeight } from './terrain';
 import { LevelDef } from './levels';
+import { usesDawesSurfaceArt } from './surface-poi';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_TITLE, COL_WARNING, drawHudInfoPanel, drawHudLabel, wrapHudText } from './hud-layout';
 import { parseInteractiveTextMarkup, type InteractiveTone } from './interactive-scene';
 
@@ -352,6 +353,7 @@ export function drawHUD(
 
   // --- Controls hint ---
   if (state === 'flying') {
+    if(usesDawesSurfaceArt(level)){ctx.globalAlpha=1;ctx.fillStyle='#000000';ctx.fillRect(0,H-34,W,34);}
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = COL_HUD_DIM;
