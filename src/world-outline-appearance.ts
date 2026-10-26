@@ -1,5 +1,5 @@
-// Review-only presentation. Uses the SAME permanent geography as filled art.
-// No production caller until visual review. Very dark regional fills; no stipple.
+// Approved game presentation. Same permanent geography as the filled reference.
+// Current dispatch: world-presentation.ts. Very dark regional fills; no stipple.
 import { beginDisc, trace, type WorldTint } from './world-disc-primitives';
 import { gaiaDiscGeometry } from './world-disc-appearance';
 import { crateredWorldGeometry, type Crater } from './cratered-world-geometry';

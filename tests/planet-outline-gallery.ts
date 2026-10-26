@@ -32,7 +32,7 @@ function base(id:string){
  ctx.fillStyle='#000';ctx.fillRect(0,0,960,360);
  for(const side of [0,1]){
   const offset=side*480;
-  ctx.fillStyle='#9cb6a8';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(side?'AFTER · REVISED STYLE':'BEFORE · CURRENT',240+offset,22);
+  ctx.fillStyle='#9cb6a8';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(side?'AFTER · REVISED STYLE':'BEFORE · PAINTED REFERENCE',240+offset,22);
   for(const [x,y,r]of [[240,180,140],[420,264,22],[420,314,8]]){
    if(side)drawOutlineWorld(ctx,id,x+offset,y,r,0,!!model?.underdeck,b.color);
    else if(model?.underdeck){

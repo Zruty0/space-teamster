@@ -1,5 +1,5 @@
 import { createWorldWeather } from '../src/world-weather';
-import { drawAuthoredWorldDisc } from '../src/world-disc-appearance';
+import { drawCurrentWorldDisc as drawAuthoredWorldDisc } from '../src/world-presentation';
 import { orientBalorOrbitalVisit } from '../src/balor-orientation';
 import { WEATHER_DIRECTIONS } from '../src/atmosphere-gallery-profiles';
 import { createPlayableEstellaMission } from '../src/estella-playable';
@@ -79,7 +79,13 @@ function checks(){
  game.renderGameplayPhase({kind:'orbital',level:scene.level,os:scene.state,cam:scene.cam,state:'orbiting',worldTimeStart:0,missionDvStart:0},'',undefined,undefined,true);
  assert(weather.diagnostics().artTime===3,'Game hook uses absolute orbital simulation time, not render/visit clock');
  assert(JSON.stringify(game.career)===careerBefore,'render never edits career state');
- // All scales of a body read the SAME image; drawing itself never regenerates.
+ // Resolved sizes reuse one image; tiny markers intentionally omit weather.
+ const tiny=document.createElement('canvas');tiny.width=tiny.height=64;const tc=tiny.getContext('2d',{willReadFrequently:true})!,cold=createWorldWeather(1792879200123);
+ const tb=bodyById('estella-iii');cold.beginFrame(0);assert(cold.draw(tc,tb.id,32,32,12,tb.color),'tiny marker works before WebGL preparation');cold.endFrame();
+ assert(cold.diagnostics().cachedWorlds===0&&cold.diagnostics().updates===0,'tiny markers do not allocate or refresh unresolved weather');
+ const tp=tc.getImageData(0,0,64,64).data;tc.clearRect(0,0,64,64);drawAuthoredWorldDisc(tc,tb.id,32,32,12,tb.color);const tq=tc.getImageData(0,0,64,64).data;
+ assert(tp.every((v,i)=>Math.abs(v-tq[i])<=1),'tiny production marker equals approved static base, no cloud wash');cold.dispose();
+ // Drawing itself never regenerates.
  time=0;warm();weather.beginFrame(0);const n=weather.diagnostics().updates;
  const body=bodyById('estella-iii');weather.draw(ctx,body.id,150,158,112,body.color);weather.draw(ctx,body.id,250,288,12,body.color);
  assert(weather.diagnostics().updates===n,'central/marker reuse cached field without mid-frame regeneration');

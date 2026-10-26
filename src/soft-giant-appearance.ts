@@ -1,4 +1,4 @@
-// Review-only colored giants: same bands/storms, feather INSIDE the physical
+// Approved colored giants: same bands/storms, feather INSIDE the physical
 // limb, no hard rim stroke/glow or changed radius. Three fixed512px backings.
 import { drawGasGiantDisc } from './gas-giant-appearance';
 import type { GasGiantProfile } from './gas-giant-geometry';
@@ -8,7 +8,7 @@ export function drawSoftGiantDisc(ctx:CanvasRenderingContext2D,cx:number,cy:numb
  if(!(r>0)||![cx,cy,r].every(Number.isFinite))return;
  let image=cache.get(profile);
  if(!image){
-  image=document.createElement('canvas');image.width=image.height=512;const paint=image.getContext('2d');if(!paint)throw Error('Giant artwork canvas unavailable');
+  image=document.createElement('canvas');image.width=image.height=512;const paint=image.getContext('2d');if(!paint){drawGasGiantDisc(ctx,cx,cy,r,profile);return;}
   drawGasGiantDisc(paint,256,256,256,profile);
   const mask=paint.createRadialGradient(256,256,0,256,256,256);mask.addColorStop(0,'#fff');mask.addColorStop(GIANT_FEATHER_START,'#fff');mask.addColorStop(1,'rgba(255,255,255,0)');
   paint.globalCompositeOperation='destination-in';paint.fillStyle=mask;paint.fillRect(0,0,512,512);paint.globalCompositeOperation='source-over';

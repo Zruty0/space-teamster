@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { drawCurrentWorldDisc } from '../src/world-presentation';
 import { ESTELLA_ROCKY_WORLD_PROFILES, rockyWorldProfileFor } from '../src/content/estella/rocky-world-appearance';
 import { crateredWorldGeometry, crateredWorldProfile } from '../src/cratered-world-geometry';
 import { drawAuthoredWorldDisc, drawCrateredDisc } from '../src/world-disc-appearance';
@@ -64,7 +66,7 @@ function render(level:OrbitalLevel,time:number){
   return {...rec,cam};
 }
 function assertDiscSegment(calls:unknown[][],id:string,x:number,y:number,radius:number):void{
-  const expected=recorder();drawAuthoredWorldDisc(expected.ctx,id,x,y,radius,bodyById(id).color);
+  const expected=recorder();drawCurrentWorldDisc(expected.ctx,id,x,y,radius,bodyById(id).color);
   const start=calls.findIndex(c=>c[0]==='translate'&&c[1]===x&&c[2]===y)-1;
   assert(start>=0&&JSON.stringify(calls.slice(start,start+expected.calls.length))===JSON.stringify(expected.calls),`${id}: production orbital path uses full shared painter/profile`);
 }

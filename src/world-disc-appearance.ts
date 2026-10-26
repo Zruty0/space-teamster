@@ -1,3 +1,4 @@
+// Filled reference painters; current game dispatch is world-presentation.ts.
 // Orbital/chart artwork only. Normalized, static geometry; no simulation state,
 // terrain, collision, weather or rotation changes. Gaia site angles are authored
 // separately in placements.ts and checked against this artwork by the preview.

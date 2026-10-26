@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { drawCurrentWorldDisc } from '../src/world-presentation';
 import { icyWorldProfile, icyWorldGeometry, resolveIcyWorldProfile, ICE_GEOMETRY_CACHE_LIMIT } from '../src/icy-world-geometry';
 import { ESTELLA_ICY_WORLD_PROFILES, ESTELLA_ICY_WORLD_TINTS, icyWorldProfileFor, icyWorldTintFor } from '../src/content/estella/icy-world-appearance';
 import { drawIcyDisc } from '../src/icy-world-appearance';
@@ -102,7 +104,7 @@ function render(level:OrbitalLevel,time:number){
   assert(json({level,state})===before,'rendering leaves physical state/objectives unchanged');return {...rec,cam};
 }
 function segment(calls:unknown[][],id:string,x:number,y:number,r:number){
-  const expected=recorder();drawIcyDisc(expected.ctx,x,y,r,icyWorldTintFor(id,bodyById(id).color),icyWorldProfileFor(id)!);
+  const expected=recorder();drawCurrentWorldDisc(expected.ctx,id,x,y,r,bodyById(id).color);
   const start=calls.findIndex(c=>c[0]==='translate'&&c[1]===x&&c[2]===y)-1;
   assert(start>=0&&json(calls.slice(start,start+expected.calls.length))===json(expected.calls),'actual orbital renderer uses shared ice profile');
 }
@@ -118,7 +120,7 @@ for(const [index,id] of EXPECTED_ICY_IDS.entries()){
     const full=render(local,time);segment(full.calls,id,640-full.cam.x*full.cam.zoom,400+full.cam.y*full.cam.zoom,body.radius*full.cam.zoom);
     if(id==='estella-xiia'){
       const tint=mercy.atmosphere!.color.join(', ');
-      assert(full.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]===`rgba(${tint}, 0.15)`),'Mercy existing atmosphere layer still drawn');
+      assert(full.calls.some(c=>c[0]==='set'&&c[1]==='strokeStyle'&&c[2]===`rgba(${tint}, 0.3)`),'Mercy existing atmosphere layer still drawn');
     }
     const chart=render({...parent,targetBodyId:id},time),pos=transferBodyState(parent,id,time)!;
     segment(chart.calls,id,640+(pos.x-chart.cam.x)*chart.cam.zoom,400-(pos.y-chart.cam.y)*chart.cam.zoom,Math.min(10,Math.max(3,body.radius*chart.cam.zoom)));

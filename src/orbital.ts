@@ -4,8 +4,7 @@
 import { ORBITAL_PHASES, type OrbitalPhaseDef, type OrbitalSeedDef, type TransferSystemBodyDef } from './campaign-content';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
-import { drawBalorDisc } from './balor-appearance';
-import { drawAuthoredWorldDisc } from './world-disc-appearance';
+import { drawCurrentWorldDisc as drawAuthoredWorldDisc } from './world-presentation';
 import type { OrbitalWeatherPainter } from './world-weather';
 import { drawOrbitalWorldLabel } from './orbital-world-label';
 import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-orientation';
@@ -2748,7 +2747,7 @@ function drawPlanet(
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
   if (level.bodyId === BALOR_BODY_ID) {
-    drawBalorDisc(ctx, cx, cy, level.planetRadius * cam.zoom, level.balorEyeAngle ?? balorEyeAngle ?? 0);
+    drawAuthoredWorldDisc(ctx, BALOR_BODY_ID, cx, cy, level.planetRadius * cam.zoom, bodyById(BALOR_BODY_ID).color, level.balorEyeAngle ?? balorEyeAngle ?? 0);
     return;
   }
   const body = bodyById(level.bodyId);
@@ -2933,7 +2932,7 @@ function drawSystemBodies(
     if (body.id === BALOR_BODY_ID) {
       // The chart body moves: point the Eye at the central star from the same
       // live ephemeris used to place its marker, not a local-visit snapshot.
-      drawBalorDisc(ctx, bx, by, br, Math.atan2(-pos.y, -pos.x));
+      drawAuthoredWorldDisc(ctx, body.id, bx, by, br, body.color, Math.atan2(-pos.y, -pos.x));
     } else if (!weather?.draw(ctx, body.id, bx, by, br, body.color) && !drawAuthoredWorldDisc(ctx, body.id, bx, by, br, body.color)) {
       ctx.beginPath();
       ctx.arc(bx, by, br, 0, Math.PI * 2);
@@ -3058,23 +3057,10 @@ function drawAtmosphere(
   level: OrbitalLevel, W: number, H: number,
 ): void {
   const [cx, cy] = ws(0, 0, cam, W, H);
-  const innerR = level.planetRadius * cam.zoom;
   const outerR = (level.planetRadius + level.atmoHeight) * cam.zoom;
   const [ar, ag, ab] = level.atmoColor;
 
-  const bands = 12;
-  for (let i = 0; i < bands; i++) {
-    const f0 = i / bands;
-    const f1 = (i + 1) / bands;
-    const r0 = innerR + (outerR - innerR) * f0;
-    const r1 = innerR + (outerR - innerR) * f1;
-    const alpha = 0.15 * (1 - f0) * (1 - f0);
-    ctx.beginPath();
-    ctx.arc(cx, cy, r1, 0, Math.PI * 2);
-    ctx.arc(cx, cy, r0, 0, Math.PI * 2, true);
-    ctx.fillStyle = `rgba(${ar}, ${ag}, ${ab}, ${alpha})`;
-    ctx.fill();
-  }
+  // Physical atmosphere boundary remains a navigation cue; no filled haze wash.
 
   ctx.beginPath();
   ctx.arc(cx, cy, outerR, 0, Math.PI * 2);

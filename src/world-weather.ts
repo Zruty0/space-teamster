@@ -2,6 +2,7 @@
 import { createAtmospherePrototype } from './atmosphere-prototype';
 import { productionWeatherProfiles, weatherArtSeconds } from './atmosphere-art-state';
 import { drawAuthoredWorldDisc, type WorldTint } from './world-disc-appearance';
+import { drawCurrentWorldDisc } from './world-presentation';
 export interface OrbitalWeatherPainter{
   beginFrame(worldTime:number):void;
   draw(ctx:CanvasRenderingContext2D,id:string,cx:number,cy:number,radius:number,tint:WorldTint):boolean;
@@ -12,7 +13,7 @@ interface CachedWeather{images:HTMLCanvasElement[];artTime:number;updated:number
 /** One context, eight noise seeds and at most eight current-image mip chains.
  * Only one world refresh per display frame, oldest first, at most10Hz/world.
  * This avoids generating eight expensive frames together during time warp. */
-export function createWorldWeather(seed:number,now=()=>performance.now(),inspectFrame?:(id:string,image:HTMLCanvasElement,artTime:number)=>void){
+export function createWorldWeather(seed:number,now=()=>performance.now(),inspectFrame?:(id:string,image:HTMLCanvasElement,artTime:number)=>void,style:'filled'|'outline'='outline'){
   const models=productionWeatherProfiles(seed),byId=new Map(models.map(m=>[m.id,m]));
   const cache=new Map<string,CachedWeather>(),requests=new Set<string>();
   let engine:ReturnType<typeof createAtmospherePrototype>|undefined;
@@ -21,12 +22,12 @@ export function createWorldWeather(seed:number,now=()=>performance.now(),inspect
     if(failed)return;
     failed=true;reason=String(error);for(const c of cache.values())for(const image of c.images)image.width=image.height=1;
     cache.clear();engine?.dispose();engine=undefined;
-    console.warn('Atmospheric artwork unavailable; using original globes.',reason);
+    console.warn('Atmospheric artwork unavailable; using static world artwork.',reason);
   }
   function initialize(warm=false){
     if(engine||failed||disposed)return;
     try{
-      engine=createAtmospherePrototype(512,models.length);
+      engine=createAtmospherePrototype(512,models.length,style);
       engine.canvas.addEventListener('webglcontextlost',()=>fail('WebGL context lost'));
       // Force shader/texture warmup outside flight painting when prewarm is used.
       if(warm)engine.render(artTime,models[0].profile);
@@ -62,11 +63,16 @@ export function createWorldWeather(seed:number,now=()=>performance.now(),inspect
       if(!model||failed||disposed||!(radius>0)||![cx,cy,radius].every(Number.isFinite))return false;
       const extent=radius*1.125;
       if(cx+extent<0||cy+extent<0||cx-extent>ctx.canvas.width||cy-extent>ctx.canvas.height)return false;
+      // Match the approved gallery: unresolved contour mips must not turn into
+      // a colored cloud wash on tiny chart markers. No refresh needed for these.
+      if(style==='outline'&&radius<14)return drawCurrentWorldDisc(ctx,id,cx,cy,radius,tint,0,!!model.underdeck);
       requests.add(id);
       const entry=cache.get(id);
       // Missing/lost WebGL retains the exact original painter; no empty discs.
       if(!entry)return false;
-      if(model.underdeck){
+      if(style==='outline'){
+        if(!drawCurrentWorldDisc(ctx,id,cx,cy,radius,tint,0,!!model.underdeck))return false;
+      }else if(model.underdeck){
         ctx.save();ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fillStyle=model.underdeck;ctx.fill();
         const shade=ctx.createRadialGradient(cx-radius*.35,cy-radius*.4,radius*.1,cx,cy,radius*1.3);
         shade.addColorStop(0,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,.38)');ctx.fillStyle=shade;ctx.fill();ctx.restore();

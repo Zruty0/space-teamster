@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { drawCurrentWorldDisc } from '../src/world-presentation';
 import { FINAL_MOONS } from './final-moons-fixture';
 import { calatravaGeometry } from '../src/calatrava-appearance';
 import { almadenGeometry } from '../src/almaden-appearance';
@@ -94,7 +96,7 @@ function render(level:OrbitalLevel,time:number){
  assert(json({level,state})===snapshot,'flight/objective state unchanged');return{...rec,cam};
 }
 function segment(calls:unknown[][],moon:typeof FINAL_MOONS[number],x:number,y:number,r:number){
- const expected=recorder();moon.paint(expected.ctx,x,y,r);
+ const expected=recorder();drawCurrentWorldDisc(expected.ctx,moon.id,x,y,r,bodyById(moon.id).color);
  const start=calls.findIndex(c=>c[0]==='translate'&&c[1]===x&&c[2]===y)-1;
  assert(start>=0&&json(calls.slice(start,start+expected.calls.length))===json(expected.calls),'production local/parent exact shared painter');
 }
@@ -113,7 +115,7 @@ for(const moon of FINAL_MOONS)for(const [target,name,angle]of moon.targets){
    const fill=view.calls.find(c=>c[0]==='fillText'&&c[1]===label),stroke=view.calls.find(c=>c[0]==='strokeText'&&c[1]===label);
    assert(fill&&stroke&&json(fill.slice(1))===json(stroke.slice(1)),`${label}: full outlined label at original anchor`);
   }
-  if(body.atmosphere)assert(view.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.15)`),'existing physical atmosphere drawn independently');
+  if(body.atmosphere)assert(view.calls.some(c=>c[0]==='set'&&c[1]==='strokeStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.3)`),'existing physical atmosphere drawn independently');
   const chart=render({...parent,targetBodyId:moon.id},time),pos=transferBodyState(parent,moon.id,time)!;
   segment(chart.calls,moon,640+(pos.x-chart.cam.x)*chart.cam.zoom,400-(pos.y-chart.cam.y)*chart.cam.zoom,Math.min(10,Math.max(3,body.radius*chart.cam.zoom)));
   assert(chart.calls.some(c=>c[0]==='strokeText'&&c[1]===moon.name.toUpperCase()),'parent marker readable label');

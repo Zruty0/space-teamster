@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { drawCurrentWorldDisc } from '../src/world-presentation';
 import { kuzniaGeometry, drawKuzniaDisc, KUZNIA_SEED } from '../src/kuznia-appearance';
 import { drawAuthoredWorldDisc } from '../src/world-disc-appearance';
 import { crateredWorldProfile } from '../src/cratered-world-geometry';
@@ -65,7 +67,7 @@ function render(level:OrbitalLevel,time:number){
  renderOrbital(rec.ctx,{width:1280,height:800} as HTMLCanvasElement,cam,state,level,time);assert(json({level,state})===before,'no changes to flight/objective state');return{...rec,cam};
 }
 function segment(calls:unknown[][],x:number,y:number,r:number){
- const expected=recorder();drawKuzniaDisc(expected.ctx,x,y,r);
+ const expected=recorder();drawCurrentWorldDisc(expected.ctx,body.id,x,y,r,body.color);
  const start=calls.findIndex(c=>c[0]==='translate'&&c[1]===x&&c[2]===y)-1;
  assert(start>=0&&json(calls.slice(start,start+expected.calls.length))===json(expected.calls),'production central/stellar painter');
 }
@@ -84,7 +86,7 @@ for(const [i,target]of targets.entries()){
    const fill=a.calls.find(c=>c[0]==='fillText'&&c[1]===label),outline=a.calls.find(c=>c[0]==='strokeText'&&c[1]===label);
    assert(fill&&outline&&json(fill.slice(1))===json(outline.slice(1)),'real body/target label halo at original anchor');
   }
-  assert(a.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.15)`),'original atmosphere still drawn');
+  assert(a.calls.some(c=>c[0]==='set'&&c[1]==='strokeStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.3)`),'original atmosphere still drawn');
   const b=render({...star,targetBodyId:body.id},time),pos=transferBodyState(star,body.id,time)!;
   segment(b.calls,640+(pos.x-b.cam.x)*b.cam.zoom,400-(pos.y-b.cam.y)*b.cam.zoom,Math.min(10,Math.max(3,body.radius*b.cam.zoom)));
   assert(b.calls.some(c=>c[0]==='strokeText'&&c[1]==='KUZNIA'),'system marker label halo');

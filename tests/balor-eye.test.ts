@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { OUTLINE_INK } from '../src/world-outline-appearance';
 import { drawBalorDisc, balorShoreX, BALOR_EYE_ARC, BALOR_CRATER_PROFILE } from '../src/balor-appearance';
 import { balorEyeAngleAt, orientBalorOrbitalVisit, orientBalorApproach, rotateBalorDeparture } from '../src/balor-orientation';
 import { createPlayableEstellaMission } from '../src/estella-playable';
@@ -193,12 +195,13 @@ for (let step = 0; step <= 12; step++) {
   const r = recorder();
   renderOrbital(r.ctx, game.canvas, cam, systemState, staleVisit, elapsed);
   const marker = r.calls.findIndex(c => c[0] === 'translate' && c[1] === bx && c[2] === by);
-  assert(marker >= 0 && r.calls[marker + 1][0] === 'rotate', 'find actual Balor marker, not ship rotation');
-  const worldAngle = -(r.calls[marker + 1][1] as number);
+  const eyeRotation=r.calls.findIndex((c,i)=>i>marker&&c[0]==='rotate');
+  assert(marker >= 0 && eyeRotation>marker, 'find actual Balor marker rotation after normalized disc setup');
+  const worldAngle = -(r.calls[eyeRotation][1] as number);
   direction(worldAngle, Math.atan2(-position.y, -position.x), 'system Eye always points from current Balor position to Estella');
   if (step === 3) assert(Math.abs(Math.sin(worldAngle - frozenAngle!)) > 0.99, 'quarter-orbit advance cannot reuse frozen entry angle');
-  const hint = r.calls.findIndex(c => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === '#ffb448');
-  assert(hint >= 0, 'tiny system marker retains orange Eye hint');
+  const hint = r.calls.findIndex(c => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === OUTLINE_INK.lava);
+  assert(hint >= 0, 'tiny system marker still emits the authored orange shore path');
   const hintStroke = r.calls.findIndex((c, i) => i > hint && c[0] === 'stroke');
   const laterStroke = r.calls.findIndex((c, i) => i > hintStroke && c[0] === 'stroke');
   assert(laterStroke < 0 || r.calls.slice(hintStroke + 1, laterStroke).some(c => c[0] === 'beginPath'), 'generic body border cannot repaint the orange Eye path white');

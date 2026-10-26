@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { MATERIAL_FILL, terrainOutlineInk } from '../src/world-outline-appearance';
 import './cratered-world.test';
 import './acheron-world.test';
 import './dahai-world.test';
@@ -116,10 +118,10 @@ function render(level: OrbitalLevel, time: number) {
 }
 for (const time of [0, 10000, 500000]) {
   const centralGaia = render(gaia, time), centralMoon = render(moon, time), system = render(star, time);
-  assert(centralGaia.calls.some(c => c[0] === 'set' && c[2] === '#d4e6e7'), 'central Gaia ice caps');
-  assert(centralGaia.calls.some(c => c[0] === 'set' && c[2] === '#306749'), 'central Gaia greenery');
-  assert(centralMoon.calls.some(c => c[0] === 'set' && c[2] === 'rgb(90,87,80)'), 'central Celeste tinted crater floors');
-  assert(system.calls.some(c => c[0] === 'set' && c[2] === '#d4e6e7'), 'system Gaia marker shares ice caps');
+  assert(centralGaia.calls.some(c => c[0] === 'set' && c[2] === MATERIAL_FILL.ice), 'central Gaia dark ice caps');
+  assert(centralGaia.calls.some(c => c[0] === 'set' && c[2] === terrainOutlineInk(bodyById('estella-iii').color).minor), 'central Gaia muted forest outlines');
+  assert(centralMoon.calls.some(c => c[0] === 'set' && c[2] === terrainOutlineInk(bodyById('estella-iiia').color).background), 'central Celeste near-black tinted crater floors');
+  assert(system.calls.some(c => c[0] === 'set' && c[2] === MATERIAL_FILL.ice), 'system Gaia marker shares dark ice caps');
   for (const [level, bodyId, rec] of [[gaia, 'estella-iiia', centralGaia], [star, 'estella-iii', system]] as const) {
     const position = transferBodyState(level, bodyId, time)!;
     const x = (position.x - rec.cam.x) * rec.cam.zoom + 640;

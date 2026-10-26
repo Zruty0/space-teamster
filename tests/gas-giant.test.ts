@@ -1,4 +1,6 @@
 import './svg-dom';
+import './outline-canvas-shim';
+import { drawCurrentWorldDisc } from '../src/world-presentation';
 import { defineGasGiantProfile, gasGiantGeometry, GIANT_GEOMETRY_CACHE_LIMIT, type GasGiantProfile } from '../src/gas-giant-geometry';
 import { ESTELLA_GAS_GIANT_PROFILES, gasGiantProfileFor } from '../src/content/estella/gas-giant-appearance';
 import { drawGasGiantDisc } from '../src/gas-giant-appearance';
@@ -65,8 +67,8 @@ function render(level:OrbitalLevel,time:number){
  renderOrbital(rec.ctx,{width:1280,height:800} as HTMLCanvasElement,cam,state,level,time);assert(json({level,state})===before,'orbital state/targets unchanged');return{...rec,cam};
 }
 function segment(calls:unknown[][],id:string,x:number,y:number,r:number){
- const expected=recorder();drawGasGiantDisc(expected.ctx,x,y,r,gasGiantProfileFor(id)!);
- const start=calls.findIndex(c=>c[0]==='translate'&&c[1]===x&&c[2]===y)-1;
+ const expected=recorder();drawCurrentWorldDisc(expected.ctx,id,x,y,r,bodyById(id).color);
+ const start=calls.findIndex(c=>c[0]==='drawImage'&&c[2]===x-r&&c[3]===y-r&&c[4]===r*2)-2;
  assert(start>=0&&json(calls.slice(start,start+expected.calls.length))===json(expected.calls),'actual central/system giant painter');
 }
 for(const [i,id]of EXPECTED_GIANT_IDS.entries()){
@@ -76,7 +78,7 @@ for(const [i,id]of EXPECTED_GIANT_IDS.entries()){
  assert(local.atmoHeight===body.atmosphere!.height,'original atmospheric envelope retained');
  for(const time of [0,123456]){
   const a=render(local,time);segment(a.calls,id,640-a.cam.x*a.cam.zoom,400+a.cam.y*a.cam.zoom,body.radius*a.cam.zoom);
-  assert(a.calls.some(c=>c[0]==='set'&&c[1]==='fillStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.15)`),'existing atmosphere still rendered');
+  assert(a.calls.some(c=>c[0]==='set'&&c[1]==='strokeStyle'&&c[2]===`rgba(${body.atmosphere!.color.join(', ')}, 0.3)`),'existing atmosphere still rendered');
   const b=render({...star,targetBodyId:id},time),pos=transferBodyState(star,id,time)!;segment(b.calls,id,640+(pos.x-b.cam.x)*b.cam.zoom,400-(pos.y-b.cam.y)*b.cam.zoom,Math.min(18,Math.max(8,body.radius*b.cam.zoom)));
  }
 }
