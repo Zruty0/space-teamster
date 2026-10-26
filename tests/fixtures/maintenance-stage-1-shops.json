@@ -1,0 +1,2495 @@
+{
+  "source": "6f52a62 (independent Stage 1 read-only audit, before pilot changes)",
+  "shops": [
+    {
+      "id": "vilar-gryphon-aerie-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Gryphon Aerie",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-x-observation-skim-hub"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "id": "vilar-herald-gate-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Herald Gate",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-xc-transit-refuel"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "id": "vilar-cadiz-highport-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Cadiz Highport",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-xid-main-port"
+      ],
+      "diagnosticGrade": "B",
+      "workQualityGrade": "C",
+      "componentGradeBest": "C",
+      "componentGradeWorst": "D",
+      "laborRate": 600,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1200,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 12000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 310800,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 131400
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63600
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42400
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 53000
+        }
+      }
+    },
+    {
+      "id": "vilar-hydra-maw-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Hydra Maw Orbital",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-xi-skim-hub"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "id": "vilar-macao-palace-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Macao Palace",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-xic-research-station-poi"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "id": "vilar-manticore-observatory-outfitter",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Vilar\u2019s Outfitter at Manticore Observatory",
+      "organizationName": "House Vilar",
+      "locationIds": [
+        "estella-xii-observation-post"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "id": "cadiz-armorial-shipwrights",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "The Armorial Shipwrights at Shipwright Keep",
+      "organizationName": "The Armorial Shipwrights",
+      "locationIds": [
+        "estella-xid-services-outfitter-hangar"
+      ],
+      "diagnosticGrade": "B",
+      "workQualityGrade": "C",
+      "componentGradeBest": "C",
+      "componentGradeWorst": "D",
+      "laborRate": 600,
+      "diagnosisHours": 2,
+      "partsMarkup": 2,
+      "laborHoursMultiplier": 2,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 2400,
+        "laborHours": 4
+      },
+      "depletedService": {
+        "credits": 24000,
+        "laborHours": 40
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 621600,
+        "laborHours": 36
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 240000,
+          "laborHours": 38,
+          "credits": 262800
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 120000,
+          "laborHours": 12,
+          "credits": 127200
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 80000,
+          "laborHours": 8,
+          "credits": 84800
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 100000,
+          "laborHours": 10,
+          "credits": 106000
+        }
+      }
+    },
+    {
+      "id": "serrat-domain-civil-refit-office",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Serrat Domain Civil Refit Office",
+      "organizationName": "Serrat Domain Shipyard Office",
+      "locationIds": [
+        "estella-xie-outer-spec-drydock"
+      ],
+      "diagnosticGrade": "A",
+      "workQualityGrade": "A",
+      "componentGradeBest": "C",
+      "componentGradeWorst": "D",
+      "laborRate": 1000,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 1,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 2000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 20000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 318000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 139000
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 66000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 44000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 55000
+        }
+      }
+    },
+    {
+      "id": "keelwright-works-seconds-gate",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "The Seconds Gate at Keelwright Works",
+      "organizationName": "Keelwright Works",
+      "locationIds": [
+        "estella-xie-rare-alloy-extraction"
+      ],
+      "diagnosticGrade": "B",
+      "workQualityGrade": "C",
+      "componentGradeBest": "B",
+      "componentGradeWorst": "C",
+      "laborRate": 1600,
+      "diagnosisHours": 2,
+      "partsMarkup": 0.85,
+      "laborHoursMultiplier": 0.5,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1600,
+        "laborHours": 1
+      },
+      "depletedService": {
+        "credits": 16000,
+        "laborHours": 10
+      },
+      "driveReplacement": {
+        "grade": "C",
+        "exact": false,
+        "credits": 396900,
+        "laborHours": 9
+      },
+      "equipment": {
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 51000,
+          "laborHours": 3,
+          "credits": 55800
+        }
+      }
+    },
+    {
+      "id": "oathmark-academy-high-pennant-yard",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "The High Pennant Shipyard at Oathmark Academy",
+      "organizationName": "Oathmark Academy",
+      "locationIds": [
+        "estella-xie-oathmark-academy"
+      ],
+      "diagnosticGrade": "C",
+      "workQualityGrade": "D",
+      "componentGradeBest": "D",
+      "componentGradeWorst": "D",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1.5,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 1500,
+        "laborHours": 3
+      },
+      "depletedService": {
+        "credits": 15000,
+        "laborHours": 30
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 463500,
+        "laborHours": 27
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 180000,
+          "laborHours": 28.5,
+          "credits": 194250
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 90000,
+          "laborHours": 9,
+          "credits": 94500
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 75000,
+          "laborHours": 7.5,
+          "credits": 78750
+        }
+      }
+    },
+    {
+      "id": "bruckner-central-service-hall",
+      "equipmentIds": [
+        "atmospheric-package",
+        "heavy-heat-shielding",
+        "cargo-shock-absorbers",
+        "passenger-comfort-package"
+      ],
+      "name": "Bruckner Central Service Hall",
+      "organizationName": "Bruckner Field Services",
+      "locationIds": [
+        "estella-viii-harder-approach-station"
+      ],
+      "diagnosticGrade": "A",
+      "workQualityGrade": "A",
+      "componentGradeBest": "A",
+      "componentGradeWorst": "D",
+      "laborRate": 1600,
+      "diagnosisHours": 2,
+      "partsMarkup": 1,
+      "laborHoursMultiplier": 0.75,
+      "honesty": 1,
+      "diagnosis": {
+        "credits": 2400,
+        "laborHours": 1.5
+      },
+      "depletedService": {
+        "credits": 24000,
+        "laborHours": 15
+      },
+      "driveReplacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 321600,
+        "laborHours": 13.5
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 14.25,
+          "credits": 142800
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 4.5,
+          "credits": 67200
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 3,
+          "credits": 44800
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 3.75,
+          "credits": 56000
+        }
+      }
+    },
+    {
+      "id": "red-dust-mechanical-reclamation",
+      "name": "Red Dust Mechanical & Reclamation",
+      "organizationName": "Red Dust Mechanical & Reclamation",
+      "locationIds": [
+        "estella-v-capital-settlement"
+      ],
+      "diagnosticGrade": "D",
+      "workQualityGrade": "E",
+      "componentGradeBest": "E",
+      "componentGradeWorst": "E",
+      "laborRate": 500,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.35,
+      "laborHoursMultiplier": 1,
+      "honesty": 0,
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "driveReplacement": {
+        "grade": "E",
+        "exact": false,
+        "credits": 373500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-volatiles-transit",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xa-volatiles-transit"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-exobiology-research",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xa-exobiology-research"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-deep-ice-mine",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xa-deep-ice-mine"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-chem-station",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xd-chem-station"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-proving-grounds",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xd-proving-grounds"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-iron-lists",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xd-iron-lists"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-geothermal-extraction",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xd-geothermal-extraction"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-redoubt-field",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xd-redoubt-field"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-x-captive-refuel-relay",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-x-captive-refuel-relay"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-castle-alvares",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xc-castle-alvares"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-castle-mendes",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xc-castle-mendes"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-main-outpost",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xc-main-outpost"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-worker-hab",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xb-worker-hab"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-smelting-processing",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xb-smelting-processing"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-rare-element-mine",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xb-rare-element-mine"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-luxury-retreat",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xb-luxury-retreat"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-science-waypoint-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xi-science-waypoint-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-chem-station",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xia-chem-station"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-sealed-worker-hab",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xia-sealed-worker-hab"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-rare-element-extraction",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xia-rare-element-extraction"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-sulfur-mine",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xia-sulfur-mine"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xid-specialty-cargo",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xid-specialty-cargo"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xid-customs-transit",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xid-customs-transit"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-religious-retreat-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xi-religious-retreat-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-observatory",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xif-observatory"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-deep-listening-array",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xif-deep-listening-array"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-sealed-research-outpost",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xif-sealed-research-outpost"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-ice-mining",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xic-ice-mining"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-deep-ice-exobiology",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xic-deep-ice-exobiology"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-last-breath-lists",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xic-last-breath-lists"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xib-hydrocarbon-extraction"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-methane-refinery",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xib-methane-refinery"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-science-settlement",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xib-science-settlement"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-cryo-transit",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xib-cryo-transit"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-organic-chemistry",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xib-organic-chemistry"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xie-component-fabrication",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xie-component-fabrication"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-fence-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xi-fence-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xi-smuggler-deaddrop-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-blackglass-observatory",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiid-blackglass-observatory"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-black-project-exile",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiid-black-project-exile"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-mirror-clinic",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiid-mirror-clinic"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-isolated-settlement",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiia-isolated-settlement"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-volatiles-transit",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiia-volatiles-transit"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-deep-ice-mine",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiia-deep-ice-mine"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xii-smuggler-waypoint-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-isotope-mining",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiic-isotope-mining"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-castle-teide",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiic-castle-teide"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-comet-research",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiic-comet-research"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xii-comm-relay-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xii-comm-relay-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiib-transit-station-poi",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiib-transit-station-poi"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiib-outpost",
+      "name": "Walk the hangars and ask for a local mechanic",
+      "organizationName": "Unofficial local mechanic",
+      "locationIds": [
+        "estella-xiib-outpost"
+      ],
+      "diagnosticGrade": "E",
+      "workQualityGrade": "F",
+      "componentGradeBest": "F",
+      "componentGradeWorst": "F",
+      "laborRate": 250,
+      "diagnosisHours": 2,
+      "partsMarkup": 1.5,
+      "laborHoursMultiplier": 1,
+      "honesty": 0.25,
+      "diagnosis": {
+        "credits": 500,
+        "laborHours": 2
+      },
+      "depletedService": {
+        "credits": 3625,
+        "laborHours": 14.5
+      },
+      "driveReplacement": {
+        "grade": "F",
+        "exact": false,
+        "credits": 364500,
+        "laborHours": 18
+      },
+      "equipment": {}
+    }
+  ]
+}

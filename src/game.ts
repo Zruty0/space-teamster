@@ -87,6 +87,8 @@ import { COMPONENT_GRADES } from './maintenance/grades';
 import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } from './maintenance/maintenance-ledger';
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, manifestEquipmentBufferUnits, rigAtmosphericHeatMultiplier, validateRigState } from './maintenance/rig-state';
+import { emergencyRestart, emergencyRestartNeeded } from './maintenance/emergency';
+import { maintenanceReferrals } from './maintenance/referrals';
 import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricateServiceComponentIdsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
@@ -131,7 +133,7 @@ type Phase =
   | { kind: 'manualArticle'; articleId: OperationsManualArticleId; returnPhase: GameplayPhase | { kind: 'interactiveScene'; scene: InteractiveScenePhaseState }; tutorialSplash: boolean; scrollOffset: number };
 
 interface InteractiveScenePhaseState {
-  id: 'stationTerminal' | 'emptyRunDirectory' | 'emptyRunConfirm' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm' | 'equipmentList' | 'equipmentConfirm';
+  id: 'stationTerminal' | 'emptyRunDirectory' | 'emptyRunConfirm' | 'contractBoardLoading' | 'browseContracts' | 'browsePassengerContracts' | 'contractPosting' | 'localDirectory' | 'localDirectoryEntry' | 'localDirectoryAction' | 'operationsManual' | 'careerStatus' | 'shipStatus' | 'oldNellArrival' | 'maintenanceShop' | 'maintenanceReferral' | 'maintenanceEmergencyConfirm' | 'maintenanceDiagnosisConfirm' | 'maintenanceDiagnosisReport' | 'maintenanceService' | 'maintenanceServiceConfirm' | 'maintenanceServiceAllConfirm' | 'maintenanceFaults' | 'maintenanceComponent' | 'maintenanceWorkConfirm' | 'maintenanceRepairAllConfirm' | 'equipmentList' | 'equipmentConfirm';
   selectedIndex: number;
   emptyFolder?: EstellaFolderKey;
   board?: 'freight' | 'passenger' | 'contact';
@@ -2189,6 +2191,37 @@ export class Game {
 
   private maintenanceShopScene(state: InteractiveScenePhaseState, shop: MaintenanceShopDef, locationPath: string): InteractiveScene {
     const local = this.maintenanceShopIsLocal(shop);
+    const referrals = maintenanceReferrals(shop);
+    const restartNeeded = emergencyRestartNeeded(this.career);
+    const referralOptions = referrals.length ? [{ label: 'Where can I get more advanced work done?', detail: 'Ask for workshop directions. No inspection or fee required.', action: `maintenanceReferral:${shop.id}`, tone: 'primary' as const, disabled: !local }] : [];
+    const restartOption = { label: 'Emergency restart', detail: restartNeeded ? 'Restore basic operation without a repair bill. Routine servicing is separate.' : 'No departure-critical systems need an emergency restart.', action: `maintenanceEmergencyConfirm:${shop.id}`, tone: 'primary' as const, disabled: !local || !restartNeeded };
+    if (state.id === 'maintenanceReferral') return {
+      title: 'WORKSHOP DIRECTIONS', subtitle: shop.name,
+      bodyRows: referrals.flatMap(referral => [
+        { kind: 'text' as const, text: referral.eliteAlternative ? `Or, of course, you can go to ${referral.name}. They handle the most demanding work.` : `For more advanced work, go to ${referral.name}.` },
+        { kind: 'text' as const, text: referral.path },
+      ]),
+      footer: 'Enter/Space: return',
+      options: [{ label: 'Back to Service Desk', action: `maintenanceShop:${shop.id}`, tone: 'back' }],
+    };
+    if (state.id === 'maintenanceEmergencyConfirm') return {
+      title: 'EMERGENCY RESTART', subtitle: shop.name,
+      bodyRows: [
+        { kind: 'text', text: 'Run the emergency checklist and reset damaged systems needed for basic operation. This costs no credits or work time. It preserves your installed parts and does not replenish routine service protection.' },
+        { kind: 'text', text: 'Ordinary repairs, servicing and equipment purchases remain separate. Flight clearances and atmospheric equipment requirements still apply.' },
+      ],
+      footer: 'Enter/Space: choose',
+      options: [
+        { label: 'Run emergency restart — free', action: `maintenanceEmergency:${shop.id}`, tone: 'primary', disabled: !local || !restartNeeded },
+        { label: 'Cancel', action: `maintenanceShop:${shop.id}`, tone: 'back' },
+      ],
+    };
+    if (shop.facilityTier === -1) return {
+      title: shop.name.toUpperCase(), subtitle: locationPath,
+      bodyRows: [{ kind: 'text', text: shop.copy.profileBlurb }, ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }] : [])],
+      footer: 'Enter/Space: choose',
+      options: [restartOption, ...referralOptions, { label: 'Back to Local Directory', action: 'localDirectory', tone: 'back' }],
+    };
     if (state.id === 'equipmentList' || state.id === 'equipmentConfirm') {
       return equipmentScene(this.career, shop, local, state.id === 'equipmentConfirm' ? state.equipmentSelection : undefined, state.maintenanceReceipt);
     }
@@ -2531,8 +2564,9 @@ export class Game {
       bodyRows: [
         { kind: 'text', text: profileCopy.text, segments: profileCopy.segments },
         { kind: 'text', text: '' },
-        { kind: 'kv', label: 'Shop level', value: levelCopy.text, valueSegments: levelCopy.segments, valueLineCount: shop.id === 'red-dust-mechanical-reclamation' ? 6 : 4 },
+        { kind: 'kv', label: 'Facilities', value: levelCopy.text, valueSegments: levelCopy.segments, valueLineCount: shop.id === 'red-dust-mechanical-reclamation' ? 6 : 4 },
         { kind: 'kv', label: 'Labor rate', value: `${formatCredits(shop.laborRate)}/hour` },
+        ...(state.maintenanceReceipt ? [{ kind: 'text' as const, text: state.maintenanceReceipt, tone: 'success' as const }] : []),
       ],
       footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
       options: [
@@ -2540,6 +2574,8 @@ export class Game {
         { label: 'Service', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting service work.' : routineServiceAvailable ? `Order service by system or for all installed equipment.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'All systems are already maintained.', action: `maintenanceServiceList:${shop.id}`, tone: routineServiceAvailable ? 'primary' : 'muted', disabled: !local || !routineServiceAvailable },
         { label: 'Repairs and Replacements', detail: !diagnosedHere ? 'This shop must inspect the rig before accepting repair or replacement work.' : actionableFaultCount ? `Review faulted components and available work.${diagnosticCreditAvailable ? ' Service credit will be deducted when work is authorized.' : ''}` : 'No actionable faults are present.', action: `maintenanceFaults:${shop.id}`, tone: diagnosedHere && actionableFaultCount ? 'primary' : 'muted', disabled: !local || !diagnosedHere || !actionableFaultCount },
         ...(shop.equipmentIds?.length ? [{ label: 'Equipment', detail: 'Purchase and install rig equipment.', action: `equipmentList:${shop.id}`, tone: 'primary' as const, disabled: !local }] : []),
+        ...referralOptions,
+        restartOption,
         { label: 'Back to Local Directory', detail: 'Leave the service desk.', action: 'localDirectory', tone: 'back' },
       ],
     };
@@ -3218,6 +3254,25 @@ export class Game {
       this.phase = { kind: 'interactiveScene', scene: { id: 'equipmentList', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: `${RIG_EQUIPMENT[rawId].name} installed. Charged ${formatCredits(charged)} for ${formatWorkHours(quote.laborHours)} of work.` } };
       return;
     }
+    if (action.startsWith('maintenanceReferral:') || action.startsWith('maintenanceEmergencyConfirm:') || action.startsWith('maintenanceEmergency:')) {
+      const [operation, shopId] = action.split(':');
+      const shop = maintenanceShopById(shopId);
+      if (!shop || !this.maintenanceShopIsLocal(shop)) return;
+      if (operation === 'maintenanceReferral') {
+        if (!maintenanceReferrals(shop).length) return;
+        this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceReferral', selectedIndex: 0, maintenanceShopId: shopId } };
+      } else if (operation === 'maintenanceEmergencyConfirm') {
+        if (!emergencyRestartNeeded(this.career)) return;
+        this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceEmergencyConfirm', selectedIndex: 0, maintenanceShopId: shopId } };
+      } else {
+        const next = emergencyRestart(this.career, shop);
+        if (!next) return;
+        try { saveCareerProfile(next); } catch { this.showGuidance('Emergency restart could not be saved.'); return; }
+        this.career = next;
+        this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: 'Departure-critical systems restarted. No charge. Routine maintenance remains separate.' } };
+      }
+      return;
+    }
     if (action.startsWith('maintenanceShop:')) {
       const shopId = action.slice('maintenanceShop:'.length);
       this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shopId } };
@@ -3232,7 +3287,7 @@ export class Game {
     if (action.startsWith('maintenanceDiagnose:')) {
       const shopId = action.slice('maintenanceDiagnose:'.length);
       const shop = maintenanceShopById(shopId);
-      if (!shop || !this.maintenanceShopIsLocal(shop) || this.maintenanceShopDiagnosed(shopId)) return;
+      if (!shop || shop.facilityTier === -1 || !this.maintenanceShopIsLocal(shop) || this.maintenanceShopDiagnosed(shopId)) return;
       const quote = diagnosisQuote(shop);
       if (this.career.money < quote.credits) return;
       const nextCareer = structuredClone(this.career);

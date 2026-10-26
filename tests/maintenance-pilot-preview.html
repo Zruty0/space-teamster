@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8"><title>Maintenance pilot check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{background:#102030;color:#def;padding:6px}#status{margin-left:12px}</style>
+<select id="view"></select><span id="status">Synthetic profiles; no live saves.</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+// Page-local storage substitute: opening this preview cannot touch a live career.
+const storage=new Map();let writes=0;
+Object.defineProperty(window,'localStorage',{value:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>{storage.set(k,v);writes++;},removeItem:k=>storage.delete(k)}});
+const {Game}=await import('/src/game.ts');
+const {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS}=await import('/src/career-state.ts');
+const {MAINTENANCE_SHOPS}=await import('/src/maintenance/shops.ts');
+const {createDefaultRigState,deriveRestrictions}=await import('/src/maintenance/rig-state.ts');
+const {MAINTENANCE_COMPONENTS,componentFaults}=await import('/src/maintenance/catalog.ts');
+const {drawInteractiveScene}=await import('/src/interactive-scene.ts');
+const {canTravelEmpty}=await import('/src/empty-runs.ts');
+const canvas=document.getElementById('screen'),ctx=canvas.getContext('2d'),menu=document.getElementById('view');
+const low='maintenance-estella-viii-mining-site',town='maintenance-estella-viii-settlement',rest='maintenance-estella-viii-friendly-station',depot='bruckner-central-service-hall',lantern='emergency-estella-viii-captured-moonlet';
+const views={
+ 'Low Gauge':[low,'maintenanceShop'],'Town workshop':[town,'maintenanceShop'],'Nells Rest':[rest,'maintenanceShop'],'Bruckner':[depot,'maintenanceShop'],
+ 'Directions':[low,'maintenanceReferral'],'Future shops':['red-dust-mechanical-reclamation','maintenanceReferral'],
+ 'Unstaffed outpost':[lantern,'maintenanceShop'],'Emergency confirmation':[lantern,'maintenanceEmergencyConfirm'],'Recovered':[lantern,'recovered'],
+ 'Diagnostic report':[rest,'maintenanceDiagnosisReport'],'Repair estimate':[rest,'maintenanceComponent'],'Equipment':[town,'equipmentList'],
+};
+for(const label of Object.keys(views)){const o=document.createElement('option');o.value=label;o.textContent=label;menu.append(o);}
+const game=Object.create(Game.prototype);game.canvas=canvas;game.worldTime=0;game.showGuidance=t=>document.getElementById('status').textContent=t;
+let current,checks=0;
+function assert(v,m){checks++;if(!v)throw Error(m);}
+function draw(){canvas.width=innerWidth-24;canvas.height=innerHeight-65;const state=game.phase.scene;current=game.buildInteractiveScene(state);drawInteractiveScene(ctx,canvas,current,state.selectedIndex??0,state.bodyScrollOffset??0);}
+function show(){
+ const [id,sceneId]=views[menu.value],shop=MAINTENANCE_SHOPS.find(s=>s.id===id);
+ game.career={...defaultCareerProfile(),locationId:shop.locationIds[0],money:1000000,certifications:[...TEAMSTER_CERTIFICATION_IDS],rig:createDefaultRigState(true)};game.worldTime=0;
+ const component=MAINTENANCE_COMPONENTS.find(c=>componentFaults(c).some(f=>f.workGrade==='B'));
+ const fault=componentFaults(component).find(f=>f.workGrade==='B');
+ game.career.rig.components[component.id].fault={severity:fault.severity,faultId:fault.id,diagnosis:'unknown',generatedMission:0,generatedStrike:0};
+ game.career.rig.components[component.id].hp=1;
+ if(id===lantern){game.career.money=0;const s=game.career.rig.components['powertrain-main-drive-core'];s.hp=0;s.ap=0;s.fault={severity:'total',diagnosis:'unknown',generatedMission:0,generatedStrike:0};}
+ game.phase={kind:'interactiveScene',scene:{id:'maintenanceShop',selectedIndex:0,maintenanceShopId:id}};
+ const before=writes;
+ if(['maintenanceDiagnosisReport','maintenanceComponent'].includes(sceneId)){game.activateInteractiveSceneOption({},`maintenanceDiagnose:${id}`);assert(writes===before+1,'real diagnostic action writes synthetic storage once');}
+ if(sceneId==='recovered'){
+  game.activateInteractiveSceneOption({},`maintenanceEmergency:${id}`);
+  assert(!deriveRestrictions(game.career.rig).some(r=>r.componentId),'zero-cash recovery clears operational damage');
+  assert(game.career.money===0&&game.career.worldTime===0,'recovery costs no credits or time');
+  assert(canTravelEmpty(game.career,'caravanserai-main-commercial-dock'),'public departure remains available');
+  assert(!canTravelEmpty(game.career,'deepest-dock-poi'),'recovery grants no private access');
+ } else game.phase.scene={id:sceneId,selectedIndex:0,maintenanceShopId:id,maintenanceComponentId:component.id};
+ draw();assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b/.test(JSON.stringify(current)),'no internal classification in scenes');
+ if(sceneId==='maintenanceReferral')assert(writes===before,'advice is free and does not save');
+}
+menu.onchange=show;window.addEventListener('resize',draw);
+window.addEventListener('keydown',e=>{
+ if(document.activeElement===menu)return;
+ const state=game.phase.scene;
+ if(['ArrowDown','ArrowUp','Enter',' ','PageDown','PageUp'].includes(e.key))e.preventDefault();
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){state.selectedIndex=(state.selectedIndex+(e.key==='ArrowDown'?1:-1)+current.options.length)%current.options.length;draw();}
+ if(e.key==='PageDown'||e.key==='PageUp'){state.bodyScrollOffset=Math.max(0,(state.bodyScrollOffset??0)+(e.key==='PageDown'?120:-120));draw();}
+ if(e.key==='Enter'||e.key===' '){const o=current.options[state.selectedIndex];if(o&&!o.disabled){if(/^(maintenance|equipment)/.test(o.action)){game.activateInteractiveSceneOption({},o.action);draw();}else game.showGuidance('Use the selector to inspect another synthetic shop.');}}
+});
+canvas.addEventListener('pointerdown',()=>document.activeElement?.blur());
+try{for(const key of Object.keys(views)){menu.value=key;show();}menu.value='Low Gauge';show();document.title='PASS — Maintenance pilot';document.getElementById('status').textContent=`PASS — ${checks} checks; 12 views. Click canvas, then arrows/Enter; Page Up/Down scrolls text. Synthetic saves only.`;}catch(e){document.title='FAIL — Maintenance pilot';document.getElementById('status').textContent=e.stack??String(e);throw e;}
+</script>

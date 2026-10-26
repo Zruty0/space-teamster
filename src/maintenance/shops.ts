@@ -1,4 +1,6 @@
 import { ESTELLA_NODES_BY_ID } from '../content/estella';
+import { physicalTerminalId } from '../physical-terminals';
+import { WEYMARK_PILOT_SHOPS } from './weymark-shops';
 import { estellaSelectableNavTargets } from '../content/estella/navigation';
 import { WELLS_FRONTIER_OUTFITTER_COPY, WELLS_FRONTIER_OUTFITTER_NAME } from '../frontier-outfitter-content';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
@@ -15,8 +17,11 @@ export interface MaintenanceShopCopy {
   repairsBlurb: string;
 }
 
+export type MaintenanceFacilityTier = -1 | 0 | 1 | 2 | 3;
 export interface MaintenanceShopDef {
   id: string;
+  /** Content classification only; never render this number. */
+  facilityTier: MaintenanceFacilityTier;
   name: string;
   organizationName?: string;
   locationIds: string[];
@@ -39,7 +44,7 @@ export interface MaintenanceQuote {
 }
 
 export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-gryphon-aerie-outfitter',
+  id: 'vilar-gryphon-aerie-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Gryphon Aerie',
   organizationName: 'House Vilar',
@@ -63,7 +68,7 @@ export const VILAR_GRYPHON_AERIE_OUTFITTER: MaintenanceShopDef = {
 };
 
 export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
-  id: 'vilar-herald-gate-outfitter',
+  id: 'vilar-herald-gate-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Herald Gate',
   organizationName: 'House Vilar',
@@ -87,7 +92,7 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
 };
 
 export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-cadiz-highport-outfitter',
+  id: 'vilar-cadiz-highport-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Cadiz Highport',
   organizationName: 'House Vilar',
@@ -111,7 +116,7 @@ export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
 };
 
 export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-hydra-maw-outfitter',
+  id: 'vilar-hydra-maw-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Hydra Maw Orbital',
   organizationName: 'House Vilar',
@@ -135,7 +140,7 @@ export const VILAR_HYDRA_MAW_OUTFITTER: MaintenanceShopDef = {
 };
 
 export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-macao-palace-outfitter',
+  id: 'vilar-macao-palace-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Macao Palace',
   organizationName: 'House Vilar',
@@ -159,7 +164,7 @@ export const VILAR_MACAO_PALACE_OUTFITTER: MaintenanceShopDef = {
 };
 
 export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-manticore-observatory-outfitter',
+  id: 'vilar-manticore-observatory-outfitter', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Manticore Observatory',
   organizationName: 'House Vilar',
@@ -183,7 +188,7 @@ export const VILAR_MANTICORE_OBSERVATORY_OUTFITTER: MaintenanceShopDef = {
 };
 
 export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
-  id: 'cadiz-armorial-shipwrights',
+  id: 'cadiz-armorial-shipwrights', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The Armorial Shipwrights at Shipwright Keep',
   organizationName: 'The Armorial Shipwrights',
@@ -207,7 +212,7 @@ export const CADIZ_ARMORIAL_SHIPWRIGHTS: MaintenanceShopDef = {
 };
 
 export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
-  id: 'serrat-domain-civil-refit-office',
+  id: 'serrat-domain-civil-refit-office', facilityTier: 3,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Serrat Domain Civil Refit Office',
   organizationName: 'Serrat Domain Shipyard Office',
@@ -231,7 +236,7 @@ export const SERRAT_DOMAIN_CIVIL_REFIT_OFFICE: MaintenanceShopDef = {
 };
 
 export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
-  id: 'keelwright-works-seconds-gate',
+  id: 'keelwright-works-seconds-gate', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The Seconds Gate at Keelwright Works',
   organizationName: 'Keelwright Works',
@@ -255,7 +260,7 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: MaintenanceShopDef = {
 };
 
 export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
-  id: 'oathmark-academy-high-pennant-yard',
+  id: 'oathmark-academy-high-pennant-yard', facilityTier: 1,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'The High Pennant Shipyard at Oathmark Academy',
   organizationName: 'Oathmark Academy',
@@ -279,7 +284,7 @@ export const OATHMARK_ACADEMY_HIGH_PENNANT_YARD: MaintenanceShopDef = {
 };
 
 export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
-  id: 'bruckner-central-service-hall',
+  id: 'bruckner-central-service-hall', facilityTier: 3,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Bruckner Central Service Hall',
   organizationName: 'Bruckner Field Services',
@@ -303,7 +308,7 @@ export const BRUCKNER_WEYMARK_SERVICE_HALL: MaintenanceShopDef = {
 };
 
 export const RED_DUST_MECHANICAL: MaintenanceShopDef = {
-  id: 'red-dust-mechanical-reclamation',
+  id: 'red-dust-mechanical-reclamation', facilityTier: 0,
   name: 'Red Dust Mechanical & Reclamation',
   organizationName: 'Red Dust Mechanical & Reclamation',
   locationIds: ['estella-v-capital-settlement'],
@@ -338,6 +343,7 @@ const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   OATHMARK_ACADEMY_HIGH_PENNANT_YARD,
   BRUCKNER_WEYMARK_SERVICE_HALL,
   RED_DUST_MECHANICAL,
+  ...WEYMARK_PILOT_SHOPS,
 ];
 
 const AUTHORED_MAINTENANCE_LOCATION_IDS = new Set(AUTHORED_MAINTENANCE_SHOPS.flatMap(shop => shop.locationIds));
@@ -346,6 +352,7 @@ export const WELLS_FRONTIER_OUTFITTERS: readonly MaintenanceShopDef[] = estellaS
   .filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === 'wells' && !AUTHORED_MAINTENANCE_LOCATION_IDS.has(target.id))
   .map(target => ({
     id: `wells-frontier-outfitter-${target.id}`,
+    facilityTier: 0 as const,
     name: WELLS_FRONTIER_OUTFITTER_NAME,
     organizationName: 'Unofficial local mechanic',
     locationIds: [target.id],
@@ -357,14 +364,29 @@ export const WELLS_FRONTIER_OUTFITTERS: readonly MaintenanceShopDef[] = estellaS
     diagnosisHours: 2,
     partsMarkup: 1.5,
     laborHoursMultiplier: 1,
-    honesty: 0.25,
+    honesty: 0.8,
     copy: WELLS_FRONTIER_OUTFITTER_COPY,
   }));
 
-export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
-  ...AUTHORED_MAINTENANCE_SHOPS,
-  ...WELLS_FRONTIER_OUTFITTERS,
-];
+const STAFFED_SHOPS = [...AUTHORED_MAINTENANCE_SHOPS, ...WELLS_FRONTIER_OUTFITTERS];
+const staffedScopes = new Set(STAFFED_SHOPS.flatMap(s => s.locationIds.map(physicalTerminalId)));
+const emergencyScopes = new Map<string, string[]>();
+for (const target of estellaSelectableNavTargets()) {
+  const physicalId = physicalTerminalId(target.id);
+  if (!staffedScopes.has(physicalId)) emergencyScopes.set(physicalId, [...(emergencyScopes.get(physicalId) ?? []), target.id]);
+}
+/** Self-help, not invented staff. Temporary fallbacks disappear as real shops open. */
+export const EMERGENCY_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...emergencyScopes].map(([physicalId, locationIds]) => ({
+  id: `emergency-${physicalId}`, facilityTier: -1, name: 'Emergency restart procedure', locationIds,
+  diagnosticGrade: 'F', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F',
+  laborRate: 0, diagnosisHours: 0, partsMarkup: 1, laborHoursMultiplier: 1, honesty: 1,
+  copy: {
+    profileBlurb: 'Use the rig’s emergency checklist to reset departure-critical systems. This is a self-help procedure: it restores basic operation without buying parts or carrying out routine servicing.',
+    levelBlurb: 'Emergency recovery and directions to a workshop',
+    diagnosisBlurb: '', serviceBlurb: '', repairsBlurb: '',
+  },
+}));
+export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...STAFFED_SHOPS, ...EMERGENCY_MAINTENANCE_SHOPS];
 
 export function maintenanceShopById(id: string): MaintenanceShopDef | undefined {
   return MAINTENANCE_SHOPS.find(shop => shop.id === id);
@@ -451,6 +473,7 @@ export function fabricatedRepairQuote(
   shop: MaintenanceShopDef,
   claim: FabricatedFaultClaim,
 ): (MaintenanceQuote & { repair: string; workGrade: WorkGrade }) | undefined {
+  if (shop.facilityTier === -1) return undefined;
   const component = maintenanceComponentById(claim.componentId);
   const state = rig.components[claim.componentId];
   const fault = fabricatedFaultById(claim.faultId);
@@ -468,6 +491,7 @@ export function fabricatedRepairQuote(
 }
 
 export function diagnoseRigAtShop(rig: CareerRigState, shop: MaintenanceShopDef): number {
+  if (shop.facilityTier === -1) return 0;
   let changed = 0;
   for (const [componentId, state] of Object.entries(rig.components)) {
     if (!state.installed || !state.fault || state.fault.diagnosis === 'confirmed') continue;
@@ -488,6 +512,7 @@ export function diagnoseRigAtShop(rig: CareerRigState, shop: MaintenanceShopDef)
 }
 
 export function componentNeedsService(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): boolean {
+  if (shop.facilityTier === -1) return false;
   const component = maintenanceComponentById(componentId);
   const state = rig.components[componentId];
   return !!component && !!state?.installed && state.ap < componentServicedAp(component, state.grade, shop.workQualityGrade);
@@ -499,6 +524,7 @@ export function systemServiceQuote(
   systemId: MaintenanceSystemId,
   fabricatedServiceComponentIds: readonly ComponentId[] = [],
 ): MaintenanceQuote {
+  if (shop.facilityTier === -1) return { credits: 0, laborHours: 0 };
   const system = maintenanceSystemById(systemId);
   const fabricated = new Set(fabricatedServiceComponentIds);
   const authoredHours = system.componentIds.reduce((sum, componentId) => {
@@ -528,6 +554,7 @@ export function systemNeedsService(rig: CareerRigState, shop: MaintenanceShopDef
 }
 
 export function repairQuote(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): (MaintenanceQuote & { repair: string; workGrade: WorkGrade }) | undefined {
+  if (shop.facilityTier === -1) return undefined;
   const component = maintenanceComponentById(componentId);
   const state = rig.components[componentId];
   if (!component || !state?.installed || !state.fault || state.fault.severity === 'total' || state.fault.diagnosis !== 'confirmed') return undefined;
@@ -545,6 +572,7 @@ export function repairQuote(rig: CareerRigState, shop: MaintenanceShopDef, compo
 }
 
 export function stockedComponentGrades(shop: MaintenanceShopDef): ComponentGrade[] {
+  if (shop.facilityTier === -1) return [];
   const best = COMPONENT_GRADES.indexOf(shop.componentGradeBest);
   const worst = COMPONENT_GRADES.indexOf(shop.componentGradeWorst);
   return COMPONENT_GRADES.slice(Math.min(best, worst), Math.max(best, worst) + 1);
@@ -559,6 +587,7 @@ export function replacementGradeAtShop(shop: MaintenanceShopDef, currentGrade: C
 }
 
 export function replacementQuote(rig: CareerRigState, shop: MaintenanceShopDef, componentId: ComponentId): (MaintenanceQuote & { grade: ComponentGrade; exact: boolean }) | undefined {
+  if (shop.facilityTier === -1) return undefined;
   const component = maintenanceComponentById(componentId);
   const state = rig.components[componentId];
   if (!component || !state?.installed || !state.fault) return undefined;

@@ -17,10 +17,11 @@ const targets = estellaSelectableNavTargets();
 const groups = new Map<string, string[]>();
 for (const t of targets) { const id = contractLocationId(t.id); groups.set(id, [...(groups.get(id) ?? []), t.id]); }
 const prototypes: MaintenanceShopDef[] = [
-  { ...MAINTENANCE_SHOPS[0], id: 'proposed-0', name: 'Proposed basic mechanic', locationIds: [], equipmentIds: [], diagnosticGrade: 'E', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F', laborRate: 250, partsMarkup: 1.15, laborHoursMultiplier: 1, honesty: 1 },
+  { ...MAINTENANCE_SHOPS[0], id: 'proposed-0', facilityTier: 0, name: 'Proposed basic mechanic', locationIds: [], equipmentIds: [], diagnosticGrade: 'E', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F', laborRate: 250, partsMarkup: 1.15, laborHoursMultiplier: 1, honesty: 0.95 },
+  { ...MAINTENANCE_SHOPS[0], id: 'proposed-wells-0', facilityTier: 0, name: 'Wells basic mechanic', locationIds: [], equipmentIds: [], diagnosticGrade: 'E', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F', laborRate: 250, partsMarkup: 1.5, laborHoursMultiplier: 1, honesty: 0.8 },
   { ...MAINTENANCE_SHOPS[0], id: 'proposed-1', name: 'Proposed professional', locationIds: [] },
-  { ...MAINTENANCE_SHOPS[0], id: 'proposed-2', name: 'Proposed full service', locationIds: [], diagnosticGrade: 'B', workQualityGrade: 'B', componentGradeBest: 'B', componentGradeWorst: 'D', laborRate: 800, laborHoursMultiplier: 0.9 },
-  { ...MAINTENANCE_SHOPS[0], id: 'proposed-3', name: 'Proposed Rochefort elite', locationIds: [], diagnosticGrade: 'A', workQualityGrade: 'A', componentGradeBest: 'A', componentGradeWorst: 'D', laborRate: 1400, partsMarkup: 1.1, laborHoursMultiplier: 0.8 },
+  { ...MAINTENANCE_SHOPS[0], id: 'proposed-2', facilityTier: 2, name: 'Proposed full service', locationIds: [], diagnosticGrade: 'B', workQualityGrade: 'B', componentGradeBest: 'B', componentGradeWorst: 'D', laborRate: 800, laborHoursMultiplier: 0.9 },
+  { ...MAINTENANCE_SHOPS[0], id: 'proposed-3', facilityTier: 3, name: 'Proposed Rochefort elite', locationIds: [], diagnosticGrade: 'A', workQualityGrade: 'A', componentGradeBest: 'A', componentGradeWorst: 'D', laborRate: 1400, partsMarkup: 1.1, laborHoursMultiplier: 0.8 },
 ];
 function measure(s: MaintenanceShopDef) {
   const rig = createDefaultRigState(true);
@@ -54,9 +55,9 @@ if (new Set(plannedShops.map(p => p.shopId)).size !== plannedShops.length || new
 for (const p of proposal) {
   const site = siteById.get(p.physicalId);
   if (!site || JSON.stringify([...p.receivingIds].sort()) !== JSON.stringify(site.members.map(m => m.id).sort())) throw new Error(`Physical membership mismatch: ${p.physicalId}`);
-  if (p.tier !== null && ![0, 1, 2, 3].includes(p.tier)) throw new Error(`Invalid proposed tier: ${p.physicalId}`);
+  if (p.tier !== null && ![-1, 0, 1, 2, 3].includes(p.tier)) throw new Error(`Invalid proposed tier: ${p.physicalId}`);
   if (p.tier === null ? p.shopId !== null || p.directoryId !== null : !p.shopId || !p.directoryId) throw new Error(`Service account/exclusion mismatch: ${p.physicalId}`);
-  if (site.shops.length && (!site.shops.includes(p.shopId!) || !site.directoryIds.includes(p.directoryId!))) throw new Error(`Existing service account must survive: ${p.physicalId}`);
+  if (site.shops.some(id => !id.startsWith('emergency-')) && (!site.shops.includes(p.shopId!) || !site.directoryIds.includes(p.directoryId!))) throw new Error(`Existing staffed service account must survive: ${p.physicalId}`);
   const r = p.referralPhysicalId && planById.get(p.referralPhysicalId);
   if (p.tier !== null && p.tier < 3) {
     if (!r || r.tier === null || r.tier <= p.tier) throw new Error(`Referral must increase capability: ${p.physicalId}`);
@@ -75,4 +76,4 @@ const routeProbe = [
   const selected = preferredContractTransfer(options);
   return { sourceId, destinationId, optionCount: options.length, selected: selected && {waitTime: selected.waitTime, transferTime: selected.transferTime} };
 });
-console.log(JSON.stringify({ proposalCounts: Object.fromEntries([null, 0, 1, 2, 3].map(tier => [String(tier), proposal.filter(p => p.tier === tier).length])), routeProbe, counts: {rawPoi: ESTELLA_NODES.filter(n=>n.kind==='poi').length, selectable: targets.length, physical: sites.length, physicalWithShops: sites.filter(s=>s.shops.length).length, authoredShops: shops.filter(s=>!s.id.startsWith('wells-frontier')).length, fallbackShops: shops.filter(s=>s.id.startsWith('wells-frontier')).length, uniqueFaults:faults.size, componentFaultPairs: MAINTENANCE_COMPONENTS.flatMap(c=>componentFaults(c)).length}, coverage, highestComplexity: [...faults.values()].filter(f => f.workGrade === 'A').map(f => ({name:f.name, repair:f.repair, components:MAINTENANCE_COMPONENTS.filter(c=>componentFaults(c).some(cf=>cf.id===f.id)).map(c=>c.name)})), nonselectable, sites, shops, proposedQuotes: prototypes.map(measure) }, null, 2));
+console.log(JSON.stringify({ proposalCounts: Object.fromEntries([-1, 0, 1, 2, 3].map(tier => [String(tier), proposal.filter(p => p.tier === tier).length])), routeProbe, counts: {rawPoi: ESTELLA_NODES.filter(n=>n.kind==='poi').length, selectable: targets.length, physical: sites.length, physicalWithShops: sites.filter(s=>s.shops.length).length, authoredShops: shops.filter(s=>s.facilityTier >= 0 && !s.id.startsWith('wells-frontier')).length, emergencyDesks: shops.filter(s=>s.facilityTier === -1).length, fallbackShops: shops.filter(s=>s.id.startsWith('wells-frontier')).length, uniqueFaults:faults.size, componentFaultPairs: MAINTENANCE_COMPONENTS.flatMap(c=>componentFaults(c)).length}, coverage, highestComplexity: [...faults.values()].filter(f => f.workGrade === 'A').map(f => ({name:f.name, repair:f.repair, components:MAINTENANCE_COMPONENTS.filter(c=>componentFaults(c).some(cf=>cf.id===f.id)).map(c=>c.name)})), nonselectable, sites, shops, proposedQuotes: prototypes.map(measure) }, null, 2));

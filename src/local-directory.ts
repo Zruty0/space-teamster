@@ -1,8 +1,9 @@
-import { estellaLocationScopeIds } from './content/estella/location-aliases';
+import { localTerminalScopeIds } from './physical-terminals';
+export { localTerminalScopeIds, sharedTerminalParentId } from './physical-terminals';
+import { MAINTENANCE_SHOPS } from './maintenance/shops';
+import { WELLS_FRONTIER_OUTFITTER_SUMMARY } from './frontier-outfitter-content';
 import { PURCHASABLE_TEAMSTER_LICENSES, type TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
-import { estellaSelectableNavTargets } from './content/estella/navigation';
-import { WELLS_FRONTIER_OUTFITTER_COPY, WELLS_FRONTIER_OUTFITTER_NAME, WELLS_FRONTIER_OUTFITTER_SUMMARY } from './frontier-outfitter-content';
 
 export interface LocalDirectoryActionDef {
   id: string;
@@ -55,17 +56,6 @@ export interface LocalContactPresentation {
   dialogue: string[];
 }
 
-const SHARED_TERMINAL_PARENT_KINDS = new Set(['station', 'atmospheric-station', 'asteroid', 'comet-fragment']);
-
-export function sharedTerminalParentId(locationId: string): string | undefined {
-  const node = ESTELLA_NODES_BY_ID.get(locationId);
-  if (!node) return undefined;
-  if (SHARED_TERMINAL_PARENT_KINDS.has(node.kind)) return node.id;
-  if (node.placement?.kind !== 'aboard') return undefined;
-  const parent = ESTELLA_NODES_BY_ID.get(node.placement.parentId);
-  return parent && SHARED_TERMINAL_PARENT_KINDS.has(parent.kind) ? parent.id : undefined;
-}
-
 function ancestorIdOfKind(locationId: string, kinds: Set<string>): string | undefined {
   let node = ESTELLA_NODES_BY_ID.get(locationId);
   const seen = new Set<string>();
@@ -92,23 +82,6 @@ function withinContactRange(currentLocationId: string, contactLocationId: string
   }
   const currentRegion = ESTELLA_NODES_BY_ID.get(currentLocationId)?.regionId;
   return currentRegion !== undefined && currentRegion === ESTELLA_NODES_BY_ID.get(contactLocationId)?.regionId;
-}
-
-/** Shared terminals and explicitly consolidated city districts. Other surface sites stay separate. */
-export function localTerminalScopeIds(locationId: string): string[] {
-  const city = estellaLocationScopeIds(locationId);
-  if (city.length > 1) return city;
-  const parentId = sharedTerminalParentId(locationId);
-  if (!parentId) return [locationId];
-  const selectableIds = new Set(estellaSelectableNavTargets().map(target => target.id));
-  const siblingPoiIds = [...ESTELLA_NODES_BY_ID.values()]
-    .filter(node => node.kind === 'poi' && node.placement?.kind === 'aboard' && node.placement.parentId === parentId && selectableIds.has(node.id))
-    .map(node => node.id);
-  const ordered = [
-    ...(selectableIds.has(locationId) ? [locationId] : []),
-    ...siblingPoiIds.filter(id => id !== locationId),
-  ];
-  return ordered.length ? ordered : [locationId];
 }
 
 export const GIDEON_BELL: LocalContactDef = {
@@ -689,44 +662,35 @@ const AUTHORED_LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   GIDEON_BELL,
 ];
 
-const AUTHORED_OUTFITTER_LOCATION_IDS = new Set(AUTHORED_LOCAL_DIRECTORY_ENTRIES
-  .filter(entry => entry.maintenanceShopId)
-  .flatMap(entry => entry.locationIds));
-
-export const WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES: readonly LocalOfficeDef[] = estellaSelectableNavTargets()
-  .filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === 'wells' && !AUTHORED_OUTFITTER_LOCATION_IDS.has(target.id))
-  .map(target => {
-    const maintenanceShopId = `wells-frontier-outfitter-${target.id}`;
-    return {
-      kind: 'office',
-      id: `${maintenanceShopId}-office`,
-      name: WELLS_FRONTIER_OUTFITTER_NAME,
-      locationIds: [target.id],
-      summary: WELLS_FRONTIER_OUTFITTER_SUMMARY,
-      description: WELLS_FRONTIER_OUTFITTER_COPY.profileBlurb,
-      maintenanceShopId,
-      actions: [],
-    };
-  });
+const AUTHORED_SHOP_IDS = new Set(AUTHORED_LOCAL_DIRECTORY_ENTRIES.map(entry => entry.maintenanceShopId));
+/** One registry decides coverage; directory listings cannot diverge from shops. */
+const GENERATED_SHOP_ENTRIES: LocalOfficeDef[] = MAINTENANCE_SHOPS
+  .filter(shop => !AUTHORED_SHOP_IDS.has(shop.id))
+  .map(shop => ({
+    kind: 'office', id: `${shop.id}-office`, name: shop.name,
+    locationIds: shop.locationIds, summary: shop.id.startsWith('wells-frontier-outfitter-') ? WELLS_FRONTIER_OUTFITTER_SUMMARY : shop.copy.levelBlurb,
+    description: shop.copy.profileBlurb, maintenanceShopId: shop.id, actions: [],
+  }));
+export const WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES = GENERATED_SHOP_ENTRIES.filter(entry => entry.maintenanceShopId?.startsWith('wells-frontier-outfitter-'));
 
 export const LOCAL_DIRECTORY_ENTRIES: LocalDirectoryEntryDef[] = [
   ...AUTHORED_LOCAL_DIRECTORY_ENTRIES,
-  ...WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES,
+  ...GENERATED_SHOP_ENTRIES,
 ];
 
 export type LocalDirectoryAccess = 'local' | 'remote';
 
-export function localDirectoryEntryAccess(entry: LocalDirectoryEntryDef, locationId: string): LocalDirectoryAccess | undefined {
-  const scope = new Set(localTerminalScopeIds(locationId));
+export function localDirectoryEntryAccess(entry: LocalDirectoryEntryDef, locationId: string, scope: ReadonlySet<string> = new Set(localTerminalScopeIds(locationId))): LocalDirectoryAccess | undefined {
   if (entry.locationIds.some(id => scope.has(id))) return 'local';
   if (entry.kind === 'contact' && entry.locationIds.some(id => withinContactRange(locationId, id, entry.commsRange))) return 'remote';
   return undefined;
 }
 
 export function localDirectoryEntriesAt(locationId: string, certifications: readonly TeamsterCertificationId[]): LocalDirectoryEntryDef[] {
+  const scope = new Set(localTerminalScopeIds(locationId));
   return LOCAL_DIRECTORY_ENTRIES.filter(entry => {
     if (entry.requiresCertification && !certifications.includes(entry.requiresCertification)) return false;
-    const access = localDirectoryEntryAccess(entry, locationId);
+    const access = localDirectoryEntryAccess(entry, locationId, scope);
     return access !== undefined && (access === 'local' || entry.listedRemotely !== false);
   });
 }

@@ -98,7 +98,7 @@ audit({ title: 'Stress case', options: [{ label: 'VeryLongUnbrokenEquipmentName'
 
 for (const shop of MAINTENANCE_SHOPS) {
   game.career = { ...profile, locationId: shop.locationIds[0], rig: createDefaultRigState(true), maintenanceShopInspections: {} };
-  for (const id of ['maintenanceShop', 'maintenanceDiagnosisConfirm']) audit(game.maintenanceShopScene({ id, selectedIndex: 0 }, shop, shop.name));
+  for (const id of ['maintenanceShop', 'maintenanceDiagnosisConfirm', 'maintenanceReferral', 'maintenanceEmergencyConfirm']) audit(game.maintenanceShopScene({ id, selectedIndex: 0 }, shop, shop.name));
   game.career.maintenanceShopInspections[shop.id] = { diagnosedWorldTime: 0, diagnosedMaintenanceMission: 0, creditRemaining: 1000, dishonestyRevision: 2, fabricatedFaults: [], fabricatedServiceComponentIds: [], pretendMaintainedComponentIds: [] };
   for (const component of Object.values(game.career.rig.components) as any[]) component.ap = 0;
   for (const id of ['maintenanceShop', 'maintenanceDiagnosisReport', 'maintenanceService', 'maintenanceServiceAllConfirm', 'maintenanceFaults', 'maintenanceRepairAllConfirm']) audit(game.maintenanceShopScene({ id, selectedIndex: 0 }, shop, shop.name));
