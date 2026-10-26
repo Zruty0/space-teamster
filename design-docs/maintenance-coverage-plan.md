@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — approved staged plan
 
 Updated: 2026-10-26
-Status: Stage 1 reviewed; Stage 2 implemented for review. Stop before Stage 3 rollout. Each stage requires separate approval.
+Status: Stages 1 and 2 reviewed. Complete Stage 3 copy delivered for comments; await explicit copy approval before rollout. Each stage requires separate approval.
 
 Canonical details: [reviewed specification](maintenance-stage-1-specification.md), [complete roster](maintenance-stage-1-roster.md), [Stage 2 handoff](maintenance-stage-2.md). Pete's original `zzz` comments and their resolutions remain in the specification.
 
@@ -31,7 +31,7 @@ The specification records exact service defaults, commercial exceptions, 26 full
 
 ## Stage 2 — Shared machinery and Weymark pilot
 
-**Implemented for review.**
+**Implemented and reviewed**, including the grounded-only restart correction (`429b54a`).
 - One shop registry supplies generated directory entries; shared physical scope logic prevents duplicate berth services.
 - Internal facility metadata and natural-language facilities descriptions.
 - Free normal/elite referrals, including references to approved future facilities.
@@ -40,9 +40,11 @@ The specification records exact service defaults, commercial exceptions, 26 full
 - Approved basic honesty values. Existing named shops otherwise retain prices, capabilities and prose; Cadiz's later upgrade has not happened.
 - Synthetic-profile desktop preview, real transaction tests, save-failure checks and ordinary regressions.
 
-**Gate:** review the pilot's actual interactions, writing, distinctions, referrals and emergency recovery before broader rollout.
+**Gate passed:** Pete asked to proceed after the emergency-copy and grounded-only corrections. This authorizes preparing the Stage 3 copy review, not bypassing it.
 
 ## Stage 3 — Everyday system-wide coverage
+
+**Complete copy delivered:** [Stage 3 copy review](maintenance-stage-3-copy-review.md) contains 49 shared sets, 15 retained authored sets, all 159 location/account mappings and all 281 expanded referral lines. Read-only audit: `node tests/audit-maintenance-stage-3-copy.mjs`. No Stage 3 runtime changes yet.
 
 1. Generate `maintenance-stage-3-copy-review.md` containing **all Stage 3 copy, not samples**: shared planetary/regional sets, reused text, local exceptions, shop/directory names, profiles, facilities, diagnosis, service, repairs, referrals and any new UI wording.
 2. Include the exact location-to-template mapping and substitution values. Shared prose appears once; every distinct variant is included.

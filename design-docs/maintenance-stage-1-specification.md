@@ -1,7 +1,7 @@
 # Maintenance coverage — reviewed specification
 
 Updated: 2026-10-26
-Status: Stage 1 reviewed and accepted with the comments below. Stage 2 implements the shared machinery, Weymark pilot and emergency recovery. Later stages remain approval-gated; Stage 3 requires a complete Markdown copy review before rollout.
+Status: Stage 1 reviewed and accepted with the comments below; Stage 2 implemented and reviewed. The [complete Stage 3 copy review](maintenance-stage-3-copy-review.md) is delivered for comments. Later stages remain approval-gated; await explicit copy approval before Stage 3 rollout.
 
 See the [complete roster](maintenance-stage-1-roster.md), [delivery plan](maintenance-coverage-plan.md) and [Stage 2 handoff](maintenance-stage-2.md). Original comments were committed unchanged in `23821fa`; each is preserved verbatim below with its resolution.
 

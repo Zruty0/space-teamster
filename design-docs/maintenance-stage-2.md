@@ -1,7 +1,7 @@
 # Maintenance Stage 2 — Weymark pilot and shared services
 
 Updated: 2026-10-26
-Status: implemented for review. **Stop before Stage 3 rollout.** All Stage 3 copy must first be delivered as complete Markdown for comments.
+Status: reviewed, including the grounded-only restart correction. [Complete Stage 3 copy](maintenance-stage-3-copy-review.md) is now delivered for comments. **Await explicit copy approval before Stage 3 rollout.**
 
 ## Review
 
