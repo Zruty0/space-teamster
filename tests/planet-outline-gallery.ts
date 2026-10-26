@@ -2,7 +2,10 @@ import '../src/content/estella';
 import { BODIES as ESTELLA_BODIES } from '../src/world';
 import { drawAuthoredWorldDisc } from '../src/world-disc-appearance';
 import { drawBalorDisc } from '../src/balor-appearance';
-import { drawOutlineWorld, hasOutlineWorld, LIQUID_DOTS } from '../src/world-outline-appearance';
+import { drawOutlineWorld, hasOutlineWorld, MATERIAL_FILL, OUTLINE_INK, terrainOutlineInk } from '../src/world-outline-appearance';
+import { gasGiantProfileFor } from '../src/content/estella/gas-giant-appearance';
+import { icyWorldProfileFor } from '../src/content/estella/icy-world-appearance';
+import { softGiantDiagnostics } from '../src/soft-giant-appearance';
 import { productionWeatherProfiles } from '../src/atmosphere-art-state';
 import { createAtmospherePrototype } from '../src/atmosphere-prototype';
 import { createShip } from '../src/ship';
@@ -29,9 +32,9 @@ function base(id:string){
  ctx.fillStyle='#000';ctx.fillRect(0,0,960,360);
  for(const side of [0,1]){
   const offset=side*480;
-  ctx.fillStyle='#9cb6a8';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(side?'AFTER · OUTLINES':'BEFORE · CURRENT',240+offset,22);
+  ctx.fillStyle='#9cb6a8';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(side?'AFTER · REVISED STYLE':'BEFORE · CURRENT',240+offset,22);
   for(const [x,y,r]of [[240,180,140],[420,264,22],[420,314,8]]){
-   if(side)drawOutlineWorld(ctx,id,x+offset,y,r,0,!!model?.underdeck);
+   if(side)drawOutlineWorld(ctx,id,x+offset,y,r,0,!!model?.underdeck,b.color);
    else if(model?.underdeck){
     ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=model.underdeck;ctx.fill();const shade=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.1,x,y,r*1.3);shade.addColorStop(0,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,.38)');ctx.fillStyle=shade;ctx.fill();ctx.restore();
    }else if(id==='estella-i')drawBalorDisc(ctx,x,y,r,0);
@@ -62,28 +65,44 @@ async function checks(){
  const probe=document.createElement('canvas');probe.width=probe.height=320;const ctx=probe.getContext('2d',{willReadFrequently:true})!;
  try{
   assert(engines.length===2,'native weather checks require WebGL2');
-  assert(bodies.length===33,'all 33 authored globes represented');assert(LIQUID_DOTS.length<150,'very sparse stable liquid stipple');
+  assert(bodies.length===33,'all 33 authored globes represented');
   const coverage:Record<string,number>={};
   for(const b of bodies){
-   ctx.clearRect(0,0,320,320);let arcPixels=Infinity;
+   ctx.clearRect(0,0,320,320);let pathHasArc=false;const strokes:string[]=[],strokeWidths:number[]=[],fills:string[]=[],giant=!!gasGiantProfileFor(b.id),palette=terrainOutlineInk(b.color);
+   const materials:string[]=b.id==='estella-i'?[OUTLINE_INK.lava]:['estella-iii','estella-iv'].includes(b.id)?[OUTLINE_INK.water,OUTLINE_INK.ice]:icyWorldProfileFor(b.id)?[OUTLINE_INK.ice]:[];
+   const fillMaterials:string[]=b.id==='estella-i'?[MATERIAL_FILL.lava]:b.id==='estella-iii'?[MATERIAL_FILL.water,MATERIAL_FILL.ice]:b.id==='estella-iv'||icyWorldProfileFor(b.id)?[MATERIAL_FILL.ice]:[];
    const guarded=new Proxy(ctx,{get(target,key){
-    if(key==='arc')return(...args:Parameters<CanvasRenderingContext2D['arc']>)=>{const m=target.getTransform();arcPixels=args[2]*Math.hypot(m.a,m.b);return target.arc(...args);};
+    if(key==='beginPath')return()=>{pathHasArc=false;target.beginPath();};
+    if(key==='arc')return(...args:Parameters<CanvasRenderingContext2D['arc']>)=>{pathHasArc=true;return target.arc(...args);};
+    if(key==='stroke')return()=>{strokes.push(String(target.strokeStyle));const m=target.getTransform();strokeWidths.push(target.lineWidth*Math.hypot(m.a,m.b));target.stroke();};
     if(key==='fill'||key==='fillRect')return(...args:any[])=>{
-     const liquid=['estella-i','estella-iii','estella-iv'].includes(b.id)&&['#476e79','#c59a58'].includes(String(target.fillStyle))&&arcPixels<=.8&&key==='fill';
-     if(target.fillStyle!=='#000000'&&!liquid)throw Error(`Non-outline fill: ${b.id} ${target.fillStyle}`);
+     const material=fillMaterials.includes(String(target.fillStyle));fills.push(String(target.fillStyle));
+     if(material&&key==='fill'&&pathHasArc)throw Error('Stipple is forbidden');
+     if(target.fillStyle!==palette.background&&!material)throw Error(`Unexpected fill: ${b.id} ${target.fillStyle}`);
      return(target[key]as Function).apply(target,args);
     };
     const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
    },set(target,key,value){return Reflect.set(target,key,value,target);}});
-   assert(drawOutlineWorld(guarded,b.id,160,160,140),'outline dispatch / black-only fills except subpixel liquid dots');const first=hash(probe);
+   assert(drawOutlineWorld(guarded,b.id,160,160,140,0,false,b.color),'dispatch / dark planetary and regional fills, no stipple');const first=hash(probe);
+   if(!giant){
+    ctx.fillStyle=`rgb(${b.color.join(',')})`;assert(strokes[strokes.length-1]===ctx.fillStyle,'outer rim uses catalog planet color: '+b.id);
+    const allowed:string[]=[palette.land,palette.minor,...materials];
+    assert(b.id==='estella-ii'||strokes.slice(0,-1).every(c=>allowed.includes(c)),'gray-tinted planetary terrain / material exceptions: '+b.id);
+    assert(Math.abs(strokeWidths[strokeWidths.length-1]-3)<1e-6&&strokeWidths.slice(0,-1).every(w=>w<=1.11),'thicker rim only: '+b.id);
+    assert(fills.every(c=>Math.max(...[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)))<=32),'very dark fills leave outline dominant: '+b.id);
+    assert(b.id!=='estella-iv'||!fills.includes(MATERIAL_FILL.water),'Dahai retains its dark planet-blue background');
+   }
    let ink=0,inside=0;const p=ctx.getImageData(0,0,320,320).data;
    for(let y=0;y<320;y++)for(let x=0;x<320;x++){const d=Math.hypot(x+.5-160,y+.5-160),i=(y*320+x)*4;
     if(d<138){inside++;if(Math.max(p[i],p[i+1],p[i+2])>25)ink++;}
     if(d>142&&p[i+3])throw Error(`paint escaped limb: ${b.id}`);
    }
-   coverage[b.id]=ink/inside;assert(ink/inside<.25,'mostly negative space even on densely banded giants: '+b.id);assert(ink>10,'surface features retained: '+b.id);
-   ctx.clearRect(0,0,320,320);drawOutlineWorld(ctx,b.id,160,160,140);assert(hash(probe)===first,'deterministic geometry replay: '+b.id);
-   for(const r of [4,8,22,60,140,300]){ctx.clearRect(0,0,320,320);assert(drawOutlineWorld(ctx,b.id,160,160,r),'chart/close sizes');}
+   coverage[b.id]=ink/inside;assert(giant?ink/inside>.85:ink/inside<.25,'colored giant / negative-space nongiant: '+b.id);
+   if(giant){const alpha=(fraction:number)=>p[(160*320+Math.round(160+140*fraction))*4+3];
+    assert(alpha(.85)===255,'giant opaque core');assert(alpha(.97)>20&&alpha(.97)<210,'giant feathered limb');assert(alpha(.995)<80&&alpha(1.02)===0,'giant feather ends inside original extent');
+   }assert(ink>10,'surface features retained: '+b.id);
+   ctx.clearRect(0,0,320,320);drawOutlineWorld(ctx,b.id,160,160,140,0,false,b.color);assert(hash(probe)===first,'deterministic geometry replay: '+b.id);
+   for(const r of [4,8,22,60,140,300]){ctx.clearRect(0,0,320,320);assert(drawOutlineWorld(ctx,b.id,160,160,r,0,false,b.color),'chart/close sizes');}
   }
   assert(!drawOutlineWorld(ctx,'unknown',160,160,140),'unknown world declines');
   assert(!drawOutlineWorld(ctx,'estella-iii',0,0,NaN),'invalid view declines');
@@ -91,12 +110,15 @@ async function checks(){
   for(const m of models){
    const engine=engines[1];engine.render(0,m.profile);ctx.clearRect(0,0,320,320);ctx.drawImage(engine.canvas,0,0,320,320);const first=hash(probe);
    const bytes=ctx.getImageData(0,0,320,320).data;let visible=0;for(let i=3;i<bytes.length;i+=4)if(bytes[i]>20)visible++;
+   let samples=0,worstColorError=0;for(let i=0;i<bytes.length;i+=4)if(bytes[i+3]>=64){samples++;for(let k=0;k<3;k++)worstColorError=Math.max(worstColorError,Math.abs(bytes[i+k]-m.profile.cloudColor[k]*255));}
+   assert(samples>0&&worstColorError<8,'weather wisps retain profile hue: '+m.id);
    cloudCoverage[m.id]=visible/(Math.PI*160*160);assert(cloudCoverage[m.id]<.24,'wisps do not become filled decks: '+m.id);assert(visible>0,'weather remains visible: '+m.id);
    engine.render(37,m.profile);ctx.clearRect(0,0,320,320);ctx.drawImage(engine.canvas,0,0,320,320);assert(hash(probe)!==first,'weather moves: '+m.id);
    engine.render(0,m.profile);ctx.clearRect(0,0,320,320);ctx.drawImage(engine.canvas,0,0,320,320);assert(hash(probe)===first,'weather rewind replay: '+m.id);
    await new Promise(requestAnimationFrame);
   }
   assert(engines.every(e=>e.diagnostics().noiseCacheEntries<=8&&e.diagnostics().error===0),'bounded noise caches/no WebGL errors');
+  assert(softGiantDiagnostics().entries<=3&&softGiantDiagnostics().pixels<=3*512*512,'bounded soft-giant backing');
   assert(JSON.stringify(ESTELLA_BODIES)===catalogBefore,'catalog and physics unchanged');
   return{passed:true,checks:count,coverage,cloudCoverage,worlds:bodies.map(b=>b.id),engines:engines.map(e=>e.diagnostics())};
  }finally{weather.checked=wasWeather;time=wasTime;world.value=wasWorld;invalidate();checking=false;draw(true);}

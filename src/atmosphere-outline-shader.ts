@@ -15,8 +15,8 @@ export const ATMOSPHERE_OUTLINE_FRAGMENT=ATMOSPHERE_FRAGMENT.slice(0,shading)+`
   float breakup=smoothstep(.40,.57,noise3(p*8.+vec3(17.,29.,4.)));
   float taper=1.-smoothstep(.965,1.,sqrt(rr));
   float ink=(contour*.7+secondary*.32)*breakup*taper;
-  // Pale neutral thread; planet/material colour is not a background wash.
-  vec3 color=vec3(.66,.77,.72);
+  // Keep each world's authored weather hue, without restoring its filled deck.
+  vec3 color=clamp(cloudColor,0.,1.);
   result=vec4(color*ink,ink);
 }
 `;
