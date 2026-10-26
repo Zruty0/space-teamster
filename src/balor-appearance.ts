@@ -19,6 +19,8 @@ const CRUST=Object.freeze([[.91,-.09,.012,.019],[.94,.07,.008,.027],[.88,.025,.0
   const a=i/17*Math.PI*2,r=1+.18*Math.sin(a*3+phase)+.1*Math.cos(a*5-phase);
   return[x+Math.cos(a)*rx*r,y+Math.sin(a)*ry*r];
 }))));
+const EYE_GEOMETRY=Object.freeze({shore:SHORE,crust:CRUST});
+export function balorEyeGeometry(){return EYE_GEOMETRY;}
 function trace(ctx:CanvasRenderingContext2D,points:readonly Point[],inset=0){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x+inset,y):ctx.moveTo(x+inset,y));}
 function cap(ctx:CanvasRenderingContext2D,inset=0){trace(ctx,SHORE,inset);ctx.lineTo(1.1,EYE_HEIGHT);ctx.lineTo(1.1,-EYE_HEIGHT);ctx.closePath();}
 export function drawBalorDisc(ctx:CanvasRenderingContext2D,cx:number,cy:number,radius:number,eyeAngle:number):void{

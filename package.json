@@ -27,6 +27,7 @@
     "test:surface-poi": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/surface-poi.test.ts",
     "test:atmosphere": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/atmosphere-prototype.test.ts",
     "test:world-discs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/world-disc-appearance.test.ts",
+    "test:planet-outlines": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/world-outline.test.ts",
     "test:empty-runs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/empty-runs.test.ts",
     "test:balor-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor-expansion.test.ts",
     "audit:balor": "node tests/run-equipment.mjs tests/audit-balor-shipping.ts",

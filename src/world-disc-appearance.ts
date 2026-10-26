@@ -50,6 +50,13 @@ const ICE_EDGES = [-1, 1].map(sign => Array.from({ length: 97 }, (_, i): Point =
   return [x, y];
 }));
 
+// Read-only geometry access for the outline-style review; production paint unchanged.
+const freezeRegions=(regions:readonly (readonly Point[])[])=>Object.freeze(regions.map(points=>Object.freeze(points.map(p=>Object.freeze([...p]) as Point))));
+let gaiaGeometry:Readonly<{land:readonly (readonly Point[])[];forests:readonly (readonly Point[])[];islands:readonly (readonly Point[])[];iceEdges:readonly (readonly Point[])[]}>|undefined;
+export function gaiaDiscGeometry() {
+  return gaiaGeometry??=Object.freeze({land:freezeRegions(COASTS),forests:freezeRegions(FORESTS),islands:freezeRegions(ISLANDS),iceEdges:freezeRegions(ICE_EDGES)});
+}
+
 /** Ocean/greenery world with oversized, irregular ice caps. Shared at all scales. */
 export function drawGaiaDisc(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number): void {
   if (!beginDisc(ctx, cx, cy, radius)) return;

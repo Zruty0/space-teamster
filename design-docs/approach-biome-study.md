@@ -1,7 +1,7 @@
 # Hartwell approach / departure biome study
 
 Updated: 2026-10-26 (Pacific)
-Status: Pete approved production integration2026-10-24. Hartwell approach/departure live. Separate Dawes Cut surface-art test bed approved/enabled2026-10-26: [surface-poi-art.md](surface-poi-art.md). Other landing sites/worlds and all flight physics unchanged.
+Status: Pete approved production integration2026-10-24. Hartwell approach/departure live. Separate Dawes Cut surface-art test bed approved/enabled2026-10-26: [surface-poi-art.md](surface-poi-art.md). Other landing sites/worlds and all flight physics unchanged. Pete subsequently requests a wireframe-like visual backtrack: [wireframe-visual-review.md](wireframe-visual-review.md). Current filled implementation is still live while the planet comparison is reviewed; these earlier style approvals are superseded.
 
 ## Approved model
 

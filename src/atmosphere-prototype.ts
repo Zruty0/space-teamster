@@ -1,5 +1,6 @@
 import { atmosphereNoise, atmosphereVortices, atmospherePhase, atmosphereProfile, type AtmosphereProfile } from './atmosphere-prototype-profile';
 import { ATMOSPHERE_VERTEX, ATMOSPHERE_FRAGMENT } from './atmosphere-prototype-shader';
+import { ATMOSPHERE_OUTLINE_FRAGMENT } from './atmosphere-outline-shader';
 import { createAtmosphereGpuTimer } from './atmosphere-prototype-timing';
 export { GAIA_ATMOSPHERE_PROFILE, atmosphereProfile, atmospherePhase } from './atmosphere-prototype-profile';
 export type { AtmosphereProfile } from './atmosphere-prototype-profile';
@@ -7,7 +8,7 @@ export type { AtmosphereProfile } from './atmosphere-prototype-profile';
 /** Visual core shared by game and review tools. Bounded seed cache / one output; no
  * accumulated frame cache. This generator can later be used by an offline baker.
  * No imports from orbital, missions, physics, weather, saves or world catalog. */
-export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1){
+export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1,style:'filled'|'outline'='filled'){
   if(!Number.isInteger(resolution)||resolution<64||resolution>1024)throw Error('Atmosphere resolution must be 64–1024');
   if(!Number.isInteger(noiseCacheCapacity)||noiseCacheCapacity<1||noiseCacheCapacity>16)throw Error('Noise cache capacity must be 1–16');
   const canvas=document.createElement('canvas');canvas.width=canvas.height=resolution;
@@ -24,7 +25,7 @@ export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1){
       gl.shaderSource(s,source);gl.compileShader(s);
       if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s)??'Atmosphere shader compilation failed');return s;
     };
-    const vertex=compile(gl.VERTEX_SHADER,ATMOSPHERE_VERTEX),fragment=compile(gl.FRAGMENT_SHADER,ATMOSPHERE_FRAGMENT);
+    const vertex=compile(gl.VERTEX_SHADER,ATMOSPHERE_VERTEX),fragment=compile(gl.FRAGMENT_SHADER,style==='outline'?ATMOSPHERE_OUTLINE_FRAGMENT:ATMOSPHERE_FRAGMENT);
     program=gl.createProgram();if(!program)throw Error('Cannot create atmosphere program');
     gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)??'Atmosphere linking failed');
@@ -91,6 +92,11 @@ export function createAtmospherePrototype(resolution=512,noiseCacheCapacity=1){
         const p=atmosphereProfile(profile),rgb=p.hazeColor.map(c=>Math.round(c*255)).join(',');
         let lod=0;while(lod+1<mipmaps.length&&mipmaps[lod+1].cloud.width>=radius*2*(1+p.cloudHeight))lod++;
         const image=mipmaps[lod];
+        if(style==='outline'){
+          // Unresolved contour mipmaps would average into a filled haze on tiny markers.
+          if(radius<14)return;
+          ctx.save();const r=radius*(1+p.cloudHeight);ctx.drawImage(image.cloud,cx-r,cy-r,r*2,r*2);ctx.restore();return;
+        }
         ctx.save();ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.clip();
         ctx.globalAlpha=p.shadow;ctx.drawImage(image.shadow,cx-radius+radius*.012,cy-radius+radius*.016,radius*2,radius*2);ctx.globalAlpha=1;
         const veil=ctx.createRadialGradient(cx,cy,radius*.15,cx,cy,radius);

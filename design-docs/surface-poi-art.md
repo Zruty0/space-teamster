@@ -1,7 +1,7 @@
 # Surface POI SVG — Dawes Cut test bed
 
 Updated: 2026-10-26 (Pacific)
-Status: approved by Pete and enabled in the actual Dawes Cut surface renderer. Other sites/worlds unchanged; no collision/flight redesign.
+Status: this original filled test bed remains live at Dawes, but Pete subsequently rejects the painted direction and requests wireframe-like visuals throughout. Planet comparison first: [wireframe-visual-review.md](wireframe-visual-review.md). Surface conversion is pending that review; no collision/flight redesign.
 
 ## Scope
 
