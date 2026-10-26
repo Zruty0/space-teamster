@@ -7,7 +7,7 @@ import type { MaintenanceShopDef } from './shops';
 
 /** Minimal recovery, not an inspection, upgrade, service or paid repair. */
 export function emergencyRestartNeeded(profile: Pick<CareerProfile, 'rig'>): boolean {
-  return deriveRestrictions(profile.rig).some(r => r.componentId !== undefined);
+  return deriveRestrictions(profile.rig).some(r => r.id === 'grounded' && r.componentId !== undefined);
 }
 
 /** Pure transaction; caller saves once before publishing. No money or time gate. */

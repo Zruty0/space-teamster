@@ -2194,7 +2194,7 @@ export class Game {
     const referrals = maintenanceReferrals(shop);
     const restartNeeded = emergencyRestartNeeded(this.career);
     const referralOptions = referrals.length ? [{ label: 'Where can I get more advanced work done?', detail: 'Ask for workshop directions. No inspection or fee required.', action: `maintenanceReferral:${shop.id}`, tone: 'primary' as const, disabled: !local }] : [];
-    const restartOption = { label: 'Emergency restart', detail: restartNeeded ? 'Restore basic operation without a repair bill. Routine servicing is separate.' : 'No departure-critical systems need an emergency restart.', action: `maintenanceEmergencyConfirm:${shop.id}`, tone: 'primary' as const, disabled: !local || !restartNeeded };
+    const restartOption = { label: 'Emergency restart', detail: restartNeeded ? 'Restore basic operation without a repair bill.' : 'Available only when damage grounds the rig.', action: `maintenanceEmergencyConfirm:${shop.id}`, tone: 'primary' as const, disabled: !local || !restartNeeded };
     if (state.id === 'maintenanceReferral') return {
       title: 'WORKSHOP DIRECTIONS', subtitle: shop.name,
       bodyRows: referrals.flatMap(referral => [
@@ -2207,8 +2207,8 @@ export class Game {
     if (state.id === 'maintenanceEmergencyConfirm') return {
       title: 'EMERGENCY RESTART', subtitle: shop.name,
       bodyRows: [
-        { kind: 'text', text: 'Run the emergency checklist and reset damaged systems needed for basic operation. This costs no credits or work time. It preserves your installed parts and does not replenish routine service protection.' },
-        { kind: 'text', text: 'Ordinary repairs, servicing and equipment purchases remain separate. Flight clearances and atmospheric equipment requirements still apply.' },
+        { kind: 'text', text: 'Run the emergency checklist and reset damaged systems needed for basic operation. This costs no credits or work time. It preserves your installed parts.' },
+        { kind: 'text', text: 'Flight clearances and atmospheric equipment requirements still apply.' },
       ],
       footer: 'Enter/Space: choose',
       options: [
@@ -3269,7 +3269,7 @@ export class Game {
         if (!next) return;
         try { saveCareerProfile(next); } catch { this.showGuidance('Emergency restart could not be saved.'); return; }
         this.career = next;
-        this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: 'Departure-critical systems restarted. No charge. Routine maintenance remains separate.' } };
+        this.phase = { kind: 'interactiveScene', scene: { id: 'maintenanceShop', selectedIndex: 0, maintenanceShopId: shopId, maintenanceReceipt: 'Departure-critical systems restarted. No charge.' } };
       }
       return;
     }

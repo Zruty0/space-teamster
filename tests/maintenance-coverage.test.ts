@@ -25,6 +25,15 @@ function broken(locationId: string) {
   for (const s of Object.values(p.rig.components)) if (s.installed) { s.hp = 0; s.ap = 0; s.fault = { severity: 'total', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 }; }
   return p;
 }
+// Restricted operation alone must not unlock free emergency recovery.
+for (const component of MAINTENANCE_COMPONENTS) for (const severity of ['minor', 'major', 'total'] as const) {
+  const p = profile(WEYMARK_PILOT_SHOPS[0].locationIds[0]);
+  if (!p.rig.components[component.id].installed) continue;
+  p.rig.components[component.id].fault = { severity, diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
+  const grounded = deriveRestrictions(p.rig).some(r => r.id === 'grounded');
+  equal(emergencyRestartNeeded(p), grounded, `grounded-only eligibility: ${component.id}/${severity}`);
+  if (!grounded) assert(!emergencyRestart(p, WEYMARK_PILOT_SHOPS[0]), 'nongrounding damage cannot trigger recovery');
+}
 const targets = estellaSelectableNavTargets();
 assert(MAINTENANCE_SHOPS.length === 159, 'one service or emergency desk per physical site');
 assert(EMERGENCY_MAINTENANCE_SHOPS.length === 93, 'only three new staffed pilot shops; remaining gaps get self-help');
@@ -49,6 +58,7 @@ for (const shop of MAINTENANCE_SHOPS) {
   for (const id of ['maintenanceShop', 'maintenanceReferral', 'maintenanceEmergencyConfirm']) {
     const scene = game.maintenanceShopScene({ id, selectedIndex: 0 }, shop, shop.name);
     assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(scene)), 'internal facility classes never rendered');
+    assert(!/routine.*separate|servicing.*separate/i.test(JSON.stringify(scene)), 'removed maintenance disclaimer stays absent');
   }
   const p = broken(shop.locationIds[0]);
   const before = JSON.stringify(p);
@@ -148,4 +158,14 @@ for (const op of ['maintenanceDiagnose', 'maintenanceServiceAll', 'maintenanceRe
 action(`maintenanceWork:${selfHelp.id}:powertrain-main-drive-core:replace`);
 equal(JSON.stringify(game.career), beforePaidBypass, 'forged paid actions cannot turn self-help into a shop');
 equal(writes, beforePaidWrites, 'forged paid actions never save');
+game.career = profile(basic.locationIds[0]);
+game.career.rig.components['powertrain-main-drive-core'].fault = { severity: 'major', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
+assert(deriveRestrictions(game.career.rig).some(r => r.id === 'high-thrust-unavailable'), 'nongrounded fixture has a real operating restriction');
+const restrictedBefore = JSON.stringify(game.career), restrictedWrites = writes;
+const restrictedScene = game.maintenanceShopScene({ id: 'maintenanceShop', selectedIndex: 0 }, basic, basic.name);
+assert(restrictedScene.options.find((o: any) => o.action === `maintenanceEmergencyConfirm:${basic.id}`).disabled, 'nongrounded emergency button is disabled');
+action(`maintenanceEmergencyConfirm:${basic.id}`);
+action(`maintenanceEmergency:${basic.id}`);
+equal(JSON.stringify(game.career), restrictedBefore, 'nongrounded direct actions cannot recover the rig');
+equal(writes, restrictedWrites, 'nongrounded actions never save');
 console.log(`Maintenance coverage: ${checks} checks; 159 physical scopes, 66 staffed shops, 93 self-help desks; all 63 legacy shop quotes preserved.`);

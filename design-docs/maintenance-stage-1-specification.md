@@ -188,6 +188,7 @@ The interaction is available before paid diagnosis. It names the shop and physic
 **Resolution:** Added a free **Emergency restart procedure** wherever no staffed workshop currently exists. It is self-help, not invented resident staff. Staffed shops expose the same free restart so a zero or negative balance cannot leave operational damage unrepairable merely because a paid mechanic is present.
 
 The restart:
+- Is enabled only when damage causes the actual `grounded` restriction; lesser operating restrictions alone do not qualify (Stage 2 review clarification).
 - Requires no paid inspection, credits, work time or parts purchase.
 - Clears faults causing operating restrictions and raises those installed components only to minimum fault-free operating HP.
 - Preserves component grade, AP, installed equipment, RNG, mission counters, money and world time. It does not provide full servicing, improve parts or repair unrelated nonblocking faults.

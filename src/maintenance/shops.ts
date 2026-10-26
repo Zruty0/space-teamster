@@ -381,7 +381,7 @@ export const EMERGENCY_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...em
   diagnosticGrade: 'F', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F',
   laborRate: 0, diagnosisHours: 0, partsMarkup: 1, laborHoursMultiplier: 1, honesty: 1,
   copy: {
-    profileBlurb: 'Use the rig’s emergency checklist to reset departure-critical systems. This is a self-help procedure: it restores basic operation without buying parts or carrying out routine servicing.',
+    profileBlurb: 'When damage grounds the rig, use its emergency checklist to reset departure-critical systems and restore basic operation. This is a self-help procedure.',
     levelBlurb: 'Emergency recovery and directions to a workshop',
     diagnosisBlurb: '', serviceBlurb: '', repairsBlurb: '',
   },

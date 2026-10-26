@@ -31,7 +31,7 @@ All eight `zzz` comments remain verbatim in the [reviewed specification](mainten
 
 There are now **66 staffed shops and 93 self-help entries**, exactly one maintenance entry per physical scope across all **159 playable physical destinations / 177 operational POIs**. The 93 entries are not 93 newly populated workshops. They are the rig's own emergency procedure; staffed service replaces these placeholders only in later approved stages. Nine sites remain permanently emergency-only in the final roster.
 
-The free restart is available before diagnosis at both normal shops and self-help entries. It clears damage-caused operating restrictions and restores affected installed components to minimum fault-free HP, leaving AP, grade and equipment unchanged. Nonblocking faults remain for ordinary repairs. It costs no credits or world time, changes no RNG or mission counters and works with negative funds. It invalidates superseded inspection findings while retaining unused service credits.
+The free restart is available before diagnosis at both normal shops and self-help entries, **only when damage causes the actual `grounded` restriction**. Lesser operating restrictions alone do not enable it. This ground-only gate applies to both the button and the transaction; the “routine maintenance is separate” disclaimer has been removed from player-facing copy. It clears damage-caused operating restrictions and restores affected installed components to minimum fault-free HP, leaving AP, grade and equipment unchanged. Nonblocking faults remain for ordinary repairs. It costs no credits or world time, changes no RNG or mission counters and works with negative funds. It invalidates superseded inspection findings while retaining unused service credits.
 
 This is deliberately a recovery safety valve, not a full restoration, parts upgrade, equipment grant, rescue flight or teleport. Optional equipment never installed remains absent. Travel clearance and qualifications remain unchanged. Public outbound empty routes are checked from every operational POI after recovery; Farwatch still forbids empty arrivals, and private destinations remain undisclosed by ordinary referrals.
 
@@ -50,7 +50,7 @@ A restart saves once before publishing state. Save failure leaves everything unc
 
 ## Validation
 
-- `npm run test:maintenance-coverage`: 11,469 checks; all physical scopes, live directories, normal/elite referrals, future-shop references, public permissions, pilot fault-capability matrix, recovery, zero/negative funds, immutable inputs and atomic failure.
+- `npm run test:maintenance-coverage`: 12,078 checks; grounded-only recovery eligibility, all physical scopes, live directories, normal/elite referrals, future-shop references, public permissions, pilot fault-capability matrix, recovery, zero/negative funds, immutable inputs and atomic failure.
 - Independent pre-edit Stage 1 fixture protects **all 63 legacy shop commercial attributes and exact diagnosis, service, replacement and equipment quotes**, except the approved Wells honesty change. No baseline regenerated from the implementation.
 - Existing maintenance inspection tests: 55 checks; equipment: 4,599; menus: 386,790; empty runs: 2,913 plus 35 rendering checks; contract presentation: 119,370. Typecheck and production build pass with existing Vite warnings.
 - Native desktop preview: 12 real scenes, 21 checks; diagnosis and emergency transactions use synthetic storage. All views captured; workshop, directions and recovered-state screenshots inspected. No mobile testing or live-save changes.
