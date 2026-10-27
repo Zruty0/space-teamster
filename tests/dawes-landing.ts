@@ -91,7 +91,7 @@ async function checks(){
   const footer=ctx.getImageData(0,686,1,34).data;assert(footer.every((v,i)=>v===(i%4===3?255:0)),'opaque black control strip');
   const scratch=document.createElement('canvas');scratch.width=1200;scratch.height=720;const s=scratch.getContext('2d',{willReadFrequently:false})!;
   scenery(s,current.camera,terrain,level,1200,720,0);const scene=s.getImageData(0,0,1200,180).data;
-  const cutX=Math.round(600+(930-current.camera.x)*z),cutY=Math.round(360-(60-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
+  const cutX=Math.round(600+(960-current.camera.x)*z),cutY=Math.round(360-(60-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
   const deckPixel=s.getImageData(Math.round(600+(960-current.camera.x)*z),Math.round(360-(15-current.camera.y)*z),1,1).data;
   assert(deckPixel[0]===18&&deckPixel[1]===16&&deckPixel[2]===14&&deckPixel[3]===255,'opaque SVG deck replaces natural terrain across footprint');
   createHartwellOutlineScenery(hartwellApproachRegion(DAWES_CUT_ID),'background')(s,landingBackdropCamera(current.camera,terrain),{localDir:-1},{body:level.body,poi:level.poi,gateX:0},1200,720);
@@ -106,10 +106,13 @@ async function checks(){
    assert(wa.every((v,i)=>i%4!==3||v===cb[i]),`${module.id}: palette swap preserves silhouette/anchors`);
    assert(wa.some((v,i)=>i%4!==3&&wa[(i>>2)*4+3]>200&&v!==cb[i]),`${module.id}: SVG responds to environment palette`);
   }
-  for(const [id,x,y]of [['warehouse-main',-326,-20],['warehouse-rear',-410,-35],['residential-dome',336,-50]]as const){
+  for(const [id,x,y]of [['warehouse-main',-586,-20],['warehouse-rear',-714,-35],['residential-dome',-342,-75]]as const){
    const m=basicOutpost().modules.find(m=>m.id===id)!,c=warm.images.get(id)!;
    assert(c.getContext('2d')!.getImageData((x-m.bounds.x)*2,(y-m.bounds.y)*2,1,1).data[3]===255,`${id}: solid opaque building interior`);
   }
+  const domeModule=basicOutpost().modules.find(m=>m.id==='residential-dome')!,domeCanvas=warm.images.get(domeModule.id)!;
+  const blue=domeCanvas.getContext('2d')!.getImageData((-320-domeModule.bounds.x)*2,(-95-domeModule.bounds.y)*2,1,1).data;
+  assert(blue[3]===255&&blue[2]>blue[0]*2&&blue[2]>blue[1],'enlarged dome has opaque blue surfaces');
   for(const mode of ['overview','close','entry']){
    reset(mode);const actual=hash(image());game.landingScenery=()=>false;game.renderGameplayPhase(current,'Practice complete',level.poi.name,'Hartwell',false);
    assert(hash(image())!==actual,`${mode}: actual Game installs new surface art`);game.landingScenery=scenery;draw();
@@ -122,10 +125,10 @@ async function checks(){
   assert(a.ship.dvUsed>0&&JSON.stringify(a.ship)===JSON.stringify(b.ship),'real controls/physics and retry deterministic');
   reset('close');current.ship.y=terrain.pad.y+4;current.ship.vy=0;game.checkLandingCollision(current);
   assert(current.state==='landed','real pad touchdown still works');
-  reset('close');current.ship.x=820;current.ship.y=getTerrainHeight(terrain,820);game.checkLandingCollision(current);
+  reset('close');current.ship.x=1140;current.ship.y=getTerrainHeight(terrain,1140);game.checkLandingCollision(current);
   assert(current.state==='crashed','original terrain obstacles still collide');
-  for(const [x,y]of [[918.5,40],[1084,53]]){reset('close');current.ship.x=x;current.ship.y=y;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
-  reset('close');const previous={...current.ship,x:1040,y:56,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:1104});game.checkLandingCollision(current);
+  for(const [x,y]of [[853.5,40],[914.5,60]]){reset('close');current.ship.x=x;current.ship.y=y;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
+  reset('close');const previous={...current.ship,x:865,y:70,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:965});game.checkLandingCollision(current);
   assert(current.state==='flying','fast sweep endpoint clear');game.checkLandingCollision(current,previous);assert(current.state==='crashed','actual Game swept hull cannot cross a dome');
   reset('takeoff');advance(.3);assert(current.state==='flying'&&Math.abs(current.ship.y-(level.padY+4.05))<.01,'real launch hold on original pad');
   advance(3,{throttleUp:true});assert(current.state==='flying'&&current.ship.y>level.padY+10,'takeoff from foreground pad works');

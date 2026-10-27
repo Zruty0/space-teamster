@@ -49,20 +49,22 @@ export function placeSurfacePoi(asset:SurfacePoiAsset,pad:SurfacePad,height:(x:n
 export function surfaceBeaconOn(time:number):boolean {
   const t=((time%1.4)+1.4)%1.4;return t<.16||(t>=.30&&t<.46);
 }
+// Flat deck needs no supersampling; keep enlarged sites within the same raster cap.
+export function surfacePoiRasterScale(module:SurfacePoiModule):number{return module.layer==='deck'?1:2;}
 export function surfacePoiModuleSvg(svg:string,asset:SurfacePoiAsset,module:SurfacePoiModule,theme:SurfacePoiTheme):string {
   const tokens=Object.entries(theme).map(([key,value])=>{
     if(!['wall','roof','edge','trim','dust','glass','light','pad'].includes(key)||!/^#[0-9a-f]{6}$/i.test(value!))throw Error('Invalid surface POI theme');
     return`--poi-${key}:${value};`;
   }).join('');
-  const b=module.bounds;
-  return svg.replace(/<svg\b[^>]*>/,`<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(b.width*2)}" height="${Math.ceil(b.height*2)}" viewBox="${b.x} ${b.y} ${b.width} ${b.height}">`)
+  const b=module.bounds,scale=surfacePoiRasterScale(module);
+  return svg.replace(/<svg\b[^>]*>/,`<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(b.width*scale)}" height="${Math.ceil(b.height*scale)}" viewBox="${b.x} ${b.y} ${b.width} ${b.height}">`)
     .replace('</svg>',`<style>:root{${tokens}}${asset.modules.map(m=>`#${m.id}{display:${m.id===module.id?'inline':'none'}}`).join('')}</style></svg>`);
 }
 /** One caller-owned raster set, not a global cache per location/planet. No animated SVG redecodes. */
 export function createSurfacePoiArtwork(theme:SurfacePoiTheme={},svg=basicOutpostSvg){
   const asset=svg===basicOutpostSvg?basicOutpost():parseSurfacePoiSvg(svg);
-  const rasterPixels=asset.modules.reduce((n,m)=>n+Math.ceil(m.bounds.width*2)*Math.ceil(m.bounds.height*2),0);
-  if(rasterPixels>1048576||asset.modules.some(m=>m.bounds.width*2>2048||m.bounds.height*2>2048))throw Error('Surface POI raster budget exceeded');
+  const rasterPixels=asset.modules.reduce((n,m)=>n+Math.ceil(m.bounds.width*surfacePoiRasterScale(m))*Math.ceil(m.bounds.height*surfacePoiRasterScale(m)),0);
+  if(rasterPixels>1048576||asset.modules.some(m=>m.bounds.width*surfacePoiRasterScale(m)>2048||m.bounds.height*surfacePoiRasterScale(m)>2048))throw Error('Surface POI raster budget exceeded');
   const images=new Map<string,HTMLCanvasElement>();let failed=false;
   const ready=Promise.all(asset.modules.map(module=>new Promise<void>((resolve,reject)=>{
     const image=new Image();

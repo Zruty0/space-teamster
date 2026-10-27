@@ -20,12 +20,16 @@ assert(HARTWELL_OUTPOST_THEME.dust===HARTWELL_SURFACE_STYLE.ground,'dust inherit
 for(const width of [28,56,140])for(const center of [-500,0,1000])for(const altitude of [0,30,4000]){
  const pad={left:center-width/2,right:center+width/2,y:altitude,centerX:center};
  const p=placeSurfacePoi(asset,pad,x=>altitude+2*Math.sin(x/20));
- assert(p.width===4*width,'whole outpost exactly four pad widths');
+ assert(Math.abs(p.width-width*1200/224)<1e-10,'expanded deck scales from the unchanged pad anchors');
  assert(p.x+asset.pad.left*p.scale===pad.left&&p.x+asset.pad.right*p.scale===pad.right,'SVG pad never widens/offsets landing zone');
  const deck=p.modules.find(m=>m.module.layer==='pad')!;
  assert(deck.y-asset.pad.y*p.scale===pad.y,'deck aligned to real collision altitude');
  for(const m of p.modules)assert(m.y===altitude+asset.pad.y*p.scale,'foreground modules share the engineered deck');
 }
+const solids=terrain.surfaceSite!.solids,dome=solids.find(s=>s.id==='dome')!,warehouse=solids.find(s=>s.id==='warehouse-main')!;
+assert(dome.right-dome.left>(warehouse.right-warehouse.left)*1.5&&dome.top-terrain.pad.y>(warehouse.top-terrain.pad.y)*1.5,'dome substantially wider and taller than warehouse');
+assert(solids.every(s=>s.right<terrain.pad.left),'all buildings on the left side of the pad');
+assert(warehouse.right<dome.left&&dome.right<terrain.pad.left-20,'separate buildings with clear pad approach');
 // Original outer mesh plus explicit vertical cut faces and replacement deck.
 for(const [a,b]of [[-500,500],[883.5,1010.2],[990,1200],[1700,2300]]){
  const points=landingSurfacePoints(terrain,a,b);
@@ -58,7 +62,7 @@ for(const m of asset.modules){
  assert(warm.includes(`viewBox="${m.bounds.x} ${m.bounds.y} ${m.bounds.width} ${m.bounds.height}"`),'per-module raster crop anchored in authored SVG');
  assert(JSON.stringify(parseSurfacePoiSvg(svg))===JSON.stringify(asset),'independent SVG parse replay');
 }
-for(const bad of [svg.replace('"version":1','"version":2'),svg.replace('"width":896','"width":0'),svg.replace('id="residential-dome"','id="missing"'),svg.replace('</svg>','<script>bad()</script></svg>')]){
+for(const bad of [svg.replace('"version":1','"version":2'),svg.replace('"width":1200','"width":0'),svg.replace('id="residential-dome"','id="missing"'),svg.replace('</svg>','<script>bad()</script></svg>')]){
  let threw=false;try{parseSurfacePoiSvg(bad);}catch{threw=true;}assert(threw,'invalid authoring metadata rejected');
 }
 let rejected=false;try{surfacePoiModuleSvg(svg,asset,asset.modules[0],{dust:'url(external)'});}catch{rejected=true;}assert(rejected,'theme accepts color values only');
