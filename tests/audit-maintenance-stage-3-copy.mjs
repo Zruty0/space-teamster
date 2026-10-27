@@ -7,6 +7,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const markdown = (await readFile(join(root, 'design-docs/maintenance-stage-3-copy-review.md'), 'utf8')).replace(/\r\n/g, '\n');
+const fullMarkdown = (await readFile(join(root, 'design-docs/maintenance-stage-4.md'), 'utf8')).replace(/\r\n/g, '\n');
+const fullReview = new Map([...fullMarkdown.matchAll(/^### ([a-z0-9-]+) — ([^\n]+)\n([\s\S]*?)(?=^### |^## |$(?![\s\S]))/gm)].map(m => [m[1], {
+  name: m[2], fields: Object.fromEntries([...m[3].matchAll(/^\*\*([^*]+):\*\* (.+)$/gm)].map(f => [f[1], f[2]])),
+}]));
 const roster = JSON.parse(await readFile(join(root, 'design-docs/maintenance-stage-1-roster.json'), 'utf8'));
 const baseline = JSON.parse(await readFile(join(root, 'tests/fixtures/maintenance-stage-1-shops.json'), 'utf8'));
 const originalIds = new Set([...baseline.shops.map(s => s.id), 'maintenance-estella-viii-mining-site', 'maintenance-estella-viii-settlement', 'maintenance-estella-viii-friendly-station']);
@@ -30,6 +34,11 @@ const families = new Map([...markdown.matchAll(/^### ([FL]\d+) — ([^\n]+)\n([\
   name: match[2], fields: Object.fromEntries([...match[3].matchAll(/^\*\*([^*]+):\*\* (.+)$/gm)].map(m => [m[1], m[2]])),
 }]));
 assert(families.size === 64, 'all 49 shared and 15 retained sets present');
+equal([...fullReview.keys()].sort(), roster.filter(r => r.tier === 2 && r.physicalId !== 'estella-viii-friendly-station').map(r => r.physicalId).sort(), 'exact 25 authorized Stage 4 overrides');
+for (const [id, entry] of fullReview) {
+  for (const field of ['Account', 'Staff', 'Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs', 'Referral']) assert(entry.fields[field], `${id}: complete bespoke ${field}`);
+  assert(entry.fields.Referral.includes('{name}') && !/\[person\]/.test(entry.fields.Referral), `${id}: public destination substitution and plain referral rendering`);
+}
 assert([...markdown.matchAll(/^### [FL]\d+ — /gm)].length === 64, 'no duplicate copy-set definitions');
 for (const [id, family] of families) {
   for (const field of ['Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs']) {
@@ -72,6 +81,8 @@ try {
     const id = row.physicalId, assignment = assignments.get(id), account = accounts.get(id);
     const [physical, name, directoryName, organization, familyId, terms] = assignment;
     const family = families.get(familyId);
+    const full = fullReview.get(id);
+    const fields = full?.fields ?? family?.fields;
     assert(family, `${id}: defined copy set`);
     for (const text of [name, directoryName, organization]) assert(text && !/\{|\}|\b(?:TODO|TBD)\b|\btier\s*-?\d/i.test(text), `${id}: complete literal displayed name`);
     usedFamilies.add(familyId);
@@ -87,14 +98,18 @@ try {
     const live = shops.find(s => physicalTerminalId(s.locationIds[0]) === id);
     assert(live, `${id}: runtime covered`);
     equal(live.id, row.shopId, `${id}: correct live account`);
-    equal(live.facilityTier, tier, `${id}: actual stage capability`);
+    equal(live.facilityTier, full ? 2 : tier, `${id}: actual stage capability`);
+    if (full) {
+      equal([full.name, code(fields.Account)], [live.name, live.id], `${id}: bespoke names/accounts retained`);
+      equal(live.copy.referralBlurb, fields.Referral, `${id}: bespoke referral template`);
+    } else assert(!live.copy.referralBlurb, `${id}: no extra unapproved bespoke referral`);
     const liveDirectory = directories.find(d => d.maintenanceShopId === live.id);
     assert(liveDirectory, `${id}: live directory present`);
     equal([live.name, live.organizationName ?? '—', liveDirectory.name, liveDirectory.id], [name, organization, directoryName, row.directoryId], `${id}: exact approved names and directory`);
     const resolveCopy = text => text === '—' ? '' : text.split('{place}').join(nodes.get(id).name);
-    for (const [label, key] of Object.entries({ Profile: 'profileBlurb', Facilities: 'levelBlurb', Diagnosis: 'diagnosisBlurb', Service: 'serviceBlurb', Repairs: 'repairsBlurb' })) equal(live.copy[key], resolveCopy(family.fields[label]), `${id}: actual ${label} matches approved copy`);
-    equal(liveDirectory.summary, resolveCopy(family.fields['Directory summary']), `${id}: actual directory summary`);
-    equal(liveDirectory.description, resolveCopy(family.fields['Directory description'] ?? family.fields.Profile), `${id}: actual directory description`);
+    for (const [label, key] of Object.entries({ Profile: 'profileBlurb', Facilities: 'levelBlurb', Diagnosis: 'diagnosisBlurb', Service: 'serviceBlurb', Repairs: 'repairsBlurb' })) equal(live.copy[key], resolveCopy(fields[label]), `${id}: actual ${label} matches reviewed copy`);
+    equal(liveDirectory.summary, resolveCopy(fields['Directory summary']), `${id}: actual directory summary`);
+    equal(liveDirectory.description, resolveCopy(full && !familyId.startsWith('L') ? fields.Profile : family.fields['Directory description'] ?? family.fields.Profile), `${id}: actual directory description`);
     if (originalIds.has(live.id)) retainedAccounts++;
     else if (tier >= 0) newStaffed++;
     const authored = familyId.startsWith('L');
@@ -103,7 +118,7 @@ try {
       retained++;
       assert(familyId.startsWith('L'), `${id}: authored set retained`);
       equal([name, organization, directoryName], [live.name, live.organizationName ?? '—', directory.name], `${id}: exact retained names`);
-      equal(terms, `${live.facilityTier} / unchanged`, `${id}: no premature authored upgrade`);
+      equal(terms, `${full ? 1 : live.facilityTier} / unchanged`, `${id}: only the approved Cadiz authored upgrade`);
       for (const [label, key] of Object.entries({ Profile: 'profileBlurb', Facilities: 'levelBlurb', Diagnosis: 'diagnosisBlurb', Service: 'serviceBlurb', Repairs: 'repairsBlurb' })) {
         equal(family.fields[label], live.copy[key], `${id}: exact retained ${label}`);
       }
@@ -114,7 +129,7 @@ try {
       equal(terms.split(' / ')[1], row.tier < 0 ? 'E0' : row.tier > 0 ? 'S1' : row.terms, `${id}: approved everyday terms`);
       if (live.id.startsWith('wells-frontier-outfitter-') && tier === 1) promotedWells++;
       assert(!familyId.startsWith('L'), `${id}: mapped shared set`);
-      const expectedTerms = tier < 0 ? ['F', 'F', 'F', 'F', 0, 0, 1, 1, 1] : tier > 0 ? ['C', 'D', 'D', 'D', 500, 2, 1, 1, 1] : ['E', 'F', 'F', 'F', 250, 2, row.terms === 'W0' ? 1.5 : 1.15, 1, row.terms === 'W0' ? 0.8 : 0.95];
+      const expectedTerms = full ? ['B', 'B', 'B', 'D', 800, 2, 1, 0.9, 1] : tier < 0 ? ['F', 'F', 'F', 'F', 0, 0, 1, 1, 1] : tier > 0 ? ['C', 'D', 'D', 'D', 500, 2, 1, 1, 1] : ['E', 'F', 'F', 'F', 250, 2, row.terms === 'W0' ? 1.5 : 1.15, 1, row.terms === 'W0' ? 0.8 : 0.95];
       equal([live.diagnosticGrade, live.workQualityGrade, live.componentGradeBest, live.componentGradeWorst, live.laborRate, live.diagnosisHours, live.partsMarkup, live.laborHoursMultiplier, live.honesty], expectedTerms, `${id}: actual approved commercial terms`);
       equal(live.equipmentIds ?? [], tier > 0 ? ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'] : [], `${id}: actual equipment offering`);
       if (family.name === 'Wells mechanic') {
@@ -142,7 +157,9 @@ try {
       return { entrance, variant, output: `${sentence}<br>${estellaDisplayPath(target)}` };
     });
     equal(referrals.get(id).slice(1), [expected[0]?.output ?? '—', expected[1]?.output ?? '—', expected.map(r => r.variant).join(', ') || '—', expected.map(r => '`' + r.entrance + '`').join('; ') || '—'], `${id}: complete expanded referrals and exact public entrances`);
-    equal(source.maintenanceReferrals(live).map(r => ({ entrance: r.entranceId, output: `${source.maintenanceReferralText(r)}<br>${r.path}` })), expected.map(({ entrance, output }) => ({ entrance, output })), `${id}: actual referral output matches every approved line`);
+    const liveExpected = expected.map(({ entrance, output }, index) => ({ entrance, output: full && index === 0 ? fields.Referral.split('{name}').join(assignments.get(targetIds[0])[1]) + '<br>' + estellaDisplayPath(targetIds[0]) : output }));
+    if (full) assert(expected.length === 1 && plans.get(targetIds[0]).tier === 3, `${id}: bespoke advice names one elite`);
+    equal(source.maintenanceReferrals(live).map(r => ({ entrance: r.entranceId, output: `${source.maintenanceReferralText(r)}<br>${r.path}` })), liveExpected, `${id}: actual referral output matches reviewed line`);
   }
   equal(counts, { '-1': 9, '0': 57, '1': 90, '2': 1, '3': 2 }, 'stage snapshot');
   equal([retained, retainedAccounts, newStaffed, promotedWells], [15, 66, 84, 25], 'retained businesses/accounts and approved rollout changes');
@@ -152,7 +169,8 @@ try {
     const id = roster.find(r => nodes.get(r.physicalId).name === place).physicalId;
     equal(families.get(assignments.get(id)[4]).name, expectedFamily, `${place}: reviewed local variant`);
   }
-  console.log(`Stage 3 runtime copy: ${checks} checks; 64 complete sets, 159 physical sites, 177 receiving IDs, ${publicReferrals} exact public referral lines; all approved copy and terms match.`);
+  equal([-1, 0, 1, 2, 3].map(t => shops.filter(s => s.facilityTier === t).length), [9, 57, 65, 26, 2], 'Stage 4 live snapshot, no elite expansion');
+  console.log(`Stage 3/4 runtime copy: ${checks} checks; 64 complete sets, 159 physical sites, 177 receiving IDs, ${publicReferrals} exact public referral lines; 25 explicit bespoke overrides; all other approved copy and terms unchanged.`);
 } finally {
   await rm(temp, { recursive: true, force: true });
 }

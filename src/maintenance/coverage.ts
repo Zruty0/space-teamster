@@ -1,5 +1,6 @@
 import { ESTELLA_NODES_BY_ID } from '../content/estella';
 import { COVERAGE_COPY } from './coverage-copy';
+import { FULL_SERVICE_COPY } from './full-service-copy';
 import { COVERAGE_SITES, type CoverageTerms } from './coverage-sites';
 import type { MaintenanceShopDef } from './shops';
 
@@ -19,17 +20,24 @@ const terms: Record<CoverageTerms, Terms> = {
   E0: { ...basic, facilityTier: -1, diagnosticGrade: 'F', laborRate: 0, diagnosisHours: 0, partsMarkup: 1, honesty: 1 },
 };
 
+const fullService: Terms = {
+  ...terms.S1, facilityTier: 2, diagnosticGrade: 'B', workQualityGrade: 'B', componentGradeBest: 'B',
+  laborRate: 800, laborHoursMultiplier: 0.9,
+};
+
 /** Reviewed local coverage only; private stops remain private. No career migration. */
 export const COVERAGE_SHOPS: readonly MaintenanceShopDef[] = COVERAGE_SITES.map(site => {
   const place = ESTELLA_NODES_BY_ID.get(site.physicalId)!.name;
-  const copy = COVERAGE_COPY[site.family];
+  const bespoke = FULL_SERVICE_COPY[site.physicalId];
+  const copy = bespoke ?? COVERAGE_COPY[site.family];
   const resolve = (text: string) => text.split('{place}').join(place);
   return {
-    ...terms[site.terms], id: site.id, name: site.name, organizationName: site.organizationName,
+    ...(bespoke ? fullService : terms[site.terms]), id: site.id, name: site.name, organizationName: site.organizationName,
     locationIds: [...site.locationIds], directorySummary: resolve(copy.directorySummary),
     copy: {
       profileBlurb: resolve(copy.profileBlurb), levelBlurb: resolve(copy.levelBlurb),
       diagnosisBlurb: resolve(copy.diagnosisBlurb), serviceBlurb: resolve(copy.serviceBlurb), repairsBlurb: resolve(copy.repairsBlurb),
+      referralBlurb: copy.referralBlurb,
     },
   };
 });

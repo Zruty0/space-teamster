@@ -24,9 +24,9 @@ const views={
  'Svarog directions':[at('Svarog Shipyard'),'directions'],'Raqib':[at('Raqib'),'profile'],
  'Warren':[at('The Warren'),'profile'],'Farwatch':[at('EDF Farwatch Station'),'profile'],
  'Cadiz':[at('Cadiz Highport'),'profile'],'Emergency':[at("Nell's Lantern"),'emergency'],
- 'Recovered':[at("Nell's Lantern"),'recovered'],'Service':[at('The Caravanserai'),'service'],
- 'Service receipt':[at('The Caravanserai'),'serviced'],'Equipment':[at('The Caravanserai'),'equipment'],
- 'Unknown fault':[at('The Caravanserai'),'unknown'],
+ 'Recovered':[at("Nell's Lantern"),'recovered'],'Service':[at('The Still'),'service'],
+ 'Service receipt':[at('The Still'),'serviced'],'Equipment':[at('The Caravanserai'),'equipment'],
+ 'Unknown fault':[at('The Still'),'unknown'],
 };
 for(const s of MAINTENANCE_SHOPS)views[s.id]=[s.id,'profile'];
 for(const [key,[id]] of Object.entries(views)){const option=document.createElement('option');option.value=key;const s=MAINTENANCE_SHOPS.find(s=>s.id===id);option.textContent=key===id?`${ESTELLA_NODES_BY_ID.get(physicalTerminalId(s.locationIds[0])).name} — ${s.name}`:key;menu.append(option);}

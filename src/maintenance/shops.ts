@@ -1,5 +1,6 @@
 import { WEYMARK_PILOT_SHOPS } from './weymark-shops';
 import { COVERAGE_SHOPS } from './coverage';
+import { CADIZ_FULL_SERVICE_REFERRAL } from './full-service-copy';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
 import { componentHasFabricatedFault, fabricatedFaultById, fabricatedFaultsForComponent } from './fabricated-faults';
 import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacementCost, componentServicedAp, shopCanPerform } from './grades';
@@ -12,6 +13,8 @@ export interface MaintenanceShopCopy {
   diagnosisBlurb: string;
   serviceBlurb: string;
   repairsBlurb: string;
+  /** Bespoke primary advice; only the public destination name is substituted. */
+  referralBlurb?: string;
 }
 
 export type MaintenanceFacilityTier = -1 | 0 | 1 | 2 | 3;
@@ -90,13 +93,13 @@ export const VILAR_HERALD_GATE_SHOP: MaintenanceShopDef = {
 };
 
 export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
-  id: 'vilar-cadiz-highport-outfitter', facilityTier: 1,
+  id: 'vilar-cadiz-highport-outfitter', facilityTier: 2,
   equipmentIds: ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'],
   name: 'Vilar’s Outfitter at Cadiz Highport',
   organizationName: 'House Vilar',
   locationIds: ['estella-xid-main-port'],
   diagnosticGrade: 'B',
-  workQualityGrade: 'C',
+  workQualityGrade: 'B',
   componentGradeBest: 'C',
   componentGradeWorst: 'D',
   laborRate: 600,
@@ -106,6 +109,7 @@ export const VILAR_CADIZ_HIGHPORT_OUTFITTER: MaintenanceShopDef = {
   honesty: 1,
   copy: {
     profileBlurb: 'Vilar’s Outfitter at Cadiz Highport occupies a full commercial pier: six numbered service bays, a two-level parts warehouse, and an executive gallery hung with expansion plans beside a purchased baronial crest. [person]Baron Estêvão Vilar[/person] built the chain before buying the title with its proceeds, and still walks the floor with a founder’s eye for idle hands, slow inventory, and missed opportunity.',
+    referralBlurb: CADIZ_FULL_SERVICE_REFERRAL,
     levelBlurb: 'House Vilar flagship outfitter and regional service works',
     diagnosisBlurb: '“Every idle hour belongs on somebody’s ledger.” [person]Baron Estêvão Vilar[/person] studies the arriving rig from the gallery rail. “My senior diagnosticians will give you the finding, the available parts, and the work order. While they work, tell me what you’ve heard from the Hearth. Which firms are expanding? Who has found new capital? What are the serious people buying?”',
     serviceBlurb: '“Service protects earning time. That is the whole proposition.” [person]Baron Estêvão Vilar[/person] taps the work schedule on his tablet. “I recruited journeymen with the highest credentials and certifications I could find in the Camps and the Belt. Select the systems, and my floor will document every adjustment and turn your rig back toward revenue.”',

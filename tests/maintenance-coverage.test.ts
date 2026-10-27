@@ -40,7 +40,7 @@ const targets = estellaSelectableNavTargets();
 assert(MAINTENANCE_SHOPS.length === 159, 'one service or emergency desk per physical site');
 assert(EMERGENCY_MAINTENANCE_SHOPS.length === 9, 'nine approved unstaffed locations remain self-help only');
 assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier >= 0).length === 150, 'approved Stage 3 staffed coverage');
-equal([-1, 0, 1, 2, 3].map(t => MAINTENANCE_SHOPS.filter(s => s.facilityTier === t).length), [9, 57, 90, 1, 2], 'no premature full-service or elite upgrades');
+equal([-1, 0, 1, 2, 3].map(t => MAINTENANCE_SHOPS.filter(s => s.facilityTier === t).length), [9, 57, 65, 26, 2], 'Stage 4 full service, no premature elite upgrades');
 assert(WELLS_FRONTIER_OUTFITTERS.length === 26, '26 basic Wells branches remain');
 equal(WEYMARK_PILOT_SHOPS.map(s => s.facilityTier), [0, 1, 2], 'pilot ladder');
 assert(WELLS_FRONTIER_OUTFITTERS.every(s => s.honesty === 0.8), 'approved Wells honesty');
@@ -102,7 +102,7 @@ equal(lowRefs.map(r => r.physicalId), ['estella-viii-settlement', 'estella-viii-
 const future = maintenanceReferrals(MAINTENANCE_SHOPS.find(s => s.id === 'red-dust-mechanical-reclamation')!);
 assert(future[0].name === 'Roadstead Rig Works' && future[1].physicalId === 'estella-via-drydock', 'approved future facilities advertised without activation');
 assert(MAINTENANCE_SHOPS.find(s => s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock'))!.facilityTier === 1, 'Svarog has only interim professional service');
-assert(MAINTENANCE_SHOPS.find(s => s.id === 'vilar-cadiz-highport-outfitter')!.workQualityGrade === 'C', 'Cadiz upgrade still deferred');
+assert(MAINTENANCE_SHOPS.find(s => s.id === 'vilar-cadiz-highport-outfitter')!.workQualityGrade === 'B', 'approved Cadiz work upgrade');
 
 // Independent pre-edit audit: preserve all 63 accounts; only the 25 approved
 // Wells promotions change commercial terms. Text changes are checked against Markdown.
@@ -113,13 +113,14 @@ for (const old of baseline.shops) {
   const planned = proposal.find(p => p.shopId === shop.id)!;
   if (shop.id.startsWith('wells-frontier') && planned.tier > 0) {
     approvedPromotions++;
-    assert(shop.facilityTier === 1 && shop.honesty === 1, 'approved professional promotion, not full service');
+    assert(shop.facilityTier === planned.tier && shop.honesty === 1, 'approved Wells professional/full-service promotion');
     continue;
   }
   protectedQuotes++;
   const { copy, facilityTier, directorySummary, ...attributes } = shop;
   const { diagnosis, depletedService, driveReplacement, equipment, ...expected } = old;
   if (shop.id.startsWith('wells-frontier')) { expected.honesty = 0.8; expected.name = shop.name; expected.organizationName = shop.organizationName!; }
+  if (shop.id === 'vilar-cadiz-highport-outfitter') expected.workQualityGrade = 'B';
   equal(attributes, expected, `old shop attributes: ${old.id}`);
   equal(diagnosisQuote(shop), diagnosis, 'old diagnosis quote');
   const rig = createDefaultRigState(true); for (const s of Object.values(rig.components)) s.ap = 0;
@@ -133,7 +134,7 @@ for (const shop of COVERAGE_SHOPS.filter(s => s.facilityTier >= 0)) {
   const rig = createDefaultRigState(true); for (const state of Object.values(rig.components)) state.ap = 0;
   const drive = createDefaultRigState(true); drive.components['powertrain-main-drive-core'].fault = { severity: 'total', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
   const professional = shop.facilityTier === 1;
-  equal([diagnosisQuote(shop).credits, diagnosisQuote(shop).laborHours, rigServiceQuote(rig, shop).credits, rigServiceQuote(rig, shop).laborHours, replacementQuote(drive, shop, 'powertrain-main-drive-core')!.credits], professional ? [1000, 2, 10000, 20, 309000] : [500, 2, 3625, 14.5, shop.partsMarkup === 1.5 ? 364500 : 280500], 'independent approved everyday quote examples');
+  equal([diagnosisQuote(shop).credits, diagnosisQuote(shop).laborHours, rigServiceQuote(rig, shop).credits, rigServiceQuote(rig, shop).laborHours, replacementQuote(drive, shop, 'powertrain-main-drive-core')!.credits], shop.facilityTier === 2 ? [1440, 1.8, 14400, 18, 312960] : professional ? [1000, 2, 10000, 20, 309000] : [500, 2, 3625, 14.5, shop.partsMarkup === 1.5 ? 364500 : 280500], 'independent approved quote examples');
   for (const id of shop.equipmentIds ?? []) {
     const quote = equipmentQuote(id === 'heavy-heat-shielding' ? createDefaultRigState(true) : createDefaultRigState(false), shop, id, 'D');
     assert(quote, 'all approved professional equipment is actually available');

@@ -7,8 +7,9 @@ import { MAINTENANCE_SHOPS, type MaintenanceShopDef } from './shops';
 import { MAINTENANCE_NETWORK } from './referral-network';
 
 const network = new Map(MAINTENANCE_NETWORK.map(site => [site.physicalId, site]));
-export interface MaintenanceReferral { physicalId: string; entranceId: string; name: string; location: string; path: string; eliteAlternative: boolean; onsiteSpecialist: boolean }
+export interface MaintenanceReferral { physicalId: string; entranceId: string; name: string; location: string; path: string; eliteAlternative: boolean; onsiteSpecialist: boolean; customText?: string }
 export function maintenanceReferralText(referral: MaintenanceReferral): string {
+  if (referral.customText) return referral.customText;
   if (referral.onsiteSpecialist) return `For more advanced work, ask for the specialist service at ${referral.name}.`;
   return referral.eliteAlternative ? `Or, of course, you can go to ${referral.name}. They handle the most demanding work.` : `For more advanced work, go to ${referral.name}.`;
 }
@@ -32,6 +33,8 @@ export function maintenanceReferrals(shop: MaintenanceShopDef): MaintenanceRefer
     if (!location) return [];
     const live = MAINTENANCE_SHOPS.find(s => s.facilityTier >= 0 && s.locationIds.some(poi => physicalTerminalId(poi) === id));
     if (!live) return [];
-    return [{ physicalId: id, entranceId, name: live.name, location, path: estellaDisplayPath(id), eliteAlternative: index > 0, onsiteSpecialist: id === sourceId }];
+    return [{ physicalId: id, entranceId, name: live.name, location, path: estellaDisplayPath(id), eliteAlternative: index > 0, onsiteSpecialist: id === sourceId,
+      customText: index === 0 ? shop.copy.referralBlurb?.split('{name}').join(live.name) : undefined,
+    }];
   });
 }
