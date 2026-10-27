@@ -1,7 +1,7 @@
 # Maintenance coverage — reviewed specification
 
-Updated: 2026-10-26
-Status: Stage 1 reviewed and accepted with the comments below; Stage 2 implemented and reviewed. The [complete Stage 3 copy review](maintenance-stage-3-copy-review.md) is delivered for comments. Later stages remain approval-gated; await explicit copy approval before Stage 3 rollout.
+Updated: 2026-10-27
+Status: Stages 1 and 2 reviewed; [complete Stage 3 copy](maintenance-stage-3-copy-review.md) explicitly approved and implemented. See the [Stage 3 handoff](maintenance-stage-3.md). Stop for rollout review before Stage 4.
 
 See the [complete roster](maintenance-stage-1-roster.md), [delivery plan](maintenance-coverage-plan.md) and [Stage 2 handoff](maintenance-stage-2.md). Original comments were committed unchanged in `23821fa`; each is preserved verbatim below with its resolution.
 
@@ -22,7 +22,7 @@ The reviewed final network contains **150 staffed facilities plus nine emergency
 
 The internal classes are −1, 0, 1, 2 and 3. These numbers and the word “tier” never appear in player-facing shop UI. The player sees a mechanic, workshop, service centre or emergency procedure and a plain description of its facilities.
 
-Before this pass there were 63 shops: 12 authored businesses and 51 Wells fallbacks. Stage 2 adds three staffed Weymark facilities, for **66 staffed shops**, and supplies self-help at the remaining **93 physical locations**. Those temporary self-help entries disappear automatically as later approved workshops open. The final nine emergency-only sites remain unstaffed.
+Before this pass there were 63 shops: 12 authored businesses and 51 Wells fallbacks. Stage 2 added three staffed Weymark facilities, for **66 staffed shops**, and supplied self-help at the remaining **93 physical locations**. Stage 3 now has **150 staffed facilities and nine emergency-only sites**: 84 temporary self-help entries were replaced by ordinary workshops. The final nine emergency-only sites remain unstaffed.
 
 ## 2. Service standards and honesty
 
@@ -115,7 +115,7 @@ Red Dust remains a named, limited workshop rather than an anonymous search; its 
 
 (zzz: as mentioned above raise honesty to 0.8 to these 0-tier shops)
 
-**Resolution:** Adopted as 0.8, not the original proposal's 1.0. The 51 current Wells fallbacks retain their existing prices and accounts in Stage 2. In the final map, 26 remain basic mechanics, 16 become professionals, and nine become full-service anchors. Later professional conversions use S1/S2 terms. Wells serf-side-trade prose stays local to appropriate settings; Daedalus and Covenant institutional variants belong to the complete Stage 3 copy review.
+**Resolution:** Adopted as 0.8, not the original proposal's 1.0. The 51 original Wells fallback accounts retained their existing prices in Stage 2. In the final map, 26 remain basic mechanics, 16 become professionals, and nine become full-service anchors. Stage 3 has converted those 25 branches to S1 professional terms; the nine future full-service anchors await their Stage 4 S2 upgrade. Wells serf-side-trade prose stays local to appropriate settings; Daedalus and Covenant institutional variants belong to the complete Stage 3 copy review.
 
 ## 4. Full-service and elite locations
 

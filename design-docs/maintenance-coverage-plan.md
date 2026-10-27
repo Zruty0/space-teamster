@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — approved staged plan
 
-Updated: 2026-10-26
-Status: Stages 1 and 2 reviewed. Complete Stage 3 copy delivered for comments; await explicit copy approval before rollout. Each stage requires separate approval.
+Updated: 2026-10-27
+Status: Stage 3 copy approved and everyday coverage implemented. Stop for rollout review before Stage 4. Each stage requires separate approval.
 
 Canonical details: [reviewed specification](maintenance-stage-1-specification.md), [complete roster](maintenance-stage-1-roster.md), [Stage 2 handoff](maintenance-stage-2.md). Pete's original `zzz` comments and their resolutions remain in the specification.
 
@@ -44,7 +44,7 @@ The specification records exact service defaults, commercial exceptions, 26 full
 
 ## Stage 3 — Everyday system-wide coverage
 
-**Complete copy delivered:** [Stage 3 copy review](maintenance-stage-3-copy-review.md) contains 49 shared sets, 15 retained authored sets, all 159 location/account mappings and all 281 expanded referral lines. Read-only audit: `node tests/audit-maintenance-stage-3-copy.mjs`. No Stage 3 runtime changes yet.
+**Approved and implemented (`c4dd734`):** [complete copy](maintenance-stage-3-copy-review.md) contains 49 shared sets, 15 retained authored sets, all 159 location/account mappings and all 281 expanded referral lines. Runtime copy audit: `node tests/audit-maintenance-stage-3-copy.mjs`. Live coverage is 150 staffed facilities and nine emergency-only stops. See the [rollout handoff](maintenance-stage-3.md).
 
 1. Generate `maintenance-stage-3-copy-review.md` containing **all Stage 3 copy, not samples**: shared planetary/regional sets, reused text, local exceptions, shop/directory names, profiles, facilities, diagnosis, service, repairs, referrals and any new UI wording.
 2. Include the exact location-to-template mapping and substitution values. Shared prose appears once; every distinct variant is included.
@@ -52,7 +52,7 @@ The specification records exact service defaults, commercial exceptions, 26 full
 4. Only then implement the approved ordinary coverage, including professional interim workshops at future bespoke sites. Existing authored businesses take precedence. Temporary emergency entries disappear when staffed service opens; the free restart remains available there.
 5. Check runtime prose against the approved Markdown and audit every physical scope.
 
-**Gate:** full-copy approval before rollout, followed by coverage and desktop review. No automatic continuation.
+**Copy gate passed. Current gate:** coverage and desktop rollout review before Stage 4. No automatic continuation.
 
 ## Stage 4 — Bespoke full-service anchors
 

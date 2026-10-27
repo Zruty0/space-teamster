@@ -1,7 +1,7 @@
 # Maintenance Stage 3 — complete copy for review
 
-Updated: 2026-10-26
-Status: **proposed copy only; awaiting Pete’s comments and explicit copy approval. No Stage 3 runtime rollout.** Stage 2 is accepted as the foundation, including grounded-only emergency restart. Live maintenance baseline: `429b54a`.
+Updated: 2026-10-27
+Status: **copy explicitly approved and implemented in `c4dd734`. Await Stage 3 rollout review before Stage 4.** The approved prose and mappings below are unchanged. See the [rollout handoff](maintenance-stage-3.md).
 
 Add `zzz` comments anywhere. They will be preserved verbatim, with resolutions alongside them. This document is the review source, not a sample gallery or an authorization to implement later stages.
 
@@ -9,7 +9,7 @@ Add `zzz` comments anywhere. They will be preserved verbatim, with resolutions a
 
 This is the complete Stage 3 shop-copy set: every profile, facilities description, diagnosis/service/repair passage, directory summary and description, displayed shop/directory/organization name, emergency/referral string, location substitution and receiving/account mapping. Existing authored businesses are reproduced in full, not replaced by links. The **49 shared sets and 15 retained authored sets** appear once each; every site selects exactly one set below. There is no random prose pool or unspecified local variant. Stage 1’s broad planning-family labels are refined into the explicit shared sets and local variants here; scopes, service terms and referral catchments are unchanged.
 
-Stage 3 would provide **57 basic mechanics, 90 professional workshops, Nell’s Rest as the one full-service pilot, two existing elites, and nine emergency-only locations**. Those numbers are review metadata, not player text. The 150 staffed sites include 84 new staffed facilities beyond Stage 2; 25 existing Wells fallback accounts become professional workshops. All 63 original accounts and the three pilot accounts remain. Coronal is nonselectable and excluded.
+Stage 3 now provides **57 basic mechanics, 90 professional workshops, Nell’s Rest as the one full-service pilot, two existing elites, and nine emergency-only locations**. Those numbers are review metadata, not player text. The 150 staffed sites include 84 new staffed facilities beyond Stage 2; 25 existing Wells fallback accounts become professional workshops. All 63 original accounts and the three pilot accounts remain. Coronal is nonselectable and excluded.
 
 Future full-service/elite locations receive modest professional service in this stage, except the already established pilot and elite shops. Their proposed business names below can be used now, but do not grant future capabilities. Cadiz keeps its existing C-quality work until Stage 4. No new NPC names, mission contacts, shipping providers, access grants, cave mechanics or populated ruins are introduced.
 
@@ -1511,10 +1511,10 @@ This table binds the reviewed copy to real locations without changing an operati
 
 ## 8. Approval and implementation gate
 
-Read-only verification: `node tests/audit-maintenance-stage-3-copy.mjs` passes **4,672 checks** against the live catalog, review roster and retained shop copy. It checks every field, all 159 site/account assignments, all 177 receiving IDs, the exact 15 retained businesses, the 66 existing staffed accounts, everyday service terms, institutional variants and all 281 expanded public referral lines. This is a copy/data audit, not a claim that Stage 3 is running or browser-tested.
+Runtime verification: `node tests/audit-maintenance-stage-3-copy.mjs` passes **6,802 checks** against this approved copy, the catalog and review roster. Every live prose field, name, directory, account, service term and all 281 public referral lines match. The Stage 3 rollout is also covered by gameplay tests and the isolated desktop walkthrough described in the [handoff](maintenance-stage-3.md).
 
-- This Markdown is the complete proposed Stage 3 copy, including all reused shop sets and all local exceptions. It is not loaded by the game.
+- This Markdown is the complete approved Stage 3 copy, including all reused shop sets and all local exceptions. It is not loaded by the game.
 - Review names, voice, institutional fit, shared text, referrals and every location assignment here. Preserve each `zzz` comment and record the resolution beside it.
-- Only after explicit copy approval: implement these exact sets/mappings, apply the reviewed everyday service terms, and compare runtime strings against this document. No unreviewed generated variants or additional NPCs.
-- Then audit all physical scopes, branch accounts, hidden classifications, private access, actual equipment/work capabilities, grounded-only emergency recovery and the final runtime copy. Use isolated desktop profiles, never live saves.
+- Explicit copy approval received on 2026-10-27; the exact sets/mappings and everyday terms are implemented and checked against this document. No unreviewed generated variants or additional NPCs were added.
+- Physical scopes, branch accounts, hidden classifications, private access, actual equipment/work capabilities, grounded-only emergency recovery and final runtime copy are audited. Desktop verification used isolated synthetic profiles, never live saves.
 - Stop for the Stage 3 rollout review before bespoke Stage 4 work or elite Stage 5 work.
