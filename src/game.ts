@@ -420,12 +420,14 @@ export class Game {
     config.landingMaxVSpeed = level.landingMaxVSpeed;
     config.landingMaxHSpeed = level.landingMaxHSpeed;
     config.landingMaxAngle = level.landingMaxAngle;
-    const init = initOverride ?? { x: level.startX, y: level.startY, vx: level.startVX, vy: level.startVY };
+    const terrain = generateTerrain(level);
+    const init = launchGuidance
+      ? { x: terrain.pad.centerX, y: terrain.pad.y + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 }
+      : initOverride ?? { x: level.startX, y: level.startY + (terrain.pad.y - level.padY), vx: level.startVX, vy: level.startVY };
     config.startX = init.x;
     config.startY = init.y;
     config.startVX = init.vx;
     config.startVY = init.vy;
-    const terrain = generateTerrain(level);
     const ship = createShip();
     ship.facingSign = launchGuidance
       ? (launchGuidance.orbitDir > 0 ? 1 : -1)
@@ -1815,6 +1817,7 @@ export class Game {
   private transitionApproachToLanding(p: Extract<Phase, { kind: 'approach' }>): PhaseTransition | null {
     const landingLevel = landingLevelById(p.level.landingLevelId);
     if (!landingLevel || landingLevel.body.id !== p.level.body.id) return null;
+    const padY = generateTerrain(landingLevel).pad.y;
 
     if (p.level.gateRadius > 0) {
       const gateLeft = p.level.gateX - p.level.gateRadius;
@@ -1829,7 +1832,7 @@ export class Game {
       const facingSign: 1 | -1 = Math.abs(noseX) > 0.05 ? (noseX > 0 ? 1 : -1) : (p.as.vx < 0 ? -1 : 1);
       const initOverride = {
         x: landingLevel.padCenterX + (nx * 2 - 1) * landingHalfSpan,
-        y: landingLevel.padY + (landingAltMin + ny * (landingAltMax - landingAltMin)),
+        y: padY + (landingAltMin + ny * (landingAltMax - landingAltMin)),
         vx: Math.max(-20, Math.min(20, p.as.vx)),
         vy: Math.max(-5, Math.min(20, p.as.vy)),
         facingSign,
@@ -1847,7 +1850,7 @@ export class Game {
       vy *= scale;
     }
     const targetAlt = landingLevel.startY;
-    const startY = Math.max(landingLevel.padY + targetAlt * 0.5, Math.min(p.as.y, landingLevel.padY + targetAlt));
+    const startY = Math.max(padY + targetAlt * 0.5, Math.min(p.as.y, padY + targetAlt));
     vy = Math.max(vy, -10);
 
     const noseX = Math.sin(p.as.angle);
@@ -3612,7 +3615,7 @@ export class Game {
       const launchHandoffAltitude = Math.max(100, generated.start.level.startY - generated.start.level.padY);
       this.loadLanding(
         generated.start.level,
-        { x: generated.start.level.padCenterX, y: generated.start.level.padY + LANDING_GEAR_REST_HEIGHT, vx: 0, vy: 0 },
+        undefined, // loadLanding resolves launch pose from the graded terrain pad.
         { targetAltitude: launchHandoffAltitude, orbitDir: generatedEstellaDepartureOrbitDir(destinationId, sourceId), nextApproachLevelId: generated.start.nextApproachLevelId },
       );
     } else if (generated.start.kind === 'docking') {

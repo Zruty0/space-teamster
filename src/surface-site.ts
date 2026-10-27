@@ -1,15 +1,15 @@
-// Physical Dawes forecourt: one flat deck in the SVG footprint, exact SVG solids.
+// SVG-driven site placement. Generic grading/solid placement is reusable;
+// the level dispatcher still opts in Dawes only.
 import svg from '../art/surface/basic-outpost.svg?raw';
-import { basicOutpost, usesDawesSurfaceArt, type SurfacePad, type SurfacePoiModule } from './surface-poi';
+import { basicOutpost, usesDawesSurfaceArt, type SurfacePad, type SurfacePoiModule, type SurfacePoiAsset } from './surface-poi';
 import { flattenPath } from './local-layouts';
+import { gradeSurfaceFootprint, type SurfaceGrading, type SurfaceGradingOptions } from './surface-grading';
 export type SitePoint=readonly[number,number];
 export interface SiteSolid {id:string;points:readonly SitePoint[];left:number;right:number;bottom:number;top:number;}
-export interface SurfaceSite {left:number;right:number;deckY:number;leftHeight:number;rightHeight:number;solids:readonly SiteSolid[];}
-let shapes:readonly{id:string;points:readonly SitePoint[]}[]|undefined;
-export function surfaceSvgSolids(){
- if(shapes)return shapes;
- const asset=basicOutpost(),stack:Array<{x:number;y:number;module?:SurfacePoiModule}>=[{x:0,y:0}],out:Array<{id:string;points:readonly SitePoint[]}>=[];
- for(const match of svg.matchAll(/<\/?g\b[^>]*>|<path\b[^>]*>/g)){
+export interface SurfaceSite extends SurfaceGrading {readonly solids:readonly SiteSolid[];}
+export function surfaceSvgSolids(source=svg,asset:SurfacePoiAsset=basicOutpost()){
+ const stack:Array<{x:number;y:number;module?:SurfacePoiModule}>=[{x:0,y:0}],out:Array<{id:string;points:readonly SitePoint[]}>=[];
+ for(const match of source.matchAll(/<\/?g\b[^>]*>|<path\b[^>]*>/g)){
   const tag=match[0];
   if(tag.startsWith('</g')){if(stack.length===1)throw Error('Unbalanced surface group');stack.pop();continue;}
   if(tag.startsWith('<g')){
@@ -26,17 +26,29 @@ export function surfaceSvgSolids(){
   out.push(Object.freeze({id,points:Object.freeze(points)}));
  }
  if(stack.length!==1||!out.length||new Set(out.map(p=>p.id)).size!==out.length)throw Error('Invalid outpost solid roster');
- return shapes=Object.freeze(out);
+ return Object.freeze(out);
 }
-export function createSurfaceSite(level:{body:{id:string};poi:{id:string};landingLayout?:unknown},pad:SurfacePad,originalHeight:(x:number)=>number):SurfaceSite|undefined{
- if(!usesDawesSurfaceArt(level))return undefined;
- const asset=basicOutpost(),scale=(pad.right-pad.left)/(asset.pad.right-asset.pad.left),origin=pad.centerX-(asset.pad.left+asset.pad.right)/2*scale;
+export function placeSurfaceSite(asset:SurfacePoiAsset,shapes:ReturnType<typeof surfaceSvgSolids>,pad:SurfacePad,nativeHeight:(x:number)=>number,options:SurfaceGradingOptions={}):SurfaceSite{
+ const scale=(pad.right-pad.left)/(asset.pad.right-asset.pad.left),origin=pad.centerX-(asset.pad.left+asset.pad.right)/2*scale;
  const left=origin+asset.bounds.x*scale,right=left+asset.bounds.width*scale;
- const solids=surfaceSvgSolids().map(s=>{
-  const points=s.points.map(([x,y])=>Object.freeze([origin+x*scale,pad.y+(asset.pad.y-y)*scale]as const));
+ if(!Number.isFinite(scale)||scale<=0||pad.left<left||pad.right>right)throw Error('Surface pad is outside its site');
+ const grade=gradeSurfaceFootprint(left,right,nativeHeight,options);
+ const solids=shapes.map(s=>{
+  const points=s.points.map(([x,y])=>Object.freeze([origin+x*scale,grade.deckY+(asset.pad.y-y)*scale]as const));
   return Object.freeze({id:s.id,points:Object.freeze(points),left:Math.min(...points.map(p=>p[0])),right:Math.max(...points.map(p=>p[0])),bottom:Math.min(...points.map(p=>p[1])),top:Math.max(...points.map(p=>p[1]))});
  });
- return Object.freeze({left,right,deckY:pad.y,leftHeight:originalHeight(left),rightHeight:originalHeight(right),solids:Object.freeze(solids)});
+ return Object.freeze({...grade,solids:Object.freeze(solids)});
+}
+export interface SurfaceSiteDefinition {readonly asset:SurfacePoiAsset;readonly solids:ReturnType<typeof surfaceSvgSolids>;readonly grading?:SurfaceGradingOptions;}
+let basicDefinition:SurfaceSiteDefinition|undefined;
+/** Single opt-in point for future per-POI SVG definitions; no automatic replication. */
+export function surfaceSiteDefinitionFor(level:{body:{id:string};poi:{id:string};landingLayout?:unknown}):SurfaceSiteDefinition|undefined{
+ if(!usesDawesSurfaceArt(level))return undefined;
+ return basicDefinition??=Object.freeze({asset:basicOutpost(),solids:surfaceSvgSolids()});
+}
+export function createSurfaceSite(level:{body:{id:string};poi:{id:string};landingLayout?:unknown},pad:SurfacePad,nativeHeight:(x:number)=>number,spacing=2):SurfaceSite|undefined{
+ const definition=surfaceSiteDefinitionFor(level);if(!definition)return undefined;
+ return placeSurfaceSite(definition.asset,definition.solids,pad,nativeHeight,{spacing,...definition.grading});
 }
 export function pointInSitePolygon(x:number,y:number,p:readonly SitePoint[]):boolean{
  let inside=false;

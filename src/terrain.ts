@@ -2,7 +2,8 @@
 // Terrain is a polyline of (x, y) points at regular spacing.
 
 import { LevelDef } from './levels';
-import { createSurfaceSite, pointHitsSite, type SurfaceSite } from './surface-site';
+import { createSurfaceSite, surfaceSiteDefinitionFor, pointHitsSite, type SurfaceSite } from './surface-site';
+import { gradedSurfaceHeight } from './surface-grading';
 
 export interface LandingPad {
   left: number;
@@ -12,7 +13,7 @@ export interface LandingPad {
 }
 
 export interface TerrainData {
-  points: [number, number][];  // [x, y] pairs
+  points: [number, number][];  // Native [x, y] samples; authored grading overlays these.
   spacing: number;
   startX: number;
   endX: number;
@@ -37,6 +38,7 @@ export function generateTerrain(level: LevelDef): TerrainData {
   const padRight = padCenterX + padHalfWidth;
   const padY = level.padY;
   const roughness = level.roughness;
+  const authoredSite=surfaceSiteDefinitionFor(level);
 
   const points: [number, number][] = [];
 
@@ -58,11 +60,13 @@ export function generateTerrain(level: LevelDef): TerrainData {
     y += 10 * roughness * Math.sin(x * 0.045 + 0.7);
     y += 5 * roughness * Math.sin(x * 0.11 + 2.3);
 
-    // Flatten the landing pad area with smooth blend
-    const distFromPad = Math.max(0, Math.abs(x - padCenterX) - padHalfWidth);
-    const blendWidth = 40;
-    const blend = Math.min(1, distFromPad / blendWidth);
-    y = padY + (y - padY) * blend * blend;
+    // Legacy sites keep their original pad blend. SVG sites grade against the
+    // unflattened landscape, never against the old pad's artificial depression.
+    if(!authoredSite){
+      const distFromPad = Math.max(0, Math.abs(x - padCenterX) - padHalfWidth);
+      const blend = Math.min(1, distFromPad / 40);
+      y = padY + (y - padY) * blend * blend;
+    }
 
     // Level-specific features (towers, walls, structures)
     // These are NOT affected by pad blend — they stand on their own
@@ -98,15 +102,15 @@ export function generateTerrain(level: LevelDef): TerrainData {
       centerX: padCenterX,
     },
   };
-  const site=createSurfaceSite(level,terrain.pad,x=>getTerrainHeight(terrain,x));
-  if(site)terrain.surfaceSite=site;
+  const site=createSurfaceSite(level,terrain.pad,x=>getTerrainHeight(terrain,x),spacing);
+  if(site){terrain.surfaceSite=site;terrain.pad.y=site.deckY;}
   return terrain;
 }
 
 // Get terrain height at any x by linear interpolation
 export function getTerrainHeight(terrain: TerrainData, x: number): number {
   const site=terrain.surfaceSite;
-  if(site&&x>site.left&&x<site.right)return site.deckY;
+  if(site){const graded=gradedSurfaceHeight(site,x);if(graded!==undefined)return graded;}
   if (x <= terrain.startX) return terrain.points[0][1];
   if (x >= terrain.endX) return terrain.points[terrain.points.length - 1][1];
 
@@ -119,6 +123,15 @@ export function getTerrainHeight(terrain: TerrainData, x: number): number {
   const y0 = terrain.points[i][1];
   const y1 = terrain.points[i + 1][1];
   return y0 + (y1 - y0) * frac;
+}
+
+/** Exact visible/colliding polyline, including fractional SVG grading joins. */
+export function terrainSurfacePoints(terrain:TerrainData,left:number,right:number):readonly(readonly[number,number])[]{
+ const site=terrain.surfaceSite,points:Array<readonly[number,number]>=[[left,getTerrainHeight(terrain,left)]];
+ const a=Math.max(0,Math.floor((left-terrain.startX)/terrain.spacing)+1),b=Math.min(terrain.points.length-1,Math.ceil((right-terrain.startX)/terrain.spacing)-1);
+ for(let i=a;i<=b;i++){const p=terrain.points[i];if(!site||p[0]<site.blendLeft||p[0]>site.blendRight)points.push(p);}
+ if(site)for(const p of site.profile)if(p[0]>left&&p[0]<right)points.push(p);
+ points.push([right,getTerrainHeight(terrain,right)]);points.sort((a,b)=>a[0]-b[0]);return points;
 }
 
 // Check if a point is on the landing pad

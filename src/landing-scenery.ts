@@ -1,26 +1,15 @@
-// Foreground Dawes site. Natural terrain stops at the SVG footprint; the same
-// engineered deck and authored solid paths are used by physics and drawing.
+// Foreground Dawes site. Shared graded shoulders, deck and authored solid paths
+// keep drawing and physics aligned; no decorative fade over an invisible cliff.
 import type { Camera } from './renderer';
 import type { LevelDef } from './levels';
-import { getTerrainHeight, type TerrainData } from './terrain';
+import { getTerrainHeight, terrainSurfacePoints as landingSurfacePoints, type TerrainData } from './terrain';
 import { getApproachTerrainHeight } from './approach';
 import { hartwellApproachRegion } from './approach-biomes';
 import { createHartwellOutlineScenery } from './approach-outline-scenery';
 import { HARTWELL_SURFACE_STYLE as ink } from './flight-surface-style';
 import { DAWES_CUT_ID, HARTWELL_OUTPOST_THEME, usesDawesSurfaceArt, createSurfacePoiArtwork, placeSurfacePoi, surfaceBeaconOn } from './surface-poi';
 export type LandingSceneryPainter=(ctx:CanvasRenderingContext2D,cam:Camera,terrain:TerrainData,level:LevelDef,W:number,H:number,time:number)=>boolean;
-/** Native outer vertices plus exact cut faces and deck. No natural ground under
- * or through the foreground outpost. The unmodified samples remain in TerrainData. */
-export function landingSurfacePoints(terrain:TerrainData,left:number,right:number):readonly(readonly[number,number])[]{
- const site=terrain.surfaceSite,points:Array<readonly[number,number]>=[[left,getTerrainHeight(terrain,left)]];
- const a=Math.max(0,Math.floor((left-terrain.startX)/terrain.spacing)+1),b=Math.min(terrain.points.length-1,Math.ceil((right-terrain.startX)/terrain.spacing)-1);
- for(let i=a;i<=b;i++){const p=terrain.points[i];if(!site||p[0]<site.left||p[0]>site.right)points.push(p);}
- if(site){
-  if(site.left>=left&&site.left<=right)points.push([site.left,site.leftHeight],[site.left,site.deckY]);
-  if(site.right>=left&&site.right<=right)points.push([site.right,site.deckY],[site.right,site.rightHeight]);
- }
- points.push([right,getTerrainHeight(terrain,right)]);points.sort((a,b)=>a[0]-b[0]);return points;
-}
+export { landingSurfacePoints };
 export function landingBackdropCamera(cam:Camera,terrain:TerrainData):Camera{
  const zoom=Math.min(.065,cam.zoom);return{x:cam.x-terrain.pad.centerX,y:getApproachTerrainHeight(0)+(cam.y-terrain.pad.y)*cam.zoom/zoom,zoom};
 }

@@ -2,6 +2,7 @@ import { Game } from '../src/game';
 import { checkFlightPresentation } from './flight-presentation-native';
 import { defaultCareerProfile } from '../src/career-state';
 import { config } from '../src/config';
+import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
 import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight, landingReferenceHeight } from '../src/terrain';
 import { createShip, updateShip } from '../src/ship';
@@ -27,13 +28,13 @@ let current:any,scenery:ReturnType<typeof createLandingScenery>,elapsed=0,paused
 const neutral=readInput(),catalog=JSON.stringify([BODIES,SURFACE_POIS]),baseline=JSON.stringify([level,terrain]);
 function reset(mode=view.value){
  view.value=mode;paused=true;elapsed=accumulator=0;play.textContent='Fly';
- Object.assign(config,{gravity:level.gravity,landingMaxVSpeed:level.landingMaxVSpeed,landingMaxHSpeed:level.landingMaxHSpeed,landingMaxAngle:level.landingMaxAngle,startX:level.startX,startY:level.startY,startVX:level.startVX,startVY:level.startVY});
+ Object.assign(config,{gravity:level.gravity,landingMaxVSpeed:level.landingMaxVSpeed,landingMaxHSpeed:level.landingMaxHSpeed,landingMaxAngle:level.landingMaxAngle,startX:level.startX,startY:level.startY+(terrain.pad.y-level.padY),startVX:level.startVX,startVY:level.startVY});
  const ship=createShip(),camera=createCamera();
- if(mode!=='entry'){ship.x=level.padCenterX;ship.y=level.padY+85;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=level.gravity/config.mainEngineAccel;}
+ if(mode!=='entry'){ship.x=level.padCenterX;ship.y=terrain.pad.y+85;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=level.gravity/config.mainEngineAccel;}
  updateCamera(camera,ship,landingReferenceHeight(level,terrain,ship.x),0);
- if(mode==='takeoff'){ship.x=level.padCenterX;ship.y=level.padY+4.05;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=0;}
- if(mode==='overview')Object.assign(camera,{x:level.padCenterX,y:level.padY+100,zoom:2.6});
- if(mode==='close')Object.assign(camera,{x:level.padCenterX,y:level.padY+50,zoom:4.5});
+ if(mode==='takeoff'){ship.x=level.padCenterX;ship.y=terrain.pad.y+4.05;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=0;}
+ if(mode==='overview')Object.assign(camera,{x:level.padCenterX,y:terrain.pad.y+100,zoom:2.6});
+ if(mode==='close')Object.assign(camera,{x:level.padCenterX,y:terrain.pad.y+50,zoom:4.5});
  current={kind:'landing',level,terrain,ship,camera,state:'flying',score:null,worldTimeStart:12345,missionDvStart:0,...(mode==='takeoff'?{launchGuidance:{targetAltitude:500,orbitDir:1,nextApproachLevelId:approachLevel.id}}:{})};draw();
 }
 function draw(){
@@ -42,6 +43,7 @@ function draw(){
  game.renderGameplayPhase(view.value==='approach'?approach:current,'Practice complete',level.poi.name,'Hartwell',false);
  if(original.checked&&view.value!=='approach'){
   ctx.save();ctx.strokeStyle='#ff9b88';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();terrain.surfaceSite!.profile.forEach(([x,y],i)=>{const a=canvas.width/2+(x-current.camera.x)*current.camera.zoom,b=canvas.height/2-(y-current.camera.y)*current.camera.zoom;i?ctx.lineTo(a,b):ctx.moveTo(a,b);});ctx.stroke();
   for(const s of terrain.surfaceSite!.solids){ctx.beginPath();s.points.forEach(([x,y],i)=>{const a=canvas.width/2+(x-current.camera.x)*current.camera.zoom,b=canvas.height/2-(y-current.camera.y)*current.camera.zoom;i?ctx.lineTo(a,b):ctx.moveTo(a,b);});ctx.closePath();ctx.stroke();}ctx.restore();
  }
  status.textContent=`Dawes Cut · ${view.value} · ${paused?'paused':'flying'} · ${elapsed.toFixed(1)}s · ${current.state} · no career/save changes`;
@@ -72,6 +74,10 @@ async function checks(){
  try{
   original.checked=false;reset('overview');await scenery.prepare(level);draw();
   assert(scenery.diagnostics().ready&&scenery.diagnostics().materialReady&&!scenery.diagnostics().failed,'SVG and material preparation succeed');
+  const site=terrain.surfaceSite!;
+  assert(site.deckY===(site.nativeLeftHeight+site.nativeRightHeight)/2&&site.deckY>level.padY,'site and pad raised to average native edge height');
+  assert(site.profile.every((p,i)=>!i||p[0]>site.profile[i-1][0]),'shoulders have no vertical cut segments');
+  assert(getTerrainHeight(terrain,site.left)===site.deckY&&getTerrainHeight(terrain,site.right)===site.deckY,'no physical step at either site boundary');
   assert(scenery.diagnostics().images===5&&scenery.diagnostics().pixels!<1048576,'bounded five-part foreground SVG raster set');
   const on=image();draw();assert(hash(image())===hash(on),'stationary scene repeats exactly');
   const state=JSON.stringify(current.ship);
@@ -92,9 +98,16 @@ async function checks(){
   const footer=ctx.getImageData(0,686,1,34).data;assert(footer.every((v,i)=>v===(i%4===3?255:0)),'opaque black control strip');
   const scratch=document.createElement('canvas');scratch.width=1200;scratch.height=720;const s=scratch.getContext('2d',{willReadFrequently:false})!;
   scenery(s,current.camera,terrain,level,1200,720,0);const scene=s.getImageData(0,0,1200,180).data;
-  const cutX=Math.round(600+(960-current.camera.x)*z),cutY=Math.round(360-(60-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
-  const deckPixel=s.getImageData(Math.round(600+(960-current.camera.x)*z),Math.round(360-(15-current.camera.y)*z),1,1).data;
+  const cutX=Math.round(600+(960-current.camera.x)*z),cutY=Math.round(360-(terrain.pad.y+30-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
+  const deckPixel=s.getImageData(Math.round(600+(960-current.camera.x)*z),Math.round(360-(terrain.pad.y-15-current.camera.y)*z),1,1).data;
   assert(deckPixel[0]===10&&deckPixel[1]===7&&deckPixel[2]===5&&deckPixel[3]===255,'below-deck fill matches planet background instead of foundation stripes');
+  for(const x of [site.left-25,site.right+25]){
+   const y=getTerrainHeight(terrain,x),px=Math.round(600+(x-current.camera.x)*z);
+   const below=s.getImageData(px,Math.round(360-(y-3-current.camera.y)*z),1,1).data;
+   const above=s.getImageData(px,Math.round(360-(y+3-current.camera.y)*z),1,1).data;
+   assert(below[0]===10&&below[1]===7&&below[2]===5&&below[3]===255,'visible graded slope agrees with solid ground');
+   assert(!(above[0]===10&&above[1]===7&&above[2]===5),'air above physical slope is not painted solid');
+  }
   const bottom=s.getImageData(0,700,1200,20).data;
   assert(bottom.every((v,i)=>v===[10,7,5,255][i%4]),'entire subsurface plain planet background, no ground or foundation stripes');
   createHartwellOutlineScenery(hartwellApproachRegion(DAWES_CUT_ID),'background')(s,landingBackdropCamera(current.camera,terrain),{localDir:-1},{body:level.body,poi:level.poi,gateX:0},1200,720);
@@ -122,19 +135,34 @@ async function checks(){
    assert(hash(image())===actual,`${mode}: original/new toggle exact replay`);
   }
   for(const zoom of [1,2.6,4.5])for(const x of [-100,900,1000,1100,2100]){
-   current.camera={x,y:level.padY+100,zoom};draw();assert(JSON.stringify([level,terrain])===baseline,'pan/zoom never modifies collision terrain or pad');
+   current.camera={x,y:terrain.pad.y+100,zoom};draw();assert(JSON.stringify([level,terrain])===baseline,'pan/zoom never modifies collision terrain or pad');
   }
   reset('overview');const a=advance(.5,{throttleUp:true});reset('overview');const b=advance(.5,{throttleUp:true});
   assert(a.ship.dvUsed>0&&JSON.stringify(a.ship)===JSON.stringify(b.ship),'real controls/physics and retry deterministic');
   reset('close');current.ship.y=terrain.pad.y+4;current.ship.vy=0;game.checkLandingCollision(current);
   assert(current.state==='landed','real pad touchdown still works');
-  reset('close');current.ship.x=1140;current.ship.y=getTerrainHeight(terrain,1140);game.checkLandingCollision(current);
+  reset('close');current.ship.x=1190;current.ship.y=getTerrainHeight(terrain,1190);game.checkLandingCollision(current);
   assert(current.state==='crashed','original terrain obstacles still collide');
-  for(const [x,y]of [[853.5,40],[914.5,60]]){reset('close');current.ship.x=x;current.ship.y=y;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
-  reset('close');const previous={...current.ship,x:865,y:70,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:965});game.checkLandingCollision(current);
+  for(const [x,y]of [[853.5,40],[914.5,60]]){reset('close');current.ship.x=x;current.ship.y=terrain.pad.y+y-30;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
+  reset('close');const previous={...current.ship,x:865,y:terrain.pad.y+40,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:965});game.checkLandingCollision(current);
   assert(current.state==='flying','fast sweep endpoint clear');game.checkLandingCollision(current,previous);assert(current.state==='crashed','actual Game swept hull cannot cross a dome');
-  reset('takeoff');advance(.3);assert(current.state==='flying'&&Math.abs(current.ship.y-(level.padY+4.05))<.01,'real launch hold on original pad');
-  advance(3,{throttleUp:true});assert(current.state==='flying'&&current.ship.y>level.padY+10,'takeoff from foreground pad works');
+  reset('takeoff');advance(.3);assert(current.state==='flying'&&Math.abs(current.ship.y-(terrain.pad.y+4.05))<.01,'real launch hold on original pad');
+  advance(3,{throttleUp:true});assert(current.state==='flying'&&current.ship.y>terrain.pad.y+10,'takeoff from foreground pad works');
+  // Exercise actual loader/handoff/retry, not just the practice spawn helper.
+  const loader:any=Object.create(Game.prototype);
+  Object.assign(loader,{career:defaultCareerProfile(),worldTime:12345,missionDvUsed:0,activeManifestCondition:{integrity:null,comfort:null},activeMaintenanceTelemetry:createMaintenanceTelemetry(),landingScenery:scenery,showGuidance:()=>{},showContextualOperationsManual:()=>{}});
+  loader.loadLanding(level);
+  assert(Math.abs(loader.phase.ship.y-(level.startY+terrain.pad.y-level.padY))<1e-9,'actual default entry preserves altitude above raised datum');
+  const initial=JSON.stringify(loader.phase);loader.reloadPhase(loader.phase);
+  assert(JSON.stringify(loader.phase)===initial,'actual retry does not double-apply site elevation');
+  loader.loadLanding(level,{x:1000,y:-999,vx:10,vy:10},{targetAltitude:500,orbitDir:1,nextApproachLevelId:approachLevel.id});
+  assert(Math.abs(loader.phase.ship.y-(terrain.pad.y+4.05))<1e-9&&config.startY===loader.phase.ship.y,'actual launch ignores stale authored spawn height');
+  const transition=loader.transitionApproachToLanding({...approach,as:{...approach.as,x:approachLevel.gateX,y:approachLevel.gateY/2}});
+  assert(transition,'actual approach handoff exists');transition.run();
+  assert(Math.abs(loader.phase.ship.y-loader.phase.terrain.pad.y-200)<1e-9,'actual approach handoff uses resolved pad altitude');
+  const arrival=JSON.stringify(loader.phase);loader.reloadPhase(loader.phase);
+  assert(JSON.stringify(loader.phase)===arrival,'actual arrival retry preserves resolved altitude exactly');
+  reset('takeoff');
   const other=createLandingLevel('estella-v-capital-settlement',990027),otherTerrain=generateTerrain(other);
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0);const old=hash(image());
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0,true,scenery);assert(hash(image())===old,'unreviewed surface sites retain exact original rendering');
@@ -149,7 +177,7 @@ async function checks(){
   return{passed:true,checks:count,crossWorld,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],scenery:scenery.diagnostics()};
  }finally{checking=false;}
 }
-async function performanceChecks(){
+async function performanceChecks(paint=true){
  if(checking)throw Error('Checks already running');checking=true;paused=true;original.checked=false;
  const oldW=canvas.width,oldH=canvas.height;
  try{
@@ -157,12 +185,12 @@ async function performanceChecks(){
   const costs:number[]=[],intervals:number[]=[];let previous=0;
   for(let i=0;i<210;i++){
    const now=await new Promise<number>(resolve=>requestAnimationFrame(resolve));
-   current.camera={x:1000+150*Math.sin(i/80),y:110,zoom:2.6+1.2*Math.sin(i/100)};elapsed=i/60;
-   const start=performance.now();draw();const cost=performance.now()-start;
+   current.camera={x:1000+150*Math.sin(i/80),y:terrain.pad.y+80,zoom:2.6+1.2*Math.sin(i/100)};elapsed=i/60;
+   const start=performance.now();if(paint)draw();const cost=performance.now()-start;
    if(i>=30){costs.push(cost);intervals.push(now-previous);}previous=now;
   }
   costs.sort((a,b)=>a-b);intervals.sort((a,b)=>a-b);
-  return{width:1920,height:1080,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],cpuMax:costs[costs.length-1],fps:1000/(intervals.reduce((a,b)=>a+b,0)/intervals.length),frameP95:intervals[Math.ceil(intervals.length*.95)-1],frameMax:intervals[intervals.length-1]};
+  return{width:1920,height:1080,paint,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],cpuMax:costs[costs.length-1],fps:1000/(intervals.reduce((a,b)=>a+b,0)/intervals.length),frameP95:intervals[Math.ceil(intervals.length*.95)-1],frameMax:intervals[intervals.length-1]};
  }finally{canvas.width=oldW;canvas.height=oldH;reset('overview');checking=false;}
 }
 view.onchange=()=>reset();original.onchange=()=>{paused=true;draw();};

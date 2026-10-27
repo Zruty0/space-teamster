@@ -8,7 +8,7 @@ import {
   COLLISION_POINTS, GEAR_COLLISION_POINTS, landingAutoAngleTarget, localToWorld,
 } from './ship';
 import { LevelDef } from './levels';
-import { TerrainData, checkLandingCollision } from './terrain';
+import { TerrainData, checkLandingCollision, terrainSurfacePoints } from './terrain';
 import type { LandingSceneryPainter } from './landing-scenery';
 import { surfaceShipCollision } from './surface-ship-collision';
 
@@ -94,6 +94,7 @@ export function render(
   if(!authored){
     drawStars(ctx, cam, W, H);
     drawTerrain(ctx, cam, terrain, level, W, H);
+    drawSurfaceSiteFallback(ctx, cam, terrain, level, W, H);
     drawCustomLandingLayout(ctx, cam, level, W, H);
   }
 
@@ -191,21 +192,23 @@ function drawTerrain(
   const endIdx = Math.min(terrain.points.length - 1,
     Math.ceil((rightX - terrain.startX) / terrain.spacing));
 
-  if (startIdx >= endIdx) return;
+  if (startIdx >= endIdx && !terrain.surfaceSite) return;
+  const points=terrain.surfaceSite?terrainSurfacePoints(terrain,leftX,rightX):terrain.points.slice(startIdx,endIdx+1);
+  if(points.length<2)return;
 
   // Draw filled terrain (dark)
   ctx.beginPath();
-  const [sx0, sy0] = worldToScreen(terrain.points[startIdx][0], terrain.points[startIdx][1], cam, W, H);
+  const [sx0, sy0] = worldToScreen(points[0][0], points[0][1], cam, W, H);
   ctx.moveTo(sx0, sy0);
 
-  for (let i = startIdx + 1; i <= endIdx; i++) {
-    const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
+  for (let i = 1; i < points.length; i++) {
+    const [sx, sy] = worldToScreen(points[i][0], points[i][1], cam, W, H);
     ctx.lineTo(sx, sy);
   }
 
   // Close at bottom of screen
-  const [sxEnd] = worldToScreen(terrain.points[endIdx][0], 0, cam, W, H);
-  const [sxStart] = worldToScreen(terrain.points[startIdx][0], 0, cam, W, H);
+  const [sxEnd] = worldToScreen(points[points.length-1][0], 0, cam, W, H);
+  const [sxStart] = worldToScreen(points[0][0], 0, cam, W, H);
   ctx.lineTo(sxEnd, H + 10);
   ctx.lineTo(sxStart, H + 10);
   ctx.closePath();
@@ -215,13 +218,24 @@ function drawTerrain(
   // Draw terrain outline
   ctx.beginPath();
   ctx.moveTo(sx0, sy0);
-  for (let i = startIdx + 1; i <= endIdx; i++) {
-    const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
+  for (let i = 1; i < points.length; i++) {
+    const [sx, sy] = worldToScreen(points[i][0], points[i][1], cam, W, H);
     ctx.lineTo(sx, sy);
   }
   ctx.strokeStyle = flightSurfaceStyle(level.body).edge;
   ctx.lineWidth = 2.5;
   ctx.stroke();
+}
+
+// A future registered SVG site remains visible/collidable even without its art
+// painter. Physics-derived silhouettes cannot disappear behind a fallback mesh.
+function drawSurfaceSiteFallback(ctx:CanvasRenderingContext2D,cam:Camera,terrain:TerrainData,level:LevelDef,W:number,H:number){
+ const site=terrain.surfaceSite;if(!site)return;
+ ctx.save();const [,floor]=worldToScreen(0,site.deckY,cam,W,H);
+ ctx.beginPath();ctx.rect(0,0,W,Math.max(0,floor));ctx.clip();
+ const style=flightSurfaceStyle(level.body);ctx.fillStyle=style.ground;ctx.strokeStyle=style.edge;ctx.lineWidth=1;
+ for(const solid of site.solids){ctx.beginPath();solid.points.forEach(([x,y],i)=>{const [sx,sy]=worldToScreen(x,y,cam,W,H);i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);});ctx.closePath();ctx.fill();ctx.stroke();}
+ ctx.restore();
 }
 
 // --- Landing pad ---

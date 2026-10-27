@@ -19,7 +19,7 @@ export interface LevelDef {
   startVY: number;
   padCenterX: number;
   padHalfWidth: number;
-  padY: number;
+  padY: number; // Authored terrain baseline; TerrainData.pad.y is the resolved site altitude.
   roughness: number;
   features: TerrainFeature[];
   landingLayout?: LandingLayoutDef;

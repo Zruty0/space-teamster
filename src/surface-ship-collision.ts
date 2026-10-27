@@ -1,5 +1,5 @@
-// Whole hull/cab/gear plus swept motion against foreground buildings and cut
-// faces. Only authored surface sites opt in; legacy worlds keep their physics.
+// Whole hull/cab/gear plus swept motion against foreground buildings and graded
+// shoulders. Only authored surface sites opt in; legacy worlds keep their physics.
 import { SHIP_OUTLINE, CAB_OUTLINE, GEAR_LEFT, GEAR_RIGHT, localToWorld, type ShipState } from './ship';
 import { pointInSitePolygon, type SitePoint, type SiteSolid, type SurfaceSite } from './surface-site';
 import type { TerrainData } from './terrain';
@@ -18,8 +18,13 @@ function overlaps(p:readonly SitePoint[],s:SiteSolid){
 const obstacles=new WeakMap<SurfaceSite,readonly SiteSolid[]>();
 function solids(site:SurfaceSite){
  let all=obstacles.get(site);if(all)return all;
- const walls=[['left',site.left,site.leftHeight],['right',site.right,site.rightHeight]]as const;
- all=[...site.solids,...walls.map(([id,x,y])=>({id:`cut-${id}`,left:x,right:x,bottom:Math.min(y,site.deckY),top:Math.max(y,site.deckY),points:[[x,site.deckY],[x,y]]as SitePoint[]}))];obstacles.set(site,all);return all;
+ const shoulders:SiteSolid[]=[];
+ for(let i=1;i<site.profile.length;i++){
+  const a=site.profile[i-1],b=site.profile[i];
+  if(a[0]>=site.left&&b[0]<=site.right)continue; // Flat deck retains normal pad landing rules.
+  shoulders.push({id:`grade-${i}`,left:a[0],right:b[0],bottom:Math.min(a[1],b[1]),top:Math.max(a[1],b[1]),points:[a,b]});
+ }
+ all=[...site.solids,...shoulders];obstacles.set(site,all);return all;
 }
 function polygons(p:Pose){
  const project=(points:readonly SitePoint[])=>points.map(([x,y])=>localToWorld(x,y,p.x,p.y,p.angle,p.facingSign));
@@ -29,7 +34,7 @@ function polygons(p:Pose){
 }
 export function surfaceShipCollision(terrain:TerrainData,current:Pose,previous:Pose=current):boolean{
  const site=terrain.surfaceSite;if(!site)return false;
- if(Math.max(current.x,previous.x)+12<site.left||Math.min(current.x,previous.x)-12>site.right)return false;
+ if(Math.max(current.x,previous.x)+12<site.blendLeft||Math.min(current.x,previous.x)-12>site.blendRight)return false;
  const left=Math.min(current.x,previous.x)-12,right=Math.max(current.x,previous.x)+12,bottom=Math.min(current.y,previous.y)-12,top=Math.max(current.y,previous.y)+12;
  const all=solids(site).filter(s=>s.right>=left&&s.left<=right&&s.top>=bottom&&s.bottom<=top);
  if(!all.length)return false;

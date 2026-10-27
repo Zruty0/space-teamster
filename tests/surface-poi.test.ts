@@ -11,7 +11,8 @@ let checks=0;function assert(ok:unknown,message:string):asserts ok {checks++;if(
 const asset=basicOutpost(),level=createLandingLevel(DAWES_CUT_ID,90001),terrain=generateTerrain(level),before=JSON.stringify([level,terrain,asset]);
 assert(asset===basicOutpost()&&Object.isFrozen(asset)&&Object.isFrozen(asset.modules),'immutable parsed asset cached');
 assert(asset.modules.length===5&&asset.beacons.length===2,'deck/two warehouses/dome/pad and paired beacon anchors');
-assert(JSON.stringify(terrain.pad)===JSON.stringify({left:972,right:1028,y:30,centerX:1000}),'original Dawes pad geometry');
+assert(terrain.pad.left===972&&terrain.pad.right===1028&&terrain.pad.centerX===1000,'original Dawes pad horizontal geometry');
+assert(terrain.pad.y===terrain.surfaceSite!.deckY&&terrain.pad.y>level.padY,'pad rises with average-ground site datum');
 assert(level.roughness===.6&&JSON.stringify(level.features)===JSON.stringify([{xStart:820,xEnd:860,height:26},{xStart:1140,xEnd:1190,height:32}]),'original terrain profile and obstacles');
 assert(usesDawesSurfaceArt(level),'Dawes opt-in');
 for(const id of ['estella-v-capital-settlement','estella-v-atmo-refinery','estella-v-storm-research','estella-v-abandoned-colony'])assert(!usesDawesSurfaceArt({...level,poi:{id}}),'no other Hartwell rollout');
@@ -30,21 +31,23 @@ const solids=terrain.surfaceSite!.solids,dome=solids.find(s=>s.id==='dome')!,war
 assert(dome.right-dome.left>(warehouse.right-warehouse.left)*1.5&&dome.top-terrain.pad.y>(warehouse.top-terrain.pad.y)*1.5,'dome substantially wider and taller than warehouse');
 assert(solids.every(s=>s.right<terrain.pad.left),'all buildings on the left side of the pad');
 assert(warehouse.right<dome.left&&dome.right<terrain.pad.left-20,'separate buildings with clear pad approach');
-// Original outer mesh plus explicit vertical cut faces and replacement deck.
+// Exact native/graded polyline; no decorative fade hiding vertical collision walls.
 for(const [a,b]of [[-500,500],[883.5,1010.2],[990,1200],[1700,2300]]){
  const points=landingSurfacePoints(terrain,a,b);
  assert(points[0][0]===a&&points[points.length-1][0]===b,'complete visible terrain span');
- for(const [x,y]of points)assert(y===getTerrainHeight(terrain,x)||(y===terrain.pad.y&&(x===terrain.surfaceSite!.left||x===terrain.surfaceSite!.right)),'every vertex lies on the deck/cut/native ground');
- for(const p of terrain.points.filter(([x])=>x>a&&x<b&&(x<terrain.surfaceSite!.left||x>terrain.surfaceSite!.right)))assert(points.some(([x,y])=>x===p[0]&&y===p[1]),'no outer native collision vertex skipped');
+ for(const [x,y]of points)assert(Math.abs(y-getTerrainHeight(terrain,x))<1e-10,'every vertex lies on the actual graded collision surface');
+ for(let i=1;i<points.length;i++)assert(points[i][0]>points[i-1][0],'no duplicate-x cliff faces');
+ for(const p of terrain.points.filter(([x])=>x>a&&x<b&&(x<terrain.surfaceSite!.blendLeft||x>terrain.surfaceSite!.blendRight)))assert(points.some(([x,y])=>x===p[0]&&y===p[1]),'no outer native collision vertex skipped');
 }
 for(let x=0;x<=2000;x+=2){
  let y=60+27*Math.sin(x*.0025+.5)+18*Math.sin(x*.007+1.2)+10.8*Math.sin(x*.018+3.1)+6*Math.sin(x*.045+.7)+3*Math.sin(x*.11+2.3);
- const blend=Math.min(1,Math.max(0,Math.abs(x-1000)-28)/40);y=30+(y-30)*blend*blend;
  for(const f of [{xStart:820,xEnd:860,height:26},{xStart:1140,xEnd:1190,height:32}])if(x>=f.xStart&&x<=f.xEnd)y=Math.max(y,30+f.height);
  if(x>150&&x<450)y=Math.max(y,30+Math.max(0,36-Math.abs(x-300)*.4));y=Math.max(0,y);
- assert(Math.abs(terrain.points[x/2][1]-y)<1e-10,'original terrain samples retained');
- const site=terrain.surfaceSite!,expected=x>site.left&&x<site.right?site.deckY:y;
- assert(Math.abs(getTerrainHeight(terrain,x)-expected)<1e-10,'terrain only replaced inside authorized site footprint');
+ assert(Math.abs(terrain.points[x/2][1]-y)<1e-10,'unflattened native terrain samples retained');
+ const site=terrain.surfaceSite!;
+ const t=x<site.left?(x-site.blendLeft)/(site.left-site.blendLeft):(site.blendRight-x)/(site.blendRight-site.right),q=Math.max(0,Math.min(1,t)),weight=q*q*(3-2*q);
+ const expected=x>=site.left&&x<=site.right?site.deckY:y+(site.deckY-y)*weight;
+ assert(Math.abs(getTerrainHeight(terrain,x)-expected)<1e-10,'independently calculated smooth terrain crossfade');
  assert(checkLandingCollision(level,terrain,x,expected-1).hit,'solid ground/deck below surface');
  assert(checkLandingCollision(level,terrain,x,expected+1).hit===pointHitsSite(site,x,expected+1),'building masks above replacement deck');
 }
