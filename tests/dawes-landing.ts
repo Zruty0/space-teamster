@@ -78,7 +78,7 @@ async function checks(){
   assert(site.deckY===(site.nativeLeftHeight+site.nativeRightHeight)/2&&site.deckY>level.padY,'site and pad raised to average native edge height');
   assert(site.profile.every((p,i)=>!i||p[0]>site.profile[i-1][0]),'shoulders have no vertical cut segments');
   assert(getTerrainHeight(terrain,site.left)===site.deckY&&getTerrainHeight(terrain,site.right)===site.deckY,'no physical step at either site boundary');
-  assert(scenery.diagnostics().images===5&&scenery.diagnostics().pixels!<1048576,'bounded five-part foreground SVG raster set');
+  assert(scenery.diagnostics().images===6&&scenery.diagnostics().pixels!<1048576,'bounded six-part foreground SVG raster set');
   const on=image();draw();assert(hash(image())===hash(on),'stationary scene repeats exactly');
   const state=JSON.stringify(current.ship);
   elapsed=.8;draw();const off=image();assert(hash(off)!==hash(on),'beacons blink');
@@ -122,7 +122,7 @@ async function checks(){
    assert(wa.every((v,i)=>i%4!==3||v===cb[i]),`${module.id}: palette swap preserves silhouette/anchors`);
    assert(wa.some((v,i)=>i%4!==3&&wa[(i>>2)*4+3]>200&&v!==cb[i]),`${module.id}: SVG responds to environment palette`);
   }
-  for(const [id,x,y]of [['warehouse-main',-586,-20],['warehouse-rear',-714,-35],['residential-dome',-342,-75]]as const){
+  for(const [id,x,y]of [['warehouse-main',-586,-20],['warehouse-rear',-714,-35],['residential-dome',-342,-75],['beacon-towers',-74,-20],['beacon-towers',74,-44.1]]as const){
    const m=basicOutpost().modules.find(m=>m.id===id)!,c=warm.images.get(id)!;
    assert(c.getContext('2d')!.getImageData((x-m.bounds.x)*2,(y-m.bounds.y)*2,1,1).data[3]===255,`${id}: solid opaque building interior`);
   }
@@ -146,6 +146,15 @@ async function checks(){
   for(const [x,y]of [[853.5,40],[914.5,60]]){reset('close');current.ship.x=x;current.ship.y=terrain.pad.y+y-30;game.checkLandingCollision(current);assert(current.state==='crashed','foreground warehouse/dome cause real crashes');}
   reset('close');const previous={...current.ship,x:865,y:terrain.pad.y+40,gearDeployed:false,facingSign:-1,angle:0};Object.assign(current.ship,previous,{x:965});game.checkLandingCollision(current);
   assert(current.state==='flying','fast sweep endpoint clear');game.checkLandingCollision(current,previous);assert(current.state==='crashed','actual Game swept hull cannot cross a dome');
+  for(const x of [981.5,1018.5]){
+   reset('close');current.ship.x=x;current.ship.y=terrain.pad.y+7;elapsed=.8;draw();game.checkLandingCollision(current);
+   assert(current.state==='crashed','actual Game collides with beacon tower even while light is off');
+   reset('close');const previous={...current.ship,x:x-14,y:terrain.pad.y+7,gearDeployed:false,facingSign:1,angle:0};
+   Object.assign(current.ship,previous,{x:x+14});game.checkLandingCollision(current);
+   assert(current.state==='flying','beacon sweep endpoint remains clear');
+   game.checkLandingCollision(current,previous);assert(current.state==='crashed','actual Game swept hull cannot tunnel through beacon tower');
+  }
+  assert(terrain.pad.right-terrain.pad.left===35,'actual landing target is narrowed to 35 m');
   reset('takeoff');advance(.3);assert(current.state==='flying'&&Math.abs(current.ship.y-(terrain.pad.y+4.05))<.01,'real launch hold on original pad');
   advance(3,{throttleUp:true});assert(current.state==='flying'&&current.ship.y>terrain.pad.y+10,'takeoff from foreground pad works');
   // Exercise actual loader/handoff/retry, not just the practice spawn helper.

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="272" viewBox="-752 -176 1200 272">
   <title>Basic surface outpost — side elevation</title>
-  <desc>Foreground outpost on one engineered deck. Pad y=0, x=-112..112; site edges x=-752..448. Warehouses and enlarged blue dome stand left of the pad. Paths marked data-solid supply building collision directly. Beacon overlays blink green on the left, red on the right.</desc>
-  <metadata>{"version":1,"id":"basic-outpost-v1","bounds":{"x":-752,"y":-176,"width":1200,"height":272},"pad":{"left":-112,"right":112,"y":0},"beacons":[{"x":-110,"y":-10},{"x":110,"y":-10}],"modules":[{"id":"site-deck","layer":"deck","footLeft":-752,"footRight":448,"bounds":{"x":-752,"y":0,"width":1200,"height":96}},{"id":"warehouse-rear","layer":"foreground","footLeft":-750,"footRight":-678,"bounds":{"x":-752,"y":-92,"width":78,"height":188}},{"id":"warehouse-main","layer":"foreground","footLeft":-668,"footRight":-504,"bounds":{"x":-672,"y":-88,"width":172,"height":184}},{"id":"residential-dome","layer":"foreground","footLeft":-480,"footRight":-204,"bounds":{"x":-498,"y":-171,"width":312,"height":267}},{"id":"landing-pad","layer":"pad","footLeft":-112,"footRight":112,"bounds":{"x":-120,"y":-16,"width":240,"height":34}}]}</metadata>
+  <desc>Foreground outpost on one engineered deck. Pad y=0, x=-70..70; site edges x=-752..448. Warehouses and enlarged blue dome stand left of the pad. Paths marked data-solid supply building collision directly. Beacon overlays blink green on the left, red on the right.</desc>
+  <metadata>{"version":1,"id":"basic-outpost-v1","bounds":{"x":-752,"y":-176,"width":1200,"height":272},"pad":{"left":-70,"right":70,"y":0},"beacons":[{"x":-74,"y":-44.1},{"x":74,"y":-44.1}],"modules":[{"id":"site-deck","layer":"deck","footLeft":-752,"footRight":448,"bounds":{"x":-752,"y":0,"width":1200,"height":96}},{"id":"warehouse-rear","layer":"foreground","footLeft":-750,"footRight":-678,"bounds":{"x":-752,"y":-92,"width":78,"height":188}},{"id":"warehouse-main","layer":"foreground","footLeft":-668,"footRight":-504,"bounds":{"x":-672,"y":-88,"width":172,"height":184}},{"id":"residential-dome","layer":"foreground","footLeft":-480,"footRight":-204,"bounds":{"x":-498,"y":-171,"width":312,"height":267}},{"id":"beacon-towers","layer":"foreground","footLeft":-78,"footRight":78,"bounds":{"x":-80,"y":-49,"width":160,"height":51}},{"id":"landing-pad","layer":"pad","footLeft":-70,"footRight":70,"bounds":{"x":-78,"y":-16,"width":156,"height":34}}]}</metadata>
   <style>
     :root { --poi-wall:#0d0907; --poi-roof:#13100e; --poi-edge:#66584e; --poi-trim:#7c695c; --poi-dust:#0a0705; --poi-glass:#0b1114; --poi-light:#8c8172; --poi-pad:#12100e; }
     .edge { stroke:var(--poi-edge); stroke-width:2; stroke-linejoin:round; }
@@ -54,14 +54,19 @@
     <path stroke="var(--poi-trim)" stroke-width="2" d="M115.5 -12 H123"/>
     <path stroke="var(--poi-light)" stroke-width="3" d="M-120 -25.5 H-94.5 M-70.5 -34.5 H-40.5 M-18 -37.5 H13.5 M39 -34.5 H69"/>
   </g>
+  <!-- 0.25 m/SVG unit: tower height 47.1 SVG units = 11.775 m = 1.5 * (rig cab 3.8 + gear rest 4.05) m. -->
+  <g id="beacon-towers">
+    <path data-solid="beacon-left" class="edge" fill="var(--poi-wall)" d="M-78 0 H-70 L-72 -39 H-70 V-47.1 H-78 V-39 H-76Z"/>
+    <path data-solid="beacon-right" class="edge" fill="var(--poi-wall)" d="M70 0 H78 L76 -39 H78 V-47.1 H70 V-39 H72Z"/>
+    <path class="trim" d="M-74 -3 V-37 M74 -3 V-37"/>
+    <circle cx="-74" cy="-44.1" r="2" fill="#174c2c"/>
+    <circle cx="74" cy="-44.1" r="2" fill="#551e20"/>
+  </g>
   <g id="landing-pad">
-    <path class="edge" fill="var(--poi-pad)" d="M-112 0 H112 V11 L98 16 H-98 L-112 11Z"/>
-    <path stroke="var(--poi-trim)" stroke-width="2" d="M-112 0 H112"/>
-    <path stroke="var(--poi-edge)" stroke-width="2" d="M-96 8 H96"/>
-    <path stroke="var(--poi-light)" stroke-width="3" d="M-94 3 H-74 M-62 3 H-42 M-30 3 H-10 M10 3 H30 M42 3 H62 M74 3 H94"/>
+    <path class="edge" fill="var(--poi-pad)" d="M-70 0 H70 V11 L61.25 16 H-61.25 L-70 11Z"/>
+    <path stroke="var(--poi-trim)" stroke-width="2" d="M-70 0 H70"/>
+    <path stroke="var(--poi-edge)" stroke-width="2" d="M-60 8 H60"/>
+    <path stroke="var(--poi-light)" stroke-width="3" d="M-58.75 3 H-46.25 M-38.75 3 H-26.25 M-18.75 3 H-6.25 M6.25 3 H18.75 M26.25 3 H38.75 M46.25 3 H58.75"/>
     <path stroke="var(--poi-trim)" stroke-width="2" d="M-5 1 V6 M5 1 V6 M-5 3.5 H5"/>
-    <path class="edge" fill="var(--poi-pad)" d="M-114 0 V-8 H-106 V0Z M106 0 V-8 H114 V0Z"/>
-    <circle cx="-110" cy="-10" r="3" fill="#174c2c" stroke="var(--poi-edge)" stroke-width="1.5"/>
-    <circle cx="110" cy="-10" r="3" fill="#551e20" stroke="var(--poi-edge)" stroke-width="1.5"/>
   </g>
 </svg>

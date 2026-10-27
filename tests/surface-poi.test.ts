@@ -10,8 +10,8 @@ import { pointHitsSite } from '../src/surface-site';
 let checks=0;function assert(ok:unknown,message:string):asserts ok {checks++;if(!ok)throw Error(message);}
 const asset=basicOutpost(),level=createLandingLevel(DAWES_CUT_ID,90001),terrain=generateTerrain(level),before=JSON.stringify([level,terrain,asset]);
 assert(asset===basicOutpost()&&Object.isFrozen(asset)&&Object.isFrozen(asset.modules),'immutable parsed asset cached');
-assert(asset.modules.length===5&&asset.beacons.length===2,'deck/two warehouses/dome/pad and paired beacon anchors');
-assert(terrain.pad.left===972&&terrain.pad.right===1028&&terrain.pad.centerX===1000,'original Dawes pad horizontal geometry');
+assert(asset.modules.length===6&&asset.beacons.length===2,'deck/two warehouses/dome/towers/pad and paired beacon anchors');
+assert(terrain.pad.left===982.5&&terrain.pad.right===1017.5&&terrain.pad.centerX===1000,'35 m Dawes pad at original center');
 assert(terrain.pad.y===terrain.surfaceSite!.deckY&&terrain.pad.y>level.padY,'pad rises with average-ground site datum');
 assert(level.roughness===.6&&JSON.stringify(level.features)===JSON.stringify([{xStart:820,xEnd:860,height:26},{xStart:1140,xEnd:1190,height:32}]),'original terrain profile and obstacles');
 assert(usesDawesSurfaceArt(level),'Dawes opt-in');
@@ -21,7 +21,7 @@ assert(HARTWELL_OUTPOST_THEME.dust===HARTWELL_SURFACE_STYLE.ground,'dust inherit
 for(const width of [28,56,140])for(const center of [-500,0,1000])for(const altitude of [0,30,4000]){
  const pad={left:center-width/2,right:center+width/2,y:altitude,centerX:center};
  const p=placeSurfacePoi(asset,pad,x=>altitude+2*Math.sin(x/20));
- assert(Math.abs(p.width-width*1200/224)<1e-10,'expanded deck scales from the unchanged pad anchors');
+ assert(Math.abs(p.width-width*1200/140)<1e-10,'deck scales from the narrowed SVG pad anchors');
  assert(p.x+asset.pad.left*p.scale===pad.left&&p.x+asset.pad.right*p.scale===pad.right,'SVG pad never widens/offsets landing zone');
  const deck=p.modules.find(m=>m.module.layer==='pad')!;
  assert(deck.y-asset.pad.y*p.scale===pad.y,'deck aligned to real collision altitude');
@@ -29,7 +29,9 @@ for(const width of [28,56,140])for(const center of [-500,0,1000])for(const altit
 }
 const solids=terrain.surfaceSite!.solids,dome=solids.find(s=>s.id==='dome')!,warehouse=solids.find(s=>s.id==='warehouse-main')!;
 assert(dome.right-dome.left>(warehouse.right-warehouse.left)*1.5&&dome.top-terrain.pad.y>(warehouse.top-terrain.pad.y)*1.5,'dome substantially wider and taller than warehouse');
-assert(solids.every(s=>s.right<terrain.pad.left),'all buildings on the left side of the pad');
+assert(solids.filter(s=>!s.id.startsWith('beacon-')).every(s=>s.right<terrain.pad.left),'all residential/warehouse buildings remain left of the pad');
+assert(terrain.surfaceSite!.left===812&&terrain.surfaceSite!.right===1112&&warehouse.right-warehouse.left===41&&dome.right-dome.left===69,'narrowing only the pad never scales the outpost');
+assert(createLandingLevel('estella-v-capital-settlement',90002).padHalfWidth===28,'shared profile remains unchanged for other sites');
 assert(warehouse.right<dome.left&&dome.right<terrain.pad.left-20,'separate buildings with clear pad approach');
 // Exact native/graded polyline; no decorative fade hiding vertical collision walls.
 for(const [a,b]of [[-500,500],[883.5,1010.2],[990,1200],[1700,2300]]){

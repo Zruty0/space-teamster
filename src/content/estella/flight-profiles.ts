@@ -416,7 +416,7 @@ export const ESTELLA_SURFACE_FLIGHT_PROFILES: Partial<Record<string, EstellaSurf
   'estella-iv-climate-poi-2': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-iv-climate-poi-3': ESTELLA_HEARTH_ATMO_SURFACE_PROFILE,
   'estella-v-capital-settlement': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
-  'estella-v-open-cast-mine': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
+  'estella-v-open-cast-mine': { ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE, padHalfWidth: 17.5 },
   'estella-v-atmo-refinery': ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE,
   'estella-v-storm-research': { ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
   'estella-v-abandoned-colony': { ...ESTELLA_CAMPS_THIN_ATMO_SURFACE_PROFILE, labelVisibility: 'target' },
