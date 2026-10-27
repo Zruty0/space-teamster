@@ -8,7 +8,8 @@ Status: approved and LIVE in orbital mode. Central worlds and system/moon marker
 - Giants retain their existing colors, bands and storms. Feather the outer boundary inward; no new ring or halo.
 - Other worlds retain the catalog planet color on the outer circle. Only that stroke doubles from 1.5 to 3 px, clipped inward to the original radius. Internal line widths stay unchanged.
 - Craters/terrain use a darker, grayer version of their own planet color: 30% original chroma mixed with 70% luminance, then scaled to 68% for main lines / 43% for secondary lines.
-- Base and occlusion masks use a near-black planet tint (5.5% RGB), not pure black cutouts.
+- Base and occlusion masks default to a near-black planet tint (5.5% RGB), not pure black cutouts. Latest background-only request: Gaia land `#041b09` (richer green), Dahai ocean `#021020` (richer blue). Outlines, rims, ice, Gaia water, atmosphere and HUD colors stay unchanged; shared approach/landing fills follow the same two overrides.
+- Follow-up verification: 1,493 pure / 538 native gallery checks and 610 cross-world flight checks pass. The line-coverage probe excludes the two approved backgrounds up to channel 32 rather than incorrectly counting their flat fill as linework; all other worlds retain the original threshold.
 - Water, ice and lava retain gray-blue / light-gray / orange outlines, with very dark regional fills: `#0b1118` / `#141618` / `#201006`. Gaia land occludes ocean; ice caps replace ocean paint. Dahai keeps its dark planet-blue ocean and local ice. Mineral fields are not new seas/resources.
 - Weather wisps retain each profile's `cloudColor`, without filled haze, shadow wash or glow.
 - **No dots or stipple.** Earlier regular / Mercator / hex pattern ideas were explicitly rejected. Their intermediate helper was removed, not left dormant.

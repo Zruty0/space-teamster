@@ -24,10 +24,10 @@ export const OUTLINE_INK=Object.freeze({water:'#7895ad',coast:'#7895ad',ice:'#c2
 export const MATERIAL_FILL=Object.freeze({water:'#0b1118',ice:'#141618',lava:'#201006'});
 /** Retain30% of the world's chroma, then darken. Gray-tinted planetary ink,
  * rather than a single neutral gray shared by all terrain. Rim stays original. */
-export function terrainOutlineInk(tint:WorldTint){
+export function terrainOutlineInk(tint:WorldTint,bodyId?:string){
  const gray=tint[0]*.2126+tint[1]*.7152+tint[2]*.0722;
  const color=(strength:number)=>'#'+tint.map(v=>Math.round(Math.max(0,Math.min(255,(gray*.7+v*.3)*strength))).toString(16).padStart(2,'0')).join('');
- const background=planetBackgroundColor(tint);
+ const background=planetBackgroundColor(tint,bodyId);
  return Object.freeze({land:color(.68),minor:color(.43),background});
 }
 export function hasOutlineWorld(id:string):boolean{
@@ -38,7 +38,7 @@ export function drawOutlineWorld(ctx:CanvasRenderingContext2D,id:string,cx:numbe
  const giant=gasGiantProfileFor(id);
  if(giant){drawSoftGiantDisc(ctx,cx,cy,r,giant);return true;}
  if(!beginDisc(ctx,cx,cy,r))return false;
- const terrain=terrainOutlineInk(rimTint),width=(px:number)=>Math.min(.25,px/r);
+ const terrain=terrainOutlineInk(rimTint,id),width=(px:number)=>Math.min(.25,px/r);
  ctx.fillStyle=terrain.background;ctx.fillRect(-1,-1,2,2);ctx.lineJoin='round';ctx.lineCap='round';
  function line(points:readonly Point[],ink:string=terrain.land,px=1,closed=false){
   if(!points.length)return;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(closed)ctx.closePath();

@@ -68,7 +68,7 @@ async function checks(){
   assert(bodies.length===33,'all 33 authored globes represented');
   const coverage:Record<string,number>={};
   for(const b of bodies){
-   ctx.clearRect(0,0,320,320);let pathHasArc=false;const strokes:string[]=[],strokeWidths:number[]=[],fills:string[]=[],giant=!!gasGiantProfileFor(b.id),palette=terrainOutlineInk(b.color);
+   ctx.clearRect(0,0,320,320);let pathHasArc=false;const strokes:string[]=[],strokeWidths:number[]=[],fills:string[]=[],giant=!!gasGiantProfileFor(b.id),palette=terrainOutlineInk(b.color,b.id);
    const materials:string[]=b.id==='estella-i'?[OUTLINE_INK.lava]:['estella-iii','estella-iv'].includes(b.id)?[OUTLINE_INK.water,OUTLINE_INK.ice]:icyWorldProfileFor(b.id)?[OUTLINE_INK.ice]:[];
    const fillMaterials:string[]=b.id==='estella-i'?[MATERIAL_FILL.lava]:b.id==='estella-iii'?[MATERIAL_FILL.water,MATERIAL_FILL.ice]:b.id==='estella-iv'||icyWorldProfileFor(b.id)?[MATERIAL_FILL.ice]:[];
    const guarded=new Proxy(ctx,{get(target,key){
@@ -92,9 +92,11 @@ async function checks(){
     assert(fills.every(c=>Math.max(...[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)))<=32),'very dark fills leave outline dominant: '+b.id);
     assert(b.id!=='estella-iv'||!fills.includes(MATERIAL_FILL.water),'Dahai retains its dark planet-blue background');
    }
+   const richerBackground=b.id==='estella-iii'||b.id==='estella-iv';
+   if(richerBackground)assert(fills.includes(b.id==='estella-iii'?'#041b09':'#021020'),'requested land/ocean background is actually painted');
    let ink=0,inside=0;const p=ctx.getImageData(0,0,320,320).data;
    for(let y=0;y<320;y++)for(let x=0;x<320;x++){const d=Math.hypot(x+.5-160,y+.5-160),i=(y*320+x)*4;
-    if(d<138){inside++;if(Math.max(p[i],p[i+1],p[i+2])>25)ink++;}
+    if(d<138){inside++;if(Math.max(p[i],p[i+1],p[i+2])>(richerBackground?32:25))ink++;}
     if(d>142&&p[i+3])throw Error(`paint escaped limb: ${b.id}`);
    }
    coverage[b.id]=ink/inside;assert(giant?ink/inside>.85:ink/inside<.25,'colored giant / negative-space nongiant: '+b.id);

@@ -13,8 +13,11 @@ const catalog=JSON.stringify(BODIES),worlds=BODIES.filter(b=>hasOutlineWorld(b.i
 assert(worlds.length===33,'33 existing globes, not the star or station/cluster icons');
 assert(!hasOutlineWorld('estella')&&!hasOutlineWorld('unknown'),'explicit opt-in');
 for(const fill of Object.values(MATERIAL_FILL))assert(Math.max(...[1,3,5].map(i=>parseInt(fill.slice(i,i+2),16)))<=32,'material backgrounds remain very dark');
-for(const b of worlds){const p=terrainOutlineInk(b.color);assert(Math.max(...[1,3,5].map(i=>parseInt(p.background.slice(i,i+2),16)))<=14,'near-black per-planet background');}
-for(const body of BODIES){const style=flightSurfaceStyle(body);assert(style.ground===terrainOutlineInk(body.color).background,`${body.id}: orbital/approach/landing share the same planet background`);assert(Math.max(...[1,3,5].map(i=>parseInt(style.sky.slice(i,i+2),16)))<=6,'only slight atmospheric tint');}
+for(const b of worlds){const p=terrainOutlineInk(b.color,b.id),richer=b.id==='estella-iii'||b.id==='estella-iv';assert(Math.max(...[1,3,5].map(i=>parseInt(p.background.slice(i,i+2),16)))<=(richer?32:14),'dark per-planet background with two approved richer fills');
+ const original=terrainOutlineInk(b.color);assert(p.land===original.land&&p.minor===original.minor,'background recoloring never changes terrain outlines');if(!richer)assert(p.background===original.background,'other worlds unchanged');}
+assert(terrainOutlineInk([80,205,115],'estella-iii').background==='#041b09','richer green Gaia land');
+assert(terrainOutlineInk([45,145,245],'estella-iv').background==='#021020','richer blue Dahai water');
+for(const body of BODIES){const style=flightSurfaceStyle(body);assert(style.ground===terrainOutlineInk(body.color,body.id).background,`${body.id}: orbital/approach/landing share the same planet background`);assert(Math.max(...[1,3,5].map(i=>parseInt(style.sky.slice(i,i+2),16)))<=6,'only slight atmospheric tint');}
 assert(HARTWELL_SURFACE_STYLE.ground===flightSurfaceStyle(BODIES.find(b=>b.id==='estella-v')!).ground,'authored Hartwell uses same planet background');
 assert(terrainOutlineInk([200,100,50]).land!==terrainOutlineInk([50,100,200]).land,'terrain keeps muted planetary hue');
 assert(terrainOutlineInk([200,100,50]).background==='#0b0603','near-black true planetary tint');
