@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — approved staged plan
 
-Updated: 2026-10-27
-Status: Stage 3 copy approved and everyday coverage implemented. Stop for rollout review before Stage 4. Each stage requires separate approval.
+Updated: 2026-10-26 (Pacific)
+Status: Stage 4 full-service anchors implemented for review. Stop before Stage 5. Each stage requires separate approval.
 
 Canonical details: [reviewed specification](maintenance-stage-1-specification.md), [complete roster](maintenance-stage-1-roster.md), [Stage 2 handoff](maintenance-stage-2.md). Pete's original `zzz` comments and their resolutions remain in the specification.
 
@@ -37,7 +37,7 @@ The specification records exact service defaults, commercial exceptions, 26 full
 - Free normal/elite referrals, including references to approved future facilities.
 - Low Gauge mechanic, Weymark Town Workshop, bespoke Nell's Rest Shipworks and existing Bruckner.
 - Emergency self-help fills current unserved locations; the same recovery action is available at normal shops. Abandoned sites remain unstaffed.
-- Approved basic honesty values. Existing named shops otherwise retain prices, capabilities and prose; Cadiz's later upgrade has not happened.
+- Approved basic honesty values. Existing named shops otherwise retain prices, capabilities and prose; Cadiz's upgrade had not happened at this stage.
 - Synthetic-profile desktop preview, real transaction tests, save-failure checks and ordinary regressions.
 
 **Gate passed:** Pete asked to proceed after the emergency-copy and grounded-only corrections. This authorizes preparing the Stage 3 copy review, not bypassing it.
@@ -52,9 +52,11 @@ The specification records exact service defaults, commercial exceptions, 26 full
 4. Only then implement the approved ordinary coverage, including professional interim workshops at future bespoke sites. Existing authored businesses take precedence. Temporary emergency entries disappear when staffed service opens; the free restart remains available there.
 5. Check runtime prose against the approved Markdown and audit every physical scope.
 
-**Copy gate passed. Current gate:** coverage and desktop rollout review before Stage 4. No automatic continuation.
+**Stage 3 gate passed:** Pete accepted the rollout and authorized Stage 4.
 
 ## Stage 4 — Bespoke full-service anchors
+
+**Implemented for review (`e6a51ee`).** [Complete roster, writing and verification](maintenance-stage-4.md). Live mix: 57 basic / 65 professional / 26 full-service / two elite, plus nine emergency-only. The other 134 service locations are unchanged. **Stop before Stage 5.**
 
 Implement the remaining 25 full-service anchors beyond the pilot. Each receives distinctive premises, personnel and separate diagnosis/service/repair/referral dialogue. Vary staging and describe competence affirmatively. Existing civic/industrial operators can host workshops without creating new system-wide corporations.
 

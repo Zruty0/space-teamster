@@ -1,7 +1,7 @@
 # Maintenance Stage 3 — everyday coverage rollout
 
-Updated: 2026-10-27
-Status: approved copy implemented in `c4dd734`; **stop for Stage 3 rollout review before Stage 4**.
+Updated: 2026-10-26 (Pacific)
+Status: Stage 3 rollout accepted. This document records its snapshot; [Stage 4](maintenance-stage-4.md) is now implemented for review. Stop before Stage 5.
 
 Pete explicitly approved the [complete copy review](maintenance-stage-3-copy-review.md) and requested implementation. No new prose was invented during rollout; the approved 49 shared sets and 15 retained authored sets remain the copy contract.
 

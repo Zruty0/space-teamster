@@ -1,7 +1,7 @@
 # Maintenance coverage — reviewed specification
 
-Updated: 2026-10-27
-Status: Stages 1 and 2 reviewed; [complete Stage 3 copy](maintenance-stage-3-copy-review.md) explicitly approved and implemented. See the [Stage 3 handoff](maintenance-stage-3.md). Stop for rollout review before Stage 4.
+Updated: 2026-10-26 (Pacific)
+Status: Stages 1–3 reviewed. [Stage 4 full-service anchors](maintenance-stage-4.md) implemented for review; stop before Stage 5. The original comments below remain unchanged.
 
 See the [complete roster](maintenance-stage-1-roster.md), [delivery plan](maintenance-coverage-plan.md) and [Stage 2 handoff](maintenance-stage-2.md). Original comments were committed unchanged in `23821fa`; each is preserved verbatim below with its resolution.
 
@@ -92,7 +92,7 @@ Normal inspections, branch-specific one-use credits, payments and elapsed work t
 
 ## 3. Existing businesses
 
-Retain all 12 authored shops, names, staff, accounts, equipment, prices and timing. The one later capability upgrade is Cadiz's Vilar flagship: Work C becomes B in Stage 4; its diagnosis, C–D stock, 600 cr/hour rate and normal hours remain unchanged.
+Retain all 12 authored shops, names, staff, accounts, equipment, prices and timing. The Stage 4 capability upgrade is Cadiz's Vilar flagship: Work C is now B; its diagnosis, C–D stock, 600 cr/hour rate and normal hours remain unchanged.
 
 | Existing business | Final internal class | Diagnostic/work; stock | Rate; hours multiplier; parts multiplier |
 |---|---:|---|---|
@@ -115,11 +115,11 @@ Red Dust remains a named, limited workshop rather than an anonymous search; its 
 
 (zzz: as mentioned above raise honesty to 0.8 to these 0-tier shops)
 
-**Resolution:** Adopted as 0.8, not the original proposal's 1.0. The 51 original Wells fallback accounts retained their existing prices in Stage 2. In the final map, 26 remain basic mechanics, 16 become professionals, and nine become full-service anchors. Stage 3 has converted those 25 branches to S1 professional terms; the nine future full-service anchors await their Stage 4 S2 upgrade. Wells serf-side-trade prose stays local to appropriate settings; Daedalus and Covenant institutional variants belong to the complete Stage 3 copy review.
+**Resolution:** Adopted as 0.8, not the original proposal's 1.0. The 51 original Wells fallback accounts retained their existing prices in Stage 2. In the final map, 26 remain basic mechanics, 16 become professionals, and nine become full-service anchors. Stage 3 converted those 25 branches to S1 professional terms; Stage 4 now promotes the nine full-service anchors to S2. Wells serf-side-trade prose stays local to appropriate settings; Daedalus and Covenant institutional variants belong to the complete Stage 3 copy review.
 
 ## 4. Full-service and elite locations
 
-Twenty-six full-service anchors remain after moving Svarog into the elite group. Working names await their respective copy stages; none establishes a new economic provider.
+Twenty-six full-service anchors remain after moving Svarog into the elite group. Their names and bespoke copy are implemented through Stages 2 and 4; none establishes a new economic provider.
 
 | Location | Working shop name | Operator/role |
 |---|---|---|
@@ -145,7 +145,7 @@ Twenty-six full-service anchors remain after moving Svarog into the elite group.
 | Alembic Ring | Alembic Ring Service Works | Orbital industrial workshop |
 | Almaden Orbital | Almaden Orbital Engineering | Station concession |
 | Coldgate | Coldgate Cryogenic Service | Port engineering |
-| Cadiz Highport | Existing Vilar flagship | Approved later capability upgrade |
+| Cadiz Highport | Existing Vilar flagship | Work B upgrade implemented in Stage 4 |
 | Daedalus Systems Campus | Daedalus Visiting-Rig Workshop | Public commercial campus service |
 | Pilgrim Gate | Pilgrim Gate Repair Hall | Covenant receiving-gate service |
 | Castle Teide | Teide Charter Workshop | Licensed service workshop |
@@ -212,7 +212,7 @@ New staffed accounts use `maintenance-<physicalId>`; self-help uses `emergency-<
 
 - **Stage 2:** Low Gauge mechanic, Town workshop, Nell's Rest Shipworks, existing Bruckner; shared registry, referrals, approved honesty and universal emergency fallback. Other staffed facilities remain unchanged.
 - **Stage 3:** Complete ordinary coverage, with professional interim shops where later bespoke anchors will open. Expected final-stage snapshot: 57 basic, 90 professional, one full-service pilot, two existing elites and nine emergency-only locations. Supply **all copy in Markdown for comments before implementation**: every shared/reused set, variant, name, substitution, referral and location map. Preserve `zzz` comments.
-- **Stage 4:** Promote the remaining 25 full-service anchors, including Cadiz. Expected 57 / 65 / 26 / 2, plus nine emergency-only sites.
+- **Stage 4:** Remaining 25 full-service anchors, including Cadiz, implemented for review. Live 57 / 65 / 26 / 2, plus nine emergency-only sites. Stop before Stage 5.
 - **Stage 5:** Open Rochefort and Svarog as elites. Final 57 / 63 / 26 / 4, plus nine emergency-only sites.
 
 `tests/audit-maintenance-coverage.ts` inventories physical scopes, account/directory agreement, service quotes, fault coverage and referral records. The roster JSON is review data, not imported into production. The production referral network is checked against it. `npm run test:maintenance-coverage` validates the pilot, emergency coverage, public directions, exact legacy quotes, atomic save failure and hidden internal labels. See the Stage 2 handoff for validation and the desktop preview.

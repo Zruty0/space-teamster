@@ -1,7 +1,7 @@
 # Maintenance Stage 4 — full-service anchors
 
-Updated: 2026-10-27
-Status: Stage 3 rollout accepted; Stage 4 implemented and tested for review. **Stop before Stage 5.**
+Updated: 2026-10-26 (Pacific)
+Status: Stage 3 rollout accepted; Stage 4 implemented in `e6a51ee` and tested for review. **Stop before Stage 5.**
 
 This stage promotes the remaining **25 full-service anchors**: 24 receive the complete bespoke text below; Cadiz keeps its established identity and five existing prose fields, gains B-quality work and a new in-character referral. Nell’s Rest remains the already implemented pilot. All business names, account IDs, receiving IDs and referral catchments stay unchanged. The new named staff are shop characterization only, not mission contacts or additional economic providers.
 
