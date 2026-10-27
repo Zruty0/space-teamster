@@ -1,7 +1,7 @@
 # Maintenance Stage 2 — Weymark pilot and shared services
 
-Updated: 2026-10-26 (Pacific)
-Status: reviewed, including the grounded-only restart correction. This document records the Stage 2 snapshot; [Stage 4](maintenance-stage-4.md) is now implemented for review. Stop before Stage 5.
+Updated: 2026-10-27 (Pacific)
+Status: reviewed, including the grounded-only restart correction. This document records the Stage 2 snapshot; [Stage 5](maintenance-stage-5.md) is implemented and awaits final network review.
 
 ## Review
 

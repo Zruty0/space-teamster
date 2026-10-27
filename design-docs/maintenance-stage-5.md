@@ -1,7 +1,7 @@
 # Maintenance Stage 5 — elite landmarks and final network
 
 Updated: 2026-10-27 (Pacific)
-Status: Stage 4 accepted; Stage 5 implemented and tested. **Await final network review.** No push or deploy.
+Status: Stage 4 accepted; Stage 5 implemented in `bedd9e7` and tested. **Await final network review.** No push or deploy.
 
 ## Scope and terms
 

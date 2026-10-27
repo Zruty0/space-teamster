@@ -1,7 +1,7 @@
 # Maintenance Stage 3 — complete copy for review
 
-Updated: 2026-10-26 (Pacific)
-Status: **approved Stage 3 copy preserved below.** [Stage 4](maintenance-stage-4.md) now supplies 25 explicit bespoke overrides; every other location keeps this copy. The original location/account tables and referral destinations are unchanged. Stop before Stage 5.
+Updated: 2026-10-27 (Pacific)
+Status: **approved Stage 3 copy preserved below.** [Stage 4](maintenance-stage-4.md) supplies 25 explicit bespoke overrides; [Stage 5](maintenance-stage-5.md) supplies two elite overrides and retires their interim on-site referrals. Original tables remain the historical snapshot. Await final network review.
 
 Add `zzz` comments anywhere. They will be preserved verbatim, with resolutions alongside them. This document is the review source, not a sample gallery or an authorization to implement later stages.
 
@@ -1511,10 +1511,10 @@ This table binds the reviewed copy to real locations without changing an operati
 
 ## 8. Approval and implementation gate
 
-Runtime verification: `node tests/audit-maintenance-stage-3-copy.mjs` now passes **7,263 checks** against this approved copy plus the 25 explicit Stage 4 overrides, the catalog and review roster. All names, directories, accounts, service terms and all 281 public referral destinations are checked; prose outside the stated overrides is unchanged. The Stage 3 rollout is also covered by gameplay tests and the isolated desktop walkthrough described in the [handoff](maintenance-stage-3.md).
+Runtime verification: `node tests/audit-maintenance-stage-3-copy.mjs` now passes **7,780 checks** against this approved copy plus 25 Stage 4 and two Stage 5 overrides, the catalog and review roster. All names, directories, accounts and service terms are checked, along with 281 historical / 279 active referral lines. The other 157 facility definitions and quotes match the independent pre-Stage-5 fingerprints. The Stage 3 rollout is also covered by gameplay tests and the isolated desktop walkthrough described in the [handoff](maintenance-stage-3.md).
 
 - This Markdown is the complete approved Stage 3 copy, including all reused shop sets and all local exceptions. It is not loaded by the game.
 - Review names, voice, institutional fit, shared text, referrals and every location assignment here. Preserve each `zzz` comment and record the resolution beside it.
 - Explicit copy approval received on 2026-10-26 Pacific; the exact sets/mappings and everyday terms are implemented and checked against this document. No unreviewed generated variants or additional NPCs were added.
 - Physical scopes, branch accounts, hidden classifications, private access, actual equipment/work capabilities, grounded-only emergency recovery and final runtime copy are audited. Desktop verification used isolated synthetic profiles, never live saves.
-- Stop for the Stage 3 rollout review before bespoke Stage 4 work or elite Stage 5 work.
+- Stages 3 and 4 reviews passed; Stage 5 is implemented and awaits final network review. No automatic further expansion.

@@ -1,7 +1,7 @@
 # Maintenance Stage 4 — full-service anchors
 
-Updated: 2026-10-26 (Pacific)
-Status: Stage 3 rollout accepted; Stage 4 implemented in `e6a51ee` and tested for review. **Stop before Stage 5.**
+Updated: 2026-10-27 (Pacific)
+Status: Stage 4 accepted. This document preserves its copy and rollout snapshot. [Stage 5](maintenance-stage-5.md) is now implemented and awaits final network review.
 
 This stage promotes the remaining **25 full-service anchors**: 24 receive the complete bespoke text below; Cadiz keeps its established identity and five existing prose fields, gains B-quality work and a new in-character referral. Nell’s Rest remains the already implemented pilot. All business names, account IDs, receiving IDs and referral catchments stay unchanged. The new named staff are shop characterization only, not mission contacts or additional economic providers.
 
@@ -534,4 +534,4 @@ Validation:
 - [Full-service desktop preview](http://127.0.0.1:5173/tests/maintenance-full-service-preview.html): 328 native checks across every upgraded branch and all shop passages, including B repairs, A-only unknown faults, equipment and real service receipts. Thirteen focused views captured; representative workshop, referral, unknown-fault and receipt screenshots inspected. The all-network preview still passes 687 checks. Both use page-local synthetic saves, never live careers; no mobile testing.
 - No push/deploy, visual changes, new providers or extra locations. Concurrent palette/flight work is retained.
 
-Review this complete roster, writing and actual offerings before proceeding to Stage 5. No automatic elite expansion, new NPC missions, shop art or extra locations.
+Stage 4 review passed and Pete authorized Stage 5, now implemented. Review the [final network](maintenance-stage-5.md); no automatic NPC missions, shop art, extra locations or further expansion.

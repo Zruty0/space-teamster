@@ -1,7 +1,7 @@
 # System-wide maintenance coverage — approved staged plan
 
-Updated: 2026-10-26 (Pacific)
-Status: Stage 4 full-service anchors implemented for review. Stop before Stage 5. Each stage requires separate approval.
+Updated: 2026-10-27 (Pacific)
+Status: All five stages implemented. Stage 4 accepted; [Stage 5](maintenance-stage-5.md) awaits final network review. No automatic expansion, push or deploy.
 
 Canonical details: [reviewed specification](maintenance-stage-1-specification.md), [complete roster](maintenance-stage-1-roster.md), [Stage 2 handoff](maintenance-stage-2.md). Pete's original `zzz` comments and their resolutions remain in the specification.
 
@@ -17,7 +17,7 @@ Canonical details: [reviewed specification](maintenance-stage-1-specification.md
 
 Never show these numbers or the word “tier” to players. Existing A–F diagnosis, work quality and stock rules remain distinct from facility classification. Preserve universal standardized component replacement at staffed workshops.
 
-Approved basic-mechanic honesty: **0.95 generally, 0.8 in the Wells**. Professional defaults remain honest; deliberate named exceptions such as Red Dust remain. Four elite landmarks: Bruckner, Serrat, Rochefort and Svarog. Only the first two already exist as staffed elite businesses.
+Approved basic-mechanic honesty: **0.95 generally, 0.8 in the Wells**. Professional defaults remain honest; deliberate named exceptions such as Red Dust remain. Four elite landmarks: Bruckner, Serrat, Rochefort and Svarog. All four are now active elite businesses.
 
 One free referral interaction names the normal higher facility and, if it is not already elite, an elite alternative. Authored practical service catchments are approved; do not claim dynamically shortest travel times. Approved future shops may be named before implementation. Referrals do not activate shops, expose private locations or grant flight permission.
 
@@ -56,15 +56,17 @@ The specification records exact service defaults, commercial exceptions, 26 full
 
 ## Stage 4 — Bespoke full-service anchors
 
-**Implemented for review (`e6a51ee`).** [Complete roster, writing and verification](maintenance-stage-4.md). Live mix: 57 basic / 65 professional / 26 full-service / two elite, plus nine emergency-only. The other 134 service locations are unchanged. **Stop before Stage 5.**
+**Implemented and reviewed (`e6a51ee`).** [Complete roster, writing and verification](maintenance-stage-4.md). Stage 4 snapshot: 57 basic / 65 professional / 26 full-service / two elite, plus nine emergency-only. That pass left the other 134 service locations unchanged.
 
 Implement the remaining 25 full-service anchors beyond the pilot. Each receives distinctive premises, personnel and separate diagnosis/service/repair/referral dialogue. Vary staging and describe competence affirmatively. Existing civic/industrial operators can host workshops without creating new system-wide corporations.
 
 Cadiz's Vilar flagship gains B-quality work while retaining its other commercial terms. Preserve existing account IDs. All but the highest-complexity repairs must actually work, not merely be advertised.
 
-**Gate:** review the complete bespoke roster, writing and actual offerings before elite expansion.
+**Gate passed:** Pete accepted Stage 4 and authorized Stage 5.
 
 ## Stage 5 — Elite landmarks and acceptance
+
+**Implemented (`bedd9e7`); final review pending.** [Complete copy, terms and acceptance evidence](maintenance-stage-5.md). Final live mix: 57 basic / 63 professional / 26 full-service / four elite, plus nine emergency-only sites. Paid-maintenance persistence correction: `cecab0c`. All other 157 facility definitions/prices retained; 279 active public referral lines.
 
 Add Rochefort and Svarog elite service, retaining Bruckner and Serrat's established identities. Do not invent new equipment, technologies, dealership rights or additional locations merely to fill a regional quota.
 

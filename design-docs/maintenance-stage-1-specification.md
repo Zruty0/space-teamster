@@ -1,7 +1,7 @@
 # Maintenance coverage — reviewed specification
 
-Updated: 2026-10-26 (Pacific)
-Status: Stages 1–3 reviewed. [Stage 4 full-service anchors](maintenance-stage-4.md) implemented for review; stop before Stage 5. The original comments below remain unchanged.
+Updated: 2026-10-27 (Pacific)
+Status: Stages 1–4 reviewed; [Stage 5](maintenance-stage-5.md) implemented and tested. Await final network review. The original comments below remain unchanged.
 
 See the [complete roster](maintenance-stage-1-roster.md), [delivery plan](maintenance-coverage-plan.md) and [Stage 2 handoff](maintenance-stage-2.md). Original comments were committed unchanged in `23821fa`; each is preserved verbatim below with its resolution.
 
@@ -39,7 +39,7 @@ Before this pass there were 63 shops: 12 authored businesses and 51 Wells fallba
 
 **Resolution:** Adopted. Low Gauge's new basic mechanic uses 0.95; the existing Wells fallback mechanics now use 0.8. Ordinary professional facilities remain honest. Red Dust retains its deliberately dishonest authored exception. These probabilities use the existing eligible-system fabrication checks, not a public honesty score or a simple per-visit scam percentage.
 
-S3 applies to the future Rochefort and Svarog elite facilities. Bruckner and Serrat retain their established commercial terms. Ordinary inspections take two authored hours before the hours multiplier. Work quality, stock, speed, price and honesty remain separate attributes; classification does not replace the existing A–F rules.
+S3 now applies to the active Rochefort and Svarog elite facilities. Bruckner and Serrat retain their established commercial terms. Ordinary inspections take two authored hours before the hours multiplier. Work quality, stock, speed, price and honesty remain separate attributes; classification does not replace the existing A–F rules.
 
 ### Actual capability coverage
 
@@ -156,12 +156,12 @@ Oathmark's elite substitutes for a separate full-service shop. Kuznia has both A
 
 (zzz: add also an elite workshop at Svarog Shipyard)
 
-**Resolution:** Added Svarog as the fourth elite, replacing its proposed class 2 workshop rather than adding a duplicate business. Camps elite referrals now name Svarog. Its actual workshop opens in Stage 5, but referrals may name it now.
+**Resolution:** Added Svarog as the fourth elite, replacing its proposed class 2 workshop rather than adding a duplicate business. Camps elite referrals now name Svarog. Its elite workshop opened in Stage 5; earlier referrals were explicitly permitted to name the future facility.
 
 1. **Bruckner Central Service Hall, Weymark** — existing precision/dealer landmark; broad stock and fast service.
 2. **Serrat Domain Civil Refit Office, Oathmark** — existing complete repair capability with conservative C–D stock.
-3. **Rochefort Precision Service, Gaia** — future S3 industrial precision workshop.
-4. **Svarog Visiting-Rig Service, Svarog Shipyard** — future S3 elite workshop using SSC's shared infrastructure; tenant builders retain their own identity.
+3. **Rochefort Precision Service, Gaia** — active S3 industrial precision workshop.
+4. **Svarog Visiting-Rig Service, Svarog Shipyard** — active S3 elite workshop using SSC's shared infrastructure; tenant builders retain their own identity.
 
 Bruckner remains the established VHM dealer; other shops obtain proprietary parts through existing channels without claiming a new dealership or warranty monopoly.
 
@@ -212,7 +212,7 @@ New staffed accounts use `maintenance-<physicalId>`; self-help uses `emergency-<
 
 - **Stage 2:** Low Gauge mechanic, Town workshop, Nell's Rest Shipworks, existing Bruckner; shared registry, referrals, approved honesty and universal emergency fallback. Other staffed facilities remain unchanged.
 - **Stage 3:** Complete ordinary coverage, with professional interim shops where later bespoke anchors will open. Expected final-stage snapshot: 57 basic, 90 professional, one full-service pilot, two existing elites and nine emergency-only locations. Supply **all copy in Markdown for comments before implementation**: every shared/reused set, variant, name, substitution, referral and location map. Preserve `zzz` comments.
-- **Stage 4:** Remaining 25 full-service anchors, including Cadiz, implemented for review. Live 57 / 65 / 26 / 2, plus nine emergency-only sites. Stop before Stage 5.
-- **Stage 5:** Open Rochefort and Svarog as elites. Final 57 / 63 / 26 / 4, plus nine emergency-only sites.
+- **Stage 4:** Remaining 25 full-service anchors, including Cadiz, implemented and reviewed. Stage snapshot 57 / 65 / 26 / 2, plus nine emergency-only sites.
+- **Stage 5:** Rochefort and Svarog elites implemented. Final live 57 / 63 / 26 / 4, plus nine emergency-only sites. Await final network review.
 
 `tests/audit-maintenance-coverage.ts` inventories physical scopes, account/directory agreement, service quotes, fault coverage and referral records. The roster JSON is review data, not imported into production. The production referral network is checked against it. `npm run test:maintenance-coverage` validates the pilot, emergency coverage, public directions, exact legacy quotes, atomic save failure and hidden internal labels. See the Stage 2 handoff for validation and the desktop preview.

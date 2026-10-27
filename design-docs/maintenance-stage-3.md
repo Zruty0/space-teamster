@@ -1,7 +1,7 @@
 # Maintenance Stage 3 — everyday coverage rollout
 
-Updated: 2026-10-26 (Pacific)
-Status: Stage 3 rollout accepted. This document records its snapshot; [Stage 4](maintenance-stage-4.md) is now implemented for review. Stop before Stage 5.
+Updated: 2026-10-27 (Pacific)
+Status: Stage 3 rollout accepted. This document records its snapshot; [Stage 5](maintenance-stage-5.md) is implemented and awaits final network review.
 
 Pete explicitly approved the [complete copy review](maintenance-stage-3-copy-review.md) and requested implementation. No new prose was invented during rollout; the approved 49 shared sets and 15 retained authored sets remain the copy contract.
 
@@ -50,4 +50,4 @@ The nine permanent emergency-only sites remain unstaffed. Science-cell, commune,
 
 ## Next gate
 
-Review Stage 3 in the normal game or the isolated preview. Stage 4 may then promote the remaining 25 full-service anchors, including Cadiz, with their approved-stage bespoke identities. **Do not start that work automatically.** Rochefort and Svarog elites remain Stage 5. No push or deploy has been requested.
+Stage 3 review passed, and the separately authorized Stages 4 and 5 are implemented. Current review: [final network and elite landmarks](maintenance-stage-5.md). No further expansion, push or deploy is authorized automatically.
