@@ -8,7 +8,7 @@
     "test:equipment": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs",
     "test:par": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/mission-cost.test.ts",
     "test:maintenance": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/maintenance-inspection.test.ts",
-    "test:maintenance-coverage": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/maintenance-coverage.test.ts",
+    "test:maintenance-coverage": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/maintenance-coverage.test.ts && node tests/audit-maintenance-stage-3-copy.mjs",
     "test:acheron": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/acheron.test.ts",
     "test:balor": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor.test.ts && node tests/run-equipment.mjs tests/balor-eye.test.ts",
     "test:bam": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/bam-contracts.test.ts",

@@ -1,8 +1,5 @@
-import { ESTELLA_NODES_BY_ID } from '../content/estella';
-import { physicalTerminalId } from '../physical-terminals';
 import { WEYMARK_PILOT_SHOPS } from './weymark-shops';
-import { estellaSelectableNavTargets } from '../content/estella/navigation';
-import { WELLS_FRONTIER_OUTFITTER_COPY, WELLS_FRONTIER_OUTFITTER_NAME } from '../frontier-outfitter-content';
+import { COVERAGE_SHOPS } from './coverage';
 import { componentFaultById, maintenanceComponentById, maintenanceSystemById } from './catalog';
 import { componentHasFabricatedFault, fabricatedFaultById, fabricatedFaultsForComponent } from './fabricated-faults';
 import { COMPONENT_GRADES, componentMaxHp, componentPartsCost, componentReplacementCost, componentServicedAp, shopCanPerform } from './grades';
@@ -24,6 +21,7 @@ export interface MaintenanceShopDef {
   facilityTier: MaintenanceFacilityTier;
   name: string;
   organizationName?: string;
+  directorySummary?: string;
   locationIds: string[];
   equipmentIds?: readonly RigEquipmentId[];
   diagnosticGrade: WorkGrade;
@@ -346,47 +344,11 @@ const AUTHORED_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [
   ...WEYMARK_PILOT_SHOPS,
 ];
 
-const AUTHORED_MAINTENANCE_LOCATION_IDS = new Set(AUTHORED_MAINTENANCE_SHOPS.flatMap(shop => shop.locationIds));
-
-export const WELLS_FRONTIER_OUTFITTERS: readonly MaintenanceShopDef[] = estellaSelectableNavTargets()
-  .filter(target => ESTELLA_NODES_BY_ID.get(target.id)?.regionId === 'wells' && !AUTHORED_MAINTENANCE_LOCATION_IDS.has(target.id))
-  .map(target => ({
-    id: `wells-frontier-outfitter-${target.id}`,
-    facilityTier: 0 as const,
-    name: WELLS_FRONTIER_OUTFITTER_NAME,
-    organizationName: 'Unofficial local mechanic',
-    locationIds: [target.id],
-    diagnosticGrade: 'E',
-    workQualityGrade: 'F',
-    componentGradeBest: 'F',
-    componentGradeWorst: 'F',
-    laborRate: 250,
-    diagnosisHours: 2,
-    partsMarkup: 1.5,
-    laborHoursMultiplier: 1,
-    honesty: 0.8,
-    copy: WELLS_FRONTIER_OUTFITTER_COPY,
-  }));
-
-const STAFFED_SHOPS = [...AUTHORED_MAINTENANCE_SHOPS, ...WELLS_FRONTIER_OUTFITTERS];
-const staffedScopes = new Set(STAFFED_SHOPS.flatMap(s => s.locationIds.map(physicalTerminalId)));
-const emergencyScopes = new Map<string, string[]>();
-for (const target of estellaSelectableNavTargets()) {
-  const physicalId = physicalTerminalId(target.id);
-  if (!staffedScopes.has(physicalId)) emergencyScopes.set(physicalId, [...(emergencyScopes.get(physicalId) ?? []), target.id]);
-}
-/** Self-help, not invented staff. Temporary fallbacks disappear as real shops open. */
-export const EMERGENCY_MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...emergencyScopes].map(([physicalId, locationIds]) => ({
-  id: `emergency-${physicalId}`, facilityTier: -1, name: 'Emergency restart procedure', locationIds,
-  diagnosticGrade: 'F', workQualityGrade: 'F', componentGradeBest: 'F', componentGradeWorst: 'F',
-  laborRate: 0, diagnosisHours: 0, partsMarkup: 1, laborHoursMultiplier: 1, honesty: 1,
-  copy: {
-    profileBlurb: 'When damage grounds the rig, use its emergency checklist to reset departure-critical systems and restore basic operation. This is a self-help procedure.',
-    levelBlurb: 'Emergency recovery and directions to a workshop',
-    diagnosisBlurb: '', serviceBlurb: '', repairsBlurb: '',
-  },
-}));
-export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...STAFFED_SHOPS, ...EMERGENCY_MAINTENANCE_SHOPS];
+// The 26 remaining basic Wells mechanics; promoted accounts retain their IDs
+// in COVERAGE_SHOPS but now use the approved professional terms and prose.
+export const WELLS_FRONTIER_OUTFITTERS = COVERAGE_SHOPS.filter(shop => shop.id.startsWith('wells-frontier-outfitter-') && shop.facilityTier === 0);
+export const EMERGENCY_MAINTENANCE_SHOPS = COVERAGE_SHOPS.filter(shop => shop.facilityTier === -1);
+export const MAINTENANCE_SHOPS: readonly MaintenanceShopDef[] = [...AUTHORED_MAINTENANCE_SHOPS, ...COVERAGE_SHOPS];
 
 export function maintenanceShopById(id: string): MaintenanceShopDef | undefined {
   return MAINTENANCE_SHOPS.find(shop => shop.id === id);

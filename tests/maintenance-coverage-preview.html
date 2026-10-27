@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset="utf-8"><title>Maintenance coverage check</title>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{max-width:65vw;background:#102030;color:#def;padding:6px}#status{margin-left:12px}</style>
+<select id="view"></select><span id="status">Synthetic profiles; no live saves.</span><canvas id="screen" width="1280" height="800"></canvas>
+<script type="module">
+// Only this page's Map is persisted. Never read or write the real career store.
+const storage=new Map();let writes=0;
+Object.defineProperty(window,'localStorage',{value:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>{storage.set(k,v);writes++;},removeItem:k=>storage.delete(k)}});
+const {Game}=await import('/src/game.ts');
+const {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS}=await import('/src/career-state.ts');
+const {MAINTENANCE_SHOPS}=await import('/src/maintenance/shops.ts');
+const {createDefaultRigState,deriveRestrictions}=await import('/src/maintenance/rig-state.ts');
+const {MAINTENANCE_COMPONENTS,componentFaults}=await import('/src/maintenance/catalog.ts');
+const {physicalTerminalId,localTerminalScopeIds}=await import('/src/physical-terminals.ts');
+const {emptyTravelAccess}=await import('/src/content/estella/empty-travel-access.ts');
+const {canonicalEstellaLocationId}=await import('/src/content/estella/location-aliases.ts');
+const {ESTELLA_NODES_BY_ID}=await import('/src/content/estella/index.ts');
+const {drawInteractiveScene}=await import('/src/interactive-scene.ts');
+const canvas=document.getElementById('screen'),ctx=canvas.getContext('2d'),menu=document.getElementById('view');
+const at=name=>MAINTENANCE_SHOPS.find(s=>ESTELLA_NODES_BY_ID.get(physicalTerminalId(s.locationIds[0])).name===name).id;
+const views={
+ 'Caravanserai':[at('The Caravanserai'),'profile'],'Coimbra':[at('Daedalus Systems Campus'),'profile'],
+ 'Wells mechanic':[at('The Count\'s Well'),'profile'],'Svarog':[at('Svarog Shipyard'),'profile'],
+ 'Svarog directions':[at('Svarog Shipyard'),'directions'],'Raqib':[at('Raqib'),'profile'],
+ 'Warren':[at('The Warren'),'profile'],'Farwatch':[at('EDF Farwatch Station'),'profile'],
+ 'Cadiz':[at('Cadiz Highport'),'profile'],'Emergency':[at("Nell's Lantern"),'emergency'],
+ 'Recovered':[at("Nell's Lantern"),'recovered'],'Service':[at('The Caravanserai'),'service'],
+ 'Service receipt':[at('The Caravanserai'),'serviced'],'Equipment':[at('The Caravanserai'),'equipment'],
+ 'Unknown fault':[at('The Caravanserai'),'unknown'],
+};
+for(const s of MAINTENANCE_SHOPS)views[s.id]=[s.id,'profile'];
+for(const [key,[id]] of Object.entries(views)){const option=document.createElement('option');option.value=key;const s=MAINTENANCE_SHOPS.find(s=>s.id===id);option.textContent=key===id?`${ESTELLA_NODES_BY_ID.get(physicalTerminalId(s.locationIds[0])).name} — ${s.name}`:key;menu.append(option);}
+const game=Object.create(Game.prototype);game.canvas=canvas;game.worldTime=0;game.showGuidance=text=>document.getElementById('status').textContent=text;
+let current,checks=0;
+function assert(v,m){checks++;if(!v)throw Error(m);}
+function draw(){canvas.width=innerWidth-24;canvas.height=innerHeight-65;const state=game.phase.scene;current=game.buildInteractiveScene(state);drawInteractiveScene(ctx,canvas,current,state.selectedIndex??0,state.bodyScrollOffset??0);}
+function show(){
+ const [id,mode]=views[menu.value],shop=MAINTENANCE_SHOPS.find(s=>s.id===id);
+ const arrival=localTerminalScopeIds(physicalTerminalId(shop.locationIds[0])).find(id=>canonicalEstellaLocationId(id)===id&&emptyTravelAccess(id)==='public')??shop.locationIds[0];
+ game.career={...defaultCareerProfile(),locationId:arrival,money:1000000,certifications:[...TEAMSTER_CERTIFICATION_IDS],rig:createDefaultRigState(true)};game.worldTime=0;
+ game.phase={kind:'interactiveScene',scene:{id:'maintenanceShop',selectedIndex:0,maintenanceShopId:id}};
+ const action=value=>game.activateInteractiveSceneOption({},value), before=writes;
+ if(mode==='profile')assert(!deriveRestrictions(game.career.rig).some(r=>r.id==='grounded'),'healthy profile');
+ if(mode==='directions'){action(`maintenanceReferral:${id}`);assert(writes===before,'free advice');}
+ if(mode==='equipment')game.phase.scene.id='equipmentList';
+ if(mode==='emergency'||mode==='recovered'){
+  game.career.money=0;const state=game.career.rig.components['powertrain-main-drive-core'];state.hp=0;state.ap=0;state.fault={severity:'total',diagnosis:'unknown',generatedMission:0,generatedStrike:0};
+  action(`maintenanceEmergencyConfirm:${id}`);
+  if(mode==='recovered'){action(`maintenanceEmergency:${id}`);assert(writes===before+1&&!deriveRestrictions(game.career.rig).some(r=>r.id==='grounded'),'one saved recovery');assert(game.career.money===0&&game.career.worldTime===0,'free recovery');}
+ }
+ if(mode==='service'||mode==='serviced'){
+  for(const state of Object.values(game.career.rig.components))state.ap=0;
+  action(`maintenanceDiagnose:${id}`);action(`maintenanceServiceList:${id}`);
+  assert(game.career.money===999000&&game.career.worldTime===7200,'actual inspection pricing');
+  if(mode==='serviced'){action(`maintenanceServiceAll:${id}`);assert(game.career.money===990000&&game.career.worldTime===79200,'actual credit and service time');}
+ }
+ if(mode==='unknown'){
+  const c=MAINTENANCE_COMPONENTS.find(c=>componentFaults(c).some(f=>f.workGrade==='B')),f=componentFaults(c).find(f=>f.workGrade==='B');
+  game.career.rig.components[c.id].hp=f.severity==='minor'?c.minorThreshold:1;
+  game.career.rig.components[c.id].fault={severity:f.severity,faultId:f.id,diagnosis:'unknown',generatedMission:0,generatedStrike:0};
+  action(`maintenanceDiagnose:${id}`);assert(game.career.rig.components[c.id].fault.diagnosis==='suspected','professional does not identify B-complexity fault');
+  game.phase.scene={id:'maintenanceComponent',selectedIndex:0,maintenanceShopId:id,maintenanceComponentId:c.id};
+ }
+ draw();assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(current)),'internal classes hidden');
+ if(mode==='profile'){assert(writes===before,'profile does not save');assert(current.options.find(o=>o.label==='Emergency restart').disabled,'healthy rig cannot restart');}
+ if(mode==='directions')assert(JSON.stringify(current).includes('ask for the specialist service at Svarog Visiting-Rig Service'),'approved on-site referral');
+}
+menu.onchange=show;window.addEventListener('resize',draw);
+window.addEventListener('keydown',e=>{
+ if(document.activeElement===menu)return;const state=game.phase.scene;
+ if(['ArrowDown','ArrowUp','Enter',' ','PageDown','PageUp'].includes(e.key))e.preventDefault();
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){state.selectedIndex=(state.selectedIndex+(e.key==='ArrowDown'?1:-1)+current.options.length)%current.options.length;draw();}
+ if(e.key==='PageDown'||e.key==='PageUp'){state.bodyScrollOffset=Math.max(0,(state.bodyScrollOffset??0)+(e.key==='PageDown'?120:-120));draw();}
+ if(e.key==='Enter'||e.key===' '){const option=current.options[state.selectedIndex];if(option&&!option.disabled){if(/^(maintenance|equipment)/.test(option.action)){game.activateInteractiveSceneOption({},option.action);draw();}else game.showGuidance('Use the selector to open another synthetic branch.');}}
+});
+canvas.addEventListener('pointerdown',()=>document.activeElement?.blur());
+try{for(const key of Object.keys(views)){menu.value=key;show();}menu.value='Caravanserai';show();document.title='PASS — Maintenance coverage';document.getElementById('status').textContent=`PASS — ${checks} checks; 159 branches. Click canvas: arrows/Enter; Page Up/Down. Synthetic saves only.`;}catch(error){document.title='FAIL — Maintenance coverage';document.getElementById('status').textContent=error.stack??String(error);throw error;}
+</script>

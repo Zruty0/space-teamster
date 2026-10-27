@@ -89,7 +89,7 @@ import { appendCommittedMaintenanceLedger, loadCommittedMaintenanceLedgers } fro
 import { applyMechanicComponentDamage, applyMechanicSystemOperation, removeOptionalMaintenanceSystem, type MechanicDamagePool, type MechanicOperation } from './maintenance/maintenance-service';
 import { atmosphericExposureIsFatal, deriveRestrictions, maintenanceSystemFullyInstalled, manifestEquipmentBufferUnits, rigAtmosphericHeatMultiplier, validateRigState } from './maintenance/rig-state';
 import { emergencyRestart, emergencyRestartNeeded } from './maintenance/emergency';
-import { maintenanceReferrals } from './maintenance/referrals';
+import { maintenanceReferrals, maintenanceReferralText } from './maintenance/referrals';
 import { diagnosisQuote, diagnoseRigAtShop, fabricateFaultClaimsAtShop, fabricateServiceComponentIdsAtShop, fabricatedRepairQuote, maintenanceShopById, repairComponentAtShop, repairQuote, replaceComponentAtShop, replacementQuote, rigServiceQuote, serviceRigAtShop, serviceSystemAtShop, systemServiceQuote, type MaintenanceShopDef } from './maintenance/shops';
 import { currentMaintenanceLedger, resolveMaintenanceSettlement } from './maintenance/strike-resolution';
 import { accumulateFlightTelemetry, cloneMaintenanceTelemetry, createMaintenanceTelemetry } from './maintenance/telemetry';
@@ -2201,7 +2201,7 @@ export class Game {
     if (state.id === 'maintenanceReferral') return {
       title: 'WORKSHOP DIRECTIONS', subtitle: shop.name,
       bodyRows: referrals.flatMap(referral => [
-        { kind: 'text' as const, text: referral.eliteAlternative ? `Or, of course, you can go to ${referral.name}. They handle the most demanding work.` : `For more advanced work, go to ${referral.name}.` },
+        { kind: 'text' as const, text: maintenanceReferralText(referral) },
         { kind: 'text' as const, text: referral.path },
       ]),
       footer: 'Enter/Space: return',

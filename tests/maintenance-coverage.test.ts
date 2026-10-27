@@ -4,6 +4,7 @@ import { MAINTENANCE_COMPONENTS, componentFaults } from '../src/maintenance/cata
 import { createDefaultRigState, deriveRestrictions } from '../src/maintenance/rig-state';
 import { MAINTENANCE_SHOPS, WELLS_FRONTIER_OUTFITTERS, EMERGENCY_MAINTENANCE_SHOPS, diagnosisQuote, rigServiceQuote, replacementQuote, repairQuote, diagnoseRigAtShop, type MaintenanceShopDef } from '../src/maintenance/shops';
 import { WEYMARK_PILOT_SHOPS } from '../src/maintenance/weymark-shops';
+import { COVERAGE_SHOPS } from '../src/maintenance/coverage';
 import { equipmentQuote } from '../src/maintenance/equipment';
 import { emergencyRestart, emergencyRestartNeeded } from '../src/maintenance/emergency';
 import { maintenanceReferrals } from '../src/maintenance/referrals';
@@ -17,7 +18,8 @@ import baseline from './fixtures/maintenance-stage-1-shops.json';
 import proposal from '../design-docs/maintenance-stage-1-roster.json';
 let checks = 0;
 function assert(v: unknown, message: string): asserts v { checks++; if (!v) throw new Error(message); }
-function equal(a: unknown, b: unknown, message: string) { assert(JSON.stringify(a) === JSON.stringify(b), message); }
+function canonical(value: any): any { return Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value; }
+function equal(a: unknown, b: unknown, message: string) { assert(JSON.stringify(canonical(a)) === JSON.stringify(canonical(b)), message); }
 function profile(locationId: string) { return { ...defaultCareerProfile(), locationId, certifications: [...TEAMSTER_CERTIFICATION_IDS], rig: createDefaultRigState(true) }; }
 function broken(locationId: string) {
   const p = profile(locationId);
@@ -36,8 +38,10 @@ for (const component of MAINTENANCE_COMPONENTS) for (const severity of ['minor',
 }
 const targets = estellaSelectableNavTargets();
 assert(MAINTENANCE_SHOPS.length === 159, 'one service or emergency desk per physical site');
-assert(EMERGENCY_MAINTENANCE_SHOPS.length === 93, 'only three new staffed pilot shops; remaining gaps get self-help');
-assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier >= 0).length === 66, 'no premature Stage 3 rollout');
+assert(EMERGENCY_MAINTENANCE_SHOPS.length === 9, 'nine approved unstaffed locations remain self-help only');
+assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier >= 0).length === 150, 'approved Stage 3 staffed coverage');
+equal([-1, 0, 1, 2, 3].map(t => MAINTENANCE_SHOPS.filter(s => s.facilityTier === t).length), [9, 57, 90, 1, 2], 'no premature full-service or elite upgrades');
+assert(WELLS_FRONTIER_OUTFITTERS.length === 26, '26 basic Wells branches remain');
 equal(WEYMARK_PILOT_SHOPS.map(s => s.facilityTier), [0, 1, 2], 'pilot ladder');
 assert(WELLS_FRONTIER_OUTFITTERS.every(s => s.honesty === 0.8), 'approved Wells honesty');
 assert(WEYMARK_PILOT_SHOPS[0].honesty === 0.95, 'approved general basic honesty');
@@ -58,7 +62,7 @@ for (const shop of MAINTENANCE_SHOPS) {
   for (const id of ['maintenanceShop', 'maintenanceReferral', 'maintenanceEmergencyConfirm']) {
     const scene = game.maintenanceShopScene({ id, selectedIndex: 0 }, shop, shop.name);
     assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(scene)), 'internal facility classes never rendered');
-    assert(!/routine.*separate|servicing.*separate/i.test(JSON.stringify(scene)), 'removed maintenance disclaimer stays absent');
+    assert(!/routine (?:maintenance|servicing) (?:is|remains) separate|Ordinary repairs, servicing and equipment purchases remain separate/i.test(JSON.stringify(scene)), 'removed maintenance disclaimer stays absent');
   }
   const p = broken(shop.locationIds[0]);
   const before = JSON.stringify(p);
@@ -97,14 +101,25 @@ const lowRefs = maintenanceReferrals(WEYMARK_PILOT_SHOPS[0]);
 equal(lowRefs.map(r => r.physicalId), ['estella-viii-settlement', 'estella-viii-high-station'], 'Low Gauge recommends town and elite depot');
 const future = maintenanceReferrals(MAINTENANCE_SHOPS.find(s => s.id === 'red-dust-mechanical-reclamation')!);
 assert(future[0].name === 'Roadstead Rig Works' && future[1].physicalId === 'estella-via-drydock', 'approved future facilities advertised without activation');
-assert(!MAINTENANCE_SHOPS.some(s => s.facilityTier >= 0 && s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock')), 'elite Svarog is still future, not automatically rolled out');
+assert(MAINTENANCE_SHOPS.find(s => s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock'))!.facilityTier === 1, 'Svarog has only interim professional service');
+assert(MAINTENANCE_SHOPS.find(s => s.id === 'vilar-cadiz-highport-outfitter')!.workQualityGrade === 'C', 'Cadiz upgrade still deferred');
 
-// Independent pre-edit audit: all old attributes and exact quote fields, except approved Wells honesty.
+// Independent pre-edit audit: preserve all 63 accounts; only the 25 approved
+// Wells promotions change commercial terms. Text changes are checked against Markdown.
+let protectedQuotes = 0, approvedPromotions = 0;
 for (const old of baseline.shops) {
   const shop = MAINTENANCE_SHOPS.find(s => s.id === old.id)!;
-  const { copy, facilityTier, ...attributes } = shop;
+  assert(shop, `legacy account retained: ${old.id}`);
+  const planned = proposal.find(p => p.shopId === shop.id)!;
+  if (shop.id.startsWith('wells-frontier') && planned.tier > 0) {
+    approvedPromotions++;
+    assert(shop.facilityTier === 1 && shop.honesty === 1, 'approved professional promotion, not full service');
+    continue;
+  }
+  protectedQuotes++;
+  const { copy, facilityTier, directorySummary, ...attributes } = shop;
   const { diagnosis, depletedService, driveReplacement, equipment, ...expected } = old;
-  if (shop.id.startsWith('wells-frontier')) expected.honesty = 0.8;
+  if (shop.id.startsWith('wells-frontier')) { expected.honesty = 0.8; expected.name = shop.name; expected.organizationName = shop.organizationName!; }
   equal(attributes, expected, `old shop attributes: ${old.id}`);
   equal(diagnosisQuote(shop), diagnosis, 'old diagnosis quote');
   const rig = createDefaultRigState(true); for (const s of Object.values(rig.components)) s.ap = 0;
@@ -113,7 +128,18 @@ for (const old of baseline.shops) {
   equal(replacementQuote(drive, shop, 'powertrain-main-drive-core'), driveReplacement, 'old replacement quote');
   equal(Object.fromEntries((shop.equipmentIds ?? []).map(id => [id, equipmentQuote(id === 'heavy-heat-shielding' ? createDefaultRigState(true) : createDefaultRigState(false), shop, id, 'D')])), equipment, 'old installation quotes');
 }
-for (const shop of WEYMARK_PILOT_SHOPS) for (const component of MAINTENANCE_COMPONENTS) for (const fault of componentFaults(component)) {
+equal([protectedQuotes, approvedPromotions], [38, 25], 'exact legacy economic-change boundary');
+for (const shop of COVERAGE_SHOPS.filter(s => s.facilityTier >= 0)) {
+  const rig = createDefaultRigState(true); for (const state of Object.values(rig.components)) state.ap = 0;
+  const drive = createDefaultRigState(true); drive.components['powertrain-main-drive-core'].fault = { severity: 'total', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
+  const professional = shop.facilityTier === 1;
+  equal([diagnosisQuote(shop).credits, diagnosisQuote(shop).laborHours, rigServiceQuote(rig, shop).credits, rigServiceQuote(rig, shop).laborHours, replacementQuote(drive, shop, 'powertrain-main-drive-core')!.credits], professional ? [1000, 2, 10000, 20, 309000] : [500, 2, 3625, 14.5, shop.partsMarkup === 1.5 ? 364500 : 280500], 'independent approved everyday quote examples');
+  for (const id of shop.equipmentIds ?? []) {
+    const quote = equipmentQuote(id === 'heavy-heat-shielding' ? createDefaultRigState(true) : createDefaultRigState(false), shop, id, 'D');
+    assert(quote, 'all approved professional equipment is actually available');
+  }
+}
+for (const shop of MAINTENANCE_SHOPS.filter(s => s.facilityTier >= 0)) for (const component of MAINTENANCE_COMPONENTS) for (const fault of componentFaults(component)) {
   const rig = createDefaultRigState(true), state = rig.components[component.id];
   if (!state.installed) continue;
   state.fault = { severity: fault.severity, faultId: fault.id, diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
@@ -168,4 +194,28 @@ action(`maintenanceEmergencyConfirm:${basic.id}`);
 action(`maintenanceEmergency:${basic.id}`);
 equal(JSON.stringify(game.career), restrictedBefore, 'nongrounded direct actions cannot recover the rig');
 equal(writes, restrictedWrites, 'nongrounded actions never save');
-console.log(`Maintenance coverage: ${checks} checks; 159 physical scopes, 66 staffed shops, 93 self-help desks; all 63 legacy shop quotes preserved.`);
+// Exercise real paid actions at every newly templated staffed branch. Copy
+// reuse never shares inspection credit; private shops reject remote actions.
+for (const shop of COVERAGE_SHOPS.filter(s => s.facilityTier >= 0)) {
+  game.career = profile(shop.locationIds[0]); game.career.money = 1000000; game.worldTime = 0;
+  for (const key of Object.keys(game.career.rig.components)) game.career.rig.components[key].ap = 0;
+  game.career.maintenanceShopInspections[basic.id] = { diagnosedWorldTime: 0, creditRemaining: 777, dishonestyRevision: 2, fabricatedFaults: [], fabricatedServiceComponentIds: [], pretendMaintainedComponentIds: [] };
+  const beforeInspectionWrites = writes;
+  action(`maintenanceDiagnose:${shop.id}`);
+  const inspection = diagnosisQuote(shop);
+  equal([game.career.money, game.career.worldTime, writes - beforeInspectionWrites], [1000000 - inspection.credits, inspection.laborHours * 3600, 1], 'actual diagnosis charges exact quote once');
+  equal(game.career.maintenanceShopInspections[shop.id].creditRemaining, inspection.credits, 'local inspection credit recorded');
+  equal(game.career.maintenanceShopInspections[basic.id].creditRemaining, 777, 'other branch credit retained');
+  if (shop.facilityTier === 1) {
+    action(`maintenanceServiceAll:${shop.id}`);
+    equal([game.career.money, game.career.worldTime, game.career.maintenanceShopInspections[shop.id].creditRemaining], [990000, 22 * 3600, 0], 'professional service applies credit once and advances quoted time');
+    const serviced = JSON.stringify(game.career), serviceWrites = writes;
+    action(`maintenanceServiceAll:${shop.id}`);
+    equal([JSON.stringify(game.career), writes], [serviced, serviceWrites], 'duplicate service cannot charge again');
+  }
+  game.career.locationId = basic.locationIds[0];
+  const remoteBefore = JSON.stringify(game.career), remoteWrites = writes;
+  for (const op of ['maintenanceDiagnose', 'maintenanceServiceAll', 'maintenanceRepairAll', 'maintenanceEmergency']) action(`${op}:${shop.id}`);
+  equal([JSON.stringify(game.career), writes], [remoteBefore, remoteWrites], 'all direct remote work rejected');
+}
+console.log(`Maintenance coverage: ${checks} checks; 159 physical scopes, 150 staffed shops, 9 self-help desks; 38 exact legacy quote sets, 25 approved Wells promotions.`);

@@ -1,4 +1,4 @@
-// Read-only Stage 1 inventory. No career/storage access, registration or runtime changes.
+// Read-only inventory against the reviewed final network. No career/storage access.
 // node tests/run-equipment.mjs tests/audit-maintenance-coverage.ts > <report.json>
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
 import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
@@ -8,6 +8,7 @@ import { localTerminalScopeIds, LOCAL_DIRECTORY_ENTRIES } from '../src/local-dir
 import { MAINTENANCE_SHOPS, diagnosisQuote, rigServiceQuote, replacementQuote, type MaintenanceShopDef } from '../src/maintenance/shops';
 import { equipmentQuote } from '../src/maintenance/equipment';
 import { MAINTENANCE_COMPONENTS, componentFaults } from '../src/maintenance/catalog';
+import { COVERAGE_SHOPS } from '../src/maintenance/coverage';
 import { createDefaultRigState } from '../src/maintenance/rig-state';
 import { COMPONENT_GRADES, shopCanPerform } from '../src/maintenance/grades';
 import proposal from '../design-docs/maintenance-stage-1-roster.json';
@@ -76,4 +77,4 @@ const routeProbe = [
   const selected = preferredContractTransfer(options);
   return { sourceId, destinationId, optionCount: options.length, selected: selected && {waitTime: selected.waitTime, transferTime: selected.transferTime} };
 });
-console.log(JSON.stringify({ proposalCounts: Object.fromEntries([-1, 0, 1, 2, 3].map(tier => [String(tier), proposal.filter(p => p.tier === tier).length])), routeProbe, counts: {rawPoi: ESTELLA_NODES.filter(n=>n.kind==='poi').length, selectable: targets.length, physical: sites.length, physicalWithShops: sites.filter(s=>s.shops.length).length, authoredShops: shops.filter(s=>s.facilityTier >= 0 && !s.id.startsWith('wells-frontier')).length, emergencyDesks: shops.filter(s=>s.facilityTier === -1).length, fallbackShops: shops.filter(s=>s.id.startsWith('wells-frontier')).length, uniqueFaults:faults.size, componentFaultPairs: MAINTENANCE_COMPONENTS.flatMap(c=>componentFaults(c)).length}, coverage, highestComplexity: [...faults.values()].filter(f => f.workGrade === 'A').map(f => ({name:f.name, repair:f.repair, components:MAINTENANCE_COMPONENTS.filter(c=>componentFaults(c).some(cf=>cf.id===f.id)).map(c=>c.name)})), nonselectable, sites, shops, proposedQuotes: prototypes.map(measure) }, null, 2));
+console.log(JSON.stringify({ proposalCounts: Object.fromEntries([-1, 0, 1, 2, 3].map(tier => [String(tier), proposal.filter(p => p.tier === tier).length])), routeProbe, counts: {rawPoi: ESTELLA_NODES.filter(n=>n.kind==='poi').length, selectable: targets.length, physical: sites.length, physicalWithShops: sites.filter(s=>s.shops.length).length, staffedShops: shops.filter(s=>s.facilityTier >= 0).length, authoredShops: shops.filter(s=>s.facilityTier >= 0 && !COVERAGE_SHOPS.some(c=>c.id===s.id)).length, emergencyDesks: shops.filter(s=>s.facilityTier === -1).length, fallbackShops: shops.filter(s=>s.facilityTier === 0 && s.id.startsWith('wells-frontier')).length, legacyWellsAccounts: shops.filter(s=>s.id.startsWith('wells-frontier')).length, uniqueFaults:faults.size, componentFaultPairs: MAINTENANCE_COMPONENTS.flatMap(c=>componentFaults(c)).length}, coverage, highestComplexity: [...faults.values()].filter(f => f.workGrade === 'A').map(f => ({name:f.name, repair:f.repair, components:MAINTENANCE_COMPONENTS.filter(c=>componentFaults(c).some(cf=>cf.id===f.id)).map(c=>c.name)})), nonselectable, sites, shops, proposedQuotes: prototypes.map(measure) }, null, 2));

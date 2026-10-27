@@ -1,7 +1,6 @@
 import { localTerminalScopeIds } from './physical-terminals';
 export { localTerminalScopeIds, sharedTerminalParentId } from './physical-terminals';
 import { MAINTENANCE_SHOPS } from './maintenance/shops';
-import { WELLS_FRONTIER_OUTFITTER_SUMMARY } from './frontier-outfitter-content';
 import { PURCHASABLE_TEAMSTER_LICENSES, type TeamsterCertificationId } from './career-state';
 import { ESTELLA_NODES_BY_ID } from './content/estella';
 
@@ -668,7 +667,7 @@ const GENERATED_SHOP_ENTRIES: LocalOfficeDef[] = MAINTENANCE_SHOPS
   .filter(shop => !AUTHORED_SHOP_IDS.has(shop.id))
   .map(shop => ({
     kind: 'office', id: `${shop.id}-office`, name: shop.name,
-    locationIds: shop.locationIds, summary: shop.id.startsWith('wells-frontier-outfitter-') ? WELLS_FRONTIER_OUTFITTER_SUMMARY : shop.copy.levelBlurb,
+    locationIds: shop.locationIds, summary: shop.directorySummary ?? shop.copy.levelBlurb,
     description: shop.copy.profileBlurb, maintenanceShopId: shop.id, actions: [],
   }));
 export const WELLS_FRONTIER_OUTFITTER_DIRECTORY_ENTRIES = GENERATED_SHOP_ENTRIES.filter(entry => entry.maintenanceShopId?.startsWith('wells-frontier-outfitter-'));
