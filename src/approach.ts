@@ -1861,11 +1861,12 @@ function drawApproachHUD(
       : 'Arrive at target area and match speed.',
   });
 
-  // --- Temperature bar (left side) ---
-  const barX = 190;
-  const barY = 54;
+  // Keep the gauge in the far-left HUD column, not in the camera's flight area.
+  // Follow the readouts (including departure/optional par rows) and leave footer room.
+  const barX = lx;
+  const barY = ly + 8;
   const barW = 18;
-  const barH = 130;
+  const barH = Math.max(24, Math.min(130, H - barY - 54));
 
   ctx.strokeStyle = COL_HUD_DIM;
   ctx.lineWidth = 1;

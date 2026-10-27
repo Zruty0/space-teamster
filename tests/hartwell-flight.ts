@@ -179,6 +179,18 @@ async function checks(){
   const label=ctx.getImageData(600,Math.ceil(top)-18,1,1).data;
   assert(!(label[0]===3&&label[1]===7&&label[2]===11),'speed label has no black backing');
  }
+ // Regression: reentry rig used to pass directly behind the gauge at x=190..208.
+ // Compare actual Game+HUD pixels against flight-only rendering over the full rig.
+ reset(HARTWELL_APPROACH_TARGETS[0],false,false);await settle();
+ for(const temperature of [.1,.6,.95])for(const angle of [0,Math.PI/2,Math.PI,-Math.PI/2])for(const wingsDeployed of [false,true]){
+  Object.assign(current.as,{x:current.cam.x+(200-600)/current.cam.zoom,y:current.cam.y+(360-120)/current.cam.zoom,temperature,angle,wingsDeployed,throttle:0});
+  renderApproach(ctx,canvas,current.cam,current.as,current.level,elapsed,true,game.approachScenery);
+  const rig=ctx.getImageData(176,96,48,48).data;draw();const hud=ctx.getImageData(176,96,48,48).data;
+  assert(rig.every((v,i)=>v===hud[i]),`temperature gauge does not cover reentry rig: heat ${temperature}, angle ${angle}, wings ${wingsDeployed}`);
+ }
+ const heatPixel=ctx.getImageData(25,390,1,1).data;
+ assert(heatPixel[0]>heatPixel[1]&&heatPixel[0]>heatPixel[2]&&heatPixel[3]===255,'hot temperature gauge remains visible below left telemetry');
+ reset(HARTWELL_APPROACH_TARGETS[0],false,false);
  const other={...current.level,body:{...current.level.body,id:'estella-iii'}};
  const dispatcher=createApproachScenery();
  renderApproach(ctx,canvas,current.cam,current.as,other,0);const original=hash();
