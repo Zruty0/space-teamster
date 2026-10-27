@@ -1,5 +1,6 @@
 import '../src/content/estella';
 import { BODIES } from '../src/world';
+import { flightSurfaceStyle, HARTWELL_SURFACE_STYLE } from '../src/flight-surface-style';
 import { gasGiantProfileFor } from '../src/content/estella/gas-giant-appearance';
 import { GIANT_FEATHER_START } from '../src/soft-giant-appearance';
 import { hasOutlineWorld, drawOutlineWorld, MATERIAL_FILL, OUTLINE_INK, terrainOutlineInk } from '../src/world-outline-appearance';
@@ -13,6 +14,8 @@ assert(worlds.length===33,'33 existing globes, not the star or station/cluster i
 assert(!hasOutlineWorld('estella')&&!hasOutlineWorld('unknown'),'explicit opt-in');
 for(const fill of Object.values(MATERIAL_FILL))assert(Math.max(...[1,3,5].map(i=>parseInt(fill.slice(i,i+2),16)))<=32,'material backgrounds remain very dark');
 for(const b of worlds){const p=terrainOutlineInk(b.color);assert(Math.max(...[1,3,5].map(i=>parseInt(p.background.slice(i,i+2),16)))<=14,'near-black per-planet background');}
+for(const body of BODIES){const style=flightSurfaceStyle(body);assert(style.ground===terrainOutlineInk(body.color).background,`${body.id}: orbital/approach/landing share the same planet background`);assert(Math.max(...[1,3,5].map(i=>parseInt(style.sky.slice(i,i+2),16)))<=6,'only slight atmospheric tint');}
+assert(HARTWELL_SURFACE_STYLE.ground===flightSurfaceStyle(BODIES.find(b=>b.id==='estella-v')!).ground,'authored Hartwell uses same planet background');
 assert(terrainOutlineInk([200,100,50]).land!==terrainOutlineInk([50,100,200]).land,'terrain keeps muted planetary hue');
 assert(terrainOutlineInk([200,100,50]).background==='#0b0603','near-black true planetary tint');
 assert(OUTLINE_INK.ice==='#c2c5c9','ice material exception remains light gray');

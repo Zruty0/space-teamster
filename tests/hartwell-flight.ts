@@ -175,15 +175,15 @@ async function checks(){
    if(r===214&&g===232&&b===232)pale++;
    if(r===rgb[0]&&g===rgb[1]&&b===rgb[2])colored++;
   }
-  assert(dark>30&&pale>10&&colored>10,`gate has black/pale contrast and original speed color at${speed}`);
+  assert(dark===0&&pale===0&&colored>10,`gate retains only original speed color, no black/pale highlighting at ${speed}`);
   const label=ctx.getImageData(600,Math.ceil(top)-18,1,1).data;
-  assert(label[0]===3&&label[1]===7&&label[2]===11,'speed label has black backing');
+  assert(!(label[0]===3&&label[1]===7&&label[2]===11),'speed label has no black backing');
  }
  const other={...current.level,body:{...current.level.body,id:'estella-iii'}};
  const dispatcher=createApproachScenery();
  renderApproach(ctx,canvas,current.cam,current.as,other,0);const original=hash();
  renderApproach(ctx,canvas,current.cam,current.as,other,0,true,dispatcher);
- assert(hash()===original,'other worlds retain original scenery exactly');
+ assert(hash()===original,'declined authored scenery uses the shared current style exactly');
  assert(JSON.stringify(game.career)===career,'in-memory career unchanged');
  assert(JSON.stringify([...levels])===levelState,'levels/weather/targets unchanged');
  assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog unchanged');

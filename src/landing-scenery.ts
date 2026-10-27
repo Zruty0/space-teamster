@@ -4,7 +4,7 @@ import type { Camera } from './renderer';
 import type { LevelDef } from './levels';
 import { getTerrainHeight, type TerrainData } from './terrain';
 import { getApproachTerrainHeight } from './approach';
-import { hartwellApproachRegion, regionNoise } from './approach-biomes';
+import { hartwellApproachRegion } from './approach-biomes';
 import { createHartwellOutlineScenery } from './approach-outline-scenery';
 import { HARTWELL_SURFACE_STYLE as ink } from './flight-surface-style';
 import { DAWES_CUT_ID, HARTWELL_OUTPOST_THEME, usesDawesSurfaceArt, createSurfacePoiArtwork, placeSurfacePoi, surfaceBeaconOn } from './surface-poi';
@@ -50,22 +50,19 @@ export function createLandingScenery(){
     if(!i||gap)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));
    });};
    ctx.save();edge();ctx.lineTo(W+4,H+4);ctx.lineTo(-4,H+4);ctx.closePath();ctx.clip();ctx.fillStyle=ink.ground;ctx.fillRect(0,0,W,H);
-   for(let band=0;band<6;band++){
-    ctx.beginPath();let pen=false;
-    for(let x=left;x<=right+4/z;x+=4/z){
-     if(site&&x>=site.left&&x<=site.right){pen=false;continue;}
-     const depth=4+band*7+3*regionNoise(region.materialSeed,(x-terrain.pad.centerX)/25,1600+band),y=getTerrainHeight(terrain,x)-depth;
-     if(!pen)ctx.moveTo(sx(x),sy(y));else ctx.lineTo(sx(x),sy(y));pen=true;
-    }
-    ctx.strokeStyle=ink.detail;ctx.lineWidth=.6;ctx.stroke();
-   }
    ctx.restore();edge(true);ctx.strokeStyle=ink.edge;ctx.lineWidth=2.5;ctx.stroke();
+   // Keep the physical deck edge visible after hiding its below-ground cutaway.
+   if(site){ctx.beginPath();ctx.moveTo(sx(site.left),sy(site.deckY));ctx.lineTo(sx(site.right),sy(site.deckY));ctx.strokeStyle='#7c695c';ctx.lineWidth=1;ctx.stroke();}
    // Always visible collision silhouettes, even before SVG decode or on failure.
    if(site&&!paint.diagnostics().ready){
-    ctx.fillStyle='#12100e';ctx.fillRect(sx(site.left),sy(site.deckY),(site.right-site.left)*z,Math.max(0,H-sy(site.deckY)));
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,Math.max(0,sy(site.deckY)));ctx.clip();
     for(const solid of site.solids){ctx.beginPath();solid.points.forEach(([x,y],i)=>i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y)));ctx.closePath();ctx.fillStyle='#0d0907';ctx.fill();ctx.strokeStyle=ink.line;ctx.lineWidth=1;ctx.stroke();}
+    ctx.restore();
    }
-   moduleLayer('deck');moduleLayer('foreground');moduleLayer('pad');
+   // Bury the SVG foundation cutaway in the same plain planet-colored ground.
+   // Preserve above-deck buildings and the thin authored landing-pad slab.
+   ctx.save();ctx.beginPath();ctx.rect(0,0,W,Math.max(0,sy(terrain.pad.y)));ctx.clip();
+   moduleLayer('deck');moduleLayer('foreground');ctx.restore();moduleLayer('pad');
    if(!paint.images.has('landing-pad')){ctx.strokeStyle='#8c8172';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(terrain.pad.left),sy(terrain.pad.y));ctx.lineTo(sx(terrain.pad.right),sy(terrain.pad.y));ctx.stroke();}
    const lit=surfaceBeaconOn(time);
    for(const [i,beacon]of [...paint.asset.beacons].sort((a,b)=>a.x-b.x).entries()){

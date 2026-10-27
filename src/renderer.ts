@@ -1,7 +1,8 @@
 // Canvas rendering: ship, terrain, effects.
-// Legacy wireframe fallback; optional authored scenery does not replace flight geometry.
+// Shared planet-tinted surface style; authored scenery does not replace flight geometry.
 
 import { config } from './config';
+import { flightSurfaceStyle } from './flight-surface-style';
 import {
   ShipState, SHIP_OUTLINE, CAB_OUTLINE, BELT_LINE, ENGINE_PODS, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
   COLLISION_POINTS, GEAR_COLLISION_POINTS, landingAutoAngleTarget, localToWorld,
@@ -12,7 +13,6 @@ import type { LandingSceneryPainter } from './landing-scenery';
 import { surfaceShipCollision } from './surface-ship-collision';
 
 // --- Colors ---
-const COL_BG = '#050510';
 const COL_SHIP = '#00ff88';
 const COL_SHIP_DIM = '#006633';
 const COL_TRIM = '#2d7a55';
@@ -20,8 +20,6 @@ const COL_COCKPIT = '#00ccff';
 const COL_THRUST = '#ffaa00';
 const COL_THRUST_CORE = '#ffffff';
 const COL_RCS = '#ff4400';
-const COL_TERRAIN = '#224422';
-const COL_TERRAIN_BRIGHT = '#33aa44';
 const COL_PAD = '#00ff00';
 const COL_PAD_MARKING = '#00cc00';
 const COL_GEAR = '#00dd66';
@@ -89,7 +87,7 @@ export function render(
   const H = canvas.height;
 
   // Clear
-  ctx.fillStyle = COL_BG;
+  ctx.fillStyle = flightSurfaceStyle(level.body).sky;
   ctx.fillRect(0, 0, W, H);
 
   const authored=scenery?.(ctx,cam,terrain,level,W,H,time)??false;
@@ -211,7 +209,7 @@ function drawTerrain(
   ctx.lineTo(sxEnd, H + 10);
   ctx.lineTo(sxStart, H + 10);
   ctx.closePath();
-  ctx.fillStyle = level.terrainFillColor ?? '#080e08';
+  ctx.fillStyle = flightSurfaceStyle(level.body).ground;
   ctx.fill();
 
   // Draw terrain outline
@@ -221,13 +219,8 @@ function drawTerrain(
     const [sx, sy] = worldToScreen(terrain.points[i][0], terrain.points[i][1], cam, W, H);
     ctx.lineTo(sx, sy);
   }
-  ctx.strokeStyle = level.terrainStrokeColor ?? COL_TERRAIN;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Brighter edge on top of terrain
-  ctx.strokeStyle = level.terrainBrightColor ?? COL_TERRAIN_BRIGHT;
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = flightSurfaceStyle(level.body).edge;
+  ctx.lineWidth = 2.5;
   ctx.stroke();
 }
 

@@ -1,5 +1,6 @@
 // Approved game presentation. Same permanent geography as the filled reference.
 // Current dispatch: world-presentation.ts. Very dark regional fills; no stipple.
+import { planetBackgroundColor } from './flight-surface-style';
 import { beginDisc, trace, type WorldTint } from './world-disc-primitives';
 import { gaiaDiscGeometry } from './world-disc-appearance';
 import { crateredWorldGeometry, type Crater } from './cratered-world-geometry';
@@ -26,7 +27,7 @@ export const MATERIAL_FILL=Object.freeze({water:'#0b1118',ice:'#141618',lava:'#2
 export function terrainOutlineInk(tint:WorldTint){
  const gray=tint[0]*.2126+tint[1]*.7152+tint[2]*.0722;
  const color=(strength:number)=>'#'+tint.map(v=>Math.round(Math.max(0,Math.min(255,(gray*.7+v*.3)*strength))).toString(16).padStart(2,'0')).join('');
- const background='#'+tint.map(v=>Math.round(Math.max(0,Math.min(255,v*.055))).toString(16).padStart(2,'0')).join('');
+ const background=planetBackgroundColor(tint);
  return Object.freeze({land:color(.68),minor:color(.43),background});
 }
 export function hasOutlineWorld(id:string):boolean{

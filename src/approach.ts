@@ -3,6 +3,7 @@
 
 import { APPROACH_PHASES, ORBITAL_PHASES, type ApproachPhaseDef } from './campaign-content';
 import { config } from './config';
+import { flightSurfaceStyle } from './flight-surface-style';
 import { advanceTemperature } from './thermal';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
@@ -1082,8 +1083,8 @@ export type ApproachSceneryPainter = (
 ) => boolean;
 
 export const drawOriginalApproachScenery: ApproachSceneryPainter = (ctx, cam, _s, level, W, H) => {
-  drawAtmoBackground(ctx, cam, W, H, level);
-  drawApproachTerrain(ctx, cam, level, W, H);
+  drawAtmoBackground(ctx, cam, W, H, level, true);
+  drawApproachTerrain(ctx, cam, level, W, H, true);
   return true;
 };
 
@@ -1095,11 +1096,11 @@ export function renderApproach(
   const W = canvas.width, H = canvas.height;
 
   const authored=!!scenery?.(ctx, cam, s, level, W, H);
-  if (!authored) drawOriginalApproachScenery(ctx, cam, s, level, W, H);
+  if (!authored) {drawAtmoBackground(ctx, cam, W, H, level);drawApproachTerrain(ctx, cam, level, W, H);}
 
 
   // --- Wind layers ---
-  drawWindLayers(ctx, cam, level, W, H, time, authored&&(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
+  drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
 
   // --- Trajectory preview ---
   drawTrajectory(ctx, cam, s, level, W, H, time);
@@ -1116,7 +1117,7 @@ export function renderApproach(
 
 function drawAtmoBackground(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
-  W: number, H: number, level: ApproachLevel,
+  W: number, H: number, level: ApproachLevel, legacy=false,
 ): void {
   // Sample altitude at top and bottom of screen
   const topY = cam.y + H / (2 * cam.zoom);
@@ -1136,9 +1137,10 @@ function drawAtmoBackground(
     const atmoFrac = clamp(Math.pow(rawAtmoFrac, 0.45), 0, 1);
     const altitudeGlow = clamp(1 - Math.max(0, alt) / Math.max(1, level.body.atmosphere?.height ?? level.frame.planetRadius), 0, 1);
     const haze = clamp(atmoFrac * 0.85 + altitudeGlow * 0.15, 0, 1);
-    const r = Math.floor(4 + atmoColor[0] * 0.34 * haze);
-    const g = Math.floor(5 + atmoColor[1] * 0.34 * haze);
-    const b = Math.floor(14 + atmoColor[2] * 0.34 * haze);
+    const strength=legacy ? .34 : .025;
+    const r = Math.floor((legacy?4:2) + atmoColor[0] * strength * haze);
+    const g = Math.floor((legacy?5:2) + atmoColor[1] * strength * haze);
+    const b = Math.floor((legacy?14:3) + atmoColor[2] * strength * haze);
     ctx.fillStyle = `rgb(${r},${g},${b})`;
 
     const sy = (frac * H);
@@ -1148,7 +1150,7 @@ function drawAtmoBackground(
 }
 
 function drawApproachTerrain(
-  ctx: CanvasRenderingContext2D, cam: ApproachCamera, level: ApproachLevel, W: number, H: number,
+  ctx: CanvasRenderingContext2D, cam: ApproachCamera, level: ApproachLevel, W: number, H: number, legacy=false,
 ): void {
   // Always draw the planetary ground. Elevated targets (e.g. Cloud City) are handled by
   // target/gate overlays, not by moving the terrain itself.
@@ -1176,7 +1178,7 @@ function drawApproachTerrain(
   ctx.lineTo(lastSx + 10, H + 10);
   ctx.lineTo(firstSx - 10, H + 10);
   ctx.closePath();
-  ctx.fillStyle = level.body.terrainFillColor ?? '#060c06';
+  ctx.fillStyle = legacy ? level.body.terrainFillColor ?? '#060c06' : flightSurfaceStyle(level.body).ground;
   ctx.fill();
 
   // Outline
@@ -1188,19 +1190,28 @@ function drawApproachTerrain(
     if (i === 0) ctx.moveTo(sx, sy);
     else ctx.lineTo(sx, sy);
   }
-  ctx.strokeStyle = level.body.terrainStrokeColor ?? COL_GROUND;
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = legacy ? level.body.terrainStrokeColor ?? COL_GROUND : flightSurfaceStyle(level.body).edge;
+  ctx.lineWidth = legacy ? 1.5 : 2.5;
   ctx.stroke();
 
-  ctx.strokeStyle = level.body.terrainBrightColor ?? level.body.terrainStrokeColor ?? COL_GROUND;
+  if(legacy){ctx.strokeStyle = level.body.terrainBrightColor ?? level.body.terrainStrokeColor ?? COL_GROUND;
   ctx.lineWidth = 0.5;
-  ctx.stroke();
+  ctx.stroke();}
 }
 
 function drawWindLayers(
   ctx: CanvasRenderingContext2D, cam: ApproachCamera,
   level: ApproachLevel, W: number, H: number, time: number, outline=false,
 ): void {
+  if(!level.windLayers.length)return;
+  ctx.save();try{
+  if(outline){
+    // Wind indicators belong in air, never as stripes through the solid planet.
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
+    for(let x=W;x>0;x-=4){const wx=cam.x+(x-W/2)/cam.zoom;ctx.lineTo(x,ws(wx,getApproachTerrainHeight(wx,level),cam,W,H)[1]);}
+    const left=cam.x-W/(2*cam.zoom);ctx.lineTo(0,ws(left,getApproachTerrainHeight(left,level),cam,W,H)[1]);
+    ctx.closePath();ctx.clip();
+  }
   const volatility = level.poi.weatherProfile?.volatility ?? 1;
   for (let i = 0; i < level.windLayers.length; i++) {
     const w = getWindLayerParams(level.windLayers[i], i, time, volatility);
@@ -1254,6 +1265,7 @@ function drawWindLayers(
       ctx.fillText(label, 8, syLabel + 3);
     }
   }
+  }finally{ctx.restore();}
 }
 
 function drawTrajectory(
@@ -1462,27 +1474,16 @@ function drawGate(
     const speedOk = speed <= level.gateMaxSpeed && speed >= level.gateMinSpeed;
     const col = speedOk ? COL_GATE : COL_GATE_DIM;
 
-    // Dark continuous backing plus pale dash edges keep BOTH speed states visible
-    // on bright terrain. Original status color, dash pattern and gate bounds remain.
-    ctx.setLineDash([]);
-    ctx.strokeStyle = '#03070b';
-    ctx.lineWidth = 7;
-    ctx.strokeRect(leftX, topY, rectW, rectH);
+    // Original thin status-colored target; no dark/pale highlighting.
     ctx.setLineDash([8, 5]);
-    ctx.strokeStyle = '#d6e8e8';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(leftX, topY, rectW, rectH);
     ctx.strokeStyle = col;
     ctx.lineWidth = 2;
     ctx.strokeRect(leftX, topY, rectW, rectH);
     ctx.setLineDash([]);
 
-    // Same speed text/anchor, on its own opaque backing rather than terrain.
+    // Original speed text and anchor, without a black label plate.
     ctx.font = '11px monospace';
     const speedText = `${level.gateMinSpeed}-${level.gateMaxSpeed} m/s`;
-    const labelWidth = ctx.measureText(speedText).width;
-    ctx.fillStyle = '#03070b';
-    ctx.fillRect(centerX - labelWidth / 2 - 5, topY - 19, labelWidth + 10, 17);
     ctx.fillStyle = COL_GATE_DIM;
     ctx.textAlign = 'center';
     ctx.fillText(speedText, centerX, topY - 6);

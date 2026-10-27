@@ -1,4 +1,5 @@
 import { Game } from '../src/game';
+import { checkFlightPresentation } from './flight-presentation-native';
 import { defaultCareerProfile } from '../src/career-state';
 import { config } from '../src/config';
 import { createLandingLevel } from '../src/levels';
@@ -93,7 +94,9 @@ async function checks(){
   scenery(s,current.camera,terrain,level,1200,720,0);const scene=s.getImageData(0,0,1200,180).data;
   const cutX=Math.round(600+(960-current.camera.x)*z),cutY=Math.round(360-(60-current.camera.y)*z),cut=s.getImageData(cutX,cutY,1,1).data;
   const deckPixel=s.getImageData(Math.round(600+(960-current.camera.x)*z),Math.round(360-(15-current.camera.y)*z),1,1).data;
-  assert(deckPixel[0]===18&&deckPixel[1]===16&&deckPixel[2]===14&&deckPixel[3]===255,'opaque SVG deck replaces natural terrain across footprint');
+  assert(deckPixel[0]===10&&deckPixel[1]===7&&deckPixel[2]===5&&deckPixel[3]===255,'below-deck fill matches planet background instead of foundation stripes');
+  const bottom=s.getImageData(0,700,1200,20).data;
+  assert(bottom.every((v,i)=>v===[10,7,5,255][i%4]),'entire subsurface plain planet background, no ground or foundation stripes');
   createHartwellOutlineScenery(hartwellApproachRegion(DAWES_CUT_ID),'background')(s,landingBackdropCamera(current.camera,terrain),{localDir:-1},{body:level.body,poi:level.poi,gateX:0},1200,720);
   const bareCut=s.getImageData(cutX,cutY,1,1).data;assert(cut.every((v,i)=>Math.abs(v-bareCut[i])<=1),'no old hillside passes through the outpost');
   const sky=s.getImageData(0,0,1200,180).data;assert(scene.every((v,i)=>Math.abs(v-sky[i])<=1),'landing uses exact shared Hartwell backdrop');
@@ -135,6 +138,7 @@ async function checks(){
   const other=createLandingLevel('estella-v-capital-settlement',990027),otherTerrain=generateTerrain(other);
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0);const old=hash(image());
   render(ctx,canvas,current.camera,current.ship,otherTerrain,other,0,true,scenery);assert(hash(image())===old,'unreviewed surface sites retain exact original rendering');
+  const crossWorld=await checkFlightPresentation(assert);
   assert(JSON.stringify(game.career)===career&&JSON.stringify([BODIES,SURFACE_POIS])===catalog&&JSON.stringify([level,terrain])===baseline,'career/catalog/levels untouched');
   reset('overview');const costs:number[]=[];
   for(let i=0;i<120;i++){
@@ -142,7 +146,7 @@ async function checks(){
    const start=performance.now();draw();costs.push(performance.now()-start);
   }
   costs.sort((a,b)=>a-b);reset('overview');
-  return{passed:true,checks:count,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],scenery:scenery.diagnostics()};
+  return{passed:true,checks:count,crossWorld,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],scenery:scenery.diagnostics()};
  }finally{checking=false;}
 }
 async function performanceChecks(){

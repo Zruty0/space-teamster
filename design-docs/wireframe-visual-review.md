@@ -1,7 +1,7 @@
 # Planet presentation — subdued fills / dominant outline
 
 Updated: 2026-10-26 (Pacific)
-Status: approved and LIVE in orbital mode. Central worlds and system/moon markers use the reviewed look. Hartwell surface styling and Dawes foreground collision are a separate approved step in `surface-poi-art.md`.
+Status: approved and LIVE in orbital mode. Central worlds and system/moon markers use the reviewed look. Dawes foreground collision is a separate approved step in `surface-poi-art.md`. Latest approval extends matching subdued palettes/plain subsurfaces to all approach/landing worlds, without replicating outposts; see `flight-presentation.md`.
 
 ## Approved direction
 

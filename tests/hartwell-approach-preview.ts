@@ -107,7 +107,7 @@ try {
         assert(JSON.stringify(s)===before,`${c.id}: flight state unchanged`);
         renderApproach(c.ctx,c.canvas,cam,s,level,0);const old=hash(c.canvas);
         renderApproach(c.ctx,c.canvas,cam,s,level,0,true,()=>false);
-        assert(hash(c.canvas)===old,`${c.id}: original rendering remains default/fallback`);
+        assert(hash(c.canvas)===old,`${c.id}: current shared rendering remains default/fallback`);
         const newRegion=hartwellApproachRegion(c.id);assert(newRegion.seed===c.region.seed,`${c.id}: rebuild stable`);
         const foreign={...level,body:{...level.body,id:'estella-iii'}};
         assert(c.painter(c.ctx,cam,s,foreign,1200,420)===false,`${c.id}: no other-world opt-in`);
