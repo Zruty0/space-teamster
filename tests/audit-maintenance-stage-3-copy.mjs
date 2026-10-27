@@ -1,5 +1,6 @@
 // Runtime acceptance audit against the approved Markdown, not generated fixtures.
 import { build } from 'esbuild';
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -11,6 +12,11 @@ const fullMarkdown = (await readFile(join(root, 'design-docs/maintenance-stage-4
 const fullReview = new Map([...fullMarkdown.matchAll(/^### ([a-z0-9-]+) — ([^\n]+)\n([\s\S]*?)(?=^### |^## |$(?![\s\S]))/gm)].map(m => [m[1], {
   name: m[2], fields: Object.fromEntries([...m[3].matchAll(/^\*\*([^*]+):\*\* (.+)$/gm)].map(f => [f[1], f[2]])),
 }]));
+const eliteMarkdown = (await readFile(join(root, 'design-docs/maintenance-stage-5.md'), 'utf8')).replace(/\r\n/g, '\n');
+const eliteReview = new Map([...eliteMarkdown.matchAll(/^### ([a-z0-9-]+) — ([^\n]+)\n([\s\S]*?)(?=^### |^## |$(?![\s\S]))/gm)].map(m => [m[1], {
+  name: m[2], fields: Object.fromEntries([...m[3].matchAll(/^\*\*([^*]+):\*\* (.+)$/gm)].map(f => [f[1], f[2]])),
+}]));
+const preElite = JSON.parse(await readFile(join(root, 'tests/fixtures/maintenance-stage-4-fingerprints.json'), 'utf8'));
 const roster = JSON.parse(await readFile(join(root, 'design-docs/maintenance-stage-1-roster.json'), 'utf8'));
 const baseline = JSON.parse(await readFile(join(root, 'tests/fixtures/maintenance-stage-1-shops.json'), 'utf8'));
 const originalIds = new Set([...baseline.shops.map(s => s.id), 'maintenance-estella-viii-mining-site', 'maintenance-estella-viii-settlement', 'maintenance-estella-viii-friendly-station']);
@@ -39,6 +45,12 @@ for (const [id, entry] of fullReview) {
   for (const field of ['Account', 'Staff', 'Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs', 'Referral']) assert(entry.fields[field], `${id}: complete bespoke ${field}`);
   assert(entry.fields.Referral.includes('{name}') && !/\[person\]/.test(entry.fields.Referral), `${id}: public destination substitution and plain referral rendering`);
 }
+equal([...eliteReview.keys()].sort(), ['estella-iii-high-tech-city', 'estella-via-drydock'], 'only two authorized elite overrides');
+for (const [id, entry] of eliteReview) {
+  for (const field of ['Account', 'Receiving IDs', 'Staff', 'Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs', 'Referral']) assert(entry.fields[field], `${id}: complete elite ${field}`);
+  equal(entry.fields.Referral, '—', `${id}: no higher referral`);
+  for (const field of ['Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs']) assert(!/\b(?:TODO|TBD)\b|\btier\s*-?\d|\{[^}]+\}|routine (?:maintenance|servicing) (?:is|remains) separate/i.test(entry.fields[field]), `${id}: finished player-facing ${field}`);
+}
 assert([...markdown.matchAll(/^### [FL]\d+ — /gm)].length === 64, 'no duplicate copy-set definitions');
 for (const [id, family] of families) {
   for (const field of ['Directory summary', 'Profile', 'Facilities', 'Diagnosis', 'Service', 'Repairs']) {
@@ -58,6 +70,7 @@ try {
   const outfile = join(temp, 'source.mjs');
   await build({
     stdin: { contents: `
+      export { maintenanceShopSnapshots } from './tests/fixtures/maintenance-shop-snapshots';
       export { MAINTENANCE_SHOPS } from './src/maintenance/shops';
       export { maintenanceReferrals, maintenanceReferralText } from './src/maintenance/referrals';
       export { LOCAL_DIRECTORY_ENTRIES } from './src/local-directory';
@@ -82,7 +95,8 @@ try {
     const [physical, name, directoryName, organization, familyId, terms] = assignment;
     const family = families.get(familyId);
     const full = fullReview.get(id);
-    const fields = full?.fields ?? family?.fields;
+    const elite = eliteReview.get(id);
+    const fields = elite?.fields ?? full?.fields ?? family?.fields;
     assert(family, `${id}: defined copy set`);
     for (const text of [name, directoryName, organization]) assert(text && !/\{|\}|\b(?:TODO|TBD)\b|\btier\s*-?\d/i.test(text), `${id}: complete literal displayed name`);
     usedFamilies.add(familyId);
@@ -98,7 +112,11 @@ try {
     const live = shops.find(s => physicalTerminalId(s.locationIds[0]) === id);
     assert(live, `${id}: runtime covered`);
     equal(live.id, row.shopId, `${id}: correct live account`);
-    equal(live.facilityTier, full ? 2 : tier, `${id}: actual stage capability`);
+    equal(live.facilityTier, elite ? 3 : full ? 2 : tier, `${id}: actual stage capability`);
+    if (elite) {
+      equal([elite.name, code(fields.Account)], [live.name, live.id], `${id}: elite account/name retained`);
+      equal([...fields['Receiving IDs'].matchAll(/`([^`]+)`/g)].map(m => m[1]), live.locationIds, `${id}: elite receiving IDs retained`);
+    }
     if (full) {
       equal([full.name, code(fields.Account)], [live.name, live.id], `${id}: bespoke names/accounts retained`);
       equal(live.copy.referralBlurb, fields.Referral, `${id}: bespoke referral template`);
@@ -109,7 +127,7 @@ try {
     const resolveCopy = text => text === '—' ? '' : text.split('{place}').join(nodes.get(id).name);
     for (const [label, key] of Object.entries({ Profile: 'profileBlurb', Facilities: 'levelBlurb', Diagnosis: 'diagnosisBlurb', Service: 'serviceBlurb', Repairs: 'repairsBlurb' })) equal(live.copy[key], resolveCopy(fields[label]), `${id}: actual ${label} matches reviewed copy`);
     equal(liveDirectory.summary, resolveCopy(fields['Directory summary']), `${id}: actual directory summary`);
-    equal(liveDirectory.description, resolveCopy(full && !familyId.startsWith('L') ? fields.Profile : family.fields['Directory description'] ?? family.fields.Profile), `${id}: actual directory description`);
+    equal(liveDirectory.description, resolveCopy((full || elite) && !familyId.startsWith('L') ? fields.Profile : family.fields['Directory description'] ?? family.fields.Profile), `${id}: actual directory description`);
     if (originalIds.has(live.id)) retainedAccounts++;
     else if (tier >= 0) newStaffed++;
     const authored = familyId.startsWith('L');
@@ -129,7 +147,7 @@ try {
       equal(terms.split(' / ')[1], row.tier < 0 ? 'E0' : row.tier > 0 ? 'S1' : row.terms, `${id}: approved everyday terms`);
       if (live.id.startsWith('wells-frontier-outfitter-') && tier === 1) promotedWells++;
       assert(!familyId.startsWith('L'), `${id}: mapped shared set`);
-      const expectedTerms = full ? ['B', 'B', 'B', 'D', 800, 2, 1, 0.9, 1] : tier < 0 ? ['F', 'F', 'F', 'F', 0, 0, 1, 1, 1] : tier > 0 ? ['C', 'D', 'D', 'D', 500, 2, 1, 1, 1] : ['E', 'F', 'F', 'F', 250, 2, row.terms === 'W0' ? 1.5 : 1.15, 1, row.terms === 'W0' ? 0.8 : 0.95];
+      const expectedTerms = elite ? ['A', 'A', 'A', 'D', 1400, 2, 1.1, 0.8, 1] : full ? ['B', 'B', 'B', 'D', 800, 2, 1, 0.9, 1] : tier < 0 ? ['F', 'F', 'F', 'F', 0, 0, 1, 1, 1] : tier > 0 ? ['C', 'D', 'D', 'D', 500, 2, 1, 1, 1] : ['E', 'F', 'F', 'F', 250, 2, row.terms === 'W0' ? 1.5 : 1.15, 1, row.terms === 'W0' ? 0.8 : 0.95];
       equal([live.diagnosticGrade, live.workQualityGrade, live.componentGradeBest, live.componentGradeWorst, live.laborRate, live.diagnosisHours, live.partsMarkup, live.laborHoursMultiplier, live.honesty], expectedTerms, `${id}: actual approved commercial terms`);
       equal(live.equipmentIds ?? [], tier > 0 ? ['atmospheric-package', 'heavy-heat-shielding', 'cargo-shock-absorbers', 'passenger-comfort-package'] : [], `${id}: actual equipment offering`);
       if (family.name === 'Wells mechanic') {
@@ -157,7 +175,7 @@ try {
       return { entrance, variant, output: `${sentence}<br>${estellaDisplayPath(target)}` };
     });
     equal(referrals.get(id).slice(1), [expected[0]?.output ?? '—', expected[1]?.output ?? '—', expected.map(r => r.variant).join(', ') || '—', expected.map(r => '`' + r.entrance + '`').join('; ') || '—'], `${id}: complete expanded referrals and exact public entrances`);
-    const liveExpected = expected.map(({ entrance, output }, index) => ({ entrance, output: full && index === 0 ? fields.Referral.split('{name}').join(assignments.get(targetIds[0])[1]) + '<br>' + estellaDisplayPath(targetIds[0]) : output }));
+    const liveExpected = elite ? [] : expected.map(({ entrance, output }, index) => ({ entrance, output: full && index === 0 ? fields.Referral.split('{name}').join(assignments.get(targetIds[0])[1]) + '<br>' + estellaDisplayPath(targetIds[0]) : output }));
     if (full) assert(expected.length === 1 && plans.get(targetIds[0]).tier === 3, `${id}: bespoke advice names one elite`);
     equal(source.maintenanceReferrals(live).map(r => ({ entrance: r.entranceId, output: `${source.maintenanceReferralText(r)}<br>${r.path}` })), liveExpected, `${id}: actual referral output matches reviewed line`);
   }
@@ -169,8 +187,21 @@ try {
     const id = roster.find(r => nodes.get(r.physicalId).name === place).physicalId;
     equal(families.get(assignments.get(id)[4]).name, expectedFamily, `${place}: reviewed local variant`);
   }
-  equal([-1, 0, 1, 2, 3].map(t => shops.filter(s => s.facilityTier === t).length), [9, 57, 65, 26, 2], 'Stage 4 live snapshot, no elite expansion');
-  console.log(`Stage 3/4 runtime copy: ${checks} checks; 64 complete sets, 159 physical sites, 177 receiving IDs, ${publicReferrals} exact public referral lines; 25 explicit bespoke overrides; all other approved copy and terms unchanged.`);
+  equal([-1, 0, 1, 2, 3].map(t => shops.filter(s => s.facilityTier === t).length), [9, 57, 63, 26, 4], 'final approved facility distribution');
+  equal(shops.reduce((n, s) => n + source.maintenanceReferrals(s).length, 0), 279, '279 live public referral lines; two interim on-site lines retired');
+  const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])])) : value;
+  equal([preElite.baseline, preElite.shops.length], ['e50332f', 159], 'independent pre-Stage-5 snapshot');
+  let protectedShops = 0;
+  for (const old of preElite.shops) {
+    const snapshot = source.maintenanceShopSnapshots.find(s => s.shop.id === old.id);
+    assert(snapshot, `${old.id}: original account still present`);
+    equal(snapshot.identity, old.identity, `${old.id}: account, name and receiving membership unchanged`);
+    if (eliteReview.has(old.physicalId)) continue;
+    equal(createHash('sha256').update(JSON.stringify(canonical(snapshot))).digest('hex'), old.sha256, `${old.id}: complete shop/directory/referral/quotes unchanged since Stage 4`);
+    protectedShops++;
+  }
+  equal(protectedShops, 157, 'only two approved promotions affect existing facilities');
+  console.log(`Final maintenance copy: ${checks} checks; 64 original sets, 25 full-service and two elite overrides; 159 scopes / 177 receiving IDs; ${publicReferrals} historical and 279 live referral lines; 157 exact pre-Stage-5 shop fingerprints.`);
 } finally {
   await rm(temp, { recursive: true, force: true });
 }

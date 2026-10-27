@@ -21,7 +21,7 @@ const at=name=>MAINTENANCE_SHOPS.find(s=>ESTELLA_NODES_BY_ID.get(physicalTermina
 const views={
  'Caravanserai':[at('The Caravanserai'),'profile'],'Coimbra':[at('Daedalus Systems Campus'),'profile'],
  'Wells mechanic':[at('The Count\'s Well'),'profile'],'Svarog':[at('Svarog Shipyard'),'profile'],
- 'Svarog directions':[at('Svarog Shipyard'),'directions'],'Raqib':[at('Raqib'),'profile'],
+ 'Camps directions':[at('Roadstead Station'),'directions'],'Raqib':[at('Raqib'),'profile'],
  'Warren':[at('The Warren'),'profile'],'Farwatch':[at('EDF Farwatch Station'),'profile'],
  'Cadiz':[at('Cadiz Highport'),'profile'],'Emergency':[at("Nell's Lantern"),'emergency'],
  'Recovered':[at("Nell's Lantern"),'recovered'],'Service':[at('The Still'),'service'],
@@ -63,7 +63,8 @@ function show(){
  }
  draw();assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(current)),'internal classes hidden');
  if(mode==='profile'){assert(writes===before,'profile does not save');assert(current.options.find(o=>o.label==='Emergency restart').disabled,'healthy rig cannot restart');}
- if(mode==='directions')assert(JSON.stringify(current).includes('ask for the specialist service at Svarog Visiting-Rig Service'),'approved on-site referral');
+ if(mode==='directions')assert(JSON.stringify(current).includes('Svarog Visiting-Rig Service'),'active Camps elite referral');
+ if(mode==='profile'&&shop.facilityTier===3)assert(!current.options.some(o=>o.action.startsWith('maintenanceReferral:')),'elite has no higher-service referral');
 }
 menu.onchange=show;window.addEventListener('resize',draw);
 window.addEventListener('keydown',e=>{

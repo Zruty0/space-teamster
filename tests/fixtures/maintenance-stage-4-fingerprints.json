@@ -1,0 +1,3160 @@
+{
+  "baseline": "e50332f",
+  "algorithm": "SHA-256 of recursively key-sorted JSON; captured before Stage 5",
+  "shops": [
+    {
+      "id": "vilar-gryphon-aerie-outfitter",
+      "physicalId": "estella-x-skim-hub",
+      "identity": [
+        "vilar-gryphon-aerie-outfitter",
+        "Vilar’s Outfitter at Gryphon Aerie",
+        "House Vilar",
+        [
+          "estella-x-observation-skim-hub"
+        ],
+        "vilar-gryphon-aerie-outfitter-office",
+        "Vilar’s Outfitter at Gryphon Aerie",
+        [
+          "estella-x-observation-skim-hub"
+        ]
+      ],
+      "sha256": "e1b71136acfa78c2a60463550b4558ab3ba2016d471439c4d23fd101f980a22a"
+    },
+    {
+      "id": "vilar-herald-gate-outfitter",
+      "physicalId": "estella-xc-transit-refuel-station",
+      "identity": [
+        "vilar-herald-gate-outfitter",
+        "Vilar’s Outfitter at Herald Gate",
+        "House Vilar",
+        [
+          "estella-xc-transit-refuel"
+        ],
+        "vilar-herald-gate-outfitter-office",
+        "Vilar’s Outfitter at Herald Gate",
+        [
+          "estella-xc-transit-refuel"
+        ]
+      ],
+      "sha256": "658f5052fa57fd4426d8b764b46d5981cd54405c056c99e3c50776a41f70340c"
+    },
+    {
+      "id": "vilar-cadiz-highport-outfitter",
+      "physicalId": "estella-xid-main-port-station",
+      "identity": [
+        "vilar-cadiz-highport-outfitter",
+        "Vilar’s Outfitter at Cadiz Highport",
+        "House Vilar",
+        [
+          "estella-xid-main-port"
+        ],
+        "vilar-cadiz-highport-outfitter-office",
+        "Vilar’s Outfitter at Cadiz Highport",
+        [
+          "estella-xid-main-port"
+        ]
+      ],
+      "sha256": "ef843ed2cc0d1863aa835f6d4d72813cdf4e780cec7eff626b301bfbf6073e84"
+    },
+    {
+      "id": "vilar-hydra-maw-outfitter",
+      "physicalId": "estella-xi-industrial-skim-hub",
+      "identity": [
+        "vilar-hydra-maw-outfitter",
+        "Vilar’s Outfitter at Hydra Maw Orbital",
+        "House Vilar",
+        [
+          "estella-xi-skim-hub"
+        ],
+        "vilar-hydra-maw-outfitter-office",
+        "Vilar’s Outfitter at Hydra Maw Orbital",
+        [
+          "estella-xi-skim-hub"
+        ]
+      ],
+      "sha256": "dcc5120c746721585fbdd7314a67a289fdd55a8afc8b48c5dfebf9951543f104"
+    },
+    {
+      "id": "vilar-macao-palace-outfitter",
+      "physicalId": "estella-xic-research-station",
+      "identity": [
+        "vilar-macao-palace-outfitter",
+        "Vilar’s Outfitter at Macao Palace",
+        "House Vilar",
+        [
+          "estella-xic-research-station-poi"
+        ],
+        "vilar-macao-palace-outfitter-office",
+        "Vilar’s Outfitter at Macao Palace",
+        [
+          "estella-xic-research-station-poi"
+        ]
+      ],
+      "sha256": "5bebddd1c6c3c8bf97f1a50132b1bf0c1846531788157eb4a8ae0a122f345ccc"
+    },
+    {
+      "id": "vilar-manticore-observatory-outfitter",
+      "physicalId": "estella-xii-observation-post-station",
+      "identity": [
+        "vilar-manticore-observatory-outfitter",
+        "Vilar’s Outfitter at Manticore Observatory",
+        "House Vilar",
+        [
+          "estella-xii-observation-post"
+        ],
+        "vilar-manticore-observatory-outfitter-office",
+        "Vilar’s Outfitter at Manticore Observatory",
+        [
+          "estella-xii-observation-post"
+        ]
+      ],
+      "sha256": "556b31098df8a437bccbe15603bd81c5c7510c9fe839519b9fda7e971e4b1340"
+    },
+    {
+      "id": "cadiz-armorial-shipwrights",
+      "physicalId": "estella-xid-services-outfitter-hangar",
+      "identity": [
+        "cadiz-armorial-shipwrights",
+        "The Armorial Shipwrights at Shipwright Keep",
+        "The Armorial Shipwrights",
+        [
+          "estella-xid-services-outfitter-hangar"
+        ],
+        "cadiz-armorial-shipwrights-office",
+        "The Armorial Shipwrights at Shipwright Keep",
+        [
+          "estella-xid-services-outfitter-hangar"
+        ]
+      ],
+      "sha256": "37db104d8ff4a3cefe40a967b1fcbc7762b93b3374931d0fb856ac9942733632"
+    },
+    {
+      "id": "serrat-domain-civil-refit-office",
+      "physicalId": "estella-xie-outer-spec-drydock-station",
+      "identity": [
+        "serrat-domain-civil-refit-office",
+        "Serrat Domain Civil Refit Office",
+        "Serrat Domain Shipyard Office",
+        [
+          "estella-xie-outer-spec-drydock"
+        ],
+        "serrat-domain-civil-refit-office-directory",
+        "Serrat Domain Civil Refit Office",
+        [
+          "estella-xie-outer-spec-drydock"
+        ]
+      ],
+      "sha256": "7c03f35144261e20d57a963e2a58ed4a6264a8b150b912ac0ae3167299395a33"
+    },
+    {
+      "id": "keelwright-works-seconds-gate",
+      "physicalId": "estella-xie-rare-alloy-extraction",
+      "identity": [
+        "keelwright-works-seconds-gate",
+        "The Seconds Gate at Keelwright Works",
+        "Keelwright Works",
+        [
+          "estella-xie-rare-alloy-extraction"
+        ],
+        "keelwright-works-seconds-gate-directory",
+        "The Seconds Gate at Keelwright Works",
+        [
+          "estella-xie-rare-alloy-extraction"
+        ]
+      ],
+      "sha256": "0aa359fda984b011fcf5d27e0513c9f032998cd04e5aab32ed6e093f51b5a9ea"
+    },
+    {
+      "id": "oathmark-academy-high-pennant-yard",
+      "physicalId": "estella-xie-oathmark-academy",
+      "identity": [
+        "oathmark-academy-high-pennant-yard",
+        "The High Pennant Shipyard at Oathmark Academy",
+        "Oathmark Academy",
+        [
+          "estella-xie-oathmark-academy"
+        ],
+        "oathmark-academy-high-pennant-yard-directory",
+        "The High Pennant Shipyard at Oathmark Academy",
+        [
+          "estella-xie-oathmark-academy"
+        ]
+      ],
+      "sha256": "e9150a80943114f59294dc3982526dc9efc42f8fc8bca6f9cf6c3cbbbcbef58a"
+    },
+    {
+      "id": "bruckner-central-service-hall",
+      "physicalId": "estella-viii-high-station",
+      "identity": [
+        "bruckner-central-service-hall",
+        "Bruckner Central Service Hall",
+        "Bruckner Field Services",
+        [
+          "estella-viii-harder-approach-station"
+        ],
+        "bruckner-central-service-hall-office",
+        "Bruckner Central Service Hall",
+        [
+          "estella-viii-harder-approach-station"
+        ]
+      ],
+      "sha256": "6e005f475d1ff4c9206bd08fb513ae9c5ed67b89f7e3572644daacd1f3a7b15d"
+    },
+    {
+      "id": "red-dust-mechanical-reclamation",
+      "physicalId": "estella-v-capital-settlement",
+      "identity": [
+        "red-dust-mechanical-reclamation",
+        "Red Dust Mechanical & Reclamation",
+        "Red Dust Mechanical & Reclamation",
+        [
+          "estella-v-capital-settlement"
+        ],
+        "red-dust-mechanical-reclamation-office",
+        "Red Dust Mechanical & Reclamation",
+        [
+          "estella-v-capital-settlement"
+        ]
+      ],
+      "sha256": "4bf162490f35a8bad57668b234d641298e31e5022002fe4185b97d88c349cfd4"
+    },
+    {
+      "id": "maintenance-estella-viii-mining-site",
+      "physicalId": "estella-viii-mining-site",
+      "identity": [
+        "maintenance-estella-viii-mining-site",
+        "Look for a local mechanic",
+        "Low Gauge independent mechanics",
+        [
+          "estella-viii-mining-site"
+        ],
+        "maintenance-estella-viii-mining-site-office",
+        "Look for a local mechanic",
+        [
+          "estella-viii-mining-site"
+        ]
+      ],
+      "sha256": "5798384b076a0793253b4d229dd5ac2a3714069e75827139501e0abf07b943ce"
+    },
+    {
+      "id": "maintenance-estella-viii-settlement",
+      "physicalId": "estella-viii-settlement",
+      "identity": [
+        "maintenance-estella-viii-settlement",
+        "Weymark Town Workshop",
+        "Weymark Town Workshop",
+        [
+          "estella-viii-settlement"
+        ],
+        "maintenance-estella-viii-settlement-office",
+        "Weymark Town Workshop",
+        [
+          "estella-viii-settlement"
+        ]
+      ],
+      "sha256": "c3b0f4d2645e9c57961b2a4ea2a76daf6294cedd0f2508ba74ec3439e5c1055c"
+    },
+    {
+      "id": "maintenance-estella-viii-friendly-station",
+      "physicalId": "estella-viii-friendly-station",
+      "identity": [
+        "maintenance-estella-viii-friendly-station",
+        "Nell’s Rest Shipworks",
+        "Nell’s Rest Shipworks",
+        [
+          "estella-viii-first-rendezvous-station"
+        ],
+        "maintenance-estella-viii-friendly-station-office",
+        "Nell’s Rest Shipworks",
+        [
+          "estella-viii-first-rendezvous-station"
+        ]
+      ],
+      "sha256": "6647e91534958d391296b2134eda7a8e121028f142b0617116a19c369e6ab464"
+    },
+    {
+      "id": "emergency-arkfall-apocrypha-cache",
+      "physicalId": "arkfall-apocrypha-cache",
+      "identity": [
+        "emergency-arkfall-apocrypha-cache",
+        "Emergency restart procedure",
+        null,
+        [
+          "arkfall-apocrypha-cache-poi"
+        ],
+        "emergency-arkfall-apocrypha-cache-office",
+        "Emergency restart procedure",
+        [
+          "arkfall-apocrypha-cache-poi"
+        ]
+      ],
+      "sha256": "e2a0aac78b27d26f6531bf5f8f7d42955b833f526d02c4164fc7c54eca891cc8"
+    },
+    {
+      "id": "maintenance-ark-quarantine-station",
+      "physicalId": "ark-quarantine-station",
+      "identity": [
+        "maintenance-ark-quarantine-station",
+        "Ark Quarantine Station Workshop",
+        "Ark Quarantine Station Workshop",
+        [
+          "ark-quarantine-station-poi"
+        ],
+        "maintenance-ark-quarantine-station-office",
+        "Ark Quarantine Station Workshop",
+        [
+          "ark-quarantine-station-poi"
+        ]
+      ],
+      "sha256": "c3700ac7f9d0176580025e2981d58d7f0d9fdca6f857b11d7426412d0c2a59f7"
+    },
+    {
+      "id": "maintenance-industrial-refinery-asteroid-es-m-0002",
+      "physicalId": "industrial-refinery-asteroid-es-m-0002",
+      "identity": [
+        "maintenance-industrial-refinery-asteroid-es-m-0002",
+        "Halloran Rig Service",
+        "Halloran Rig Service",
+        [
+          "industrial-refinery-finished-goods",
+          "industrial-refinery-ore-intake",
+          "industrial-refinery-staff-hab"
+        ],
+        "maintenance-industrial-refinery-asteroid-es-m-0002-office",
+        "Halloran Rig Service",
+        [
+          "industrial-refinery-finished-goods",
+          "industrial-refinery-ore-intake",
+          "industrial-refinery-staff-hab"
+        ]
+      ],
+      "sha256": "1b346ca82c1d451cce36bf8ae5c37567a3690703474a9a4c2d92f61395e238dd"
+    },
+    {
+      "id": "maintenance-glitterfield-deepcut",
+      "physicalId": "glitterfield-deepcut",
+      "identity": [
+        "maintenance-glitterfield-deepcut",
+        "Deepcut Depot Workshop",
+        "Deepcut Depot Workshop",
+        [
+          "deepcut-depot-dock"
+        ],
+        "maintenance-glitterfield-deepcut-office",
+        "Deepcut Depot Workshop",
+        [
+          "deepcut-depot-dock"
+        ]
+      ],
+      "sha256": "67b490869cf150d8e80c7a5f375709d37d53a11e89972145f9cebe831116746d"
+    },
+    {
+      "id": "maintenance-glitterfield-grubstake",
+      "physicalId": "glitterfield-grubstake",
+      "identity": [
+        "maintenance-glitterfield-grubstake",
+        "Grubstake Depot Workshop",
+        "Grubstake Depot Workshop",
+        [
+          "grubstake-depot-dock"
+        ],
+        "maintenance-glitterfield-grubstake-office",
+        "Grubstake Depot Workshop",
+        [
+          "grubstake-depot-dock"
+        ]
+      ],
+      "sha256": "e71e54929b5460815a4abc2db19a9a28612cebfa466fbd4b8ae0ffb58872791c"
+    },
+    {
+      "id": "maintenance-glitterfield-highgrade",
+      "physicalId": "glitterfield-highgrade",
+      "identity": [
+        "maintenance-glitterfield-highgrade",
+        "Highgrade Depot Workshop",
+        "Highgrade Depot Workshop",
+        [
+          "highgrade-depot-dock"
+        ],
+        "maintenance-glitterfield-highgrade-office",
+        "Highgrade Depot Workshop",
+        [
+          "highgrade-depot-dock"
+        ]
+      ],
+      "sha256": "871bb4f314c07380cb1f56da1f01f94f10294be7a4c9f64e8caa589628402495"
+    },
+    {
+      "id": "maintenance-glitterfield-slagfoot",
+      "physicalId": "glitterfield-slagfoot",
+      "identity": [
+        "maintenance-glitterfield-slagfoot",
+        "Slagfoot Depot Workshop",
+        "Slagfoot Depot Workshop",
+        [
+          "slagfoot-depot-dock"
+        ],
+        "maintenance-glitterfield-slagfoot-office",
+        "Slagfoot Depot Workshop",
+        [
+          "slagfoot-depot-dock"
+        ]
+      ],
+      "sha256": "9f8c216abc564700f9136639881657ad9b6868c896d0ac4790a3e60074415793"
+    },
+    {
+      "id": "maintenance-harlans-station",
+      "physicalId": "harlans-station",
+      "identity": [
+        "maintenance-harlans-station",
+        "Harlan's Station Workshop",
+        "Harlan's Station Workshop",
+        [
+          "harlan-dock"
+        ],
+        "maintenance-harlans-station-office",
+        "Harlan's Station Workshop",
+        [
+          "harlan-dock"
+        ]
+      ],
+      "sha256": "e091c6cdac5f370c429b0f68b064da47684a33028e2827a6331856176667f5ed"
+    },
+    {
+      "id": "maintenance-mercers-claim",
+      "physicalId": "mercers-claim",
+      "identity": [
+        "maintenance-mercers-claim",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "mercer-dock"
+        ],
+        "maintenance-mercers-claim-office",
+        "Look for a local mechanic",
+        [
+          "mercer-dock"
+        ]
+      ],
+      "sha256": "58909121a4f71632f640504cd1a7427df3c869e9cdb4d90184186aed1b3892df"
+    },
+    {
+      "id": "maintenance-caravanserai",
+      "physicalId": "caravanserai",
+      "identity": [
+        "maintenance-caravanserai",
+        "Caravanserai Drydock Service",
+        "Caravanserai Drydock Service",
+        [
+          "caravanserai-certification-authority",
+          "caravanserai-customs-inspection",
+          "caravanserai-foreign-quarter",
+          "caravanserai-free-trader-anchorage",
+          "caravanserai-highliner-bay-poi",
+          "caravanserai-lookout-spire",
+          "caravanserai-main-commercial-dock",
+          "caravanserai-outfitter-drydock",
+          "caravanserai-player-hangar",
+          "caravanserai-refuel-depot"
+        ],
+        "maintenance-caravanserai-office",
+        "Caravanserai Drydock Service",
+        [
+          "caravanserai-certification-authority",
+          "caravanserai-customs-inspection",
+          "caravanserai-foreign-quarter",
+          "caravanserai-free-trader-anchorage",
+          "caravanserai-highliner-bay-poi",
+          "caravanserai-lookout-spire",
+          "caravanserai-main-commercial-dock",
+          "caravanserai-outfitter-drydock",
+          "caravanserai-player-hangar",
+          "caravanserai-refuel-depot"
+        ]
+      ],
+      "sha256": "c6ec1c78ab0e3655887150d6ad26118dd2c8c6df5bf862fc821efbecdfe68ca5"
+    },
+    {
+      "id": "maintenance-the-still",
+      "physicalId": "the-still",
+      "identity": [
+        "maintenance-the-still",
+        "The Still Workshop",
+        "The Still Workshop",
+        [
+          "still-distribution-bay",
+          "still-guild-hq",
+          "still-public-approach-dock",
+          "still-refinery-core",
+          "still-skim-runner-berth-poi",
+          "still-worker-hab"
+        ],
+        "maintenance-the-still-office",
+        "The Still Workshop",
+        [
+          "still-distribution-bay",
+          "still-guild-hq",
+          "still-public-approach-dock",
+          "still-refinery-core",
+          "still-skim-runner-berth-poi",
+          "still-worker-hab"
+        ]
+      ],
+      "sha256": "bafcaeb42069780a5722f9071300ba89ec73c3047433e3d24f7593abeb6cf09a"
+    },
+    {
+      "id": "maintenance-estella-ix-ice-mine",
+      "physicalId": "estella-ix-ice-mine",
+      "identity": [
+        "maintenance-estella-ix-ice-mine",
+        "Bir Safa Service House",
+        "Bir Safa Service House",
+        [
+          "estella-ix-ice-mine"
+        ],
+        "maintenance-estella-ix-ice-mine-office",
+        "Bir Safa Service House",
+        [
+          "estella-ix-ice-mine"
+        ]
+      ],
+      "sha256": "a56b86851717576b275ebe432025b8256fc830e240bb25f55e830a74ab10334a"
+    },
+    {
+      "id": "maintenance-estella-ix-research-base",
+      "physicalId": "estella-ix-research-base",
+      "identity": [
+        "maintenance-estella-ix-research-base",
+        "Multaqa Workshop",
+        "Multaqa Workshop",
+        [
+          "estella-ix-research-base"
+        ],
+        "maintenance-estella-ix-research-base-office",
+        "Multaqa Workshop",
+        [
+          "estella-ix-research-base"
+        ]
+      ],
+      "sha256": "814a070ec6cd23f938472b46d281a801c20972de25788badc60bce56a0358774"
+    },
+    {
+      "id": "maintenance-estella-ix-captured-moonlet",
+      "physicalId": "estella-ix-captured-moonlet",
+      "identity": [
+        "maintenance-estella-ix-captured-moonlet",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-ix-moonlet-observation-outpost"
+        ],
+        "maintenance-estella-ix-captured-moonlet-office",
+        "Ask for local technical help",
+        [
+          "estella-ix-moonlet-observation-outpost"
+        ]
+      ],
+      "sha256": "8a35520c8add88e504666412482bdce4cc2987bc999b6bf7a457471898567245"
+    },
+    {
+      "id": "maintenance-estella-ix-supply-depot",
+      "physicalId": "estella-ix-supply-depot",
+      "identity": [
+        "maintenance-estella-ix-supply-depot",
+        "Suhail Anchorage Workshop",
+        "Suhail Anchorage Workshop",
+        [
+          "estella-ix-opposite-sense-supply-depot"
+        ],
+        "maintenance-estella-ix-supply-depot-office",
+        "Suhail Anchorage Workshop",
+        [
+          "estella-ix-opposite-sense-supply-depot"
+        ]
+      ],
+      "sha256": "5e6285fb914c6f91d4e92e9756d9cf36a44187048c6c122e0c180ba80ea81f09"
+    },
+    {
+      "id": "maintenance-estella-ix-geological-feature",
+      "physicalId": "estella-ix-geological-feature",
+      "identity": [
+        "maintenance-estella-ix-geological-feature",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-ix-geological-feature"
+        ],
+        "maintenance-estella-ix-geological-feature-office",
+        "Look for a local mechanic",
+        [
+          "estella-ix-geological-feature"
+        ]
+      ],
+      "sha256": "abe8459f5c3c5f8029d6fcab00255484b54e77f794d9102246b51704a49df2a1"
+    },
+    {
+      "id": "emergency-estella-viii-captured-moonlet",
+      "physicalId": "estella-viii-captured-moonlet",
+      "identity": [
+        "emergency-estella-viii-captured-moonlet",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-viii-moonlet-docking-site"
+        ],
+        "emergency-estella-viii-captured-moonlet-office",
+        "Emergency restart procedure",
+        [
+          "estella-viii-moonlet-docking-site"
+        ]
+      ],
+      "sha256": "c1af4ea1eeb37868ea78b11a7b0ebcb81a77633261debf663a1fdd62e1eb6403"
+    },
+    {
+      "id": "emergency-estella-viii-abandoned-site",
+      "physicalId": "estella-viii-abandoned-site",
+      "identity": [
+        "emergency-estella-viii-abandoned-site",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-viii-abandoned-site"
+        ],
+        "emergency-estella-viii-abandoned-site-office",
+        "Emergency restart procedure",
+        [
+          "estella-viii-abandoned-site"
+        ]
+      ],
+      "sha256": "030721b3103f6572e71bdd2fafcccc6b12dc067b60bf384d26eab89a5681dbdb"
+    },
+    {
+      "id": "maintenance-estella-v-orbital-factory",
+      "physicalId": "estella-v-orbital-factory",
+      "identity": [
+        "maintenance-estella-v-orbital-factory",
+        "Ascension Scaffold Workshop",
+        "Ascension Scaffold Workshop",
+        [
+          "estella-v-high-orbit-factory"
+        ],
+        "maintenance-estella-v-orbital-factory-office",
+        "Ascension Scaffold Workshop",
+        [
+          "estella-v-high-orbit-factory"
+        ]
+      ],
+      "sha256": "68a5898a76546a3c5677ba1f3f1e6b2d2bb6e4984288ebf3362326da5301a1e0"
+    },
+    {
+      "id": "maintenance-estella-v-atmo-refinery",
+      "physicalId": "estella-v-atmo-refinery",
+      "identity": [
+        "maintenance-estella-v-atmo-refinery",
+        "Cinderhook Refinery Workshop",
+        "Cinderhook Refinery Workshop",
+        [
+          "estella-v-atmo-refinery"
+        ],
+        "maintenance-estella-v-atmo-refinery-office",
+        "Cinderhook Refinery Workshop",
+        [
+          "estella-v-atmo-refinery"
+        ]
+      ],
+      "sha256": "8833513f70558b4ca6e4e7e4ffc341d859da27968065bd7c5d9f33f2fa4da75b"
+    },
+    {
+      "id": "maintenance-estella-v-open-cast-mine",
+      "physicalId": "estella-v-open-cast-mine",
+      "identity": [
+        "maintenance-estella-v-open-cast-mine",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-v-open-cast-mine"
+        ],
+        "maintenance-estella-v-open-cast-mine-office",
+        "Look for a local mechanic",
+        [
+          "estella-v-open-cast-mine"
+        ]
+      ],
+      "sha256": "486382e772652f91c7d3815e0ff10c44f8219db1605c40b44225ab3de15b5cd2"
+    },
+    {
+      "id": "emergency-estella-v-abandoned-colony",
+      "physicalId": "estella-v-abandoned-colony",
+      "identity": [
+        "emergency-estella-v-abandoned-colony",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-v-abandoned-colony"
+        ],
+        "emergency-estella-v-abandoned-colony-office",
+        "Emergency restart procedure",
+        [
+          "estella-v-abandoned-colony"
+        ]
+      ],
+      "sha256": "81730094187c448d0b09530393e804bdd3908e7f5607b2154b5a6dcac76211e8"
+    },
+    {
+      "id": "maintenance-estella-v-storm-research",
+      "physicalId": "estella-v-storm-research",
+      "identity": [
+        "maintenance-estella-v-storm-research",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-v-storm-research"
+        ],
+        "maintenance-estella-v-storm-research-office",
+        "Ask for local technical help",
+        [
+          "estella-v-storm-research"
+        ]
+      ],
+      "sha256": "f584b6c9f26a91e5bd050cab85eece08268a77ea83441bac5caee2fbe7a56110"
+    },
+    {
+      "id": "maintenance-estella-va-strip-mine",
+      "physicalId": "estella-va-strip-mine",
+      "identity": [
+        "maintenance-estella-va-strip-mine",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-va-strip-mine"
+        ],
+        "maintenance-estella-va-strip-mine-office",
+        "Look for a local mechanic",
+        [
+          "estella-va-strip-mine"
+        ]
+      ],
+      "sha256": "53a4ec521673d8c9ff506d1ea098626aa59a03829dc6fbae21433b448860c2b8"
+    },
+    {
+      "id": "maintenance-estella-va-ore-depot",
+      "physicalId": "estella-va-ore-depot",
+      "identity": [
+        "maintenance-estella-va-ore-depot",
+        "Pike Depot Workshop",
+        "Pike Depot Workshop",
+        [
+          "estella-va-ore-handling-depot"
+        ],
+        "maintenance-estella-va-ore-depot-office",
+        "Pike Depot Workshop",
+        [
+          "estella-va-ore-handling-depot"
+        ]
+      ],
+      "sha256": "05b38606d7b7d53d734d45691ee810cbc2aef5ee83ae4a708aa02bf54487a1d1"
+    },
+    {
+      "id": "maintenance-estella-va-miner-hab",
+      "physicalId": "estella-va-miner-hab",
+      "identity": [
+        "maintenance-estella-va-miner-hab",
+        "Switchback Service Hall",
+        "Switchback Service Hall",
+        [
+          "estella-va-miner-hab"
+        ],
+        "maintenance-estella-va-miner-hab-office",
+        "Switchback Service Hall",
+        [
+          "estella-va-miner-hab"
+        ]
+      ],
+      "sha256": "4b2139fe2777a77a3852d78e62cbe68b1386103735e9276eaef91bea11d7e1e6"
+    },
+    {
+      "id": "maintenance-estella-v-transit-station",
+      "physicalId": "estella-v-transit-station",
+      "identity": [
+        "maintenance-estella-v-transit-station",
+        "Roadstead Rig Works",
+        "Roadstead Rig Works",
+        [
+          "estella-v-transit-customs"
+        ],
+        "maintenance-estella-v-transit-station-office",
+        "Roadstead Rig Works",
+        [
+          "estella-v-transit-customs"
+        ]
+      ],
+      "sha256": "cd4b013e1e6c7ef0d54d462ae1f595ceab537b255a2b3bdb3140be1be2f9335a"
+    },
+    {
+      "id": "maintenance-estella-vi-main-dispatch",
+      "physicalId": "estella-vi-main-dispatch",
+      "identity": [
+        "maintenance-estella-vi-main-dispatch",
+        "Anvil Visiting-Rig Works",
+        "Anvil Visiting-Rig Works",
+        [
+          "estella-vi-main-transit-dispatch"
+        ],
+        "maintenance-estella-vi-main-dispatch-office",
+        "Anvil Visiting-Rig Works",
+        [
+          "estella-vi-main-transit-dispatch"
+        ]
+      ],
+      "sha256": "c225487cd461e660e93990b78d6e47a12265cfbc30f8d06e7dc18297772220bd"
+    },
+    {
+      "id": "maintenance-estella-vi-foundry-complex",
+      "physicalId": "estella-vi-foundry-complex",
+      "identity": [
+        "maintenance-estella-vi-foundry-complex",
+        "Gornilo Crucible Workshop",
+        "Gornilo Crucible Workshop",
+        [
+          "estella-vi-foundry-complex"
+        ],
+        "maintenance-estella-vi-foundry-complex-office",
+        "Gornilo Crucible Workshop",
+        [
+          "estella-vi-foundry-complex"
+        ]
+      ],
+      "sha256": "f6184fc11354deff69bf2c5d83a8e0d527e4add2a4b260c077dcb0d1d73e95b4"
+    },
+    {
+      "id": "maintenance-estella-vi-heavy-cargo-dispatch",
+      "physicalId": "estella-vi-heavy-cargo-dispatch",
+      "identity": [
+        "maintenance-estella-vi-heavy-cargo-dispatch",
+        "Hammer Station Workshop",
+        "Hammer Station Workshop",
+        [
+          "estella-vi-heavy-cargo-station"
+        ],
+        "maintenance-estella-vi-heavy-cargo-dispatch-office",
+        "Hammer Station Workshop",
+        [
+          "estella-vi-heavy-cargo-station"
+        ]
+      ],
+      "sha256": "f8f44883b5ed0561224386322f8ac73cdf33c9a2b0ad34f6bf8a78ac0adaa08b"
+    },
+    {
+      "id": "maintenance-estella-vib-aquaculture",
+      "physicalId": "estella-vib-aquaculture",
+      "identity": [
+        "maintenance-estella-vib-aquaculture",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-vib-aquaculture"
+        ],
+        "maintenance-estella-vib-aquaculture-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-vib-aquaculture"
+        ]
+      ],
+      "sha256": "c1572f669da1aa95bcef88f763e426072d724abdfbef56acc12e0154cc1c2d6b"
+    },
+    {
+      "id": "maintenance-estella-vib-cold-chain-transit",
+      "physicalId": "estella-vib-cold-chain-transit",
+      "identity": [
+        "maintenance-estella-vib-cold-chain-transit",
+        "Kalyna Port Engineering",
+        "Kalyna Port Engineering",
+        [
+          "estella-vib-cold-chain-station"
+        ],
+        "maintenance-estella-vib-cold-chain-transit-office",
+        "Kalyna Port Engineering",
+        [
+          "estella-vib-cold-chain-station"
+        ]
+      ],
+      "sha256": "3ac89a17df0d87209b0411bc09791e7e96ad488fbf1653b5de9ca553860e8bd2"
+    },
+    {
+      "id": "maintenance-estella-vib-vat-protein",
+      "physicalId": "estella-vib-vat-protein",
+      "identity": [
+        "maintenance-estella-vib-vat-protein",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-vib-vat-protein"
+        ],
+        "maintenance-estella-vib-vat-protein-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-vib-vat-protein"
+        ]
+      ],
+      "sha256": "fbed70707d2f80326693f296f9907f5759abde5f89a851a81f067c12763bc47f"
+    },
+    {
+      "id": "maintenance-estella-vib-pharma-horticulture",
+      "physicalId": "estella-vib-pharma-horticulture",
+      "identity": [
+        "maintenance-estella-vib-pharma-horticulture",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-vib-pharma-horticulture"
+        ],
+        "maintenance-estella-vib-pharma-horticulture-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-vib-pharma-horticulture"
+        ]
+      ],
+      "sha256": "2e971b87ac7e0994100dcdb5233c0b9c6925eb0afc42d5be71ab55317d34ef80"
+    },
+    {
+      "id": "maintenance-estella-vi-mountain-mining",
+      "physicalId": "estella-vi-mountain-mining",
+      "identity": [
+        "maintenance-estella-vi-mountain-mining",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-vi-mountain-mining"
+        ],
+        "maintenance-estella-vi-mountain-mining-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-vi-mountain-mining"
+        ]
+      ],
+      "sha256": "b6c63f9ca29d4775cca47eebf271141f4e102c913e9fc40e3a3dfc9abe2b795f"
+    },
+    {
+      "id": "maintenance-estella-vi-agricultural-lowlands",
+      "physicalId": "estella-vi-agricultural-lowlands",
+      "identity": [
+        "maintenance-estella-vi-agricultural-lowlands",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-vi-agricultural-lowlands"
+        ],
+        "maintenance-estella-vi-agricultural-lowlands-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-vi-agricultural-lowlands"
+        ]
+      ],
+      "sha256": "51663300d75c5ed4bff6a7a19cb6947a0c3141e95de5592b546cbd495b6af17e"
+    },
+    {
+      "id": "maintenance-estella-vi-polar-weather-research",
+      "physicalId": "estella-vi-polar-weather-research",
+      "identity": [
+        "maintenance-estella-vi-polar-weather-research",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-vi-polar-weather-research"
+        ],
+        "maintenance-estella-vi-polar-weather-research-office",
+        "Ask for local technical help",
+        [
+          "estella-vi-polar-weather-research"
+        ]
+      ],
+      "sha256": "194d2a72cc1f1adf2d1c472f12e1b2215386e7b6334f95d82b34210b5c8f8c0b"
+    },
+    {
+      "id": "maintenance-estella-vi-industrial-city",
+      "physicalId": "estella-vi-industrial-city",
+      "identity": [
+        "maintenance-estella-vi-industrial-city",
+        "Perun Rig Workshop",
+        "Perun Rig Workshop",
+        [
+          "estella-vi-industrial-city"
+        ],
+        "maintenance-estella-vi-industrial-city-office",
+        "Perun Rig Workshop",
+        [
+          "estella-vi-industrial-city"
+        ]
+      ],
+      "sha256": "e123a530d46c5c9016c1afb0c042814c48676d1696630ff56f4c7fc7797527e0"
+    },
+    {
+      "id": "maintenance-estella-vi-spaceport",
+      "physicalId": "estella-vi-spaceport",
+      "identity": [
+        "maintenance-estella-vi-spaceport",
+        "Port Stribog Workshop",
+        "Port Stribog Workshop",
+        [
+          "estella-vi-spaceport"
+        ],
+        "maintenance-estella-vi-spaceport-office",
+        "Port Stribog Workshop",
+        [
+          "estella-vi-spaceport"
+        ]
+      ],
+      "sha256": "484fe52bfc51b6321da4fcc47087ce06854b1343279a8aeabd1769a7883cf089"
+    },
+    {
+      "id": "maintenance-estella-via-surface-anchor",
+      "physicalId": "estella-via-surface-anchor",
+      "identity": [
+        "maintenance-estella-via-surface-anchor",
+        "Anchorhold Workshop",
+        "Anchorhold Workshop",
+        [
+          "estella-via-surface-anchor"
+        ],
+        "maintenance-estella-via-surface-anchor-office",
+        "Anchorhold Workshop",
+        [
+          "estella-via-surface-anchor"
+        ]
+      ],
+      "sha256": "b7b8f9bf7e607905896a1fa078ae8966857313135683e15d8cf5e234442f68c8"
+    },
+    {
+      "id": "maintenance-estella-via-rare-alloy-extraction",
+      "physicalId": "estella-via-rare-alloy-extraction",
+      "identity": [
+        "maintenance-estella-via-rare-alloy-extraction",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-via-rare-alloy-extraction"
+        ],
+        "maintenance-estella-via-rare-alloy-extraction-office",
+        "Look for a local mechanic",
+        [
+          "estella-via-rare-alloy-extraction"
+        ]
+      ],
+      "sha256": "75e2bf80844bc3ea42a8fdd44d89791ec365df1df0ff685a58291b897ea8ecc3"
+    },
+    {
+      "id": "maintenance-estella-via-drydock",
+      "physicalId": "estella-via-drydock",
+      "identity": [
+        "maintenance-estella-via-drydock",
+        "Svarog Visiting-Rig Service",
+        "Svarog Visiting-Rig Service",
+        [
+          "estella-via-drydock-station"
+        ],
+        "maintenance-estella-via-drydock-office",
+        "Svarog Visiting-Rig Service",
+        [
+          "estella-via-drydock-station"
+        ]
+      ],
+      "sha256": "625842ec2d585af96377e6e3488ee96919eadd40e112e95607f163c30750d693"
+    },
+    {
+      "id": "maintenance-estella-via-component-supply",
+      "physicalId": "estella-via-component-supply",
+      "identity": [
+        "maintenance-estella-via-component-supply",
+        "Veles Terminal Workshop",
+        "Veles Terminal Workshop",
+        [
+          "estella-via-component-supply-station"
+        ],
+        "maintenance-estella-via-component-supply-office",
+        "Veles Terminal Workshop",
+        [
+          "estella-via-component-supply-station"
+        ]
+      ],
+      "sha256": "c50bc7dfa52ce2867d0be9a153f47d686662207a8cec59c17f0b4e69dbc62654"
+    },
+    {
+      "id": "emergency-estella-vii-black-project-outpost",
+      "physicalId": "estella-vii-black-project-outpost",
+      "identity": [
+        "emergency-estella-vii-black-project-outpost",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-vii-black-project-outpost"
+        ],
+        "emergency-estella-vii-black-project-outpost-office",
+        "Emergency restart procedure",
+        [
+          "estella-vii-black-project-outpost"
+        ]
+      ],
+      "sha256": "abffc77490f1ad38601e6337028792505680c7ed5c25c3b9eb9e9b73181664cc"
+    },
+    {
+      "id": "maintenance-estella-vii-high-vacuum-factory",
+      "physicalId": "estella-vii-high-vacuum-factory",
+      "identity": [
+        "maintenance-estella-vii-high-vacuum-factory",
+        "Mosaic Rig and Instrument Service",
+        "Mosaic Rig and Instrument Service",
+        [
+          "estella-vii-high-vacuum-factory"
+        ],
+        "maintenance-estella-vii-high-vacuum-factory-office",
+        "Mosaic Rig and Instrument Service",
+        [
+          "estella-vii-high-vacuum-factory"
+        ]
+      ],
+      "sha256": "d11ae92dc4a4be70ba5630aa9e537a092d041a21b921766dabc7036447dd2591"
+    },
+    {
+      "id": "maintenance-estella-vii-worker-hab",
+      "physicalId": "estella-vii-worker-hab",
+      "identity": [
+        "maintenance-estella-vii-worker-hab",
+        "Roster Hall Workshop",
+        "Roster Hall Workshop",
+        [
+          "estella-vii-worker-hab"
+        ],
+        "maintenance-estella-vii-worker-hab-office",
+        "Roster Hall Workshop",
+        [
+          "estella-vii-worker-hab"
+        ]
+      ],
+      "sha256": "ed8ec3c3772ab00e571ab317faccebd825921a4e16f3bedfbc95f0178cc42114"
+    },
+    {
+      "id": "maintenance-estella-vii-transit-station",
+      "physicalId": "estella-vii-transit-station",
+      "identity": [
+        "maintenance-estella-vii-transit-station",
+        "Tessera Orbital Workshop",
+        "Tessera Orbital Workshop",
+        [
+          "estella-vii-transit-export"
+        ],
+        "maintenance-estella-vii-transit-station-office",
+        "Tessera Orbital Workshop",
+        [
+          "estella-vii-transit-export"
+        ]
+      ],
+      "sha256": "3866d68fd14d2685f9e94be7f6a25dd3553c160cb72d723bac4badd85d3fdf66"
+    },
+    {
+      "id": "maintenance-estella-vii-feedstock-mine",
+      "physicalId": "estella-vii-feedstock-mine",
+      "identity": [
+        "maintenance-estella-vii-feedstock-mine",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-vii-feedstock-mine"
+        ],
+        "maintenance-estella-vii-feedstock-mine-office",
+        "Look for a local mechanic",
+        [
+          "estella-vii-feedstock-mine"
+        ]
+      ],
+      "sha256": "edd279182b3c1d7501d442987038517bbfe0c6f1af01839be37d507e98679308"
+    },
+    {
+      "id": "maintenance-estella-ii-commercial-hub",
+      "physicalId": "estella-ii-commercial-hub",
+      "identity": [
+        "maintenance-estella-ii-commercial-hub",
+        "Acheron Transfer Engineering",
+        "Acheron Transfer Engineering",
+        [
+          "estella-ii-commercial-hub-dock"
+        ],
+        "maintenance-estella-ii-commercial-hub-office",
+        "Acheron Transfer Engineering",
+        [
+          "estella-ii-commercial-hub-dock"
+        ]
+      ],
+      "sha256": "f1602dccba970fd24d2d4e4f6f527a391d6a2ec9b896b7aa1b9b33c1ea37d6c7"
+    },
+    {
+      "id": "maintenance-estella-ii-nimbus-crucible",
+      "physicalId": "estella-ii-nimbus-crucible",
+      "identity": [
+        "maintenance-estella-ii-nimbus-crucible",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-ii-nimbus-crucible"
+        ],
+        "maintenance-estella-ii-nimbus-crucible-office",
+        "Look for a local mechanic",
+        [
+          "estella-ii-nimbus-crucible"
+        ]
+      ],
+      "sha256": "54f473746850c5fba3936e03d2cd69e68fe2636fa8d7bc8999c39948c11e0f72"
+    },
+    {
+      "id": "maintenance-estella-ii-olympos",
+      "physicalId": "estella-ii-olympos",
+      "identity": [
+        "maintenance-estella-ii-olympos",
+        "Olympos Workshop",
+        "Olympos Workshop",
+        [
+          "estella-ii-olympos"
+        ],
+        "maintenance-estella-ii-olympos-office",
+        "Olympos Workshop",
+        [
+          "estella-ii-olympos"
+        ]
+      ],
+      "sha256": "aa1fdb0175d0b5c8628db6586ba8e47d2d0665250337f836469ee882e7cf7ab4"
+    },
+    {
+      "id": "maintenance-estella-ii-pandemonium",
+      "physicalId": "estella-ii-pandemonium",
+      "identity": [
+        "maintenance-estella-ii-pandemonium",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-ii-pandemonium"
+        ],
+        "maintenance-estella-ii-pandemonium-office",
+        "Look for a local mechanic",
+        [
+          "estella-ii-pandemonium"
+        ]
+      ],
+      "sha256": "86e895d878638f4098540289222b325a427f78cfdba937ec951515d22cd6f77a"
+    },
+    {
+      "id": "maintenance-estella-i-low-orbit-station",
+      "physicalId": "estella-i-low-orbit-station",
+      "identity": [
+        "maintenance-estella-i-low-orbit-station",
+        "Balor Orbital Service Works",
+        "Balor Orbital Service Works",
+        [
+          "estella-i-transit-customs"
+        ],
+        "maintenance-estella-i-low-orbit-station-office",
+        "Balor Orbital Service Works",
+        [
+          "estella-i-transit-customs"
+        ]
+      ],
+      "sha256": "72e0112f71ac73ae569932b850cb12316c04846b9589503555d6e418ccc54061"
+    },
+    {
+      "id": "maintenance-estella-i-refractory-mine",
+      "physicalId": "estella-i-refractory-mine",
+      "identity": [
+        "maintenance-estella-i-refractory-mine",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-i-refractory-mine"
+        ],
+        "maintenance-estella-i-refractory-mine-office",
+        "Look for a local mechanic",
+        [
+          "estella-i-refractory-mine"
+        ]
+      ],
+      "sha256": "21e137da288c2d592587080d4fdc1d84dc6bb3c52bfe3ccaf94f07149a039179"
+    },
+    {
+      "id": "maintenance-estella-i-hot-processing",
+      "physicalId": "estella-i-hot-processing",
+      "identity": [
+        "maintenance-estella-i-hot-processing",
+        "BAM Foundry One Workshop",
+        "BAM Foundry One Workshop",
+        [
+          "estella-i-hot-processing"
+        ],
+        "maintenance-estella-i-hot-processing-office",
+        "BAM Foundry One Workshop",
+        [
+          "estella-i-hot-processing"
+        ]
+      ],
+      "sha256": "30602d70a3b3d28871affe46ca3210a03e182f2984447ab1560942a25e1a9e32"
+    },
+    {
+      "id": "maintenance-estella-i-worker-hab",
+      "physicalId": "estella-i-worker-hab",
+      "identity": [
+        "maintenance-estella-i-worker-hab",
+        "Shade Workshop",
+        "Shade Workshop",
+        [
+          "estella-i-worker-hab"
+        ],
+        "maintenance-estella-i-worker-hab-office",
+        "Shade Workshop",
+        [
+          "estella-i-worker-hab"
+        ]
+      ],
+      "sha256": "341a61e026941f28799e9c1f55390e7a16f1430633a8897a46d87345bcb57e49"
+    },
+    {
+      "id": "maintenance-estella-iv-climate-poi-3",
+      "physicalId": "estella-iv-climate-poi-3",
+      "identity": [
+        "maintenance-estella-iv-climate-poi-3",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-iv-climate-poi-3"
+        ],
+        "maintenance-estella-iv-climate-poi-3-office",
+        "Look for a local mechanic",
+        [
+          "estella-iv-climate-poi-3"
+        ]
+      ],
+      "sha256": "c883e4b80f114b98f02480337ff7fd6af7e07aa2a9d039aac72fc538f7513c9c"
+    },
+    {
+      "id": "maintenance-estella-iv-main-station",
+      "physicalId": "estella-iv-main-station",
+      "identity": [
+        "maintenance-estella-iv-main-station",
+        "Dahai Main Orbital Station Workshop",
+        "Dahai Main Orbital Station Workshop",
+        [
+          "estella-iv-main-orbital-station"
+        ],
+        "maintenance-estella-iv-main-station-office",
+        "Dahai Main Orbital Station Workshop",
+        [
+          "estella-iv-main-orbital-station"
+        ]
+      ],
+      "sha256": "bd720e3a91a099692bd2c416bf155d6b428dfea27b31d5df742aaaa5bc2dcb42"
+    },
+    {
+      "id": "maintenance-estella-iv-primary-city",
+      "physicalId": "estella-iv-primary-city",
+      "identity": [
+        "maintenance-estella-iv-primary-city",
+        "Fuyuan Ship Service Cooperative",
+        "Fuyuan Ship Service Cooperative",
+        [
+          "estella-iv-primary-city"
+        ],
+        "maintenance-estella-iv-primary-city-office",
+        "Fuyuan Ship Service Cooperative",
+        [
+          "estella-iv-primary-city"
+        ]
+      ],
+      "sha256": "064399c106b30b3600de9ca0178fac4846887ada444d69361de3281f39947474"
+    },
+    {
+      "id": "maintenance-estella-iv-climate-poi-2",
+      "physicalId": "estella-iv-climate-poi-2",
+      "identity": [
+        "maintenance-estella-iv-climate-poi-2",
+        "Jiuyuan Workshop",
+        "Jiuyuan Workshop",
+        [
+          "estella-iv-climate-poi-2"
+        ],
+        "maintenance-estella-iv-climate-poi-2-office",
+        "Jiuyuan Workshop",
+        [
+          "estella-iv-climate-poi-2"
+        ]
+      ],
+      "sha256": "c7765fad1a07b3af322051bee59fdc9ed5da7142dbeefde75a9d44ec931ac0cc"
+    },
+    {
+      "id": "maintenance-estella-iv-climate-poi-1",
+      "physicalId": "estella-iv-climate-poi-1",
+      "identity": [
+        "maintenance-estella-iv-climate-poi-1",
+        "Zhulong Workshop",
+        "Zhulong Workshop",
+        [
+          "estella-iv-climate-poi-1"
+        ],
+        "maintenance-estella-iv-climate-poi-1-office",
+        "Zhulong Workshop",
+        [
+          "estella-iv-climate-poi-1"
+        ]
+      ],
+      "sha256": "dc8e0640aebe48f452b810efbe360cc60caeebb08263f8e3ae340a1934e986cd"
+    },
+    {
+      "id": "maintenance-estella-iiia-helium-mining",
+      "physicalId": "estella-iiia-helium-mining",
+      "identity": [
+        "maintenance-estella-iiia-helium-mining",
+        "Ampere Workshop",
+        "Ampere Workshop",
+        [
+          "estella-iiia-helium-mining"
+        ],
+        "maintenance-estella-iiia-helium-mining-office",
+        "Ampere Workshop",
+        [
+          "estella-iiia-helium-mining"
+        ]
+      ],
+      "sha256": "29699f6ec4b355ad8863f7382135e679575c1e9e36b958e82faba33878c5528e"
+    },
+    {
+      "id": "maintenance-estella-iiia-heritage-site",
+      "physicalId": "estella-iiia-heritage-site",
+      "identity": [
+        "maintenance-estella-iiia-heritage-site",
+        "Beaumont Workshop",
+        "Beaumont Workshop",
+        [
+          "estella-iiia-heritage-site"
+        ],
+        "maintenance-estella-iiia-heritage-site-office",
+        "Beaumont Workshop",
+        [
+          "estella-iiia-heritage-site"
+        ]
+      ],
+      "sha256": "150f0abc29285cbb683f85d1ce85ca348ceda11e0f85b2c954d08b0e35928f9b"
+    },
+    {
+      "id": "maintenance-estella-iiia-main-port",
+      "physicalId": "estella-iiia-main-port",
+      "identity": [
+        "maintenance-estella-iiia-main-port",
+        "Celeste Port Engineering",
+        "Celeste Port Engineering",
+        [
+          "estella-iiia-main-port-transit"
+        ],
+        "maintenance-estella-iiia-main-port-office",
+        "Celeste Port Engineering",
+        [
+          "estella-iiia-main-port-transit"
+        ]
+      ],
+      "sha256": "49a4ac04aa067aaf5b3e9e97f16492f880a23186018626a3fca30350dde18d74"
+    },
+    {
+      "id": "maintenance-estella-iiia-science-settlement",
+      "physicalId": "estella-iiia-science-settlement",
+      "identity": [
+        "maintenance-estella-iiia-science-settlement",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-iiia-science-settlement"
+        ],
+        "maintenance-estella-iiia-science-settlement-office",
+        "Ask for local technical help",
+        [
+          "estella-iiia-science-settlement"
+        ]
+      ],
+      "sha256": "1a175031ddd766e3e5218b56c9e1471a7fe715e5c9707b30ff18bbdb0926d24d"
+    },
+    {
+      "id": "maintenance-estella-iii-polar-science",
+      "physicalId": "estella-iii-polar-science",
+      "identity": [
+        "maintenance-estella-iii-polar-science",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-iii-polar-science"
+        ],
+        "maintenance-estella-iii-polar-science-office",
+        "Ask for local technical help",
+        [
+          "estella-iii-polar-science"
+        ]
+      ],
+      "sha256": "dca4b2a77433b47465311cbe3d4978c12b62e031168e12ffd27f4c9fb01f7ea3"
+    },
+    {
+      "id": "maintenance-estella-iii-luxury-habitat",
+      "physicalId": "estella-iii-luxury-habitat",
+      "identity": [
+        "maintenance-estella-iii-luxury-habitat",
+        "Gaia Luxury Orbital Habitat Workshop",
+        "Gaia Luxury Orbital Habitat Workshop",
+        [
+          "estella-iii-luxury-orbital-habitat"
+        ],
+        "maintenance-estella-iii-luxury-habitat-office",
+        "Gaia Luxury Orbital Habitat Workshop",
+        [
+          "estella-iii-luxury-orbital-habitat"
+        ]
+      ],
+      "sha256": "b677ed1b985edd97ca0776edd2afed5dc657177e66aa956fba738c2b9bed29d3"
+    },
+    {
+      "id": "maintenance-estella-iii-coastal-resort",
+      "physicalId": "estella-iii-coastal-resort",
+      "identity": [
+        "maintenance-estella-iii-coastal-resort",
+        "Mirabel Workshop",
+        "Mirabel Workshop",
+        [
+          "estella-iii-coastal-resort"
+        ],
+        "maintenance-estella-iii-coastal-resort-office",
+        "Mirabel Workshop",
+        [
+          "estella-iii-coastal-resort"
+        ]
+      ],
+      "sha256": "e351dcc3ae377600c519f123c015ff1f67f71d418e23d27213517f3a11ff0410"
+    },
+    {
+      "id": "maintenance-estella-iii-capital-city",
+      "physicalId": "estella-iii-capital-city",
+      "identity": [
+        "maintenance-estella-iii-capital-city",
+        "Orselle Workshop",
+        "Orselle Workshop",
+        [
+          "estella-iii-capital-city",
+          "estella-iii-finance-city",
+          "estella-iii-historic-site"
+        ],
+        "maintenance-estella-iii-capital-city-office",
+        "Orselle Workshop",
+        [
+          "estella-iii-capital-city",
+          "estella-iii-finance-city",
+          "estella-iii-historic-site"
+        ]
+      ],
+      "sha256": "d7913b131313026df91363cce66b4172e9063f46a0bee9bbb26d885c2538f785"
+    },
+    {
+      "id": "maintenance-estella-iii-main-customs-station",
+      "physicalId": "estella-iii-main-customs-station",
+      "identity": [
+        "maintenance-estella-iii-main-customs-station",
+        "Richelieu Fleet Service",
+        "Richelieu Fleet Service",
+        [
+          "estella-iii-main-customs"
+        ],
+        "maintenance-estella-iii-main-customs-station-office",
+        "Richelieu Fleet Service",
+        [
+          "estella-iii-main-customs"
+        ]
+      ],
+      "sha256": "34852b7b76d0f8e0591df1fcd97d7d0ec0353895107270932caa60a8a7b41159"
+    },
+    {
+      "id": "maintenance-estella-iii-high-tech-city",
+      "physicalId": "estella-iii-high-tech-city",
+      "identity": [
+        "maintenance-estella-iii-high-tech-city",
+        "Rochefort Precision Service",
+        "Rochefort Precision Service",
+        [
+          "estella-iii-high-tech-city"
+        ],
+        "maintenance-estella-iii-high-tech-city-office",
+        "Rochefort Precision Service",
+        [
+          "estella-iii-high-tech-city"
+        ]
+      ],
+      "sha256": "fa18b43200b2d2adfa97ca666ebac718ef24d88ceb6dcccb0262a1b81a02845f"
+    },
+    {
+      "id": "maintenance-estella-iii-agricultural-region",
+      "physicalId": "estella-iii-agricultural-region",
+      "identity": [
+        "maintenance-estella-iii-agricultural-region",
+        "Valenne Workshop",
+        "Valenne Workshop",
+        [
+          "estella-iii-agricultural-region"
+        ],
+        "maintenance-estella-iii-agricultural-region-office",
+        "Valenne Workshop",
+        [
+          "estella-iii-agricultural-region"
+        ]
+      ],
+      "sha256": "3dbc759d5a1384b56e64637bb71ec4ec803aa0f3bbde14e403153bbcfd5f661b"
+    },
+    {
+      "id": "maintenance-skim-hub-alpha",
+      "physicalId": "skim-hub-alpha",
+      "identity": [
+        "maintenance-skim-hub-alpha",
+        "Skim Hub Alpha Workshop",
+        "Skim Hub Alpha Workshop",
+        [
+          "skim-hub-alpha-precursor-dock"
+        ],
+        "maintenance-skim-hub-alpha-office",
+        "Skim Hub Alpha Workshop",
+        [
+          "skim-hub-alpha-precursor-dock"
+        ]
+      ],
+      "sha256": "00f7aaf0aa9bec2089a0f2561208e174762ec6b57d777778a8da939bd24da3aa"
+    },
+    {
+      "id": "maintenance-skim-hub-beta",
+      "physicalId": "skim-hub-beta",
+      "identity": [
+        "maintenance-skim-hub-beta",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "skim-hub-beta-precursor-dock"
+        ],
+        "maintenance-skim-hub-beta-office",
+        "Look for a local mechanic",
+        [
+          "skim-hub-beta-precursor-dock"
+        ]
+      ],
+      "sha256": "8361f25219af5427f8634b9b58a7a25d3ba21046120c34af5c232efb41b5daba"
+    },
+    {
+      "id": "maintenance-estella-xiv-transit-dock-station",
+      "physicalId": "estella-xiv-transit-dock-station",
+      "identity": [
+        "maintenance-estella-xiv-transit-dock-station",
+        "Barataria Observatory Workshop",
+        "Barataria Observatory Workshop",
+        [
+          "estella-xiv-transit-dock"
+        ],
+        "maintenance-estella-xiv-transit-dock-station-office",
+        "Barataria Observatory Workshop",
+        [
+          "estella-xiv-transit-dock"
+        ]
+      ],
+      "sha256": "4f185e21590593d1e2e2da554759d790838ab54e2712cb5e0cbf0fbb5436b0e2"
+    },
+    {
+      "id": "emergency-estella-xiv-abandoned-active-site",
+      "physicalId": "estella-xiv-abandoned-active-site",
+      "identity": [
+        "emergency-estella-xiv-abandoned-active-site",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-xiv-abandoned-active-site"
+        ],
+        "emergency-estella-xiv-abandoned-active-site-office",
+        "Emergency restart procedure",
+        [
+          "estella-xiv-abandoned-active-site"
+        ]
+      ],
+      "sha256": "8816bf00a955605842f2578df130f2fbf7e59f52138cf3b19c66f7c3181bfd65"
+    },
+    {
+      "id": "emergency-estella-xiv-religious-retreat",
+      "physicalId": "estella-xiv-religious-retreat",
+      "identity": [
+        "emergency-estella-xiv-religious-retreat",
+        "Emergency restart procedure",
+        null,
+        [
+          "estella-xiv-religious-retreat"
+        ],
+        "emergency-estella-xiv-religious-retreat-office",
+        "Emergency restart procedure",
+        [
+          "estella-xiv-religious-retreat"
+        ]
+      ],
+      "sha256": "215f2b1e265bba1c29219aa1b8d1aa97860b9b8ae06983238d5ba1b91ac96ba6"
+    },
+    {
+      "id": "maintenance-estella-xiv-smuggler-haven",
+      "physicalId": "estella-xiv-smuggler-haven",
+      "identity": [
+        "maintenance-estella-xiv-smuggler-haven",
+        "Warren Community Workshop",
+        "Warren Community Workshop",
+        [
+          "estella-xiv-smuggler-haven"
+        ],
+        "maintenance-estella-xiv-smuggler-haven-office",
+        "Warren Community Workshop",
+        [
+          "estella-xiv-smuggler-haven"
+        ]
+      ],
+      "sha256": "1128c4e7955a39e633b4a9106c039f9df7a91ac793637cdf97c410fb94a8795e"
+    },
+    {
+      "id": "maintenance-reach-comet-fragment-1",
+      "physicalId": "reach-comet-fragment-1",
+      "identity": [
+        "maintenance-reach-comet-fragment-1",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "reach-comet-fragment-1-poi"
+        ],
+        "maintenance-reach-comet-fragment-1-office",
+        "Look for a local mechanic",
+        [
+          "reach-comet-fragment-1-poi"
+        ]
+      ],
+      "sha256": "d1be4d7346d3f5426f4617dee95ffa52663d7ff6cd277ee8b56fd3c617efb9a9"
+    },
+    {
+      "id": "emergency-reach-comet-fragment-2",
+      "physicalId": "reach-comet-fragment-2",
+      "identity": [
+        "emergency-reach-comet-fragment-2",
+        "Emergency restart procedure",
+        null,
+        [
+          "reach-comet-fragment-2-poi"
+        ],
+        "emergency-reach-comet-fragment-2-office",
+        "Emergency restart procedure",
+        [
+          "reach-comet-fragment-2-poi"
+        ]
+      ],
+      "sha256": "7253162459590c7c1971fa6992070709d322900b835da0e51723eac9a9eafee9"
+    },
+    {
+      "id": "emergency-reach-comet-fragment-3",
+      "physicalId": "reach-comet-fragment-3",
+      "identity": [
+        "emergency-reach-comet-fragment-3",
+        "Emergency restart procedure",
+        null,
+        [
+          "reach-comet-fragment-3-poi"
+        ],
+        "emergency-reach-comet-fragment-3-office",
+        "Emergency restart procedure",
+        [
+          "reach-comet-fragment-3-poi"
+        ]
+      ],
+      "sha256": "26d17894c7ef88088a8df75bde8457c1c072d60edf66c3506c756af6824bd3f8"
+    },
+    {
+      "id": "maintenance-reach-comet-fragment-4",
+      "physicalId": "reach-comet-fragment-4",
+      "identity": [
+        "maintenance-reach-comet-fragment-4",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "reach-comet-fragment-4-poi"
+        ],
+        "maintenance-reach-comet-fragment-4-office",
+        "Ask for local technical help",
+        [
+          "reach-comet-fragment-4-poi"
+        ]
+      ],
+      "sha256": "05aeb6443f70159480334b365617fa586f1c6ce380754f5166382a4e94782436"
+    },
+    {
+      "id": "maintenance-reach-comet-fragment-5",
+      "physicalId": "reach-comet-fragment-5",
+      "identity": [
+        "maintenance-reach-comet-fragment-5",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "reach-comet-fragment-5-poi"
+        ],
+        "maintenance-reach-comet-fragment-5-office",
+        "Look for a local mechanic",
+        [
+          "reach-comet-fragment-5-poi"
+        ]
+      ],
+      "sha256": "81ec3fce253a03b69962d508a2ac255d9db461e620df5fdeb2670a0253ae2054"
+    },
+    {
+      "id": "maintenance-reach-comet-fragment-6",
+      "physicalId": "reach-comet-fragment-6",
+      "identity": [
+        "maintenance-reach-comet-fragment-6",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "reach-comet-fragment-6-poi"
+        ],
+        "maintenance-reach-comet-fragment-6-office",
+        "Ask for local technical help",
+        [
+          "reach-comet-fragment-6-poi"
+        ]
+      ],
+      "sha256": "f3bbffcfcc641bfdbd18ee74b9b4f2e94a63a7a5a231b15275c15a3b88a97628"
+    },
+    {
+      "id": "maintenance-reach-rogue-lonely-beacon",
+      "physicalId": "reach-rogue-lonely-beacon",
+      "identity": [
+        "maintenance-reach-rogue-lonely-beacon",
+        "Ask the station operator for help",
+        "Station operator",
+        [
+          "reach-rogue-lonely-beacon"
+        ],
+        "maintenance-reach-rogue-lonely-beacon-office",
+        "Ask the station operator for help",
+        [
+          "reach-rogue-lonely-beacon"
+        ]
+      ],
+      "sha256": "c80a94f3ce82cae936fd6102752b94a8be47c92524123ca3bdd58899e17299ab"
+    },
+    {
+      "id": "maintenance-reach-rogue-isotope-mine",
+      "physicalId": "reach-rogue-isotope-mine",
+      "identity": [
+        "maintenance-reach-rogue-isotope-mine",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "reach-rogue-isotope-mine"
+        ],
+        "maintenance-reach-rogue-isotope-mine-office",
+        "Look for a local mechanic",
+        [
+          "reach-rogue-isotope-mine"
+        ]
+      ],
+      "sha256": "b0bcde75d89e8a9625f14265081c4737c82d3e80baa43127ce14a3004fbe88bd"
+    },
+    {
+      "id": "maintenance-deepest-dock-body",
+      "physicalId": "deepest-dock-body",
+      "identity": [
+        "maintenance-deepest-dock-body",
+        "Farwatch Visiting-Rig Workshop",
+        "EDF technical section",
+        [
+          "deepest-dock-poi"
+        ],
+        "maintenance-deepest-dock-body-office",
+        "Farwatch Visiting-Rig Workshop",
+        [
+          "deepest-dock-poi"
+        ]
+      ],
+      "sha256": "9fbdfa9f80f79093a5534448fcb1551ebce1f8672f538c56f06ffb10189438c9"
+    },
+    {
+      "id": "maintenance-estella-xiii-classified-research",
+      "physicalId": "estella-xiii-classified-research",
+      "identity": [
+        "maintenance-estella-xiii-classified-research",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-xiii-classified-research"
+        ],
+        "maintenance-estella-xiii-classified-research-office",
+        "Look for a local mechanic",
+        [
+          "estella-xiii-classified-research"
+        ]
+      ],
+      "sha256": "2262701d19ac90c68ae8d2efbca6ff1f09a534ec17ec1047073219e6180161e9"
+    },
+    {
+      "id": "maintenance-estella-xiii-governors-outpost",
+      "physicalId": "estella-xiii-governors-outpost",
+      "identity": [
+        "maintenance-estella-xiii-governors-outpost",
+        "Common Ground Workshop",
+        "Common Ground Workshop",
+        [
+          "estella-xiii-governors-outpost"
+        ],
+        "maintenance-estella-xiii-governors-outpost-office",
+        "Common Ground Workshop",
+        [
+          "estella-xiii-governors-outpost"
+        ]
+      ],
+      "sha256": "3f6f349a2684770dd96ca3f53e24028da39a4cdce8e49d7dd26471442833a1e0"
+    },
+    {
+      "id": "maintenance-estella-xiii-deep-ice-mining",
+      "physicalId": "estella-xiii-deep-ice-mining",
+      "identity": [
+        "maintenance-estella-xiii-deep-ice-mining",
+        "Deepwell Workshop",
+        "Deepwell Workshop",
+        [
+          "estella-xiii-deep-ice-mining"
+        ],
+        "maintenance-estella-xiii-deep-ice-mining-office",
+        "Deepwell Workshop",
+        [
+          "estella-xiii-deep-ice-mining"
+        ]
+      ],
+      "sha256": "beaf3199fc64c77b0c5622745d372e7bf90e6d52ca01991abd9893f1c2ef39a1"
+    },
+    {
+      "id": "maintenance-estella-xiii-prison-exile-colony",
+      "physicalId": "estella-xiii-prison-exile-colony",
+      "identity": [
+        "maintenance-estella-xiii-prison-exile-colony",
+        "Look for a local mechanic",
+        "Local maintenance workers",
+        [
+          "estella-xiii-prison-exile-colony"
+        ],
+        "maintenance-estella-xiii-prison-exile-colony-office",
+        "Look for a local mechanic",
+        [
+          "estella-xiii-prison-exile-colony"
+        ]
+      ],
+      "sha256": "8316daaddd76298389a73debeaad2bdbba2f188a026bebc66e63a04f1ca13a2b"
+    },
+    {
+      "id": "maintenance-estella-xiii-main-port-station",
+      "physicalId": "estella-xiii-main-port-station",
+      "identity": [
+        "maintenance-estella-xiii-main-port-station",
+        "Anchorage Community Workshop",
+        "Anchorage Community Workshop",
+        [
+          "estella-xiii-main-port"
+        ],
+        "maintenance-estella-xiii-main-port-station-office",
+        "Anchorage Community Workshop",
+        [
+          "estella-xiii-main-port"
+        ]
+      ],
+      "sha256": "817d7e60269caaaeaf10f026f0e98f16e678cedc03a7b0511463922ec0846ac5"
+    },
+    {
+      "id": "maintenance-estella-xiii-long-range-observatory",
+      "physicalId": "estella-xiii-long-range-observatory",
+      "identity": [
+        "maintenance-estella-xiii-long-range-observatory",
+        "Volya Workshop",
+        "Volya Workshop",
+        [
+          "estella-xiii-long-range-observatory"
+        ],
+        "maintenance-estella-xiii-long-range-observatory-office",
+        "Volya Workshop",
+        [
+          "estella-xiii-long-range-observatory"
+        ]
+      ],
+      "sha256": "1d8843b61266162d756a0949392fb2816be74c5f727ba922535a6d3c35aeed3e"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-volatiles-transit",
+      "physicalId": "estella-xa-volatiles-transit",
+      "identity": [
+        "wells-frontier-outfitter-estella-xa-volatiles-transit",
+        "Beira Port Workshop",
+        "Beira Port Workshop",
+        [
+          "estella-xa-volatiles-transit"
+        ],
+        "wells-frontier-outfitter-estella-xa-volatiles-transit-office",
+        "Beira Port Workshop",
+        [
+          "estella-xa-volatiles-transit"
+        ]
+      ],
+      "sha256": "5e70252a5843ebbcfe25a27df6819b6fac4e273a92bf06c49a46513dad93b3bd"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-exobiology-research",
+      "physicalId": "estella-xa-exobiology-research",
+      "identity": [
+        "wells-frontier-outfitter-estella-xa-exobiology-research",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xa-exobiology-research"
+        ],
+        "wells-frontier-outfitter-estella-xa-exobiology-research-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xa-exobiology-research"
+        ]
+      ],
+      "sha256": "843982c21f340c3ec6344c66210358d9a6f1250af1929c2fcefc2709b5e54033"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xa-deep-ice-mine",
+      "physicalId": "estella-xa-deep-ice-mine",
+      "identity": [
+        "wells-frontier-outfitter-estella-xa-deep-ice-mine",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xa-deep-ice-mine"
+        ],
+        "wells-frontier-outfitter-estella-xa-deep-ice-mine-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xa-deep-ice-mine"
+        ]
+      ],
+      "sha256": "a02a201c28729b37007e695fc6050881fff6bf017dd6c92cef65f1cbb9409ddf"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-chem-station",
+      "physicalId": "estella-xd-orbital-chem-station",
+      "identity": [
+        "wells-frontier-outfitter-estella-xd-chem-station",
+        "Alembic Ring Service Works",
+        "Alembic Ring Service Works",
+        [
+          "estella-xd-chem-station"
+        ],
+        "wells-frontier-outfitter-estella-xd-chem-station-office",
+        "Alembic Ring Service Works",
+        [
+          "estella-xd-chem-station"
+        ]
+      ],
+      "sha256": "97be613e1138d9826863ac1d7561c864d64e7e3d08d1d61076e29de2cb735a65"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-proving-grounds",
+      "physicalId": "estella-xd-proving-grounds",
+      "identity": [
+        "wells-frontier-outfitter-estella-xd-proving-grounds",
+        "Calatrava Keep Workshop",
+        "Calatrava Keep Workshop",
+        [
+          "estella-xd-proving-grounds"
+        ],
+        "wells-frontier-outfitter-estella-xd-proving-grounds-office",
+        "Calatrava Keep Workshop",
+        [
+          "estella-xd-proving-grounds"
+        ]
+      ],
+      "sha256": "337248dbea9ddda9454f6692a622962749ebf5d16026048d87e3358b35f2b32e"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-iron-lists",
+      "physicalId": "estella-xd-iron-lists",
+      "identity": [
+        "wells-frontier-outfitter-estella-xd-iron-lists",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xd-iron-lists"
+        ],
+        "wells-frontier-outfitter-estella-xd-iron-lists-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xd-iron-lists"
+        ]
+      ],
+      "sha256": "a528733a220dbf43e4c3ec479209a61680a652eb9f02f766d287108e91833f95"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-geothermal-extraction",
+      "physicalId": "estella-xd-geothermal-extraction",
+      "identity": [
+        "wells-frontier-outfitter-estella-xd-geothermal-extraction",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xd-geothermal-extraction"
+        ],
+        "wells-frontier-outfitter-estella-xd-geothermal-extraction-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xd-geothermal-extraction"
+        ]
+      ],
+      "sha256": "9ba4a82b972bf70a9d34226fbeb6cc52537b4b0b4cdabf72ed13f8bf44e3fdec"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xd-redoubt-field",
+      "physicalId": "estella-xd-redoubt-field",
+      "identity": [
+        "wells-frontier-outfitter-estella-xd-redoubt-field",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xd-redoubt-field"
+        ],
+        "wells-frontier-outfitter-estella-xd-redoubt-field-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xd-redoubt-field"
+        ]
+      ],
+      "sha256": "4b77ba3d28212beae4e8888f59523cf3fca302f31ef05223780c4f56c35225ae"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-x-captive-refuel-relay",
+      "physicalId": "estella-x-trojan-captive",
+      "identity": [
+        "wells-frontier-outfitter-estella-x-captive-refuel-relay",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-x-captive-refuel-relay"
+        ],
+        "wells-frontier-outfitter-estella-x-captive-refuel-relay-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-x-captive-refuel-relay"
+        ]
+      ],
+      "sha256": "950ee12e139fcce3cf111be9b2bed43e4aace26a6d40aa421cb4c76d62262a5e"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-castle-alvares",
+      "physicalId": "estella-xc-castle-alvares",
+      "identity": [
+        "wells-frontier-outfitter-estella-xc-castle-alvares",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xc-castle-alvares"
+        ],
+        "wells-frontier-outfitter-estella-xc-castle-alvares-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xc-castle-alvares"
+        ]
+      ],
+      "sha256": "ef2a37ffa60f160859789d0e1da71dbd29abcef512029fdbfd2c9e1e0bf41691"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-castle-mendes",
+      "physicalId": "estella-xc-castle-mendes",
+      "identity": [
+        "wells-frontier-outfitter-estella-xc-castle-mendes",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xc-castle-mendes"
+        ],
+        "wells-frontier-outfitter-estella-xc-castle-mendes-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xc-castle-mendes"
+        ]
+      ],
+      "sha256": "568e57daa1a3089a8a4141a8505e2b7f92408db491d6d9bc0121858cb9b9c688"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xc-main-outpost",
+      "physicalId": "estella-xc-main-outpost",
+      "identity": [
+        "wells-frontier-outfitter-estella-xc-main-outpost",
+        "Serratine Civil Workshop",
+        "Serratine Civil Workshop",
+        [
+          "estella-xc-main-outpost"
+        ],
+        "wells-frontier-outfitter-estella-xc-main-outpost-office",
+        "Serratine Civil Workshop",
+        [
+          "estella-xc-main-outpost"
+        ]
+      ],
+      "sha256": "85ad6c336b49f676ad0688f0b1ac3eb43388c9d4b45ada36cb173047cd52f584"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-worker-hab",
+      "physicalId": "estella-xb-worker-hab",
+      "identity": [
+        "wells-frontier-outfitter-estella-xb-worker-hab",
+        "Castle Tinto Workshop",
+        "Castle Tinto Workshop",
+        [
+          "estella-xb-worker-hab"
+        ],
+        "wells-frontier-outfitter-estella-xb-worker-hab-office",
+        "Castle Tinto Workshop",
+        [
+          "estella-xb-worker-hab"
+        ]
+      ],
+      "sha256": "dd222d9c6c3c5978230174a5f7501d271612e0dcf01565a320ace85eb545f52f"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-smelting-processing",
+      "physicalId": "estella-xb-smelting-processing",
+      "identity": [
+        "wells-frontier-outfitter-estella-xb-smelting-processing",
+        "Ember Court Rig Works",
+        "Ember Court Rig Works",
+        [
+          "estella-xb-smelting-processing"
+        ],
+        "wells-frontier-outfitter-estella-xb-smelting-processing-office",
+        "Ember Court Rig Works",
+        [
+          "estella-xb-smelting-processing"
+        ]
+      ],
+      "sha256": "c69473f2c4459ab4f4fe5501ea648080c30f96817b6076385a6a699c8923b6c7"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-rare-element-mine",
+      "physicalId": "estella-xb-rare-element-mine",
+      "identity": [
+        "wells-frontier-outfitter-estella-xb-rare-element-mine",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xb-rare-element-mine"
+        ],
+        "wells-frontier-outfitter-estella-xb-rare-element-mine-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xb-rare-element-mine"
+        ]
+      ],
+      "sha256": "414e36aa22ab51840cffe8eff70508f1d9e1c518ad95e0c93adcb2774932e153"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xb-luxury-retreat",
+      "physicalId": "estella-xb-luxury-retreat",
+      "identity": [
+        "wells-frontier-outfitter-estella-xb-luxury-retreat",
+        "Velvet City Workshop",
+        "Velvet City Workshop",
+        [
+          "estella-xb-luxury-retreat"
+        ],
+        "wells-frontier-outfitter-estella-xb-luxury-retreat-office",
+        "Velvet City Workshop",
+        [
+          "estella-xb-luxury-retreat"
+        ]
+      ],
+      "sha256": "494d804e8f01d295e79efb93f98a55c11eec4fecdb96e85cf9530c55a47c0582"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-science-waypoint-poi",
+      "physicalId": "estella-xi-captive-science-waypoint",
+      "identity": [
+        "wells-frontier-outfitter-estella-xi-science-waypoint-poi",
+        "Academy of Sublime Measures Workshop",
+        "Academy of Sublime Measures Workshop",
+        [
+          "estella-xi-science-waypoint-poi"
+        ],
+        "wells-frontier-outfitter-estella-xi-science-waypoint-poi-office",
+        "Academy of Sublime Measures Workshop",
+        [
+          "estella-xi-science-waypoint-poi"
+        ]
+      ],
+      "sha256": "6513a6a1deaa0f0165e1c6a19bdab509aa76d3c68e7c73c7476107492dab6a42"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-chem-station",
+      "physicalId": "estella-xia-orbital-chem-station",
+      "identity": [
+        "wells-frontier-outfitter-estella-xia-chem-station",
+        "Almaden Orbital Engineering",
+        "Almaden Orbital Engineering",
+        [
+          "estella-xia-chem-station"
+        ],
+        "wells-frontier-outfitter-estella-xia-chem-station-office",
+        "Almaden Orbital Engineering",
+        [
+          "estella-xia-chem-station"
+        ]
+      ],
+      "sha256": "6c516a534383c9049e3e02e9ef53c8690be33f5536ddd855913987bce6629026"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-sealed-worker-hab",
+      "physicalId": "estella-xia-sealed-worker-hab",
+      "identity": [
+        "wells-frontier-outfitter-estella-xia-sealed-worker-hab",
+        "Castle Almaden Workshop",
+        "Castle Almaden Workshop",
+        [
+          "estella-xia-sealed-worker-hab"
+        ],
+        "wells-frontier-outfitter-estella-xia-sealed-worker-hab-office",
+        "Castle Almaden Workshop",
+        [
+          "estella-xia-sealed-worker-hab"
+        ]
+      ],
+      "sha256": "ea24a5c3710143688b4b25135425781e30089b1992405ea03b81b869e53d97a9"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-rare-element-extraction",
+      "physicalId": "estella-xia-rare-element-extraction",
+      "identity": [
+        "wells-frontier-outfitter-estella-xia-rare-element-extraction",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xia-rare-element-extraction"
+        ],
+        "wells-frontier-outfitter-estella-xia-rare-element-extraction-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xia-rare-element-extraction"
+        ]
+      ],
+      "sha256": "4dc6c0ab637357cf302deec3c4de2bd46bad2720cb12101c7405b37763132fe0"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xia-sulfur-mine",
+      "physicalId": "estella-xia-sulfur-mine",
+      "identity": [
+        "wells-frontier-outfitter-estella-xia-sulfur-mine",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xia-sulfur-mine"
+        ],
+        "wells-frontier-outfitter-estella-xia-sulfur-mine-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xia-sulfur-mine"
+        ]
+      ],
+      "sha256": "59ea3e013897398c02a844d2bf2a62853be38d0f5485503929d8f651f878cb1d"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xid-specialty-cargo",
+      "physicalId": "estella-xid-specialty-cargo",
+      "identity": [
+        "wells-frontier-outfitter-estella-xid-specialty-cargo",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xid-specialty-cargo"
+        ],
+        "wells-frontier-outfitter-estella-xid-specialty-cargo-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xid-specialty-cargo"
+        ]
+      ],
+      "sha256": "6edad23a9dbc16161bfd5e3de78400ad4d2256d8a6626dfee5299196439405ab"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xid-customs-transit",
+      "physicalId": "estella-xid-customs-transit",
+      "identity": [
+        "wells-frontier-outfitter-estella-xid-customs-transit",
+        "Serratine Goods Exchange Workshop",
+        "Serratine Goods Exchange Workshop",
+        [
+          "estella-xid-customs-transit"
+        ],
+        "wells-frontier-outfitter-estella-xid-customs-transit-office",
+        "Serratine Goods Exchange Workshop",
+        [
+          "estella-xid-customs-transit"
+        ]
+      ],
+      "sha256": "8df677078a1c65d01389ec539654202e5860e3c86c9ed20dc63bc7ffb26a41c7"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-religious-retreat-poi",
+      "physicalId": "estella-xi-captive-religious-retreat",
+      "identity": [
+        "wells-frontier-outfitter-estella-xi-religious-retreat-poi",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xi-religious-retreat-poi"
+        ],
+        "wells-frontier-outfitter-estella-xi-religious-retreat-poi-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xi-religious-retreat-poi"
+        ]
+      ],
+      "sha256": "f8967f35c0d0b69a15e702ee7e8bf26c1268fae2a2535d482b9d7f51c4a9c82f"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-observatory",
+      "physicalId": "estella-xif-observatory",
+      "identity": [
+        "wells-frontier-outfitter-estella-xif-observatory",
+        "Daedalus Server Farm Workshop",
+        "Daedalus Server Farm Workshop",
+        [
+          "estella-xif-observatory"
+        ],
+        "wells-frontier-outfitter-estella-xif-observatory-office",
+        "Daedalus Server Farm Workshop",
+        [
+          "estella-xif-observatory"
+        ]
+      ],
+      "sha256": "eafef2045b46b2598df8e7954f58f93ebe8f1b9540b254efd94f3f4eb6198630"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-deep-listening-array",
+      "physicalId": "estella-xif-deep-listening-array",
+      "identity": [
+        "wells-frontier-outfitter-estella-xif-deep-listening-array",
+        "Daedalus Visiting-Rig Workshop",
+        "Daedalus Visiting-Rig Workshop",
+        [
+          "estella-xif-deep-listening-array"
+        ],
+        "wells-frontier-outfitter-estella-xif-deep-listening-array-office",
+        "Daedalus Visiting-Rig Workshop",
+        [
+          "estella-xif-deep-listening-array"
+        ]
+      ],
+      "sha256": "5dc4189f353eb56292da4ce391165e6b7b957e0d34373aff595890fbec9bb936"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xif-sealed-research-outpost",
+      "physicalId": "estella-xif-sealed-research-outpost",
+      "identity": [
+        "wells-frontier-outfitter-estella-xif-sealed-research-outpost",
+        "Ask for local technical help",
+        "Local technical staff",
+        [
+          "estella-xif-sealed-research-outpost"
+        ],
+        "wells-frontier-outfitter-estella-xif-sealed-research-outpost-office",
+        "Ask for local technical help",
+        [
+          "estella-xif-sealed-research-outpost"
+        ]
+      ],
+      "sha256": "d8847694b445fbcccc8382a91452d0c2512f9e20d3a90292bafbdddf0d0e276a"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-ice-mining",
+      "physicalId": "estella-xic-ice-mining",
+      "identity": [
+        "wells-frontier-outfitter-estella-xic-ice-mining",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xic-ice-mining"
+        ],
+        "wells-frontier-outfitter-estella-xic-ice-mining-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xic-ice-mining"
+        ]
+      ],
+      "sha256": "38ed412c90426e33d2a5e6e3824dd8e45aba87d9dfa676dbca6914734058a2f2"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-deep-ice-exobiology",
+      "physicalId": "estella-xic-deep-ice-exobiology",
+      "identity": [
+        "wells-frontier-outfitter-estella-xic-deep-ice-exobiology",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xic-deep-ice-exobiology"
+        ],
+        "wells-frontier-outfitter-estella-xic-deep-ice-exobiology-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xic-deep-ice-exobiology"
+        ]
+      ],
+      "sha256": "61e7ea892affb62f39b385197a48e8c653537a516318d69b293b47235cd0cd54"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xic-last-breath-lists",
+      "physicalId": "estella-xic-last-breath-lists",
+      "identity": [
+        "wells-frontier-outfitter-estella-xic-last-breath-lists",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xic-last-breath-lists"
+        ],
+        "wells-frontier-outfitter-estella-xic-last-breath-lists-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xic-last-breath-lists"
+        ]
+      ],
+      "sha256": "3055467617e172620d5a3623d0436e8bba01ecd63501c6119eab0020733ebfe5"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction",
+      "physicalId": "estella-xib-hydrocarbon-extraction",
+      "identity": [
+        "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xib-hydrocarbon-extraction"
+        ],
+        "wells-frontier-outfitter-estella-xib-hydrocarbon-extraction-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xib-hydrocarbon-extraction"
+        ]
+      ],
+      "sha256": "cd7626f7c702e4302ee0245ccd5435267eb1df2ca9360057a560f0284079a811"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-methane-refinery",
+      "physicalId": "estella-xib-methane-refinery",
+      "identity": [
+        "wells-frontier-outfitter-estella-xib-methane-refinery",
+        "Blue Fen Refinery Workshop",
+        "Blue Fen Refinery Workshop",
+        [
+          "estella-xib-methane-refinery"
+        ],
+        "wells-frontier-outfitter-estella-xib-methane-refinery-office",
+        "Blue Fen Refinery Workshop",
+        [
+          "estella-xib-methane-refinery"
+        ]
+      ],
+      "sha256": "eedabb78b6e26dfa08c3c096aad54b4d39aa99386ddeea3aaa0fda53658fc613"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-science-settlement",
+      "physicalId": "estella-xib-science-settlement",
+      "identity": [
+        "wells-frontier-outfitter-estella-xib-science-settlement",
+        "Castle Marisma Workshop",
+        "Castle Marisma Workshop",
+        [
+          "estella-xib-science-settlement"
+        ],
+        "wells-frontier-outfitter-estella-xib-science-settlement-office",
+        "Castle Marisma Workshop",
+        [
+          "estella-xib-science-settlement"
+        ]
+      ],
+      "sha256": "c7ee2aeac46473d7308db4e8e5fd4d8cec8be098fc5867936c4611d006cad044"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-cryo-transit",
+      "physicalId": "estella-xib-cryo-transit",
+      "identity": [
+        "wells-frontier-outfitter-estella-xib-cryo-transit",
+        "Coldgate Cryogenic Service",
+        "Coldgate Cryogenic Service",
+        [
+          "estella-xib-cryo-transit"
+        ],
+        "wells-frontier-outfitter-estella-xib-cryo-transit-office",
+        "Coldgate Cryogenic Service",
+        [
+          "estella-xib-cryo-transit"
+        ]
+      ],
+      "sha256": "b7a5ad020ed72966923762f7d5ad6f6ab090b41b520295c891ec93b0f4639c32"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xib-organic-chemistry",
+      "physicalId": "estella-xib-organic-chemistry",
+      "identity": [
+        "wells-frontier-outfitter-estella-xib-organic-chemistry",
+        "Marisma Cauldron Workshop",
+        "Marisma Cauldron Workshop",
+        [
+          "estella-xib-organic-chemistry"
+        ],
+        "wells-frontier-outfitter-estella-xib-organic-chemistry-office",
+        "Marisma Cauldron Workshop",
+        [
+          "estella-xib-organic-chemistry"
+        ]
+      ],
+      "sha256": "027ae9c74fdf35a0fe51d1a065cb1b01adc0d9f746e60d86dee0f81448e7f70c"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xie-component-fabrication",
+      "physicalId": "estella-xie-component-fabrication",
+      "identity": [
+        "wells-frontier-outfitter-estella-xie-component-fabrication",
+        "Banner Forge Workshop",
+        "Banner Forge Workshop",
+        [
+          "estella-xie-component-fabrication"
+        ],
+        "wells-frontier-outfitter-estella-xie-component-fabrication-office",
+        "Banner Forge Workshop",
+        [
+          "estella-xie-component-fabrication"
+        ]
+      ],
+      "sha256": "5a5a171adda195a847ca3d3b6d133dfccfa9dcac383d6cca44cf393a0ffec7df"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-fence-poi",
+      "physicalId": "estella-xi-captive-fence",
+      "identity": [
+        "wells-frontier-outfitter-estella-xi-fence-poi",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xi-fence-poi"
+        ],
+        "wells-frontier-outfitter-estella-xi-fence-poi-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xi-fence-poi"
+        ]
+      ],
+      "sha256": "99d024ef7b5fc4e21884ae4a9154f910b5d8771325704f0500d0f4b7cfbbe70d"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi",
+      "physicalId": "estella-xi-captive-smuggler-deaddrop",
+      "identity": [
+        "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xi-smuggler-deaddrop-poi"
+        ],
+        "wells-frontier-outfitter-estella-xi-smuggler-deaddrop-poi-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xi-smuggler-deaddrop-poi"
+        ]
+      ],
+      "sha256": "b82ebbd80e6a7813e83d0deb7f1f7e400484771808334773ff1fa09aa3620007"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-blackglass-observatory",
+      "physicalId": "estella-xiid-blackglass-observatory",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiid-blackglass-observatory",
+        "Blackglass Observatory Workshop",
+        "Blackglass Observatory Workshop",
+        [
+          "estella-xiid-blackglass-observatory"
+        ],
+        "wells-frontier-outfitter-estella-xiid-blackglass-observatory-office",
+        "Blackglass Observatory Workshop",
+        [
+          "estella-xiid-blackglass-observatory"
+        ]
+      ],
+      "sha256": "2f378ee8e672c07a6980bafc70557817379f3e72761dd20085a03c652eacb48d"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-black-project-exile",
+      "physicalId": "estella-xiid-black-project-exile",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiid-black-project-exile",
+        "Castle Nunes Workshop",
+        "Castle Nunes Workshop",
+        [
+          "estella-xiid-black-project-exile"
+        ],
+        "wells-frontier-outfitter-estella-xiid-black-project-exile-office",
+        "Castle Nunes Workshop",
+        [
+          "estella-xiid-black-project-exile"
+        ]
+      ],
+      "sha256": "539fae4ca595183c2a5d2a6c928febbeebad0d855f37529b88e8b67eda7041c9"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiid-mirror-clinic",
+      "physicalId": "estella-xiid-mirror-clinic",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiid-mirror-clinic",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xiid-mirror-clinic"
+        ],
+        "wells-frontier-outfitter-estella-xiid-mirror-clinic-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xiid-mirror-clinic"
+        ]
+      ],
+      "sha256": "aa3fdffa031d2b91f9c581cbbdecdbe43a0ad024a38eabf4027554f2205d1c05"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-isolated-settlement",
+      "physicalId": "estella-xiia-isolated-settlement",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiia-isolated-settlement",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-xiia-isolated-settlement"
+        ],
+        "wells-frontier-outfitter-estella-xiia-isolated-settlement-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-xiia-isolated-settlement"
+        ]
+      ],
+      "sha256": "b6be3641eb382880c344f74d95c7c87e31a7ca76814c473057a537705b9eb55b"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-volatiles-transit",
+      "physicalId": "estella-xiia-volatiles-transit",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiia-volatiles-transit",
+        "Pilgrim Gate Repair Hall",
+        "Pilgrim Gate Repair Hall",
+        [
+          "estella-xiia-volatiles-transit"
+        ],
+        "wells-frontier-outfitter-estella-xiia-volatiles-transit-office",
+        "Pilgrim Gate Repair Hall",
+        [
+          "estella-xiia-volatiles-transit"
+        ]
+      ],
+      "sha256": "fb5d76a7baf38edf566fab73d8150e60e6af404b956c460d206a15d0d6932b08"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiia-deep-ice-mine",
+      "physicalId": "estella-xiia-deep-ice-mine",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiia-deep-ice-mine",
+        "Preceptory of Toil Workshop",
+        "Preceptory of Toil Workshop",
+        [
+          "estella-xiia-deep-ice-mine"
+        ],
+        "wells-frontier-outfitter-estella-xiia-deep-ice-mine-office",
+        "Preceptory of Toil Workshop",
+        [
+          "estella-xiia-deep-ice-mine"
+        ]
+      ],
+      "sha256": "4b1896e5705f16759938224521d6cff3b683b96424494aab96c33c687583a445"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi",
+      "physicalId": "estella-xii-captive-smuggler-waypoint",
+      "identity": [
+        "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xii-smuggler-waypoint-poi"
+        ],
+        "wells-frontier-outfitter-estella-xii-smuggler-waypoint-poi-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xii-smuggler-waypoint-poi"
+        ]
+      ],
+      "sha256": "c4c610543394e0e55cb1484d12f99f9a79b1fc10c169b472aba8a270196094bb"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-isotope-mining",
+      "physicalId": "estella-xiic-isotope-mining",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiic-isotope-mining",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xiic-isotope-mining"
+        ],
+        "wells-frontier-outfitter-estella-xiic-isotope-mining-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xiic-isotope-mining"
+        ]
+      ],
+      "sha256": "4a1cb3ff978ab11f8f29c21e0c242035798a8abaec1911f75a218ef277d7ad59"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-castle-teide",
+      "physicalId": "estella-xiic-castle-teide",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiic-castle-teide",
+        "Teide Charter Workshop",
+        "Teide Charter Workshop",
+        [
+          "estella-xiic-castle-teide"
+        ],
+        "wells-frontier-outfitter-estella-xiic-castle-teide-office",
+        "Teide Charter Workshop",
+        [
+          "estella-xiic-castle-teide"
+        ]
+      ],
+      "sha256": "696490ebe0873bc8d7a229c43ba6da3688713cd8aa21af2b47930f60a1e9c1a7"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiic-comet-research",
+      "physicalId": "estella-xiic-comet-research",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiic-comet-research",
+        "Teide Survey Collegium Workshop",
+        "Teide Survey Collegium Workshop",
+        [
+          "estella-xiic-comet-research"
+        ],
+        "wells-frontier-outfitter-estella-xiic-comet-research-office",
+        "Teide Survey Collegium Workshop",
+        [
+          "estella-xiic-comet-research"
+        ]
+      ],
+      "sha256": "b919836ff4cca80f39f5e845a495622139fc1c2e6be0b4f96aeb363029add31a"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xii-comm-relay-poi",
+      "physicalId": "estella-xii-captive-comm-relay",
+      "identity": [
+        "wells-frontier-outfitter-estella-xii-comm-relay-poi",
+        "Walk the hangars and ask for a local mechanic",
+        "Unofficial local mechanic",
+        [
+          "estella-xii-comm-relay-poi"
+        ],
+        "wells-frontier-outfitter-estella-xii-comm-relay-poi-office",
+        "Walk the hangars and ask for a local mechanic",
+        [
+          "estella-xii-comm-relay-poi"
+        ]
+      ],
+      "sha256": "9569134bb1b2fcaf9481ec79dc451e979d0ceb8df4b231fd91c674a511ef8c12"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiib-transit-station-poi",
+      "physicalId": "estella-xiib-transit-station",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiib-transit-station-poi",
+        "Vigil Gate Workshop",
+        "Vigil Gate Workshop",
+        [
+          "estella-xiib-transit-station-poi"
+        ],
+        "wells-frontier-outfitter-estella-xiib-transit-station-poi-office",
+        "Vigil Gate Workshop",
+        [
+          "estella-xiib-transit-station-poi"
+        ]
+      ],
+      "sha256": "b5c5a9c504a594fb273c3a1c6b280408b57a7d634499b74925fb6126b8ea5726"
+    },
+    {
+      "id": "wells-frontier-outfitter-estella-xiib-outpost",
+      "physicalId": "estella-xiib-outpost",
+      "identity": [
+        "wells-frontier-outfitter-estella-xiib-outpost",
+        "Ask for a maintenance hand",
+        "Local maintenance workers",
+        [
+          "estella-xiib-outpost"
+        ],
+        "wells-frontier-outfitter-estella-xiib-outpost-office",
+        "Ask for a maintenance hand",
+        [
+          "estella-xiib-outpost"
+        ]
+      ],
+      "sha256": "b7ef8503bc0aae59a2a8cd80268097c952930ba3594cb8ed531cb49c4f0ccf5f"
+    }
+  ],
+  "promoted": [
+    {
+      "physicalId": "estella-via-drydock",
+      "shop": {
+        "facilityTier": 1,
+        "diagnosticGrade": "C",
+        "workQualityGrade": "D",
+        "componentGradeBest": "D",
+        "componentGradeWorst": "D",
+        "laborRate": 500,
+        "diagnosisHours": 2,
+        "partsMarkup": 1,
+        "laborHoursMultiplier": 1,
+        "honesty": 1,
+        "equipmentIds": [
+          "atmospheric-package",
+          "heavy-heat-shielding",
+          "cargo-shock-absorbers",
+          "passenger-comfort-package"
+        ],
+        "id": "maintenance-estella-via-drydock",
+        "name": "Svarog Visiting-Rig Service",
+        "organizationName": "Svarog Visiting-Rig Service",
+        "locationIds": [
+          "estella-via-drydock-station"
+        ],
+        "directorySummary": "Professional rig servicing, repairs and equipment installation.",
+        "copy": {
+          "profileBlurb": "The visiting-rig workbench at Svarog Shipyard faces racks of standard fittings and workshop gauges. A fitter sets aside a production drawing to look over your rig while the clerk prepares an itemized order.",
+          "levelBlurb": "Professional servicing, standard repairs, replacement parts and equipment installation",
+          "diagnosisBlurb": "“We’ll check the rig against its own specifications and list the repairs and exchanges this workshop can undertake.”",
+          "serviceBlurb": "“Select the systems. We’ll work through the service points, set the clearances and test the adjustments.”",
+          "repairsBlurb": "“The estimate is for the work on this rig. We’ll verify the selected assembly’s fit and grade before it leaves the parts rack.”"
+        }
+      },
+      "directory": {
+        "kind": "office",
+        "id": "maintenance-estella-via-drydock-office",
+        "name": "Svarog Visiting-Rig Service",
+        "locationIds": [
+          "estella-via-drydock-station"
+        ],
+        "summary": "Professional rig servicing, repairs and equipment installation.",
+        "description": "The visiting-rig workbench at Svarog Shipyard faces racks of standard fittings and workshop gauges. A fitter sets aside a production drawing to look over your rig while the clerk prepares an itemized order.",
+        "maintenanceShopId": "maintenance-estella-via-drydock",
+        "actions": []
+      },
+      "identity": [
+        "maintenance-estella-via-drydock",
+        "Svarog Visiting-Rig Service",
+        "Svarog Visiting-Rig Service",
+        [
+          "estella-via-drydock-station"
+        ],
+        "maintenance-estella-via-drydock-office",
+        "Svarog Visiting-Rig Service",
+        [
+          "estella-via-drydock-station"
+        ]
+      ],
+      "referrals": [
+        {
+          "physicalId": "estella-via-drydock",
+          "entranceId": "estella-via-drydock-station",
+          "name": "Svarog Visiting-Rig Service",
+          "location": "Svarog Shipyard",
+          "path": "The Camps -> Kuznia -> Svarog -> Svarog Shipyard",
+          "eliteAlternative": false,
+          "onsiteSpecialist": true,
+          "text": "For more advanced work, ask for the specialist service at Svarog Visiting-Rig Service."
+        }
+      ],
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "service": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "replacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    },
+    {
+      "physicalId": "estella-iii-high-tech-city",
+      "shop": {
+        "facilityTier": 1,
+        "diagnosticGrade": "C",
+        "workQualityGrade": "D",
+        "componentGradeBest": "D",
+        "componentGradeWorst": "D",
+        "laborRate": 500,
+        "diagnosisHours": 2,
+        "partsMarkup": 1,
+        "laborHoursMultiplier": 1,
+        "honesty": 1,
+        "equipmentIds": [
+          "atmospheric-package",
+          "heavy-heat-shielding",
+          "cargo-shock-absorbers",
+          "passenger-comfort-package"
+        ],
+        "id": "maintenance-estella-iii-high-tech-city",
+        "name": "Rochefort Precision Service",
+        "organizationName": "Rochefort Precision Service",
+        "locationIds": [
+          "estella-iii-high-tech-city"
+        ],
+        "directorySummary": "Professional rig servicing, repairs and equipment installation.",
+        "copy": {
+          "profileBlurb": "At Rochefort, the workshop counter displays a clear labor schedule beside samples of standard fittings. Behind it, a technician reviews a completed job sheet with a colleague before calling you forward.",
+          "levelBlurb": "Professional servicing, standard repairs, replacement parts and equipment installation",
+          "diagnosisBlurb": "“We’ll inspect the rig and give you an itemized finding. You can choose the work once you’ve seen the estimate.”",
+          "serviceBlurb": "“Select the systems and we’ll book their service checks, adjustments and final tests. The estimate includes the time the rig will be here.”",
+          "repairsBlurb": "“The work order identifies the repair or fitted replacement. We’ll record the parts used and check the result before release.”"
+        }
+      },
+      "directory": {
+        "kind": "office",
+        "id": "maintenance-estella-iii-high-tech-city-office",
+        "name": "Rochefort Precision Service",
+        "locationIds": [
+          "estella-iii-high-tech-city"
+        ],
+        "summary": "Professional rig servicing, repairs and equipment installation.",
+        "description": "At Rochefort, the workshop counter displays a clear labor schedule beside samples of standard fittings. Behind it, a technician reviews a completed job sheet with a colleague before calling you forward.",
+        "maintenanceShopId": "maintenance-estella-iii-high-tech-city",
+        "actions": []
+      },
+      "identity": [
+        "maintenance-estella-iii-high-tech-city",
+        "Rochefort Precision Service",
+        "Rochefort Precision Service",
+        [
+          "estella-iii-high-tech-city"
+        ],
+        "maintenance-estella-iii-high-tech-city-office",
+        "Rochefort Precision Service",
+        [
+          "estella-iii-high-tech-city"
+        ]
+      ],
+      "referrals": [
+        {
+          "physicalId": "estella-iii-high-tech-city",
+          "entranceId": "estella-iii-high-tech-city",
+          "name": "Rochefort Precision Service",
+          "location": "Rochefort",
+          "path": "The Hearth -> Gaia -> Rochefort",
+          "eliteAlternative": false,
+          "onsiteSpecialist": true,
+          "text": "For more advanced work, ask for the specialist service at Rochefort Precision Service."
+        }
+      ],
+      "diagnosis": {
+        "credits": 1000,
+        "laborHours": 2
+      },
+      "service": {
+        "credits": 10000,
+        "laborHours": 20
+      },
+      "replacement": {
+        "grade": "D",
+        "exact": true,
+        "credits": 309000,
+        "laborHours": 18
+      },
+      "equipment": {
+        "atmospheric-package": {
+          "equipmentId": "atmospheric-package",
+          "grade": "D",
+          "componentIds": [
+            "atmospheric-heat-shielding",
+            "atmospheric-surfaces",
+            "atmospheric-surface-actuators"
+          ],
+          "partsCredits": 120000,
+          "laborHours": 19,
+          "credits": 129500
+        },
+        "heavy-heat-shielding": {
+          "equipmentId": "heavy-heat-shielding",
+          "componentIds": [],
+          "partsCredits": 60000,
+          "laborHours": 6,
+          "credits": 63000
+        },
+        "cargo-shock-absorbers": {
+          "equipmentId": "cargo-shock-absorbers",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-cargo-shock-absorbers"
+          ],
+          "partsCredits": 40000,
+          "laborHours": 4,
+          "credits": 42000
+        },
+        "passenger-comfort-package": {
+          "equipmentId": "passenger-comfort-package",
+          "grade": "D",
+          "componentIds": [
+            "auxiliary-passenger-comfort"
+          ],
+          "partsCredits": 50000,
+          "laborHours": 5,
+          "credits": 52500
+        }
+      }
+    }
+  ]
+}

@@ -30,6 +30,10 @@ for (const old of baseline.shops) {
   const rig = createDefaultRigState(true); for (const s of Object.values(rig.components)) s.ap = 0;
   const drive = createDefaultRigState(true); drive.components['powertrain-main-drive-core'].fault = { severity: 'total', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
   const refs = maintenanceReferrals(shop);
+  if (old.physicalId === 'estella-iii-high-tech-city' || old.physicalId === 'estella-via-drydock') {
+    assert(shop.facilityTier === 3 && refs.length === 0, 'explicit Stage 5 promotions checked separately against pre-Stage-5 fixture');
+    continue;
+  }
   equal(refs.map(({ physicalId, entranceId, name, location, path, eliteAlternative, onsiteSpecialist }) => ({ physicalId, entranceId, name, location, path, eliteAlternative, onsiteSpecialist })), old.referrals.map(({ physicalId, entranceId, name, location, path, eliteAlternative, onsiteSpecialist }) => ({ physicalId, entranceId, name, location, path, eliteAlternative, onsiteSpecialist })), 'all referral destinations/access unchanged');
   if (!updateIds.has(old.physicalId)) {
     unchanged++;
@@ -55,7 +59,7 @@ for (const old of baseline.shops) {
     }
   }
 }
-equal([unchanged, changed], [134, 25], 'strict change boundary');
+equal([unchanged, changed], [132, 25], 'Stage 4 change boundary excluding the two separately audited Stage 5 promotions');
 const upgraded = MAINTENANCE_SHOPS.filter(s => updateIds.has(physicalTerminalId(s.locationIds[0])));
 let writes = 0, failWrites = false;
 Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: () => null, setItem: () => { if (failWrites) throw Error('blocked'); writes++; } } });
@@ -113,5 +117,5 @@ for (const shop of upgraded) {
   close(game.career.worldTime, time + quote.laborHours * 3600, 'actual B repair time');
   if (physicalTerminalId(shop.locationIds[0]) === 'estella-vi-industrial-city') assert(!canTravelEmpty({ ...profile(shop), locationId: 'caravanserai-main-commercial-dock' }, shop.locationIds[0]), 'Perun service does not grant arrival');
 }
-assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier === 3).length === 2, 'no new elites');
-console.log(`Full-service Stage 4: ${checks} checks; 25 upgrades, 134 exact unaffected shops; 314/320 unique repairs and 513/520 fault pairs at every upgraded branch.`);
+assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier === 3).length === 4, 'four final elites');
+console.log(`Full-service Stage 4: ${checks} checks; 25 upgrades, 132 exact unaffected shops plus two separately audited Stage 5 promotions; 314/320 unique repairs and 513/520 fault pairs at every upgraded branch.`);

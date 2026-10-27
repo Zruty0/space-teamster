@@ -40,7 +40,7 @@ const targets = estellaSelectableNavTargets();
 assert(MAINTENANCE_SHOPS.length === 159, 'one service or emergency desk per physical site');
 assert(EMERGENCY_MAINTENANCE_SHOPS.length === 9, 'nine approved unstaffed locations remain self-help only');
 assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier >= 0).length === 150, 'approved Stage 3 staffed coverage');
-equal([-1, 0, 1, 2, 3].map(t => MAINTENANCE_SHOPS.filter(s => s.facilityTier === t).length), [9, 57, 65, 26, 2], 'Stage 4 full service, no premature elite upgrades');
+equal([-1, 0, 1, 2, 3].map(t => MAINTENANCE_SHOPS.filter(s => s.facilityTier === t).length), [9, 57, 63, 26, 4], 'final approved coverage distribution');
 assert(WELLS_FRONTIER_OUTFITTERS.length === 26, '26 basic Wells branches remain');
 equal(WEYMARK_PILOT_SHOPS.map(s => s.facilityTier), [0, 1, 2], 'pilot ladder');
 assert(WELLS_FRONTIER_OUTFITTERS.every(s => s.honesty === 0.8), 'approved Wells honesty');
@@ -95,13 +95,14 @@ for (const target of targets) {
 for (const row of proposal) {
   const actual = MAINTENANCE_NETWORK.find(n => n.physicalId === row.physicalId)!;
   equal([actual.tier, actual.next ?? null, actual.elite ?? null], [row.tier, row.referralPhysicalId, row.elitePhysicalId], 'approved roster and runtime referral plan agree');
+  equal(MAINTENANCE_SHOPS.find(s => s.id === row.shopId)!.facilityTier, row.tier, 'every final planned facility is active');
 }
 assert(MAINTENANCE_NETWORK.find(n => n.physicalId === 'estella-via-drydock')!.tier === 3, 'Svarog elite approved');
 const lowRefs = maintenanceReferrals(WEYMARK_PILOT_SHOPS[0]);
 equal(lowRefs.map(r => r.physicalId), ['estella-viii-settlement', 'estella-viii-high-station'], 'Low Gauge recommends town and elite depot');
 const future = maintenanceReferrals(MAINTENANCE_SHOPS.find(s => s.id === 'red-dust-mechanical-reclamation')!);
 assert(future[0].name === 'Roadstead Rig Works' && future[1].physicalId === 'estella-via-drydock', 'approved future facilities advertised without activation');
-assert(MAINTENANCE_SHOPS.find(s => s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock'))!.facilityTier === 1, 'Svarog has only interim professional service');
+assert(MAINTENANCE_SHOPS.find(s => s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock'))!.facilityTier === 3, 'Svarog elite workshop is active');
 assert(MAINTENANCE_SHOPS.find(s => s.id === 'vilar-cadiz-highport-outfitter')!.workQualityGrade === 'B', 'approved Cadiz work upgrade');
 
 // Independent pre-edit audit: preserve all 63 accounts; only the 25 approved
@@ -134,7 +135,7 @@ for (const shop of COVERAGE_SHOPS.filter(s => s.facilityTier >= 0)) {
   const rig = createDefaultRigState(true); for (const state of Object.values(rig.components)) state.ap = 0;
   const drive = createDefaultRigState(true); drive.components['powertrain-main-drive-core'].fault = { severity: 'total', diagnosis: 'unknown', generatedMission: 0, generatedStrike: 0 };
   const professional = shop.facilityTier === 1;
-  equal([diagnosisQuote(shop).credits, diagnosisQuote(shop).laborHours, rigServiceQuote(rig, shop).credits, rigServiceQuote(rig, shop).laborHours, replacementQuote(drive, shop, 'powertrain-main-drive-core')!.credits], shop.facilityTier === 2 ? [1440, 1.8, 14400, 18, 312960] : professional ? [1000, 2, 10000, 20, 309000] : [500, 2, 3625, 14.5, shop.partsMarkup === 1.5 ? 364500 : 280500], 'independent approved quote examples');
+  equal([diagnosisQuote(shop).credits, diagnosisQuote(shop).laborHours, rigServiceQuote(rig, shop).credits, rigServiceQuote(rig, shop).laborHours, replacementQuote(drive, shop, 'powertrain-main-drive-core')!.credits], shop.facilityTier === 3 ? [2240, 1.6, 22400, 16, 350160] : shop.facilityTier === 2 ? [1440, 1.8, 14400, 18, 312960] : professional ? [1000, 2, 10000, 20, 309000] : [500, 2, 3625, 14.5, shop.partsMarkup === 1.5 ? 364500 : 280500], 'independent approved quote examples');
   for (const id of shop.equipmentIds ?? []) {
     const quote = equipmentQuote(id === 'heavy-heat-shielding' ? createDefaultRigState(true) : createDefaultRigState(false), shop, id, 'D');
     assert(quote, 'all approved professional equipment is actually available');
