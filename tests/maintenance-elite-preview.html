@@ -82,7 +82,7 @@ function show(){
  }
  draw();assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(current)),'internal classes hidden');
  if(mode==='profile')assert(!current.options.some(o=>o.action.startsWith('maintenanceReferral:'))&&writes===before,'elite profile has no higher referral and does not save');
- if(mode==='directions')assert(JSON.stringify(current).includes(id.includes('iii')?'Rochefort Precision Service':'Svarog Visiting-Rig Service'),'active elite destination named');
+ if(mode==='directions')assert(JSON.stringify(current).includes(id.includes('iii')?'Atelier du Méridien':'SSC Reconstruction Works'),'active elite destination named');
 }
 menu.onchange=show;window.addEventListener('resize',draw);
 window.addEventListener('keydown',e=>{
@@ -93,5 +93,5 @@ window.addEventListener('keydown',e=>{
  if(e.key==='Enter'||e.key===' '){const o=current.options[state.selectedIndex];if(o&&!o.disabled){if(/^(maintenance|equipment)/.test(o.action)){game.activateInteractiveSceneOption({},o.action);draw();}else game.showGuidance('Use the selector for another synthetic shop.');}}
 });
 canvas.addEventListener('pointerdown',()=>document.activeElement?.blur());
-try{assert(branches.length===4,'four final elite landmarks');for(const key of Object.keys(views)){menu.value=key;show();}menu.value='Rochefort Precision Service — profile';show();document.title='PASS — Elite maintenance';document.getElementById('status').textContent=`PASS — ${checks} checks; all four elites. Click canvas: arrows/Enter, Page Up/Down. Synthetic saves only.`;}catch(e){document.title='FAIL — Elite maintenance';document.getElementById('status').textContent=e.stack??String(e);throw e;}
+try{assert(branches.length===4,'four final elite landmarks');for(const key of Object.keys(views)){menu.value=key;show();}menu.value='Atelier du Méridien — profile';show();document.title='PASS — Elite maintenance';document.getElementById('status').textContent=`PASS — ${checks} checks; all four elites. Click canvas: arrows/Enter, Page Up/Down. Synthetic saves only.`;}catch(e){document.title='FAIL — Elite maintenance';document.getElementById('status').textContent=e.stack??String(e);throw e;}
 </script>

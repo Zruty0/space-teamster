@@ -487,7 +487,7 @@ export const KEELWRIGHT_WORKS_SECONDS_GATE: LocalOfficeDef = {
   name: 'The Seconds Gate at Keelwright Works',
   locationIds: ['estella-xie-rare-alloy-extraction'],
   summary: 'Rapid factory service and proofed production-overrun components.',
-  description: 'The Seconds Gate occupies a receiving hall beside Keelwright Works’ final proofing floor. Its tall racks hold pristine drive housings in rival House colors, frame members with obsolete crests milled away, and actuator sets marked thirteen of twelve. Every component carries a production pedigree and a visible proof stamp. At each shift bell, carts, crews, and visiting rigs advance together through the exchange line under Proofmaster Tomé Avelar’s ear.',
+  description: 'The Seconds Gate occupies a receiving hall beside Keelwright Works’ final proofing floor. Its tall racks hold pristine drive housings in rival House colors, frame members with obsolete crests milled away, and actuator sets marked thirteen of twelve. Every component carries a production pedigree and a visible proof stamp. At each shift bell, carts, crews, and rigs advance together through the exchange line under Proofmaster Tomé Avelar’s ear.',
   maintenanceShopId: 'keelwright-works-seconds-gate',
   actions: [],
 };

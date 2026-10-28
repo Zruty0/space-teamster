@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8"><title>Maintenance coverage check</title>
-<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace}canvas{display:block}select{max-width:65vw;background:#102030;color:#def;padding:6px}#status{margin-left:12px}</style>
+<style>body{margin:12px;background:#030611;color:#9ce;font:14px monospace;overflow:hidden}canvas{display:block}select{max-width:100%;background:#102030;color:#def;padding:6px}#status{display:block;margin:6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}</style>
 <select id="view"></select><span id="status">Synthetic profiles; no live saves.</span><canvas id="screen" width="1280" height="800"></canvas>
 <script type="module">
 // Only this page's Map is persisted. Never read or write the real career store.
@@ -9,6 +9,7 @@ Object.defineProperty(window,'localStorage',{value:{getItem:k=>storage.get(k)??n
 const {Game}=await import('/src/game.ts');
 const {defaultCareerProfile,TEAMSTER_CERTIFICATION_IDS}=await import('/src/career-state.ts');
 const {MAINTENANCE_SHOPS}=await import('/src/maintenance/shops.ts');
+const {maintenanceReferrals}=await import('/src/maintenance/referrals.ts');
 const {createDefaultRigState,deriveRestrictions}=await import('/src/maintenance/rig-state.ts');
 const {MAINTENANCE_COMPONENTS,componentFaults}=await import('/src/maintenance/catalog.ts');
 const {physicalTerminalId,localTerminalScopeIds}=await import('/src/physical-terminals.ts');
@@ -28,12 +29,12 @@ const views={
  'Service receipt':[at('The Still'),'serviced'],'Equipment':[at('The Caravanserai'),'equipment'],
  'Unknown fault':[at('The Still'),'unknown'],
 };
-for(const s of MAINTENANCE_SHOPS)views[s.id]=[s.id,'profile'];
-for(const [key,[id]] of Object.entries(views)){const option=document.createElement('option');option.value=key;const s=MAINTENANCE_SHOPS.find(s=>s.id===id);option.textContent=key===id?`${ESTELLA_NODES_BY_ID.get(physicalTerminalId(s.locationIds[0])).name} — ${s.name}`:key;menu.append(option);}
+for(const s of MAINTENANCE_SHOPS){views[s.id]=[s.id,'profile'];if(maintenanceReferrals(s).length)views[s.id+' directions']=[s.id,'directions'];}
+for(const [key,[id,mode]] of Object.entries(views)){const option=document.createElement('option');option.value=key;const s=MAINTENANCE_SHOPS.find(s=>s.id===id);option.textContent=key.startsWith(id)?`${ESTELLA_NODES_BY_ID.get(physicalTerminalId(s.locationIds[0])).name} — ${s.name}${mode==='directions'?' — directions':''}`:key;menu.append(option);}
 const game=Object.create(Game.prototype);game.canvas=canvas;game.worldTime=0;game.showGuidance=text=>document.getElementById('status').textContent=text;
 let current,checks=0;
 function assert(v,m){checks++;if(!v)throw Error(m);}
-function draw(){canvas.width=innerWidth-24;canvas.height=innerHeight-65;const state=game.phase.scene;current=game.buildInteractiveScene(state);drawInteractiveScene(ctx,canvas,current,state.selectedIndex??0,state.bodyScrollOffset??0);}
+function draw(){canvas.width=innerWidth-24;canvas.height=innerHeight-canvas.getBoundingClientRect().top-12;const state=game.phase.scene;current=game.buildInteractiveScene(state);drawInteractiveScene(ctx,canvas,current,state.selectedIndex??0,state.bodyScrollOffset??0);}
 function show(){
  const [id,mode]=views[menu.value],shop=MAINTENANCE_SHOPS.find(s=>s.id===id);
  const arrival=localTerminalScopeIds(physicalTerminalId(shop.locationIds[0])).find(id=>canonicalEstellaLocationId(id)===id&&emptyTravelAccess(id)==='public')??shop.locationIds[0];
@@ -63,7 +64,9 @@ function show(){
  }
  draw();assert(!/\btier\s*-?\d|facilityTier|\bS[0123]\b|\bW0\b/.test(JSON.stringify(current)),'internal classes hidden');
  if(mode==='profile'){assert(writes===before,'profile does not save');assert(current.options.find(o=>o.label==='Emergency restart').disabled,'healthy rig cannot restart');}
- if(mode==='directions')assert(JSON.stringify(current).includes('Svarog Visiting-Rig Service'),'active Camps elite referral');
+ assert(!/visiting[\s\u2010-\u2015-]+rigs?\b/i.test(JSON.stringify(current)),'rejected terminology absent from rendered scenes');
+ if(mode==='directions'){for(const r of maintenanceReferrals(shop))assert(JSON.stringify(current).includes(r.name),'each referral uses the current approved destination name');}
+ if(menu.value==='Camps directions')assert(JSON.stringify(current).includes('SSC Reconstruction Works'),'active Camps elite referral');
  if(mode==='profile'&&shop.facilityTier===3)assert(!current.options.some(o=>o.action.startsWith('maintenanceReferral:')),'elite has no higher-service referral');
 }
 menu.onchange=show;window.addEventListener('resize',draw);

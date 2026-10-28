@@ -11,6 +11,7 @@ import { physicalTerminalId } from '../src/physical-terminals';
 import { canTravelEmpty } from '../src/empty-runs';
 import roster from '../design-docs/maintenance-stage-1-roster.json';
 import baseline from './fixtures/maintenance-stage-3-shops.json';
+import { amendedMaintenanceSnapshot } from './fixtures/approved-maintenance-naming';
 let checks = 0;
 function assert(v: unknown, message: string): asserts v { checks++; if (!v) throw Error(message); }
 function canonical(value: any): any { return Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])])) : value; }
@@ -22,7 +23,8 @@ const cadizId = 'vilar-cadiz-highport-outfitter';
 equal([...Object.keys(FULL_SERVICE_COPY), 'estella-xid-main-port-station'].sort(), [...updateIds].sort(), 'exact authorized upgrade list');
 assert(updateIds.size === 25 && baseline.shops.length === 159 && baseline.baseline === '4008a88', 'independent pre-edit snapshot');
 let unchanged = 0, changed = 0;
-for (const old of baseline.shops) {
+for (const original of baseline.shops) {
+  const old = amendedMaintenanceSnapshot(original);
   const shop = MAINTENANCE_SHOPS.find(s => s.id === old.shop.id)!;
   assert(shop, 'every account survives');
   const dir = LOCAL_DIRECTORY_ENTRIES.find(d => d.maintenanceShopId === shop.id)!;
@@ -118,4 +120,4 @@ for (const shop of upgraded) {
   if (physicalTerminalId(shop.locationIds[0]) === 'estella-vi-industrial-city') assert(!canTravelEmpty({ ...profile(shop), locationId: 'caravanserai-main-commercial-dock' }, shop.locationIds[0]), 'Perun service does not grant arrival');
 }
 assert(MAINTENANCE_SHOPS.filter(s => s.facilityTier === 3).length === 4, 'four final elites');
-console.log(`Full-service Stage 4: ${checks} checks; 25 upgrades, 132 exact unaffected shops plus two separately audited Stage 5 promotions; 314/320 unique repairs and 513/520 fault pairs at every upgraded branch.`);
+console.log(`Full-service Stage 4: ${checks} checks; 25 upgrades, 132 preserved shops with approved naming amendments plus two separately audited Stage 5 promotions; 314/320 unique repairs and 513/520 fault pairs at every upgraded branch.`);

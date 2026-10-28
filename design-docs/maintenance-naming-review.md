@@ -1,7 +1,7 @@
 # Maintenance naming audit and rename proposals
 
 Updated: 2026-10-27 (Pacific)
-Status: **Proposal only. No live names, prose, IDs, terms or saves changed.** Audited against `588985d`, before adding this review. Preserve any `zzz` comments verbatim; record resolutions alongside them.
+Status: **Preferred names and listed phrase cleanup explicitly approved and implemented.** All 38 preferred names are live; alternatives and the optional adjacent wording changes were not selected. The original audit/proposal below is retained as the approval record, with pre-rename labels; see section 7 for rollout evidence. Audit baseline `588985d`, pre-implementation baseline `38ef088`. Preserve any `zzz` comments verbatim; record resolutions alongside them.
 
 ## 1. Findings and recommendation
 
@@ -371,4 +371,21 @@ This is a complete review of current maintenance labels, not a proposal to renam
 | Vigil Keep · `estella-xiib-outpost` | Basic | Ask for a maintenance hand | Keep |
 | Yellow Pit · `estella-xia-sulfur-mine` | Basic | Walk the hangars and ask for a local mechanic | Keep |
 
-Validation: 159 unique physical scopes / 177 receiving IDs, all 30 advanced facilities reviewed individually, all 63 professional facilities assigned a disposition, all 57 basic and nine emergency-only labels accounted for. Preferred new labels are unique and do not collide with another current maintenance label. No source, tests, old fixtures or approved review text changed.
+Original audit validation: 159 unique physical scopes / 177 receiving IDs, all 30 advanced facilities reviewed individually, all 63 professional facilities assigned a disposition, all 57 basic and nine emergency-only labels accounted for. Preferred new labels are unique and do not collide with another pre-rename maintenance label. At that audit step no source, tests, old fixtures or approved review text changed.
+
+## 7. Approved rollout — 2026-10-27
+
+Pete’s explicit “approve” selects the preferred-name column and listed phrase cleanup. All 38 names are implemented: 24 full-service/elite and 14 professional. The other 121 names/action labels remain. Alternatives, illustrative summary pairs (apart from the explicitly requested short Mendonça’s summary), and optional changes to “visiting craft” / “visiting captains” are not applied. No new ownership, family, founder, charter or dealership lore was added.
+
+Production changes are string-only edits in the seven files identified above. There is no runtime naming adapter, Markdown import, save migration or new policy version. Display organization labels change only where they mirrored the old shop name; Farwatch’s `EDF technical section` remains. Every operational/account/provider ID and every service term is retained. Existing saved history is not rewritten.
+
+The seven additional sites with unchanged names but cleaned-up local descriptions are Nell’s Rest, Seconds Gate, Anchorhold, Common Ground, Deepwell, Volya and Preceptory of Toil. Thus 45 shop definitions/directories receive text changes, while 114 remain exact. Incoming advice automatically picks up approved destination names: 140 of the 279 referral lines change display text, across 101 source scopes. All 279 target/entrance/path relationships stay identical; all four elites still have no higher-service referral.
+
+Validation:
+- Pre-edit `tests/fixtures/maintenance-pre-naming.json`, captured at `38ef088`, records independent full-snapshot SHA-256 hashes for all 159 facilities and 604 exact approved display-field changes, including mirrored directory, identity-label and referral strings. These are not 604 distinct passages. Tests require the exact approved new text, reverse only those enumerated display fields, and match every original hash. IDs, terms, quotes, stock, capabilities and referral access receive no exceptions.
+- The test-only expectation map is independently checked against all 159 approved disposition rows and the exact 38-name preferred set. Production imports neither this helper nor any fixture. Older fixtures remain untouched; their checks apply only the explicit approved naming amendment rather than exempting whole shops.
+- Maintenance coverage: 157,109 checks; full-service: 28,067; elite: 10,916; persistence: 49; final copy/fingerprint audit: **10,233**. Every older exact-field/quote safeguard remains, subject only to the stated text amendments.
+- Inspection 55, equipment 6,743, menus 475,774 assertions / 4,434 scenes, empty travel 2,913 plus 35 flight-view checks, and contract presentation 119,370 pass. Typecheck and production build pass with existing Vite CJS/chunk-size warnings.
+- [All-network desktop preview](http://127.0.0.1:5173/tests/maintenance-coverage-preview.html): **1,612 checks**, all 159 profiles and every source’s directions, covering all 279 live referral lines. Full-service preview remains 328 checks; elite preview 227. Seventeen focused views captured; accented/punctuated names, profiles and incoming advice inspected. The expanded preview selector/status layout stays within the desktop viewport.
+- No rejected “visiting rig” variant or any of the 38 superseded business names remains anywhere in production source. Legitimate references to visiting people/caravans and stable cargo labels remain. Historical review documents and fixtures intentionally retain old wording.
+- Original Stage 3/4/5 prose/tables, the specification’s eight `zzz` comments and all older baselines are unchanged. No mobile testing, live-save edits, push or deploy. Visual work through `5e88a56` is retained.

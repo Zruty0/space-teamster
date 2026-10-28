@@ -101,7 +101,7 @@ assert(MAINTENANCE_NETWORK.find(n => n.physicalId === 'estella-via-drydock')!.ti
 const lowRefs = maintenanceReferrals(WEYMARK_PILOT_SHOPS[0]);
 equal(lowRefs.map(r => r.physicalId), ['estella-viii-settlement', 'estella-viii-high-station'], 'Low Gauge recommends town and elite depot');
 const future = maintenanceReferrals(MAINTENANCE_SHOPS.find(s => s.id === 'red-dust-mechanical-reclamation')!);
-assert(future[0].name === 'Roadstead Rig Works' && future[1].physicalId === 'estella-via-drydock', 'approved future facilities advertised without activation');
+assert(future[0].name === 'Chalkwall Mechanical' && future[1].physicalId === 'estella-via-drydock', 'approved future facilities advertised without activation');
 assert(MAINTENANCE_SHOPS.find(s => s.locationIds.some(id => physicalTerminalId(id) === 'estella-via-drydock'))!.facilityTier === 3, 'Svarog elite workshop is active');
 assert(MAINTENANCE_SHOPS.find(s => s.id === 'vilar-cadiz-highport-outfitter')!.workQualityGrade === 'B', 'approved Cadiz work upgrade');
 

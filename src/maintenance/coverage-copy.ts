@@ -93,7 +93,7 @@ export const COVERAGE_COPY: Readonly<Record<string, MaintenanceShopCopy & { dire
     directorySummary: "Professional rig servicing, repairs and equipment installation.",
   },
   F12: {
-    profileBlurb: "The visiting-rig workbench at {place} faces racks of standard fittings and workshop gauges. A fitter sets aside a production drawing to look over your rig while the clerk prepares an itemized order.",
+    profileBlurb: "The repair bench at {place} faces racks of standard fittings and workshop gauges. A fitter sets aside a production drawing to look over your rig while the clerk prepares an itemized order.",
     levelBlurb: "Professional servicing, standard repairs, replacement parts and equipment installation",
     diagnosisBlurb: "“We’ll check the rig against its own specifications and list the repairs and exchanges this workshop can undertake.”",
     serviceBlurb: "“Select the systems. We’ll work through the service points, set the clearances and test the adjustments.”",
@@ -181,7 +181,7 @@ export const COVERAGE_COPY: Readonly<Record<string, MaintenanceShopCopy & { dire
     directorySummary: "Basic rig servicing, repairs and replacement parts.",
   },
   F23: {
-    profileBlurb: "The visiting-rig maintenance desk at {place} sits beside the base technical section’s work board. Tools are signed out to numbered jobs, and a technician checks your rig’s particulars before assigning a service sheet.",
+    profileBlurb: "The rig maintenance desk at {place} sits beside the base technical section’s work board. Tools are signed out to numbered jobs, and a technician checks your rig’s particulars before assigning a service sheet.",
     levelBlurb: "Professional servicing, standard repairs, replacement parts and equipment installation",
     diagnosisBlurb: "“We’ll inspect the installed systems and return a consolidated finding. The report lists the civilian rig work this section can complete.”",
     serviceBlurb: "“Select the systems. The technical section will record the service work and operating checks against this job number.”",
@@ -197,7 +197,7 @@ export const COVERAGE_COPY: Readonly<Record<string, MaintenanceShopCopy & { dire
     directorySummary: "Basic rig servicing, repairs and replacement parts.",
   },
   F25: {
-    profileBlurb: "At {place}, the workshop keeps household machinery and visiting rigs on separate work sheets. A technician clears the rig bench while the clerk sorts a small delivery of labelled replacement fittings.",
+    profileBlurb: "At {place}, the workshop keeps household repairs and rig work on separate work sheets. A technician clears the rig bench while the clerk sorts a small delivery of labelled replacement fittings.",
     levelBlurb: "Professional servicing, standard repairs, replacement parts and equipment installation",
     diagnosisBlurb: "“We’ll inspect the installed systems and put the findings beside the work options. You choose what goes onto the order.”",
     serviceBlurb: "“Select the systems and we’ll work through cleaning, protection and adjustment. Each serviced assembly gets its operating checks.”",
@@ -262,7 +262,7 @@ export const COVERAGE_COPY: Readonly<Record<string, MaintenanceShopCopy & { dire
     directorySummary: "Professional rig servicing, repairs and equipment installation.",
   },
   F34: {
-    profileBlurb: "The visiting-rig bench at {place} is part of the site’s technical service area. A Daedalus technician closes an equipment ticket and opens a separate job record for your rig; tested spares are stored in labelled drawers.",
+    profileBlurb: "The rig maintenance bench at {place} is part of the site’s technical service area. A Daedalus technician closes an equipment ticket and opens a separate job record for your rig; tested spares are stored in labelled drawers.",
     levelBlurb: "Professional servicing, standard repairs, replacement parts and equipment installation",
     diagnosisBlurb: "“We’ll inspect the installed systems and attach the findings to this job record. The available work and parts are listed separately for authorization.”",
     serviceBlurb: "“Select the systems and we’ll record their service checks and adjustments. The completed work stays with this rig’s job record.”",
@@ -310,7 +310,7 @@ export const COVERAGE_COPY: Readonly<Record<string, MaintenanceShopCopy & { dire
     directorySummary: "Basic rig servicing, repairs and replacement parts.",
   },
   F40: {
-    profileBlurb: "The workshop at {place} keeps visiting rigs on the same orderly work board as the community’s other equipment. A fitter closes a completed sheet while the receiving clerk checks your rig’s particulars.",
+    profileBlurb: "The workshop at {place} lists rig repairs on the same orderly work board as the community’s other equipment. A fitter closes a completed sheet while the receiving clerk checks your rig’s particulars.",
     levelBlurb: "Professional servicing, standard repairs, replacement parts and equipment installation",
     diagnosisBlurb: "“We’ll inspect the installed systems and give you the findings with the work options. You choose the items for the order.”",
     serviceBlurb: "“Select the systems. We’ll clean, protect and adjust them, and record the operating checks before release.”",

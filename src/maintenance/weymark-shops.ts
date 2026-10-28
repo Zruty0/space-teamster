@@ -37,7 +37,7 @@ export const WEYMARK_PILOT_SHOPS: readonly MaintenanceShopDef[] = [
     diagnosticGrade: 'B', workQualityGrade: 'B', componentGradeBest: 'B', componentGradeWorst: 'D',
     laborRate: 800, diagnosisHours: 2, partsMarkup: 1, laborHoursMultiplier: 0.9, honesty: 1,
     copy: {
-      profileBlurb: 'A workboat hangs in an open assembly frame above Nell’s Rest’s service floor. Beneath it, visiting rigs occupy bright bays connected to a common machine shop. Forewoman [person]Mara Venn[/person] meets you at a wall covered with silhouettes of assemblies waiting for machining, testing or collection.',
+      profileBlurb: 'A workboat hangs in an open assembly frame above Nell’s Rest’s service floor. Beneath it, rigs occupy bright bays connected to a common machine shop. Forewoman [person]Mara Venn[/person] meets you at a wall covered with silhouettes of assemblies waiting for machining, testing or collection.',
       levelBlurb: 'Full-service engineering, advanced repairs and quality equipment installations',
       diagnosisBlurb: '“Give us the symptoms and we’ll test the affected assemblies under load.” [person]Mara[/person] moves a magnetic rig marker onto the inspection board. “The report will distinguish the repairs we can finish here from work needing the depot’s specialist tooling.”',
       serviceBlurb: '“Our machinists and fitters share one schedule, so your rig moves through the work in sequence.” [person]Mara[/person] traces the open bays with a fingertip. “Choose the systems and we’ll return them adjusted, tested and signed off.”',
