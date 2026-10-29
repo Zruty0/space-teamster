@@ -3,6 +3,7 @@ import { checkFlightPresentation } from './flight-presentation-native';
 import { defaultCareerProfile } from '../src/career-state';
 import { config } from '../src/config';
 import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
+import { createFlightAtmosphere } from '../src/flight-atmosphere';
 import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight, landingReferenceHeight } from '../src/terrain';
 import { createShip, updateShip } from '../src/ship';
@@ -24,12 +25,20 @@ applyApproachWeather(approachLevel,12345);
 const approach={kind:'approach',level:approachLevel,as:createApproachState(approachLevel,{x:-1800,y:1400,vx:100,vy:-5,angle:1.5}),cam:{x:0,y:2300,zoom:.065},state:'approaching',worldTimeStart:12345,missionDvStart:0};
 const game:any=Object.create(Game.prototype); // No constructor, career IO, access changes or settlements.
 Object.assign(game,{canvas,ctx,career:defaultCareerProfile(),activeManifestCondition:{},missionDvUsed:0,activeMissionQuote:null,time:0});
+const pilotMode=new URLSearchParams(location.search).has('atmosphere');
+if(pilotMode){
+ game.atmosphericPilot={visuals:true,wind:true,low:false,effects:createFlightAtmosphere()};
+ const panel=document.createElement('p');panel.innerHTML='<strong>Atmosphere pilot — not enabled in careers.</strong> <label><input id="effects" type="checkbox" checked> Clouds / smoke / wind wisps</label> <label><input id="wind" type="checkbox" checked> Physical landing wind</label> <label><input id="low" type="checkbox"> Low effects</label> · T: SAS holds zero ground velocity (starts ON). Approach view previews moving clouds; Fly animates weather without advancing approach physics.';
+ canvas.before(panel);
+ for(const [id,key]of [['effects','visuals'],['wind','wind'],['low','low']])document.getElementById(id)!.onchange=e=>{game.atmosphericPilot[key]=(e.target as HTMLInputElement).checked;draw();};
+}
 let current:any,scenery:ReturnType<typeof createLandingScenery>,elapsed=0,paused=true,checking=false,last=performance.now(),accumulator=0;
 const neutral=readInput(),catalog=JSON.stringify([BODIES,SURFACE_POIS]),baseline=JSON.stringify([level,terrain]);
 function reset(mode=view.value){
  view.value=mode;paused=true;elapsed=accumulator=0;play.textContent='Fly';
+ game.atmosphericPilot?.effects.reset();if(game.atmosphericPilot)game.atmosphericPilot.input=undefined;
  Object.assign(config,{gravity:level.gravity,landingMaxVSpeed:level.landingMaxVSpeed,landingMaxHSpeed:level.landingMaxHSpeed,landingMaxAngle:level.landingMaxAngle,startX:level.startX,startY:level.startY+(terrain.pad.y-level.padY),startVX:level.startVX,startVY:level.startVY});
- const ship=createShip(),camera=createCamera();
+ const ship=createShip(),camera=createCamera();ship.sas=!!game.atmosphericPilot;
  if(mode!=='entry'){ship.x=level.padCenterX;ship.y=terrain.pad.y+85;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=level.gravity/config.mainEngineAccel;}
  updateCamera(camera,ship,landingReferenceHeight(level,terrain,ship.x),0);
  if(mode==='takeoff'){ship.x=level.padCenterX;ship.y=terrain.pad.y+4.05;ship.vx=ship.vy=0;ship.gearDeployed=true;ship.throttle=0;}
@@ -54,23 +63,29 @@ function step(input:InputState,dt:number){
  if(input.toggleSAS)current.ship.sas=!current.ship.sas;
  elapsed+=dt;
  if(game.shouldHoldLaunchOnPad(current,input))game.clampLaunchShipToPad(current);
- else{const previous={...current.ship};updateShip(current.ship,input,dt,elapsed);game.checkLandingCollision(current,previous);}
+ else{const previous={...current.ship},atmosphere=game.landingAtmosphere(current);
+  if(atmosphere)atmosphere.pilot.input={...input};
+  updateShip(current.ship,input,dt,elapsed,atmosphere?.physicsAir);
+  atmosphere?.pilot.effects.step(current.ship,atmosphere.air,terrain,dt,elapsed);
+  game.checkLandingCollision(current,previous);
+ }
  updateCamera(current.camera,current.ship,landingReferenceHeight(level,terrain,current.ship.x),dt);
  if(current.state!=='flying'){paused=true;play.textContent='Fly';}
 }
 function advance(seconds:number,input:Partial<InputState>={}){
  if(seconds<0||seconds>20||!Number.isFinite(seconds))throw Error('Invalid practice advance');
  paused=true;const steps=Math.ceil(seconds*120);
- for(let i=0;i<steps;i++)step({...neutral,...input,toggleGear:i===0&&!!input.toggleGear,toggleSAS:i===0&&!!input.toggleSAS},seconds/steps);
+ if(view.value==='approach'&&pilotMode)elapsed+=seconds;
+ else for(let i=0;i<steps;i++)step({...neutral,...input,toggleGear:i===0&&!!input.toggleGear,toggleSAS:i===0&&!!input.toggleSAS},seconds/steps);
  draw();return snapshot();
 }
-function snapshot(){return{view:view.value,elapsed,paused,state:current.state,ship:{...current.ship},camera:{...current.camera},pad:{...terrain.pad},scenery:scenery.diagnostics()};}
+function snapshot(){return{view:view.value,elapsed,paused,state:current.state,ship:{...current.ship},camera:{...current.camera},pad:{...terrain.pad},scenery:scenery.diagnostics(),effects:game.atmosphericPilot?.effects.diagnostics()};}
 const image=()=>ctx.getImageData(0,0,1200,720).data;
 function hash(data:Uint8ClampedArray){let h=2166136261;for(const v of data)h=Math.imul(h^v,16777619);return h>>>0;}
 async function checks(){
  if(checking)throw Error('Checks already running');checking=true;paused=true;let count=0;
  const assert=(ok:unknown,text:string)=>{count++;if(!ok)throw Error(text);};
- const career=JSON.stringify(game.career);
+ const career=JSON.stringify(game.career),pilot=game.atmosphericPilot;game.atmosphericPilot=undefined;
  try{
   original.checked=false;reset('overview');await scenery.prepare(level);draw();
   assert(scenery.diagnostics().ready&&scenery.diagnostics().materialReady&&!scenery.diagnostics().failed,'SVG and material preparation succeed');
@@ -184,17 +199,59 @@ async function checks(){
   }
   costs.sort((a,b)=>a-b);reset('overview');
   return{passed:true,checks:count,crossWorld,cpuMean:costs.reduce((a,b)=>a+b,0)/costs.length,cpuP95:costs[Math.ceil(costs.length*.95)-1],scenery:scenery.diagnostics()};
- }finally{checking=false;}
+ }finally{game.atmosphericPilot=pilot;checking=false;reset('overview');}
+}
+async function pilotChecks(){
+ if(!game.atmosphericPilot)throw Error('Open ?atmosphere=1');
+ checking=true;paused=true;let count=0;const pilot=game.atmosphericPilot,saved={visuals:pilot.visuals,wind:pilot.wind,low:pilot.low},career=JSON.stringify(game.career);
+ const assert=(ok:unknown,message:string)=>{count++;if(!ok)throw Error(message);};
+ try{
+  pilot.wind=pilot.visuals=true;pilot.low=false;reset('overview');const hold=advance(12);
+  assert(hold.ship.sas&&Math.abs(hold.ship.vx)<1e-8&&Math.abs(hold.ship.vy)<1e-8&&Math.abs(hold.ship.x-1000)<1e-8,'SAS holds zero ground velocity against wind');
+  assert(hold.ship.rcsTranslating&&hold.ship.dvUsed>12*level.gravity,'wind compensation consumes RCS delta-v');
+  assert(hold.effects.active>0&&hold.effects.active<=256,'exhaust emitted into bounded pool');
+  const plume=pilot.effects.snapshot();draw();draw();assert(JSON.stringify(pilot.effects.snapshot())===JSON.stringify(plume),'drawing/paused redraw never advances particles');
+  pilot.visuals=false;draw();const hidden=hash(image());pilot.visuals=true;draw();assert(hash(image())!==hidden,'smoke and wind paint visible with effects enabled');
+  reset('overview');const blown=advance(12,{toggleSAS:true});assert(Math.abs(blown.ship.x-1000)>.5,'SAS off allows wind drift');
+  pilot.wind=false;reset('overview');const calm=advance(12,{toggleSAS:true});assert(Math.abs(calm.ship.x-1000)<1e-9,'wind off restores calm legacy simulation');
+  pilot.wind=true;
+  // Actual fixed-step Game handler, including RCS cost/maintenance telemetry; no career constructor or settlement.
+  const runtime:any=Object.create(Game.prototype);
+  Object.assign(runtime,{career:defaultCareerProfile(),worldTime:12345,missionDvUsed:0,activeManifestCondition:{integrity:null,comfort:null},activeMaintenanceTelemetry:createMaintenanceTelemetry(),landingScenery:scenery,atmosphericPilot:{...pilot,effects:createFlightAtmosphere()},showGuidance:()=>{},showContextualOperationsManual:()=>{}});
+  runtime.loadLanding(level,{x:1000,y:terrain.pad.y+85,vx:0,vy:0});Object.assign(runtime.phase.ship,{sas:true,gearDeployed:true,throttle:level.gravity/config.mainEngineAccel});
+  for(let i=0;i<480;i++)runtime.handleLanding({...neutral},1/120);
+  assert(runtime.phase.state==='flying'&&Math.abs(runtime.phase.ship.vx)<1e-10&&runtime.phase.ship.x===1000,'actual Game handler applies ground-hold wind compensation');
+  assert(runtime.activeMaintenanceTelemetry.standardManeuverDv>0&&runtime.atmosphericPilot.effects.diagnostics().active>0,'actual Game records SAS effort and advances exhaust');
+  assert(!runtime.landingAtmosphere({...runtime.phase,level:createLandingLevel('estella-v-capital-settlement',993312)}),'pilot refuses other POIs');
+  reset('overview');const first=advance(4,{toggleSAS:true}),particles=JSON.stringify(pilot.effects.snapshot());
+  reset('overview');const second=advance(4,{toggleSAS:true});assert(JSON.stringify(first.ship)===JSON.stringify(second.ship)&&particles===JSON.stringify(pilot.effects.snapshot()),'retry restores weather, ship and emission exactly');
+  pilot.visuals=false;pilot.low=true;reset('overview');const low=advance(4,{toggleSAS:true});assert(JSON.stringify(low.ship)===JSON.stringify(first.ship),'visual switches never change physics');
+  pilot.visuals=true;reset('close');current.ship.y=terrain.pad.y+10;advance(3);current.camera={x:1000,y:terrain.pad.y+50,zoom:4};draw();
+  const below=ctx.getImageData(300,590,600,40).data,building=ctx.getImageData(253,475,10,10).data;
+  pilot.visuals=false;draw();const bareBelow=ctx.getImageData(300,590,600,40).data;assert(below.every((v,i)=>v===bareBelow[i]),'no smoke/wind below physical terrain');
+  const bareBuilding=ctx.getImageData(253,475,10,10).data;assert(building.every((v,i)=>v===bareBuilding[i]),'smoke/wind do not paint through solid buildings');
+  pilot.visuals=true;reset('approach');draw();const cloudy=hash(image());pilot.visuals=false;draw();assert(hash(image())!==cloudy,'actual approach shows clouds');
+  pilot.visuals=true;advance(10);assert(hash(image())!==cloudy,'approach weather animates on absolute clock');
+  assert(pilot.effects.diagnostics().cloudPixels===256*96,'one bounded cloud sprite');
+  const scratch=document.createElement('canvas');scratch.width=600;scratch.height=400;const c=scratch.getContext('2d')!;
+  pilot.effects.drawClouds(c,approach.cam,{...level.body,atmosphere:null},DAWES_CUT_ID,0,1,12345,600,400,()=>0);
+  assert(c.getImageData(0,0,600,400).data.every(v=>v===0),'no atmospheric clouds on airless bodies');
+  reset('takeoff');advance(.5);assert(current.state==='flying'&&current.ship.sas&&Math.abs(current.ship.y-terrain.pad.y-4.05)<1e-8,'parked launch hold preserves SAS choice and stays grounded in wind');
+  advance(5,{throttleUp:true});assert(current.state==='flying'&&current.ship.sas&&Math.abs(current.ship.vx)<1e-8&&current.ship.y>terrain.pad.y+15,'wind/SAS takeoff retains zero lateral velocity during a full-thrust climb');
+  assert(JSON.stringify(game.career)===career&&JSON.stringify([level,terrain])===baseline&&JSON.stringify([BODIES,SURFACE_POIS])===catalog,'pilot has no career/catalog/geometry side effects');
+  return{passed:true,checks:count,hold:hold.ship,drift:blown.ship.x-1000,effects:hold.effects};
+ }finally{Object.assign(pilot,saved);checking=false;reset('overview');}
 }
 async function performanceChecks(paint=true){
  if(checking)throw Error('Checks already running');checking=true;paused=true;original.checked=false;
  const oldW=canvas.width,oldH=canvas.height;
  try{
-  reset('overview');await scenery.prepare(level);canvas.width=1920;canvas.height=1080;
+  reset('overview');await scenery.prepare(level);if(pilotMode)advance(3);canvas.width=1920;canvas.height=1080;
   const costs:number[]=[],intervals:number[]=[];let previous=0;
   for(let i=0;i<210;i++){
    const now=await new Promise<number>(resolve=>requestAnimationFrame(resolve));
-   current.camera={x:1000+150*Math.sin(i/80),y:terrain.pad.y+80,zoom:2.6+1.2*Math.sin(i/100)};elapsed=i/60;
+   if(pilotMode){step(neutral,1/120);step(neutral,1/120);}
+   current.camera={x:1000+150*Math.sin(i/80),y:terrain.pad.y+80,zoom:2.6+1.2*Math.sin(i/100)};if(!pilotMode)elapsed=i/60;
    const start=performance.now();if(paint)draw();const cost=performance.now()-start;
    if(i>=30){costs.push(cost);intervals.push(now-previous);}previous=now;
   }
@@ -204,15 +261,16 @@ async function performanceChecks(paint=true){
 }
 view.onchange=()=>reset();original.onchange=()=>{paused=true;draw();};
 document.getElementById('reset')!.onclick=()=>reset();
-play.onclick=()=>{if(view.value==='approach')reset('overview');if(current.state!=='flying')reset();paused=!paused;last=performance.now();play.textContent=paused?'Fly':'Pause';canvas.focus();};
-document.getElementById('checks')!.onclick=async()=>{const r=await checks();status.textContent=`PASS — ${r.checks} checks`;};
+play.onclick=()=>{if(view.value==='approach'&&!pilotMode)reset('overview');if(current.state!=='flying')reset();paused=!paused;last=performance.now();play.textContent=paused?'Fly':'Pause';canvas.focus();};
+document.getElementById('checks')!.onclick=async()=>{const r=await checks(),p=pilotMode?await pilotChecks():undefined;status.textContent=`PASS — ${r.checks} baseline${p?` + ${p.checks} atmosphere`:''} checks`;};
 function frame(now:number){
  if(checking){last=now;requestAnimationFrame(frame);return;}
  const input=readInput(),dt=Math.min(.1,(now-last)/1000);last=now;
  if(input.reset)reset();if(input.levelSelect){paused=true;play.textContent='Fly';}
+ if(!paused&&!document.hidden&&pilotMode&&view.value==='approach'){elapsed+=dt;draw();requestAnimationFrame(frame);return;}
  if(!paused&&!document.hidden){accumulator+=dt;let first=true;while(accumulator>=1/120){step({...input,toggleGear:first&&input.toggleGear,toggleSAS:first&&input.toggleSAS},1/120);first=false;accumulator-=1/120;}}
  draw();requestAnimationFrame(frame);
 }
 window.addEventListener('blur',()=>{paused=true;play.textContent='Fly';});document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;accumulator=0;play.textContent='Fly';}});
-async function start(){reset();scenery=game.landingScenery;await scenery.prepare(level);draw();requestAnimationFrame(frame);(window as any).dawesLanding={ready:true,reset,advance,snapshot,checks,performance:performanceChecks};}
+async function start(){reset();scenery=game.landingScenery;await scenery.prepare(level);draw();requestAnimationFrame(frame);(window as any).dawesLanding={ready:true,reset,advance,snapshot,checks,performance:performanceChecks,pilotChecks};}
 void start();

@@ -3,6 +3,7 @@
 
 import { config } from './config';
 import { InputState } from './input';
+import { landingAerodynamics, landingSasForce, type LandingAir } from './landing-air';
 
 export interface ShipState {
   x: number;
@@ -88,6 +89,7 @@ export function updateShip(
   input: InputState,
   dt: number,
   time: number,
+  air?: LandingAir,
 ): void {
   const c = config;
 
@@ -169,8 +171,15 @@ export function updateShip(
     ship.renderGimbalAngle + clamp(nacelleDelta, -nacelleSlewRate * dt, nacelleSlewRate * dt),
   );
 
-  // --- Landing SAS (T): damp translational motion without affecting rotation ---
-  if (ship.sas) {
+  const aero=air?landingAerodynamics(ship.vx,ship.vy,ship.x,ship.y,time,c.dragCoeff,air):undefined;
+  // Pilot SAS targets zero ground velocity, opposing air forces within existing RCS authority.
+  if(ship.sas&&aero){
+    const force=landingSasForce(ship.vx,ship.vy,c.mainEngineAccel*.1,aero);
+    ax+=force.ax;ay+=force.ay;
+    const effort=Math.hypot(force.ax,force.ay);ship.dvUsed+=effort*dt;ship.rcsTranslating=effort>1e-9;
+  }
+  // Legacy path remains unchanged outside the explicitly enabled pilot.
+  if (ship.sas&&!air) {
     const sasAccelMax = c.mainEngineAccel * 0.1;
     const sasTargetAX = -ship.vx * 1.5;
     const sasTargetAY = -ship.vy * 1.5;
@@ -188,7 +197,8 @@ export function updateShip(
 
   // --- Atmospheric drag ---
   const speed = Math.sqrt(ship.vx * ship.vx + ship.vy * ship.vy);
-  if (speed > 0.01) {
+  if(aero){ax+=aero.ax;ay+=aero.ay;}
+  else if (speed > 0.01) {
     ax -= ship.vx * speed * c.dragCoeff;
     ay -= ship.vy * speed * c.dragCoeff;
   }
@@ -197,7 +207,7 @@ export function updateShip(
   angAccel -= ship.angularVel * c.angularDrag;
 
   // --- Wind ---
-  if (c.windEnabled) {
+  if (c.windEnabled&&!air) {
     const wind = Math.sin(time * c.windFrequency * 2 * Math.PI)
                * Math.sin(time * c.windFrequency * 0.7 * 2 * Math.PI + 1.3)
                * c.windStrength;

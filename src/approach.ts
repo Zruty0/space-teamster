@@ -1092,6 +1092,7 @@ export function renderApproach(
   ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
   cam: ApproachCamera, s: ApproachState, level: ApproachLevel, time: number, showContainer = true,
   scenery?: ApproachSceneryPainter,
+  clouds?: ApproachSceneryPainter,
 ): void {
   const W = canvas.width, H = canvas.height;
 
@@ -1099,6 +1100,7 @@ export function renderApproach(
   if (!authored) {drawAtmoBackground(ctx, cam, W, H, level);drawApproachTerrain(ctx, cam, level, W, H);}
 
 
+  clouds?.(ctx,cam,s,level,W,H);
   // --- Wind layers ---
   drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
 

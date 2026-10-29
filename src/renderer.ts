@@ -5,12 +5,15 @@ import { config } from './config';
 import { flightSurfaceStyle } from './flight-surface-style';
 import {
   ShipState, SHIP_OUTLINE, CAB_OUTLINE, BELT_LINE, ENGINE_PODS, COCKPIT_LINE, GEAR_LEFT, GEAR_RIGHT,
-  COLLISION_POINTS, GEAR_COLLISION_POINTS, landingAutoAngleTarget, localToWorld,
+  COLLISION_POINTS, GEAR_COLLISION_POINTS, landingAutoAngleTarget, localToWorld, updateShip,
 } from './ship';
 import { LevelDef } from './levels';
 import { TerrainData, checkLandingCollision, terrainSurfacePoints } from './terrain';
 import type { LandingSceneryPainter } from './landing-scenery';
 import { surfaceShipCollision } from './surface-ship-collision';
+import { NEUTRAL_FLIGHT_INPUT, type LandingAtmosphereView } from './flight-atmosphere';
+import type { LandingAir } from './landing-air';
+import type { InputState } from './input';
 
 // --- Colors ---
 const COL_SHIP = '#00ff88';
@@ -82,6 +85,7 @@ export function render(
   time: number,
   showContainer = true,
   scenery?: LandingSceneryPainter,
+  atmosphere?: LandingAtmosphereView,
 ): void {
   const W = canvas.width;
   const H = canvas.height;
@@ -98,11 +102,18 @@ export function render(
     drawCustomLandingLayout(ctx, cam, level, W, H);
   }
 
+  if(atmosphere?.pilot.visuals)atmosphere.pilot.effects.drawLanding(ctx,cam,terrain,atmosphere.air,level.poi.id,time,atmosphere.epoch+time,W,H,atmosphere.pilot.low);
+
   // Authored pads replace structure paint, never the real guidance target.
   drawPad(ctx, cam, terrain, level, W, H, authored);
 
   // Predicted trajectory
-  drawPredictedTrajectory(ctx, cam, ship, terrain, level, W, H, time);
+  drawPredictedTrajectory(ctx, cam, ship, terrain, level, W, H, time, atmosphere);
+  if(atmosphere){
+    const wind=atmosphere.air.sample(ship.x,ship.y,time).vx;
+    ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
+    ctx.fillText(`WIND ${wind<0?'←':'→'} ${Math.abs(wind).toFixed(1)} m/s${ship.sas?' · SAS: ZERO GROUND SPEED':''}`,W-20,H-56);ctx.restore();
+  }
 
   // Ship
   drawLandingShip(ctx, cam, ship, W, H, time, showContainer);
@@ -377,13 +388,15 @@ function drawPad(
   }
 }
 
-function predictLandingTrajectory(
+export function predictLandingTrajectory(
   ship: ShipState,
   terrain: TerrainData,
   level: LevelDef,
   time: number,
   horizon = 5,
   dt = 1 / 30,
+  air?: LandingAir,
+  command:InputState=NEUTRAL_FLIGHT_INPUT,
 ): [number, number][] {
   const sim: ShipState = { ...ship };
   const points: [number, number][] = [[sim.x, sim.y]];
@@ -391,6 +404,7 @@ function predictLandingTrajectory(
 
   for (let t = 0; t < horizon; t += dt) {
     const previous=terrain.surfaceSite?{...sim}:undefined;
+    if(air){updateShip(sim,command,dt,time+t,air);}else{
     let ax = 0;
     let ay = -config.gravity;
     let angAccel = 0;
@@ -432,6 +446,7 @@ function predictLandingTrajectory(
     sim.vy += ay * dt;
     sim.x += sim.vx * dt;
     sim.y += sim.vy * dt;
+    }
     points.push([sim.x, sim.y]);
 
     let hit = surfaceShipCollision(terrain,sim,previous);
@@ -457,8 +472,9 @@ function drawPredictedTrajectory(
   W: number,
   H: number,
   time: number,
+  atmosphere?:LandingAtmosphereView,
 ): void {
-  const points = predictLandingTrajectory(ship, terrain, level, time);
+  const points = predictLandingTrajectory(ship, terrain, level, time,5,atmosphere?.physicsAir?1/120:1/30,atmosphere?.physicsAir,atmosphere?.pilot.input);
   if (points.length < 2) return;
 
   ctx.beginPath();

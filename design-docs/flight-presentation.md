@@ -1,6 +1,6 @@
 # Shared flight presentation
 
-Updated: 2026-10-27 (Pacific)
+Updated: 2026-10-29 (Pacific)
 Status: LIVE. Pete approves the blue-dome revision, allows slight atmospheric tint, requests removing bottom stripes in favor of planet background color, then authorizes the same treatment across orbital/approach/landing views without copying outposts. Also requests reverting black target-rectangle highlighting.
 
 ## Current rules
@@ -13,6 +13,10 @@ Status: LIVE. Pete approves the blue-dome revision, allows slight atmospheric ti
 - Approach target rectangle is again one 2 px status-colored dashed stroke. No black backing, pale halo or black speed-label plate. Bounds, labels, speed colors and thresholds are unchanged. Controls-footer backing remains.
 - Reentry temperature gauge lives at x=20 beneath the left telemetry rows, rather than x=190 in the flight area. It follows optional par/departure rows and shortens when needed to leave room for the footer. Same temperature colors/value, wing threshold and warnings; no camera or physics change.
 - Explicit historical filled painters/galleries remain comparisons, not default game fallbacks. No new filled orbital atmospheric wash is added; existing colored weather wisps/dashed physical boundary remain.
+
+## Atmospheric effects pilot (not career rollout)
+
+Approved implementation is available at `/tests/dawes-landing.html?atmosphere=1`: approach clouds, wind-advected exhaust, landing wind/wisps and zero-ground-velocity SAS. Visual quality does not change physics. Normal careers remain unchanged pending review; see flight-atmosphere-pilot.md for scope, thrust limits, evidence and the still-unmodified approach wind physics.
 
 ## Validation
 
