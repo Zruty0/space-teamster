@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-29 (Pacific)
-Status: **Design proposal only.** Pete requests the mission-tag roster and an assessment of whether it supplies too many or too few factions. No reputation scores, mergers, new factions, gates or save changes are approved here. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. The suggested final two below are not yet confirmed. No reputation mechanics, mergers, new factions, gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -16,9 +16,30 @@ Source boundaries:
 - `src/content-terminology.ts`: current player-facing Shipyards wording; old operational IDs remain.
 - `src/content/estella/faction-contracts/reach-settlement-contracts.ts`: `HSC` is present on sparse Thule/Barataria work. Most older Hartwell carrier work has individual company names and no tag. Do not miss HSC by scanning only the carrier's primary file.
 
-## Complete current tagged roster
+## Current direction: ten meaningful factions
 
-The role column summarizes existing identity, not proposed reputation rewards. Recommendations concern future standing ownership, not changes to mission tags or economic providers.
+Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Recommendation: add the Guild and Cerberus to reach ten.
+
+| # | Proposed reputation faction | Narrative purpose |
+|---|---|---|
+| 1 | House Alvares | Civil authority, law, taxation and succession |
+| 2 | House Mendes | Military patronage, mobilization and martial politics |
+| 3 | House Nunes | Outer secrets, wardenship and learned patronage |
+| 4 | The Steel Combine | Kuznia's industrial/social order and outsider relations |
+| 5 | Voss-Heinkel Metricwerke | Interstellar propulsion power, certification and corporate trust |
+| 6 | Kisaragi Harmony Shipyards | Interstellar prestige industry, exacting clients and corporate access |
+| 7 | Covenant Remnants | Enclave society, competing orders and reserved succession stories |
+| 8 | Daedalus Systems | Research, advanced technology and its reserved story material |
+| 9 | The Teamsters' Guild — recommended addition | Professional belonging, fuel monopoly and Guild politics |
+| 10 | Cerberus Human Resources — recommended addition | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
+
+KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
+
+Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling can initially use the already intended personal contact trust rather than requiring an eleventh global score. All of this is proposed scope, not new runtime behavior.
+
+## Complete current tagged roster — original census
+
+The role column summarizes existing identity, not proposed reputation rewards. The treatment column records the **superseded 20-track recommendation**, retained for comparison; the ten-faction proposal above is the current discussion. No mission tags or providers have changed.
 
 | Tag | Current public entity | Stable provider ID | Existing identity / role | Proposed standing treatment |
 |---|---|---|---|---|
@@ -46,11 +67,11 @@ The role column summarizes existing identity, not proposed reputation rewards. R
 | NOBLE | Wells Noble Houses | `wells-noble-houses` | Shared provider for lesser households, not one united House | No single faction-loyalty meter |
 | HSC | Hartwell Shipping Companies | `hartwell-shipping-companies` | Shared provider for independent carriers and spot-freight houses | No single corporate-loyalty meter |
 
-## Is this too many?
+## Initial assessment — superseded by the ten-faction direction
 
 **Enough to start; not too many organizations for Estella, but too many if every tag automatically becomes an equal-size faction campaign or mandatory grind.** A useful standing belongs to an organization that can remember the pilot, make coherent decisions and offer distinctive consequences. Neither a code module nor a board abbreviation proves that such an organization exists.
 
-Preferred starting roster: **20 independent standing tracks** from the current tagged set:
+Initial recommendation, now rejected as too many: **20 independent standing tracks** from the current tagged set:
 
 `23 tags − HSC aggregate − NOBLE aggregate − one duplicated Kisaragi track = 20`.
 
