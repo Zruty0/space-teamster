@@ -96,7 +96,7 @@ Rationale: Alvares speaks in court/patronage terms, Mendes in martial companions
 
 ## Current naming proposal — flavor revision, 2026-10-30
 
-Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. This supersedes the plain naming draft. Follow-up: “otherwise looks okay” accepts the unaffected labels; Cerberus becomes **Unverified Asset / Verified Asset** at levels 0/1. Pete subsequently requests **Registered Sympathizer** for Combine level 1, while leaving level 0 open. Three improvements marked **†** below remain proposals. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged. No runtime copy or mechanic is implemented.
+Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. This supersedes the plain naming draft. Follow-up: “otherwise looks okay” accepts the unaffected labels; Cerberus becomes **Unverified Asset / Verified Asset** at levels 0/1. Pete subsequently requests **Registered Sympathizer** for Combine level 1, while leaving level 0 open. For Daedalus he requests **Authorized Contractor** at level 2 and considers **Authorized Partner** or **Research Consultant** at level 3; Authorized Partner is the current recommendation. Three improvements marked **†** below remain proposals. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged. No runtime copy or mechanic is implemented.
 
 | Track | Level 0 | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
@@ -107,14 +107,14 @@ Pete requests level-0 variations, more ostentatious/feudal House titles and more
 | Voss-Heinkel Metricwerke | Unrated Operator | Field-Proven Contractor | Factory-Warranted Carrier | Partner of the Works |
 | Kisaragi | Unproven Hand † | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
 | Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
-| Daedalus Systems | Unknown Quantity | Known Quantity | Cleared Collaborator | Research Confidant † |
+| Daedalus Systems | Unknown Quantity | Known Quantity | Authorized Contractor | Authorized Partner † |
 | Cerberus Human Resources | Unverified Asset | Verified Asset | Trusted Instrument | Friend of the Board |
 | Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
 
 Pending improvements (†):
 - Combine 0: **Unaffiliated Worker** replaces rejected “Outside the Plan” and the interim Unproven Worker suggestion, to fit Pete's subsequent **Registered Sympathizer** level 1. It expresses no established affiliation without treating a neutral outsider as hostile. Short alternative: **Unaffiliated**. Registered Sympathizer replaces Recognized Contributor; the full path now emphasizes increasing social/political recognition rather than only a contractor's work record.
 - Kisaragi 0: **Unproven Hand** replaces rejected “Without Introduction”; craft vocabulary with a clear progression to the accepted Proven Hand.
-- Daedalus 3: **Research Confidant** replaces rejected “Inside the Black Box”; a trusted relationship rather than an opaque metaphor or an academic appointment.
+- Daedalus 2/3 follow-up: Pete replaces Cleared Collaborator with **Authorized Contractor**, and considers **Authorized Partner** or **Research Consultant** for level 3. Recommend **Authorized Partner**: closer to the intended almost-one-of-us relationship; Research Consultant sounds more like an external specialist role and may imply scientific expertise the pilot does not possess. This supersedes Research Confidant (itself proposed after rejected Inside the Black Box). Level 3 remains marked † pending the choice. Partner is a standing label, not equity or legal authority to represent the corporation. No new Daedalus contract-access threshold is inferred solely from these names.
 
 Naming rationale:
 - House language is deliberately ceremonious: Alvares recognizes the pilot through court patronage; Mendes through supply service and proximity to the Marshal; Nunes through warrants, the outer watch and guarded confidence. These are honorific relationship labels, not grants of nobility, office or military commissions.
