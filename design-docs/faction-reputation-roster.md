@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the nine-name faction proposal (Cerberus still not separately confirmed). Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Earning/loss rates, concrete benefits and implementation remain undecided; no organization mergers, new gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. The level-name table below is a proposal except for Pete's two Combine titles. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -18,7 +18,7 @@ Source boundaries:
 
 ## Current direction: nine faction candidates plus Notoriety
 
-Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus remains the recommended ninth, not yet explicitly confirmed. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
+Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus occupies the ninth slot in the current working roster, used for Pete's subsequent request to name all ten tracks. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
 
 October 30 follow-up: Pete supplies the tenth track, **Notoriety**, shared across all smugglers even though individual contacts give the missions. This supersedes the suggestion to leave slot ten open. A shared reputation-like measure does not create a unified smuggler organization.
 
@@ -32,7 +32,7 @@ October 30 follow-up: Pete supplies the tenth track, **Notoriety**, shared acros
 | 6 | Kisaragi Harmony Shipyards | Interstellar prestige industry, exacting clients and corporate access |
 | 7 | Covenant Remnants | Enclave society, competing orders and reserved succession stories |
 | 8 | Daedalus Systems | Research, advanced technology and its reserved story material |
-| 9 | Cerberus Human Resources — recommended addition | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
+| 9 | Cerberus Human Resources | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
 | 10 | Notoriety — approved shared-track concept | Reputation across smuggling circles; missions remain contact-issued |
 
 ### Notoriety and individual contacts
@@ -72,6 +72,27 @@ These are progress segments, not a chosen point economy: no 100-point thresholds
 The common meanings can support faction-specific titles, as in the Combine examples. Those honorary titles do not by themselves authorize citizenship rights, actual Udarnik membership, prices, equipment, access or mission unlocks; concrete effects still need authoring. Notoriety's exact displayed titles and its interaction with individual contacts remain to be defined. This does not authorize additional per-contact numerical bars or a police-heat system.
 
 Next design choices: earning/loss rules and progression effort; meaningful effects at each full-bar threshold; remaining faction-specific labels and Notoriety wording. No runtime or save work has started.
+
+## Direct corporate contracts and proposed level names — 2026-10-30
+
+Pete specifies that **VHM and KIS start offering direct contracts at level 2**. His message says “VFM”; interpreted as the existing VHM (Voss-Heinkel Metricwerke), not a corporation/tag rename. Parent-company direct work is distinct from Bruckner's local dealer/service work and KIS-E's local subsidiary work. Level 3 is closer insider standing, not the first direct-contract threshold. How pre-threshold offers are displayed, precise contract attribution and the treatment of existing accepted jobs still need design; no live board or contract has been changed.
+
+Requested naming pass: all ten tracks, with level 0 consistently **Unknown**. The following names are proposals, except **Honorary Citizen / Honorary Udarnik**, supplied by Pete. Labels express standing; they do not independently grant military commissions, employment, religious membership or new benefits beyond the stated direct-contract milestone.
+
+| Track | Level 0 | Level 1 | Level 2 | Level 3 |
+|---|---|---|---|---|
+| House Alvares | Unknown | Recognized Contractor | Court Favourite | Court Confidant |
+| House Mendes | Unknown | Proven Contractor | Trusted Ally | Companion-in-Arms |
+| House Nunes | Unknown | Discreet Contractor | Trusted Associate | House Confidant |
+| Steel Combine | Unknown | Reliable Contractor | Honorary Citizen | Honorary Udarnik |
+| Voss-Heinkel Metricwerke | Unknown | Recognized Subcontractor | Authorized Carrier | Trusted Partner |
+| Kisaragi | Unknown | Approved Subcontractor | Accredited Carrier | Privileged Partner |
+| Covenant Remnants | Unknown | Welcome Outsider | Friend of the Covenant | Honoured Companion |
+| Daedalus Systems | Unknown | Reliable Contractor | Trusted Collaborator | Inner Circle |
+| Cerberus Human Resources | Unknown | Approved Contractor | Trusted Agent | Company Insider |
+| Notoriety | Unknown | Known Runner | Respected Smuggler | Underworld Insider |
+
+Rationale: Alvares speaks in court/patronage terms, Mendes in martial companionship, Nunes in discretion/confidence; corporate tracks progress from intermediary work to direct dealings and privileged relationships. Covenant titles leave the pilot an honoured external associate, not a sealed member or holder of a religious office. Daedalus titles disclose no hidden research plot. Notoriety expresses a name recognized across smuggling circles, not universal trust from every contact or authority heat. Individual contact relationships remain separate.
 
 ## Complete current tagged roster — original census
 
