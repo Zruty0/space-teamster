@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. The remaining nine-name proposal includes the still-unconfirmed Cerberus addition; a tenth slot is open. No reputation mechanics, mergers, new factions, gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the nine-name faction proposal (Cerberus still not separately confirmed). Numerical rules and implementation remain undecided; no organization mergers, new gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -16,13 +16,13 @@ Source boundaries:
 - `src/content-terminology.ts`: current player-facing Shipyards wording; old operational IDs remain.
 - `src/content/estella/faction-contracts/reach-settlement-contracts.ts`: `HSC` is present on sparse Thule/Barataria work. Most older Hartwell carrier work has individual company names and no tag. Do not miss HSC by scanning only the carrier's primary file.
 
-## Current direction: nine candidates, tenth slot open
+## Current direction: nine faction candidates plus Notoriety
 
 Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus remains the recommended ninth, not yet explicitly confirmed. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
 
-Recommendation: leave the tenth slot open rather than pad the roster. A specifically authored smuggling network is a possible later candidate, not a newly approved universal criminal faction; personal contact trust remains sufficient for the currently planned smuggling access.
+October 30 follow-up: Pete supplies the tenth track, **Notoriety**, shared across all smugglers even though individual contacts give the missions. This supersedes the suggestion to leave slot ten open. A shared reputation-like measure does not create a unified smuggler organization.
 
-| # | Proposed reputation faction | Narrative purpose |
+| # | Proposed standing track | Narrative purpose |
 |---|---|---|
 | 1 | House Alvares | Civil authority, law, taxation and succession |
 | 2 | House Mendes | Military patronage, mobilization and martial politics |
@@ -33,10 +33,17 @@ Recommendation: leave the tenth slot open rather than pad the roster. A specific
 | 7 | Covenant Remnants | Enclave society, competing orders and reserved succession stories |
 | 8 | Daedalus Systems | Research, advanced technology and its reserved story material |
 | 9 | Cerberus Human Resources — recommended addition | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
+| 10 | Notoriety — approved shared-track concept | Reputation across smuggling circles; missions remain contact-issued |
+
+### Notoriety and individual contacts
+
+Approved: one cross-smuggler reputation-like track, not one faction score per network or contact. Missions are offered by individual contacts rather than a newly invented centralized smuggler board.
+
+Recommended interpretation for the next design pass: Notoriety measures how well known the pilot is in smuggling circles, while personal trust concerns an individual contact's willingness to rely on them. Being widely known does not mean every contact trusts the pilot. Keep authority attention / wanted status (if implemented later) distinct rather than automatically treating Notoriety as police heat. Exact benefits, earning/loss rules, contact thresholds and visibility remain undecided. Notoriety alone must not silently reveal hidden sites or grant blanket private travel access.
 
 KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
 
-Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling can initially use the already intended personal contact trust rather than requiring another global score. All of this is proposed scope, not new runtime behavior.
+Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling now has the approved shared Notoriety concept alongside the intended personal contact-trust layer. Their interaction remains to be designed; neither is implemented.
 
 ## Complete current tagged roster — original census
 
@@ -105,7 +112,7 @@ Most represent multiple small firms or civilian customers. Hartwell Labor Exchan
 ## Where the roster is thin
 
 The imbalance is **institutional/corporate coverage versus informal or oppositional networks**, not a shortage of total names.
-- **Smuggling network(s):** the clearest later addition, needed for Barataria's contact-trust-gated work. One network versus several, identity and membership are still open. Do not invent a universal criminal faction just to fill the gap.
+- **Smuggling contacts/network(s):** still need authored people and relationships for Barataria's work. The shared Notoriety track is now approved above; one network versus several, identities and membership remain open. A common reputation-like track does not imply a universal criminal faction or centralized mission issuer.
 - **Local communities / opposing interests:** Pandemonium's self-governing workers should not be represented solely by CHR standing. Thule's refuge communities or a specific lesser House might also need their own relationship when an authored story makes it meaningful. Start with local contacts if that is sufficient; no automatic system-wide resistance or settler faction.
 - **Special story actors:** keep future private actors private; do not expose secrets as public reputation rows. A story contact does not necessarily need a faction-wide numerical score.
 
