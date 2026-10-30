@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. The current flavor-revision naming table below is a proposal except for Pete's two Combine titles; the plainer first draft is retained as superseded review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. Pete accepts the flavor-revision names apart from three requested improvements, directs Cerberus to Unverified Asset / Verified Asset and requests Registered Sympathizer for Combine level 1. Combine 0, Kisaragi 0 and Daedalus 3 replacements below remain proposals; the rest are reviewed names. The plainer first draft is retained as superseded review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -52,7 +52,7 @@ Pete specifies four effective levels, **0, 1, 2, 3**, presented as bars in the v
 | Effective level | General meaning | Steel Combine title supplied by Pete |
 |---|---|---|
 | 0 | Unknown | No special title specified |
-| 1 | Reliable contractor | No special title specified |
+| 1 | Reliable contractor | Registered Sympathizer (subsequent naming choice) |
 | 2 | Trusted friend | Honorary citizen |
 | 3 | Almost “one of us” | Honorary Udarnik |
 
@@ -96,29 +96,34 @@ Rationale: Alvares speaks in court/patronage terms, Mendes in martial companions
 
 ## Current naming proposal — flavor revision, 2026-10-30
 
-Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. The following supersedes the plain naming draft as the current proposal, not as approved runtime copy. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged.
+Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. This supersedes the plain naming draft. Follow-up: “otherwise looks okay” accepts the unaffected labels; Cerberus becomes **Unverified Asset / Verified Asset** at levels 0/1. Pete subsequently requests **Registered Sympathizer** for Combine level 1, while leaving level 0 open. Three improvements marked **†** below remain proposals. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged. No runtime copy or mechanic is implemented.
 
 | Track | Level 0 | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
 | House Alvares | Unpresented Stranger | Carrier by Ducal Warrant | Favoured Client of the Court | Intimate of the Ducal Household |
 | House Mendes | Unproven Outsider | Provisioner to the Banners | Honoured Ally of the House | Companion of the Marshal’s Table |
 | House Nunes | Unintroduced Stranger | Bearer of the Watch Warrant | Esteemed Friend of the Outer Watch | Keeper of the House’s Confidence |
-| Steel Combine | Outside the Plan | Recognized Contributor | Honorary Citizen | Honorary Udarnik |
+| Steel Combine | Unaffiliated Worker † | Registered Sympathizer | Honorary Citizen | Honorary Udarnik |
 | Voss-Heinkel Metricwerke | Unrated Operator | Field-Proven Contractor | Factory-Warranted Carrier | Partner of the Works |
-| Kisaragi | Without Introduction | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
+| Kisaragi | Unproven Hand † | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
 | Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
-| Daedalus Systems | Unknown Quantity | Known Quantity | Cleared Collaborator | Inside the Black Box |
-| Cerberus Human Resources | Unassessed Asset | Useful Asset | Trusted Instrument | Friend of the Board |
+| Daedalus Systems | Unknown Quantity | Known Quantity | Cleared Collaborator | Research Confidant † |
+| Cerberus Human Resources | Unverified Asset | Verified Asset | Trusted Instrument | Friend of the Board |
 | Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
 
+Pending improvements (†):
+- Combine 0: **Unaffiliated Worker** replaces rejected “Outside the Plan” and the interim Unproven Worker suggestion, to fit Pete's subsequent **Registered Sympathizer** level 1. It expresses no established affiliation without treating a neutral outsider as hostile. Short alternative: **Unaffiliated**. Registered Sympathizer replaces Recognized Contributor; the full path now emphasizes increasing social/political recognition rather than only a contractor's work record.
+- Kisaragi 0: **Unproven Hand** replaces rejected “Without Introduction”; craft vocabulary with a clear progression to the accepted Proven Hand.
+- Daedalus 3: **Research Confidant** replaces rejected “Inside the Black Box”; a trusted relationship rather than an opaque metaphor or an academic appointment.
+
 Naming rationale:
-- House language is deliberately ceremonious: Alvares recognizes the pilot through court patronage; Mendes through supply service and proximity to the Marshal; Nunes through warrants, the outer watch and guarded confidence. These are proposed honorific relationship labels, not grants of nobility, office or military commissions.
-- VHM uses severe factory/industrial recognition; Kisaragi uses craft and prestige-house vocabulary. Factory-Warranted Carrier and Carrier of the Marque are the proposed **level-2 direct-contract** titles, not delayed level-3 unlocks. No legal partnership/equity is implied by Partner of the Works.
+- House language is deliberately ceremonious: Alvares recognizes the pilot through court patronage; Mendes through supply service and proximity to the Marshal; Nunes through warrants, the outer watch and guarded confidence. These are honorific relationship labels, not grants of nobility, office or military commissions.
+- VHM uses severe factory/industrial recognition; Kisaragi uses craft and prestige-house vocabulary. Factory-Warranted Carrier and Carrier of the Marque are the reviewed **level-2 direct-contract** titles, not delayed level-3 unlocks. No legal partnership/equity is implied by Partner of the Works.
 - Covenant's Unsealed Kindred offers belonging without claiming the pilot has accepted a Seal. Daedalus's technical wordplay suggests increasing discretion without disclosing its hidden plot.
-- Cerberus deliberately moves from assessing the pilot as an asset, through usefulness, to boardroom intimacy. The impersonal wording is the corporation's attitude, not a new custody/employment mechanic.
+- Cerberus deliberately moves from unverified to verified asset, then entrusted instrument and boardroom intimacy. The impersonal wording is the corporation's attitude, not a new custody/employment mechanic.
 - Notoriety sounds like what smugglers say about someone rather than ranks awarded by a central authority. It does not establish universal personal trust or actual membership in an invented organization.
 
-No proposed title is a new contract item, certification, institution, access permission or runtime change. Keep any future operator comments intact; title alternatives remain subject to review.
+No standing title is a new contract item, certification, institution, access permission or runtime change. Keep any future operator comments intact; the three marked alternatives remain subject to review.
 
 ## Complete current tagged roster — original census
 
