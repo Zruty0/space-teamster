@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. The level-name table below is a proposal except for Pete's two Combine titles. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. The current flavor-revision naming table below is a proposal except for Pete's two Combine titles; the plainer first draft is retained as superseded review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -73,11 +73,11 @@ The common meanings can support faction-specific titles, as in the Combine examp
 
 Next design choices: earning/loss rules and progression effort; meaningful effects at each full-bar threshold; remaining faction-specific labels and Notoriety wording. No runtime or save work has started.
 
-## Direct corporate contracts and proposed level names — 2026-10-30
+## Approved direct-contract threshold and first naming draft — 2026-10-30
 
 Pete specifies that **VHM and KIS start offering direct contracts at level 2**. His message says “VFM”; interpreted as the existing VHM (Voss-Heinkel Metricwerke), not a corporation/tag rename. Parent-company direct work is distinct from Bruckner's local dealer/service work and KIS-E's local subsidiary work. Level 3 is closer insider standing, not the first direct-contract threshold. How pre-threshold offers are displayed, precise contract attribution and the treatment of existing accepted jobs still need design; no live board or contract has been changed.
 
-Requested naming pass: all ten tracks, with level 0 consistently **Unknown**. The following names are proposals, except **Honorary Citizen / Honorary Udarnik**, supplied by Pete. Labels express standing; they do not independently grant military commissions, employment, religious membership or new benefits beyond the stated direct-contract milestone.
+First naming draft, superseded by the flavor revision below: all ten tracks, with level 0 consistently **Unknown**. These were proposals, except **Honorary Citizen / Honorary Udarnik**, supplied by Pete. Labels express standing; they do not independently grant military commissions, employment, religious membership or new benefits beyond the stated direct-contract milestone.
 
 | Track | Level 0 | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
@@ -93,6 +93,32 @@ Requested naming pass: all ten tracks, with level 0 consistently **Unknown**. Th
 | Notoriety | Unknown | Known Runner | Respected Smuggler | Underworld Insider |
 
 Rationale: Alvares speaks in court/patronage terms, Mendes in martial companionship, Nunes in discretion/confidence; corporate tracks progress from intermediary work to direct dealings and privileged relationships. Covenant titles leave the pilot an honoured external associate, not a sealed member or holder of a religious office. Daedalus titles disclose no hidden research plot. Notoriety expresses a name recognized across smuggling circles, not universal trust from every contact or authority heat. Individual contact relationships remain separate.
+
+## Current naming proposal — flavor revision, 2026-10-30
+
+Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. The following supersedes the plain naming draft as the current proposal, not as approved runtime copy. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged.
+
+| Track | Level 0 | Level 1 | Level 2 | Level 3 |
+|---|---|---|---|---|
+| House Alvares | Unpresented Stranger | Carrier by Ducal Warrant | Favoured Client of the Court | Intimate of the Ducal Household |
+| House Mendes | Unproven Outsider | Provisioner to the Banners | Honoured Ally of the House | Companion of the Marshal’s Table |
+| House Nunes | Unintroduced Stranger | Bearer of the Watch Warrant | Esteemed Friend of the Outer Watch | Keeper of the House’s Confidence |
+| Steel Combine | Outside the Plan | Recognized Contributor | Honorary Citizen | Honorary Udarnik |
+| Voss-Heinkel Metricwerke | Unrated Operator | Field-Proven Contractor | Factory-Warranted Carrier | Partner of the Works |
+| Kisaragi | Without Introduction | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
+| Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
+| Daedalus Systems | Unknown Quantity | Known Quantity | Cleared Collaborator | Inside the Black Box |
+| Cerberus Human Resources | Unassessed Asset | Useful Asset | Trusted Instrument | Friend of the Board |
+| Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
+
+Naming rationale:
+- House language is deliberately ceremonious: Alvares recognizes the pilot through court patronage; Mendes through supply service and proximity to the Marshal; Nunes through warrants, the outer watch and guarded confidence. These are proposed honorific relationship labels, not grants of nobility, office or military commissions.
+- VHM uses severe factory/industrial recognition; Kisaragi uses craft and prestige-house vocabulary. Factory-Warranted Carrier and Carrier of the Marque are the proposed **level-2 direct-contract** titles, not delayed level-3 unlocks. No legal partnership/equity is implied by Partner of the Works.
+- Covenant's Unsealed Kindred offers belonging without claiming the pilot has accepted a Seal. Daedalus's technical wordplay suggests increasing discretion without disclosing its hidden plot.
+- Cerberus deliberately moves from assessing the pilot as an asset, through usefulness, to boardroom intimacy. The impersonal wording is the corporation's attitude, not a new custody/employment mechanic.
+- Notoriety sounds like what smugglers say about someone rather than ranks awarded by a central authority. It does not establish universal personal trust or actual membership in an invented organization.
+
+No proposed title is a new contract item, certification, institution, access permission or runtime change. Keep any future operator comments intact; title alternatives remain subject to review.
 
 ## Complete current tagged roster — original census
 
