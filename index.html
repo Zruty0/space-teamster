@@ -26,7 +26,7 @@
     }
     #dev-panel h2 { color: #0fc; margin: 0; font-size: 14px; }
     #dev-panel h3 { color: #0fc; margin: 12px 0 4px; font-size: 12px; }
-    #dev-panel button, #dev-panel select {
+    #dev-panel button, #dev-panel select, #dev-panel input {
       background: #031c16; border: 1px solid #087; color: #bfffe8;
       padding: 5px 10px; cursor: pointer; font-family: inherit;
     }
@@ -55,6 +55,14 @@
     #dev-panel .dev-summary { border: 1px solid #16483c; background: #031914; padding: 7px; line-height: 1.45; }
     #dev-panel .dev-ledger-select { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     #dev-panel .dev-ledger-select select { min-width: min(700px, 80vw); }
+    #dev-panel .dev-rank { border-bottom: 1px solid #16483c; padding: 0 0 10px; }
+    #dev-panel .dev-rank-title { font-size: 13px; margin: 5px 0; }
+    #dev-panel .dev-rank form { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    #dev-panel .dev-rank input { width: 110px; cursor: text; }
+    #dev-panel .dev-rank-bars { display: flex; gap: 5px; margin: 7px 0; }
+    #dev-panel .dev-rank-bars span { display: block; width: 30px; height: 11px; background: #102c2c; outline: 1px solid #397579; }
+    #dev-panel .dev-rank-bars i { display: block; height: 100%; background: #4ddcff; }
+    #dev-panel .dev-rank-message { min-height: 24px; padding: 6px 0; color: #ffd45a; }
     @media (max-width: 700px) {
       #dev-panel { inset: 0; width: 100vw; max-height: 100vh; border-width: 0; }
       #dev-panel .dev-tabs { top: -10px; }

@@ -35,7 +35,7 @@ export type InteractiveIcon = 'fragile' | 'passenger' | 'lock' | 'wrench' | 'war
 
 export type InteractiveSceneBodyRow =
   | { kind: 'text'; text: string; segments?: InteractiveTextSegment[]; tone?: InteractiveTone }
-  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; labelLineCount?: 1 | 2 | 3; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6; fullWidthValue?: boolean }
+  | { kind: 'kv'; label: string; value: string; valueSegments?: InteractiveTextSegment[]; icon?: InteractiveIcon; valueIcon?: InteractiveIcon; tone?: InteractiveTone; labelLineCount?: 1 | 2 | 3; valueLineCount?: 1 | 2 | 3 | 4 | 5 | 6; fullWidthValue?: boolean; bars?: readonly number[] }
   | { kind: 'separator' };
 
 export interface InteractiveSceneOption {
@@ -308,7 +308,7 @@ function sceneBodyMetrics(
       const valueIconWidth = row.valueIcon ? 20 : 0;
       const valueWidth = boxW - (row.fullWidthValue ? 54 : labelW + 54) - valueIconWidth;
       const valueLineCount = wrapText(ctx, row.value, valueWidth).length;
-      return height + 22 + (Math.max(labelLineCount, valueLineCount) - 1) * 18;
+      return height + 22 + (Math.max(labelLineCount, valueLineCount) - 1) * 18 + (row.bars?.length ? 20 : 0);
     }
     ctx.font = '13px monospace';
     return height + wrapText(ctx, row.text, boxW - 44).length * 18 + 2;
@@ -419,7 +419,22 @@ export function drawInteractiveScene(
         } else {
           wrappedValue.forEach((line, index) => ctx.fillText(line, valueTextX, y + index * 18));
         }
-        y += 22 + (Math.max(Math.max(1, labelLines.length), valueLineCount) - 1) * 18;
+        const textHeight = (Math.max(Math.max(1, labelLines.length), valueLineCount) - 1) * 18;
+        if (row.bars?.length) {
+          const gap = 5;
+          const width = Math.min(30, (valueWidth - gap * (row.bars.length - 1)) / row.bars.length);
+          row.bars.forEach((value, index) => {
+            const bx = valueTextX + index * (width + gap), by = y + textHeight + 7;
+            const fill = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+            ctx.fillStyle = '#102c2c';
+            ctx.fillRect(bx, by, width, 11);
+            ctx.fillStyle = '#4ddcff';
+            if (fill > 0) ctx.fillRect(bx, by, width * fill, 11);
+            ctx.strokeStyle = '#397579';
+            ctx.strokeRect(bx + 0.5, by + 0.5, width - 1, 10);
+          });
+        }
+        y += 22 + textHeight + (row.bars?.length ? 20 : 0);
         continue;
       }
       ctx.textAlign = 'left';

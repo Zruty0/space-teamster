@@ -43,7 +43,18 @@ export interface InputState {
 const keys: Set<string> = new Set();
 const justPressed: Set<string> = new Set();
 
+function inDevPanel(target: EventTarget | null): boolean {
+  return !!(target as Element | null)?.closest?.('#dev-panel');
+}
+
+window.addEventListener('focusin', e => {
+  if (inDevPanel(e.target)) { keys.clear(); justPressed.clear(); }
+});
+
 window.addEventListener('keydown', (e) => {
+  // Native editor controls own their arrows, numbers, Enter, Space and Backspace.
+  // Tilde/F2 still toggles the panel; typing must not launch/retry a mission.
+  if (inDevPanel(e.target) && e.code !== 'Backquote' && e.code !== 'F2') return;
   if (!keys.has(e.code)) {
     justPressed.add(e.code);
   }

@@ -4,9 +4,14 @@ import type { MechanicDamagePool, MechanicOperation } from './maintenance/mainte
 import { systemStatus } from './maintenance/rig-state';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId } from './maintenance/types';
 
+import { REPUTATION_TRACKS, isReputationId, reputationStanding, type ReputationEditResult, type ReputationState } from './reputation';
+
 let panel: HTMLElement | null = null;
 let visible = false;
-let selectedTab: 'mechanic' | 'ledger' = 'mechanic';
+let selectedTab: 'mechanic' | 'ledger' | 'reputation' = 'mechanic';
+let reputationProvider: (() => ReputationState) | undefined;
+let reputationHandler: ((id: string, value: number) => ReputationEditResult) | undefined;
+let reputationMessage = '';
 let snapshotProvider: (() => MaintenanceDebugSnapshot) | undefined;
 let mechanicActionHandler: ((systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void) | undefined;
 let mechanicRemoveHandler: ((systemId: MaintenanceSystemId) => void) | undefined;
@@ -21,15 +26,27 @@ export function createDevPanel(
   onMechanicAction?: (systemId: MaintenanceSystemId, operation: MechanicOperation, grade: ComponentGrade) => void,
   onMechanicRemove?: (systemId: MaintenanceSystemId) => void,
   onMechanicDamage?: (componentId: string, pool: MechanicDamagePool) => void,
+  reputationSnapshot?: () => ReputationState,
+  onReputationChange?: (id: string, value: number) => ReputationEditResult,
 ): void {
   panel = document.getElementById('dev-panel');
   snapshotProvider = provider;
   mechanicActionHandler = onMechanicAction;
   mechanicRemoveHandler = onMechanicRemove;
   mechanicDamageHandler = onMechanicDamage;
+  reputationProvider = reputationSnapshot;
+  reputationHandler = onReputationChange;
+  reputationMessage = '';
+  dirty = true;
   if (panel) {
-    panel.addEventListener('click', event => {
+    // Replace handlers when a Game is recreated; never double-apply developer edits.
+    panel.onclick = event => {
       const target = event.target as HTMLElement;
+      const rankButton = target.closest<HTMLButtonElement>('[data-reputation-set]');
+      if (rankButton) {
+        applyReputationEdit(rankButton.dataset.reputationId ?? '', Number(rankButton.dataset.reputationSet));
+        return;
+      }
       const damageButton = target.closest<HTMLButtonElement>('[data-mechanic-damage]');
       if (damageButton && !damageButton.disabled) {
         const componentId = damageButton.dataset.componentId;
@@ -73,21 +90,29 @@ export function createDevPanel(
         return;
       }
       const tab = target.closest<HTMLElement>('[data-dev-tab]')?.dataset.devTab;
-      if (tab === 'mechanic' || tab === 'ledger') {
+      if (tab === 'mechanic' || tab === 'ledger' || tab === 'reputation') {
         selectedTab = tab;
         pendingMechanicAction = undefined;
         dirty = true;
         rebuildPanel();
+        panel?.querySelector<HTMLButtonElement>(`[data-dev-tab="${selectedTab}"]`)?.focus({ preventScroll: true });
       }
-    });
-    panel.addEventListener('change', event => {
+    };
+    panel.onsubmit = event => {
+      const form = event.target as HTMLFormElement;
+      if (!form.matches('[data-reputation-form]')) return;
+      event.preventDefault();
+      const input = form.querySelector<HTMLInputElement>('[data-reputation-value]');
+      applyReputationEdit(form.dataset.reputationForm ?? '', input?.valueAsNumber ?? NaN);
+    };
+    panel.onchange = event => {
       const target = event.target as HTMLSelectElement;
       if (target.dataset.ledgerSelect !== undefined) {
         selectedLedgerId = target.value;
         dirty = true;
         rebuildPanel();
       }
-    });
+    };
   }
 }
 
@@ -228,22 +253,60 @@ function renderLedger(snapshot: MaintenanceDebugSnapshot): string {
   return `<label class="dev-ledger-select">Ledger <select data-ledger-select>${choices.map(choice => `<option value="${escapeHtml(choice.id)}"${choice.id === selected.id ? ' selected' : ''}>${escapeHtml(ledgerLabel(choice.ledger))}</option>`).join('')}</select></label>${renderLedgerSummary(selected.ledger)}`;
 }
 
+function applyReputationEdit(id: string, value: number): void {
+  if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > 3) {
+    reputationMessage = 'Enter a finite rank progress value from 0 to 3.';
+  } else {
+    const result = reputationHandler?.(id, value);
+    reputationMessage = result === 'saved' ? `${REPUTATION_TRACKS.find(track => track.id === id)!.name}: saved.`
+      : result === 'unchanged' ? 'Already at that value; no change saved.'
+      : result === 'save-failed' ? 'Rank change could not be saved. No standing was changed.'
+      : 'Rank editor unavailable or invalid value.';
+  }
+  dirty = true;
+  rebuildPanel();
+  if (isReputationId(id)) panel?.querySelector<HTMLInputElement>(`[data-reputation-form="${id}"] input`)?.focus({ preventScroll: true });
+}
+
+function renderReputations(): string {
+  const state = reputationProvider?.();
+  if (!state || !reputationHandler) return '<p>No career rank provider.</p>';
+  return `<p class="dev-summary">Persistent career ranks only; no gameplay effects or automatic gains. Set a whole rank with 0–3, or enter partial progress (for example 1.5). A partial next bar does not promote the rank.</p>
+    <p class="dev-rank-message" role="status" aria-live="polite">${escapeHtml(reputationMessage)}</p>
+    ${REPUTATION_TRACKS.map(track => {
+      const standing = reputationStanding(state, track.id);
+      return `<section class="dev-rank" data-reputation-id="${track.id}">
+        <h3>${escapeHtml(track.name)}</h3>
+        <div class="dev-rank-title">${escapeHtml(standing.title)} — Level ${standing.level}/3</div>
+        <div class="dev-rank-bars" role="img" aria-label="${escapeHtml(track.name)}: ${standing.progress} of 3 bars">${standing.bars.map(fill => `<span><i style="width:${fill * 100}%"></i></span>`).join('')}</div>
+        <form data-reputation-form="${track.id}">
+          ${[0, 1, 2, 3].map(level => `<button type="button" data-reputation-id="${track.id}" data-reputation-set="${level}" title="${escapeHtml(track.titles[level])}">${level}</button>`).join('')}
+          <label>Progress <input data-reputation-value type="number" min="0" max="3" step="any" required value="${standing.progress}" aria-label="${escapeHtml(track.name)} progress"></label>
+          <button type="submit">Apply</button>
+        </form>
+      </section>`;
+    }).join('')}`;
+}
+
 function rebuildPanel(): void {
   if (!panel) return;
-  const snapshot = snapshotProvider?.();
+  const snapshot = selectedTab === 'reputation' ? undefined : snapshotProvider?.();
   panel.innerHTML = `
-    <div class="dev-panel-header"><h2>RIG DEVELOPMENT</h2><span>TILDE / F2</span></div>
+    <div class="dev-panel-header"><h2>DEVELOPMENT</h2><span>TILDE / F2</span></div>
     <div class="dev-tabs">
       <button data-dev-tab="mechanic" class="${selectedTab === 'mechanic' ? 'active' : ''}">Mechanic</button>
       <button data-dev-tab="ledger" class="${selectedTab === 'ledger' ? 'active' : ''}">Telemetry Ledger</button>
+      <button data-dev-tab="reputation" class="${selectedTab === 'reputation' ? 'active' : ''}">Ranks</button>
     </div>
-    <div class="dev-content">${snapshot ? (selectedTab === 'mechanic' ? renderMechanic(snapshot) : renderLedger(snapshot)) : '<p>No maintenance snapshot provider.</p>'}</div>
+    <div class="dev-content">${selectedTab === 'reputation' ? renderReputations() : snapshot ? (selectedTab === 'mechanic' ? renderMechanic(snapshot) : renderLedger(snapshot)) : '<p>No maintenance snapshot provider.</p>'}</div>
   `;
   dirty = false;
   lastRefresh = performance.now();
 }
 
 export function markDevPanelDirty(): void {
+  // Career replacement (including a new career) invalidates old editor notices.
+  reputationMessage = '';
   dirty = true;
 }
 
@@ -272,6 +335,7 @@ export function toggleDevPanel(): void {
     if (visible) {
       dirty = true;
       rebuildPanel();
+      panel.querySelector<HTMLButtonElement>(`[data-dev-tab="${selectedTab}"]`)?.focus({ preventScroll: true });
     }
   }
 }

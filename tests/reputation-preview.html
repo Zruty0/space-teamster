@@ -1,0 +1,114 @@
+<!doctype html>
+<meta charset="utf-8"><title>Reputation checks</title>
+<select id="view" style="position:fixed;left:8px;bottom:4px;z-index:200;max-width:180px;background:#102030;color:#def"></select>
+<span id="status" style="position:fixed;right:8px;bottom:3px;z-index:200;color:#9ce;background:#030611;font:11px monospace">Synthetic career only.</span>
+<canvas id="game"></canvas><div id="dev-panel"></div>
+<script type="module">
+// Page-local storage is installed before importing Game. Never touches a live career.
+const storage=new Map();let writes=0,fail=false;
+Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>{if(fail)throw Error('synthetic denied save');storage.set(k,v);writes++;}}});
+const css=(await (await fetch('/index.html')).text()).match(/<style>([\s\S]*?)<\/style>/)[1];
+const style=document.createElement('style');style.textContent=css;document.head.append(style);
+const {Game}=await import('/src/game.ts');
+const {defaultCareerProfile,loadCareerProfile,saveCareerProfile}=await import('/src/career-state.ts');
+const {REPUTATION_TRACKS,normalizeReputations,reputationStanding}=await import('/src/reputation.ts');
+const {toggleDevPanel,isDevPanelVisible,markDevPanelDirty,updateDevPanel}=await import('/src/dev-panel.ts');
+const {readInput}=await import('/src/input.ts');
+const {drawInteractiveScene,interactiveSceneBodyScrollLimit}=await import('/src/interactive-scene.ts');
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),panel=document.getElementById('dev-panel'),menu=document.getElementById('view'),status=document.getElementById('status');
+// Recreating a Game must not duplicate the panel's delegated handlers.
+new Game(canvas,ctx);
+const game=new Game(canvas,ctx);game.prewarmContractBoards=()=>{};
+let checks=0;
+function assert(v,m){checks++;if(!v)throw Error(m);}
+function eq(a,b,m){assert(JSON.stringify(a)===JSON.stringify(b),m);}
+function scene(){return game.buildInteractiveScene(game.phase.scene);}
+function draw(){if(canvas.width!==innerWidth)canvas.width=innerWidth;if(canvas.height!==innerHeight)canvas.height=innerHeight;drawInteractiveScene(ctx,canvas,scene(),0,game.phase.scene.bodyScrollOffset??0);}
+function row(id){return panel.querySelector(`section[data-reputation-id="${id}"]`);}
+function set(id,value){const f=row(id).querySelector('form');f.querySelector('input').value=String(value);f.requestSubmit();}
+function panelOn(){if(!isDevPanelVisible())toggleDevPanel();panel.querySelector('[data-dev-tab="reputation"]').click();}
+function panelOff(){if(isDevPanelVisible())toggleDevPanel();}
+function base(value=0){game.career=defaultCareerProfile();game.career.reputations=Object.fromEntries(REPUTATION_TRACKS.map(t=>[t.id,value]));game.worldTime=0;game.phase={kind:'interactiveScene',scene:{id:'careerStatus',selectedIndex:0}};markDevPanelDirty();updateDevPanel();}
+function key(target,type,code){const e=new KeyboardEvent(type,{code,bubbles:true,cancelable:true});target.dispatchEvent(e);return e;}
+if(!document.hasFocus()){
+ status.textContent='Focus this tab to run native keyboard checks; synthetic career only.';
+ await new Promise(resolve=>window.addEventListener('focus',resolve,{once:true}));
+}
+try{
+ base();draw();const count=writes;
+ const ranks=scene().bodyRows.filter(r=>r.bars);
+ assert(ranks.length===10&&ranks.every(r=>r.bars.length===3&&r.bars.every(v=>v===0)),'all ten unknown ranks/three empty bars');
+ assert(!ranks.some(r=>r.label.includes('Guild')),'no Guild reputation');
+ assert(writes===count,'viewing does not save');
+ panelOn();assert(panel.querySelectorAll('.dev-rank').length===10,'ten native editor rows');
+ for(const track of REPUTATION_TRACKS){
+  for(const level of [1,2,3,0]){
+   const before=writes,cash=game.career.money,time=game.worldTime,rig=JSON.stringify(game.career.rig),credits=JSON.stringify(game.career.maintenanceShopInspections);
+   row(track.id).querySelector(`[data-reputation-set="${level}"]`).click();
+   assert(writes===before+1,'quick button commits once');
+   assert(panel.querySelector('[role="status"]').textContent===`${track.name}: saved.`,'single delegated handler, explicit success');
+   assert(game.career.reputations[track.id]===level,'quick rank persisted to active career');
+   assert(row(track.id).querySelector('.dev-rank-title').textContent===`${track.titles[level]} — Level ${level}/3`,'correct native title');
+   eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),[0,1,2].map(i=>level>i?'100%':'0%'),'whole-bar visual state');
+   assert(game.career.money===cash&&game.worldTime===time&&JSON.stringify(game.career.rig)===rig&&JSON.stringify(game.career.maintenanceShopInspections)===credits,'no cash/time/rig/credit effects');
+  }
+  set(track.id,1.75);
+  assert(game.career.reputations[track.id]===1.75,'fractional form input saved');
+  assert(row(track.id).textContent.includes(track.titles[1])&&!row(track.id).querySelector('.dev-rank-title').textContent.includes(track.titles[2]),'fractional progress keeps lower title');
+  eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),['100%','75%','0%'],'native partial fill');
+ }
+ const id='daedalus-systems';set(id,1.9999999999999998);
+ assert(row(id).querySelector('.dev-rank-title').textContent.includes('Known Quantity'),'near-boundary native title does not promote');
+ set(id,2);assert(row(id).textContent.includes('Authorized Contractor'),'exact threshold promotes');
+ const original=game.career,serialized=JSON.stringify(original),durable=storage.get('space-teamster.career.v1'),n=writes;
+ fail=true;set(id,3);fail=false;
+ assert(game.career===original&&JSON.stringify(game.career)===serialized&&writes===n&&storage.get('space-teamster.career.v1')===durable,'failed native edit is atomic');
+ assert(panel.textContent.includes('could not be saved'),'failure visible in editor');
+ set(id,3);assert(writes===n+1&&game.career.reputations[id]===3,'retry commits exactly once');
+ set(id,3);assert(writes===n+1,'repeat is no-op');
+ for(const bad of ['-1','4','']){
+  const f=row(id).querySelector('form'),input=f.querySelector('input'),before=JSON.stringify(game.career),w=writes;
+  input.value=bad;assert(!input.checkValidity(),'native constraint rejects invalid input');
+  f.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));
+  assert(JSON.stringify(game.career)===before&&writes===w,'forged form submit also rejected');
+ }
+ let input=row(id).querySelector('input');input.focus();
+ for(const code of ['Backspace','Enter','Space','ArrowUp','ArrowDown','PageDown','Digit2','KeyW','KeyE']){
+  const e=key(input,'keydown',code),v=readInput();
+  assert(!e.defaultPrevented,'native text editing not cancelled');
+  assert(!v.reset&&!v.menuConfirm&&!v.menuUp&&!v.menuDown&&!v.pageDown&&!v.levelPick&&!v.throttleUp&&!v.wingAngleUp,'editor key does not leak into gameplay');
+  key(input,'keyup',code);readInput();
+ }
+ key(input,'keydown','Backquote');assert(readInput().toggleDevPanel,'tilde works while editing');key(input,'keyup','Backquote');toggleDevPanel();assert(!isDevPanelVisible(),'tilde closes panel');
+ key(window,'keydown','F2');assert(readInput().toggleDevPanel,'F2 shortcut works');key(window,'keyup','F2');toggleDevPanel();
+ // Focus change clears previously held flight keys.
+ panelOff();key(window,'keydown','KeyW');assert(readInput().moveUp,'ordinary gameplay input still works');panelOn();assert(!readInput().moveUp,`entering editor clears held gameplay input: ${document.activeElement?.outerHTML?.slice(0,180)} / focus=${document.hasFocus()} / panel=${getComputedStyle(panel).display}`);key(window,'keyup','KeyW');
+ const saved=JSON.stringify(game.career.reputations);game.career=loadCareerProfile();assert(JSON.stringify(game.career.reputations)===saved,'rank storage round-trip');
+ for(const tab of ['mechanic','ledger','reputation']){panel.querySelector(`[data-dev-tab="${tab}"]`).click();assert(panel.querySelector(`[data-dev-tab="${tab}"]`).classList.contains('active'),'all three tabs remain usable');}
+ // Native canvas layout at all four whole ranks, including paging through long titles.
+ for(const level of [0,1,2,3]){
+  panelOff();base(level);draw();
+  const s=scene(),limit=interactiveSceneBodyScrollLimit(ctx,canvas,s);
+  assert(Number.isFinite(limit)&&limit>=0,'bounded native scroll range');
+  game.phase.scene.bodyScrollOffset=limit;draw();
+  assert(s.bodyRows.filter(r=>r.bars).every(r=>r.bars.filter(x=>x===1).length===level),'career bars agree with rank');
+ }
+ // Reset clears standings and leaves the editor synchronized.
+ panelOn();game.resetCareer();updateDevPanel();
+ assert(Object.values(game.career.reputations).every(v=>v===0)&&panel.querySelector('.dev-rank-title').textContent.includes('Unpresented Stranger'),'new career clears live editor');
+ panelOff();
+ for(const name of ['Unknown','Half-filled','All ranks 3','Career bottom','Tilde ranks','Failed save']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
+ function show(){
+  panelOff();base(menu.value==='Unknown'?0:menu.value==='All ranks 3'||menu.value==='Career bottom'?3:1.5);draw();
+  if(menu.value==='Career bottom'){game.phase.scene.bodyScrollOffset=interactiveSceneBodyScrollLimit(ctx,canvas,scene());draw();}
+  if(menu.value==='Tilde ranks'||menu.value==='Failed save'){
+   panelOn();panel.scrollTop=0;
+   if(menu.value==='Failed save'){fail=true;set('house-alvares',3);fail=false;panel.scrollTop=0;}
+  }
+ }
+ menu.onchange=show;window.onresize=()=>{if(game.phase.kind==='interactiveScene')draw();};menu.value='Unknown';show();
+ status.textContent=`PASS — ${checks} checks; synthetic career only. Tilde/F2; PgUp/PgDn.`;document.title='PASS — Reputation ranks';
+ window.reputationPreview={game,show,checks,storage};
+ function frame(){const i=readInput();if(i.toggleDevPanel)toggleDevPanel();if(game.phase.kind==='interactiveScene'){game.handleInteractiveScene(i);if(game.phase.kind==='interactiveScene')draw();}updateDevPanel();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+}catch(error){status.textContent='FAIL — '+error.stack;document.title='FAIL — Reputation ranks';throw error;}
+</script>

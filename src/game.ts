@@ -18,7 +18,8 @@ import {
 import { TerrainData, checkLandingCollision as checkTerrainCollision, generateTerrain, landingReferenceHeight, isOnPad } from './terrain';
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay, type PhaseFinancialLine } from './hud';
-import { createDevPanel, toggleDevPanel, setDevPanelMode, updateDevPanel } from './dev-panel';
+import { createDevPanel, toggleDevPanel, setDevPanelMode, updateDevPanel, markDevPanelDirty } from './dev-panel';
+import { REPUTATION_TRACKS, isReputationId, normalizeReputations, reputationStanding, type ReputationEditResult } from './reputation';
 import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
@@ -322,6 +323,8 @@ export class Game {
       (systemId, operation, grade) => this.applyMechanicAction(systemId, operation, grade),
       systemId => this.removeMechanicSystem(systemId),
       (componentId, pool) => this.damageMechanicComponent(componentId, pool),
+      () => normalizeReputations(this.career.reputations),
+      (id, value) => this.setReputationFromDevPanel(id, value),
     );
     installMissionProfileConsoleTools();
   }
@@ -377,6 +380,18 @@ export class Game {
       pendingLedger: this.pendingMaintenanceSettlement?.ledger,
       committedLedgers: this.committedMaintenanceLedgers,
     };
+  }
+
+  private setReputationFromDevPanel(id: string, value: number): ReputationEditResult {
+    if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > 3) return 'invalid';
+    const reputations = normalizeReputations(this.career.reputations);
+    if (reputations[id] === value) return 'unchanged';
+    const next: CareerProfile = { ...this.career, reputations: { ...reputations, [id]: value } };
+    try { saveCareerProfile(next); } catch { return 'save-failed'; }
+    // This deliberately changes no rig, clocks, inspections, contacts or pending flight work.
+    this.career = next;
+    markDevPanelDirty();
+    return 'saved';
   }
 
   private commitMechanicChange(changed: boolean): void {
@@ -616,6 +631,7 @@ export class Game {
 
   private resetCareer(): void {
     this.career = resetCareerProfile();
+    markDevPanelDirty();
     this.loadStationTerminal();
   }
 
@@ -2690,7 +2706,7 @@ export class Game {
           { label: 'Browse Passenger Contracts', detail: ordinaryWorkAuthorized ? 'View passenger postings.' : 'Basic certification is required before contract work.', action: 'browsePassengerContracts', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Plan Empty Run', detail: ordinaryWorkAuthorized ? 'Choose a destination; fly at your own expense.' : 'Basic certification is required before independent travel.', action: 'emptyFolder:root', tone: 'primary', disabled: !ordinaryWorkAuthorized },
           { label: 'Local Directory', tag: tutorialCheckrideAvailableHere ? 'TUTORIAL' : undefined, tagTone: tutorialCheckrideAvailableHere ? 'story' : undefined, detail: 'Find local offices and known contacts within communications range.', action: 'localDirectory', tone: 'primary' },
-          { label: 'Career Status', detail: 'Review saved location, cash, and world time.', action: 'careerStatus' },
+          { label: 'Career Status', detail: 'Review location, cash, world time and faction ranks.', action: 'careerStatus' },
           {
             label: 'Ship Status',
             detail: overallShipStatus === 'alert' ? 'Equipment alert active. Review ship condition and restrictions.' : overallShipStatus === 'warning' ? 'Equipment warning active. Review ship condition and restrictions.' : 'Review ship condition, restrictions, and optional equipment.',
@@ -3049,12 +3065,21 @@ export class Game {
     if (state.id === 'careerStatus') {
       return {
         title: 'CAREER STATUS',
-        subtitle: 'Teamsters\' Guild account',
+        subtitle: 'Pilot record and faction standing',
+        bodyMaxHeight: 720,
+        bodyLabelWidth: 210,
         bodyRows: [
           { kind: 'kv', label: 'Current location', value: locationPath },
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
           { kind: 'kv', label: 'Teamster Rank', value: currentTeamsterRank, tone: currentTeamsterRank === 'Teamster' ? 'success' : currentTeamsterRank === 'Junior Teamster' ? 'warning' : undefined },
+          { kind: 'separator' },
+          { kind: 'text', text: 'FACTION RANKS & NOTORIETY', tone: 'primary' },
+          { kind: 'text', text: 'Each full bar advances one rank. Partial bars show progress toward the next.', tone: 'muted' },
+          ...REPUTATION_TRACKS.map(track => {
+            const standing = reputationStanding(this.career.reputations, track.id);
+            return { kind: 'kv' as const, label: track.name, value: `${standing.title} (${standing.level}/3)`, bars: standing.bars };
+          }),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],

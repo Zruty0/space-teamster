@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the current nine-entity working roster. Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Pete specifies that VHM and KIS begin offering direct parent-company contracts at level 2. Earning/loss rates, other concrete benefits and implementation remain undecided; no organization mergers or save changes are approved. Pete accepts the flavor-revision names apart from three requested improvements, directs Cerberus to Unverified Asset / Verified Asset and requests Registered Sympathizer for Combine level 1. Combine 0, Kisaragi 0 and Daedalus 3 replacements below remain proposals; the rest are reviewed names. The plainer first draft is retained as superseded review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested implementation using the current ten-track roster. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -43,7 +43,7 @@ Recommended interpretation for the next design pass: Notoriety measures how well
 
 KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
 
-Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling now has the approved shared Notoriety concept alongside the intended personal contact-trust layer. Their interaction remains to be designed; neither is implemented.
+Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling now has the approved shared Notoriety concept alongside the intended personal contact-trust layer. Notoriety now has storage/display; its gameplay interaction with contact trust remains unimplemented.
 
 ## Approved reputation levels and bar progression — 2026-10-30
 
@@ -71,7 +71,7 @@ These are progress segments, not a chosen point economy: no 100-point thresholds
 
 The common meanings can support faction-specific titles, as in the Combine examples. Those honorary titles do not by themselves authorize citizenship rights, actual Udarnik membership, prices, equipment, access or mission unlocks; concrete effects still need authoring. Notoriety's exact displayed titles and its interaction with individual contacts remain to be defined. This does not authorize additional per-contact numerical bars or a police-heat system.
 
-Next design choices: earning/loss rules and progression effort; meaningful effects at each full-bar threshold; remaining faction-specific labels and Notoriety wording. No runtime or save work has started.
+Next design choices: earning/loss rules and progression effort, and meaningful effects at each full-bar threshold. Storage/display/editor work is now implemented separately, with no gameplay effects.
 
 ## Approved direct-contract threshold and first naming draft — 2026-10-30
 
@@ -94,27 +94,27 @@ First naming draft, superseded by the flavor revision below: all ten tracks, wit
 
 Rationale: Alvares speaks in court/patronage terms, Mendes in martial companionship, Nunes in discretion/confidence; corporate tracks progress from intermediary work to direct dealings and privileged relationships. Covenant titles leave the pilot an honoured external associate, not a sealed member or holder of a religious office. Daedalus titles disclose no hidden research plot. Notoriety expresses a name recognized across smuggling circles, not universal trust from every contact or authority heat. Individual contact relationships remain separate.
 
-## Current naming proposal — flavor revision, 2026-10-30
+## Current rank names — implemented, 2026-10-30
 
-Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. This supersedes the plain naming draft. Follow-up: “otherwise looks okay” accepts the unaffected labels; Cerberus becomes **Unverified Asset / Verified Asset** at levels 0/1. Pete subsequently requests **Registered Sympathizer** for Combine level 1, while leaving level 0 open. For Daedalus he requests **Authorized Contractor** at level 2 and considers **Authorized Partner** or **Research Consultant** at level 3; Authorized Partner is the current recommendation. Three improvements marked **†** below remain proposals. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds, Combine's approved titles and level-2 direct VHM/KIS contracts are unchanged. No runtime copy or mechanic is implemented.
+Pete requests level-0 variations, more ostentatious/feudal House titles and more flavor across every track. This supersedes the plain naming draft. Follow-up: “otherwise looks okay” accepts the unaffected labels; Cerberus becomes **Unverified Asset / Verified Asset** at levels 0/1. Pete subsequently requests **Registered Sympathizer** for Combine level 1, while leaving level 0 open. For Daedalus he requests **Authorized Contractor** at level 2 and considers **Authorized Partner** or **Research Consultant** at level 3; Authorized Partner is the current recommendation. Pete then agreed to Authorized Partner and requested implementation; the table now records the live names. Level 0 still means no established standing, not hostility. The 0–3 meanings, full-bar thresholds and Combine titles are unchanged. VHM/KIS level-2 direct contracts remain a future gameplay rule, explicitly not enforced in this pass.
 
 | Track | Level 0 | Level 1 | Level 2 | Level 3 |
 |---|---|---|---|---|
 | House Alvares | Unpresented Stranger | Carrier by Ducal Warrant | Favoured Client of the Court | Intimate of the Ducal Household |
 | House Mendes | Unproven Outsider | Provisioner to the Banners | Honoured Ally of the House | Companion of the Marshal’s Table |
 | House Nunes | Unintroduced Stranger | Bearer of the Watch Warrant | Esteemed Friend of the Outer Watch | Keeper of the House’s Confidence |
-| Steel Combine | Unaffiliated Worker † | Registered Sympathizer | Honorary Citizen | Honorary Udarnik |
+| Steel Combine | Unaffiliated Worker | Registered Sympathizer | Honorary Citizen | Honorary Udarnik |
 | Voss-Heinkel Metricwerke | Unrated Operator | Field-Proven Contractor | Factory-Warranted Carrier | Partner of the Works |
-| Kisaragi | Unproven Hand † | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
+| Kisaragi | Unproven Hand | Proven Hand | Carrier of the Marque | Honoured Friend of the House |
 | Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
-| Daedalus Systems | Unknown Quantity | Known Quantity | Authorized Contractor | Authorized Partner † |
+| Daedalus Systems | Unknown Quantity | Known Quantity | Authorized Contractor | Authorized Partner |
 | Cerberus Human Resources | Unverified Asset | Verified Asset | Trusted Instrument | Friend of the Board |
 | Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
 
-Pending improvements (†):
+Naming review history (resolved by the implementation request):
 - Combine 0: **Unaffiliated Worker** replaces rejected “Outside the Plan” and the interim Unproven Worker suggestion, to fit Pete's subsequent **Registered Sympathizer** level 1. It expresses no established affiliation without treating a neutral outsider as hostile. Short alternative: **Unaffiliated**. Registered Sympathizer replaces Recognized Contributor; the full path now emphasizes increasing social/political recognition rather than only a contractor's work record.
 - Kisaragi 0: **Unproven Hand** replaces rejected “Without Introduction”; craft vocabulary with a clear progression to the accepted Proven Hand.
-- Daedalus 2/3 follow-up: Pete replaces Cleared Collaborator with **Authorized Contractor**, and considers **Authorized Partner** or **Research Consultant** for level 3. Recommend **Authorized Partner**: closer to the intended almost-one-of-us relationship; Research Consultant sounds more like an external specialist role and may imply scientific expertise the pilot does not possess. This supersedes Research Confidant (itself proposed after rejected Inside the Black Box). Level 3 remains marked † pending the choice. Partner is a standing label, not equity or legal authority to represent the corporation. No new Daedalus contract-access threshold is inferred solely from these names.
+- Daedalus 2/3 follow-up: Pete replaces Cleared Collaborator with **Authorized Contractor**, and considers **Authorized Partner** or **Research Consultant** for level 3. Recommend **Authorized Partner**: closer to the intended almost-one-of-us relationship; Research Consultant sounds more like an external specialist role and may imply scientific expertise the pilot does not possess. This supersedes Research Confidant (itself proposed after rejected Inside the Black Box). Pete subsequently agreed to Authorized Partner; it is the live level-3 label. Partner is a standing label, not equity or legal authority to represent the corporation. No new Daedalus contract-access threshold is inferred solely from these names.
 
 Naming rationale:
 - House language is deliberately ceremonious: Alvares recognizes the pilot through court patronage; Mendes through supply service and proximity to the Marshal; Nunes through warrants, the outer watch and guarded confidence. These are honorific relationship labels, not grants of nobility, office or military commissions.
@@ -123,7 +123,7 @@ Naming rationale:
 - Cerberus deliberately moves from unverified to verified asset, then entrusted instrument and boardroom intimacy. The impersonal wording is the corporation's attitude, not a new custody/employment mechanic.
 - Notoriety sounds like what smugglers say about someone rather than ranks awarded by a central authority. It does not establish universal personal trust or actual membership in an invented organization.
 
-No standing title is a new contract item, certification, institution, access permission or runtime change. Keep any future operator comments intact; the three marked alternatives remain subject to review.
+Standing titles grant no new contract item, certification, institution or access permission. The runtime change is storage/display/editing only. Keep any future operator comments intact.
 
 ## Complete current tagged roster — original census
 
@@ -202,4 +202,4 @@ No additional faction is required before designing standing for the existing org
 
 Next: finalize roster details, earning/loss rules, progression effort, meaningful benefits at the four approved levels, remaining faction-specific titles and exceptions. Keep personal contact trust distinct from organization-wide standing. Preserve ordinary public-board visibility/access unless an explicit later policy approves a change; existing public contracts authorize private arrivals and Farwatch remains contract-only. Do not infer hostility changes from routine commerce or apply a blanket reputation formula yet.
 
-No runtime change, new provider, tag rename, company merger, reward rebalance, contact unlock, save migration, push or deploy is part of this review.
+The initial review changed no runtime. The subsequent authorized implementation adds rank storage, display and the developer editor only; no new provider, tag rename, company merger, reward rebalance, contact unlock, versioned save migration, push or deploy.
