@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
-Updated: 2026-10-29 (Pacific)
-Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. The suggested final two below are not yet confirmed. No reputation mechanics, mergers, new factions, gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Updated: 2026-10-30 (Pacific)
+Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. The remaining nine-name proposal includes the still-unconfirmed Cerberus addition; a tenth slot is open. No reputation mechanics, mergers, new factions, gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -16,9 +16,11 @@ Source boundaries:
 - `src/content-terminology.ts`: current player-facing Shipyards wording; old operational IDs remain.
 - `src/content/estella/faction-contracts/reach-settlement-contracts.ts`: `HSC` is present on sparse Thule/Barataria work. Most older Hartwell carrier work has individual company names and no tag. Do not miss HSC by scanning only the carrier's primary file.
 
-## Current direction: ten meaningful factions
+## Current direction: nine candidates, tenth slot open
 
-Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Recommendation: add the Guild and Cerberus to reach ten.
+Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus remains the recommended ninth, not yet explicitly confirmed. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
+
+Recommendation: leave the tenth slot open rather than pad the roster. A specifically authored smuggling network is a possible later candidate, not a newly approved universal criminal faction; personal contact trust remains sufficient for the currently planned smuggling access.
 
 | # | Proposed reputation faction | Narrative purpose |
 |---|---|---|
@@ -30,16 +32,15 @@ Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisa
 | 6 | Kisaragi Harmony Shipyards | Interstellar prestige industry, exacting clients and corporate access |
 | 7 | Covenant Remnants | Enclave society, competing orders and reserved succession stories |
 | 8 | Daedalus Systems | Research, advanced technology and its reserved story material |
-| 9 | The Teamsters' Guild — recommended addition | Professional belonging, fuel monopoly and Guild politics |
-| 10 | Cerberus Human Resources — recommended addition | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
+| 9 | Cerberus Human Resources — recommended addition | Acheron's coercive economy, Olympos interests and Pandemonium tensions |
 
 KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
 
-Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling can initially use the already intended personal contact trust rather than requiring an eleventh global score. All of this is proposed scope, not new runtime behavior.
+Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling can initially use the already intended personal contact trust rather than requiring another global score. All of this is proposed scope, not new runtime behavior.
 
 ## Complete current tagged roster — original census
 
-The role column summarizes existing identity, not proposed reputation rewards. The treatment column records the **superseded 20-track recommendation**, retained for comparison; the ten-faction proposal above is the current discussion. No mission tags or providers have changed.
+The role column summarizes existing identity, not proposed reputation rewards. The treatment column records the **superseded 20-track recommendation**, retained for comparison; the narrowed roster above is the current discussion. No mission tags or providers have changed.
 
 | Tag | Current public entity | Stable provider ID | Existing identity / role | Proposed standing treatment |
 |---|---|---|---|---|
