@@ -1,7 +1,7 @@
 # Faction reputation — roster review
 
 Updated: 2026-10-30 (Pacific)
-Status: **Design proposal only; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the nine-name faction proposal (Cerberus still not separately confirmed). Numerical rules and implementation remain undecided; no organization mergers, new gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Design only, not implemented; 20-track proposal rejected as too many.** Pete now targets about ten meaningful factions: three Wells Houses, Steel, the two interstellar corporations and story-interesting entities such as Covenant and Daedalus. Pete explicitly excludes the Guild: no Guild plots are planned. Pete approves a shared **Notoriety** track across smugglers, with missions supplied by individual contacts. This fills the tenth track alongside the nine-name faction proposal (Cerberus still not separately confirmed). Pete specifies four reputation levels (0–3), partial bar progress with effects only at full-bar thresholds, and Combine titles below. Earning/loss rates, concrete benefits and implementation remain undecided; no organization mergers, new gates or save changes are approved. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
 
@@ -44,6 +44,34 @@ Recommended interpretation for the next design pass: Notoriety measures how well
 KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
 
 Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling now has the approved shared Notoriety concept alongside the intended personal contact-trust layer. Their interaction remains to be designed; neither is implemented.
+
+## Approved reputation levels and bar progression — 2026-10-30
+
+Pete specifies four effective levels, **0, 1, 2, 3**, presented as bars in the visual language of cargo condition / maintenance. Bars can be partially filled, but a level's effect is reached only when its bar is fully filled.
+
+| Effective level | General meaning | Steel Combine title supplied by Pete |
+|---|---|---|
+| 0 | Unknown | No special title specified |
+| 1 | Reliable contractor | No special title specified |
+| 2 | Trusted friend | Honorary citizen |
+| 3 | Almost “one of us” | Honorary Udarnik |
+
+Display interpretation: **three fillable bars represent the three advances above level 0**. Zero full bars is level 0; one, two or three full bars gives the matching level. Fill them sequentially; a partially filled next bar shows progress, not a fractional benefit or an early promotion.
+
+Illustrative text diagram, not a final widget design:
+
+```text
+[....] [....] [....]  Unknown
+[####] [##..] [....]  Reliable contractor; halfway toward level 2
+[####] [####] [....]  Trusted friend / Honorary citizen
+[####] [####] [####]  Almost “one of us” / Honorary Udarnik
+```
+
+These are progress segments, not a chosen point economy: no 100-point thresholds, equal effort per level or specific task awards are implied. Existing level effects remain while the next bar fills; no next-level effect is granted early. If later rules permit reputation loss, the full-bar condition must be considered when deciding how current standing and reversible privileges fall; loss rates, permanent rewards and revocation details are not yet designed.
+
+The common meanings can support faction-specific titles, as in the Combine examples. Those honorary titles do not by themselves authorize citizenship rights, actual Udarnik membership, prices, equipment, access or mission unlocks; concrete effects still need authoring. Notoriety's exact displayed titles and its interaction with individual contacts remain to be defined. This does not authorize additional per-contact numerical bars or a police-heat system.
+
+Next design choices: earning/loss rules and progression effort; meaningful effects at each full-bar threshold; remaining faction-specific labels and Notoriety wording. No runtime or save work has started.
 
 ## Complete current tagged roster — original census
 
@@ -120,6 +148,6 @@ No additional faction is required before designing standing for the existing org
 
 ## Boundary for the next design step
 
-After roster decisions: define what a standing measures, earning/loss rules, ranks, meaningful benefits and faction-specific exceptions. Keep personal contact trust distinct from organization-wide standing. Preserve ordinary public-board visibility/access unless an explicit later policy approves a change; existing public contracts authorize private arrivals and Farwatch remains contract-only. Do not infer hostility changes from routine commerce or apply a blanket reputation formula yet.
+Next: finalize roster details, earning/loss rules, progression effort, meaningful benefits at the four approved levels, remaining faction-specific titles and exceptions. Keep personal contact trust distinct from organization-wide standing. Preserve ordinary public-board visibility/access unless an explicit later policy approves a change; existing public contracts authorize private arrivals and Farwatch remains contract-only. Do not infer hostility changes from routine commerce or apply a blanket reputation formula yet.
 
 No runtime change, new provider, tag rename, company merger, reward rebalance, contact unlock, save migration, push or deploy is part of this review.
