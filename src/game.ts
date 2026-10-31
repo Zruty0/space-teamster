@@ -3074,11 +3074,11 @@ export class Game {
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
           { kind: 'kv', label: 'Teamster Rank', value: currentTeamsterRank, tone: currentTeamsterRank === 'Teamster' ? 'success' : currentTeamsterRank === 'Junior Teamster' ? 'warning' : undefined },
           { kind: 'separator' },
-          { kind: 'text', text: 'FACTION RANKS & NOTORIETY', tone: 'primary' },
-          { kind: 'text', text: 'Each full bar advances one rank. Partial bars show progress toward the next.', tone: 'muted' },
-          ...REPUTATION_TRACKS.map(track => {
+          { kind: 'text', text: 'FACTION REPUTATION', tone: 'primary' },
+          ...REPUTATION_TRACKS.flatMap(track => {
             const standing = reputationStanding(this.career.reputations, track.id);
-            return { kind: 'kv' as const, label: track.name, value: `${standing.title} (${standing.level}/3)`, bars: standing.bars };
+            if (track.id === 'smuggler-notoriety' && standing.progress === 0) return [];
+            return [{ kind: 'kv' as const, label: track.name, value: standing.title, bars: standing.bars }];
           }),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',

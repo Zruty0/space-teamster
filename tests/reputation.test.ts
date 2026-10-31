@@ -117,14 +117,17 @@ for (const track of REPUTATION_TRACKS) {
 }
 equal(JSON.stringify([game.worldTime, game.phase, game.pendingMaintenanceSettlement, game.phaseCompletion]), clocksAndFlight, 'edits do not touch flight snapshots/clocks/scene/maintenance settlement');
 
-for (const value of [0, 0.75, 1, 1.9999999999999998, 2, 2.5, 3]) {
+for (const value of [0, Number.MIN_VALUE, 0.75, 1, 1.9999999999999998, 2, 2.5, 3, 0]) {
   game.career.reputations = Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, value]));
   const scene = game.buildInteractiveScene({ id: 'careerStatus', selectedIndex: 0 });
   const rows = scene.bodyRows.filter((row: any) => row.bars);
-  assert(rows.length === 10, 'career view includes all ten, no Guild reputation');
-  for (const [index, track] of REPUTATION_TRACKS.entries()) {
+  const visible = REPUTATION_TRACKS.filter(t => t.id !== 'smuggler-notoriety' || value > 0);
+  assert(rows.length === visible.length, 'only completely zero Notoriety is hidden; fractional level zero remains visible');
+  assert(scene.bodyRows.some((r: any) => r.text === 'FACTION REPUTATION'), 'revised section heading');
+  assert(!scene.bodyRows.some((r: any) => /Each full bar|Partial bars|FACTION RANKS/.test(r.text ?? '')), 'no explanatory text or old heading');
+  for (const [index, track] of visible.entries()) {
     const s = reputationStanding(game.career.reputations, track.id);
-    equal(rows[index], { kind: 'kv', label: track.name, value: `${s.title} (${s.level}/3)`, bars: s.bars }, 'scene uses actual rank title and fractional bar data');
+    equal(rows[index], { kind: 'kv', label: track.name, value: s.title, bars: s.bars }, 'scene uses title without numeric suffix and retains fractional bars');
   }
 }
 
@@ -146,7 +149,10 @@ for (const size of [[1024, 768], [1280, 800], [1920, 1080]]) {
     text = []; fills = [];
     for (let offset = 0; offset < limit + 180; offset += 180) drawInteractiveScene(ctx, canvas, scene, 0, offset);
     const drawn = text.join('').replace(/\s/g, '');
-    for (const track of REPUTATION_TRACKS) assert(drawn.includes(track.titles[Math.floor(value)].replace(/\s/g, '')), 'every full title is reachable, never ellipsized');
+    for (const track of REPUTATION_TRACKS) {
+      const found = drawn.includes(track.titles[Math.floor(value)].replace(/\s/g, ''));
+      assert(found === (track.id !== 'smuggler-notoriety' || value > 0), 'visible titles reachable; completely zero Notoriety omitted');
+    }
     assert(!text.some(t => /…|\.\.\./.test(t)), 'no truncated career labels');
     const bars = fills.filter(r => r.color === '#4ddcff');
     if (value === 0) assert(bars.length === 0, 'zero draws empty bars');

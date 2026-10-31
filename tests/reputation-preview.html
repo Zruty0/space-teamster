@@ -37,7 +37,14 @@ if(!document.hasFocus()){
 try{
  base();draw();const count=writes;
  const ranks=scene().bodyRows.filter(r=>r.bars);
- assert(ranks.length===10&&ranks.every(r=>r.bars.length===3&&r.bars.every(v=>v===0)),'all ten unknown ranks/three empty bars');
+ assert(ranks.length===9&&ranks.every(r=>r.bars.length===3&&r.bars.every(v=>v===0))&&!ranks.some(r=>r.label==='Notoriety'),'nine unknown factions; zero Notoriety hidden');
+ assert(scene().bodyRows.some(r=>r.text==='FACTION REPUTATION')&&!scene().bodyRows.some(r=>/Each full bar|Partial bars/.test(r.text??'')),'simplified heading without explanation');
+ for(const value of [0.001,1,3,0]){
+  game.career.reputations['smuggler-notoriety']=value;
+  const notoriety=scene().bodyRows.find(r=>r.label==='Notoriety');
+  assert(!!notoriety===(value>0),'Notoriety visible on any progress, hidden again at zero');
+  if(notoriety)assert(notoriety.value===reputationStanding(game.career.reputations,'smuggler-notoriety').title,'title without numeric suffix');
+ }
  assert(!ranks.some(r=>r.label.includes('Guild')),'no Guild reputation');
  assert(writes===count,'viewing does not save');
  panelOn();assert(panel.querySelectorAll('.dev-rank').length===10,'ten native editor rows');

@@ -14,7 +14,7 @@ Status: implemented. Pete authorized the ranks system, career display and Tilde 
 
 ## Player view
 
-**Station Terminal → Career Status** retains location, cash, world time and professional Teamster rank, then displays all ten faction/Notoriety standings, full current titles and fractional bars. This is read-only. The subtitle no longer suggests that these are Guild standings.
+**Station Terminal → Career Status** retains location, cash, world time and professional Teamster rank, then displays **FACTION REPUTATION**, with full current titles and fractional bars. No explanatory paragraph or numeric rank suffix is shown. The nine factions always appear; Notoriety appears only when its progress is greater than zero (including partial level-0 progress), and hides again if reset to zero. The developer editor still exposes all ten tracks. This is read-only. The subtitle no longer suggests that these are Guild standings.
 
 Long names wrap without ellipses. The existing PgUp/PgDn detail scrolling handles shorter desktop viewports. `InteractiveScene` key/value rows gain optional bar fills; existing rows without bars retain their layout.
 
