@@ -5,7 +5,7 @@ Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor i
 
 ## November 2 decisions — implemented standing model, gates still inactive
 
-- **BAM and Merren get independent tracks capped at level 2.** The roster is now twelve tracks including Notoriety. Their temporary titles use the general level meanings: Unknown / Reliable Contractor / Trusted Friend; bespoke commercial names remain open.
+- **BAM and Merren get independent tracks capped at level 2.** The roster is now twelve tracks including Notoriety. Pete selects **Unrated contractor / Rated contractor / Trusted contractor** for both, replacing the provisional general titles. His “Rated contructor” is interpreted as a typo for “Rated contractor”.
 - **Accord uses the highest House level**, not a separate track: currently Alvares, Mendes and Nunes.
 - **Halloran uses the highest corporate level**, not a separate track. The implementation uses VHM, Kisaragi, Daedalus, Cerberus, BAM and Merren as the corporate set, excluding Steel Combine's political/industrial standing. This set was stated explicitly to Pete; no additional corporate meters inferred.
 - Bruckner uses VHM; KIS-E uses Kisaragi. Sharing a standing does not merge business ownership.
@@ -141,11 +141,11 @@ Pete requests level-0 variations, more ostentatious/feudal House titles and more
 | Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
 | Daedalus Systems | Unknown Quantity | Known Quantity | Authorized Contractor | Authorized Partner |
 | Cerberus Human Resources | Unverified Asset | Verified Asset | Trusted Instrument | Friend of the Board |
-| Balor Advanced Materials | Unknown | Reliable Contractor | Trusted Friend | — (capped at 2) |
-| Merren Conservatory | Unknown | Reliable Contractor | Trusted Friend | — (capped at 2) |
+| Balor Advanced Materials | Unrated contractor | Rated contractor | Trusted contractor | — (capped at 2) |
+| Merren Conservatory | Unrated contractor | Rated contractor | Trusted contractor | — (capped at 2) |
 | Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
 
-BAM/Merren labels are provisional general meanings, not bespoke reviewed honorifics. Other forty labels remain unchanged.
+BAM/Merren labels are Pete's selected shared contractor titles. Other forty labels remain unchanged.
 
 Naming review history (resolved by the implementation request):
 - Combine 0: **Unaffiliated Worker** replaces rejected “Outside the Plan” and the interim Unproven Worker suggestion, to fit Pete's subsequent **Registered Sympathizer** level 1. It expresses no established affiliation without treating a neutral outsider as hostile. Short alternative: **Unaffiliated**. Registered Sympathizer replaces Recognized Contributor; the full path now emphasizes increasing social/political recognition rather than only a contractor's work record.

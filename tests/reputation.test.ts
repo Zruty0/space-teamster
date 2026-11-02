@@ -19,7 +19,7 @@ Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
   setItem: (k: string, v: string) => { beforeSave?.(); if (fail) throw Error('blocked synthetic save'); storage.set(k, v); writes++; },
 } });
 
-// Independent title expectations: ten reviewed tracks plus provisional general BAM/Merren titles.
+// Independent title expectations for all twelve reviewed tracks.
 const reviewed = new Map(`House Alvares|Unpresented Stranger|Carrier by Ducal Warrant|Favoured Client of the Court|Intimate of the Ducal Household
 House Mendes|Unproven Outsider|Provisioner to the Banners|Honoured Ally of the House|Companion of the Marshal’s Table
 House Nunes|Unintroduced Stranger|Bearer of the Watch Warrant|Esteemed Friend of the Outer Watch|Keeper of the House’s Confidence
@@ -29,15 +29,15 @@ Kisaragi|Unproven Hand|Proven Hand|Carrier of the Marque|Honoured Friend of the 
 Covenant Remnants|Unsealed Stranger|Guest at the Gate|Friend of the Covenant|Unsealed Kindred
 Daedalus Systems|Unknown Quantity|Known Quantity|Authorized Contractor|Authorized Partner
 Cerberus Human Resources|Unverified Asset|Verified Asset|Trusted Instrument|Friend of the Board
-Balor Advanced Materials|Unknown|Reliable Contractor|Trusted Friend
-Merren Conservatory|Unknown|Reliable Contractor|Trusted Friend
+Balor Advanced Materials|Unrated contractor|Rated contractor|Trusted contractor
+Merren Conservatory|Unrated contractor|Rated contractor|Trusted contractor
 Notoriety|No Name|Safe Pair of Hands|A Name Worth Trusting|One of Our Own`.split('\n').map(line => {
   const cells = line.split('|');
   return [cells[0], cells.slice(1)] as const;
 }));
 assert(REPUTATION_TRACKS.length === 12 && new Set(REPUTATION_TRACKS.map(t => t.id)).size === 12, 'exactly twelve independent tracks');
 for (const track of REPUTATION_TRACKS) {
-  equal(track.titles, reviewed.get(track.name), `${track.name}: original reviewed titles or provisional general commercial titles`);
+  equal(track.titles, reviewed.get(track.name), `${track.name}: reviewed titles`);
   assert(isReputationId(track.id), `${track.id}: valid stable id`);
   const expectedCap = ['balor-advanced-materials', 'merren-conservatory'].includes(track.id) ? 2 : 3;
   assert(reputationMaxLevel(track.id) === expectedCap && track.titles.length === expectedCap + 1, 'only BAM/Merren capped at 2');

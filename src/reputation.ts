@@ -9,9 +9,8 @@ export const REPUTATION_TRACKS = [
   { id: 'covenant-remnants', name: 'Covenant Remnants', titles: ['Unsealed Stranger', 'Guest at the Gate', 'Friend of the Covenant', 'Unsealed Kindred'] },
   { id: 'daedalus-systems', name: 'Daedalus Systems', titles: ['Unknown Quantity', 'Known Quantity', 'Authorized Contractor', 'Authorized Partner'] },
   { id: 'cerberus-human-resources', name: 'Cerberus Human Resources', titles: ['Unverified Asset', 'Verified Asset', 'Trusted Instrument', 'Friend of the Board'] },
-  // General level meanings until bespoke commercial titles are chosen.
-  { id: 'balor-advanced-materials', name: 'Balor Advanced Materials', titles: ['Unknown', 'Reliable Contractor', 'Trusted Friend'] },
-  { id: 'merren-conservatory', name: 'Merren Conservatory', titles: ['Unknown', 'Reliable Contractor', 'Trusted Friend'] },
+  { id: 'balor-advanced-materials', name: 'Balor Advanced Materials', titles: ['Unrated contractor', 'Rated contractor', 'Trusted contractor'] },
+  { id: 'merren-conservatory', name: 'Merren Conservatory', titles: ['Unrated contractor', 'Rated contractor', 'Trusted contractor'] },
   { id: 'smuggler-notoriety', name: 'Notoriety', titles: ['No Name', 'Safe Pair of Hands', 'A Name Worth Trusting', 'One of Our Own'] },
 ] as const;
 
