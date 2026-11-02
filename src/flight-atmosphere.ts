@@ -5,19 +5,34 @@ import { terrainSurfacePoints, getTerrainHeight, type TerrainData } from './terr
 import { regionalAdvection, regionalWind, weatherSeed, weatherRandom, type LandingAir } from './landing-air';
 import type { BodyDef } from './world';
 import type { InputState } from './input';
+import { createWindTracers } from './wind-tracers';
 export const PARTICLE_CAP=256;
 export const NEUTRAL_FLIGHT_INPUT:InputState={pitch:0,throttleUp:false,throttleDown:false,stopAssist:false,killRotation:false,moveUp:false,moveDown:false,moveLeft:false,moveRight:false,rotateLeft:false,rotateRight:false,shiftHeld:false,setHoverThrottle:false,toggleGear:false,reset:false,toggleDevPanel:false,levelSelect:false,levelPick:0,menuUp:false,menuDown:false,menuLeft:false,menuRight:false,menuConfirm:false,pageUp:false,pageDown:false,continueAction:false,toggleWings:false,wingAngleUp:false,wingAngleDown:false,toggleSAS:false,warpUp:false,warpDown:false,toggleHighThrust:false};
 type Camera={x:number;y:number;zoom:number};
 type Puff={x:number;y:number;vx:number;vy:number;age:number;life:number;radius:number;active:boolean};
 export interface AtmosphericPilot {visuals:boolean;wind:boolean;low:boolean;effects:ReturnType<typeof createFlightAtmosphere>;input?:InputState;}
 export interface LandingAtmosphereView {pilot:AtmosphericPilot;air:LandingAir;physicsAir?:LandingAir;epoch:number;}
-export function createFlightAtmosphere(){
+/** World-space source, reusable by future authored smokestack anchors. No stacks registered here. */
+export interface SmokeSource {x:number;y:number;vx:number;vy:number;life?:number;size?:number;}
+export function createFlightAtmosphere(regionId=''){
+ const tracers=createWindTracers(regionId);
  const pool:Puff[]=Array.from({length:PARTICLE_CAP},()=>({x:0,y:0,vx:0,vy:0,age:0,life:1,radius:1,active:false}));
  let cursor=0,serial=0,emission=0,lastTime=-Infinity,cloud:HTMLCanvasElement|undefined,smoke:HTMLCanvasElement|undefined,cloudColor='';
- function reset(){for(const p of pool)p.active=false;cursor=serial=emission=0;lastTime=-Infinity;}
+ function reset(){for(const p of pool)p.active=false;cursor=serial=emission=0;lastTime=-Infinity;tracers.reset();}
+ // One puff per call; a future fixed source supplies its own bounded emission clock.
+ // All sources share this fixed pool, wind relaxation, clipping and expiry.
+ function emitSmoke(source:SmokeSource,air:LandingAir,time:number){
+  if(![source.x,source.y,source.vx,source.vy,time,source.life??1,source.size??1].every(Number.isFinite))return;
+  const p=pool[cursor];cursor=(cursor+1)%PARTICLE_CAP;
+  const r=weatherRandom(9137,serial++),atmo=air.sample(source.x,source.y,time).density>0;
+  Object.assign(p,{x:source.x,y:source.y,vx:source.vx+(r-.5)*2,vy:source.vy,age:0,
+   life:atmo?Math.max(.1,Math.min(8,source.life??(2.2+r*.4))):.25+r*.1,
+   radius:atmo?Math.max(.2,Math.min(3,source.size??1)):.4,active:true});
+ }
  function step(ship:ShipState,air:LandingAir,terrain:TerrainData,dt:number,time:number){
   if(!(dt>0)||dt>.1||!Number.isFinite(time))return;
   if(time<lastTime)reset();lastTime=time;
+  tracers.step(air,terrain,dt,time);
   for(const p of pool){if(!p.active)continue;p.age+=dt;if(p.age>=p.life){p.active=false;continue;}
    const a=air.sample(p.x,p.y,time),mix=1-Math.exp(-dt*1.4);
    if(a.density>0){p.vx+=(a.vx-p.vx)*mix;p.vy*=1-mix;}
@@ -28,8 +43,7 @@ export function createFlightAtmosphere(){
   const power=Math.min(1,ship.thrustVisualLevel);emission+=dt*(12+30*power);
   while(emission>=1){emission--;for(const [lx,ly]of ENGINE_PODS){
    const [x,y]=localToWorld(lx,ly,ship.x,ship.y,ship.angle,ship.facingSign),dx=-Math.sin(ship.renderGimbalAngle),dy=-Math.cos(ship.renderGimbalAngle);
-   const p=pool[cursor];cursor=(cursor+1)%PARTICLE_CAP;const r=weatherRandom(9137,serial++),atmo=air.sample(x,y,time).density>0;
-   Object.assign(p,{x:x+dx*1.35,y:y+dy*1.35,vx:ship.vx+dx*(8+16*power)+(r-.5)*2,vy:ship.vy+dy*(8+16*power),age:0,life:atmo?2.2+r*.4:.25+r*.1,radius:atmo?1:.4,active:true});
+   emitSmoke({x:x+dx*1.35,y:y+dy*1.35,vx:ship.vx+dx*(8+16*power),vy:ship.vy+dy*(8+16*power)},air,time);
   }}
  }
  function sprite(body:BodyDef){
@@ -89,6 +103,7 @@ export function createFlightAtmosphere(){
     ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+w*.35),sy(y+1),sx(x+w*.8),sy(y));ctx.stroke();
    }
    ctx.globalAlpha=1;
+   tracers.draw(ctx,cam,W,H,low,air,time);
    for(let i=0;i<pool.length;i++){const p=pool[i];if(!p.active||(low&&i%2))continue;
     const age=p.age/p.life,r=(.35+p.age*1.5)*p.radius*cam.zoom,x=sx(p.x),y=sy(p.y);
     if(x+r<0||x-r>W||y+r<0||y-r>H)continue;
@@ -97,5 +112,5 @@ export function createFlightAtmosphere(){
    }
   }finally{ctx.restore();}
  }
- return{reset,step,drawClouds,drawLanding,diagnostics:()=>({active:pool.filter(p=>p.active).length,capacity:PARTICLE_CAP,cloudPixels:cloud?cloud.width*cloud.height:0,smokePixels:smoke?smoke.width*smoke.height:0}),snapshot:()=>pool.filter(p=>p.active).map(p=>({...p}))};
+ return{reset,step,emitSmoke,drawClouds,drawLanding,tracerSnapshot:tracers.snapshot,diagnostics:()=>({active:pool.filter(p=>p.active).length,capacity:PARTICLE_CAP,tracers:tracers.diagnostics(),cloudPixels:cloud?cloud.width*cloud.height:0,smokePixels:smoke?smoke.width*smoke.height:0}),snapshot:()=>pool.filter(p=>p.active).map(p=>({...p}))};
 }

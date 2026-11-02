@@ -26,7 +26,7 @@
     "test:gaia-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/gaia-shipping.test.ts",
     "audit:gaia": "node tests/run-equipment.mjs tests/audit-gaia-shipping.ts",
     "test:approach-biomes": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/approach-biomes.test.ts",
-    "test:landing-air": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/landing-air.test.ts",
+    "test:landing-air": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/landing-air.test.ts && node tests/run-equipment.mjs tests/wind-tracers.test.ts",
     "test:surface-poi": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/surface-poi.test.ts && node tests/run-equipment.mjs tests/surface-collision.test.ts && node tests/run-equipment.mjs tests/surface-grading.test.ts",
     "test:atmosphere": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/atmosphere-prototype.test.ts",
     "test:world-discs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/world-disc-appearance.test.ts",

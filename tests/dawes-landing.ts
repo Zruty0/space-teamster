@@ -4,6 +4,7 @@ import { defaultCareerProfile } from '../src/career-state';
 import { config } from '../src/config';
 import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
 import { createFlightAtmosphere } from '../src/flight-atmosphere';
+import { createWindTracers } from '../src/wind-tracers';
 import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight, landingReferenceHeight } from '../src/terrain';
 import { createShip, updateShip } from '../src/ship';
@@ -27,8 +28,8 @@ const game:any=Object.create(Game.prototype); // No constructor, career IO, acce
 Object.assign(game,{canvas,ctx,career:defaultCareerProfile(),activeManifestCondition:{},missionDvUsed:0,activeMissionQuote:null,time:0});
 const pilotMode=new URLSearchParams(location.search).has('atmosphere');
 if(pilotMode){
- game.atmosphericPilot={visuals:true,wind:true,low:false,effects:createFlightAtmosphere()};
- const panel=document.createElement('p');panel.innerHTML='<strong>Atmosphere pilot — not enabled in careers.</strong> <label><input id="effects" type="checkbox" checked> Clouds / smoke / wind wisps</label> <label><input id="wind" type="checkbox" checked> Physical landing wind</label> <label><input id="low" type="checkbox"> Low effects</label> · T: SAS holds zero ground velocity (starts ON). Approach view previews moving clouds; Fly animates weather without advancing approach physics.';
+ game.atmosphericPilot={visuals:true,wind:true,low:false,effects:createFlightAtmosphere(DAWES_CUT_ID)};
+ const panel=document.createElement('p');panel.innerHTML='<strong>Atmosphere pilot — not enabled in careers.</strong> <label><input id="effects" type="checkbox" checked> Clouds / smoke / wind particles</label> <label><input id="wind" type="checkbox" checked> Physical landing wind</label> <label><input id="low" type="checkbox"> Low effects</label> · T: SAS holds zero ground velocity (starts ON). Approach view previews moving clouds; Fly animates weather without advancing approach physics.';
  canvas.before(panel);
  for(const [id,key]of [['effects','visuals'],['wind','wind'],['low','low']])document.getElementById(id)!.onchange=e=>{game.atmosphericPilot[key]=(e.target as HTMLInputElement).checked;draw();};
 }
@@ -62,7 +63,10 @@ function step(input:InputState,dt:number){
  if(input.toggleGear){current.ship.gearDeployed=!current.ship.gearDeployed;current.ship.autoRotateEnabled=true;}
  if(input.toggleSAS)current.ship.sas=!current.ship.sas;
  elapsed+=dt;
- if(game.shouldHoldLaunchOnPad(current,input))game.clampLaunchShipToPad(current);
+ if(game.shouldHoldLaunchOnPad(current,input)){
+  game.clampLaunchShipToPad(current);const atmosphere=game.landingAtmosphere(current);
+  atmosphere?.pilot.effects.step({...current.ship,thrustFiring:false},atmosphere.air,terrain,dt,elapsed);
+ }
  else{const previous={...current.ship},atmosphere=game.landingAtmosphere(current);
   if(atmosphere)atmosphere.pilot.input={...input};
   updateShip(current.ship,input,dt,elapsed,atmosphere?.physicsAir);
@@ -210,22 +214,31 @@ async function pilotChecks(){
   assert(hold.ship.sas&&Math.abs(hold.ship.vx)<1e-8&&Math.abs(hold.ship.vy)<1e-8&&Math.abs(hold.ship.x-1000)<1e-8,'SAS holds zero ground velocity against wind');
   assert(hold.ship.rcsTranslating&&hold.ship.dvUsed>12*level.gravity,'wind compensation consumes RCS delta-v');
   assert(hold.effects.active>0&&hold.effects.active<=256,'exhaust emitted into bounded pool');
-  const plume=pilot.effects.snapshot();draw();draw();assert(JSON.stringify(pilot.effects.snapshot())===JSON.stringify(plume),'drawing/paused redraw never advances particles');
+  const plume=pilot.effects.snapshot(),tracers=pilot.effects.tracerSnapshot();draw();draw();assert(JSON.stringify(pilot.effects.snapshot())===JSON.stringify(plume)&&JSON.stringify(pilot.effects.tracerSnapshot())===JSON.stringify(tracers),'drawing/paused redraw never advances particles');
+  assert(hold.effects.tracers.active>0&&hold.effects.tracers.capacity===128,'bounded ambient wind particles accompany the plume');
+  reset('overview');current.ship.throttle=0;advance(2);
+  assert(pilot.effects.diagnostics().active===0&&pilot.effects.diagnostics().tracers.active>0,'ambient wind remains visible with engines off');
+  const a=pilot.effects.tracerSnapshot();advance(1/120);const b=pilot.effects.tracerSnapshot();
+  assert(a.some((p:any)=>b.some((q:any)=>q.id===p.id&&q.generation===p.generation&&q.x>p.x)),'ambient particles actually travel downwind');
+  pilot.effects.reset();reset('overview');advance(12);
   pilot.visuals=false;draw();const hidden=hash(image());pilot.visuals=true;draw();assert(hash(image())!==hidden,'smoke and wind paint visible with effects enabled');
   reset('overview');const blown=advance(12,{toggleSAS:true});assert(Math.abs(blown.ship.x-1000)>.5,'SAS off allows wind drift');
   pilot.wind=false;reset('overview');const calm=advance(12,{toggleSAS:true});assert(Math.abs(calm.ship.x-1000)<1e-9,'wind off restores calm legacy simulation');
   pilot.wind=true;
   // Actual fixed-step Game handler, including RCS cost/maintenance telemetry; no career constructor or settlement.
   const runtime:any=Object.create(Game.prototype);
-  Object.assign(runtime,{career:defaultCareerProfile(),worldTime:12345,missionDvUsed:0,activeManifestCondition:{integrity:null,comfort:null},activeMaintenanceTelemetry:createMaintenanceTelemetry(),landingScenery:scenery,atmosphericPilot:{...pilot,effects:createFlightAtmosphere()},showGuidance:()=>{},showContextualOperationsManual:()=>{}});
+  Object.assign(runtime,{career:defaultCareerProfile(),worldTime:12345,missionDvUsed:0,activeManifestCondition:{integrity:null,comfort:null},activeMaintenanceTelemetry:createMaintenanceTelemetry(),landingScenery:scenery,atmosphericPilot:{...pilot,effects:createFlightAtmosphere(DAWES_CUT_ID)},showGuidance:()=>{},showContextualOperationsManual:()=>{}});
   runtime.loadLanding(level,{x:1000,y:terrain.pad.y+85,vx:0,vy:0});Object.assign(runtime.phase.ship,{sas:true,gearDeployed:true,throttle:level.gravity/config.mainEngineAccel});
   for(let i=0;i<480;i++)runtime.handleLanding({...neutral},1/120);
   assert(runtime.phase.state==='flying'&&Math.abs(runtime.phase.ship.vx)<1e-10&&runtime.phase.ship.x===1000,'actual Game handler applies ground-hold wind compensation');
   assert(runtime.activeMaintenanceTelemetry.standardManeuverDv>0&&runtime.atmosphericPilot.effects.diagnostics().active>0,'actual Game records SAS effort and advances exhaust');
   assert(!runtime.landingAtmosphere({...runtime.phase,level:createLandingLevel('estella-v-capital-settlement',993312)}),'pilot refuses other POIs');
-  reset('overview');const first=advance(4,{toggleSAS:true}),particles=JSON.stringify(pilot.effects.snapshot());
-  reset('overview');const second=advance(4,{toggleSAS:true});assert(JSON.stringify(first.ship)===JSON.stringify(second.ship)&&particles===JSON.stringify(pilot.effects.snapshot()),'retry restores weather, ship and emission exactly');
-  pilot.visuals=false;pilot.low=true;reset('overview');const low=advance(4,{toggleSAS:true});assert(JSON.stringify(low.ship)===JSON.stringify(first.ship),'visual switches never change physics');
+  runtime.loadLanding(level,undefined,{targetAltitude:500,orbitDir:1,nextApproachLevelId:approachLevel.id});
+  for(let i=0;i<120;i++)runtime.handleLanding({...neutral},1/120);
+  assert(runtime.phase.ship.dvUsed===0&&runtime.phase.ship.vx===0&&runtime.atmosphericPilot.effects.diagnostics().active===0&&runtime.atmosphericPilot.effects.diagnostics().tracers.active>0,'actual Game pad hold advances wind particles without thrust, smoke or fuel use');
+  reset('overview');const first=advance(4,{toggleSAS:true}),particles=JSON.stringify([pilot.effects.snapshot(),pilot.effects.tracerSnapshot()]);
+  reset('overview');const second=advance(4,{toggleSAS:true});assert(JSON.stringify(first.ship)===JSON.stringify(second.ship)&&particles===JSON.stringify([pilot.effects.snapshot(),pilot.effects.tracerSnapshot()]),'retry restores weather, ship and emission exactly');
+  pilot.visuals=false;pilot.low=true;reset('overview');const low=advance(4,{toggleSAS:true});assert(JSON.stringify(low.ship)===JSON.stringify(first.ship)&&particles===JSON.stringify([pilot.effects.snapshot(),pilot.effects.tracerSnapshot()]),'visual switches never change physics or particle trajectories');
   pilot.visuals=true;reset('close');current.ship.y=terrain.pad.y+10;advance(3);current.camera={x:1000,y:terrain.pad.y+50,zoom:4};draw();
   const below=ctx.getImageData(300,590,600,40).data,building=ctx.getImageData(253,475,10,10).data;
   pilot.visuals=false;draw();const bareBelow=ctx.getImageData(300,590,600,40).data;assert(below.every((v,i)=>v===bareBelow[i]),'no smoke/wind below physical terrain');
@@ -236,7 +249,16 @@ async function pilotChecks(){
   const scratch=document.createElement('canvas');scratch.width=600;scratch.height=400;const c=scratch.getContext('2d')!;
   pilot.effects.drawClouds(c,approach.cam,{...level.body,atmosphere:null},DAWES_CUT_ID,0,1,12345,600,400,()=>0);
   assert(c.getImageData(0,0,600,400).data.every(v=>v===0),'no atmospheric clouds on airless bodies');
-  reset('takeoff');advance(.5);assert(current.state==='flying'&&current.ship.sas&&Math.abs(current.ship.y-terrain.pad.y-4.05)<1e-8,'parked launch hold preserves SAS choice and stays grounded in wind');
+  const motes=createWindTracers(DAWES_CUT_ID),air=game.landingAtmosphere(current).air,camera={x:1000,y:terrain.pad.y+100,zoom:2};
+  for(let i=0;i<120;i++)motes.step(air,terrain,1/120,i/120);
+  const moteState=JSON.stringify(motes.snapshot()),alphaCount=()=>{const data=c.getImageData(0,0,600,400).data;let n=0;for(let i=3;i<data.length;i+=4)if(data[i])n++;return n;};
+  motes.draw(c,camera,600,400,false,air,1);const fullPixels=alphaCount();assert(fullPixels>0,'native tracer-only paint is visible');
+  c.clearRect(0,0,600,400);motes.draw(c,camera,600,400,true,air,1);assert(alphaCount()>0&&alphaCount()<=fullPixels,'low quality thins airborne paint');
+  assert(JSON.stringify(motes.snapshot())===moteState,'native paint/quality does not move world-space tracers');
+  c.clearRect(0,0,600,400);motes.draw(c,camera,600,400,false,{sample:()=>({vx:0,density:.18})},1);assert(alphaCount()===0,'wind off hides stale directional markers immediately even when paused');
+  reset('takeoff');advance(.5);
+  assert(pilot.effects.diagnostics().active===0&&pilot.effects.diagnostics().tracers.active>0,'parked engines-off pad hold still advances ambient wind');
+  assert(current.state==='flying'&&current.ship.sas&&Math.abs(current.ship.y-terrain.pad.y-4.05)<1e-8,'parked launch hold preserves SAS choice and stays grounded in wind');
   advance(5,{throttleUp:true});assert(current.state==='flying'&&current.ship.sas&&Math.abs(current.ship.vx)<1e-8&&current.ship.y>terrain.pad.y+15,'wind/SAS takeoff retains zero lateral velocity during a full-thrust climb');
   assert(JSON.stringify(game.career)===career&&JSON.stringify([level,terrain])===baseline&&JSON.stringify([BODIES,SURFACE_POIS])===catalog,'pilot has no career/catalog/geometry side effects');
   return{passed:true,checks:count,hold:hold.ship,drift:blown.ship.x-1000,effects:hold.effects};

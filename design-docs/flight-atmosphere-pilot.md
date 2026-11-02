@@ -1,7 +1,7 @@
 # Flight atmosphere pilot
 
-Updated: 2026-10-29 (Pacific)
-Status: IMPLEMENTED, save-free Dawes review only. Pete approves the staged plan and explicitly requires SAS to target zero movement, countering wind. Wider rollout remains after review, not automatic.
+Updated: 2026-11-02 (Pacific)
+Status: Pete likes the pilot; adds airborne wind-direction particles and anticipates future smokestacks. Particles are implemented in the existing save-free Dawes pilot. No smokestacks or wider career/world rollout added. SAS remains zero ground velocity.
 
 ## Try
 
@@ -28,9 +28,12 @@ Status: IMPLEMENTED, save-free Dawes review only. Pete approves the staged plan 
 `flight-atmosphere.ts` owns presentation only:
 - Three sparse cloud layers, seeded world-space cells, absolute-clock advection, parallax, atmosphere-tinted soft shapes. No camera/time reseeding. Low quality thins cells without moving survivors. Clipped to approach airspace, behind rig/gates/HUD. No atmospheric clouds on airless bodies.
 - Two main-engine nozzle plumes follow actual thrust/nacelle pose, inherit rig velocity, expand, drift with the same local air and expire. Short dispersing vacuum exhaust is supported, not lingering atmospheric smoke. No ground dust added.
-- Fixed pool of 256 particles, physics-tick emission, deterministic serial hashes and reset/retry. Draw and paused redraw never advance particles. Low quality only thins paint; simulation/physics are identical.
+- Fixed pool of 256 smoke particles, physics-tick emission, deterministic serial hashes and reset/retry. Draw and paused redraw never advance particles. Low quality only thins paint; simulation/physics are identical.
 - One 256×96 cloud sprite and one 64×64 soft puff sprite: 28,672 extra raster pixels (~112 KiB raw RGBA), not a total browser/GPU memory claim. Cloud quads are bounded by screen LOD. No per-frame gradient creation, image decode or unbounded per-world cache.
-- Landing smoke/wisps clip against the shared physical terrain and all solid polygons (including overlapping buildings/towers). Rig, guidance and HUD paint afterward. Wind HUD reports m/s and zero-ground-speed SAS target.
+- `wind-tracers.ts`: separate 128-slot pool of sparse airborne flecks, with a brighter leading tip / short fading tail. Positions are seeded from permanent POI identity across the fixed landing region, never the camera. Actual local wind advects them at physics ticks, including reversal/calm; they need no engine thrust. They expire/reseed, are hidden in calm air, and clear in vacuum. Low quality only thins paint. No terrain stipple or new textures.
+- Actual Game and practice pad-hold paths advance these visual pools while the rig is parked, without thrust, fuel or physical motion. Paused redraw still cannot advance either pool.
+- Reusable `emitSmoke({x,y,vx,vy,life?,size?}, air, time)` emits one world-space puff into the existing 256-slot pool. Engines now use it; a synthetic stationary upward source proves wind deflection. Life/size are bounded (atmospheric max 8 s / scale 3; vacuum remains short-lived). Future chimneys must supply authored/resolved world anchors and an emission-rate budget. No source registry, chimney geometry, stacks, extra smoke sources or buoyancy model installed yet.
+- Landing particles/smoke/wisps clip against the shared physical terrain and all solid polygons (including overlapping buildings/towers). Rig, guidance and HUD paint afterward. Wind HUD reports m/s and zero-ground-speed SAS target.
 
 ## Gates / limitations
 
@@ -38,9 +41,9 @@ The same absolute clock/regional velocity drives clouds and local air, so retrie
 
 ## Validation
 
-- `npm run test:landing-air`: 9,242 checks. Analytic advection/velocity agreement, absolute-clock replay, 20-second stationary hold versus wind drift, thrust-authority variants/saturation, full-thrust climb wind priority, RCS cost/cap, same-integrator prediction, deterministic particles/retry, expiry and vacuum.
-- Native: 634 existing Dawes/cross-world checks (102 sites/30 worlds) + 21 pilot checks. Actual Game handler holds position against wind, records RCS effort and advances exhaust; foreign POIs refused. Visual toggles preserve physics; opacity/ground clipping, clouds/vacuum, parked/takeoff SAS, pause/reload/keyboard and career isolation pass. Screenshots inspected.
+- `npm run test:landing-air`: 9,242 original checks plus 153,955 wind-tracer/source checks (actual displacement, reversal/calm, terrain/solid rejection, vacuum, POI identity, deterministic replay, engine-off population, no physics/terrain mutation, stationary rising plume, resource bounds). Analytic advection/velocity agreement, absolute-clock replay, 20-second stationary hold versus wind drift, thrust-authority variants/saturation, full-thrust climb wind priority, RCS cost/cap, same-integrator prediction, deterministic particles/retry, expiry and vacuum.
+- Native: 634 existing Dawes/cross-world checks (102 sites/30 worlds) + 30 pilot checks. Actual Game handler holds position against wind, records RCS effort and advances exhaust; foreign POIs refused. Visual toggles preserve physics; opacity/ground clipping, clouds/vacuum, parked/takeoff SAS, pause/reload/keyboard and career isolation pass. Screenshots inspected.
 - Controlled 12-second hover: SAS on x=1000, vx=vy=0; off drifts ~9.85 m. This is a control experiment, not a universal weather claim.
 - Surface 5,715 / collision 652 / grading 12,049; empty runs 2,913 + rig 35; biome 667,798; existing Hartwell native 250 and typechecks/build pass.
 - Desktop 1080p pilot with active plume/wind/prediction: ~1.33 ms mean draw, p95 ~1.6–1.7 ms, sampled max ~1.9–2.1 ms; idle and rendering both ~120 FPS. Physics ticks occur outside that draw timer. Not full-career/mobile proof.
-- Native driver/report/screenshots refreshed October 29 Pacific (filename suffix retained): Temp `st-flight-atmosphere-cdp-20261027.mjs`, `st-flight-atmosphere-native-20261027.json`, `st-flight-atmosphere-*-20261027.png`. Separate Edge profile, no live-save edits, push or deploy.
+- Latest native driver/report/screenshots: Temp `st-flight-atmosphere-cdp-20261102.mjs`, `st-flight-atmosphere-native-20261102.json`, `st-flight-atmosphere-*-20261102.png`. Actual Game parked/engine-off advection and no fuel use pass; both pools replay identically across visual quality and retry. Latest desktop draw mean ~1.34 ms / p95 1.6 / max 2 ms; idle/render ~120 FPS. Screenshots inspected. Separate Edge profile, no live-save edits, push or deploy.

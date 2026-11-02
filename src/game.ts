@@ -1217,6 +1217,9 @@ export class Game {
       if (p.state === 'flying') {
         if (this.shouldHoldLaunchOnPad(p, input)) {
           this.clampLaunchShipToPad(p);
+          // Ambient air keeps moving even while pad hold suppresses ship physics.
+          const atmosphere=this.landingAtmosphere(p);
+          atmosphere?.pilot.effects.step({...p.ship,thrustFiring:false},atmosphere.air,p.terrain,PHYSICS_DT,this.time);
         } else {
           const dvBefore = p.ship.dvUsed;
           const previousShip=p.terrain.surfaceSite?{...p.ship}:undefined;
