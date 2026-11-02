@@ -3,7 +3,18 @@
 Updated: 2026-11-02 (Pacific)
 Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested the original ten-track implementation, extended on November 2 as recorded below. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
-## November 2 decisions — implemented standing model, gates still inactive
+## Latest November 2 direction — capped reuse and shared institutional track (not yet implemented)
+
+Pete specifies that employers without their own tracks reuse established standings:
+- **Accord and other nobles without their own tracks:** `min(2, max(completed House levels))`. The donor tracks are Alvares/Mendes/Nunes. Their own independent level-3 standings remain unchanged; the cap applies to the recipient's inherited standing.
+- **Other corporations/commercial organizations:** `min(2, max(completed corporate levels))`, explicitly including HALL, Hartwell shippers (HSC), Miners Mutual (CO-OP) and SSC. Existing corporate donor set: VHM/Kisaragi/Daedalus/Cerberus/BAM/Merren. Companies with their own track keep it rather than using this fallback.
+- **BFS:** continues to use VHM directly, not the generic capped corporate maximum. Existing KIS-E → Kisaragi exception retained.
+- **GOV, EDF and EIP:** one new independent shared track capped at 2, i.e. level 0 plus two earned levels. Assistant proposes **Estella Institutions**, with **Unrated contractor / Rated contractor / Trusted contractor**, matching the simple commercial terminology Pete just selected. Name/titles are recommendations pending feedback, not approved runtime labels. Shared standing does not merge the three institutions or their providers.
+- This would make thirteen independent stored tracks, including Notoriety, without extra recipient records. Zero hiding remains. Awards/recipient-to-donor credit, contract gates and unrelated special cases such as the Guild are not inferred by the reuse formulas.
+
+Runtime at `f86ebbf` / reputation `78b0252` still has twelve tracks, and only the earlier uncapped Accord/HALL inherited rules. This amendment records the new design and naming proposal only; it does not claim the new rules are live.
+
+## Earlier November 2 decisions — implemented standing model, gates still inactive
 
 - **BAM and Merren get independent tracks capped at level 2.** The roster is now twelve tracks including Notoriety. Pete selects **Unrated contractor / Rated contractor / Trusted contractor** for both, replacing the provisional general titles. His “Rated contructor” is interpreted as a typo for “Rated contractor”.
 - **Accord uses the highest House level**, not a separate track: currently Alvares, Mendes and Nunes.
