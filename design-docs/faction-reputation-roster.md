@@ -20,9 +20,23 @@ Source boundaries:
 
 Pete defines reputation's main purpose as gating more lucrative contracts, and wants other named entities to track reputation too. A maximum of level 2 for these additional employers is suggested, not finalized. No new tracks, caps or contract gates are implemented by this discussion. The previous ten-track limit was based on narrative importance; it is no longer the intended limit for commercial relationships.
 
-Ten additional individually identified tagged employers, apart from the previously excluded Guild: Sector Government (GOV), Estella Defence Force (EDF), New Canaan Miners Mutual (CO-OP), Estella Institute of Planetology (EIP), Balor Advanced Materials (BAM), Bruckner Field Services (BFS), Halloran Smelting House (HALL), Merren Conservatory (MERREN), Svarog Shipyard Company (SSC), Oathmark Accord Authority (ACCORD).
+The initial expansion scan identified ten additional individually identified tagged employers, apart from the previously excluded Guild (BFS is now assigned to VHM below): Sector Government (GOV), Estella Defence Force (EDF), New Canaan Miners Mutual (CO-OP), Estella Institute of Planetology (EIP), Balor Advanced Materials (BAM), Bruckner Field Services (BFS), Halloran Smelting House (HALL), Merren Conservatory (MERREN), Svarog Shipyard Company (SSC), Oathmark Accord Authority (ACCORD).
 
 The Guild is an eleventh possible addition if its earlier exclusion is reconsidered for commercial rather than plot purposes. KIS-E already shares the Kisaragi track. NOBLE and HSC remain aggregates, not individual organizations: seven lesser households (Beira, Tinto, Calatrava, Almaden, Marisma, Cadiz, Teide), and independent Hartwell shipping companies respectively. Untagged mining/refining/broker/civilian pools likewise require an explicit choice of customer identity before adding employer standings; do not equate a provider group with a single firm. Final expanded roster, caps, attribution, titles, thresholds and presentation remain open.
+
+### Narrowing to differentiated contract value — November 2 follow-up
+
+Pete directs **Bruckner to use the VHM reputation track**, while retaining its independent business identity and existing BFS contracts/tag. This supersedes the earlier separate-track recommendation, not ownership lore. Award rates and contract gates remain unimplemented. Pete now wants additions selected for distinct contract-value classes, rather than every named employer, and suggests BAM and Merren.
+
+Source review / recommendations, not new approved gates:
+- **Merren:** explicit internal/standard/premium programmes; premium exports include rare medicinal cultivars, therapeutic seed culture vaults and ornamental/breeding stock. `merren-contracts.ts`: generosity 0.25 / 0.3 / 0.4 (reimbursement also differs). Strong existing ladder.
+- **Accord:** industrial internal/external warrants carry 6,000 / 12,000 cr flat fees; ordinary passenger warrants 10,000, mediation warrants 20,000, in addition to other quote components. `oathmark-accord-contracts.ts`. Strong additional candidate for routine versus entrusted work, without claiming every route yields more net profit.
+- **BAM:** plausible distinction between routine supplies/overhaul and precision products/specialists, but current `bam-contracts.ts` uses generosity 1.0 for all freight and personnel; only reimbursement differs by category. A prestige/premium pay ladder would be new design, not an existing implementation.
+- **Halloran:** weaker optional candidate: refinery supplies/ordinary crew versus Gaia experts, auditors, executives and delegations. `halloran-contracts.ts` pays passenger generosity 0.4 normally / 0.5 for Gaia; freight 0.8. This is a modest existing specialist distinction, not a developed prestige ladder.
+- **Miners Mutual:** actual routine/export/emergency generosity 0.6 / 0.7 / 0.85. Recommend not using emergency oxygen/patch-kit premiums as rewards locked behind reputation.
+- GOV/EDF/EIP and SSC currently mostly distinguish freight/passenger rates; remote scientific or military assignments have narrative trust potential, but are not already premium reputation classes. Recommend deferring these rather than inventing ladders merely to fill meters.
+
+Recommended compact shortlist: BAM, Merren, Accord; Halloran optional. Exact additions/caps/titles/rewards still await Pete's choice. No runtime changes.
 
 ## Implemented roster: nine factions plus Notoriety
 
@@ -49,7 +63,7 @@ Approved: one cross-smuggler reputation-like track, not one faction score per ne
 
 Recommended interpretation for the next design pass: Notoriety measures how well known the pilot is in smuggling circles, while personal trust concerns an individual contact's willingness to rely on them. Being widely known does not mean every contact trusts the pilot. Keep authority attention / wanted status (if implemented later) distinct rather than automatically treating Notoriety as police heat. Exact benefits, earning/loss rules, contact thresholds and visibility remain undecided. Notoriety alone must not silently reveal hidden sites or grant blanket private travel access.
 
-KIS/KIS-E would share the Kisaragi relationship; Bruckner can be the local contact/entry point to VHM without becoming its subsidiary. Whether particular BFS work earns VHM standing remains undecided: no automatic tag-to-score mapping is approved.
+KIS/KIS-E share the Kisaragi relationship. On November 2 Pete directs Bruckner to use VHM standing too, without becoming its subsidiary. Exact awards and gating rules remain to be designed; no runtime tag-to-score mapping is implemented.
 
 Other organizations remain employers, institutions, shops and potential contacts, but need not have independent faction-wide meters. Omitting GOV, EDF or ACCORD from this shortlist does not merge their authority into a House or corporation. Their legal/operational permissions need not be faction reputation. Smuggling now has the approved shared Notoriety concept alongside the intended personal contact-trust layer. Notoriety now has storage/display; its gameplay interaction with contact trust remains unimplemented.
 
