@@ -11,6 +11,7 @@ export const REPUTATION_TRACKS = [
   { id: 'cerberus-human-resources', name: 'Cerberus Human Resources', titles: ['Unverified Asset', 'Verified Asset', 'Trusted Instrument', 'Friend of the Board'] },
   { id: 'balor-advanced-materials', name: 'Balor Advanced Materials', titles: ['Unrated contractor', 'Rated contractor', 'Trusted contractor'] },
   { id: 'merren-conservatory', name: 'Merren Conservatory', titles: ['Unrated contractor', 'Rated contractor', 'Trusted contractor'] },
+  { id: 'estella-institutions', name: 'Estella Institutions', titles: ['Unrated contractor', 'Rated contractor', 'Trusted contractor'] },
   { id: 'smuggler-notoriety', name: 'Notoriety', titles: ['No Name', 'Safe Pair of Hands', 'A Name Worth Trusting', 'One of Our Own'] },
 ] as const;
 
@@ -50,17 +51,30 @@ export function reputationStanding(state: ReputationState | undefined, id: Reput
   return { id, name: track.name, progress, level, maxLevel, title: track.titles[level]!, bars };
 }
 
-/** Independent employers may recognize shared standings without changing ownership.
- * These read-only rules do not gate contracts or transfer progress between tracks.
- * Corporate set: the six corporations with their own standing; excludes the Combine.
- */
-export const INHERITED_REPUTATION_TRACKS = {
-  BFS: ['voss-heinkel-metricwerke'],
-  'KIS-E': ['kisaragi'],
-  ACCORD: ['house-alvares', 'house-mendes', 'house-nunes'],
-  HALL: ['voss-heinkel-metricwerke', 'kisaragi', 'daedalus-systems', 'cerberus-human-resources', 'balor-advanced-materials', 'merren-conservatory'],
-} as const satisfies Record<string, readonly ReputationId[]>;
+/** Read-only recognition, not point transfer, ownership or a contract gate. */
+const HOUSE_RULE = { tracks: ['house-alvares', 'house-mendes', 'house-nunes'], maxLevel: 2 } as const;
+// Political/industrial Combine standing is not a corporate donor.
+const CORPORATE_RULE = { tracks: ['voss-heinkel-metricwerke', 'kisaragi', 'daedalus-systems', 'cerberus-human-resources', 'balor-advanced-materials', 'merren-conservatory'], maxLevel: 2 } as const;
+const INSTITUTION_RULE = { tracks: ['estella-institutions'], maxLevel: 2 } as const;
 
-export function inheritedReputationLevel(state: ReputationState | undefined, employer: keyof typeof INHERITED_REPUTATION_TRACKS): ReputationLevel {
-  return Math.max(...INHERITED_REPUTATION_TRACKS[employer].map(id => reputationStanding(state, id).level)) as ReputationLevel;
+export const INHERITED_REPUTATION_RULES = {
+  BFS: { label: 'Bruckner', tracks: ['voss-heinkel-metricwerke'], maxLevel: 3 },
+  'KIS-E': { label: 'KIS-E', tracks: ['kisaragi'], maxLevel: 3 },
+  ACCORD: { label: 'Accord', ...HOUSE_RULE },
+  NOBLE: { label: 'Other nobles', ...HOUSE_RULE },
+  HALL: { label: 'Halloran', ...CORPORATE_RULE },
+  HSC: { label: 'Hartwell shippers', ...CORPORATE_RULE },
+  'CO-OP': { label: 'Miners Mutual', ...CORPORATE_RULE },
+  SSC: { label: 'SSC', ...CORPORATE_RULE },
+  COMMERCIAL: { label: 'Other commercial employers', ...CORPORATE_RULE },
+  GOV: { label: 'GOV', ...INSTITUTION_RULE },
+  EDF: { label: 'EDF', ...INSTITUTION_RULE },
+  EIP: { label: 'EIP', ...INSTITUTION_RULE },
+} as const satisfies Record<string, { label: string; tracks: readonly ReputationId[]; maxLevel: ReputationLevel }>;
+
+export type InheritedReputationEmployer = keyof typeof INHERITED_REPUTATION_RULES;
+
+export function inheritedReputationLevel(state: ReputationState | undefined, employer: InheritedReputationEmployer): ReputationLevel {
+  const rule = INHERITED_REPUTATION_RULES[employer];
+  return Math.min(rule.maxLevel, Math.max(...rule.tracks.map(id => reputationStanding(state, id).level))) as ReputationLevel;
 }

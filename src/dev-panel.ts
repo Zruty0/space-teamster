@@ -4,7 +4,9 @@ import type { MechanicDamagePool, MechanicOperation } from './maintenance/mainte
 import { systemStatus } from './maintenance/rig-state';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId } from './maintenance/types';
 
-import { REPUTATION_TRACKS, isReputationId, reputationStanding, reputationMaxLevel, inheritedReputationLevel, type ReputationEditResult, type ReputationState } from './reputation';
+import { REPUTATION_TRACKS, isReputationId, reputationStanding, reputationMaxLevel, INHERITED_REPUTATION_RULES, type ReputationEditResult, type ReputationState } from './reputation';
+
+import { employerReputationLevel } from './employer-reputation';
 
 let panel: HTMLElement | null = null;
 let visible = false;
@@ -271,8 +273,8 @@ function applyReputationEdit(id: string, value: number): void {
 function renderReputations(): string {
   const state = reputationProvider?.();
   if (!state || !reputationHandler) return '<p>No career rank provider.</p>';
-  return `<p class="dev-summary">Persistent career ranks only; no gameplay effects or automatic gains. BAM and Merren cap at 2; other tracks cap at 3. Set a whole rank or enter partial progress (for example 1.5). A partial next bar does not promote the rank.</p>
-    <p class="dev-summary" data-inherited-reputation>Shared levels (read-only): Bruckner ${inheritedReputationLevel(state, 'BFS')}; KIS-E ${inheritedReputationLevel(state, 'KIS-E')}; Accord ${inheritedReputationLevel(state, 'ACCORD')}; Halloran ${inheritedReputationLevel(state, 'HALL')}.</p>
+  return `<p class="dev-summary">Persistent career ranks only; no gameplay effects or automatic gains. BAM, Merren and Estella Institutions cap at 2; other tracks cap at 3. Set a whole rank or enter partial progress (for example 1.5). A partial next bar does not promote the rank.</p>
+    <p class="dev-summary" data-inherited-reputation>Shared levels (read-only): ${Object.entries(INHERITED_REPUTATION_RULES).map(([employer, rule]) => `<span data-inherited-employer="${employer}">${escapeHtml(rule.label)} ${employerReputationLevel(state, employer)}/${rule.maxLevel}</span>`).join('; ')}.</p>
     <p class="dev-rank-message" role="status" aria-live="polite">${escapeHtml(reputationMessage)}</p>
     ${REPUTATION_TRACKS.map(track => {
       const standing = reputationStanding(state, track.id);

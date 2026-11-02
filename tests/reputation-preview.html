@@ -47,7 +47,7 @@ try{
  }
  assert(!ranks.some(r=>r.label.includes('Guild')),'no Guild reputation');
  assert(writes===count,'viewing does not save');
- panelOn();assert(panel.querySelectorAll('.dev-rank').length===12,'twelve native editor rows, including hidden zero standings');
+ panelOn();assert(panel.querySelectorAll('.dev-rank').length===13,'thirteen native editor rows, including hidden zero standings');
  for(const track of REPUTATION_TRACKS){
   const max=reputationMaxLevel(track.id);
   assert(row(track.id).querySelector('input').max===String(max)&&row(track.id).querySelectorAll('[data-reputation-set]').length===max+1,'native input/buttons respect per-track cap');
@@ -72,6 +72,23 @@ try{
   const shared=panel.querySelector('[data-inherited-reputation]').textContent;
   assert(shared.includes(`Accord ${inheritedReputationLevel(game.career.reputations,'ACCORD')}`)&&shared.includes(`Halloran ${inheritedReputationLevel(game.career.reputations,'HALL')}`),'read-only inherited levels refreshed');
  }
+ base(3);panelOn();
+ const expectedShared={BFS:3,'KIS-E':3,ACCORD:2,NOBLE:2,HALL:2,HSC:2,'CO-OP':2,SSC:2,COMMERCIAL:2,GOV:2,EDF:2,EIP:2};
+ function sharedLevel(key){return panel.querySelector(`[data-inherited-employer="${key}"]`).textContent;}
+ for(const [key,value] of Object.entries(expectedShared)){
+  const e=panel.querySelector(`[data-inherited-employer="${key}"]`);
+  assert(e.textContent.endsWith(`${value}/${value}`)&&!e.querySelector('input,button'),'read-only shared level respects cap');
+ }
+ for(const id of ['house-alvares','house-mendes','house-nunes'])set(id,0);
+ assert(sharedLevel('ACCORD').endsWith('0/2')&&sharedLevel('NOBLE').endsWith('0/2'),'other nobles and Accord recompute down to zero');
+ for(const id of ['voss-heinkel-metricwerke','kisaragi','daedalus-systems','cerberus-human-resources','balor-advanced-materials','merren-conservatory'])set(id,0);
+ for(const key of ['HALL','HSC','CO-OP','SSC','COMMERCIAL'])assert(sharedLevel(key).endsWith('0/2'),'all commercial recipients recompute');
+ set('estella-institutions',1.5);
+ for(const key of ['GOV','EDF','EIP'])assert(sharedLevel(key).endsWith('1/2'),'single institutional track supplies all three, floor not round');
+ const institutionRow=scene().bodyRows.find(r=>r.label==='Estella Institutions');
+ assert(institutionRow.value==='Rated contractor'&&institutionRow.bars.length===2,'institutional player row uses accepted title/two bars');
+ set('estella-institutions',0);
+ assert(!scene().bodyRows.some(r=>r.label==='Estella Institutions'),'institutional row hides again at zero');
  const id='daedalus-systems';set(id,1.9999999999999998);
  assert(row(id).querySelector('.dev-rank-title').textContent.includes('Known Quantity'),'near-boundary native title does not promote');
  set(id,2);assert(row(id).textContent.includes('Authorized Contractor'),'exact threshold promotes');
@@ -112,12 +129,18 @@ try{
  panelOn();game.resetCareer();updateDevPanel();
  assert(Object.values(game.career.reputations).every(v=>v===0)&&panel.querySelector('.dev-rank-title').textContent.includes('Unpresented Stranger'),'new career clears live editor');
  panelOff();
- for(const name of ['Unknown','Half-filled','All ranks max','Career bottom','Tilde ranks','Commercial ranks','Failed save']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
+ for(const name of ['Unknown','Half-filled','All ranks max','Career bottom','Tilde ranks','Commercial ranks','Institutions','Inherited max','Failed save']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
  function show(){
   panelOff();base(menu.value==='Unknown'?0:menu.value==='All ranks max'||menu.value==='Career bottom'?3:1.5);draw();
   if(menu.value==='Career bottom'){game.phase.scene.bodyScrollOffset=interactiveSceneBodyScrollLimit(ctx,canvas,scene());draw();}
   if(menu.value==='Commercial ranks'){
    base();game.career.reputations['balor-advanced-materials']=1.5;game.career.reputations['merren-conservatory']=2;markDevPanelDirty();draw();panelOn();row('balor-advanced-materials').scrollIntoView({block:'center'});
+  }
+  if(menu.value==='Institutions'){
+   base();game.career.reputations['estella-institutions']=1.5;markDevPanelDirty();draw();
+  }
+  if(menu.value==='Inherited max'){
+   base(3);draw();panelOn();panel.scrollTop=0;
   }
   if(menu.value==='Tilde ranks'||menu.value==='Failed save'){
    panelOn();panel.scrollTop=0;
