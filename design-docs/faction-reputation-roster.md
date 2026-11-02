@@ -1,7 +1,17 @@
 # Faction reputation — roster review
 
 Updated: 2026-11-02 (Pacific)
-Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested implementation using the current ten-track roster. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested the original ten-track implementation, extended on November 2 as recorded below. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
+
+## November 2 decisions — implemented standing model, gates still inactive
+
+- **BAM and Merren get independent tracks capped at level 2.** The roster is now twelve tracks including Notoriety. Their temporary titles use the general level meanings: Unknown / Reliable Contractor / Trusted Friend; bespoke commercial names remain open.
+- **Accord uses the highest House level**, not a separate track: currently Alvares, Mendes and Nunes.
+- **Halloran uses the highest corporate level**, not a separate track. The implementation uses VHM, Kisaragi, Daedalus, Cerberus, BAM and Merren as the corporate set, excluding Steel Combine's political/industrial standing. This set was stated explicitly to Pete; no additional corporate meters inferred.
+- Bruckner uses VHM; KIS-E uses Kisaragi. Sharing a standing does not merge business ownership.
+- Derived standings use completed levels, not sums of fractional bars; no extra score is saved and no points transfer among donors. Developer panel shows read-only shared levels.
+- **Career Status hides every reputation at exactly zero**, including factions and Notoriety. Positive fractional progress reveals the track; resetting to zero hides it again. No empty reputation heading. Tilde keeps all twelve editable tracks visible, honoring each cap.
+- No award rates, loss rules, contract gates, prices, permissions or new story mechanics are activated. Earlier shortlist/proposals below are review history; these decisions supersede their pending additions/caps. See [implementation ledger](faction-reputation-implementation.md).
 
 ## Verified starting point
 
@@ -18,7 +28,7 @@ Source boundaries:
 
 ## Commercial reputation expansion — design direction, 2026-11-02
 
-Pete defines reputation's main purpose as gating more lucrative contracts, and wants other named entities to track reputation too. A maximum of level 2 for these additional employers is suggested, not finalized. No new tracks, caps or contract gates are implemented by this discussion. The previous ten-track limit was based on narrative importance; it is no longer the intended limit for commercial relationships.
+Pete defines reputation's main purpose as gating more lucrative contracts, and wants other named entities to track reputation too. A maximum of level 2 for these additional employers is suggested, not finalized. No new tracks, caps or contract gates are implemented by this discussion. The previous ten-track limit was based on narrative importance; this initial broad expansion was subsequently narrowed to the implemented November 2 decisions above.
 
 The initial expansion scan identified ten additional individually identified tagged employers, apart from the previously excluded Guild (BFS is now assigned to VHM below): Sector Government (GOV), Estella Defence Force (EDF), New Canaan Miners Mutual (CO-OP), Estella Institute of Planetology (EIP), Balor Advanced Materials (BAM), Bruckner Field Services (BFS), Halloran Smelting House (HALL), Merren Conservatory (MERREN), Svarog Shipyard Company (SSC), Oathmark Accord Authority (ACCORD).
 
@@ -38,7 +48,7 @@ Source review / recommendations, not new approved gates:
 
 Recommended compact shortlist: BAM, Merren, Accord; Halloran optional. Exact additions/caps/titles/rewards still await Pete's choice. No runtime changes.
 
-## Implemented roster: nine factions plus Notoriety
+## Original implemented roster: nine factions plus Notoriety (two additions above)
 
 Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus occupies the ninth slot in the current working roster, used for Pete's subsequent request to name all ten tracks. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
 
@@ -131,7 +141,11 @@ Pete requests level-0 variations, more ostentatious/feudal House titles and more
 | Covenant Remnants | Unsealed Stranger | Guest at the Gate | Friend of the Covenant | Unsealed Kindred |
 | Daedalus Systems | Unknown Quantity | Known Quantity | Authorized Contractor | Authorized Partner |
 | Cerberus Human Resources | Unverified Asset | Verified Asset | Trusted Instrument | Friend of the Board |
+| Balor Advanced Materials | Unknown | Reliable Contractor | Trusted Friend | — (capped at 2) |
+| Merren Conservatory | Unknown | Reliable Contractor | Trusted Friend | — (capped at 2) |
 | Notoriety | No Name | Safe Pair of Hands | A Name Worth Trusting | One of Our Own |
+
+BAM/Merren labels are provisional general meanings, not bespoke reviewed honorifics. Other forty labels remain unchanged.
 
 Naming review history (resolved by the implementation request):
 - Combine 0: **Unaffiliated Worker** replaces rejected “Outside the Plan” and the interim Unproven Worker suggestion, to fit Pete's subsequent **Registered Sympathizer** level 1. It expresses no established affiliation without treating a neutral outsider as hostile. Short alternative: **Unaffiliated**. Registered Sympathizer replaces Recognized Contributor; the full path now emphasizes increasing social/political recognition rather than only a contractor's work record.

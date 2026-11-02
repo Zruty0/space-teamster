@@ -11,7 +11,7 @@ const css=(await (await fetch('/index.html')).text()).match(/<style>([\s\S]*?)<\
 const style=document.createElement('style');style.textContent=css;document.head.append(style);
 const {Game}=await import('/src/game.ts');
 const {defaultCareerProfile,loadCareerProfile,saveCareerProfile}=await import('/src/career-state.ts');
-const {REPUTATION_TRACKS,normalizeReputations,reputationStanding}=await import('/src/reputation.ts');
+const {REPUTATION_TRACKS,normalizeReputations,reputationStanding,reputationMaxLevel,inheritedReputationLevel}=await import('/src/reputation.ts');
 const {toggleDevPanel,isDevPanelVisible,markDevPanelDirty,updateDevPanel}=await import('/src/dev-panel.ts');
 const {readInput}=await import('/src/input.ts');
 const {drawInteractiveScene,interactiveSceneBodyScrollLimit}=await import('/src/interactive-scene.ts');
@@ -28,7 +28,7 @@ function row(id){return panel.querySelector(`section[data-reputation-id="${id}"]
 function set(id,value){const f=row(id).querySelector('form');f.querySelector('input').value=String(value);f.requestSubmit();}
 function panelOn(){if(!isDevPanelVisible())toggleDevPanel();panel.querySelector('[data-dev-tab="reputation"]').click();}
 function panelOff(){if(isDevPanelVisible())toggleDevPanel();}
-function base(value=0){game.career=defaultCareerProfile();game.career.reputations=Object.fromEntries(REPUTATION_TRACKS.map(t=>[t.id,value]));game.worldTime=0;game.phase={kind:'interactiveScene',scene:{id:'careerStatus',selectedIndex:0}};markDevPanelDirty();updateDevPanel();}
+function base(value=0){game.career=defaultCareerProfile();game.career.reputations=Object.fromEntries(REPUTATION_TRACKS.map(t=>[t.id,Math.min(value,reputationMaxLevel(t.id))]));game.worldTime=0;game.phase={kind:'interactiveScene',scene:{id:'careerStatus',selectedIndex:0}};markDevPanelDirty();updateDevPanel();}
 function key(target,type,code){const e=new KeyboardEvent(type,{code,bubbles:true,cancelable:true});target.dispatchEvent(e);return e;}
 if(!document.hasFocus()){
  status.textContent='Focus this tab to run native keyboard checks; synthetic career only.';
@@ -37,32 +37,40 @@ if(!document.hasFocus()){
 try{
  base();draw();const count=writes;
  const ranks=scene().bodyRows.filter(r=>r.bars);
- assert(ranks.length===9&&ranks.every(r=>r.bars.length===3&&r.bars.every(v=>v===0))&&!ranks.some(r=>r.label==='Notoriety'),'nine unknown factions; zero Notoriety hidden');
- assert(scene().bodyRows.some(r=>r.text==='FACTION REPUTATION')&&!scene().bodyRows.some(r=>/Each full bar|Partial bars/.test(r.text??'')),'simplified heading without explanation');
- for(const value of [0.001,1,3,0]){
-  game.career.reputations['smuggler-notoriety']=value;
-  const notoriety=scene().bodyRows.find(r=>r.label==='Notoriety');
-  assert(!!notoriety===(value>0),'Notoriety visible on any progress, hidden again at zero');
-  if(notoriety)assert(notoriety.value===reputationStanding(game.career.reputations,'smuggler-notoriety').title,'title without numeric suffix');
+ assert(ranks.length===0,'all zero reputations hidden');
+ assert(!scene().bodyRows.some(r=>r.text==='FACTION REPUTATION'||/Each full bar|Partial bars/.test(r.text??'')),'no empty heading or explanation');
+ for(const track of REPUTATION_TRACKS)for(const value of [0.001,1,reputationMaxLevel(track.id),0]){
+  game.career.reputations[track.id]=value;
+  const visible=scene().bodyRows.filter(r=>r.bars),standing=visible.find(r=>r.label===track.name);
+  assert(visible.length===(value>0?1:0),'only positive track visible, hidden again at zero');
+  if(standing)assert(standing.value===reputationStanding(game.career.reputations,track.id).title&&standing.bars.length===reputationMaxLevel(track.id),'title without suffix, correct bar cap');
  }
  assert(!ranks.some(r=>r.label.includes('Guild')),'no Guild reputation');
  assert(writes===count,'viewing does not save');
- panelOn();assert(panel.querySelectorAll('.dev-rank').length===10,'ten native editor rows');
+ panelOn();assert(panel.querySelectorAll('.dev-rank').length===12,'twelve native editor rows, including hidden zero standings');
  for(const track of REPUTATION_TRACKS){
-  for(const level of [1,2,3,0]){
+  const max=reputationMaxLevel(track.id);
+  assert(row(track.id).querySelector('input').max===String(max)&&row(track.id).querySelectorAll('[data-reputation-set]').length===max+1,'native input/buttons respect per-track cap');
+  for(const level of [...Array.from({length:max},(_,i)=>i+1),0]){
    const before=writes,cash=game.career.money,time=game.worldTime,rig=JSON.stringify(game.career.rig),credits=JSON.stringify(game.career.maintenanceShopInspections);
    row(track.id).querySelector(`[data-reputation-set="${level}"]`).click();
    assert(writes===before+1,'quick button commits once');
    assert(panel.querySelector('[role="status"]').textContent===`${track.name}: saved.`,'single delegated handler, explicit success');
    assert(game.career.reputations[track.id]===level,'quick rank persisted to active career');
-   assert(row(track.id).querySelector('.dev-rank-title').textContent===`${track.titles[level]} — Level ${level}/3`,'correct native title');
-   eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),[0,1,2].map(i=>level>i?'100%':'0%'),'whole-bar visual state');
+   assert(row(track.id).querySelector('.dev-rank-title').textContent===`${track.titles[level]} — Level ${level}/${max}`,'correct native title');
+   eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),Array.from({length:max},(_,i)=>level>i?'100%':'0%'),'whole-bar visual state');
    assert(game.career.money===cash&&game.worldTime===time&&JSON.stringify(game.career.rig)===rig&&JSON.stringify(game.career.maintenanceShopInspections)===credits,'no cash/time/rig/credit effects');
   }
   set(track.id,1.75);
   assert(game.career.reputations[track.id]===1.75,'fractional form input saved');
   assert(row(track.id).textContent.includes(track.titles[1])&&!row(track.id).querySelector('.dev-rank-title').textContent.includes(track.titles[2]),'fractional progress keeps lower title');
-  eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),['100%','75%','0%'],'native partial fill');
+  eq([...row(track.id).querySelectorAll('.dev-rank-bars i')].map(e=>e.style.width),['100%','75%','0%'].slice(0,max),'native partial fill');
+  const f=row(track.id).querySelector('form'),input=f.querySelector('input'),before=JSON.stringify(game.career),w=writes;
+  input.value=String(max+0.01);assert(!input.checkValidity(),'native maximum rejects overflow');
+  f.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));
+  assert(JSON.stringify(game.career)===before&&writes===w,'forged over-cap submission cannot save');
+  const shared=panel.querySelector('[data-inherited-reputation]').textContent;
+  assert(shared.includes(`Accord ${inheritedReputationLevel(game.career.reputations,'ACCORD')}`)&&shared.includes(`Halloran ${inheritedReputationLevel(game.career.reputations,'HALL')}`),'read-only inherited levels refreshed');
  }
  const id='daedalus-systems';set(id,1.9999999999999998);
  assert(row(id).querySelector('.dev-rank-title').textContent.includes('Known Quantity'),'near-boundary native title does not promote');
@@ -98,16 +106,19 @@ try{
   const s=scene(),limit=interactiveSceneBodyScrollLimit(ctx,canvas,s);
   assert(Number.isFinite(limit)&&limit>=0,'bounded native scroll range');
   game.phase.scene.bodyScrollOffset=limit;draw();
-  assert(s.bodyRows.filter(r=>r.bars).every(r=>r.bars.filter(x=>x===1).length===level),'career bars agree with rank');
+  assert(s.bodyRows.filter(r=>r.bars).every(r=>r.bars.filter(x=>x===1).length===Math.min(level,r.bars.length)),'career bars agree with rank');
  }
  // Reset clears standings and leaves the editor synchronized.
  panelOn();game.resetCareer();updateDevPanel();
  assert(Object.values(game.career.reputations).every(v=>v===0)&&panel.querySelector('.dev-rank-title').textContent.includes('Unpresented Stranger'),'new career clears live editor');
  panelOff();
- for(const name of ['Unknown','Half-filled','All ranks 3','Career bottom','Tilde ranks','Failed save']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
+ for(const name of ['Unknown','Half-filled','All ranks max','Career bottom','Tilde ranks','Commercial ranks','Failed save']){const o=document.createElement('option');o.value=name;o.textContent=name;menu.append(o);}
  function show(){
-  panelOff();base(menu.value==='Unknown'?0:menu.value==='All ranks 3'||menu.value==='Career bottom'?3:1.5);draw();
+  panelOff();base(menu.value==='Unknown'?0:menu.value==='All ranks max'||menu.value==='Career bottom'?3:1.5);draw();
   if(menu.value==='Career bottom'){game.phase.scene.bodyScrollOffset=interactiveSceneBodyScrollLimit(ctx,canvas,scene());draw();}
+  if(menu.value==='Commercial ranks'){
+   base();game.career.reputations['balor-advanced-materials']=1.5;game.career.reputations['merren-conservatory']=2;markDevPanelDirty();draw();panelOn();row('balor-advanced-materials').scrollIntoView({block:'center'});
+  }
   if(menu.value==='Tilde ranks'||menu.value==='Failed save'){
    panelOn();panel.scrollTop=0;
    if(menu.value==='Failed save'){fail=true;set('house-alvares',3);fail=false;panel.scrollTop=0;}

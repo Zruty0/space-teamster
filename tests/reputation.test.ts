@@ -1,4 +1,4 @@
-import { REPUTATION_TRACKS, isReputationId, normalizeReputations, normalizedReputation, reputationStanding } from '../src/reputation';
+import { REPUTATION_TRACKS, isReputationId, normalizeReputations, normalizedReputation, reputationStanding, reputationMaxLevel, inheritedReputationLevel, INHERITED_REPUTATION_TRACKS, type ReputationId } from '../src/reputation';
 import { defaultCareerProfile, loadCareerProfile, saveCareerProfile, resetCareerProfile, TEAMSTER_CERTIFICATION_IDS } from '../src/career-state';
 import { Game } from '../src/game';
 import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts';
@@ -19,7 +19,7 @@ Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
   setItem: (k: string, v: string) => { beforeSave?.(); if (fail) throw Error('blocked synthetic save'); storage.set(k, v); writes++; },
 } });
 
-// Independent reviewed labels, transcribed from the naming review, not generated from runtime.
+// Independent title expectations: ten reviewed tracks plus provisional general BAM/Merren titles.
 const reviewed = new Map(`House Alvares|Unpresented Stranger|Carrier by Ducal Warrant|Favoured Client of the Court|Intimate of the Ducal Household
 House Mendes|Unproven Outsider|Provisioner to the Banners|Honoured Ally of the House|Companion of the Marshal’s Table
 House Nunes|Unintroduced Stranger|Bearer of the Watch Warrant|Esteemed Friend of the Outer Watch|Keeper of the House’s Confidence
@@ -29,19 +29,23 @@ Kisaragi|Unproven Hand|Proven Hand|Carrier of the Marque|Honoured Friend of the 
 Covenant Remnants|Unsealed Stranger|Guest at the Gate|Friend of the Covenant|Unsealed Kindred
 Daedalus Systems|Unknown Quantity|Known Quantity|Authorized Contractor|Authorized Partner
 Cerberus Human Resources|Unverified Asset|Verified Asset|Trusted Instrument|Friend of the Board
+Balor Advanced Materials|Unknown|Reliable Contractor|Trusted Friend
+Merren Conservatory|Unknown|Reliable Contractor|Trusted Friend
 Notoriety|No Name|Safe Pair of Hands|A Name Worth Trusting|One of Our Own`.split('\n').map(line => {
   const cells = line.split('|');
   return [cells[0], cells.slice(1)] as const;
 }));
-assert(REPUTATION_TRACKS.length === 10 && new Set(REPUTATION_TRACKS.map(t => t.id)).size === 10, 'exactly ten independent tracks');
+assert(REPUTATION_TRACKS.length === 12 && new Set(REPUTATION_TRACKS.map(t => t.id)).size === 12, 'exactly twelve independent tracks');
 for (const track of REPUTATION_TRACKS) {
-  equal(track.titles, reviewed.get(track.name), `${track.name}: all four reviewed titles`);
+  equal(track.titles, reviewed.get(track.name), `${track.name}: original reviewed titles or provisional general commercial titles`);
   assert(isReputationId(track.id), `${track.id}: valid stable id`);
+  const expectedCap = ['balor-advanced-materials', 'merren-conservatory'].includes(track.id) ? 2 : 3;
+  assert(reputationMaxLevel(track.id) === expectedCap && track.titles.length === expectedCap + 1, 'only BAM/Merren capped at 2');
 }
-for (const id of ['teamsters-guild', 'GUILD', 'BFS', 'KIS-E', '__proto__', 'constructor', '', null, undefined, 2]) assert(!isReputationId(id), 'unknown/non-track ids rejected');
+for (const id of ['teamsters-guild', 'GUILD', 'BFS', 'KIS-E', 'ACCORD', 'HALL', 'oathmark-accord-authority', 'halloran-smelting-house', 'bruckner-field-services', '__proto__', 'constructor', '', null, undefined, 2]) assert(!isReputationId(id), 'unknown/non-track ids rejected');
 
 const zero = normalizeReputations(undefined);
-assert(Object.keys(zero).length === 10 && Object.values(zero).every(v => v === 0), 'all ten start unknown');
+assert(Object.keys(zero).length === 12 && Object.values(zero).every(v => v === 0), 'all twelve start unknown');
 const a = defaultCareerProfile(), b = defaultCareerProfile();
 a.reputations!['house-alvares'] = 2.5;
 assert(b.reputations!['house-alvares'] === 0, 'default records do not share mutable state');
@@ -53,11 +57,40 @@ equal(normalizeReputations({ 'house-nunes': '2', 'steel-combine': 0.375, 'made-u
 for (const track of REPUTATION_TRACKS) {
   for (const value of [0, 0.001, 0.25, 0.5, 0.9999999999999999, 1, 1.2, 1.5, 1.9999999999999998, 2, 2.75, 2.9999999999999996, 3]) {
     const standing = reputationStanding({ ...zero, [track.id]: value }, track.id);
-    assert(standing.progress === value && standing.level === Math.floor(value), `${track.id}/${value}: exact progress, floor rank`);
-    assert(standing.title === track.titles[Math.floor(value)], 'title belongs to current full-bar rank');
-    assert(standing.bars.length === 3 && standing.bars.filter(v => v === 1).length === standing.level, 'exactly three sequential bars, no premature promotion');
-    assert(Math.abs(standing.bars.reduce((a, b) => a + b, 0) - value) < 1e-14, 'bar fills preserve fractional progress');
+    const max = track.titles.length - 1, expected = Math.min(max, value);
+    assert(standing.progress === expected && standing.level === Math.floor(expected), `${track.id}/${value}: capped progress, floor rank`);
+    assert(standing.title === track.titles[Math.floor(expected)], 'title belongs to current full-bar rank');
+    assert(standing.bars.length === max && standing.bars.filter(v => v === 1).length === standing.level, 'bar count matches cap, no premature promotion');
+    assert(Math.abs(standing.bars.reduce((a, b) => a + b, 0) - expected) < 1e-14, 'bar fills preserve fractional progress');
   }
+}
+
+// Inherited employer standing takes maximum completed levels, never sums or transfers progress.
+const inheritedSources = {
+  BFS: ['voss-heinkel-metricwerke'], 'KIS-E': ['kisaragi'],
+  ACCORD: ['house-alvares', 'house-mendes', 'house-nunes'],
+  HALL: ['voss-heinkel-metricwerke', 'kisaragi', 'daedalus-systems', 'cerberus-human-resources', 'balor-advanced-materials', 'merren-conservatory'],
+} as const;
+equal(INHERITED_REPUTATION_TRACKS, inheritedSources, 'explicit donor sets, no fabricated employer tracks');
+equal(normalizeReputations({ ...zero, ACCORD: 3, HALL: 3, BFS: 3, 'KIS-E': 3 }), zero, 'derived values cannot become independent saved standings');
+for (const employer of ['BFS', 'KIS-E', 'ACCORD', 'HALL'] as const) {
+  assert(inheritedReputationLevel(undefined, employer) === 0, 'legacy derived level zero');
+  for (const track of REPUTATION_TRACKS) for (const value of [0, 0.9, 1.99, 2, 2.99, 3]) {
+    const state = { ...zero, [track.id]: value }, before = JSON.stringify(state);
+    const eligible = (inheritedSources[employer] as readonly string[]).includes(track.id);
+    const expected = eligible ? Math.floor(Math.min(track.titles.length - 1, value)) : 0;
+    assert(inheritedReputationLevel(state, employer) === expected, `${employer}: eligible donors only, capped full levels`);
+    assert(JSON.stringify(state) === before, 'derived reading never changes stored tracks');
+  }
+  const state = { ...zero };
+  for (const id of inheritedSources[employer]) state[id] = 0.9;
+  assert(inheritedReputationLevel(state, employer) === 0, 'partial donor bars never add up');
+  for (const id of inheritedSources[employer]) state[id] = 1.9;
+  assert(inheritedReputationLevel(state, employer) === 1, 'maximum, not sum');
+  state[inheritedSources[employer][0]] = 3;
+  assert(inheritedReputationLevel(state, employer) === 3, 'best donor wins');
+  state[inheritedSources[employer][0]] = 0;
+  assert(inheritedReputationLevel(state, employer) === (inheritedSources[employer].length > 1 ? 1 : 0), 'derived level falls when best donor resets');
 }
 
 const legacy = defaultCareerProfile();
@@ -67,7 +100,7 @@ legacy.nunesInquiries.updatedWorldTime = legacy.worldTime;
 delete legacy.reputations;
 storage.set(key, JSON.stringify(legacy));
 const count = writes, loaded = loadCareerProfile();
-equal(loaded.reputations, zero, 'legacy save gets ten zero ranks');
+equal(loaded.reputations, zero, 'legacy save gets twelve zero ranks');
 const { reputations: _r, ...rest } = loaded;
 equal(rest, legacy, 'legacy location/cash/time/qualifications/rig/credits/contacts/inquiries preserved');
 assert(writes === count, 'loading ranks adds no eager save or schema-version migration');
@@ -81,6 +114,18 @@ loaded.reputations!['daedalus-systems'] = 1.875;
 saveCareerProfile(loaded);
 equal(loadCareerProfile(), loaded, 'rank values round-trip through existing career key');
 assert(storage.size === 1, 'no new storage key');
+// Ten-track saves retain all previous progress, adding the two new zero entries without a write.
+const oldTracks: Partial<Record<ReputationId, number>> = { ...loaded.reputations };
+delete oldTracks['balor-advanced-materials']; delete oldTracks['merren-conservatory'];
+storage.set(key, JSON.stringify({ ...loaded, reputations: oldTracks }));
+const previousWrites = writes;
+equal(loadCareerProfile(), loaded, 'old ten-track save retains original values, adds only two zeros');
+assert(writes === previousWrites, 'no eager expansion save');
+for (const id of ['balor-advanced-materials', 'merren-conservatory'] as const) {
+  storage.set(key, JSON.stringify({ ...loaded, reputations: { ...loaded.reputations, [id]: 9 } }));
+  assert(loadCareerProfile().reputations![id] === 2, 'load clamps new commercial cap');
+}
+saveCareerProfile(loaded);
 
 const game: any = Object.create(Game.prototype);
 game.career = loaded; game.worldTime = 999;
@@ -89,7 +134,7 @@ game.pendingMaintenanceSettlement = { resultingRig: structuredClone(loaded.rig),
 game.phaseCompletion = { marker: 'untouched' };
 const baseline = structuredClone(game.career);
 const clocksAndFlight = JSON.stringify([game.worldTime, game.phase, game.pendingMaintenanceSettlement, game.phaseCompletion]);
-for (const id of ['__proto__', 'constructor', 'teamsters-guild', 'KIS-E', 'bogus']) {
+for (const id of ['__proto__', 'constructor', 'teamsters-guild', 'KIS-E', 'bogus', 'ACCORD', 'HALL', 'oathmark-accord-authority', 'halloran-smelting-house', 'bruckner-field-services']) {
   const n = writes; assert(game.setReputationFromDevPanel(id, 2) === 'invalid' && writes === n, 'forged track rejected');
 }
 for (const value of [-1, 3.01, Infinity, NaN, '2', null, undefined]) {
@@ -107,7 +152,7 @@ beforeSave = undefined;
 assert(writes === n + 1 && game.career !== original, 'retry commits exactly once');
 assert(game.setReputationFromDevPanel('steel-combine', 2.5) === 'unchanged' && writes === n + 1, 'same-value edit does not save');
 for (const track of REPUTATION_TRACKS) {
-  for (const value of [3, 1.5, 0]) {
+  for (const value of [reputationMaxLevel(track.id), 1.5, 0]) {
     const before = structuredClone(game.career), w = writes;
     assert(game.setReputationFromDevPanel(track.id, value) === 'saved', 'every track can be edited up, partially and down');
     equal(game.career, { ...before, reputations: { ...before.reputations, [track.id]: value } }, 'only requested standing changed');
@@ -116,14 +161,31 @@ for (const track of REPUTATION_TRACKS) {
   }
 }
 equal(JSON.stringify([game.worldTime, game.phase, game.pendingMaintenanceSettlement, game.phaseCompletion]), clocksAndFlight, 'edits do not touch flight snapshots/clocks/scene/maintenance settlement');
+for (const id of ['balor-advanced-materials', 'merren-conservatory'] as const) {
+  const before = JSON.stringify(game.career), durable = storage.get(key), w = writes;
+  for (const invalid of [2.0000000000000004, 2.5, 3]) assert(game.setReputationFromDevPanel(id, invalid) === 'invalid', 'cap enforced in Game, not only native form');
+  assert(JSON.stringify(game.career) === before && storage.get(key) === durable && writes === w, 'over-cap edits change nothing');
+  fail = true;
+  assert(game.setReputationFromDevPanel(id, 1.5) === 'save-failed', 'new track edit failure reported');
+  fail = false;
+  assert(JSON.stringify(game.career) === before && storage.get(key) === durable && writes === w, 'new track failure atomic');
+  assert(game.setReputationFromDevPanel(id, 1.5) === 'saved' && writes === w + 1, 'new track retry writes once');
+}
+// Mixed state: independently reveal and hide every track; never reveal unrelated zero standings.
+for (const track of REPUTATION_TRACKS) for (const progress of [0, Number.MIN_VALUE, 0.001, 1, reputationMaxLevel(track.id), 0]) {
+  game.career.reputations = { ...zero, [track.id]: progress };
+  const rows = game.buildInteractiveScene({ id: 'careerStatus', selectedIndex: 0 }).bodyRows.filter((row: any) => row.bars);
+  assert(rows.length === (progress > 0 ? 1 : 0), 'only positive track displayed');
+  if (rows.length) assert(rows[0].label === track.name && rows[0].bars.length === reputationMaxLevel(track.id), 'correct mixed-state name and bar count');
+}
 
 for (const value of [0, Number.MIN_VALUE, 0.75, 1, 1.9999999999999998, 2, 2.5, 3, 0]) {
   game.career.reputations = Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, value]));
   const scene = game.buildInteractiveScene({ id: 'careerStatus', selectedIndex: 0 });
   const rows = scene.bodyRows.filter((row: any) => row.bars);
-  const visible = REPUTATION_TRACKS.filter(t => t.id !== 'smuggler-notoriety' || value > 0);
-  assert(rows.length === visible.length, 'only completely zero Notoriety is hidden; fractional level zero remains visible');
-  assert(scene.bodyRows.some((r: any) => r.text === 'FACTION REPUTATION'), 'revised section heading');
+  const visible = REPUTATION_TRACKS.filter(() => value > 0);
+  assert(rows.length === visible.length, 'every completely zero track is hidden; any positive partial level zero remains visible');
+  assert(scene.bodyRows.some((r: any) => r.text === 'FACTION REPUTATION') === (value > 0), 'section heading shown only when at least one standing is positive');
   assert(!scene.bodyRows.some((r: any) => /Each full bar|Partial bars|FACTION RANKS/.test(r.text ?? '')), 'no explanatory text or old heading');
   for (const [index, track] of visible.entries()) {
     const s = reputationStanding(game.career.reputations, track.id);
@@ -150,8 +212,8 @@ for (const size of [[1024, 768], [1280, 800], [1920, 1080]]) {
     for (let offset = 0; offset < limit + 180; offset += 180) drawInteractiveScene(ctx, canvas, scene, 0, offset);
     const drawn = text.join('').replace(/\s/g, '');
     for (const track of REPUTATION_TRACKS) {
-      const found = drawn.includes(track.titles[Math.floor(value)].replace(/\s/g, ''));
-      assert(found === (track.id !== 'smuggler-notoriety' || value > 0), 'visible titles reachable; completely zero Notoriety omitted');
+      const found = drawn.includes(track.titles[Math.floor(Math.min(value, track.titles.length - 1))]!.replace(/\s/g, ''));
+      assert(found === (value > 0), 'visible titles reachable; all completely zero reputations omitted');
     }
     assert(!text.some(t => /…|\.\.\./.test(t)), 'no truncated career labels');
     const bars = fills.filter(r => r.color === '#4ddcff');
@@ -163,7 +225,7 @@ for (const size of [[1024, 768], [1280, 800], [1920, 1080]]) {
 
 // Same profile, low/high ranks: public offers, locks, travel and equipment terms unchanged.
 game.career = { ...loaded, money: 1000000, reputations: { ...zero } };
-const low = structuredClone(game.career), high = { ...structuredClone(low), reputations: Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, 3])) };
+const low = structuredClone(game.career), high = { ...structuredClone(low), reputations: Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, reputationMaxLevel(t.id)])) };
 const offers = [...generateCareerContracts(low.locationId, 0), ...generatePassengerContracts(low.locationId, 0)];
 for (const contract of offers) {
   const state = { id: 'contractPosting', selectedIndex: 0, contracts: [contract], contractIndex: 0 };
@@ -180,6 +242,6 @@ game.activeManifestCondition = { integrity: null, comfort: null }; game.loadStat
 const standingBefore = structuredClone(high.reputations);
 game.finishCareerDelivery(); equal(game.career.reputations, standingBefore, 'delivery never grants reputation');
 equal(loadCareerProfile().reputations, standingBefore, 'delivery save retains manual ranks');
-const reset = resetCareerProfile(); equal(reset.reputations, zero, 'new career resets all ten');
+const reset = resetCareerProfile(); equal(reset.reputations, zero, 'new career resets all twelve');
 equal(loadCareerProfile().reputations, zero, 'reset persists');
-console.log(`Reputation: ${checks} checks; ten reviewed tracks, partial thresholds, safe legacy loads, atomic edits, desktop status bars and no gameplay effects.`);
+console.log(`Reputation: ${checks} checks; twelve tracks, per-track caps, inherited levels, zero visibility, partial thresholds, safe legacy loads, atomic edits, desktop status bars and no gameplay effects.`);

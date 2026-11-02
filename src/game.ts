@@ -19,7 +19,7 @@ import { TerrainData, checkLandingCollision as checkTerrainCollision, generateTe
 import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay, type PhaseFinancialLine } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode, updateDevPanel, markDevPanelDirty } from './dev-panel';
-import { REPUTATION_TRACKS, isReputationId, normalizeReputations, reputationStanding, type ReputationEditResult } from './reputation';
+import { REPUTATION_TRACKS, isReputationId, normalizeReputations, reputationStanding, reputationMaxLevel, type ReputationEditResult } from './reputation';
 import { LevelDef, landingLevelById } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
@@ -383,7 +383,7 @@ export class Game {
   }
 
   private setReputationFromDevPanel(id: string, value: number): ReputationEditResult {
-    if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > 3) return 'invalid';
+    if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > reputationMaxLevel(id)) return 'invalid';
     const reputations = normalizeReputations(this.career.reputations);
     if (reputations[id] === value) return 'unchanged';
     const next: CareerProfile = { ...this.career, reputations: { ...reputations, [id]: value } };
@@ -3063,6 +3063,11 @@ export class Game {
     }
 
     if (state.id === 'careerStatus') {
+      const reputationRows = REPUTATION_TRACKS.flatMap(track => {
+        const standing = reputationStanding(this.career.reputations, track.id);
+        if (standing.progress === 0) return [];
+        return [{ kind: 'kv' as const, label: track.name, value: standing.title, bars: standing.bars }];
+      });
       return {
         title: 'CAREER STATUS',
         subtitle: 'Pilot record and faction standing',
@@ -3073,13 +3078,11 @@ export class Game {
           { kind: 'kv', label: 'Cash', value: formatCredits(this.career.money), tone: this.career.money >= 0 ? 'success' : 'danger' },
           { kind: 'kv', label: 'World time', value: `${(this.career.worldTime / 86_400).toFixed(2)} days` },
           { kind: 'kv', label: 'Teamster Rank', value: currentTeamsterRank, tone: currentTeamsterRank === 'Teamster' ? 'success' : currentTeamsterRank === 'Junior Teamster' ? 'warning' : undefined },
-          { kind: 'separator' },
-          { kind: 'text', text: 'FACTION REPUTATION', tone: 'primary' },
-          ...REPUTATION_TRACKS.flatMap(track => {
-            const standing = reputationStanding(this.career.reputations, track.id);
-            if (track.id === 'smuggler-notoriety' && standing.progress === 0) return [];
-            return [{ kind: 'kv' as const, label: track.name, value: standing.title, bars: standing.bars }];
-          }),
+          ...(reputationRows.length ? [
+            { kind: 'separator' as const },
+            { kind: 'text' as const, text: 'FACTION REPUTATION', tone: 'primary' as const },
+            ...reputationRows,
+          ] : []),
         ],
         footer: 'W/S or ↑↓: select   Enter/Space: choose   Esc: start menu',
         options: [{ label: 'Back to Station Terminal', detail: 'Return to terminal functions.', action: 'stationTerminal', tone: 'back' }],

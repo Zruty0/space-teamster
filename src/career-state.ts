@@ -54,7 +54,7 @@ export interface CareerProfile {
   nunesInquiries: NunesInquiryState;
   /** Mission-giving people learned through introductions, never inferred from visits. */
   knownContactIds?: string[];
-  /** Optional for old profiles; load/default fills all ten tracks at zero. */
+  /** Optional for old profiles; load/default fills missing tracks at zero. */
   reputations?: ReputationState;
 }
 

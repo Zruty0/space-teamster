@@ -4,7 +4,7 @@ import type { MechanicDamagePool, MechanicOperation } from './maintenance/mainte
 import { systemStatus } from './maintenance/rig-state';
 import type { ComponentGrade, MaintenanceDebugSnapshot, MaintenanceLedger, MaintenanceSystemId } from './maintenance/types';
 
-import { REPUTATION_TRACKS, isReputationId, reputationStanding, type ReputationEditResult, type ReputationState } from './reputation';
+import { REPUTATION_TRACKS, isReputationId, reputationStanding, reputationMaxLevel, inheritedReputationLevel, type ReputationEditResult, type ReputationState } from './reputation';
 
 let panel: HTMLElement | null = null;
 let visible = false;
@@ -254,8 +254,8 @@ function renderLedger(snapshot: MaintenanceDebugSnapshot): string {
 }
 
 function applyReputationEdit(id: string, value: number): void {
-  if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > 3) {
-    reputationMessage = 'Enter a finite rank progress value from 0 to 3.';
+  if (!isReputationId(id) || !Number.isFinite(value) || value < 0 || value > reputationMaxLevel(id)) {
+    reputationMessage = isReputationId(id) ? `Enter a finite rank progress value from 0 to ${reputationMaxLevel(id)}.` : 'Unknown reputation track.';
   } else {
     const result = reputationHandler?.(id, value);
     reputationMessage = result === 'saved' ? `${REPUTATION_TRACKS.find(track => track.id === id)!.name}: saved.`
@@ -271,17 +271,18 @@ function applyReputationEdit(id: string, value: number): void {
 function renderReputations(): string {
   const state = reputationProvider?.();
   if (!state || !reputationHandler) return '<p>No career rank provider.</p>';
-  return `<p class="dev-summary">Persistent career ranks only; no gameplay effects or automatic gains. Set a whole rank with 0–3, or enter partial progress (for example 1.5). A partial next bar does not promote the rank.</p>
+  return `<p class="dev-summary">Persistent career ranks only; no gameplay effects or automatic gains. BAM and Merren cap at 2; other tracks cap at 3. Set a whole rank or enter partial progress (for example 1.5). A partial next bar does not promote the rank.</p>
+    <p class="dev-summary" data-inherited-reputation>Shared levels (read-only): Bruckner ${inheritedReputationLevel(state, 'BFS')}; KIS-E ${inheritedReputationLevel(state, 'KIS-E')}; Accord ${inheritedReputationLevel(state, 'ACCORD')}; Halloran ${inheritedReputationLevel(state, 'HALL')}.</p>
     <p class="dev-rank-message" role="status" aria-live="polite">${escapeHtml(reputationMessage)}</p>
     ${REPUTATION_TRACKS.map(track => {
       const standing = reputationStanding(state, track.id);
       return `<section class="dev-rank" data-reputation-id="${track.id}">
         <h3>${escapeHtml(track.name)}</h3>
-        <div class="dev-rank-title">${escapeHtml(standing.title)} — Level ${standing.level}/3</div>
-        <div class="dev-rank-bars" role="img" aria-label="${escapeHtml(track.name)}: ${standing.progress} of 3 bars">${standing.bars.map(fill => `<span><i style="width:${fill * 100}%"></i></span>`).join('')}</div>
+        <div class="dev-rank-title">${escapeHtml(standing.title)} — Level ${standing.level}/${standing.maxLevel}</div>
+        <div class="dev-rank-bars" role="img" aria-label="${escapeHtml(track.name)}: ${standing.progress} of ${standing.maxLevel} bars">${standing.bars.map(fill => `<span><i style="width:${fill * 100}%"></i></span>`).join('')}</div>
         <form data-reputation-form="${track.id}">
-          ${[0, 1, 2, 3].map(level => `<button type="button" data-reputation-id="${track.id}" data-reputation-set="${level}" title="${escapeHtml(track.titles[level])}">${level}</button>`).join('')}
-          <label>Progress <input data-reputation-value type="number" min="0" max="3" step="any" required value="${standing.progress}" aria-label="${escapeHtml(track.name)} progress"></label>
+          ${track.titles.map((_, level) => `<button type="button" data-reputation-id="${track.id}" data-reputation-set="${level}" title="${escapeHtml(track.titles[level])}">${level}</button>`).join('')}
+          <label>Progress <input data-reputation-value type="number" min="0" max="${standing.maxLevel}" step="any" required value="${standing.progress}" aria-label="${escapeHtml(track.name)} progress"></label>
           <button type="submit">Apply</button>
         </form>
       </section>`;
