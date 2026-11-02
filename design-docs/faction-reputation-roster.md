@@ -1,6 +1,6 @@
 # Faction reputation — roster review
 
-Updated: 2026-10-30 (Pacific)
+Updated: 2026-11-02 (Pacific)
 Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested implementation using the current ten-track roster. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
 ## Verified starting point
@@ -16,7 +16,15 @@ Source boundaries:
 - `src/content-terminology.ts`: current player-facing Shipyards wording; old operational IDs remain.
 - `src/content/estella/faction-contracts/reach-settlement-contracts.ts`: `HSC` is present on sparse Thule/Barataria work. Most older Hartwell carrier work has individual company names and no tag. Do not miss HSC by scanning only the carrier's primary file.
 
-## Current direction: nine faction candidates plus Notoriety
+## Commercial reputation expansion — design direction, 2026-11-02
+
+Pete defines reputation's main purpose as gating more lucrative contracts, and wants other named entities to track reputation too. A maximum of level 2 for these additional employers is suggested, not finalized. No new tracks, caps or contract gates are implemented by this discussion. The previous ten-track limit was based on narrative importance; it is no longer the intended limit for commercial relationships.
+
+Ten additional individually identified tagged employers, apart from the previously excluded Guild: Sector Government (GOV), Estella Defence Force (EDF), New Canaan Miners Mutual (CO-OP), Estella Institute of Planetology (EIP), Balor Advanced Materials (BAM), Bruckner Field Services (BFS), Halloran Smelting House (HALL), Merren Conservatory (MERREN), Svarog Shipyard Company (SSC), Oathmark Accord Authority (ACCORD).
+
+The Guild is an eleventh possible addition if its earlier exclusion is reconsidered for commercial rather than plot purposes. KIS-E already shares the Kisaragi track. NOBLE and HSC remain aggregates, not individual organizations: seven lesser households (Beira, Tinto, Calatrava, Almaden, Marisma, Cadiz, Teide), and independent Hartwell shipping companies respectively. Untagged mining/refining/broker/civilian pools likewise require an explicit choice of customer identity before adding employer standings; do not equate a provider group with a single firm. Final expanded roster, caps, attribution, titles, thresholds and presentation remain open.
+
+## Implemented roster: nine factions plus Notoriety
 
 Pete's specified groups plus Covenant and Daedalus give **eight**, counting Kisaragi once across parent/local subsidiary. Cerberus occupies the ninth slot in the current working roster, used for Pete's subsequent request to name all ten tracks. On October 30 Pete rejects the Guild because no Guild plots are planned. Its existing services, certification missions, fuel role and contacts remain; do not invent Guild politics or a reputation grind to justify a slot.
 
