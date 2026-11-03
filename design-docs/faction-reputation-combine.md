@@ -1,7 +1,21 @@
-# Steel Combine reputation — first parameter proposal
+# Steel Combine reputation
 
 Updated: 2026-11-03 (Pacific)
-Status: **Design only; baseline accepted as reasonable, with the routine-work amendment below.** Numbers remain the working baseline; exact mission assignments and previously open questions still need review. Nothing here is implemented. Review order: Combine, then Cerberus, then Houses. Do not advance automatically. Shared directions: [progression discussion](faction-reputation-progression.md). Runtime reputation baseline remains `43772dc`; concurrent orbital haze `bc3ddf3` preserved.
+Status: **Implemented November 3 after Pete's authorization.** This completes the Combine pass and shared acceptance notices; proceed to Cerberus design next, then Houses. Thirteen-track model `43772dc` and nonlinear orbital haze `de95091` retained. Shared framework: [progression discussion](faction-reputation-progression.md).
+
+## Implementation ledger — November 3
+
+- `src/contract-reputation.ts` classifies stable faction/template identities without changing generators, IDs, seeds, cargo, quotes or fees. All 816 raw Combine candidates across sixteen days are classified. Public postings stay visible with locks, evaluated against current standing in both the board/acceptance scene and the acceptance handler, not cached into generated offers.
+- M=2 to 1; important imports/Combine-funded pilgrimages M=15 to 2; no ordinary gains above 2. Every completed own job resets grace. K=5 unrelated completions, then D=1/30, protecting the current integer floor. Exact authored thirtieth-bar arithmetic reaches level 2 on the fifteenth important completion without rounding arbitrary developer/saved scores.
+- Explicit CHR custody/labor jobs cost 0.20, manifests 0.10; floor 1, below-1 no-op. A rivalry hit consumes grace but replaces passive decay on that event. No direct loss for ordinary/premium/ambiguous CHR commerce. Other twelve tracks remain unchanged; no inherited credit or reciprocal CHR loss.
+- Elevated internal variants: machine-tool stock on `hammer-to-perun`; blasting charges/replacement cutting heads on `hammer-to-veles`; finished machinery, machine tools, pumps/compressors, gear assemblies and heavy vehicle chassis on `perun-to-hammer`; tooling/spares on `anvil-to-surface`; Camps `morana-instruments` and `mokosh-farm-spares`. Remaining internal variants, including structural modules, crew rotations and spent-tooling returns, stay at 0. Imports/pilgrimages require 1; all named export programmes require 2.
+- Current **CHR level 3 refuses all new Combine work**, irrespective of Combine standing. No persistent allegiance flag, score truncation, reciprocal refusal, docking/service ban or retroactive accepted-job cancellation. Persistent quest/renunciation lifecycle remains for later design.
+- Optional `CareerProfile.reputationUnrelatedContracts` in the existing career key; safe integer counters, missing/invalid entries mean full grace, unknown keys ignored. No schema revision, eager migration write or historical reward inference. Successful paid/certification jobs consume unrelated grace; empty flights and personal Old Nell passage do not. Failed/abandoned work and retries award/count nothing.
+- Shared neutral computer notices preview real completion effects; gain supersedes maintenance, floors/caps suppress false promises. Maintenance only for vulnerable fractional standing. Reputation-locked postings show their restriction rather than an unattainable reward preview. Passive unrelated decay is not labeled faction disapproval.
+- Delivery commits cloned money/location/time/certifications/Inquiry/wear/reputation/counters before publishing. Save failure restores the completion overlay; retry commits once. Flight logging follows a successful career save, preserving previous entries; consumed bookings/stale callbacks cannot repeat settlement. No new mission-history transaction/version system.
+- Validation: 9,264 progression checks / 816 candidates, 10,045 standing checks, 36 native preview checks, 41 real-Game isolated Edge checks (launch/retry, 2+15 completions, decay, save failure, reconstructed Game). Menu/maintenance/economy/history regressions and build pass; screenshots inspected. Preview `/tests/contract-reputation-preview.html`. No mobile/live-save/push/deploy changes.
+
+The sections below retain the rationale and quest/asymmetry questions from the review. Implemented ordinary-work rules are the ledger above.
 
 ## Existing source facts
 
@@ -12,7 +26,7 @@ Status: **Design only; baseline accepted as reasonable, with the routine-work am
 - `kalyna-work-pilgrimage:*` is Combine-funded reciprocal passenger work; Merren/Work Union-funded pilgrimages have their own issuer. Neither Svarog nor Kalyna is part of the Combine merely because it is a Kuznia moon.
 - Existing CHR templates distinguish explicit custody/labor allocation, workforce manifests, ordinary industrial/medical supply and premium corporate commerce. Price or Pandemonium/Olympos destination alone does not identify political harm.
 
-## Proposed contract eligibility
+## Contract eligibility
 
 | Combine level | Ordinary work available |
 |---|---|
@@ -29,9 +43,9 @@ Pete wants level 1 to unlock **more routine work**, not only important advanceme
 
 Access, pay and advancement qualification remain separate. Elevated routine work resets grace but **does not earn 1→2 progress** merely because it requires level 1. Imports/work pilgrimages remain the proposed important-work classes.
 
-Suggested split for review, not an approved template mapping: leave ordinary food/raw-stock distribution and regular crew rotations at 0; reserve selected finished machinery, specialist tooling/spares and blasting-charge shipments for 1. Keep sufficient entry-level bookings to earn the first rank. Classify stable authored mission/cargo variants rather than matching displayed names; do not accidentally gate an entire mixed routine lane because one variant is restricted.
+The implemented split leaves ordinary food/raw-stock distribution and regular crew rotations at 0; selected finished machinery, specialist tooling/spares and blasting-charge shipments require 1. The ledger above lists exact variants. Entry-level bookings remain available to earn the first rank. Classification uses stable authored mission/cargo variants, not displayed names; a restricted variant does not gate its entire mixed lane.
 
-## Proposed positive credit
+## Positive credit
 
 - **0→1: M=2, +0.5 per successful Combine-issued contract**, capped at 1 for that award. Normally the available work here is internal distribution.
 - **1→2: M=15, +1/15 per successful qualifying import/procurement or Combine-funded work-pilgrimage contract**, capped at 2. These are the entrusted-work classes proposed above. Routine internal work gives no advancement after 1.
@@ -40,7 +54,7 @@ Suggested split for review, not an approved template mapping: leave ordinary foo
 - Qualification uses stable provider and authored logical mission-family identity. A contract from another issuer does not award Combine points merely because it goes to Hammer/Anvil/Kuznia. No automatic credit from Merren pilgrimage work, HALL/HSC/SSC jobs or Institute visits without an explicit later decision.
 - Proposal: ordinary repeat bookings count as separate jobs; retries/flight legs do not. Failures/abandonment give no positive credit or grace reset. No new failure penalty or decay count is proposed in this pass; special quest consequences would need authoring.
 
-## Proposed passive decay
+## Passive decay
 
 Use the same initial parameters in bands 1→2 and 2→3:
 - **K=5 unrelated completed contracts** of grace after a successful Combine job.
@@ -49,7 +63,7 @@ Use the same initial parameters in bands 1→2 and 2→3:
 - Empty runs and elapsed time do not consume grace. Routine Combine work resets it without awarding advanced progress.
 - A routine CHR job is unrelated for this counter, but carries no direct rivalry penalty merely because it is CHR.
 
-## Proposed disqualifying work and losses
+## Disqualifying work and losses
 
 Keep explicit coercive operations distinct from merely profitable commerce:
 
@@ -69,6 +83,6 @@ Normal rival penalties stop at **1.0**. Recommended below-1 treatment: no-op rat
 - At **Combine 3**, Cerberus would still offer work if its stated indifference governs hiring as well as reputation. This is the asymmetry to confirm during these reviews; do not silently add mutual refusal. Consequential CHR jobs could still risk Combine standing under that interpretation.
 - No numerical erasure of stored standing, extra cross-faction ceiling, docking ban or cancellation of accepted contracts is selected here. Warn before commitment; resolve any conflicting outstanding bookings before promotion if they can coexist.
 
-## Decisions requested on this proposal
+## Next review
 
-The baseline is accepted as reasonable, amended to **entry-level routine → elevated routine plus important imports/exchanges → exports**. Retain M=2 / M=15, K=5 / D=1/30 and the CHR loss table as working parameters. Next settle exact level-0/1 routine assignments. Other employers' elevated routine premiums, quest rewards, global cap/refusal lifecycle and the CHR-indifference edge remain open. No runtime implementation is authorized by this discussion.
+Combine ordinary progression and the routine split are implemented. Next is **Cerberus**, including its elevated routine premiums and important-work classes. Special quest rewards/reinstatement, global political caps and persistent refusal/renunciation remain open. Do not implement Cerberus/Houses progression without their review.

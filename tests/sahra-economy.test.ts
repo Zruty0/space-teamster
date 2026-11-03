@@ -158,5 +158,8 @@ for (const c of [baseline.acceptedFuel as CareerContract, accepted]) {
   game.finishCareerDelivery();
   assert(game.career.locationId === c.destinationId && loadCareerProfile().locationId === c.destinationId && JSON.stringify(c) === saved, 'real legacy/new settlement preserves accepted quote and arrives at contracted endpoint');
 }
-assert(storage.get('space-teamster.missionProfiles.v1') === history && isCatalogedCargoLabel('stable fuel canisters'), 'historical cargo type and mission history retained');
+// Delivery now logs after its atomic career save, rather than before settlement in the transition.
+const settledHistory = JSON.parse(storage.get('space-teamster.missionProfiles.v1')!);
+assert(JSON.stringify(settledHistory.slice(0, 1)) === history && isCatalogedCargoLabel('stable fuel canisters'), 'historical cargo type and pre-existing mission entry retained unchanged');
+assert(settledHistory.length === 3, 'only the two newly completed deliveries append flight history');
 console.log(`Sahra economy: ${checks} checks, ${orders.size} distinct orders, ${pairs.size} playable pairs; ${exactRows} exact postings on ${exactBoards} unaffected boards of ${allRows} rows.`, Object.fromEntries([...actors].map(([k,v]) => [k,v.size])), Object.fromEntries(coverage));

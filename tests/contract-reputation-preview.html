@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Reputation contract preview</title>
+<style>body{background:#080d13;color:#d5e4ef;font:14px monospace;margin:18px}select{font:inherit;margin:10px}canvas{display:block;border:1px solid #34465a}</style>
+<div id="status">Running synthetic checks…</div>
+<label>View <select id="view"></select></label>
+<canvas id="scene" width="1280" height="900"></canvas>
+<script type="module">
+import { checks as unitChecks, offers, profile } from './contract-reputation.test.ts';
+import { Game } from '../src/game.ts';
+import { combineContractClass, contractReputationNotices } from '../src/contract-reputation.ts';
+import { generateCareerContracts } from '../src/career-contracts.ts';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit } from '../src/interactive-scene.ts';
+const status = document.querySelector('#status');
+try {
+  let checks = 0;
+  const assert = (value, message) => { checks++; if (!value) throw Error(message); };
+  const choose = kind => offers.find(c => combineContractClass(c) === kind);
+  let rival;
+  for (let day = 0; day < 16 && !rival; day++) rival = generateCareerContracts('estella-ii-olympos', day * 86400).find(c => c.factionId === 'cerberus-human-resources' && c.templateId === 'local-workforce-manifests');
+  const refused = profile(2); refused.reputations['cerberus-human-resources'] = 3;
+  const views = {
+    Advancing: [profile(), choose('basic-routine'), false],
+    Routine: [profile(1.5), choose('elevated-routine'), false],
+    Important: [profile(1.5), choose('important'), false],
+    Rival: [profile(2.3), rival, false],
+    'Export locked': [profile(1.9), choose('export'), true],
+    'Export unlocked': [profile(2), choose('export'), false],
+    Refused: [refused, choose('basic-routine'), true],
+  };
+  const canvas = document.querySelector('canvas'), ctx = canvas.getContext('2d');
+  const game = Object.create(Game.prototype); game.canvas = canvas;
+  let launched = 0; game.launchPlayableEstellaMission = () => { launched++; };
+  const states = new Map();
+  for (const [name, [career, contract, locked]] of Object.entries(views)) {
+    assert(contract, `${name}: real generated contract available`);
+    game.career = career;
+    const state = { id: 'contractPosting', selectedIndex: 0, contracts: [contract], contractIndex: 0 };
+    states.set(name, state);
+    const scene = game.buildInteractiveScene(state);
+    assert(Boolean(scene.options[0].disabled) === locked, `${name}: correct native acceptance gate`);
+    const notices = locked ? [] : contractReputationNotices(career, contract);
+    for (const n of notices) assert(scene.bodyRows.some(r => r.text === n.text), `${name}: actual computer message`);
+    const before = JSON.stringify(career), count = launched;
+    game.activateInteractiveSceneOption(state, 'acceptContract');
+    assert(launched === count + Number(!locked), `${name}: handler rechecks gate`);
+    assert(JSON.stringify(career) === before, `${name}: no reputation paid at acceptance`);
+    const drawn = [], fillText = ctx.fillText.bind(ctx);
+    ctx.fillText = (text, ...args) => { drawn.push(text); fillText(text, ...args); };
+    const limit = interactiveSceneBodyScrollLimit(ctx, canvas, scene);
+    for (let scroll = 0; scroll <= limit + 180; scroll += 180) drawInteractiveScene(ctx, canvas, scene, 0, scroll);
+    ctx.fillText = fillText;
+    const allText = drawn.join('').replace(/\s/g, '');
+    for (const n of notices) assert(allText.includes(n.text.replace(/\s/g, '')), `${name}: full notice reachable without truncation`);
+  }
+  const select = document.querySelector('#view');
+  for (const name of Object.keys(views)) select.add(new Option(name, name));
+  function render() { game.career = views[select.value][0]; drawInteractiveScene(ctx, canvas, game.buildInteractiveScene(states.get(select.value)), 0, 0); }
+  select.onchange = render; render();
+  status.textContent = `PASS: ${checks} native checks + ${unitChecks} shared checks; synthetic page-local storage, real generated postings.`;
+  document.title = 'PASS contract reputation';
+} catch (error) { status.textContent = `FAIL: ${error.stack}`; document.title = 'FAIL contract reputation'; throw error; }
+</script>

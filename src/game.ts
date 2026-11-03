@@ -54,6 +54,7 @@ import { drawEstellaGeneratedMission, estellaGeneratedMissionScene, generateEste
 import { createPlayableEstellaMission, generatedEstellaDepartureOrbitDir } from './estella-playable';
 import { careerContractClassLabel, generateDirectoryEntryContracts, type CareerContract } from './career-contracts';
 import { presentCareerContract } from './contract-presentation';
+import { contractReputationLockReasons, contractReputationNotices, previewContractReputation } from './contract-reputation';
 import { contributeToNunesInquiry, formatNunesInquiryTitle, nunesInquiryCatalogEntry, nunesInquirySnapshot, nunesInquiryWillClose } from './content/estella/faction-contracts/nunes-inquiries';
 import { prepareContractBoards, preparedContractBoards } from './contract-board-service';
 import type { PreparedContractBoards } from './contract-board-worker-types';
@@ -251,7 +252,7 @@ function contractMissingQualifications(contract: CareerContract, career: CareerP
   if (contract.requiredCertification && !hasTeamsterCertification(career, contract.requiredCertification)) {
     missing.push(teamsterCertificationName(contract.requiredCertification));
   }
-  return missing;
+  return [...missing, ...contractReputationLockReasons(career, contract)];
 }
 
 interface PhaseTransition {
@@ -1072,7 +1073,7 @@ export class Game {
       );
     }
     const finalContractTitle = completionText && this.activeCareerContract ? presentCareerContract(this.activeCareerContract).title : undefined;
-    this.phaseCompletion = {
+    const completion: PhaseCompletion = {
       title: finalContractTitle ?? extra.title ?? this.phaseTitle(p),
       tone: extra.tone ?? 'success',
       phaseDvUsed,
@@ -1082,21 +1083,25 @@ export class Game {
       detailText,
       financialLines,
       onContinue: () => {
-        const completion = this.phaseCompletion;
+        if (this.phaseCompletion !== completion) return;
         this.phaseCompletion = null;
         try { onContinue(); } catch (error) {
-          if (this.activeCareerContract?.category !== 'empty') throw error;
-          // Empty-run settlement saves before publishing. Keep the arrival
-          // screen available to retry a failed save without a second charge.
+          if (!this.activeCareerContract) throw error;
+          // Settlement saves money, progress, counters and wear before publishing.
+          // A failed save keeps this exact completion available for one safe retry.
           this.phaseCompletion = completion;
-          this.showGuidance('Arrival could not be saved. Please try again.');
+          this.showGuidance(this.activeCareerContract.category === 'empty'
+            ? 'Arrival could not be saved. Please try again.'
+            : 'Contract completion could not be saved. Please try again.');
         }
       },
       onRetry: () => {
+        if (this.phaseCompletion !== completion) return;
         this.pendingMaintenanceSettlement = null;
         this.reloadPhase(p);
       },
     };
+    this.phaseCompletion = completion;
     this.accumulator = 0;
   }
 
@@ -1108,44 +1113,33 @@ export class Game {
     const contract = this.activeCareerContract;
     const quote = this.activeMissionQuote;
     if (!contract || !quote) return;
-    if (contract.category === 'empty') {
-      const settlement = this.pendingMaintenanceSettlement;
-      const next: CareerProfile = {
-        ...this.career,
-        money: this.career.money - actualFuelCostForQuote(quote, this.missionDvUsed),
-        locationId: canonicalEstellaLocationId(contract.destinationId), worldTime: this.worldTime,
-        rig: settlement?.resultingRig ?? this.career.rig,
-      };
-      saveCareerProfile(next);
-      this.career = next;
-      if (settlement) this.committedMaintenanceLedgers = appendCommittedMaintenanceLedger(settlement.ledger);
-      this.pendingMaintenanceSettlement = null;
-      try { this.logSuccessfulGeneratedRun(); } catch (error) { console.warn('Could not save empty-run flight log', error); }
-      this.loadStationTerminal();
-      return;
-    }
-    this.career.money += contractPayoutForQuote(quote, this.missionDvUsed)
-      - actualFuelCostForQuote(quote, this.missionDvUsed)
-      - integrityPenalty(this.activeManifestCondition.integrity)
-      - comfortPenalty(this.activeManifestCondition.comfort);
-    this.career.locationId = canonicalEstellaLocationId(contract.destinationId);
-    this.career.worldTime = this.worldTime;
-    if (contract.certificationOnSuccess !== undefined) {
-      awardTeamsterCertification(this.career, contract.certificationOnSuccess);
+    const next = structuredClone(this.career);
+    next.money += contract.category === 'empty'
+      ? -actualFuelCostForQuote(quote, this.missionDvUsed)
+      : contractPayoutForQuote(quote, this.missionDvUsed)
+        - actualFuelCostForQuote(quote, this.missionDvUsed)
+        - integrityPenalty(this.activeManifestCondition.integrity)
+        - comfortPenalty(this.activeManifestCondition.comfort);
+    next.locationId = canonicalEstellaLocationId(contract.destinationId);
+    next.worldTime = this.worldTime;
+    if (contract.category !== 'empty') {
+      if (contract.certificationOnSuccess !== undefined) awardTeamsterCertification(next, contract.certificationOnSuccess);
+      if (contract.nunesInquiry) contributeToNunesInquiry(next.nunesInquiries,
+        contract.nunesInquiry.instanceId, contract.nunesInquiry.contribution, this.worldTime);
+      const reputation = previewContractReputation(this.career, contract);
+      next.reputations = reputation.reputations;
+      next.reputationUnrelatedContracts = reputation.reputationUnrelatedContracts;
     }
     const committedSettlement = this.pendingMaintenanceSettlement;
-    if (committedSettlement) this.career.rig = committedSettlement.resultingRig;
-    if (contract.nunesInquiry) {
-      contributeToNunesInquiry(
-        this.career.nunesInquiries,
-        contract.nunesInquiry.instanceId,
-        contract.nunesInquiry.contribution,
-        this.worldTime,
-      );
-    }
-    saveCareerProfile(this.career);
+    if (committedSettlement) next.rig = committedSettlement.resultingRig;
+    saveCareerProfile(next);
+    this.career = next;
     if (committedSettlement) this.committedMaintenanceLedgers = appendCommittedMaintenanceLedger(committedSettlement.ledger);
     this.pendingMaintenanceSettlement = null;
+    try { this.logSuccessfulGeneratedRun(); } catch (error) { console.warn('Could not save completed-run flight log', error); }
+    // Consume the booking before UI cleanup, including when a terminal refresh fails.
+    this.activeCareerContract = null;
+    this.activeMissionQuote = null;
     this.loadStationTerminal();
   }
 
@@ -1178,11 +1172,11 @@ export class Game {
 
   private finishRunTransition(): PhaseTransition {
     return this.makeTransition('success', () => {
-      if (this.activeCareerContract?.category !== 'empty') this.logSuccessfulGeneratedRun();
       if (this.activeCareerContract) {
         this.finishCareerDelivery();
         return;
       }
+      this.logSuccessfulGeneratedRun();
       this.clearActiveMission();
       this.phase = { kind: 'startMenu' };
     });
@@ -3021,6 +3015,7 @@ export class Game {
       }
       const quote = contract.quote;
       const contactPosting = state.board === 'contact';
+      const reputationRestrictions = contractReputationLockReasons(this.career, contract);
       const missingQualifications = contractMissingQualifications(contract, this.career);
       const equipmentRestrictions = contractEquipmentRestrictionLabels(contract, this.career.rig);
       const lockingReasons = [...missingQualifications, ...equipmentRestrictions];
@@ -3049,6 +3044,7 @@ export class Game {
         ] : [
           { kind: 'kv', label: 'Contract', value: contract.title, valueLineCount: 2, tone: 'success' },
           { kind: 'kv', label: 'Issuer', value: contract.issuerName ?? 'Unknown issuer', valueLineCount: 2 },
+          ...(reputationRestrictions.length ? [] : contractReputationNotices(this.career, contract).map(notice => ({ kind: 'text' as const, ...notice }))),
           ...(details ? [{ kind: 'kv' as const, label: 'Details', value: details.text, valueSegments: details.segments, valueLineCount: 6 as const }] : []),
           ...(contract.templateId === 'line-certification-roadstead-checkride' ? [
             { kind: 'text' as const, text: 'Paid like a local delivery: the fixed reward is 20% of par fuel, plus 80% of actual fuel is reimbursed. Because only 80% is reimbursed, every unit of fuel saved improves your net.', tone: 'warning' as const },
@@ -3077,7 +3073,8 @@ export class Game {
         options: [
           {
             label: lockingReasons.length ? 'Mission Locked' : contract.travelMode === 'old-nell' ? 'Board Old Nell' : 'Accept Contract',
-            detail: equipmentRestrictions.length
+            detail: reputationRestrictions.length ? reputationRestrictions.join(' ')
+              : equipmentRestrictions.length
               ? `Blocked by current equipment restrictions: ${equipmentRestrictions.join(' and ')}.`
               : missingQualifications.length
                 ? `Requires ${missingQualifications.join(' and ')} before this posting can be accepted.`

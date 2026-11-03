@@ -1,6 +1,7 @@
 import { REPUTATION_TRACKS, isReputationId, normalizeReputations, normalizedReputation, reputationStanding, reputationMaxLevel, inheritedReputationLevel, INHERITED_REPUTATION_RULES, type ReputationId, type InheritedReputationEmployer } from '../src/reputation';
 import { defaultCareerProfile, loadCareerProfile, saveCareerProfile, resetCareerProfile, TEAMSTER_CERTIFICATION_IDS } from '../src/career-state';
 import { Game } from '../src/game';
+import { contractReputationNotices, contractReputationLockReasons } from '../src/contract-reputation';
 import { employerReputationLevel, EMPLOYER_REPUTATION_PROVIDER_KEYS, UNASSIGNED_REPUTATION_PROVIDERS } from '../src/employer-reputation';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS } from '../src/content/estella/faction-contracts';
 import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts';
@@ -290,25 +291,36 @@ for (const size of [[1024, 768], [1280, 800], [1920, 1080]]) {
   }
 }
 
-// Same profile, low/high ranks: public offers, locks, travel and equipment terms unchanged.
+// Generation/quotes/travel/equipment stay unchanged. Only authored Combine locks/notices change.
 game.career = { ...loaded, money: 1000000, reputations: { ...zero } };
 const low = structuredClone(game.career), high = { ...structuredClone(low), reputations: Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, reputationMaxLevel(t.id)])) };
 const offers = [...generateCareerContracts(low.locationId, 0), ...generatePassengerContracts(low.locationId, 0)];
 for (const contract of offers) {
   const state = { id: 'contractPosting', selectedIndex: 0, contracts: [contract], contractIndex: 0 };
-  game.career = low; const before = game.buildInteractiveScene(state);
-  game.career = high; equal(game.buildInteractiveScene(state), before, 'standing does not gate offers or alter quotes');
+  const comparableScene = (profile: typeof low) => {
+    game.career = profile;
+    const scene = game.buildInteractiveScene(state);
+    const notices = new Set(contractReputationNotices(profile, contract).map(n => n.text));
+    const locks = contractReputationLockReasons(profile, contract);
+    if (locks.length) assert(scene.options[0].disabled && locks.every(reason => JSON.stringify(scene).includes(reason)), 'authored Combine restriction shown and enforced');
+    return { ...scene,
+      bodyRows: scene.bodyRows.filter((row: any) => !notices.has(row.text)
+        && !(contract.factionId === 'steel-combine' && row.label === 'Missing requirements')),
+      options: contract.factionId === 'steel-combine' ? scene.options.slice(1) : scene.options,
+    };
+  };
+  equal(comparableScene(high), comparableScene(low), 'only authored Combine locks and predicted reputation notices differ');
 }
 equal([...emptyRunDestinationIds(low)], [...emptyRunDestinationIds(high)], 'no contact/discovery/private travel grants');
 for (const shop of MAINTENANCE_SHOPS.filter(s => s.equipmentIds?.length)) equal(equipmentQuote(low.rig, shop, 'atmospheric-package'), equipmentQuote(high.rig, shop, 'atmospheric-package'), 'no equipment price/availability effects');
-// Complete an actual ordinary contract: ranks survive settlement but never earn gains.
+// A non-advancing delivery preserves these integer standings (passive decay protects floors).
 const contract = offers.find(c => c.category === 'freight')!;
 game.career = high; game.activeCareerContract = contract; game.activeMissionQuote = contract.quote;
 game.missionDvUsed = contract.quote.parDv; game.worldTime = 1000; game.pendingMaintenanceSettlement = null;
 game.activeManifestCondition = { integrity: null, comfort: null }; game.loadStationTerminal = () => {}; game.logSuccessfulGeneratedRun = () => {};
 const standingBefore = structuredClone(high.reputations);
-game.finishCareerDelivery(); equal(game.career.reputations, standingBefore, 'delivery never grants reputation');
+game.finishCareerDelivery(); equal(game.career.reputations, standingBefore, 'integer standings survive this non-advancing delivery');
 equal(loadCareerProfile().reputations, standingBefore, 'delivery save retains manual ranks');
 const reset = resetCareerProfile(); equal(reset.reputations, zero, 'new career resets all thirteen');
 equal(loadCareerProfile().reputations, zero, 'reset persists');
-console.log(`Reputation: ${checks} checks; thirteen tracks, per-track caps, inherited levels, zero visibility, partial thresholds, safe legacy loads, atomic edits, desktop status bars and no gameplay effects.`);
+console.log(`Reputation: ${checks} checks; thirteen tracks, per-track caps, inherited levels, zero visibility, partial thresholds, safe legacy loads, atomic edits, desktop status bars and unchanged non-reputation terms.`);

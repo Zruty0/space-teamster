@@ -1,4 +1,4 @@
-/** Standing model only. No awards, contract gates, pricing or access effects. */
+/** Standing/recognition model. Authored contract effects live in contract-reputation.ts. */
 export const REPUTATION_TRACKS = [
   { id: 'house-alvares', name: 'House Alvares', titles: ['Unpresented Stranger', 'Carrier by Ducal Warrant', 'Favoured Client of the Court', 'Intimate of the Ducal Household'] },
   { id: 'house-mendes', name: 'House Mendes', titles: ['Unproven Outsider', 'Provisioner to the Banners', 'Honoured Ally of the House', 'Companion of the Marshal’s Table'] },
@@ -20,6 +20,17 @@ export type ReputationLevel = 0 | 1 | 2 | 3;
 /** Bar units, not an XP/reward economy: 1.5 is rank 1 and half of the second bar. */
 export type ReputationState = Record<ReputationId, number>;
 export type ReputationEditResult = 'saved' | 'unchanged' | 'invalid' | 'save-failed';
+export type ReputationUnrelatedContracts = Partial<Record<ReputationId, number>>;
+
+/** Missing legacy counters start with full grace; never reconstruct past employment. */
+export function normalizeReputationUnrelatedContracts(value: unknown): ReputationUnrelatedContracts {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const source = value as Record<string, unknown>;
+  return Object.fromEntries(REPUTATION_TRACKS.flatMap(({ id }) => {
+    const count = Object.prototype.hasOwnProperty.call(source, id) ? source[id] : undefined;
+    return typeof count === 'number' && Number.isSafeInteger(count) && count >= 0 ? [[id, count]] : [];
+  }));
+}
 
 export function isReputationId(id: unknown): id is ReputationId {
   return REPUTATION_TRACKS.some(track => track.id === id);

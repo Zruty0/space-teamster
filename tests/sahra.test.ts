@@ -69,5 +69,7 @@ assert(presentCareerContract({...accepted,title:'Charter to Estella IX Research 
 assert(presentCareerContract({...accepted,details:'Reception at Estella IX Research Station.'}).details==='Reception at Suhail Anchorage.','cached endpoint prose reconciled without rewriting originals');
 game.career={...profile};game.activeCareerContract=accepted;game.activeMissionQuote=accepted.quote;game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};game.loadStationTerminal=()=>{};game.finishCareerDelivery();
 assert(game.career.locationId===hub&&loadCareerProfile().locationId===hub,'real old-contract settlement resumes at Suhail');
-assert(JSON.stringify(accepted)===snapshot&&storage.get('space-teamster.missionProfiles.v1')===history,'accepted quote/history never rewritten');
+const completedHistory=JSON.parse(storage.get('space-teamster.missionProfiles.v1')!);
+assert(JSON.stringify(accepted)===snapshot&&JSON.stringify(completedHistory.slice(0,1))===history,'accepted quote and original historical entry never rewritten');
+assert(completedHistory.length===2,'atomic delivery appends exactly its one new flight record');
 console.log(`Sahra identity passed: ${checks} assertions; five destinations, removed station, original physics/placements, ${raw.length} candidates. Economic follow-up checked against its independent pre-change snapshot.`);

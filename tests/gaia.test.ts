@@ -150,6 +150,7 @@ for(const destinationId of [aliases[0],retired]) {
   game.career={...profile};game.activeCareerContract=accepted;game.activeMissionQuote=accepted.quote;game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};
   game.finishCareerDelivery();
   assert(game.career.locationId===capital && loadCareerProfile().locationId===capital,'old accepted delivery settles in Orselle');
-  assert(JSON.stringify(accepted)===acceptedJson && storage.get('space-teamster.missionProfiles.v1')===history,'accepted contract/quote and historical log never rewritten');
+  assert(JSON.stringify(accepted)===acceptedJson && JSON.stringify(JSON.parse(storage.get('space-teamster.missionProfiles.v1')!).slice(0,1))===history,'accepted contract/quote and original historical entry never rewritten');
 }
+assert(JSON.parse(storage.get('space-teamster.missionProfiles.v1')!).length===3,'atomic delivery appends only the two newly completed flights');
 console.log(`Gaia/Celeste passed: ${assertions} assertions; ${boardRows} board rows; ${actors.size} Orselle issuers; names, roles, districts, legacy saves/contracts, flight phases.`);

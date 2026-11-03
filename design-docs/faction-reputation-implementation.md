@@ -1,7 +1,7 @@
 # Reputation ranks — storage, career view and developer editor
 
-Updated: 2026-11-02 (Pacific)
-Status: implemented. Pete authorized the ranks system, career display and Tilde editor, explicitly **without gameplay effects**. Original pre-edit baseline: `c9b7467`; first November 2 extension baseline: `d9b00b6`; institutional/mapping extension baseline: `3dc48ed`. Names follow [the roster review](faction-reputation-roster.md), including Authorized Partner for Daedalus, Unaffiliated Worker for Combine 0 and Unproven Hand for Kisaragi 0.
+Updated: 2026-11-03 (Pacific)
+Status: implemented. The original ranks/display/editor authorization excluded gameplay effects; **Pete subsequently authorized Combine progression/gates and standardized acceptance notices on November 3**. See [Combine ledger](faction-reputation-combine.md) for current runtime behavior and validation. Other factions' progression remains deferred. Original pre-edit baseline: `c9b7467`; first November 2 extension baseline: `d9b00b6`; institutional/mapping extension baseline: `3dc48ed`. Names follow [the roster review](faction-reputation-roster.md), including Authorized Partner for Daedalus, Unaffiliated Worker for Combine 0 and Unproven Hand for Kisaragi 0.
 
 ## Live model
 
@@ -39,9 +39,17 @@ The existing developer panel retains Mechanic and Telemetry Ledger and gains **R
 - Native inputs own their number/arrows/Backspace/Enter keys; typing cannot launch, retry, navigate or fly the underlying game. Tilde/F2 still works while editing. Focus is restored after an edit, held gameplay input clears when focus enters the panel, and rebuilding a Game replaces rather than duplicates panel handlers.
 - The new tab does not poll/rebuild while typing. New-career reset refreshes its state and clears old editor notices. Existing developer controls remain available.
 
-## Deliberately inactive
+## Gameplay extension — November 3
 
-No reputation gain from deliveries, passive growth/decay, penalties, faction-pair effects, mission gating, prices, equipment rights, contact introductions, travel permissions, police heat or smuggling gameplay. All current public offers/qualifications/quotes/access rules remain. In particular the planned VHM/KIS direct-contract threshold at level 2 is **not enforced yet**, per this implementation request. Rank titles alone grant no employment, office, membership, citizenship rights or ownership.
+`src/contract-reputation.ts` implements Combine job classification, gates, gains, completed-job grace/decay, specified CHR penalties and neutral computer notices from the same pure preview used by settlement. Optional validated `reputationUnrelatedContracts` counters share the existing career save. Missing legacy counters start with full grace; no historical credit or eager write. Other stored tracks are unchanged. Public offer generation and financial terms remain unchanged; current eligibility is checked in the UI and again at acceptance.
+
+Delivery now saves a copied profile before publishing all reward/wear/Inquiry changes; failure preserves the completion overlay, active booking and pending wear. Logging occurs only after successful save. Existing historical entries and accepted quotes remain unmodified; the Gaia/Sahra history tests now explicitly allow only newly completed entries to append. Empty runs retain their exclusion from reputation and normal fuel/wear handling.
+
+Validation: `npm run test:reputation` runs 10,045 standing + 9,264 progression checks. Native preview 36; actual constructed Game in disposable Edge 41 (including 2+15 real completion paths, failed save/retry and counter reload). Menus 475,804 / 4,434 scenes; maintenance/presentation/regional history regressions and build pass. Review `/tests/contract-reputation-preview.html` and [Combine ledger](faction-reputation-combine.md).
+
+## Still inactive
+
+Other factions' automatic gains/decay/gates, special quests/reinstatement, persistent political caps, price changes, equipment rights, contact introductions, travel permissions, police heat and smuggling gameplay remain deferred. Existing qualifications/quotes/access rules remain apart from the authored Combine contract requirements. In particular the planned VHM/KIS direct-contract threshold at level 2 is **not enforced yet**, per this implementation request. Rank titles alone grant no employment, office, membership, citizenship rights or ownership.
 
 ## Institutional/mapping extension validation — November 2
 

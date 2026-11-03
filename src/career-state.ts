@@ -2,7 +2,7 @@ import { canonicalEstellaLocationId } from './content/estella/location-aliases';
 import { createDefaultNunesInquiryState, migrateNunesInquiryState, type NunesInquiryState } from './content/estella/faction-contracts/nunes-inquiries';
 import { createDefaultRigState, migrateRigState } from './maintenance/rig-state';
 import { MAINTENANCE_SYSTEM_IDS, type CareerRigState, type FabricatedFaultClaim, type MaintenanceSystemId } from './maintenance/types';
-import { normalizeReputations, type ReputationState } from './reputation';
+import { normalizeReputations, normalizeReputationUnrelatedContracts, type ReputationState, type ReputationUnrelatedContracts } from './reputation';
 
 const CAREER_STORAGE_KEY = 'space-teamster.career.v1';
 
@@ -56,12 +56,14 @@ export interface CareerProfile {
   knownContactIds?: string[];
   /** Optional for old profiles; load/default fills missing tracks at zero. */
   reputations?: ReputationState;
+  /** Completed unrelated jobs since last faction work; missing old-save counters mean full grace. */
+  reputationUnrelatedContracts?: ReputationUnrelatedContracts;
 }
 
 export const CAREER_START_LOCATION_ID = 'caravanserai-main-commercial-dock';
 
 export function defaultCareerProfile(): CareerProfile {
-  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], knownContactIds: [], reputations: normalizeReputations(undefined), rig: createDefaultRigState(false), maintenanceShopInspections: {}, nunesInquiries: createDefaultNunesInquiryState(0) };
+  return { locationId: CAREER_START_LOCATION_ID, money: 0, worldTime: 0, certifications: [], knownContactIds: [], reputations: normalizeReputations(undefined), reputationUnrelatedContracts: {}, rig: createDefaultRigState(false), maintenanceShopInspections: {}, nunesInquiries: createDefaultNunesInquiryState(0) };
 }
 
 function isTeamsterCertificationId(value: unknown): value is TeamsterCertificationId {
@@ -155,6 +157,7 @@ export function loadCareerProfile(): CareerProfile {
       worldTime: typeof parsed.worldTime === 'number' ? parsed.worldTime : 0,
       certifications,
       reputations: normalizeReputations(parsed.reputations),
+      reputationUnrelatedContracts: normalizeReputationUnrelatedContracts(parsed.reputationUnrelatedContracts),
       // Pre-contact-knowledge careers that completed Gid's practicals already
       // know him. An explicit empty list on a newer save remains authoritative.
       knownContactIds: Array.isArray(parsed.knownContactIds)
