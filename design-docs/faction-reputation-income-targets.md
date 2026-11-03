@@ -1,12 +1,12 @@
 # Reputation contract income — target medians
 
 Updated: 2026-11-03 (Pacific)
-Status: **Approved by Pete on November 3; not yet implemented.** Approval covers the full revised 22-row median table and income/trust separation; exact band boundaries and quote calibration remain open. User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
+Status: **Approved by Pete on November 3; not yet implemented.** Approval covers the full revised 22-row median table and income/trust separation; follow-up approval selects the midpoint band boundaries and roughly 20/60/20 offer calibration, with most work newly unlocked at tier 1. Exact curve fitting and validation remain pending. User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
 
 ## Direction and interpretation
 
 - Review **expected net credits at par**: total contract pay including fuel reimbursement minus par fuel cost, before handling/comfort penalties, maintenance, positioning and time costs.
-- Pete wants level-0 target medians **5,000–20,000 cr**, generally around **10,000 cr**. Even Cerberus level-0 jobs should offer no more than **roughly 40,000 cr**. Treat this as a proposed level-0 upper boundary, not its median or a finalized exact rounding rule.
+- Pete wants level-0 target medians **5,000–20,000 cr**, generally around **10,000 cr**. Even Cerberus level-0 jobs should offer no more than **roughly 40,000 cr**. The subsequently approved boundary rule caps level 0 at 40,000 cr, with lower ceilings for poorer employers; this is not its median.
 - Higher-earning work moves to a higher economic access band, regardless of whether its cargo sounds routine. Do not leave a 134,000 cr ordinary freight job at level 0 solely because it carries basic industrial goods.
 - Level-1 medians vary by employer, reaching **200,000 cr for the wealthiest**. This is a median ceiling, not yet a universal per-job cap.
 - **Follow-up correction:** 300,000 cr is the level-2+ anchor for high-paying corporations, **not a common target for everyone**. Pete places lower-paying commercial employers such as Halloran, Accord and Miners Mutual at roughly half the higher-paying CHR/BAM scale. Non-corporations should pay less again. These are economic bands, not changes to an entity's legal form or ownership.
@@ -65,9 +65,9 @@ Examples (illustrative, not extra approved cutoff rules):
 
 ## Still to choose before implementation
 
-Next-step [boundary and calibration proposal](faction-reputation-income-calibration.md): midpoint separators with a 40k entry ceiling, stable workload-to-credit calibration, and fixed completion pay adjusted to deliver the intended net at par. These mechanics are recommendations, distinct from this approved target table.
+Approved [boundaries and calibration direction](faction-reputation-income-calibration.md): midpoint separators with a 40k entry ceiling and roughly 20%/60%/20% newly unlocked commercial offers at levels 0/1/2. Tier 1 unlocks the bulk; the former 40/40/20 recommendation is superseded. Stable workload-to-credit calibration and fixed completion pay target net earnings at par.
 
-- Exact per-entity earning-band boundaries versus these median targets; do not manufacture a 1→2 cutoff from the median alone. Earnings below a boundary need not imply employer trust.
+- Exact curve fitting/tails and validation against the approved boundaries and offer mix. Earnings below a boundary need not imply employer trust.
 - How to provide enough real low-earning jobs to establish standing: reclassifying all current high-paying CHR freight upward alone would leave no basic freight at 0 in the measured sample (minimum 51,597 cr). Rebalance/select low-paying work deliberately rather than silently granting free rank or leaving a circular gate.
 - Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by approval of these targets.
 - Validate distributions per newly unlocked economic band, with important low-paying work reported separately; do not claim that a median is a per-job cap or a minimum guarantee. Freeze/recompute policy for quote-dependent gates and historical accepted work needs explicit implementation review.
