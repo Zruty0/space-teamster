@@ -1,0 +1,121 @@
+import { Game } from '../src/game';
+import { defaultCareerProfile } from '../src/career-state';
+import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
+import { createDefaultRigState } from '../src/maintenance/rig-state';
+import { config } from '../src/config';
+import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
+import { BODIES, SURFACE_POIS, bodyById, surfacePoiById } from '../src/world';
+import { createLandingLevel } from '../src/levels';
+import { generateTerrain } from '../src/terrain';
+import { APPROACH_LEVELS, approachWindAcceleration } from '../src/approach';
+import { createPlayableEstellaMission } from '../src/estella-playable';
+import { landingAerodynamics } from '../src/landing-air';
+import { createRegionalWeather } from '../src/surface-weather';
+import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
+import { readInput } from '../src/input';
+const canvas=document.getElementById('flight') as HTMLCanvasElement,ctx=canvas.getContext('2d')!;
+const site=document.getElementById('site') as HTMLSelectElement,view=document.getElementById('view') as HTMLSelectElement,epoch=document.getElementById('epoch') as HTMLInputElement;
+const play=document.getElementById('play')!,status=document.getElementById('status')!;
+const sites=SURFACE_POIS.filter(p=>bodyById(p.bodyId).atmosphere),catalog=JSON.stringify([BODIES,SURFACE_POIS]);
+for(const p of sites){const o=document.createElement('option');o.value=p.id;o.textContent=`${bodyById(p.bodyId).name} — ${p.name}`;site.append(o);}site.value='estella-vi-spaceport';
+const templates=new Map<string,{approach:any;departure:any}>();
+function phases(id:string){
+ let p=templates.get(id);if(p)return p;
+ const canonical=canonicalEstellaLocationId(id);
+ createPlayableEstellaMission('estella-iii-main-customs',id,undefined,0);
+ const approach={...APPROACH_LEVELS.find(l=>l.poi.id===canonical&&!l.departure)!,poi:surfacePoiById(id)};
+ createPlayableEstellaMission(id,'estella-iii-main-customs',undefined,0);
+ const departure={...APPROACH_LEVELS.find(l=>l.poi.id===canonical&&l.departure)!,poi:surfacePoiById(id)};
+ if(!approach.body||!departure.body)throw Error(`Missing actual flight template for ${id}`);
+ p={approach,departure};templates.set(id,p);return p;
+}
+const game:any=Object.create(Game.prototype);let paused=true,checking=false,last=performance.now(),accumulator=0;
+Object.assign(game,{canvas,ctx,career:defaultCareerProfile(),surfaceWeatherEnabled:true,weatherVisuals:true,weatherLow:false,missionDvUsed:0,activeMissionQuote:null,activeManifestCondition:{integrity:null,comfort:null},activeMaintenanceTelemetry:createMaintenanceTelemetry(),showGuidance:()=>{},showContextualOperationsManual:()=>{},completePhase:()=>{paused=true;},completeTransition:(_p:any,t:any)=>{t.run();}});
+game.career.rig=createDefaultRigState(true); // Synthetic, actually equipped atmospheric rig; never a live save.
+function reset(id=site.value,mode=view.value,seconds=Number(epoch.value)){
+ if(!Number.isFinite(seconds)||seconds<0)throw Error('Invalid mission clock');
+ site.value=id;view.value=mode;epoch.value=String(seconds);paused=true;accumulator=0;play.textContent='Fly';
+ const level=createLandingLevel(id,995001),terrain=generateTerrain(level),p=phases(id);
+ game.activeMaintenanceTelemetry=createMaintenanceTelemetry();game.activeManifestCondition={integrity:null,comfort:null};game.missionDvUsed=0;game.worldTime=seconds;
+ if(mode==='approach'||mode==='departure'){
+  game.loadApproach(mode==='approach'?p.approach:p.departure,{x:mode==='approach'?-1800:0,y:terrain.pad.y+2500,vx:mode==='approach'?100:20,vy:mode==='approach'?-8:40,angle:mode==='approach'?1.5:.3},seconds);
+  Object.assign(game.phase.cam,{x:0,y:terrain.pad.y+2300,zoom:.065});
+ }else{
+  game.loadLanding(level,{x:1000,y:terrain.pad.y+85,vx:0,vy:0},mode==='parked'?{targetAltitude:500,orbitDir:1,nextApproachLevelId:p.departure.id}:undefined,seconds);
+  Object.assign(game.phase.ship,{sas:true,gearDeployed:true,throttle:mode==='parked'?0:level.gravity/config.mainEngineAccel});
+  Object.assign(game.phase.camera,{x:1000,y:terrain.pad.y+95,zoom:2.6});
+ }
+ draw();return snapshot();
+}
+function draw(){const p=game.phase;game.renderGameplayPhase(p,'Practice complete',p.level.poi.name,p.level.body.name,false);status.textContent=`${p.level.poi.name} · ${p.kind} · ${paused?'paused':'flying'} · mission ${(p.worldTimeStart+game.time).toFixed(2)} s · no saves`;}
+function step(input={...NEUTRAL_FLIGHT_INPUT}){if(game.phase.kind==='landing')game.handleLanding({...input},1/120);else game.handleApproach({...input},1/120);if(game.phase.state==='crashed'||game.phase.state==='approachFailed')paused=true;}
+function advance(seconds:number,input:Partial<typeof NEUTRAL_FLIGHT_INPUT>={}){if(!Number.isFinite(seconds)||seconds<0||seconds>20)throw Error('Invalid step');paused=true;for(let i=0;i<Math.round(seconds*120);i++)step({...NEUTRAL_FLIGHT_INPUT,...input,toggleSAS:i===0&&!!input.toggleSAS});draw();return snapshot();}
+function snapshot(){const p=game.phase,air=p.kind==='landing'?game.landingAtmosphere(p)?.air:p.level.flightAir,s=p.ship??p.as;return{site:p.level.poi.id,phase:p.kind,epoch:p.worldTimeStart,time:game.time,state:p.state,ship:{...s},wind:air?.sample(s.x,s.y,game.time),effects:game.regionalAtmosphere?.pilot.effects.diagnostics(),particles:game.regionalAtmosphere?.pilot.effects.tracerSnapshot()};}
+async function checks(){
+ checking=true;paused=true;let n=0;const assert=(ok:unknown,msg:string)=>{n++;if(!ok)throw Error(msg);};const results:any[]=[];
+ const saved={site:site.value,view:view.value,epoch:Number(epoch.value),visual:game.weatherVisuals,low:game.weatherLow};
+ const storage=JSON.stringify({...localStorage});
+ try{
+  for(const poi of sites){
+   reset(poi.id,'landing',12345);await game.landingScenery.prepare(game.phase.level);
+   assert(!!game.landingAtmosphere(game.phase)?.physicsAir,`${poi.id} automatically enabled`);
+   advance(1);const a=snapshot(),pool=JSON.stringify(a.particles);draw();draw();assert(pool===JSON.stringify(snapshot().particles),'draw cannot advance particles');
+   assert(a.effects.tracers.active>0&&a.effects.tracers.active<=128&&a.effects.active<=256,'bounded atmospheric effects');
+   results.push({site:poi.name,body:game.phase.level.body.name,wind:a.wind.vx,drift:a.ship.x-1000});
+   reset(poi.id,'landing',12345);advance(1);assert(JSON.stringify(snapshot())===JSON.stringify(a),'actual Game retry reproduces controls/weather/effects');
+   game.weatherVisuals=false;game.weatherLow=true;reset(poi.id,'landing',12345);advance(1);const b=snapshot();assert(JSON.stringify(a.ship)===JSON.stringify(b.ship)&&pool===JSON.stringify(b.particles),'visual flags never alter simulation');game.weatherVisuals=true;game.weatherLow=false;
+   const phase=game.phase,air=game.landingAtmosphere(phase).air,landingForce=landingAerodynamics(12,-3,1000,phase.terrain.pad.y+85,0,config.dragCoeff,air);
+   reset(poi.id,'departure',12345);const flight=game.phase.level;
+   assert(!!flight.flightAir&&flight.windLayers.length===0&&flight.turbulence.length===0,'approach replaces legacy weather, no double force/torque');
+   const force=approachWindAcceleration(0,phase.terrain.pad.y+85,12,-3,flight,0);
+   assert(Math.abs(force.ax-landingForce.windAX)<1e-12&&Math.abs(force.ay-landingForce.windAY)<1e-12,'shared near-site handoff air and wind force');
+   advance(.25);const departure=snapshot();reset(poi.id,'departure',12345);advance(.25);assert(departure.ship.alive&&departure.ship.x!==0&&JSON.stringify(snapshot().ship)===JSON.stringify(departure.ship),'actual equipped departure advances and retry is stable');
+   reset(poi.id,'approach',12345);advance(.25);assert(game.phase.as.alive&&game.phase.state==='approaching'&&game.phase.as.x!==-1800&&Number.isFinite(game.phase.as.vx)&&!!game.phase.level.flightAir,'actual equipped descent advances with new air');
+   reset(poi.id,'parked',12345);advance(1);const parked=snapshot();assert(parked.ship.dvUsed===0&&parked.ship.x===1000&&parked.effects.active===0&&parked.effects.tracers.active>0,'parked wind without fuel or smoke');
+   reset(poi.id,'landing',12345+7200);assert(Math.abs(snapshot().wind.vx-a.wind.vx)>.001,'mission time changes conditions');
+   if(poi.landingLayout?.kind==='cloud-city'){
+    const layout=poi.landingLayout,weather=createRegionalWeather(bodyById(poi.bodyId),poi),fx=createFlightAtmosphere(poi.id,weather),terrain=game.phase.terrain;
+    const scratch=document.createElement('canvas');scratch.width=scratch.height=128;const c=scratch.getContext('2d')!;
+    const stillAir={sample:()=>({vx:0,density:1})};
+    const alphaAt=(x:number,y:number)=>{
+     fx.reset();fx.emitSmoke({x,y,vx:0,vy:0,size:3,life:2},stillAir,0);
+     for(let i=0;i<60;i++)fx.step({...game.phase.ship,thrustFiring:false},stillAir,terrain,1/120,i/120);
+     c.clearRect(0,0,128,128);fx.drawLanding(c,{x,y,zoom:4},terrain,stillAir,poi.id,.5,12345.5,128,128,false);
+     return c.getImageData(64,64,1,1).data[3];
+    };
+    assert(alphaAt(1000,layout.deckY+100)>0,'floating smoke positive paint control');
+    assert(alphaAt(1000,layout.deckY-layout.deckThickness/2)===0,'no smoke through floating deck');
+    const dome=layout.domes[0];assert(alphaAt(dome.x,layout.deckY+dome.height/2)===0,'no smoke through floating dome');
+    assert(alphaAt(layout.supportXs[0],layout.deckY-layout.supportHeight/2)===0,'no smoke through floating support');
+   }
+  }
+  for(const poi of SURFACE_POIS.filter(p=>!bodyById(p.bodyId).atmosphere)){
+   const level=createLandingLevel(poi.id,995002);game.loadLanding(level,undefined,undefined,0);assert(!game.landingAtmosphere(game.phase),'all vacuum destinations excluded');
+  }
+  // Synthetic snapshots only; running transition callbacks invokes real loaders, never settlement.
+  reset('estella-v-open-cast-mine','landing',23456);advance(.5);const source=game.phase;source.launchGuidance={targetAltitude:500,orbitDir:1,nextApproachLevelId:phases(source.level.poi.id).departure.id};
+  const t=game.transitionLandingToApproach(source);assert(!!t,'actual departure handoff exists');t.run();assert(game.phase.worldTimeStart===23456+.5||Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'handoff keeps mission clock');
+  reset('estella-v-open-cast-mine','approach',23456);advance(.5);game.phase.as.x=0;game.phase.as.y=1500;const arrival=game.transitionApproachToLanding(game.phase);arrival.run();assert(!!game.landingAtmosphere(game.phase)&&Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'actual arrival starts regional landing air at continuation time');
+  reset('estella-vi-spaceport','landing',12345);advance(10);const untrimmed=snapshot();
+  reset('estella-vi-spaceport','landing',12345);advance(10,{moveRight:true});const trimmed=snapshot();
+  assert(Math.abs(trimmed.ship.x-1000)<28&&Math.abs(trimmed.ship.x-1000)<Math.abs(untrimmed.ship.x-1000),'actual Stribog stock lateral trim counters SAS saturation');
+  assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog/geography unchanged');assert(JSON.stringify({...localStorage})===storage,'no career/save writes');
+  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results};
+ }finally{game.weatherVisuals=saved.visual;game.weatherLow=saved.low;reset(saved.site,saved.view,saved.epoch);checking=false;}
+}
+async function performanceCheck(paint=true){
+ checking=true;paused=true;const oldW=canvas.width,oldH=canvas.height;
+ try{canvas.width=1920;canvas.height=1080;const samples:number[]=[],frames:number[]=[];let prev=performance.now();
+  for(let i=0;i<210;i++){await new Promise(requestAnimationFrame);const now=performance.now();if(i>=30)frames.push(now-prev);prev=now;
+   const t=performance.now();if(paint)draw();if(i>=30)samples.push(performance.now()-t);
+  }samples.sort((a,b)=>a-b);return{paint,width:1920,height:1080,mean:samples.reduce((a,b)=>a+b,0)/180,p95:samples[171],max:samples[179],fps:180000/frames.reduce((a,b)=>a+b,0)};
+ }finally{canvas.width=oldW;canvas.height=oldH;checking=false;}
+}
+for(const control of [site,view,epoch])control.onchange=()=>reset();
+document.getElementById('reset')!.onclick=()=>reset();document.getElementById('later')!.onclick=()=>reset(site.value,view.value,Number(epoch.value)+21600);
+play.onclick=()=>{paused=!paused;play.textContent=paused?'Fly':'Pause';};document.getElementById('checks')!.onclick=async()=>{const r=await checks();status.textContent=`PASS: ${r.checks} checks / ${r.sites} atmospheric sites`;};
+for(const [id,key]of [['visuals','weatherVisuals'],['low','weatherLow']])document.getElementById(id)!.onchange=e=>{game[key]=(e.target as HTMLInputElement).checked;draw();};
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){paused=true;play.textContent='Fly';}});
+function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;if(!checking){const input=readInput();if(!paused&&!document.hidden){accumulator+=dt;let first=true;while(accumulator>=1/120){step({...input,toggleSAS:first&&input.toggleSAS,toggleGear:first&&input.toggleGear,toggleWings:first&&input.toggleWings});first=false;accumulator-=1/120;}}draw();}requestAnimationFrame(frame);}
+window.addEventListener('blur',()=>{paused=true;play.textContent='Fly';});document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;accumulator=0;play.textContent='Fly';}});
+reset();requestAnimationFrame(frame);(window as any).surfaceWeather={ready:true,reset,advance,snapshot,checks,performance:performanceCheck,game};

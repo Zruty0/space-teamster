@@ -12,7 +12,7 @@ import { TerrainData, checkLandingCollision, terrainSurfacePoints } from './terr
 import type { LandingSceneryPainter } from './landing-scenery';
 import { surfaceShipCollision } from './surface-ship-collision';
 import { NEUTRAL_FLIGHT_INPUT, type LandingAtmosphereView } from './flight-atmosphere';
-import type { LandingAir } from './landing-air';
+import { landingAerodynamics, type LandingAir } from './landing-air';
 import type { InputState } from './input';
 
 // --- Colors ---
@@ -112,6 +112,12 @@ export function render(
   if(atmosphere){
     const wind=atmosphere.air.sample(ship.x,ship.y,time).vx;
     ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
+    if(atmosphere.air.label){
+      const a=landingAerodynamics(ship.vx,ship.vy,ship.x,ship.y,time,config.dragCoeff,atmosphere.air);
+      const saturated=ship.sas&&Math.hypot(a.windAX,a.windAY)>config.mainEngineAccel*.1;
+      ctx.fillStyle=saturated?'#efb36b':'#92a6a8';
+      ctx.fillText(`${atmosphere.air.label}${saturated?' · RCS LIMIT — USE MANUAL THRUST':''}`,W-20,H-74);
+    }
     ctx.fillText(`WIND ${wind<0?'←':'→'} ${Math.abs(wind).toFixed(1)} m/s${ship.sas?' · SAS: ZERO GROUND SPEED':''}`,W-20,H-56);ctx.restore();
   }
 

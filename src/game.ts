@@ -5,7 +5,8 @@ import { createWorldWeather } from './world-weather';
 import { createApproachScenery } from './approach-scenery-runtime';
 import { createLandingScenery } from './landing-scenery';
 import { createLandingAir } from './landing-air';
-import type { AtmosphericPilot, LandingAtmosphereView } from './flight-atmosphere';
+import { createFlightAtmosphere, type AtmosphericPilot, type LandingAtmosphereView } from './flight-atmosphere';
+import { createRegionalWeather, type RegionalWeather } from './surface-weather';
 import { usesDawesSurfaceArt } from './surface-poi';
 import { surfaceShipCollision } from './surface-ship-collision';
 import { loadAtmosphereArtSeed } from './atmosphere-art-state';
@@ -20,7 +21,7 @@ import { Camera, createCamera, updateCamera, render } from './renderer';
 import { drawHUD, GameState, LandingScore, calculateLandingScore, drawStartMenu, drawFlightMenu, drawPhaseCompleteOverlay, type PhaseFinancialLine } from './hud';
 import { createDevPanel, toggleDevPanel, setDevPanelMode, updateDevPanel, markDevPanelDirty } from './dev-panel';
 import { REPUTATION_TRACKS, isReputationId, normalizeReputations, reputationStanding, reputationMaxLevel, type ReputationEditResult } from './reputation';
-import { LevelDef, landingLevelById } from './levels';
+import { LevelDef, landingLevelById, createLandingLevel } from './levels';
 import {
   APPROACH_LEVELS, ApproachLevel, ApproachState, ApproachCamera, ApproachInitOverride,
   createApproachState, createApproachCamera, updateApproach,
@@ -278,14 +279,29 @@ export class Game {
   private orbitalWeather: ReturnType<typeof createWorldWeather> | undefined;
   private approachScenery: ReturnType<typeof createApproachScenery> | undefined;
   private landingScenery: ReturnType<typeof createLandingScenery> | undefined;
-  // Deliberate save-free pilot opt-in. Normal careers and other POIs remain unchanged.
+  // Production weather is enabled for every atmospheric surface destination.
+  // The explicit legacy pilot hook remains isolated for historical comparison.
+  surfaceWeatherEnabled = true;
+  weatherVisuals = true;
+  weatherLow = false;
   atmosphericPilot?: AtmosphericPilot;
+  private regionalAtmosphere?: {id:string;weather:RegionalWeather;pilot:AtmosphericPilot};
+  private atmosphereFor(level:LevelDef|ApproachLevel):AtmosphericPilot|undefined {
+    if(this.atmosphericPilot)return usesDawesSurfaceArt(level)?this.atmosphericPilot:undefined;
+    if(!this.surfaceWeatherEnabled||!level.body.atmosphere)return undefined;
+    if(this.regionalAtmosphere?.id!==level.poi.id||this.regionalAtmosphere.weather.body!==level.body){
+      const weather=createRegionalWeather(level.body,level.poi);
+      this.regionalAtmosphere={id:level.poi.id,weather,pilot:{visuals:true,wind:true,low:false,effects:createFlightAtmosphere(level.poi.id,weather)}};
+    }
+    const pilot=this.regionalAtmosphere.pilot;pilot.visuals=this.weatherVisuals!==false;pilot.low=this.weatherLow===true;return pilot;
+  }
   private pilotAirCache?: WeakMap<TerrainData,{wind:boolean;view:LandingAtmosphereView}>;
   private landingAtmosphere(p:Extract<GameplayPhase,{kind:'landing'}>):LandingAtmosphereView|undefined {
-    const pilot=this.atmosphericPilot;if(!pilot||!usesDawesSurfaceArt(p.level))return undefined;
+    const pilot=this.atmosphereFor(p.level);if(!pilot)return undefined;
     const cache=this.pilotAirCache??=new WeakMap(),old=cache.get(p.terrain);
     if(old&&old.wind===pilot.wind&&old.view.epoch===p.worldTimeStart&&old.view.pilot===pilot)return old.view;
-    const air=createLandingAir(p.level.body,p.level.poi.id,p.worldTimeStart,x=>landingReferenceHeight(p.level,p.terrain,x),pilot.wind);
+    const ground=(x:number)=>landingReferenceHeight(p.level,p.terrain,x);
+    const air=this.atmosphericPilot?createLandingAir(p.level.body,p.level.poi.id,p.worldTimeStart,ground,pilot.wind):this.regionalAtmosphere!.weather.air(p.worldTimeStart,ground);
     const view={pilot,air,physicsAir:pilot.wind?air:undefined,epoch:p.worldTimeStart};cache.set(p.terrain,{wind:pilot.wind,view});return view;
   }
   private lastFrameTime = 0;
@@ -475,7 +491,8 @@ export class Game {
     this.phaseCompletion = null;
     const landingPhase: Extract<GameplayPhase, { kind: 'landing' }> = { kind: 'landing', level, ship, terrain, camera, state: 'flying', score: null, initOverride, launchGuidance, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = landingPhase;
-    this.atmosphericPilot?.effects.reset();
+    const atmosphere=this.atmosphereFor(level);
+    atmosphere?.effects.reset();if(atmosphere)atmosphere.input=undefined;
     if (launchGuidance) this.showGuidance(`CLIMB TO above ${launchGuidance.targetAltitude.toFixed(0)}m`);
     else this.showGuidance('LAND ON THE PAD');
     setDevPanelMode('landing');
@@ -490,13 +507,24 @@ export class Game {
     void (this.landingScenery ??= createLandingScenery()).prepare(level);
     level = { ...level, thermalLoadMultiplier: rigAtmosphericHeatMultiplier(this.career.rig) };
     applyApproachWeather(level, worldTimeStart);
+    const atmosphere=this.atmosphereFor(level);
+    if(atmosphere&&!this.atmosphericPilot){
+      const landing=createLandingLevel(level.poi.id,-1),terrain=generateTerrain(landing);
+      level.flightAir=this.regionalAtmosphere!.weather.air(worldTimeStart,x=>{
+        const dx=x-level.gateX,local=landingReferenceHeight(landing,terrain,dx+terrain.pad.centerX);
+        const u=Math.max(0,Math.min(1,(Math.abs(dx)-1000)/1000)),blend=u*u*(3-2*u);
+        return local+(getApproachTerrainHeight(x,level)-local)*blend;
+      });
+      // Replace, never stack, the old acceleration layers / random angular weather.
+      level.windLayers=[];level.turbulence=[];
+    }else delete level.flightAir;
     const as = createApproachState(level, initOverride);
     const cam = createApproachCamera(level);
     updateApproachCamera(cam, as, level, 0, this.canvas.width, this.canvas.height);
     this.phaseCompletion = null;
     const approachPhase: Extract<GameplayPhase, { kind: 'approach' }> = { kind: 'approach', level, as, cam, state: 'approaching', initOverride, worldTimeStart, missionDvStart: this.missionDvUsed, manifestConditionStart: cloneManifestConditionState(this.activeManifestCondition), maintenanceTelemetryStart: cloneMaintenanceTelemetry(this.activeMaintenanceTelemetry) };
     this.phase = approachPhase;
-    this.atmosphericPilot?.effects.reset();
+    atmosphere?.effects.reset();if(atmosphere)atmosphere.input=undefined;
     if (level.departure) {
       const dir = level.departure.orbitDir === -1 ? 'LEFT' : 'RIGHT';
       this.showGuidance(`CLIMB to ${(level.departure.exitAltitude / 1000).toFixed(1)}km and ACCELERATE ${dir}`);
@@ -3691,8 +3719,9 @@ export class Game {
       rightHudBottom = drawHUD(this.ctx, this.canvas, p.ship, p.terrain, p.state, p.score, p.level, completionText, destinationName, destinationLocation, p.launchGuidance, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'approach') {
       renderApproach(this.ctx, this.canvas, p.cam, p.as, p.level, this.time, showContainer, this.approachScenery ??= createApproachScenery(),
-        this.atmosphericPilot?.visuals&&usesDawesSurfaceArt(p.level)?(ctx,cam,state,level,W,H)=>{
-          this.atmosphericPilot!.effects.drawClouds(ctx,cam,level.body,level.poi.id,level.gateX,state.localDir,p.worldTimeStart+this.time,W,H,getApproachTerrainHeight,this.atmosphericPilot!.low);return true;
+        this.atmosphereFor(p.level)?.visuals?(ctx,cam,state,level,W,H)=>{
+          const atmosphere=this.atmosphereFor(level)!;
+          atmosphere.effects.drawClouds(ctx,cam,level.body,level.poi.id,level.gateX,state.localDir,p.worldTimeStart+this.time,W,H,x=>getApproachTerrainHeight(x,level),atmosphere.low);return true;
         }:undefined);
       rightHudBottom = drawApproachHUD(this.ctx, this.canvas, p.as, p.level, p.state, this.time, destinationName, destinationLocation, this.phaseDvUsed(p), this.missionDvForPhase(p), this.currentMissionParDv(), suppressStateOverlays);
     } else if (p.kind === 'orbital') {

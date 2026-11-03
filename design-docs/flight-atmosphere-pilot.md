@@ -1,7 +1,7 @@
 # Flight atmosphere pilot
 
 Updated: 2026-11-02 (Pacific)
-Status: Pete likes the pilot; adds airborne wind-direction particles and anticipates future smokestacks. Particles are implemented in the existing save-free Dawes pilot. No smokestacks or wider career/world rollout added. SAS remains zero ground velocity.
+Status: HISTORICAL PILOT retained for comparison. November 2 follow-up authorizes and implements the wider career rollout: [surface-weather.md](surface-weather.md), review `/tests/surface-weather.html`. The sections below describe the original pilot tuning/evidence, not the current production weather. No smokestacks added; SAS remains zero ground velocity.
 
 ## Try
 
@@ -9,7 +9,7 @@ Status: Pete likes the pilot; adds airborne wind-direction particles and anticip
 
 - Starts paused. Fly enables actual landing physics; T toggles SAS, Space selects hover lift. SAS starts on in this pilot and its choice survives the parked takeoff hold.
 - Approach comparison + Fly animates clouds over actual Game approach rendering, with the rig held in its preview pose. This is not an autonomous full approach simulation.
-- Visual effects, physical landing wind and low-quality paint are independently switchable. No career constructor, save loading/writing, settlement or phase completion. Normal careers/plain practice stay unchanged.
+- Visual effects, physical landing wind and low-quality paint are independently switchable. No career constructor, save loading/writing, settlement or phase completion on this pilot page. Plain practice stays unchanged; normal careers now use regional production weather instead.
 - `Game.atmosphericPilot` is the explicit optional hook; Game additionally limits it to ordinary Dawes surface/approach scenes. Other sites and floating layouts are not opted in.
 
 ## Physics and SAS

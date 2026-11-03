@@ -172,13 +172,13 @@ export function updateShip(
   );
 
   const aero=air?landingAerodynamics(ship.vx,ship.vy,ship.x,ship.y,time,c.dragCoeff,air):undefined;
-  // Pilot SAS targets zero ground velocity, opposing air forces within existing RCS authority.
+  // Atmospheric SAS targets zero ground velocity, opposing air forces within existing RCS authority.
   if(ship.sas&&aero){
     const force=landingSasForce(ship.vx,ship.vy,c.mainEngineAccel*.1,aero);
     ax+=force.ax;ay+=force.ay;
     const effort=Math.hypot(force.ax,force.ay);ship.dvUsed+=effort*dt;ship.rcsTranslating=effort>1e-9;
   }
-  // Legacy path remains unchanged outside the explicitly enabled pilot.
+  // Airless / legacy path remains unchanged when no regional air is supplied.
   if (ship.sas&&!air) {
     const sasAccelMax = c.mainEngineAccel * 0.1;
     const sasTargetAX = -ship.vx * 1.5;

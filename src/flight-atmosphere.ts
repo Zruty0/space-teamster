@@ -1,4 +1,4 @@
-// Save-free, opt-in atmospheric presentation. All emission advances at physics ticks,
+// Atmospheric presentation; legacy save-free pilot remains available. All emission advances at physics ticks,
 // never in draw; quality only thins paint, not weather or forces.
 import { ENGINE_PODS, localToWorld, type ShipState } from './ship';
 import { terrainSurfacePoints, getTerrainHeight, type TerrainData } from './terrain';
@@ -6,6 +6,7 @@ import { regionalAdvection, regionalWind, weatherSeed, weatherRandom, type Landi
 import type { BodyDef } from './world';
 import type { InputState } from './input';
 import { createWindTracers } from './wind-tracers';
+import type { RegionalWeather } from './surface-weather';
 export const PARTICLE_CAP=256;
 export const NEUTRAL_FLIGHT_INPUT:InputState={pitch:0,throttleUp:false,throttleDown:false,stopAssist:false,killRotation:false,moveUp:false,moveDown:false,moveLeft:false,moveRight:false,rotateLeft:false,rotateRight:false,shiftHeld:false,setHoverThrottle:false,toggleGear:false,reset:false,toggleDevPanel:false,levelSelect:false,levelPick:0,menuUp:false,menuDown:false,menuLeft:false,menuRight:false,menuConfirm:false,pageUp:false,pageDown:false,continueAction:false,toggleWings:false,wingAngleUp:false,wingAngleDown:false,toggleSAS:false,warpUp:false,warpDown:false,toggleHighThrust:false};
 type Camera={x:number;y:number;zoom:number};
@@ -14,8 +15,8 @@ export interface AtmosphericPilot {visuals:boolean;wind:boolean;low:boolean;effe
 export interface LandingAtmosphereView {pilot:AtmosphericPilot;air:LandingAir;physicsAir?:LandingAir;epoch:number;}
 /** World-space source, reusable by future authored smokestack anchors. No stacks registered here. */
 export interface SmokeSource {x:number;y:number;vx:number;vy:number;life?:number;size?:number;}
-export function createFlightAtmosphere(regionId=''){
- const tracers=createWindTracers(regionId);
+export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
+ const tracers=createWindTracers(weather?.id??regionId);
  const pool:Puff[]=Array.from({length:PARTICLE_CAP},()=>({x:0,y:0,vx:0,vy:0,age:0,life:1,radius:1,active:false}));
  let cursor=0,serial=0,emission=0,lastTime=-Infinity,cloud:HTMLCanvasElement|undefined,smoke:HTMLCanvasElement|undefined,cloudColor='';
  function reset(){for(const p of pool)p.active=false;cursor=serial=emission=0;lastTime=-Infinity;tracers.reset();}
@@ -40,7 +41,10 @@ export function createFlightAtmosphere(regionId=''){
    if(p.y<=getTerrainHeight(terrain,p.x))p.active=false;
   }
   if(!ship.thrustFiring){emission=0;return;}
-  const power=Math.min(1,ship.thrustVisualLevel);emission+=dt*(12+30*power);
+  const power=Math.min(1,ship.thrustVisualLevel);
+  // Faster air stretches plumes: fill their gaps without increasing the pool.
+  const stretch=weather?Math.min(24,Math.abs(air.sample(ship.x,ship.y,time).vx)*.2):0;
+  emission+=dt*Math.min(48,12+30*power+stretch);
   while(emission>=1){emission--;for(const [lx,ly]of ENGINE_PODS){
    const [x,y]=localToWorld(lx,ly,ship.x,ship.y,ship.angle,ship.facingSign),dx=-Math.sin(ship.renderGimbalAngle),dy=-Math.cos(ship.renderGimbalAngle);
    emitSmoke({x:x+dx*1.35,y:y+dy*1.35,vx:ship.vx+dx*(8+16*power),vy:ship.vy+dy*(8+16*power)},air,time);
@@ -53,7 +57,7 @@ export function createFlightAtmosphere(regionId=''){
   const c=cloud.getContext('2d');if(!c)return undefined;
   // Soft overlapping lobes, not noise dots/grain. One small reusable raster.
   for(let i=0;i<7;i++){
-   const x=30+i*32,y=48+Math.sin(i*2.1)*14;
+   const x=52+i*25,y=48+Math.sin(i*2.1)*14; // Transparent gutters prevent clipped cloud ends.
    c.save();c.translate(x,y);c.scale(1.7,.85);const g=c.createRadialGradient(0,0,0,0,0,29);
    g.addColorStop(0,`rgba(${color},.33)`);g.addColorStop(.5,`rgba(${color},.16)`);g.addColorStop(1,`rgba(${color},0)`);
    c.fillStyle=g;c.fillRect(-30,-30,60,60);c.restore();
@@ -63,23 +67,27 @@ export function createFlightAtmosphere(regionId=''){
   if(!body.atmosphere||!(cam.zoom>0))return;
   const image=sprite(body);if(!image)return;
   ctx.save();try{
-   // Actual airspace: no clouds through the surface. Fixed screen sampling only clips, never seeds clouds.
+   // Actual airspace only, including the upper atmosphere boundary.
+   ctx.beginPath();ctx.rect(0,Math.max(0,H/2-(body.atmosphere.height-cam.y)*cam.zoom),W,H);ctx.clip();
+   // Fixed screen sampling only clips, never seeds clouds.
    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
    for(let px=W;px>=0;px-=8){const x=cam.x+(px-W/2)/cam.zoom;ctx.lineTo(px,H/2-(height(x)-cam.y)*cam.zoom);}ctx.closePath();ctx.clip();
-   const seed=weatherSeed(id),drift=regionalAdvection(id,time),span=W/cam.zoom;
+   const seed=weatherSeed(weather?.id??id),drift=weather?.advection(time)??regionalAdvection(id,time),span=W/cam.zoom;
+   const flowDir=weather?1:dir,cover=weather?.cover(time)??.72;
    for(let layer=0;layer<3;layer++){
-    const spacing=2400,depth=1-layer*.16,canonicalCam=(cam.x-gateX)*dir;
+    const spacing=2400,depth=1-layer*.16,canonicalCam=(cam.x-gateX)*flowDir;
     const lo=Math.floor((canonicalCam-span/depth/2-drift)/spacing)-1,hi=Math.ceil((canonicalCam+span/depth/2-drift)/spacing)+1;
     const stride=Math.max(1,Math.ceil((hi-lo)/(low?6:12)));
     for(let cell=Math.ceil(lo/stride)*stride;cell<=hi;cell+=stride){
      const r=weatherRandom(seed+layer*71,cell),shape=weatherRandom(seed+layer*71+19,cell);
-     if(r<.28)continue;
-     const world=gateX+dir*(cell*spacing+drift+r*spacing);
-     const altitude=Math.min(body.atmosphere.height*.8,1800+layer*2200+(shape-.5)*2200);
+     if(r<1-(weather?.climate.cloudCover??.72))continue;
+     const world=gateX+flowDir*(cell*spacing+drift+r*spacing);
+     const base=weather?weather.altitude+weather.climate.cloudBase:1800,depthY=weather?.climate.cloudDepth??2200;
+     const altitude=Math.min(body.atmosphere.height*.9,base+layer*depthY+(shape-.5)*depthY*.6);
      const x=W/2+(world-cam.x)*cam.zoom*depth,y=H/2-(altitude-cam.y)*cam.zoom;
      const w=(1400+shape*2400)*cam.zoom*depth,h=(450+r*650)*cam.zoom;
      ctx.save();ctx.translate(x,y);ctx.rotate((shape-.5)*.08);ctx.scale(shape<.5?-1:1,1);
-     ctx.globalAlpha=.45;ctx.drawImage(image,-w/2,-h/2,w,h);ctx.restore();
+     ctx.globalAlpha=weather ? .25+cover*.5 : .45;ctx.drawImage(image,-w/2,-h/2,w,h);ctx.restore();
     }
    }
   }finally{ctx.restore();}
@@ -92,13 +100,23 @@ export function createFlightAtmosphere(regionId=''){
    for(let i=points.length-1;i>=0;i--)ctx.lineTo(sx(points[i][0]),sy(points[i][1]));ctx.closePath();ctx.clip();
    // Separate exclusion clips preserve overlapping solids, unlike XORing all buildings together.
    for(const solid of terrain.surfaceSite?.solids??[]){ctx.beginPath();ctx.rect(0,0,W,H);solid.points.forEach(([x,y],i)=>i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y)));ctx.closePath();ctx.clip('evenodd');}
-   const seed=weatherSeed(id),drift=regionalAdvection(id,absoluteTime),left=cam.x-W/(2*cam.zoom),right=cam.x+W/(2*cam.zoom);
+   // Floating structures exclude only their actual geometry, never the whole air column.
+   const layout=weather?.layout;
+   if(layout?.kind==='cloud-city'){
+    const rect=(x:number,y:number,w:number,h:number)=>{ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(sx(x),sy(y),w*cam.zoom,h*cam.zoom);ctx.clip('evenodd');};
+    rect(layout.deckLeft,layout.deckY,layout.deckRight-layout.deckLeft,layout.deckThickness);
+    for(const x of layout.supportXs)rect(x-layout.supportWidth/2,layout.deckY,layout.supportWidth,layout.supportHeight);
+    for(const d of layout.domes){ctx.beginPath();ctx.rect(0,0,W,H);ctx.moveTo(sx(d.x-d.radius),sy(layout.deckY));ctx.ellipse(sx(d.x),sy(layout.deckY),d.radius*cam.zoom,d.height*cam.zoom,0,Math.PI,0);ctx.closePath();ctx.clip('evenodd');}
+   }
+   if(weather)drawClouds(ctx,cam,weather.body,id,terrain.pad.centerX,1,absoluteTime,W,H,x=>getTerrainHeight(terrain,x),low);
+   const seed=weatherSeed(weather?.id??id),drift=weather?.advection(absoluteTime)??regionalAdvection(id,absoluteTime),left=cam.x-W/(2*cam.zoom),right=cam.x+W/(2*cam.zoom);
    const start=Math.floor(left/80)-1,end=Math.ceil(right/80),stride=Math.max(1,Math.ceil((end-start)/(low?10:24)));
    ctx.strokeStyle='rgba(161,158,143,.18)';ctx.lineWidth=1;
    for(let i=Math.ceil(start/stride)*stride;i<=end;i+=stride){
     const y=terrain.pad.y+12+weatherRandom(seed,i)*150,w=air.sample(i*80+40,y,time).vx;
     if(Math.abs(w)<.01)continue;
-    const phase=drift*w/regionalWind(id,absoluteTime)/80+weatherRandom(seed+1,i),u=((phase%1)+1)%1,x=i*80+u*80;
+    const regional=weather?.wind(absoluteTime)??regionalWind(id,absoluteTime);
+    const phase=drift*(Math.abs(regional)>.01?w/regional:1)/80+weatherRandom(seed+1,i),u=((phase%1)+1)%1,x=i*80+u*80;
     ctx.globalAlpha=Math.sin(Math.PI*u);
     ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+w*.35),sy(y+1),sx(x+w*.8),sy(y));ctx.stroke();
    }

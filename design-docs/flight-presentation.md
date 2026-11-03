@@ -1,6 +1,6 @@
 # Shared flight presentation
 
-Updated: 2026-10-29 (Pacific)
+Updated: 2026-11-02 (Pacific)
 Status: LIVE. Pete approves the blue-dome revision, allows slight atmospheric tint, requests removing bottom stripes in favor of planet background color, then authorizes the same treatment across orbital/approach/landing views without copying outposts. Also requests reverting black target-rectangle highlighting.
 
 ## Current rules
@@ -14,9 +14,9 @@ Status: LIVE. Pete approves the blue-dome revision, allows slight atmospheric ti
 - Reentry temperature gauge lives at x=20 beneath the left telemetry rows, rather than x=190 in the flight area. It follows optional par/departure rows and shortens when needed to leave room for the footer. Same temperature colors/value, wing threshold and warnings; no camera or physics change.
 - Explicit historical filled painters/galleries remain comparisons, not default game fallbacks. No new filled orbital atmospheric wash is added; existing colored weather wisps/dashed physical boundary remain.
 
-## Atmospheric effects pilot (not career rollout)
+## Regional atmosphere rollout
 
-Approved implementation is available at `/tests/dawes-landing.html?atmosphere=1`: approach clouds, wind-advected exhaust, landing wind/wisps and zero-ground-velocity SAS. Visual quality does not change physics. Normal careers remain unchanged pending review; see flight-atmosphere-pilot.md for scope, thrust limits, evidence and the still-unmodified approach wind physics.
+Now live in normal careers at all 36 atmospheric surface POI profiles / eight worlds: regional mission-time wind, clouds, airborne tracers and wind-advected landing exhaust. Port Stribog is strongest; Zhulong is Dahai's challenging storm-belt port. Retries preserve weather, visual quality cannot change physics, and finite SAS targets zero ground velocity. New approach air replaces legacy acceleration layers/torque; shared style, physical geography and gate mapping remain. See [surface-weather.md](surface-weather.md), with save-free `/tests/surface-weather.html`. The original Dawes pilot remains a historical comparison; [flight-atmosphere-pilot.md](flight-atmosphere-pilot.md) records that earlier tuning.
 
 ## Validation
 

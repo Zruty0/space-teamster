@@ -29,7 +29,7 @@ Object.assign(game,{canvas,ctx,career:defaultCareerProfile(),activeManifestCondi
 const pilotMode=new URLSearchParams(location.search).has('atmosphere');
 if(pilotMode){
  game.atmosphericPilot={visuals:true,wind:true,low:false,effects:createFlightAtmosphere(DAWES_CUT_ID)};
- const panel=document.createElement('p');panel.innerHTML='<strong>Atmosphere pilot — not enabled in careers.</strong> <label><input id="effects" type="checkbox" checked> Clouds / smoke / wind particles</label> <label><input id="wind" type="checkbox" checked> Physical landing wind</label> <label><input id="low" type="checkbox"> Low effects</label> · T: SAS holds zero ground velocity (starts ON). Approach view previews moving clouds; Fly animates weather without advancing approach physics.';
+ const panel=document.createElement('p');panel.innerHTML='<strong>Historical Dawes pilot tuning.</strong> <a href="/tests/surface-weather.html">Current regional weather (live in careers)</a> · <label><input id="effects" type="checkbox" checked> Clouds / smoke / wind particles</label> <label><input id="wind" type="checkbox" checked> Physical landing wind</label> <label><input id="low" type="checkbox"> Low effects</label> · T: SAS holds zero ground velocity (starts ON). Approach view previews moving clouds; Fly animates weather without advancing approach physics.';
  canvas.before(panel);
  for(const [id,key]of [['effects','visuals'],['wind','wind'],['low','low']])document.getElementById(id)!.onchange=e=>{game.atmosphericPilot[key]=(e.target as HTMLInputElement).checked;draw();};
 }

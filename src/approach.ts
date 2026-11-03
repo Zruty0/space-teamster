@@ -3,6 +3,7 @@
 
 import { APPROACH_PHASES, ORBITAL_PHASES, type ApproachPhaseDef } from './campaign-content';
 import { config } from './config';
+import { landingAerodynamics, type LandingAir } from './landing-air';
 import { flightSurfaceStyle } from './flight-surface-style';
 import { advanceTemperature } from './thermal';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
@@ -57,6 +58,8 @@ export interface ApproachLevel {
   gateRadius: number;
   gateMaxSpeed: number;
   gateMinSpeed: number;
+  /** Runtime-only shared regional air, anchored to this phase's absolute epoch. */
+  flightAir?: LandingAir;
   windLayers: WindLayer[];
   turbulence: TurbulenceZone[];
   landingLevelId: number;
@@ -584,6 +587,7 @@ function getTurbulenceTorque(
 
 /** Check if currently in an active turbulence zone. */
 export function approachInTurbulence(y: number, level: ApproachLevel, time: number = 0): boolean {
+  if(level.flightAir){const a=level.flightAir.sample(0,y,time),b=level.flightAir.sample(0,y,time+.25);return a.density>0&&Math.abs(a.vx)>20&&Math.abs(b.vx-a.vx)>.25;}
   for (const z of level.turbulence) {
     if (weatherActivity(z, time) > 0 && y >= z.altitudeMin && y <= z.altitudeMax) return true;
   }
@@ -648,6 +652,12 @@ function aeroForces(
   heatRate = dragA * speed * level.heatCoeff;
 
   return { ax, ay, heatRate, aoa };
+}
+
+/** Same bounded relative-air wind increment as landing; no acceleration-layer double counting. */
+export function approachWindAcceleration(x:number,y:number,vx:number,vy:number,level:ApproachLevel,time:number){
+ if(level.flightAir){const a=landingAerodynamics(vx,vy,x,y,time,config.dragCoeff,level.flightAir);return{ax:a.windAX,ay:a.windAY};}
+ return{ax:getWind(y,level,time)*windInfluenceForSpeed(Math.hypot(vx,vy)),ay:0};
 }
 
 export function updateApproach(
@@ -752,11 +762,11 @@ export function updateApproach(
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(
       s.x, s.y, s.vx, s.vy, s.angle, effectiveWing, level,
     );
-    s.maintenanceAeroAcceleration = Math.hypot(aeroAx, aeroAy);
-    const speed = Math.hypot(s.vx, s.vy);
-    let ax = aeroAx + getWind(s.y, level, time) * windInfluenceForSpeed(speed);
-    let ay = -level.gravity + aeroAy;
-    angAccel += getTurbulenceTorque(s.x, s.y, time, level);
+    const wind=approachWindAcceleration(s.x,s.y,s.vx,s.vy,level,time);
+    s.maintenanceAeroAcceleration = Math.hypot(aeroAx+(level.flightAir?wind.ax:0),aeroAy+(level.flightAir?wind.ay:0));
+    let ax = aeroAx + wind.ax;
+    let ay = -level.gravity + aeroAy + wind.ay;
+    if(!level.flightAir)angAccel += getTurbulenceTorque(s.x, s.y, time, level);
 
     if (s.throttle > 0.01 && canBurn) {
       const t = s.throttle * effThrust;
@@ -872,9 +882,9 @@ export function predictTrajectory(
 
   for (let t = 0; t < maxTime; t += step) {
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level);
-    const speed = Math.hypot(vx, vy);
-    const ax = aeroAx + (includeWind ? getWind(y, level, predTime + t) * windInfluenceForSpeed(speed) : 0);
-    const ay = -level.gravity + aeroAy;
+    const wind=includeWind?approachWindAcceleration(x,y,vx,vy,level,predTime+t):{ax:0,ay:0};
+    const ax = aeroAx + wind.ax;
+    const ay = -level.gravity + aeroAy + wind.ay;
 
     temp = advanceTemperature(temp, heatRate / level.heatCapacity, level.dissipation, step, level.thermalLoadMultiplier);
     const tooHotForWings = temp >= level.wingsMaxTemp;
@@ -1102,7 +1112,12 @@ export function renderApproach(
 
   clouds?.(ctx,cam,s,level,W,H);
   // --- Wind layers ---
-  drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
+  if(!level.flightAir)drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
+  else {
+    const wind=level.flightAir.sample(s.x,s.y,time).vx;
+    ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
+    ctx.fillText(`${level.flightAir.label} · WIND ${wind<0?'←':'→'} ${Math.abs(wind).toFixed(1)} m/s`,W-20,H-56);ctx.restore();
+  }
 
   // --- Trajectory preview ---
   drawTrajectory(ctx, cam, s, level, W, H, time);
