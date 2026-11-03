@@ -7,6 +7,7 @@ Status: **Framework plus implemented Combine pass.** Model baseline `43772dc` ha
 
 - Some contracts require a minimum effective reputation level.
 - **Level 1 unlocks additional routine contracts as well as important work.** Elevated routine contracts should pay more for other entities; Combine routine contracts remain zero-fee with existing fuel compensation at both levels. Exact routine assignments and other employers' premiums need authoring. Access level/pay do not automatically make a routine contract eligible for advanced reputation gains; it still maintains standing. No blanket raise to all old jobs is implied.
+- **Evaluate pay progression in expected credits earned at par**, not just percentages of par fuel cost: published total pay including reimbursement minus par fuel cost, before penalties/maintenance. Route/load variation matters. This does not itself select flat fees or new credit targets; [Cerberus earnings audit](faction-reputation-cerberus.md) supplies the first measured comparison.
 - Reaching level 1 should take roughly **1–3 faction contracts**, without pressure to complete them quickly.
 - Reaching level 2 should take roughly **10–20 important contracts**, with reasonably few unrelated missions between them. These are indicative ranges, not finalized per-faction values.
 - Introduce decay after level 1: after **K unrelated missions**, each additional unrelated mission removes some progress.

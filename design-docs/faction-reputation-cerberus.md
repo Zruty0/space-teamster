@@ -3,7 +3,34 @@
 Updated: 2026-11-03 (Pacific)
 Status: **Proposal only; not approved or implemented.** Pete authorized the Combine pass (`3e36373`) and requests the next entity. Cerberus is next, then Houses. Existing CHR contracts can already cause the reviewed Combine losses, but CHR's own gains/gates/pay remain unchanged. Framework: [progression](faction-reputation-progression.md); previous entity: [Combine](faction-reputation-combine.md).
 
-## Existing source facts
+## Pay-review direction — expected earnings in credits at par
+
+Pete redirects the review from percentages of par fuel cost to **expected earnings at par in credits**. Use the existing quote's `expectedMargin`: total contract pay including fuel reimbursement, minus fuel consumed at par. This excludes handling/comfort penalties, maintenance, positioning travel and the value of elapsed time. Do not treat it as gross pay or a guaranteed realized profit.
+
+Choose/compare credit earnings first; coefficients are implementation details, not approved balance targets. This direction does **not** by itself select flat rewards, new absolute target bands, or an automatic change to current quotes.
+
+### Measured current postings
+
+Read-only audit at `9825058`: all 175 canonical navigation-source boards over world days 0–15, actual freight/passenger selection and preferred transfers. **787 CHR postings / 30 observed templates**. Each posting occurrence has equal weight; medians are not weighted by player travel time or unique routes. Class labels below use the still-proposed reputation grouping, not live CHR gates.
+
+| Proposed work class | Postings | Current median net at par | Current observed range |
+|---|---:|---:|---:|
+| Basic routine freight | 140 | 133,534 cr | 51,597–264,579 cr |
+| Generic workforce intake | 181 | 25,810 cr | 18,600–73,951 cr |
+| Elevated routine freight | 162 | 329,527 cr | 114,796–594,576 cr |
+| Important corporate records/audits | 36 | 242,716 cr | 184,810–421,804 cr |
+| Important custody/labor passengers | 197 | 55,800 cr | 43,450–119,082 cr |
+| Workforce manifests | 7 | 240,944 cr | 240,944 cr |
+| Proposed level-2 corporate freight | 30 | 246,236 cr | 89,704–422,541 cr |
+| Proposed level-2 executive passengers | 34 | 75,900 cr | 58,623–93,734 cr |
+
+Examples: industrial oxygen Acheron Hub→Hammer earns 51,597 cr at par; ordinary graphite Olympos→Veles can earn 264,579 cr. Rare-metal staging Olympos→Acheron Hub earns 329,527 cr in a median example. Workforce manifests on that local route earn 240,944 cr. A low-paying central legal delivery Acheron Hub→Richelieu earns 89,704 cr, while Olympos→Orselle shareholder packets can earn 422,541 cr.
+
+**Implication:** current proposed level-2 categories are not automatically the most lucrative in credits. Their corporate-freight median is below elevated routine freight, and executive passengers pay much less. Route/load costs cause substantial overlap; a larger percentage alone cannot establish a useful credit-based access ladder. Important advancement work and lucrative work remain separate classifications.
+
+Reproduce: `node tests/run-equipment.mjs tests/audit-cerberus-earnings.ts`. The audit also reports per-template distributions and converts the previous unapproved coefficient proposal to credits. Full local output: Temp `cerberus-earnings-20261103.json`. No runtime or save changes.
+
+## Existing source facts — implementation details
 
 `src/content/estella/faction-contracts/cerberus-contracts.ts` distinguishes ordinary freight, premium corporate/extraction freight, workforce manifests and passenger work. Stable issuer is `cerberus-human-resources` / CHR.
 
@@ -14,7 +41,7 @@ Status: **Proposal only; not approved or implemented.** Pete authorized the Comb
 | Workforce manifests | 1.25 | 0.20 | +0.45 |
 | All passengers, including executives/custody | 0.50 | 0.60 | +0.10 |
 
-Maximum fuel-compensation allowance is 2. Passenger selection overrides the premium set, so executive delegations do **not** currently receive premium-freight terms. Net figures exclude handling/comfort penalties and maintenance. The proposed level-1 routine category below uses existing better-paid freight rather than inventing a blanket rank raise.
+Maximum fuel-compensation allowance is 2. Passenger selection overrides the premium set, so executive delegations do **not** currently receive premium-freight terms. Net figures exclude handling/comfort penalties and maintenance. The proposed level-1 routine category uses freight with higher median credit earnings, but not a guarantee that every posting pays more than every basic job.
 
 ## Proposed eligibility and work classes
 
@@ -26,20 +53,23 @@ Maximum fuel-compensation allowance is 2. Passenger selection overrides the prem
 | 3 — Friend of the Board | Special quests only; no new generic contract class required |
 
 Suggested exact existing families:
-- **Level-1 elevated routine:** `local-rare-metal-export-staging`, `local-carbonvale-export-staging`, `local-paradiso-hospitality`, `rare-metals-to-gaia-tech`, `rare-metals-to-foundry`, `paradiso-hospitality-cargo`. Maintain standing, but do not advance 1→2. Existing 1.20/0.25 terms already pay more than basic freight.
+- **Level-1 elevated routine:** `local-rare-metal-export-staging`, `local-carbonvale-export-staging`, `local-paradiso-hospitality`, `rare-metals-to-gaia-tech`, `rare-metals-to-foundry`, `paradiso-hospitality-cargo`. Maintain standing, but do not advance 1→2. Current median earnings are 329,527 cr versus 133,534 cr for basic freight, with overlapping ranges; the percentage terms alone are not a credit guarantee.
 - **Level-1 important custody/labor:** `custody-transfer-to-olympos`, `local-custody-processing`, `surface-labor-allocation`, `local-surface-labor-processing`, plus `local-workforce-manifests`.
 - **Level-1 important corporate records:** `local-shareholder-packets`, `local-legal-archives`, `local-audit-records`, `audit-records-to-acheron`. This is the proposed alternative route to level 2 without directly transporting captive labor. Advancement importance is not automatically Combine-hostile impact.
 - **Level-2 premium:** `shareholder-packets-to-finance`, `legal-archives-to-capital`, `executive-delegation`. Keeping the local records/audit classes at 1 avoids requiring level-2 work to earn 2.
 - Remaining current ordinary industrial/medical/logistics templates stay level 0. The ambiguous `workforce-transfer-to-hub` remains non-advancing above 1 and carries no new Combine penalty pending review. Its generic label does not establish consent; **do not rewrite coerced work as voluntary recruitment**.
 
-## Proposed fees
+## Previous fee suggestion translated into credits — not selected targets
 
-Retain basic and elevated routine freight terms, manifest terms and compensation caps. Suggested targeted changes only:
-- Important custody/labor passengers: **generosity 0.75 + compensation 0.60**, net +0.35 at par instead of +0.10. This gives the higher-trust passenger work an actual premium rather than assuming that its existing fee is high.
-- Level-2 shareholder/central legal freight: **1.50 + 0.25**, net +0.75 instead of +0.45 at par.
-- Level-2 executive delegations: **1.00 + 0.60**, net +0.60 instead of +0.10 at par.
+The earlier coefficient suggestions are retained only as comparison, pending a credit-first balance decision. On the same sampled postings they would produce:
 
-These are initial balance suggestions, not selected amounts or runtime changes. No blanket raise on level-0 jobs, new flat fee, new commodity, procedural emergency or historical quote rewrite.
+| Class | Current median | Earlier suggestion's median | Earlier suggestion's range |
+|---|---:|---:|---:|
+| Important custody/labor passengers | 55,800 cr | 195,300 cr | 152,074–416,787 cr |
+| Level-2 shareholder/central legal freight | 246,236 cr | 410,393 cr | 149,507–704,235 cr |
+| Level-2 executive delegations | 75,900 cr | 455,400 cr | 351,734–562,405 cr |
+
+These came from generosity/compensation .75/.60, 1.50/.25 and 1.00/.60 respectively; they are **not approved earnings targets**. Other classes were unchanged in that suggestion. Next select the desired credit earnings, then decide whether existing classes/terms achieve them. No fee model change, blanket raise, new flat reward or historical quote rewrite is authorized.
 
 ## Proposed reputation parameters
 
@@ -59,4 +89,4 @@ Use the Combine baseline initially:
 
 ## Review focus
 
-The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. Confirm the higher routine/premium split, targeted fee suggestions and generic workforce-intake context before implementation. Houses follow this review.
+The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. Review actual credit earnings and select desired earnings before approving the routine/premium split or fees; also settle the generic workforce-intake context before implementation. Houses follow this review.
