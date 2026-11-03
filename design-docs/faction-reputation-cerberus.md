@@ -1,13 +1,13 @@
 # Cerberus reputation — first parameter proposal
 
 Updated: 2026-11-03 (Pacific)
-Status: **Proposal only; not approved or implemented.** Pete authorized the Combine pass (`3e36373`) and requests the next entity. Cerberus is next, then Houses. Existing CHR contracts can already cause the reviewed Combine losses, but CHR's own gains/gates/pay remain unchanged. Framework: [progression](faction-reputation-progression.md); previous entity: [Combine](faction-reputation-combine.md).
+Status: **Progression proposal; shared income calibration is live (`c8037f5`).** Pete authorized the Combine pass (`3e36373`) and requests the next entity. Cerberus is next, then Houses. Existing CHR contracts can already cause the reviewed Combine losses, but CHR's own gains/gates remain unimplemented; new prices now follow the [income calibration](faction-reputation-income-implementation.md). Framework: [progression](faction-reputation-progression.md); previous entity: [Combine](faction-reputation-combine.md).
 
 ## Latest direction — earnings-based access across all entities
 
-Pete rejects current basic-freight earnings as too high for level 0: target median generally 10k cr, within 5k–20k across entities, with roughly 40k maximum even at Cerberus. More profitable ordinary shipments belong in higher access bands, based on expected credits rather than cargo/job type. Level-1 target medians reach 200k for wealthy entities; level 2+ is around 300k for high-paying corporations such as CHR/BAM. Follow-up places Halloran/Accord/Co-op at roughly half that scale, non-corporations lower still, and Combine exports at about 30k; the previous universal 300k interpretation is superseded. Pete subsequently approved the revised [cross-entity median table](faction-reputation-income-targets.md), including CHR **20k / 200k / 300k**. Targets and the subsequent cap proposal are approved: CHR economic level 0 up to 40k, level 1 above 40k through 250k, level 2 above 250k. Pete selects roughly 20%/60%/20% newly unlocked commercial offers at levels 0/1/2. Exact quote fitting and Cerberus progression details still need resolution.
+Pete rejects current basic-freight earnings as too high for level 0: target median generally 10k cr, within 5k–20k across entities, with roughly 40k maximum even at Cerberus. More profitable ordinary shipments belong in higher access bands, based on expected credits rather than cargo/job type. Level-1 target medians reach 200k for wealthy entities; level 2+ is around 300k for high-paying corporations such as CHR/BAM. Follow-up places Halloran/Accord/Co-op at roughly half that scale, non-corporations lower still, and Combine exports at about 30k; the previous universal 300k interpretation is superseded. Pete subsequently approved the revised [cross-entity median table](faction-reputation-income-targets.md), including CHR **20k / 200k / 300k**. Targets and the subsequent cap proposal are approved: CHR economic level 0 up to 40k, level 1 above 40k through 250k, level 2 above 250k. Pete selects roughly 20%/60%/20% newly unlocked commercial offers at levels 0/1/2. The first quote fit is implemented; Cerberus progression details and important-work exceptions still need resolution.
 
-The old category table below is retained as an audit grouping and earlier proposal, **not the final economic gate policy**. Important jobs can pay at level-0 rates while requiring level 1: economic access **AND** authored trust. Advancement qualification remains independent of pay. Income boundaries are approved; calibrated payouts and sufficient low-paid onboarding supply still need development/validation. No CHR runtime changes.
+The old category table below is retained as an audit grouping and earlier proposal, **not the final economic gate policy**. Important jobs can pay at level-0 rates while requiring level 1: economic access **AND** authored trust. Advancement qualification remains independent of pay. Income boundaries are approved and new prices calibrated; current reference/holdout CHR medians are 20k/200k/300k. Starter freight exists (25 reference, 22 fresh-holdout occurrences), but practical progression/onboarding and important classes still need review before activating gates.
 
 ## Pay-review direction — expected earnings in credits at par
 
@@ -15,11 +15,11 @@ Pete redirects the review from percentages of par fuel cost to **expected earnin
 
 Choose/compare credit earnings first; coefficients are implementation details, not approved balance targets. This direction does **not** by itself select flat rewards, new absolute target bands, or an automatic change to current quotes.
 
-### Measured current postings
+### Historical postings before income calibration
 
 Read-only audit at `9825058`: all 175 canonical navigation-source boards over world days 0–15, actual freight/passenger selection and preferred transfers. **787 CHR postings / 30 observed templates**. Each posting occurrence has equal weight; medians are not weighted by player travel time or unique routes. Class labels below use the still-proposed reputation grouping, not live CHR gates.
 
-| Proposed work class | Postings | Current median net at par | Current observed range |
+| Proposed work class | Postings | Pre-calibration median net at par | Pre-calibration observed range |
 |---|---:|---:|---:|
 | Basic routine freight | 140 | 133,534 cr | 51,597–264,579 cr |
 | Generic workforce intake | 181 | 25,810 cr | 18,600–73,951 cr |
@@ -34,13 +34,15 @@ Examples: industrial oxygen Acheron Hub→Hammer earns 51,597 cr at par; ordinar
 
 **Implication:** current proposed level-2 categories are not automatically the most lucrative in credits. Their corporate-freight median is below elevated routine freight, and executive passengers pay much less. Route/load costs cause substantial overlap; a larger percentage alone cannot establish a useful credit-based access ladder. Important advancement work and lucrative work remain separate classifications.
 
-Reproduce: `node tests/run-equipment.mjs tests/audit-cerberus-earnings.ts`. The audit also reports per-template distributions and converts the previous unapproved coefficient proposal to credits. Full local output: Temp `cerberus-earnings-20261103.json`. No runtime or save changes.
+Reproduce: `node tests/run-equipment.mjs tests/audit-cerberus-earnings.ts`. The audit now reports live prices separately from reconstructed pre-calibration earnings and the historical unapproved coefficient comparison. Original local output remains preserved as Temp `cerberus-earnings-20261103.json`; do not overwrite it. The audit itself is read-only.
 
-## Existing source facts — implementation details
+## Authored baseline source facts — before new-quote calibration
 
 `src/content/estella/faction-contracts/cerberus-contracts.ts` distinguishes ordinary freight, premium corporate/extraction freight, workforce manifests and passenger work. Stable issuer is `cerberus-human-resources` / CHR.
 
-| Current class | Generosity | Fuel compensation | Net at par, as fraction of par fuel cost |
+These baseline dials remain in candidate authoring; `c8037f5` replaces fixed pay on new quotes while retaining fuel compensation. They no longer describe live calibrated profit fractions.
+
+| Baseline class | Generosity | Fuel compensation | Baseline net at par, as fraction of par fuel cost |
 |---|---:|---:|---:|
 | Ordinary freight | 0.85 | 0.40 | +0.25 |
 | Premium freight | 1.20 | 0.25 | +0.45 |
@@ -75,7 +77,7 @@ The earlier coefficient suggestions are retained only as comparison, pending a c
 | Level-2 shareholder/central legal freight | 246,236 cr | 410,393 cr | 149,507–704,235 cr |
 | Level-2 executive delegations | 75,900 cr | 455,400 cr | 351,734–562,405 cr |
 
-These came from generosity/compensation .75/.60, 1.50/.25 and 1.00/.60 respectively; they are **not approved earnings targets**. Other classes were unchanged in that suggestion. Next select the desired credit earnings, then decide whether existing classes/terms achieve them. No fee model change, blanket raise, new flat reward or historical quote rewrite is authorized.
+These came from generosity/compensation .75/.60, 1.50/.25 and 1.00/.60 respectively; they are **not approved earnings targets**. Other classes were unchanged in that suggestion. Next select the desired credit earnings, then decide whether existing classes/terms achieve them. This older fee suggestion authorized no fee change; the subsequent approved credit calibration supersedes it for new postings only, never historical quotes.
 
 ## Proposed reputation parameters
 
@@ -95,4 +97,4 @@ Use the Combine baseline initially:
 
 ## Review focus
 
-The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. The cross-entity medians, earnings-based boundaries and 20/60/20 commercial offer mix are now approved; next calibrate fees/low-paid onboarding and settle important-work requirements. Also settle generic workforce-intake context before implementation. The earlier cargo-family grouping must not silently become the income gate. Houses follow this review.
+The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. The cross-entity medians, earnings-based boundaries and 20/60/20 commercial offer mix are now approved; the first price calibration is live. Next settle important-work requirements, gains and practical onboarding, then activate the reviewed gates. Also settle generic workforce-intake context before implementation. The earlier cargo-family grouping must not silently become the income gate. Houses follow this review.

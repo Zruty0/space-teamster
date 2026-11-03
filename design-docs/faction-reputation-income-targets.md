@@ -1,7 +1,7 @@
 # Reputation contract income — target medians
 
 Updated: 2026-11-03 (Pacific)
-Status: **Approved by Pete on November 3; not yet implemented.** Approval covers the full revised 22-row median table and income/trust separation; follow-up approval selects the midpoint band boundaries and roughly 20/60/20 offer calibration, with most work newly unlocked at tier 1. Exact curve fitting and validation remain pending. User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
+Status: **Approved November 3; new-posting price calibration implemented in `c8037f5`.** Non-Combine reputation gates/progression remain deferred; see the [runtime scope and audit](faction-reputation-income-implementation.md). Approval covers the full revised 22-row median table and income/trust separation; follow-up approval selects the midpoint band boundaries and roughly 20/60/20 offer calibration, with most work newly unlocked at tier 1. The first curve fit and validation are complete; per-employer drift and progression/onboarding review remain. User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
 
 ## Direction and interpretation
 
@@ -63,11 +63,11 @@ Examples (illustrative, not extra approved cutoff rules):
 - A Cerberus important assignment earning 15,000 cr: economic minimum 0, trust minimum 1; only available at 1, and can advance 1→2.
 - Paying 300,000 cr does not earn level-3 reputation; 2→3 still needs special quests.
 
-## Still to choose before implementation
+## Remaining after the first pricing pass
 
 Approved [boundaries and calibration direction](faction-reputation-income-calibration.md): midpoint separators with a 40k entry ceiling and roughly 20%/60%/20% newly unlocked commercial offers at levels 0/1/2. Tier 1 unlocks the bulk; the former 40/40/20 recommendation is superseded. Stable workload-to-credit calibration and fixed completion pay target net earnings at par.
 
-- Exact curve fitting/tails and validation against the approved boundaries and offer mix. Earnings below a boundary need not imply employer trust.
+- Review the [first runtime fit and its residual drift](faction-reputation-income-implementation.md) across broader epochs. Earnings below a boundary need not imply employer trust.
 - How to provide enough real low-earning jobs to establish standing: reclassifying all current high-paying CHR freight upward alone would leave no basic freight at 0 in the measured sample (minimum 51,597 cr). Rebalance/select low-paying work deliberately rather than silently granting free rank or leaving a circular gate.
-- Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by approval of these targets.
-- Validate distributions per newly unlocked economic band, with important low-paying work reported separately; do not claim that a median is a per-job cap or a minimum guarantee. Freeze/recompute policy for quote-dependent gates and historical accepted work needs explicit implementation review.
+- Runtime calibration changes only new covered postings; accepted quotes stay frozen. The route-specific fixed amount preserves existing fuel reimbursement, with no universal payout clamp or board quotas.
+- Validate final access distributions when each faction's gains/trust minima and important-work exceptions are authored. Current non-Combine tiers are pricing/planned-access classifications, not live gates; a median is not a per-job guarantee.

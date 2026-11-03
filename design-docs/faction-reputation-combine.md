@@ -17,10 +17,14 @@ Status: **Implemented November 3 after Pete's authorization.** This completes th
 
 The sections below retain the rationale and quest/asymmetry questions from the review. Implemented ordinary-work rules are the ledger above.
 
+## Income follow-up — `c8037f5`
+
+New export quotes now use a route-specific credit curve centered on **30,000 cr net at par** (reference median 30k; fresh holdout 29,714). Old accepted export quotes remain exact; internal/import/pilgrimage fees and all fuel reimbursement terms are unchanged. All progression/gates/refusals above remain live. [Income implementation and validation](faction-reputation-income-implementation.md).
+
 ## Existing source facts
 
 - `src/content/estella/faction-contracts/steel-combine-contracts.ts` distinguishes Planning Office internal distribution from Foreign Trade Committee imports/exports, plus Combine-sponsored Kalyna work pilgrimages and partner lanes.
-- Internal work, imports and Combine-funded pilgrimages use zero generosity and 100% fuel compensation, capped at 2× allowance. Export programmes add generosity 0.15 with full compensation; **no flat export bounty**. Preserve these economics. The old lane comment mentioning a flat bounty is not the live pay rule.
+- Internal work, imports and Combine-funded pilgrimages use zero generosity and 100% fuel compensation, capped at 2× allowance. Export candidate authoring still contains the old 0.15 generosity baseline; new postings replace that fixed-pay calculation with the approved 30k-centered quote, retaining full fuel compensation. It is not a universal flat export bounty.
 - Core imports: `import-new-canaan`, `import-serai`, `import-glitterfield`; Balor `ore-purchase` / `brick-purchase` are additional Combine procurement.
 - Core exports: `export-svarog`, `export-yardstock`, `export-serai`, `export-tessera`, `export-oathmark`; Balor `foundry-machine-tools` / `extraction-chassis`, four Dahai STEEL lanes and two Sahra STEEL lanes supplement them. Camps STEEL additions are Planning Office internal support.
 - `kalyna-work-pilgrimage:*` is Combine-funded reciprocal passenger work; Merren/Work Union-funded pilgrimages have their own issuer. Neither Svarog nor Kalyna is part of the Combine merely because it is a Kuznia moon.

@@ -1,7 +1,7 @@
 # Reputation income — approved boundaries and calibration direction
 
 Updated: 2026-11-03 (Pacific)
-Status: **Boundaries and calibration direction approved on November 3; not yet implemented.** Pete approves the cap proposal and calibration, replacing the suggested 40/40/20 offer mix with **20/60/20**, so most offers unlock at tier 1. The [22-row median table](faction-reputation-income-targets.md) was approved in `d3ca63a`. Exact curve fitting/tails and other factions' reputation gains/political outcomes remain unresolved. Wind work remains separate.
+Status: **Approved November 3; first new-posting pricing pass implemented in `c8037f5`.** See [runtime scope, fit and remaining drift](faction-reputation-income-implementation.md). Non-Combine gates/progression are not activated yet. Pete approves the cap proposal and calibration, replacing the suggested 40/40/20 offer mix with **20/60/20**, so most offers unlock at tier 1. The [22-row median table](faction-reputation-income-targets.md) was approved in `d3ca63a`. Initial fitting/tail behavior is implemented; broader balance and other factions' reputation gains/political outcomes remain unresolved. Wind work remains separate.
 
 ## 1. Approved economic boundaries
 
@@ -71,4 +71,4 @@ Example: a CHR important job at 15k has economic minimum 0 and trust minimum 1, 
 
 ## Rollout boundaries
 
-The median targets, midpoint boundaries and calibration direction with a 20/60/20 reference mix are approved. Exact curve fitting, tail limits and other factions' earning/loss policies still need development and validation. Implement/audit new postings incrementally, preserve accepted offers/quotes/history, and keep preview and settlement consistent. Existing Combine implementation `3e36373` remains live in the meantime; other tracks' automatic gains/gates still await their entity reviews.
+The median targets, midpoint boundaries and calibration direction with a 20/60/20 reference mix are approved. `c8037f5` implements the first fixed workload curves, smooth median shoulders and logarithmic premium tails for new quotes. Existing quotes/history and fuel terms survive. Other factions' earning/loss policies, important classes and live gates still need entity review; enabling their locks now would strand pilots without an earned progression path. Combine `3e36373` progression remains live, with exports newly calibrated around 30k. Remaining audit limitations are recorded in the implementation ledger.
