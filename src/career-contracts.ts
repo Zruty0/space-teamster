@@ -9,6 +9,7 @@ import { localDirectoryEntryById, localTerminalScopeIds } from './local-director
 import { estimateEstellaMissionCost, makePayTerms, type MissionCargoSpec, type MissionCostQuote } from './mission-cost';
 import { bodyById } from './world';
 import { contractLocationPresentation, presentCareerContract } from './contract-presentation';
+import { calibrateNewContractQuote } from './contract-income';
 
 export type CareerContractClass = 'local' | 'moderate' | 'long';
 
@@ -171,7 +172,8 @@ function makeFactionContract(candidate: FactionContractCandidate, index: number,
     compensationRatio: candidate.compensationRatio,
     maxCompAllowance: candidate.maxCompAllowance,
   });
-  const quote = estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, pay);
+  const quote = calibrateNewContractQuote(candidate,
+    estimateEstellaMissionCost(candidate.sourceId, candidate.destinationId, candidate.cargo, selectedTransfer, pay));
   const source = contractLocationPresentation(candidate.sourceId);
   const target = contractLocationPresentation(candidate.destinationId);
   return presentCareerContract({

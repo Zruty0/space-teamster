@@ -689,7 +689,8 @@ export function makePayTerms(overrides: Partial<ContractPayTerms> = {}): Contrac
 
 /**
  * Actual gross payout for a flown mission = fixed reward + fuel compensation.
- * At par (actualFuelCost == parFuelCost) with legacy dials this equals parFuelCost * generosity.
+ * At par, subtract parFuelCost from this total to get expected net earnings.
+ * New calibrated postings store their route-specific fixed amount in flatReward.
  */
 export function contractFixedPay(pay: ContractPayTerms, parFuelCost: number): number {
   return Math.round(pay.generosity * parFuelCost + pay.flatReward);

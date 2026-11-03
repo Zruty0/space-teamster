@@ -2,6 +2,7 @@ import './svg-dom';
 import economyBaseline from './fixtures/sahra-economy-baseline.json';
 import { contractLocationId } from '../src/contract-presentation';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
+import { preIncomeBoardQuotes } from './fixtures/pre-income-quotes';
 import {assertPreThuleEconomy,isReachSettlementAddition,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import { publicContentText } from '../src/content-terminology';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID, ESTELLA_INSTITUTIONS } from '../src/content/estella';
@@ -50,7 +51,7 @@ assertPreThuleEconomy(assert); // New frozen pre-Thule snapshot covers authorize
 const affected = new Set(['still-distribution-bay', ...thuleAffectedBoardSources(), ...raw.filter(c=>touchesSahra(c)||isReachSettlementAddition(c)).map(c=>c.sourceId)].map(contractLocationId));
 const unaffectedBoards: CareerContract[] = [];
 for(const {day,source,rows} of contexts) if(!affected.has(contractLocationId(source))) {
-  assert(JSON.stringify(reviewFingerprint(rows)) === JSON.stringify((economyBaseline.boardSources as Record<string,number[]>)[`${day}:${source}`]), 'untouched source board: exact original order, IDs, availability and quotes');
+  assert(JSON.stringify(reviewFingerprint(preIncomeBoardQuotes(rows, source, day * 86400, assert))) === JSON.stringify((economyBaseline.boardSources as Record<string,number[]>)[`${day}:${source}`]), 'untouched source board: exact original order, IDs, availability and quotes');
   unaffectedBoards.push(...rows);
 }
 const labels = new Set<string>();

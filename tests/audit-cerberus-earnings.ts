@@ -4,6 +4,7 @@ import { generateCareerContracts, generatePassengerContracts, type CareerContrac
 import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
 import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
 import { contractGrossPay } from '../src/mission-cost';
+import { preIncomeBoardQuotes } from './fixtures/pre-income-quotes';
 
 const elevated = new Set(['local-rare-metal-export-staging', 'local-carbonvale-export-staging', 'local-paradiso-hospitality',
   'rare-metals-to-gaia-tech', 'rare-metals-to-foundry', 'paradiso-hospitality-cargo']);
@@ -37,22 +38,28 @@ function stats(values: number[]) {
   return { min: a[0], p25: quantile(.25), median: quantile(.5), p75: quantile(.75), max: a[a.length - 1] };
 }
 const sources = [...new Set(estellaSelectableNavTargets().map(t => canonicalEstellaLocationId(t.id)))].sort();
-const rows: { day: number; boardSource: string; group: string; contract: CareerContract; current: number; previous: number }[] = [];
+const rows: { day: number; boardSource: string; group: string; contract: CareerContract; current: number; original: number; previous: number }[] = [];
 for (let day = 0; day < 16; day++) for (const source of sources) {
-  for (const contract of [...generateCareerContracts(source, day * 86400), ...generatePassengerContracts(source, day * 86400)]) {
-    if (contract.factionId !== 'cerberus-human-resources') continue;
-    rows.push({ day, boardSource: source, group: group(contract), contract, current: contract.quote.expectedMargin, previous: previousProposal(contract) });
+  const contracts = [...generateCareerContracts(source, day * 86400), ...generatePassengerContracts(source, day * 86400)]
+    .filter(c => c.factionId === 'cerberus-human-resources');
+  if (!contracts.length) continue;
+  const originals = preIncomeBoardQuotes(contracts, source, day * 86400, (ok, message) => { if (!ok) throw Error(message); });
+  for (let i = 0; i < contracts.length; i++) {
+    const contract = contracts[i], original = originals[i];
+    rows.push({ day, boardSource: source, group: group(contract), contract, current: contract.quote.expectedMargin,
+      original: original.quote.expectedMargin, previous: previousProposal(original) });
   }
 }
 function example(row: typeof rows[number]) {
   return { template: row.contract.templateId, from: row.contract.sourceName, to: row.contract.destinationName,
     day: row.day, cargo: row.contract.cargo.label, tonnes: row.contract.cargo.massTons,
-    netAtPar: row.current, previousProposalNetAtPar: row.previous, parFuel: row.contract.quote.parFuelCost,
+    netAtPar: row.current, originalNetAtPar: row.original, previousProposalNetAtPar: row.previous, parFuel: row.contract.quote.parFuelCost,
     routeClass: row.contract.routeClass };
 }
 const groups = [...new Set(rows.map(r => r.group))].sort().map(name => {
   const selected = rows.filter(r => r.group === name).sort((a, b) => a.current - b.current);
   return { group: name, postings: selected.length, currentCredits: stats(selected.map(r => r.current)),
+    originalPreCalibrationCredits: stats(selected.map(r => r.original)),
     previousUnapprovedProposalCredits: stats(selected.map(r => r.previous)),
     examples: [example(selected[0]), example(selected[Math.floor(selected.length / 2)]), example(selected[selected.length - 1])] };
 });
@@ -62,4 +69,4 @@ const templates = [...new Set(rows.map(r => r.contract.templateId!))].sort().map
     examples: [example(selected[0]), example(selected[selected.length - 1])] };
 });
 console.log(JSON.stringify({ sourceCount: sources.length, days: '0–15', postings: rows.length,
-  observedTemplates: templates.length, method: 'Actual generated freight/passenger boards, current preferred transfers and quotes. Equal weight per posting occurrence, not per unique route or per player hour. Proposed level/class labels are not live gates. Net after fuel at par, before penalties and maintenance. Previous coefficient proposal is comparison only, not approved balance.', groups, templates }, null, 2));
+  observedTemplates: templates.length, method: 'Actual generated freight/passenger boards, current preferred transfers and quotes. Equal weight per posting occurrence, not per unique route or per player hour. Proposed level/class labels are not live gates. Net after fuel at par, before penalties and maintenance. Current credits use live calibration. Original pre-calibration credits and the previous coefficient proposal are reconstructed from unchanged authored baseline terms; the previous proposal is historical comparison only, not approved balance.', groups, templates }, null, 2));

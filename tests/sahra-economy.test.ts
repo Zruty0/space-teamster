@@ -2,6 +2,7 @@ import './svg-dom';
 import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/sahra-economy-baseline.json';
 import { reviewFingerprint } from './fixtures/camps-review-fingerprint';
+import { preIncomeBoardQuotes } from './fixtures/pre-income-quotes';
 import { ESTELLA_NODES, ESTELLA_NODES_BY_ID } from '../src/content/estella';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS, generateFactionContractCandidates, type FactionContractCandidate } from '../src/content/estella/faction-contracts';
 import { SAHRA_CIVILIAN_ID } from '../src/content/estella/faction-contracts/sahra-contracts';
@@ -116,7 +117,7 @@ for (const day of [0,1,20,21]) {
   for (const n of estellaSelectableNavTargets().sort((a,b) => a.id.localeCompare(b.id))) {
     const rows = [...generateCareerContracts(n.id, day * 86400), ...generatePassengerContracts(n.id, day * 86400)]; allRows += rows.length;
     if (!affectedPhysical.has(contractLocationId(n.id))) {
-      assert(same(reviewFingerprint(rows), (baseline.boardSources as Record<string, number[]>)[`${day}:${n.id}`]), `unaffected board retains exact availability/order/IDs/quotes ${day}:${n.id}`);
+      assert(same(reviewFingerprint(preIncomeBoardQuotes(rows, n.id, day * 86400, assert)), (baseline.boardSources as Record<string, number[]>)[`${day}:${n.id}`]), `unaffected board retains exact availability/order/IDs/quotes ${day}:${n.id}`);
       exactBoards++; exactRows += rows.length;
     }
     for (const c of rows) {

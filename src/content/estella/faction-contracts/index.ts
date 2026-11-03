@@ -78,8 +78,10 @@ export interface FactionContractCandidate {
   cargo: MissionCargoSpec;
   likelihood: number;
   /**
-   * Pay dials for this contract, all optional; unset dials fall back to mission-cost
-   * defaults (generosity 1.25, no flat reward, no fuel compensation).
+   * Authored baseline pay dials; unset values fall back to mission-cost defaults
+   * (generosity 0.75, no flat reward, 40% fuel compensation). New postings covered by
+   * contract-income.ts replace the fixed component with calibrated net-credit pay;
+   * these reimbursement terms remain authoritative. Uncalibrated work uses all dials as-is.
    * generosity scales the reward with route difficulty; flatReward is a flat floor;
    * compensationRatio/maxCompAllowance reimburse actual fuel up to a cap (the Combine's
    * no-loss model).

@@ -2,6 +2,7 @@ import './svg-dom';
 import baseline from './fixtures/thule-baseline.json';
 import {assertPreThuleEconomy,isReachSettlementAddition,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import {reviewFingerprint} from './fixtures/camps-review-fingerprint';
+import { preIncomeBoardQuotes } from './fixtures/pre-income-quotes';
 import {ESTELLA_NODES,ESTELLA_NODES_BY_ID,ESTELLA_BODY_PHYSICS,ESTELLA_VALIDATION_ISSUES} from '../src/content/estella';
 import {ESTELLA_SURFACE_FLIGHT_PROFILES} from '../src/content/estella/flight-profiles';
 import {THULE,THULE_ANCHORAGE,COMMON_GROUND,DEEPWELL,FREEHOLD,VOLYA,BELLEVUE,THULE_SITES,THULE_SURFACE_SITES,retiredThuleLegacyOrder} from '../src/content/estella/thule-sites';
@@ -71,7 +72,7 @@ for(const entry of NUNES_INQUIRY_CATALOG)for(const day of [0,7,20]){
 }
 let exactRows=0,exactBoards=0,newFreight=0,newPeople=0;let accepted:CareerContract|undefined;
 for(const day of baseline.days)for(const n of nav){const rows=[...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400)];
- if(!affected.has(contractLocationId(n.id))){assert(same(reviewFingerprint(rows),(baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),'unchanged source-board selection/order/IDs/quotes');exactRows+=rows.length;exactBoards++;}
+ if(!affected.has(contractLocationId(n.id))){assert(same(reviewFingerprint(preIncomeBoardQuotes(rows, n.id, day * 86400, assert)),(baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),'unchanged source-board selection/order/IDs/quotes');exactRows+=rows.length;exactBoards++;}
  for(const c of rows.filter(isReachSettlementAddition)){assert(c.quote.sourceId===c.sourceId&&c.quote.destinationId===c.destinationId,'quotes use actual routed endpoints');assert(c.sourceName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.sourceId))?.name&&c.destinationName===ESTELLA_NODES_BY_ID.get(contractLocationId(c.destinationId))?.name,'physical names on real postings');if(c.category==='passenger'){newPeople++;assert(c.requiredCertification==='passenger','passenger credential retained');}else newFreight++;if(c.destinationId===FREEHOLD)accepted??=c;}
 }
 // Sparse Freehold schedules need not overlap the four historical quote epochs.

@@ -3,6 +3,7 @@ import {ESTELLA_NODES} from '../../src/content/estella';
 import {ESTELLA_FACTION_CONTRACT_PROVIDERS,generateFactionContractCandidates} from '../../src/content/estella/faction-contracts';
 import {contractLocationId} from '../../src/contract-presentation';
 import {reviewFingerprint} from './camps-review-fingerprint';
+import { preIncomeBoardQuotes } from './pre-income-quotes';
 import {generateCareerContracts,generatePassengerContracts} from '../../src/career-contracts';
 import {estellaSelectableNavTargets} from '../../src/content/estella/navigation';
 
@@ -25,7 +26,7 @@ export function assertPreThuleBoards(check:(ok:unknown,msg:string)=>void):void{
   const affected=thuleAffectedBoardSources();
   for(const day of baseline.days)for(const n of estellaSelectableNavTargets())if(!affected.has(contractLocationId(n.id))){
     const current=[...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400)];
-    check(JSON.stringify(reviewFingerprint(current))===JSON.stringify((baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),`unchanged pre-Thule quoted board: ${day}:${n.id}`);
+    check(JSON.stringify(reviewFingerprint(preIncomeBoardQuotes(current, n.id, day * 86400, check)))===JSON.stringify((baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),`unchanged pre-Thule quoted board: ${day}:${n.id}`);
   }
 }
 export function thuleAffectedBoardSources():Set<string>{

@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Contract income preview</title>
+<style>body{background:#080d13;color:#d5e4ef;font:14px monospace;margin:18px}select{font:inherit;margin:10px}canvas{display:block;border:1px solid #34465a}</style>
+<div id="status">Running disposable-profile income checks…</div>
+<label>View <select id="view"></select></label>
+<canvas id="scene" width="1280" height="900"></canvas>
+<script type="module">
+import { checks as unitChecks, sampleOffers } from './contract-income.test.ts';
+import { Game } from '../src/game.ts';
+import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts.ts';
+import { contractIncomeMinimum } from '../src/contract-income.ts';
+import { combineContractClass } from '../src/contract-reputation.ts';
+import { defaultCareerProfile, TEAMSTER_CERTIFICATION_IDS } from '../src/career-state.ts';
+import { createDefaultRigState } from '../src/maintenance/rig-state.ts';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit } from '../src/interactive-scene.ts';
+import { contractFixedPay, contractGrossPay, formatCredits } from '../src/mission-cost.ts';
+try {
+  let checks = 0;
+  const assert = (v, m) => { checks++; if (!v) throw Error(m); };
+  const chr = level => sampleOffers.find(c => c.factionId === 'cerberus-human-resources' && contractIncomeMinimum(c) === level);
+  const views = { 'CHR entry': chr(0), 'CHR middle': chr(1), 'CHR premium': chr(2),
+    'Combine exports': sampleOffers.find(c => combineContractClass(c) === 'export'),
+    'Combine unpaid': sampleOffers.find(c => combineContractClass(c) === 'basic-routine') };
+  const canvas = document.querySelector('canvas'), ctx = canvas.getContext('2d');
+  const game = Object.create(Game.prototype); game.canvas = canvas;
+  game.career = defaultCareerProfile(); game.career.certifications = [...TEAMSTER_CERTIFICATION_IDS];
+  game.career.rig = createDefaultRigState(true); game.career.reputations['steel-combine'] = 2;
+  const state = c => ({ id: 'contractPosting', selectedIndex: 0, contracts: [c], contractIndex: 0 });
+  let launched = 0; game.launchPlayableEstellaMission = () => { launched++; };
+  for (const [name, contract] of Object.entries(views)) {
+    assert(contract, `${name}: actual posting exists`);
+    const scene = game.buildInteractiveScene(state(contract));
+    assert(!scene.options[0].disabled, `${name}: current authored eligibility; no premature non-Combine gate`);
+    const quote = contract.quote;
+    assert(contractGrossPay(quote.pay, quote.parFuelCost, quote.parFuelCost) - quote.parFuelCost === quote.expectedMargin, `${name}: par payout agrees`);
+    const text = [], fillText = ctx.fillText.bind(ctx); ctx.fillText = (s, ...args) => { text.push(s); fillText(s, ...args); };
+    const limit = interactiveSceneBodyScrollLimit(ctx, canvas, scene);
+    for (let scroll = 0; scroll <= limit + 180; scroll += 180) drawInteractiveScene(ctx, canvas, scene, 0, scroll);
+    ctx.fillText = fillText;
+    assert(text.join('').includes(formatCredits(contractFixedPay(quote.pay, quote.parFuelCost))), `${name}: actual quoted completion pay visible`);
+    const before = launched; game.activateInteractiveSceneOption(state(contract), 'acceptContract');
+    assert(launched === before + 1 && game.activeMissionQuote === quote, `${name}: acceptance preserves exact displayed quote`);
+  }
+  const worker = new Worker(new URL('../src/contract-board-worker.ts', import.meta.url), { type: 'module' });
+  try {
+    const sourceId = 'caravanserai-main-commercial-dock', worldTime = 0;
+    const result = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(Error('Board worker timeout')), 15000);
+      worker.onmessage = event => { clearTimeout(timeout); resolve(event.data); };
+      worker.onerror = event => { clearTimeout(timeout); reject(Error(event.message)); };
+      worker.postMessage({ requestId: 42, sourceId, worldTime });
+    });
+    assert(result.requestId === 42 && !result.error, 'actual worker replies successfully');
+    assert(JSON.stringify(result.boards.freight) === JSON.stringify(generateCareerContracts(sourceId, worldTime)), 'worker/fallback freight quotes identical');
+    assert(JSON.stringify(result.boards.passenger) === JSON.stringify(generatePassengerContracts(sourceId, worldTime)), 'worker/fallback passenger quotes identical');
+  } finally { worker.terminate(); }
+  const select = document.querySelector('#view');
+  for (const name of Object.keys(views)) select.add(new Option(name, name));
+  function render() { drawInteractiveScene(ctx, canvas, game.buildInteractiveScene(state(views[select.value])), 0, 0); }
+  select.onchange = render; render();
+  document.querySelector('#status').textContent = `PASS: ${checks} native checks + ${unitChecks} shared checks. Pricing live; non-Combine gates deferred.`;
+  document.title = 'PASS contract income';
+} catch (error) { document.querySelector('#status').textContent = `FAIL: ${error.stack}`; document.title = 'FAIL contract income'; throw error; }
+</script>

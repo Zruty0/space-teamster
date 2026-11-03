@@ -2,6 +2,7 @@ import './svg-dom';
 import {assertPreThuleEconomy,isReachSettlementAddition,THULE_RETIRED_PROVIDER_IDS,thuleAffectedBoardSources} from './fixtures/pre-thule-economy';
 import baseline from './fixtures/farwatch-baseline.json';
 import {reviewFingerprint} from './fixtures/camps-review-fingerprint';
+import { preIncomeBoardQuotes } from './fixtures/pre-income-quotes';
 import {ESTELLA_NODES,ESTELLA_NODES_BY_ID,ESTELLA_BODY_PHYSICS,ESTELLA_VALIDATION_ISSUES} from '../src/content/estella';
 import {ESTELLA_FACTION_CONTRACT_PROVIDERS,generateFactionContractCandidates,type FactionContractCandidate} from '../src/content/estella/faction-contracts';
 import {FARWATCH,FARWATCH_EDF_LANES,FARWATCH_INSTITUTE_LANES} from '../src/content/estella/faction-contracts/farwatch-contracts';
@@ -81,7 +82,7 @@ let exactRows=0,exactBoards=0,newFreight=0,newPeople=0,oldInbound=0,oldOutbound=
 let accepted:CareerContract|undefined,arrival:CareerContract|undefined;
 for(const day of baseline.days)for(const n of nav){
  const rows=[...generateCareerContracts(n.id,day*86400),...generatePassengerContracts(n.id,day*86400)];
- if(!affected.has(contractLocationId(n.id))){assert(same(reviewFingerprint(rows),(baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),'untouched board exact including old Farwatch name normalization');exactRows+=rows.length;exactBoards++;}
+ if(!affected.has(contractLocationId(n.id))){assert(same(reviewFingerprint(preIncomeBoardQuotes(rows, n.id, day * 86400, assert)),(baseline.boardSources as Record<string,number[]>)[`${day}:${n.id}`]),'untouched board exact including old Farwatch name normalization');exactRows+=rows.length;exactBoards++;}
  for(const c of rows){
   if(!isNew(c)){if(c.destinationId===FARWATCH)oldInbound++;if(c.sourceId===FARWATCH)oldOutbound++;continue;}
   assert(c.quote.sourceId===c.sourceId&&c.quote.destinationId===c.destinationId,'no post-quote reroute');
