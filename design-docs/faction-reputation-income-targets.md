@@ -9,8 +9,9 @@ Status: **Draft for Pete's review; no runtime changes.** User direction supersed
 - Pete wants level-0 target medians **5,000–20,000 cr**, generally around **10,000 cr**. Even Cerberus level-0 jobs should offer no more than **roughly 40,000 cr**. Treat this as a proposed level-0 upper boundary, not its median or a finalized exact rounding rule.
 - Higher-earning work moves to a higher economic access band, regardless of whether its cargo sounds routine. Do not leave a 134,000 cr ordinary freight job at level 0 solely because it carries basic industrial goods.
 - Level-1 medians vary by employer, reaching **200,000 cr for the wealthiest**. This is a median ceiling, not yet a universal per-job cap.
-- This draft interprets Pete's **300,000 cr for level 2+ as the common median target**, not a guaranteed minimum on every job. Level 3 remains quest-only advancement; the column does not add a third level to capped tracks or require another ordinary pay class.
-- Keep the already selected **Combine zero-fee exception** for levels 0/1; its proposed level-2 cash target applies to exports only. This exception and the common-300k reading are explicit draft assumptions, not silent changes to prior economics.
+- **Follow-up correction:** 300,000 cr is the level-2+ anchor for high-paying corporations, **not a common target for everyone**. Pete places lower-paying commercial employers such as Halloran, Accord and Miners Mutual at roughly half the higher-paying CHR/BAM scale. Non-corporations should pay less again. These are economic bands, not changes to an entity's legal form or ownership.
+- **Steel Combine:** retain zero fees plus fuel compensation at levels 0/1; Pete sets the level-2 export median at **about 30,000 cr**. This supersedes the previous 300,000 cr export proposal.
+- Level 3 remains quest-only advancement; the level-2+ column does not add a third level to capped tracks or require another ordinary pay class.
 
 ## Draft target table
 
@@ -18,28 +19,28 @@ All cells are **median net credits at par for the newly unlocked commercial work
 
 | Employer/entity | Level 0 | Level 1 | Level 2+ |
 |---|---:|---:|---:|
-| House Alvares | 10,000 | 150,000 | 300,000 |
-| House Mendes | 10,000 | 100,000 | 300,000 |
-| House Nunes | 5,000 | 75,000 | 300,000 |
-| Steel Combine | 0 | 0 | 300,000 (exports) |
+| House Alvares | 5,000 | 60,000 | 100,000 |
+| House Mendes | 5,000 | 50,000 | 90,000 |
+| House Nunes | 5,000 | 40,000 | 75,000 |
+| Steel Combine | 0 | 0 | 30,000 (exports) |
 | VHM — direct parent work | — | — | 300,000 |
-| Bruckner | 10,000 | 100,000 | 300,000 |
+| Bruckner | 10,000 | 100,000 | 150,000 |
 | Kisaragi — direct parent work | — | — | 300,000 |
-| KIS-E | 15,000 | 150,000 | 300,000 |
-| Covenant Remnants | 5,000 | 50,000 | 300,000 |
+| KIS-E | 10,000 | 100,000 | 150,000 |
+| Covenant Remnants | 5,000 | 25,000 | 50,000 |
 | Daedalus Systems | 15,000 | 175,000 | 300,000 |
 | Cerberus Human Resources | 20,000 | 200,000 | 300,000 |
-| Balor Advanced Materials | 10,000 | 125,000 | 300,000 |
-| Merren Conservatory | 10,000 | 100,000 | 300,000 |
-| Estella Institutions (GOV/EDF/EIP) | 10,000 | 100,000 | 300,000 |
-| Oathmark Accord | 10,000 | 125,000 | 300,000 |
-| Other noble households | 5,000 | 75,000 | 300,000 |
-| Halloran | 10,000 | 100,000 | 300,000 |
-| Hartwell shippers | 10,000 | 75,000 | 300,000 |
-| Miners Mutual | 5,000 | 50,000 | 300,000 |
-| Svarog Shipyard Company | 10,000 | 100,000 | 300,000 |
-| Other independent commercial employers | 10,000 | 75,000 | 300,000 |
-| Smuggling contacts (Notoriety recognition) | 10,000 | 150,000 | 300,000 |
+| Balor Advanced Materials | 20,000 | 200,000 | 300,000 |
+| Merren Conservatory | 10,000 | 100,000 | 150,000 |
+| Estella Institutions (GOV/EDF/EIP) | 5,000 | 50,000 | 100,000 |
+| Oathmark Accord | 10,000 | 100,000 | 150,000 |
+| Other noble households | 5,000 | 30,000 | 60,000 |
+| Halloran | 10,000 | 100,000 | 150,000 |
+| Hartwell shippers | 8,000 | 75,000 | 125,000 |
+| Miners Mutual | 10,000 | 100,000 | 150,000 |
+| Svarog Shipyard Company | 10,000 | 100,000 | 150,000 |
+| Other independent commercial employers | 8,000 | 75,000 | 125,000 |
+| Smuggling contacts (Notoriety recognition) | 5,000 | 60,000 | 100,000 |
 
 VHM/Kisaragi direct work still conceptually begins at 2; Bruckner/KIS-E offer earlier work using those standings. Bruckner remains independent, not a VHM subsidiary. Shared recognition does not require identical pay schedules or merge employers. The independent commercial row groups the six currently mapped mining/refining/export/machinery/labor providers for this draft only. GOV/EDF/EIP share a standing; their separate programmes can be refined later. Smuggling remains individual-contact work with separate personal trust, not a unified faction board or automatic hidden-site access. Guild and mixed civilian pools have no assigned reputation rule and are excluded rather than inventing new rank gates.
 
@@ -64,7 +65,7 @@ Examples (illustrative, not extra approved cutoff rules):
 
 ## Still to choose before implementation
 
-- Approval/amendment of each row, common level-2 target and Combine exception.
+- Approval/amendment of the exact proposed rows. The user-selected hierarchy is high-paying corporations → roughly half-scale lower commercial employers → still lower non-corporations; Combine exports about 30k. The old universal 300k reading is superseded.
 - Exact per-entity earning-band boundaries versus these median targets; do not manufacture a 1→2 cutoff from the median alone. Earnings below a boundary need not imply employer trust.
 - How to provide enough real low-earning jobs to establish standing: reclassifying all current high-paying CHR freight upward alone would leave no basic freight at 0 in the measured sample (minimum 51,597 cr). Rebalance/select low-paying work deliberately rather than silently granting free rank or leaving a circular gate.
 - Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by this draft.
