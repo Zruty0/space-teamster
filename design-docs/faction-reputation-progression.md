@@ -37,6 +37,25 @@ Suggested per-band configuration:
 - Relationship-maintenance qualification: routine same-faction work resets grace even if it gives no advancement. Explicit donor attribution for inherited employers is still needed.
 - Special-quest progression for 2→3, and a separate directed level-3 exclusivity/cap table.
 
+## Acceptance-screen reputation messages — November 3 direction
+
+Pete requests standardized **ship-computer** notices on the contract acceptance screen. Use the same neutral wording for every faction; no issuer voice, faction-specific flavor or personalized praise/threats. The supplied wording was illustrative; selected copy:
+
+| Effect | Message |
+|---|---|
+| Advancement | Completing this contract will improve your reputation with {Faction}. |
+| Direct rivalry loss | {Faction} disapproves of this contract. Completing it will reduce your reputation with them. |
+| Maintenance | This is routine work for {Faction}. Completing it will maintain your reputation with them. |
+
+The maintenance notice is for non-advancing work when the pilot has decay-prone standing with that faction. The notices describe successful completion, not an immediate reputation change on acceptance. This is a presentation decision, not authorization to implement unfinished earning/loss rules or advertise effects that the current runtime does not apply.
+
+Recommended display rules for implementation:
+- Preview the applicable authored effect using current standing/band and the same calculation as settlement, including floors/caps; do not infer an effect from pay or access level.
+- Show all applicable factions: a contract can improve one reputation while damaging another. Within a faction, an advancement notice replaces the redundant maintenance notice.
+- Show maintenance only where passive decay can threaten current progress (under the current rules, fractional progress above level 1, not an exactly protected integer or an unestablished score). A zero grace counter does not make otherwise vulnerable standing immune to future neglect.
+- Do not promise improvement at a cap or a reduction that a floor prevents. Passive unrelated-work decay is not faction disapproval; do not use the rivalry wording for it. Any separate passive-decay preview remains outside this copy decision.
+- Use canonical faction display names and explicit credit/loss targets; inherited employer recognition alone does not identify an affected faction.
+
 ## Event semantics proposed for review
 
 1. **Qualifying completion:** add its credit and reset the unrelated counter. Recommend capping that award at the next integer, so a final routine 0→1 job cannot spill credit into an advanced band for which it does not qualify. Clamp to track maximum.
