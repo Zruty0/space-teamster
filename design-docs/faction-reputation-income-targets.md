@@ -1,7 +1,7 @@
 # Reputation contract income — target medians
 
 Updated: 2026-11-03 (Pacific)
-Status: **Draft for Pete's review; no runtime changes.** User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
+Status: **Approved by Pete on November 3; not yet implemented.** Approval covers the full revised 22-row median table and income/trust separation; exact band boundaries and quote calibration remain open. User direction supersedes the Cerberus proposal's job-type-first economic gating. Combine runtime `3e36373` still uses its authored template classes until a revised implementation is authorized. [Progression framework](faction-reputation-progression.md); [Cerberus audit and earlier proposal](faction-reputation-cerberus.md).
 
 ## Direction and interpretation
 
@@ -13,9 +13,9 @@ Status: **Draft for Pete's review; no runtime changes.** User direction supersed
 - **Steel Combine:** retain zero fees plus fuel compensation at levels 0/1; Pete sets the level-2 export median at **about 30,000 cr**. This supersedes the previous 300,000 cr export proposal.
 - Level 3 remains quest-only advancement; the level-2+ column does not add a third level to capped tracks or require another ordinary pay class.
 
-## Draft target table
+## Approved target table
 
-All cells are **median net credits at par for the newly unlocked commercial work**, not the median of every lower-level job still available to a pilot. Important low-paying reputation work is measured separately, as below. Individual allocations are assistant proposals, not user-approved balance.
+All cells are **median net credits at par for the newly unlocked commercial work**, not the median of every lower-level job still available to a pilot. Important low-paying reputation work is measured separately, as below. Pete approved these individual allocations after the wealth-scaling correction.
 
 | Employer/entity | Level 0 | Level 1 | Level 2+ |
 |---|---:|---:|---:|
@@ -42,7 +42,7 @@ All cells are **median net credits at par for the newly unlocked commercial work
 | Other independent commercial employers | 8,000 | 75,000 | 125,000 |
 | Smuggling contacts (Notoriety recognition) | 5,000 | 60,000 | 100,000 |
 
-VHM/Kisaragi direct work still conceptually begins at 2; Bruckner/KIS-E offer earlier work using those standings. Bruckner remains independent, not a VHM subsidiary. Shared recognition does not require identical pay schedules or merge employers. The independent commercial row groups the six currently mapped mining/refining/export/machinery/labor providers for this draft only. GOV/EDF/EIP share a standing; their separate programmes can be refined later. Smuggling remains individual-contact work with separate personal trust, not a unified faction board or automatic hidden-site access. Guild and mixed civilian pools have no assigned reputation rule and are excluded rather than inventing new rank gates.
+VHM/Kisaragi direct work still conceptually begins at 2; Bruckner/KIS-E offer earlier work using those standings. Bruckner remains independent, not a VHM subsidiary. Shared recognition does not require identical pay schedules or merge employers. The independent commercial row groups the six currently mapped mining/refining/export/machinery/labor providers for these shared targets only. GOV/EDF/EIP share a standing; their separate programmes can be refined later. Smuggling remains individual-contact work with separate personal trust, not a unified faction board or automatic hidden-site access. Guild and mixed civilian pools have no assigned reputation rule and are excluded rather than inventing new rank gates.
 
 ## Economic gate AND authored trust gate
 
@@ -65,8 +65,7 @@ Examples (illustrative, not extra approved cutoff rules):
 
 ## Still to choose before implementation
 
-- Approval/amendment of the exact proposed rows. The user-selected hierarchy is high-paying corporations → roughly half-scale lower commercial employers → still lower non-corporations; Combine exports about 30k. The old universal 300k reading is superseded.
 - Exact per-entity earning-band boundaries versus these median targets; do not manufacture a 1→2 cutoff from the median alone. Earnings below a boundary need not imply employer trust.
 - How to provide enough real low-earning jobs to establish standing: reclassifying all current high-paying CHR freight upward alone would leave no basic freight at 0 in the measured sample (minimum 51,597 cr). Rebalance/select low-paying work deliberately rather than silently granting free rank or leaving a circular gate.
-- Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by this draft.
+- Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by approval of these targets.
 - Validate distributions per newly unlocked economic band, with important low-paying work reported separately; do not claim that a median is a per-job cap or a minimum guarantee. Freeze/recompute policy for quote-dependent gates and historical accepted work needs explicit implementation review.
