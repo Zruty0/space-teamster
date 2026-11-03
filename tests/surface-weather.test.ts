@@ -37,7 +37,7 @@ try{
   for(const vx of [-160,-20,0,20,160])for(const vy of [-20,0,20]){
    const a=landingAerodynamics(vx,vy,1000,y,20,config.dragCoeff,air),b=approachWindAcceleration(1000,y,vx,vy,approach,20);
    assert(a.windAX===b.ax&&a.windAY===b.ay,'approach/landing share exact matched-state wind forces');
-   assert(Math.hypot(a.windAX,a.windAY)<=weather.climate.windLimit+1e-10,'climate force bound');
+   assert(Math.hypot(a.windAX,a.windAY)<=(weather.climate.landingWindLimit??weather.climate.windLimit)+1e-10,'climate force bound');
    for(const authority of [.4,1.2,2.45,4]){const sas=landingSasForce(vx,vy,authority,a);assert(Math.hypot(sas.ax,sas.ay)<=authority+1e-10,'finite SAS across loadouts');}
   }
   const start={x:1000,y:Math.max(terrain.pad.y+1500,2000),vx:15,vy:-5,angle:0},state=createApproachState(approach,start),prediction=predictTrajectory(state,approach,0,1/120,1/120);
@@ -54,7 +54,7 @@ try{
   const sim=()=>{const s=createShip();Object.assign(s,{gearDeployed:true,sas:true,throttle:level.gravity/config.mainEngineAccel});for(let i=0;i<1200;i++)updateShip(s,{...NEUTRAL_FLIGHT_INPUT},1/120,peakTime+i/120,air);return s;};
   const first=sim(),retry=sim();assert(JSON.stringify(first)===JSON.stringify(retry),'deterministic full control replay');
   assert(Number.isFinite(first.x)&&Number.isFinite(first.dvUsed)&&first.dvUsed>0,'hover weather costs real finite control effort');
-  if(weather.climate.windLimit<config.mainEngineAccel*.1)assert(Math.abs(first.vx)<1e-8,'SAS holds ground vx within thrust authority');
+  if((weather.climate.landingWindLimit??weather.climate.windLimit)<config.mainEngineAccel*.1)assert(Math.abs(first.vx)<1e-8,'SAS holds ground vx within thrust authority');
   report.push({name:poi.name,body:body.name,label:weather.climate.label,peak:+peak.toFixed(3),drift:+(first.x-1000).toFixed(3),wind:+weather.wind(epoch).toFixed(1)});
  }
  const sorted=[...report].sort((a,b)=>b.peak-a.peak);

@@ -515,7 +515,7 @@ export class Game {
         const dx=x-level.gateX,local=landingReferenceHeight(landing,terrain,dx+terrain.pad.centerX);
         const u=Math.max(0,Math.min(1,(Math.abs(dx)-1000)/1000)),blend=u*u*(3-2*u);
         return local+(getApproachTerrainHeight(x,level)-local)*blend;
-      },{xOffset:terrain.pad.centerX-level.gateX,siteX:terrain.pad.centerX,siteY:terrain.pad.y});
+      },{xOffset:terrain.pad.centerX-level.gateX,siteX:terrain.pad.centerX,siteY:terrain.pad.y,approach:true});
       // Replace, never stack, the old acceleration layers / random angular weather.
       level.windLayers=[];level.turbulence=[];
     }else delete level.flightAir;

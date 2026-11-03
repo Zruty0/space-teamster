@@ -895,14 +895,19 @@ export function predictTrajectory(
 
   let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
   let prevX = x, prevY = y;
-
-  for (let t = 0; t < maxTime; t += step) {
+  // Integrate the full regional motion, not just angle, below the damping/shear
+  // timescale. Keep the displayed point budget unchanged and never filter the path.
+  const substeps=level.flightAir&&includeWind?Math.min(64,Math.max(1,Math.ceil(step/.1))):1;
+  const dt=step/substeps;
+  prediction: for (let t = 0; t < maxTime; t += step) {
+   for(let j=0;j<substeps;j++){
+    const seconds=predTime+t+j*dt;
     const { ax: aeroAx, ay: aeroAy, heatRate } = aeroForces(x, y, vx, vy, angle, wing, level);
-    const wind=includeWind?approachWindAcceleration(x,y,vx,vy,level,predTime+t):{ax:0,ay:0};
+    const wind=includeWind?approachWindAcceleration(x,y,vx,vy,level,seconds):{ax:0,ay:0};
     const ax = aeroAx + wind.ax;
     const ay = -level.gravity + aeroAy + wind.ay;
 
-    temp = advanceTemperature(temp, heatRate / level.heatCapacity, level.dissipation, step, level.thermalLoadMultiplier);
+    temp = advanceTemperature(temp, heatRate / level.heatCapacity, level.dissipation, dt, level.thermalLoadMultiplier);
     const tooHotForWings = temp >= level.wingsMaxTemp;
     if (wingFoldIdx < 0) {
       if (points.length === 0) {
@@ -919,22 +924,18 @@ export function predictTrajectory(
     temp = clamp(temp, 0, 1.5);
 
     if(level.flightAir&&includeWind){
-      // Coast with the same deterministic angular forcing as live flight.
-      // Subdivide coarse requested steps to keep angular damping stable.
-      const angularSteps=Math.min(64,Math.max(1,Math.ceil(step/.4))),angularDt=step/angularSteps;
-      for(let j=0;j<angularSteps;j++){
-        const torque=approachTurbulenceTorque({x,y,vx,vy},level,predTime+t+j*angularDt);
-        angularVel+=(torque-config.angularDrag*angularVel)*angularDt;
-        angle=wrapAngle(angle+angularVel*angularDt);
-      }
+      const torque=approachTurbulenceTorque({x,y,vx,vy},level,seconds);
+      angularVel+=(torque-config.angularDrag*angularVel)*dt;
+      angle=wrapAngle(angle+angularVel*dt);
     }
     prevX = x; prevY = y;
-    vx += ax * step;
-    vy += ay * step;
-    x += vx * step;
-    y += vy * step;
+    vx += ax * dt;
+    vy += ay * dt;
+    x += vx * dt;
+    y += vy * dt;
 
-    points.push({ x, y, temp: clamp(temp, 0, 1), burnedUp: dead });
+    const impactHeight = includeTerrain ? getApproachTerrainHeight(x, level) : 0;
+    if(j===substeps-1||y<=impactHeight)points.push({ x, y, temp: clamp(temp, 0, 1), burnedUp: dead });
 
     if (!dead && !reachedGate) {
       const inGX = x >= level.gateX - level.gateRadius && x <= level.gateX + level.gateRadius;
@@ -942,11 +943,11 @@ export function predictTrajectory(
       const inGY = y >= tAtGate && y <= level.gateY + tAtGate;
       if (inGX && inGY) reachedGate = true;
     }
-    const impactHeight = includeTerrain ? getApproachTerrainHeight(x, level) : 0;
     if (y <= impactHeight) {
       impactX = impactCrossX(prevX, prevY - impactHeight, x, y - impactHeight, level);
-      break;
+      break prediction;
     }
+   }
   }
   return { points, impactX, reachedGate, overheatIdx, wingFoldIdx };
 }
@@ -1141,9 +1142,9 @@ export function renderApproach(
   if(!level.flightAir)drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
   else {
     drawRegionalWindBands(ctx,cam,level.flightAir,x=>getApproachTerrainHeight(x,level),level.body.atmosphere?.height??0,W,H,time);
-    const wind=level.flightAir.sample(s.x,s.y,time),vertical=wind.vy??0;
+    const wind=level.flightAir.sample(s.x,s.y,time);
     ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
-    ctx.fillText(`${level.flightAir.label} · WIND ${wind.vx<0?'←':'→'} ${Math.abs(wind.vx).toFixed(1)} · ${vertical<0?'↓':'↑'} ${Math.abs(vertical).toFixed(1)} m/s`,W-20,H-56);ctx.restore();
+    ctx.fillText(`${level.flightAir.label} · WIND ${wind.vx<0?'←':'→'} ${Math.abs(wind.vx).toFixed(1)} m/s`,W-20,H-56);ctx.restore();
   }
 
   // --- Trajectory preview ---

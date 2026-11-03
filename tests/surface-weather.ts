@@ -7,13 +7,14 @@ import { config } from '../src/config';
 import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
 import { BODIES, SURFACE_POIS, bodyById, surfacePoiById } from '../src/world';
 import { createLandingLevel } from '../src/levels';
-import { generateTerrain, getTerrainHeight } from '../src/terrain';
+import { generateTerrain, getTerrainHeight, landingReferenceHeight } from '../src/terrain';
 import { APPROACH_LEVELS, approachWindAcceleration, approachTurbulenceTorque, approachInTurbulence } from '../src/approach';
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { landingAerodynamics, landingSasForce } from '../src/landing-air';
 import { createRegionalWeather } from '../src/surface-weather';
 import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
 import { readInput } from '../src/input';
+import { WIND_TRACER_CAP } from '../src/wind-tracers';
 const canvas=document.getElementById('flight') as HTMLCanvasElement,ctx=canvas.getContext('2d')!;
 const site=document.getElementById('site') as HTMLSelectElement,view=document.getElementById('view') as HTMLSelectElement,epoch=document.getElementById('epoch') as HTMLInputElement;
 const play=document.getElementById('play')!,status=document.getElementById('status')!;
@@ -61,23 +62,27 @@ async function checks(){
    reset(poi.id,'landing',12345);await game.landingScenery.prepare(game.phase.level);
    assert(!!game.landingAtmosphere(game.phase)?.physicsAir,`${poi.id} automatically enabled`);
    advance(1);const a=snapshot(),pool=JSON.stringify(a.particles);draw();draw();assert(pool===JSON.stringify(snapshot().particles),'draw cannot advance particles');
-   assert(a.effects.tracers.active>0&&a.effects.tracers.active<=128&&a.effects.active<=256,'bounded atmospheric effects');
+   assert(a.effects.tracers.active>0&&a.effects.tracers.active<=WIND_TRACER_CAP&&a.effects.active<=256,'bounded atmospheric effects');
    results.push({site:poi.name,body:game.phase.level.body.name,wind:a.wind.vx,drift:a.ship.x-1000});
    reset(poi.id,'landing',12345);advance(1);assert(JSON.stringify(snapshot())===JSON.stringify(a),'actual Game retry reproduces controls/weather/effects');
    game.weatherVisuals=false;game.weatherLow=true;reset(poi.id,'landing',12345);advance(1);const b=snapshot();assert(JSON.stringify(a.ship)===JSON.stringify(b.ship)&&pool===JSON.stringify(b.particles),'visual flags never alter simulation');game.weatherVisuals=true;game.weatherLow=false;
-   const phase=game.phase,air=game.landingAtmosphere(phase).air,landingForce=landingAerodynamics(12,-3,1000,phase.terrain.pad.y+85,0,config.dragCoeff,air);
+   const phase=game.phase;
+   const approachReference=createRegionalWeather(phase.level.body,poi).air(12345,x=>landingReferenceHeight(phase.level,phase.terrain,x),{siteX:phase.terrain.pad.centerX,siteY:phase.terrain.pad.y,approach:true});
+   const referenceForce=landingAerodynamics(12,-3,1000,phase.terrain.pad.y+85,0,config.dragCoeff,approachReference);
    const labels:string[]=[],originalText=ctx.fillText.bind(ctx);
-   const captureText=(text:string,x:number,y:number,maxWidth?:number)=>{if(/^[←→] \d+\.\d · [↑↓] \d+\.\d m\/s$/.test(text))labels.push(text);if(maxWidth===undefined)originalText(text,x,y);else originalText(text,x,y,maxWidth);};
+   const captureText=(text:string,x:number,y:number,maxWidth?:number)=>{if(/^[←→] \d+\.\d m\/s$/.test(text))labels.push(text);if(maxWidth===undefined)originalText(text,x,y);else originalText(text,x,y,maxWidth);};
    ctx.fillText=captureText;
    try{reset(poi.id,'departure',12345);}finally{ctx.fillText=originalText;}
    const flight=game.phase.level;
    assert(labels.length>0,'actual regional departure renderer restores wind band velocity labels');
    assert(!!flight.flightAir&&flight.windLayers.length===0&&flight.turbulence.length===0,'approach replaces legacy weather, no double force/torque');
    const force=approachWindAcceleration(0,phase.terrain.pad.y+85,12,-3,flight,0);
-   assert(Math.abs(force.ax-landingForce.windAX)<1e-12&&Math.abs(force.ay-landingForce.windAY)<1e-12,'shared near-site handoff air and wind force');
+   assert(Math.abs(force.ax-referenceForce.windAX)<1e-12&&Math.abs(force.ay-referenceForce.windAY)<1e-12,'production approach uses the site-anchored smoothed horizontal model');
+   for(const x of [-1000,0,1000])for(const h of [50,500,2500,6000])assert(flight.flightAir.sample(x,phase.terrain.pad.y+h,0).vy===0,'actual departure has no vertical wind');
    advance(.25);const departure=snapshot();reset(poi.id,'departure',12345);advance(.25);assert(departure.ship.alive&&departure.ship.x!==0&&JSON.stringify(snapshot().ship)===JSON.stringify(departure.ship),'actual equipped departure advances and retry is stable');
    labels.length=0;ctx.fillText=captureText;try{reset(poi.id,'approach',12345);}finally{ctx.fillText=originalText;}
    assert(labels.length>0,'actual regional approach renderer restores wind band velocity labels');
+   for(const x of [-1000,0,1000])for(const h of [50,500,2500,6000])assert(game.phase.level.flightAir.sample(x,phase.terrain.pad.y+h,0).vy===0,'actual descent has no vertical wind');
    advance(.25);assert(game.phase.as.alive&&game.phase.state==='approaching'&&game.phase.as.x!==-1800&&Number.isFinite(game.phase.as.vx)&&!!game.phase.level.flightAir,'actual equipped descent advances with new air');
    reset(poi.id,'parked',12345);advance(1);const parked=snapshot();assert(parked.ship.dvUsed===0&&parked.ship.x===1000&&parked.effects.active===0&&parked.effects.tracers.active>0,'parked wind without fuel or smoke');
    reset(poi.id,'landing',12345+7200);assert(Math.abs(snapshot().wind.vx-a.wind.vx)>.001,'mission time changes conditions');
@@ -142,10 +147,13 @@ async function checks(){
   };
   for(const epoch of [0,12345,43200]){
    const untrimmed=stribogFlight(epoch,false),trimmed=stribogFlight(epoch,true),retry=stribogFlight(epoch,true);
-   assert(trimmed.maxDrift<6&&trimmed.maxDrift<untrimmed.maxDrift&&trimmed.effort>0,'actual Stribog ordinary reactive lateral trim controls gusts');
+   // This intentionally stronger profile can exceed ordinary hold authority;
+   // test useful manual response, not the superseded <6 m stationary-hover promise.
+   assert(trimmed.best>3.675&&trimmed.best<4.2&&trimmed.maxDrift<30&&trimmed.maxDrift<untrimmed.maxDrift&&trimmed.effort>0,`stronger Stribog cells exceed ordinary hold authority but respond to manual control: ${JSON.stringify({epoch,best:trimmed.best,trimmed:trimmed.maxDrift,untrimmed:untrimmed.maxDrift,effort:trimmed.effort,state:trimmed.snapshot.state})}`);
    assert(trimmed.snapshot.state==='flying'&&trimmed.snapshot.time>29.9&&trimmed.snapshot.ship.dvUsed>0,`gust control uses live equipped flight and paid thrust: ${JSON.stringify({epoch,state:trimmed.snapshot.state,ship:trimmed.snapshot.ship,time:trimmed.snapshot.time})}`);
    assert(JSON.stringify(trimmed)===JSON.stringify(retry),'actual gusts and reactive input replay identically');
-   stribogHandling.push({epoch,untrimmed:untrimmed.maxDrift,trimmed:trimmed.maxDrift});
+   assert(trimmed.snapshot.effects.tracers.active>128&&trimmed.snapshot.effects.tracers.capacity===WIND_TRACER_CAP,'strong spatial wind sustains more tracers than the entire former pool after 30 seconds');
+   stribogHandling.push({epoch,peakForce:trimmed.best,untrimmed:untrimmed.maxDrift,trimmed:trimmed.maxDrift,particles:trimmed.snapshot.effects.tracers});
   }
   // The warning must correspond to an actual rare spatial buffet, not all wind.
   reset('estella-vi-spaceport','approach',0);const al=game.phase.level;

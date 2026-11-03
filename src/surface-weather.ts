@@ -7,6 +7,7 @@ import { createSurfaceWindField } from './surface-wind-field';
 export interface SurfaceClimate {
  label:string; base:number; gust:number; period:number; // gust is now spatial velocity variation, not a temporal sine amplitude.
  exposure:number; windLimit:number; cloudCover:number; cloudBase:number; cloudDepth:number;
+ landingWindScale?:number; landingWindLimit?:number;
 }
 const temperate:SurfaceClimate={label:'Temperate',base:8,gust:4,period:21600,exposure:.4,windLimit:.65,cloudCover:.48,cloudBase:1400,cloudDepth:1800};
 export const WORLD_CLIMATES:Readonly<Record<string,Readonly<SurfaceClimate>>>=Object.freeze({
@@ -28,7 +29,7 @@ const SITES:Readonly<Record<string,Partial<SurfaceClimate>>>=Object.freeze({
  'estella-iv-climate-poi-3':{label:'Polar marine gusts',base:15,gust:8,exposure:.8,windLimit:.95},
  // Modest prevailing flow, sharp spatial circulation; upper-air shear is much
  // stronger than the landing envelope. Ordinary lateral + SAS remains finite.
- 'estella-vi-spaceport':{label:'Turbulent crosswinds',base:10,gust:55,period:9000,exposure:.9,windLimit:3.7,cloudCover:1,cloudBase:220,cloudDepth:1000},
+ 'estella-vi-spaceport':{label:'Turbulent crosswinds',base:10,gust:55,period:9000,exposure:.9,windLimit:3.7,landingWindScale:1.4,landingWindLimit:4.2,cloudCover:1,cloudBase:220,cloudDepth:1000},
  'estella-iv-climate-poi-1':{label:'Storm-belt squalls',base:36,gust:19,period:14400,exposure:.9,windLimit:2.25,cloudCover:.94,cloudBase:320,cloudDepth:1100},
  'estella-v-storm-research':{label:'Exposed dust-front gusts',base:25,gust:14,windLimit:1.1,exposure:.8,cloudCover:.52},
  'estella-v-capital-settlement':{label:'Sheltered thin air',base:7,gust:3,exposure:.3,windLimit:.35,cloudCover:.22},
@@ -56,27 +57,28 @@ export function createRegionalWeather(body:BodyDef,poi:Pick<SurfacePoiDef,'id'|'
   let x=climate.base*seconds;for(let i=0;i<frequencies.length;i++)x-=amplitudes[i]/frequencies[i]*Math.cos(frequencies[i]*seconds+phases[i]);return sign*x;
  }
  function cover(seconds:number){return Math.min(1,climate.cloudCover*(.8+.2*Math.sin(frequencies[0]*seconds+phases[0])));}
- function air(epoch:number,ground:(x:number)=>number,origin:{xOffset?:number;siteX?:number;siteY?:number}={}):LandingAir{
+ function air(epoch:number,ground:(x:number)=>number,origin:{xOffset?:number;siteX?:number;siteY?:number;approach?:boolean}={}):LandingAir{
   const offset=origin.xOffset??0,siteX=origin.siteX??1000,siteY=origin.siteY??ground(siteX-offset);
-  const floating=poi.landingLayout?.kind==='cloud-city';
+  const floating=poi.landingLayout?.kind==='cloud-city',approach=origin.approach??false;
+  const speedScale=approach?1:climate.landingWindScale??1,limit=approach?climate.windLimit:climate.landingWindLimit??climate.windLimit;
   function local(x:number,y:number,time:number){
-   return field.sample(x+offset-siteX,y-siteY,epoch+time,wind(epoch+time));
+   return field.sample(x+offset-siteX,y-siteY,epoch+time,wind(epoch+time),approach);
   }
   const sample:LandingAir['sample']=(x,y,time)=>{
    const a=body.atmosphere,agl=y-ground(x);
-   if(!a||y>=a.height||(!floating&&agl<=0))return{vx:0,vy:0,density:0,windLimit:climate.windLimit};
+   if(!a||y>=a.height||(!floating&&agl<=0))return{vx:0,vy:0,density:0,windLimit:limit};
    const f=local(x,y,time),shelter=floating?1:climate.exposure+(1-climate.exposure)*(1-Math.exp(-Math.max(0,agl)/40));
    const topFade=Math.min(1,Math.max(0,(a.height-y)/(a.scaleHeight*.5)));
    const verticalShelter=floating?1:Math.min(1,Math.max(0,agl)/30);
-   return{vx:f.vx*shelter*topFade,vy:f.vy*verticalShelter*topFade,
+   return{vx:f.vx*shelter*topFade*speedScale,vy:f.vy*verticalShelter*topFade*speedScale,
     density:a.surfaceDensity*Math.exp(-Math.max(0,y)/a.scaleHeight)*topFade,
-    windLimit:climate.windLimit+(climate.windLimit*2+2)*f.blend};
+    windLimit:limit+(limit*2+2)*f.blend};
   };
   return {label:climate.label,sample,approachBuffet(x,y,time){
    const a=sample(x,y,time);if(a.density<=0)return 0;
    return local(x,y,time).buffet*Math.min(1,a.density/.18);
   }};
  }
- return{id,climate,wind,advection,cover,air,cloudAdvection:(height:number,time:number)=>field.cloudAdvection(height,time,advection(time)),altitude:poi.altitude,body,layout:poi.landingLayout};
+ return{id,climate,wind,advection,cover,air,cloudAdvection:(height:number,time:number,approach=false)=>field.cloudAdvection(height,time,advection(time),approach),altitude:poi.altitude,body,layout:poi.landingLayout};
 }
 export type RegionalWeather=ReturnType<typeof createRegionalWeather>;

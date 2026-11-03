@@ -8,24 +8,34 @@ import { NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
 import { config } from '../src/config';
 let checks=0;const assert=(ok:unknown,msg:string)=>{checks++;if(!ok)throw Error(msg);};
 const poi=surfacePoiById('estella-vi-spaceport'),body=bodyById(poi.bodyId),weather=createRegionalWeather(body,poi),air=weather.air(0,()=>30);
-const origin={xOffset:1000,siteX:1000,siteY:30},approachAir=weather.air(0,()=>30,origin);
+const origin={xOffset:1000,siteX:1000,siteY:30,approach:true},approachAir=weather.air(0,()=>30,origin);
 let left=0,right=0,up=0,down=0,lowPeak=0,upperPeak=0,forcePeak=0,maxJump=0;
 for(let x=0;x<=2000;x+=20)for(let h=5;h<=140;h+=15){
  const a=air.sample(x,30+h,12345),b=air.sample(x+.01,30+h,12345);
  left+=a.vx< -5?1:0;right+=a.vx>5?1:0;up+=(a.vy??0)>3?1:0;down+=(a.vy??0)<-3?1:0;
  lowPeak=Math.max(lowPeak,Math.hypot(a.vx,a.vy??0));maxJump=Math.max(maxJump,Math.hypot(a.vx-b.vx,(a.vy??0)-(b.vy??0)));
  const force=landingAerodynamics(0,0,x,30+h,12345,config.dragCoeff,air);forcePeak=Math.max(forcePeak,Math.hypot(force.windAX,force.windAY));
- assert(a.windLimit===3.7,'landing keeps modest force ceiling');
- assert(JSON.stringify(a)===JSON.stringify(approachAir.sample(x-1000,30+h,12345)),'approach/landing coordinates share the same physical field');
+ assert(a.windLimit===4.2,'Stribog landing now has a stronger force ceiling');
+ assert(JSON.stringify(approachAir.sample(x-1000,30+h,12345))===JSON.stringify(weather.air(0,()=>30,{approach:true}).sample(x,30+h,12345)),'approach field remains anchored to the permanent site frame');
  assert(JSON.stringify(a)===JSON.stringify(weather.air(12000,()=>30).sample(x,30+h,345)),'epoch changes do not reroll field');
 }
 assert(left>50&&right>50&&up>50&&down>50,'at a fixed time, surface locations have opposing winds and up/down drafts');
-assert(lowPeak<60&&forcePeak<3.675&&forcePeak>2.45,'stock normal lateral + SAS can cover the lower-field force envelope; peaks remain challenging');
+assert(lowPeak>60&&lowPeak<85&&forcePeak>3.8&&forcePeak<4.2,'Stribog landing is measurably more severe, can exceed ordinary lateral plus SAS');
 assert(maxJump<.1,'surface field spatially continuous');
-let maxUpperForce=0,upperUp=0,upperDown=0;
-for(let h=1600;h<12000;h+=40){const a=approachAir.sample(0,30+h,12345);upperPeak=Math.max(upperPeak,Math.hypot(a.vx,a.vy??0));upperUp+=(a.vy??0)>10?1:0;upperDown+=(a.vy??0)<-10?1:0;
+let maxUpperForce=0,upperLeft=0,upperRight=0;
+for(let h=1600;h<12000;h+=40){const a=approachAir.sample(0,30+h,12345);upperPeak=Math.max(upperPeak,Math.hypot(a.vx,a.vy??0));upperLeft+=a.vx< -30?1:0;upperRight+=a.vx>30?1:0;assert(a.vy===0,'approach has strictly horizontal wind at every altitude');
  const f=landingAerodynamics(120,-30,0,30+h,12345,config.dragCoeff,approachAir);maxUpperForce=Math.max(maxUpperForce,Math.hypot(f.windAX,f.windAY));}
-assert(upperPeak>100&&maxUpperForce>8&&upperUp>10&&upperDown>10,'approach has strong vector winds, not landing-limited forces');
+assert(upperPeak>80&&maxUpperForce>8&&upperLeft>10&&upperRight>10,'approach retains strong opposing horizontal layers');
+let smoothVariation=0,formerVariation=0;
+for(let x=-8000;x<=8000;x+=250)for(let h=1600;h<=12000;h+=250){
+ const a=approachAir.sample(x,30+h,0),old=air.sample(x+1000,30+h,0);
+ for(const [dx,dy]of [[10,0],[0,10]]){
+  smoothVariation+=Math.abs(approachAir.sample(x+dx,30+h+dy,0).vx-a.vx);
+  formerVariation+=Math.abs(air.sample(x+1000+dx,30+h+dy,0).vx-old.vx)/1.4;
+ }
+}
+assert(smoothVariation<formerVariation*.55,'approach horizontal spatial variation is less than 55% of former field');
+console.log({horizontalVariationRatio:smoothVariation/formerVariation});
 const cloudSpeeds=Array.from({length:15},(_,i)=>(weather.cloudAdvection(1600+i*350,12345.01)-weather.cloudAdvection(1600+i*350,12344.99))/.02);
 assert(cloudSpeeds.some(v=>v>30)&&cloudSpeeds.some(v=>v< -30),'bulk cloud layers have opposing shear advection');
 const before=air.sample(870,110,12345),later=air.sample(870,110,12350),elsewhere=air.sample(925,110,12345);
@@ -56,5 +66,20 @@ for(let i=0;i<predicted.points.length;i++){
 }
 assert(live.alive&&deflection>.08&&deflection<.8,'actual bounded attitude kick, not just a warning');
 assert(JSON.stringify(live)===JSON.stringify(retry),'input/mission retry is identical');
+// A render-sized prediction step must integrate the same smooth physical path,
+// not alias short wind/rotation changes into a visibly jumping forecast.
+const coarse=predictTrajectory(start,level,0,8,.4,true,false),fine=predictTrajectory(start,level,0,8,.1,true,false);
+for(let i=0;i<coarse.points.length;i++)assert(Math.hypot(coarse.points[i].x-fine.points[i*4+3].x,coarse.points[i].y-fine.points[i*4+3].y)<1e-6,'coarse displayed preview agrees with fine internal integration');
+const precise=predictTrajectory(start,level,0,8,1/120,true,false),cEnd=coarse.points[coarse.points.length-1],pEnd=precise.points[959];
+const previewError=Math.hypot(cEnd.x-pEnd.x,cEnd.y-pEnd.y);
+assert(previewError<5,'render-sized preview remains close to the live-step reference over eight seconds');
+let lastEnd:{x:number;y:number}|undefined,maxPreviewJump=0;const previewState={...start};
+for(let i=0;i<120;i++){
+ const path=predictTrajectory(previewState,level,i/60,8,.4,true,false),end=path.points[path.points.length-1];
+ if(lastEnd)maxPreviewJump=Math.max(maxPreviewJump,Math.hypot(end.x-lastEnd.x,end.y-lastEnd.y));lastEnd=end;
+ for(let j=0;j<2;j++)updateApproach(previewState,{...NEUTRAL_FLIGHT_INPUT},level,1/120,i/60+j/120);
+}
+assert(maxPreviewJump<5,'rolling eight-second preview changes smoothly across successive flight frames');
+console.log({maxPreviewJump,previewError});
 console.log(JSON.stringify({vectorField:{lowPeak,upperPeak,forcePeak,maxUpperForce,maxJump,warningCoverage:warned/total,peakTorque,deflectionDegrees:deflection*180/Math.PI}},null,2));
 console.log(`Spatial wind field / approach buffeting: ${checks} checks passed.`);

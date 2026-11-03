@@ -63,7 +63,7 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
    c.fillStyle=g;c.fillRect(-30,-30,60,60);c.restore();
   }return cloud;
  }
- function drawClouds(ctx:CanvasRenderingContext2D,cam:Camera,body:BodyDef,id:string,gateX:number,dir:1|-1,time:number,W:number,H:number,height:(x:number)=>number,low=false){
+ function drawClouds(ctx:CanvasRenderingContext2D,cam:Camera,body:BodyDef,id:string,gateX:number,dir:1|-1,time:number,W:number,H:number,height:(x:number)=>number,low=false,approach=true){
   if(!body.atmosphere||!(cam.zoom>0))return;
   const image=sprite(body);if(!image)return;
   ctx.save();try{
@@ -76,7 +76,7 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
    const flowDir=weather?1:dir,cover=weather?.cover(time)??.72;
    for(let layer=0;layer<3;layer++){
     const base=weather?weather.altitude+weather.climate.cloudBase:1800,depthY=weather?.climate.cloudDepth??2200;
-    const drift=weather?weather.cloudAdvection(base-weather.altitude+layer*depthY,time):backgroundDrift;
+    const drift=weather?weather.cloudAdvection(base-weather.altitude+layer*depthY,time,approach):backgroundDrift;
     const spacing=2400,depth=1-layer*.16,canonicalCam=(cam.x-gateX)*flowDir;
     const lo=Math.floor((canonicalCam-span/depth/2-drift)/spacing)-1,hi=Math.ceil((canonicalCam+span/depth/2-drift)/spacing)+1;
     const stride=Math.max(1,Math.ceil((hi-lo)/(low?6:12)));
@@ -109,7 +109,7 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
     for(const x of layout.supportXs)rect(x-layout.supportWidth/2,layout.deckY,layout.supportWidth,layout.supportHeight);
     for(const d of layout.domes){ctx.beginPath();ctx.rect(0,0,W,H);ctx.moveTo(sx(d.x-d.radius),sy(layout.deckY));ctx.ellipse(sx(d.x),sy(layout.deckY),d.radius*cam.zoom,d.height*cam.zoom,0,Math.PI,0);ctx.closePath();ctx.clip('evenodd');}
    }
-   if(weather)drawClouds(ctx,cam,weather.body,id,terrain.pad.centerX,1,absoluteTime,W,H,x=>getTerrainHeight(terrain,x),low);
+   if(weather)drawClouds(ctx,cam,weather.body,id,terrain.pad.centerX,1,absoluteTime,W,H,x=>getTerrainHeight(terrain,x),low,false);
    const seed=weatherSeed(weather?.id??id),drift=weather?.advection(absoluteTime)??regionalAdvection(id,absoluteTime),left=cam.x-W/(2*cam.zoom),right=cam.x+W/(2*cam.zoom);
    const start=Math.floor(left/80)-1,end=Math.ceil(right/80),stride=Math.max(1,Math.ceil((end-start)/(low?10:24)));
    ctx.strokeStyle='rgba(161,158,143,.18)';ctx.lineWidth=1;

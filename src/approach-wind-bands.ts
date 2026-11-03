@@ -37,7 +37,7 @@ export function drawRegionalWindBands(
     ctx.strokeStyle=tint(local.vx,alpha);ctx.beginPath();
     ctx.moveTo(x-dx*10-dy*4,mid-dy*10+dx*4);ctx.lineTo(x+dx*10,mid+dy*10);ctx.lineTo(x-dx*10+dy*4,mid-dy*10-dx*4);ctx.stroke();
    }
-   if(labelFlow&&mid>10&&mid<H-10){ctx.fillStyle=tint(v,.65);ctx.fillText(`${v<0?'←':'→'} ${Math.abs(v).toFixed(1)} · ${flow.vy<0?'↓':'↑'} ${Math.abs(flow.vy).toFixed(1)} m/s`,labelX,mid+3);}
+   if(labelFlow&&mid>10&&mid<H-10){ctx.fillStyle=tint(v,.65);ctx.fillText(`${v<0?'←':'→'} ${Math.abs(v).toFixed(1)}${Math.abs(flow.vy)<.05?'':` · ${flow.vy<0?'↓':'↑'} ${Math.abs(flow.vy).toFixed(1)}`} m/s`,labelX,mid+3);}
    painted++;
   }
  }finally{ctx.restore();}

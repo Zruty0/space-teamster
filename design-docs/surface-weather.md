@@ -13,7 +13,7 @@ Status: LIVE in normal careers. Pete authorizes all atmospheric planets/moons an
 
 ## Regional model
 
-**Current model:** [spatial-wind-field.md](spatial-wind-field.md). Pete's November 3 follow-up supersedes predominantly temporal gusts: strong spatial shear/up-/downdrafts in approach, modest but varied lower currents, and sparse physical buffeting pockets. The table below contains field controls, not predicted local velocities.
+**Current model:** [spatial-wind-field.md](spatial-wind-field.md). Latest November 3 fly feedback: smoother horizontal-only approach/departure winds, 2D landing currents with stronger Stribog weather, and speed-proportional direction particles. This supersedes the first vector-field tuning as well as predominantly temporal gusts. The table below contains field controls, not predicted local velocities.
 
 `src/surface-weather.ts` owns authored world defaults, selected site overrides and stateless evaluation. Permanent canonical POI identity seeds the `surface-weather-v1` namespace. Phase IDs, cameras, frame rate, wall-clock time and retry count never seed weather.
 
@@ -39,7 +39,7 @@ World defaults are varied per POI (baseline/variation scales ±15%, independent 
 | Concord / Gale Survey | Sheltered / exposed gust fronts | 7 / 3; 25 / 14 | 0.35 / 1.1 |
 | Kuznia default | Thick cold squalls, low cloud | 24 / 13 | 1.6 |
 | Morana Station | Polar squalls | 30 / 17 | 1.9 |
-| **Port Stribog** | **Gust-dominated crosswinds, lulls/reversals; lowest cloud** | **10 / 55** | **3.7** |
+| **Port Stribog** | **Sharp crosswinds/drafts; lowest cloud** | **10 / 55; landing vector ×1.4** | **4.2 landing / 3.7 approach** |
 | Acheron / Nimbus Crucible | Exposed cloud currents / acid-cloud currents | 20 / 9; 27 / 13 | 1.3 / 1.7 |
 | Almaden | Thin sulfur drift | 9 / 5 | 0.45 |
 | Marisma | Slower dense methane squalls | 16 / 9 | 1.2 |
@@ -52,24 +52,24 @@ Zhulong fits because its fixed home port supports fleets working the storm belts
 ## Flight / continuity
 
 - Production landing retains density-scaled ground-relative base drag and adds a separately bounded relative-air wind increment. This hybrid is not pure air-relative drag: high sustained winds can saturate the increment and flatten felt gust variation. Both relative velocity components now drive this increment; the spatial field does not replace the underlying hybrid force law.
-- Approach and departure use the **same wind-induced drag increment** at matching position/velocity/absolute time. Old approach acceleration layers and random weather torque are replaced, never added on top. Old approach fixtures without regional air remain legacy comparisons.
-- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This is shared air and matched-state wind-force continuity, **not** a rewrite making the entire phase handoff physically seamless. Predictions use the same weather-force path. Approach turbulence warnings/exposure now follow actual local vortex-induced torque, not merely changing wind. Coasting prediction includes the same rotational disturbance and resulting aero changes. Maintenance receives total production aerodynamic acceleration.
-- SAS still targets zero ground velocity, reserves finite RCS for wind before damping, consumes delta-v and maintenance effort, and does not add authority or cancel gravity. Most stock-rig profiles are within its hold authority; strong Stribog weather can saturate it. HUD explicitly warns `RCS LIMIT — USE MANUAL THRUST`. Actual stock ordinary lateral trim is tested at Stribog; no position lock or stronger thrusters. Gear-down non-Shift lateral + SAS totals 3.675 m/s² with default acceleration. The 3.7 ceiling is only 0.025 above that; the sampled lower spatial field peaks around 3.02. This is a stock near-hover target, not a promise for every loadout/high-speed approach.
+- Approach and departure use the same force helper but a deliberately broader horizontal-only field; landing keeps fine two-axis circulation. Matched phase coordinates no longer imply identical vectors. Old approach acceleration layers and random weather torque are replaced, never added on top. Old approach fixtures without regional air remain legacy comparisons.
+- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This remains **not** a rewrite making the entire phase handoff physically seamless; the modes now intentionally differ. Predictions use the same weather-force path. Approach turbulence warnings/exposure now follow actual local vortex-induced torque, not merely changing wind. Coasting prediction includes the same rotational disturbance and resulting aero changes. Maintenance receives total production aerodynamic acceleration.
+- SAS still targets zero ground velocity, reserves finite RCS for wind before damping, consumes delta-v and maintenance effort, and does not add authority or cancel gravity. Most stock-rig profiles are within its hold authority; strong Stribog weather can saturate it. HUD explicitly warns `RCS LIMIT — USE MANUAL THRUST`. Actual stock ordinary lateral trim is tested at Stribog; no position lock or stronger thrusters. Gear-down non-Shift lateral + SAS totals 3.675 m/s² with default acceleration. Stribog's landing ceiling is now 4.2, with sampled lower peaks ~3.89–3.94. Strong patches can exceed ordinary hold authority; tested normal corrections reduce drift but no longer maintain stationary hover. This is not a promise for every loadout/high-speed approach.
 - Weather does not waive equipment/restriction gates, alter prices/access or add saved fields. Legacy dev-panel sine-wind settings do not stack with regional air.
 
 ## Presentation / budget
 
-- November 3 regression fix: the rollout suppressed old approach wind bands along with their obsolete force layers. `approach-wind-bands.ts` restores outline bands, arrows and **m/s** labels in actual approach/departure rendering, sampling `flightAir` at current mission time. These are local vector guides, not restored acceleration layers. Arrows and labels now show both components; colors/directions can differ along a row. World-altitude anchors with bounded camera LOD (at most 26 rows / 96 arrows per row), atmosphere/terrain clipping, calm/vacuum suppression and HUD-clear labels. No texture/cache or simulation mutation.
+- November 3 regression fix: the rollout suppressed old approach wind bands along with their obsolete force layers. `approach-wind-bands.ts` restores outline bands, arrows and **m/s** labels in actual approach/departure rendering, sampling `flightAir` at current mission time. These are local vector guides, not restored acceleration layers. Approach arrows and labels now show horizontal winds only; colors/directions can differ along a row. World-altitude anchors with bounded camera LOD (at most 26 rows / 96 arrows per row), atmosphere/terrain clipping, calm/vacuum suppression and HUD-clear labels. No texture/cache or simulation mutation.
 
 - Climate-dependent soft cloud coverage/base/depth and atmosphere tint; clouds in approach/departure and landing skies. Transparent sprite gutters prevent hard cloud ends. Upper atmosphere/physical terrain clips prevent sky effects outside the air column.
-- The existing 128-slot airborne tracer and 256-slot exhaust pools remain fixed. Strong wind increases visual emission cadence within the same smoke budget to fill stretched plumes. No draw-time aging or quality-dependent simulation.
+- Airborne tracer capacity is now 512, with a linear local-speed quota up to 40 m/s and 2–5 s lifetimes to keep spatial currents populated. The 256-slot exhaust pool is unchanged. Strong wind increases visual emission cadence within the same smoke budget to fill stretched plumes. No draw-time aging or quality-dependent simulation.
 - Exact exclusion clips cover SVG solids and floating decks, supports and domes; no fake solid column beneath platforms. No changes to colliders or existing generic Dahai landing geometry.
 - One active regional presentation per Game, two small raster sprites (28,672 pixels total), weak terrain-air cache. No accumulating per-POI texture cache. `weatherVisuals` / `weatherLow` change paint only; production physical weather is on by default.
-- Vertical air currents are now implemented. No new rain, lightning, ground dust, building wakes, smokestacks or geography. Future stack emitters retain the shared plume API.
+- Vertical air currents remain in landing only; approach/departure wind velocity is horizontal. No new rain, lightning, ground dust, building wakes, smokestacks or geography. Future stack emitters retain the shared plume API.
 
 ## Current evidence
 
-- Spatial/vector/buffet unit 19,210; weather 4,393; wind-band 14. Legacy landing air 9,242 and updated vector tracer/smoke 154,217 pass. Native 566 covers actual all-site flight, field frame alignment, lower two-axis control, physical buffet/HUD, approach retry, constructor/reload/storage isolation. Build passes. See the spatial-field note and November 3 `st-vector-wind-*` Temp evidence for current measurements.
+- Field/buffet/prediction unit 19,493; weather 4,393; wind-band 14. Landing air 9,242 and tracer/smoke 92,863 pass. Native 1,433 verifies actual horizontal-only approach/departure, stronger landing weather, sustained particles, all-site phases, physical buffet/HUD, retry, constructor/reload/storage isolation. Build passes. See the spatial-field note and November 3 `st-horizontal-wind-*` Temp evidence for measurements. Original `st-vector-wind-*` results are historical.
 
 ## Historical rollout / temporal-gust evidence (superseded where noted)
 

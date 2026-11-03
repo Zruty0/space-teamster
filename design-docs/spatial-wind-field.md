@@ -1,37 +1,42 @@
 # Spatial wind field and approach buffeting
 
 Updated: 2026-11-03 (Pacific)
-Status: LIVE. Pete requests strong, direction-varying approach winds; lower-speed but varied landing currents, including up-/downdrafts. Challenging sites should have sharper, more violent changes. This supersedes the earlier predominantly temporal Stribog tuning and the proposed timed-buffet implementation (never shipped).
+Status: LIVE. Latest fly feedback supersedes the first vector-field tuning (`48e9812`): approach winds must be horizontal-only and smoother; Stribog landing must be harsher, with more wind-direction particles proportional to wind strength.
 
-## Field
+## Regional model
 
-- `surface-wind-field.ts` supplies a continuous 2D velocity field, in m/s, seeded by `surface-vector-field-v1:${canonicalPoiId}`. The region's geometry is stable; mission time slowly evolves its phase and background flow. Traveling between positions—not a global rapid sine gust—is the main source of rapid changes. No wall clock, retry counter, camera or draw RNG.
-- The existing climate `base`, `gust` and `windLimit` are authored controls, not forecasts. `gust` now controls spatial variation; obsolete temporal `gustRate` is removed. Background `wind()` / `advection()` remain the analytic slow synoptic reference, not the complete local air sample.
-- Lower circulation combines several spatial modes. Wavelength shrinks from roughly 380 m at calm sites to 120 m at Stribog. Horizontal and vertical components vary with both coordinates; vertical flow fades into solid ground over 30 m. Floating decks are not mountains: no fictitious ground column or sea-level density reset.
-- At ≤150 m above the resolved receiving-site datum, use the lower field and original low-altitude force ceiling. Smoothly blend to upper air by 1,350 m. Upper air has alternating-direction shear layers, up-/downdraft columns and sparse compact vortices. Upper force ceiling is `3 * lowerLimit + 2` m/s². No hard phase switch: matching physical states sample identical vectors and force budgets.
-- Approach coordinates are translated into the landing site's permanent frame using gate/pad origins. `terrain.pad.y` provides the resolved height reference, including grading/platforms. Existing compressed approach→landing handoff mapping itself is unchanged, so this is not a fully seamless phase-physics rewrite.
-- Density still follows absolute planetary altitude and fades to zero at the atmospheric edge. Airless and below-ground samples have no flow; actual floating structure geometry remains a rendering/collision concern, not an invented shelter column.
+- `surface-wind-field.ts` evaluates permanent site-relative spatial patterns, seeded by `surface-vector-field-v1:${canonicalPoiId}`. Mission time slowly evolves phase/background flow; moving through the field produces the faster changes. No wall clock, retry counter, camera or draw RNG.
+- Climate `base`, `gust` and `windLimit` are authored controls, not forecasts. `gust` controls spatial variation; the old temporal `gustRate` is removed. Background `wind()` / `advection()` are slow synoptic references, not the full local sample.
+- Fine lower circulation has 120–380 m characteristic wavelengths. Above 150 m from resolved receiving-site height, smoothly blend into upper shear, fully established at 1,350 m. Upper increment ceiling is `3 * lowerLimit + 2` m/s².
+- Canonical coordinates still align gate/pad origins; `terrain.pad.y` is authoritative, including grading/platforms. **The two flight modes now deliberately use different projections**, not identical matched-state weather. Existing compressed phase handoff is unchanged; this is not a seamless phase-physics rewrite.
+- Absolute planetary altitude controls density and the atmospheric-edge fade. Solid ground attenuates lower flow; vertical landing flow fades over 30 m AGL. Floating decks do not invent mountain shelter or reset density to sea level. Airless/below-ground samples have no flow; actual building/deck geometry remains separately authoritative for collision/paint masking.
 
-## Forces / turbulence
+## Approach / departure
 
-- `AirSample.vy` is optional for legacy compatibility (default zero). `landingAerodynamics` now computes both relative components. Updrafts/downdrafts produce real vertical aerodynamic force, not camera shake or a separate artificial lift impulse.
-- The shared force model still retains ground-relative base drag plus a bounded relative-air increment. It is a gameplay-limited hybrid, not an unbounded fluid/air-relative simulation. Existing approach lift/heat/base aero remain; no old acceleration layers are stacked back in.
-- Regional approach/departure buffeting derives from the sparse vortex pockets, density and relative airspeed. Torque follows clockwise ship-angle convention, is bounded, and stays within stock pitch authority. Landing's newly tuned controls are not given this rotational disturbance; its varied translational currents remain real.
-- HUD and maintenance/manifest turbulence exposure use the actual local applied torque (>0.08 rad/s²), with the rig's x/y/velocity. Merely changing wind no longer triggers `TURBULENCE`. The warning is steady while active rather than blinking by wall-clock time. Staying inside a pocket can prolong exposure; there is no unrelated timed event scheduler.
-- Regional coasting prediction integrates the same angular forcing/damping and resulting aero changes. Fine-step multi-step agreement is tested; existing coarse-step, deployable and no-input prediction assumptions still apply.
-- SAS remains finite paid zero-ground-velocity assistance, not position lock, added authority or gravity cancellation. Normal lateral plus throttle corrections control tested stock lower-field conditions; no universal promise for damaged/heavy rigs or severe upper air.
+- Production `Game.loadApproach` supplies `air(..., {approach:true})` for descent and departure. Wind `vy` is exactly zero at every altitude; no up-/downdraft velocity component. Gravity, lift, vertical drag and attitude-driven aerodynamics remain physical, not cancelled.
+- Horizontal modes and shear have 3× wider spatial scales; jet-edge sharpness is halved (2.5→1.25). Opposing altitude layers and strong winds remain, with softer changes along the route. Bulk cloud drift uses the same widened shear profile.
+- Sparse shear/buffet pockets have 2× spatial scale and half peak torque. Density/relative-speed coupling remains. These are actual angular forces, not screen shake; HUD and maintenance/manifest exposure use local torque >0.08 rad/s² with the actual rig coordinates. Ordinary changing wind does not trigger `TURBULENCE`; no timed-event scheduler.
+- Coasting prediction integrates translation, temperature and angular dynamics together with ≤0.1 s default internal steps (bounded subdivisions), retaining the existing 0.4 s output point budget. No cosmetic path averaging, history-dependent filtering or weakened physics in prediction. Fine-step agreement and coarse/fine consistency are tested. Existing no-input/deployable prediction limitations remain.
+- Approach HUD/bands show horizontal m/s readings and arrows, without redundant vertical-zero labels. Guides remain read-only, altitude-anchored and terrain/atmosphere clipped.
 
-## Presentation / budget
+## Landing / controls
 
-- Approach guides sample local vectors, with angled arrows and horizontal/vertical m/s labels. HUD shows both components. Terrain/atmosphere clips, bounded grid LOD and telemetry clearance remain.
-- The same local vectors advect the fixed 128 tracer / 256 smoke pools in both axes. Vertical-only flow is visible. Draw/quality do not change emission or physics.
-- Bulk cloud sheets use an analytic large-scale shear advection approximation, including opposite directions by layer—not per-particle integration of each small vortex. No new textures, caches, buildings, geography, stacks or save fields.
+- Landing retains 2D currents and its prior fine spatial pattern. Stribog alone uses `landingWindScale:1.4` and `landingWindLimit:4.2`: 40% faster horizontal and vertical currents, with stronger aerodynamic response. These landing-only overrides do not strengthen approach or other sites.
+- Shared forces remain a ground-relative base drag plus bounded relative-air increment: a gameplay-limited hybrid, not a full fluid/air-relative rewrite. No legacy approach acceleration layers are stacked back in.
+- SAS stays finite paid zero-ground-velocity assistance, not position lock, free authority or gravity cancellation. No thruster changes. Strong Stribog patches can now slightly exceed stock ordinary lateral + SAS (3.675 m/s²); the earlier stationary-hover promise is superseded. Human/loadout feedback still needed.
+
+## Direction particles / budget
+
+- Fixed tracer pool grows 128→512, separate from the unchanged 256 smoke slots. Local activation quota is linear in actual vector speed, `ceil(512 * clamp(speed / 40, 0, 1))`; zero in calm/vacuum, saturated at 40 m/s. Uniform-flow tests verify proportional actual counts. Local advection, clipping and lifecycle can reduce active/visible counts below the quota.
+- Dormant candidates retain deterministic positions/lifetimes instead of rerolling every tick to seek strong cells. Lifetimes shorten to 2–5 s so small eddies do not drain the visible population into stagnant pockets. Fade in/out, stronger tails up to 10 px and brighter heads convey direction; no terrain decoration.
+- Actual local vx/vy advects tracer and smoke motion; vertical landing flow remains visible. Draw/pause/quality cannot advance particles or change physics. Low quality thins paint only. Cloud sheets approximate large-scale shear rather than integrating every small eddy. No new textures/caches, geometry, stacks, saves or contracts.
 
 ## Validation / review
 
-- `/tests/surface-weather.html`: all 36 atmospheric profiles, actual equipped Game landing/approach/departure, mission epochs and retry replay; no live-save edits.
-- Unit spatial sweep: Stribog sample lower speed peak ~46.6 m/s / near-hover increment ~3.02 m/s²; upper speed ~129.2 m/s / increment ~13.0 m/s². Meaningful horizontal reversals and both draft signs at fixed time, continuous field/blend and exact frame/epoch equivalence.
-- Sampled Stribog upper-field warning coverage ~5.7%; peak torque ~1.78 rad/s² versus stock 3.0 pitch authority. Uncorrected pocket entry produces ~32° attitude deflection in the test, with live/predicted motion and retries agreeing. This is a physical disturbance, not a notification-only effect.
-- Native 566 checks: actual lower-field normal-input lateral/throttle pilot (no Shift) stays within ~2.7–3.2 m over 30 s versus ~15–25 m without manual correction, actual buffet/HUD and actual approach retry, all-site phase rendering, clipping, constructor/default weather, keyboard/pause/reload/storage isolation. Synthetic pilot, not human or full-career proof.
-- Surface-weather, landing-air and vector tracer/smoke suites and build pass. Desktop sampled paused draws ~0.67–0.85 ms at 1080p; idle/render RAF both ~85 FPS in that run. No mobile testing or full-career performance guarantee.
-- Temp evidence: `st-vector-wind-cdp-20261103.mjs`, `st-vector-wind-native-20261103.log`, `st-surface-weather-native-20261103-vector-wind.json`, matching screenshots. No push/deploy.
+- `/tests/surface-weather.html`: save-free actual equipped Game across 36 atmospheric profiles / eight worlds and airless controls.
+- Unit: 19,493 field/buffet/prediction checks, 4,393 regional weather, 14 bands; landing air 9,242 and tracer/smoke 92,863. Build passes.
+- Stribog scan: lower peak speed ~65.3 m/s and increment ~3.89 m/s² (formerly 46.6 / 3.02); upper horizontal speed ~108.9 m/s and increment ~12.97. Other landing profiles remain unchanged.
+- Sampled horizontal spatial variation is ~27% of the original approach field. Buffet warning area ~2.6%, peak torque ~0.88 rad/s²; a slower uncontrolled pocket encounter still deflects attitude ~33°.
+- Rolling eight-second preview changes by at most ~3.69 m per 60 Hz frame in the tested encounter (includes the moving horizon); default prediction endpoint is ~2.44 m from the 120 Hz reference after eight seconds. Fine-step live/predicted and deterministic retries pass. Not a guarantee for all long chaotic trajectories.
+- Native 1,433 checks: actual horizontal-only approach/departure at all sites, warnings/buffeting, real constructor/reload, pause/keyboard/storage isolation and render clipping. Strong-cell normal lateral/throttle + SAS reduces 30 s drift to ~11–22 m versus ~27–42 m untrimmed; no longer promises stationary hold. After 30 s, 146–155 tracers remain active in these spatial fields, exceeding the entire former pool; actual retry reproduces them.
+- Desktop sampled paused draw ~0.8–1.0 ms, p95 ~1.1–1.3 ms; idle/render RAF both ~85 FPS. No mobile/full-career performance guarantee. Screenshots inspected. Temp `st-horizontal-wind-cdp-20261103.mjs`, matching log and `st-surface-weather-*-20261103-horizontal-wind` report/screenshots. No push/deploy or live-save edits.
