@@ -3,6 +3,10 @@
 Updated: 2026-11-02 (Pacific)
 Status: **Ranks, persistence, Career Status display and Tilde → Ranks editor implemented. Gameplay effects are explicitly deferred.** Pete agreed to Authorized Partner and requested the original ten-track implementation, extended on November 2 as recorded below. Live labels include Unaffiliated Worker, Unproven Hand and Authorized Partner; the latest table below is current. No automatic awards, mission gates, prices, access changes or faction-pair effects—not even the planned VHM/KIS level-2 direct-contract gate. See [implementation and validation](faction-reputation-implementation.md). Earlier proposals below remain review history. Preserve any future `zzz` comments verbatim and record resolutions alongside them.
 
+## Progression design — November 2, not implemented
+
+Pete specifies 1–3 qualifying contracts to reach level 1 without pace pressure; roughly 10–20 important contracts to reach level 2 with limited unrelated work between them. After level 1, unrelated missions consume a grace period then erode fractional progress without crossing an integer floor; rival contracts may cross that floor. Per-band qualification, credit, rival losses and decay parameters still need authoring. [Progression discussion](faction-reputation-progression.md) distinguishes these directions from proposed event/refresh semantics and illustrative numbers. Runtime remains unchanged; no automatic gains/losses or gates enabled.
+
 ## Latest November 2 model — capped reuse and shared institutional track (implemented)
 
 Pete specifies that employers without their own tracks reuse established standings:
