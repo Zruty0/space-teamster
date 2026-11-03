@@ -14,7 +14,7 @@ Status: **Design only.** Runtime baseline `43772dc` has thirteen tracks, employe
 - Routine work for a faction **resets its decay grace**, even when it does not advance reputation. **Empty runs do not count toward decay.**
 - **2→3 advances only through special quests**, not ordinary mission work. Decay and rivalry still apply to this band.
 - Rival groups: the three Houses, and **one-way Combine opposition to Cerberus**. Cerberus is indifferent to Combine work. Routine rival deliveries should remain possible without direct rivalry penalties; only specifically consequential work should cause them.
-- Attaining level 3 may cap other faction reputations at 2 or 1. This is the intended direction, not a finalized cap matrix or implementation model.
+- Attaining level 3 may cap other faction reputations at 2 or 1. Follow-up: **rival employers' contracts become unavailable at level 3 because those rivals no longer trust the pilot**. This is an access refusal, not merely a lower reward or numerical cap. Exact cap/block persistence and the asymmetric exception still need clarification.
 - Define, per faction and progression level: qualifying missions; gain per qualifying mission (typically `1/M`); disqualifying missions and losses; unrelated-mission grace and subsequent decay rate.
 
 ## Rule structure — directions and remaining recommendations
@@ -65,6 +65,29 @@ For 1→2, suppose M=15, K=3 and D=0.02. At reputation 1.60:
 - **Importance for advancement and political impact are distinct classifications.** A valuable/important delivery is not automatically hostile to another faction. Use explicit mission-class/story context, not price, issuer tag alone or destination ownership, to select rival penalties.
 - Routine work for a rival can still count as unrelated work for a different faction's decay counter, but receives no direct rival penalty merely for its issuer. Likewise, shared employer recognition must not broadcast rival penalties to every donor.
 
+## Level-3 contract refusal — latest direction
+
+Approved direction: reaching level 3 makes rival contracts unavailable. This includes their routine contracts, unlike the earlier stages where routine rival deliveries remain permitted without a direct rivalry penalty. Refusal takes precedence over satisfying a contract's minimum level; inherited House/corporate maxima must not bypass an explicit employer refusal. It does not automatically zero the stored rival reputation.
+
+Interpreting refusal according to the existing distrust directions:
+
+| Level-3 affiliation | Employer refusing new contracts |
+|---|---|
+| Alvares | Mendes and Nunes |
+| Mendes | Alvares and Nunes |
+| Nunes | Alvares and Mendes |
+| Cerberus | Steel Combine |
+| Steel Combine | No automatic Cerberus refusal, if CHR's stated indifference also governs contract availability |
+
+The Combine/CHR asymmetry needs explicit confirmation: CHR being indifferent means Combine 3 alone would not make CHR distrust the pilot. Under that interpretation, taking consequential CHR work could still reduce Combine standing. Do not silently turn one-way reputation hostility into mutual contract refusal or invent a player-side prohibition on serving CHR.
+
+Recommended presentation/handling, not yet approved implementation:
+- Show refused postings as locked with the responsible affiliation explained, rather than silently disappearing. Final board presentation is undecided.
+- Warn about lost employers before committing to the level-3 quest.
+- Preserve already accepted contracts. If outstanding rival obligations can coexist with the promotion, require them to be resolved before commitment rather than retroactively cancelling them or leaving a loophole through old bookings.
+- Refusal concerns employer contract access, not a blanket docking ban, discovery change, shop closure or loss of emergency services.
+- Decide whether refusal follows current level or an explicit persistent quest allegiance, and how renunciation restores access. No lifecycle chosen yet.
+
 ## Level-3 commitments and recovery — decisions still open
 
 Pete intends some level-3 relationships to limit other factions to 2 or 1. Keep this as a **separate directed cap table**, not an automatic consequence of every rivalry edge. No specific target/cap pair has yet been approved. Existing intrinsic caps (BAM/Merren/Institutions at 2) and inherited recipient caps are separate from these future political limits.
@@ -73,13 +96,17 @@ Recommendations:
 - Make a restrictive level-3 quest an explicit informed choice, with affected relationships and limits shown before commitment.
 - Decide whether a cap truncates stored reputation or only limits effective standing, and whether it persists after demotion or is removed by a deliberate allegiance change. Do not silently restore old rank-3 standing or create mutually oscillating caps.
 - Prefer an explicit quest commitment/renunciation rule over switching allegiance caps on/off whenever a small penalty crosses 3. This is a proposal, not a new approved persistent flag.
-- With the existing integer decay floor, **2.8 can decay to 2, while exactly 3 cannot passively decay below 3**. Rival work can still demote 3. If earned level 3 falls to 2.9, ordinary contracts cannot restore it under quest-only advancement; provide an authored reinstatement/repeatable quest route or explicitly design how completed quest achievements support recovery. No recovery mechanism chosen yet.
+- With the existing integer decay floor, **2.8 can decay to 2, while exactly 3 cannot passively decay below 3**. The new refusal rule removes ordinary future rival-contract demotion paths where those employers actually refuse work (notably the mutually rival Houses). If demotion remains possible through the Combine/CHR asymmetric case, earlier obligations or explicitly authored events, ordinary work still cannot rebuild 2→3; an authored recovery route or quest-achievement recovery policy remains to be chosen for those cases.
 
 ## Inheritance and gain attribution
 
 Recognition is already implemented; earning is not. Accord/other nobles read capped House maxima, commercial employers read capped corporate maxima, BFS reads VHM, KIS-E reads Kisaragi, and GOV/EDF/EIP share Estella Institutions.
 
 A contract's access reputation does **not** automatically identify recipients of reputation credit. In particular an HSC or Accord job must not silently award every corporate/House donor, nor automatically award whichever currently supplies the maximum. Define the credited stored track(s) or named sponsor through explicit qualification rules. Likewise define relatedness for each donor rather than resetting all counters merely because a recipient recognizes a common standing.
+
+## Per-faction parameter review
+
+Pete requests **Combine first, then Cerberus, then Houses**, one entity at a time. [Steel Combine's first proposal](faction-reputation-combine.md) is grounded in its existing internal/import/pilgrimage/export programmes. Its gates, M=2 / M=15, K=5 / D=1/30, and CHR loss amounts are recommendations awaiting review, not approved balance. No Cerberus or House parameter table is selected yet.
 
 ## Implementation considerations for the later authorized pass
 
