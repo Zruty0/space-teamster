@@ -1,7 +1,7 @@
 # Steel Combine reputation — first parameter proposal
 
-Updated: 2026-11-02 (Pacific)
-Status: **Proposal for Pete's review, not approved or implemented.** Review order requested: Combine, then Cerberus, then Houses. Do not advance to the other faction specifications automatically. Shared directions: [progression discussion](faction-reputation-progression.md). Runtime reputation baseline remains `43772dc`; live game HEAD checked at `299913c`.
+Updated: 2026-11-03 (Pacific)
+Status: **Design only; baseline accepted as reasonable, with the routine-work amendment below.** Numbers remain the working baseline; exact mission assignments and previously open questions still need review. Nothing here is implemented. Review order: Combine, then Cerberus, then Houses. Do not advance automatically. Shared directions: [progression discussion](faction-reputation-progression.md). Runtime reputation baseline remains `43772dc`; concurrent orbital haze `bc3ddf3` preserved.
 
 ## Existing source facts
 
@@ -16,12 +16,20 @@ Status: **Proposal for Pete's review, not approved or implemented.** Review orde
 
 | Combine level | Ordinary work available |
 |---|---|
-| 0 — Unaffiliated Worker | Planning Office internal distribution, supplies, staff rotations, food, tooling, Morana/Stribog support |
-| 1 — Registered Sympathizer | All prior work plus entrusted Foreign Trade Committee imports and Combine-funded Kalyna work pilgrimages |
+| 0 — Unaffiliated Worker | Entry-level subset of Planning Office routine work; not all internal shipments |
+| 1 — Registered Sympathizer | All prior work plus elevated routine Planning Office shipments, entrusted Foreign Trade Committee imports and Combine-funded Kalyna work pilgrimages |
 | 2 — Honorary Citizen | All prior work plus paying export programmes, including Balor/Dahai/Sahra partner exports |
 | 3 — Honorary Udarnik | Same ordinary contract access as 2; earned through special quest content, not another generated-contract pay class |
 
 This deliberately makes important **imports/exchanges available at 1** so they can earn 2, while **exports are the cash-paying reward at 2**. No circular requirement to fly level-2-gated jobs to reach level 2. These are proposed assignments of existing mission families, not newly authored crises or shipping programmes. Physical access remains contract-authorized; no general private-arrival permission or at-cost maintenance perk is added.
+
+### November 3 amendment — elevated routine work
+
+Pete wants level 1 to unlock **more routine work**, not only important advancement jobs. Some existing routine shipments therefore require level 1. For the Combine, both entry-level and elevated routine work remain **zero fee plus existing fuel compensation**. The level-2 export bonus is unaffected. For other entities, the newly available elevated routine contracts should also pay more than entry-level routine contracts; exact premiums are not chosen. This is a better-paying contract category, not an automatic raise on every previously available job.
+
+Access, pay and advancement qualification remain separate. Elevated routine work resets grace but **does not earn 1→2 progress** merely because it requires level 1. Imports/work pilgrimages remain the proposed important-work classes.
+
+Suggested split for review, not an approved template mapping: leave ordinary food/raw-stock distribution and regular crew rotations at 0; reserve selected finished machinery, specialist tooling/spares and blasting-charge shipments for 1. Keep sufficient entry-level bookings to earn the first rank. Classify stable authored mission/cargo variants rather than matching displayed names; do not accidentally gate an entire mixed routine lane because one variant is restricted.
 
 ## Proposed positive credit
 
@@ -63,4 +71,4 @@ Normal rival penalties stop at **1.0**. Recommended below-1 treatment: no-op rat
 
 ## Decisions requested on this proposal
 
-First settle the Combine's **internal → imports/exchanges → exports** access ladder, M=2 / M=15, K=5 / D=1/30, and the narrow CHR penalty classes/amounts. Quest rewards, global cap/refusal lifecycle and the CHR-indifference edge remain explicitly open. Do not implement this table or move on to Cerberus/Houses without feedback.
+The baseline is accepted as reasonable, amended to **entry-level routine → elevated routine plus important imports/exchanges → exports**. Retain M=2 / M=15, K=5 / D=1/30 and the CHR loss table as working parameters. Next settle exact level-0/1 routine assignments. Other employers' elevated routine premiums, quest rewards, global cap/refusal lifecycle and the CHR-indifference edge remain open. No runtime implementation is authorized by this discussion.

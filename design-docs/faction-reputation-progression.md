@@ -1,11 +1,12 @@
 # Reputation progression — design discussion
 
-Updated: 2026-11-02 (Pacific)
-Status: **Design only.** Runtime baseline `43772dc` has thirteen tracks, employer recognition, persistence and editing, but no automatic changes or gates. Pete specifies the progression framework below; exact mission classes, gains/losses, grace periods and decay rates are not chosen. See [roster](faction-reputation-roster.md) and [implemented model](faction-reputation-implementation.md).
+Updated: 2026-11-03 (Pacific)
+Status: **Design only.** Runtime baseline `43772dc` has thirteen tracks, employer recognition, persistence and editing, but no automatic changes or gates. Pete specifies the progression framework below; per-faction mission classes, gains/losses, grace periods and decay rates remain under review. See [roster](faction-reputation-roster.md) and [implemented model](faction-reputation-implementation.md).
 
 ## Pete's direction
 
 - Some contracts require a minimum effective reputation level.
+- **Level 1 unlocks additional routine contracts as well as important work.** Elevated routine contracts should pay more for other entities; Combine routine contracts remain zero-fee with existing fuel compensation at both levels. Exact routine assignments and other employers' premiums need authoring. Access level/pay do not automatically make a routine contract eligible for advanced reputation gains; it still maintains standing. No blanket raise to all old jobs is implied.
 - Reaching level 1 should take roughly **1–3 faction contracts**, without pressure to complete them quickly.
 - Reaching level 2 should take roughly **10–20 important contracts**, with reasonably few unrelated missions between them. These are indicative ranges, not finalized per-faction values.
 - Introduce decay after level 1: after **K unrelated missions**, each additional unrelated mission removes some progress.
@@ -106,7 +107,7 @@ A contract's access reputation does **not** automatically identify recipients of
 
 ## Per-faction parameter review
 
-Pete requests **Combine first, then Cerberus, then Houses**, one entity at a time. [Steel Combine's first proposal](faction-reputation-combine.md) is grounded in its existing internal/import/pilgrimage/export programmes. Its gates, M=2 / M=15, K=5 / D=1/30, and CHR loss amounts are recommendations awaiting review, not approved balance. No Cerberus or House parameter table is selected yet.
+Pete requests **Combine first, then Cerberus, then Houses**, one entity at a time. [Steel Combine's first proposal](faction-reputation-combine.md) is grounded in its existing internal/import/pilgrimage/export programmes. On November 3 Pete accepts the baseline as reasonable, adding level-1-gated routine shipments: Combine gets more work at unchanged routine compensation; other entities' elevated routine work should pay more. M=2 / M=15, K=5 / D=1/30 and CHR losses remain working parameters. Exact routine assignments and open quest/asymmetry questions still need review. No Cerberus or House parameter table or premium amount is selected yet.
 
 ## Implementation considerations for the later authorized pass
 
