@@ -25,7 +25,10 @@ const SITES:Readonly<Record<string,Partial<SurfaceClimate>>>=Object.freeze({
  'estella-iv-primary-city':{label:'Calm-belt marine air',base:7,gust:3,exposure:.45,windLimit:.55,cloudCover:.5,cloudBase:900},
  'estella-iv-climate-poi-2':{label:'Open-ocean breeze',base:14,gust:7,exposure:.8},
  'estella-iv-climate-poi-3':{label:'Polar marine gusts',base:15,gust:8,exposure:.8,windLimit:.95},
- 'estella-vi-spaceport':{label:'Violent crosswinds',base:62,gust:32,gustRate:.38,period:9000,exposure:.9,windLimit:3.8,cloudCover:1,cloudBase:220,cloudDepth:1000},
+ // Gust-dominated, not a saturated one-way shove: ~7/19 s components cross
+ // through lulls/reversals. Near-hover peaks fit ordinary lateral thrust + SAS;
+ // the ceiling is only .025 m/s² above that stock 3.675 m/s² control budget.
+ 'estella-vi-spaceport':{label:'Turbulent crosswinds',base:10,gust:55,gustRate:.9,period:9000,exposure:.9,windLimit:3.7,cloudCover:1,cloudBase:220,cloudDepth:1000},
  'estella-iv-climate-poi-1':{label:'Storm-belt squalls',base:36,gust:19,gustRate:.28,period:14400,exposure:.9,windLimit:2.25,cloudCover:.94,cloudBase:320,cloudDepth:1100},
  'estella-v-storm-research':{label:'Exposed dust-front gusts',base:25,gust:14,gustRate:.26,windLimit:1.1,exposure:.8,cloudCover:.52},
  'estella-v-capital-settlement':{label:'Sheltered thin air',base:7,gust:3,exposure:.3,windLimit:.35,cloudCover:.22},

@@ -112,11 +112,32 @@ async function checks(){
   reset('estella-v-open-cast-mine','landing',23456);advance(.5);const source=game.phase;source.launchGuidance={targetAltitude:500,orbitDir:1,nextApproachLevelId:phases(source.level.poi.id).departure.id};
   const t=game.transitionLandingToApproach(source);assert(!!t,'actual departure handoff exists');t.run();assert(game.phase.worldTimeStart===23456+.5||Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'handoff keeps mission clock');
   reset('estella-v-open-cast-mine','approach',23456);advance(.5);game.phase.as.x=0;game.phase.as.y=1500;const arrival=game.transitionApproachToLanding(game.phase);arrival.run();assert(!!game.landingAtmosphere(game.phase)&&Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'actual arrival starts regional landing air at continuation time');
-  reset('estella-vi-spaceport','landing',12345);advance(10);const untrimmed=snapshot();
-  reset('estella-vi-spaceport','landing',12345);advance(10,{moveRight:true});const trimmed=snapshot();
-  assert(Math.abs(trimmed.ship.x-1000)<28&&Math.abs(trimmed.ship.x-1000)<Math.abs(untrimmed.ship.x-1000),'actual Stribog stock lateral trim counters SAS saturation');
+  // A held one-way key is no longer a useful pilot: Stribog now has reversals.
+  // Exercise actual Game handlers with 4 Hz reactive ordinary thrust, never Shift.
+  const stribogHandling:any[]=[];
+  const stribogFlight=(epoch:number,manual:boolean)=>{
+   reset('estella-vi-spaceport','landing',epoch);let maxDrift=0,dir=0,effort=0;
+   for(let tick=0;tick<3600;tick++){
+    const p=game.phase,s=p.ship,air=game.landingAtmosphere(p).air;
+    if(tick%30===0){
+     const f=landingAerodynamics(s.vx,s.vy,s.x,s.y,game.time,config.dragCoeff,air),sas=config.mainEngineAccel*.1;
+     const correction=-(f.windAX-Math.sign(f.windAX)*Math.min(Math.abs(f.windAX),sas))-s.vx*1.5;
+     dir=manual&&Math.abs(correction)>.15?Math.sign(correction):0;
+    }
+    step({...NEUTRAL_FLIGHT_INPUT,moveLeft:dir<0,moveRight:dir>0,shiftHeld:false});
+    if(dir)effort++;maxDrift=Math.max(maxDrift,Math.abs(game.phase.ship.x-1000));
+   }
+   return{snapshot:snapshot(),maxDrift,effort};
+  };
+  for(const epoch of [0,12345,43200]){
+   const untrimmed=stribogFlight(epoch,false),trimmed=stribogFlight(epoch,true),retry=stribogFlight(epoch,true);
+   assert(trimmed.maxDrift<6&&trimmed.maxDrift<untrimmed.maxDrift&&trimmed.effort>0,'actual Stribog ordinary reactive lateral trim controls gusts');
+   assert(trimmed.snapshot.state==='flying'&&trimmed.snapshot.time>29.9&&trimmed.snapshot.ship.dvUsed>0,`gust control uses live equipped flight and paid thrust: ${JSON.stringify({epoch,state:trimmed.snapshot.state,ship:trimmed.snapshot.ship,time:trimmed.snapshot.time})}`);
+   assert(JSON.stringify(trimmed)===JSON.stringify(retry),'actual gusts and reactive input replay identically');
+   stribogHandling.push({epoch,untrimmed:untrimmed.maxDrift,trimmed:trimmed.maxDrift});
+  }
   assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog/geography unchanged');assert(JSON.stringify({...localStorage})===storage,'no career/save writes');
-  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results};
+  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling};
  }finally{game.weatherVisuals=saved.visual;game.weatherLow=saved.low;reset(saved.site,saved.view,saved.epoch);checking=false;}
 }
 async function performanceCheck(paint=true){
