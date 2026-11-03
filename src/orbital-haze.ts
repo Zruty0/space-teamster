@@ -1,10 +1,16 @@
-// Orbital presentation only. Same exponential density profile as the atmosphere;
-// bounded optical opacity, with a smooth fade to the authored atmosphere edge.
+// Orbital presentation only. Nonlinear optical density, retaining exponential
+// altitude falloff and a smooth fade to the authored atmosphere edge.
 import type { BodyDef } from './world';
 type Atmosphere=BodyDef['atmosphere'];
 export function orbitalHazeOpacity(atmosphere:Atmosphere,altitude:number):number {
  if(!atmosphere||![altitude,atmosphere.height,atmosphere.surfaceDensity,atmosphere.scaleHeight].every(Number.isFinite)||atmosphere.height<=0||atmosphere.scaleHeight<=0||atmosphere.surfaceDensity<=0||altitude<0||altitude>=atmosphere.height)return 0;
- const rho=atmosphere.surfaceDensity*Math.exp(-altitude/atmosphere.scaleHeight);
+ // Compress the mid-density range toward Kuznia's original strength. Apply to
+ // the surface reference, not local rho: Acheron's entire altitude profile stays
+ // identical, including its tenuous upper layers. Thin air and >=2.2 stay unchanged.
+ const surface=atmosphere.surfaceDensity;
+ const t=(surface-.22)/(2.2-.22);
+ const opticalSurface=surface>.22&&surface<2.2?.22+(2.2-.22)*(1-(1-t)**4):surface;
+ const rho=opticalSurface*Math.exp(-altitude/atmosphere.scaleHeight);
  const edge=1-altitude/atmosphere.height;
  return .65*(-Math.expm1(-rho*.65))*edge*edge;
 }
