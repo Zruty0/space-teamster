@@ -35,6 +35,7 @@
     "test:empty-runs": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/empty-runs.test.ts",
     "test:balor-shipping": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/balor-expansion.test.ts",
     "audit:balor": "node tests/run-equipment.mjs tests/audit-balor-shipping.ts",
+    "test:orbital-haze": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/orbital-haze.test.ts",
     "test:orbital-markers": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/orbital-markers.test.ts",
     "test:menus": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/menu-layout.test.ts",
     "test:contract-presentation": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/contract-presentation.test.ts",

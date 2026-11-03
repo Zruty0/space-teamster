@@ -11,7 +11,8 @@ import { BALOR_BODY_ID, balorEyeAngleAt, orientBalorApproach } from './balor-ori
 import { dynamicLambertDepartureVInf } from './lambert';
 import { APPROACH_LEVELS, approachLevelById, createApproachState, predictTrajectory, type ApproachInitOverride } from './approach';
 import { advanceTemperature } from './thermal';
-import { bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
+import { BODIES, bodyById, bodyOrbitModeById, bodyStateRelativeToParent, stationPoiById, surfacePoiById } from './world';
+import { drawOrbitalHaze } from './orbital-haze';
 
 // ===================== Types =====================
 
@@ -2685,6 +2686,8 @@ export function renderOrbital(
   ctx.fillRect(0, 0, W, H);
 
   drawStars(ctx, W, H);
+  const [hazeX,hazeY]=ws(0,0,cam,W,H);
+  drawOrbitalHaze(ctx,hazeX,hazeY,level.planetRadius*cam.zoom,level.planetRadius,{height:level.atmoHeight,surfaceDensity:level.surfaceDensity,scaleHeight:level.scaleHeight,color:level.atmoColor},W,H,isGasGiantBodyId(level.bodyId));
   drawPlanet(ctx, cam, level, W, H, s.balorEyeAngle, level.systemBodies ? undefined : weather);
   drawAtmosphere(ctx, cam, level, W, H);
   if (level.systemBodies) drawSystemBodies(ctx, cam, s, level, W, H, weather);
@@ -2929,6 +2932,8 @@ function drawSystemBodies(
       : body.gm === 0
         ? Math.min(8, Math.max(4, body.radius * cam.zoom))
         : Math.min(10, Math.max(3, body.radius * cam.zoom));
+    const physicalBody=BODIES.find(b=>b.id===body.id);
+    if(physicalBody)drawOrbitalHaze(ctx,bx,by,br,physicalBody.radius,physicalBody.atmosphere,W,H,isGasGiantBodyId(body.id));
     if (body.id === BALOR_BODY_ID) {
       // The chart body moves: point the Eye at the central star from the same
       // live ephemeris used to place its marker, not a local-visit snapshot.
@@ -3060,7 +3065,7 @@ function drawAtmosphere(
   const outerR = (level.planetRadius + level.atmoHeight) * cam.zoom;
   const [ar, ag, ab] = level.atmoColor;
 
-  // Physical atmosphere boundary remains a navigation cue; no filled haze wash.
+  // Preserve the physical boundary cue above the density-based haze and globe.
 
   ctx.beginPath();
   ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
