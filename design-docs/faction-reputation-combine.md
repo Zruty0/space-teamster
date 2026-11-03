@@ -85,4 +85,4 @@ Normal rival penalties stop at **1.0**. Recommended below-1 treatment: no-op rat
 
 ## Next review
 
-Combine ordinary progression and the routine split are implemented. Next is **Cerberus**, including its elevated routine premiums and important-work classes. Special quest rewards/reinstatement, global political caps and persistent refusal/renunciation remain open. Do not implement Cerberus/Houses progression without their review.
+Combine ordinary progression and the routine split are implemented in `3e36373`. Next is [**Cerberus**](faction-reputation-cerberus.md), including its elevated routine premiums and important-work classes. Special quest rewards/reinstatement, global political caps and persistent refusal/renunciation remain open. Do not implement Cerberus/Houses progression without their review.
