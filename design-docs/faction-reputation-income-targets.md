@@ -65,6 +65,8 @@ Examples (illustrative, not extra approved cutoff rules):
 
 ## Still to choose before implementation
 
+Next-step [boundary and calibration proposal](faction-reputation-income-calibration.md): midpoint separators with a 40k entry ceiling, stable workload-to-credit calibration, and fixed completion pay adjusted to deliver the intended net at par. These mechanics are recommendations, distinct from this approved target table.
+
 - Exact per-entity earning-band boundaries versus these median targets; do not manufacture a 1→2 cutoff from the median alone. Earnings below a boundary need not imply employer trust.
 - How to provide enough real low-earning jobs to establish standing: reclassifying all current high-paying CHR freight upward alone would leave no basic freight at 0 in the measured sample (minimum 51,597 cr). Rebalance/select low-paying work deliberately rather than silently granting free rank or leaving a circular gate.
 - Credit-first quote calibration without rewriting accepted quotes. No flat-fee model, universal coefficient, hard income clamp or blanket reduction of all existing contracts is selected by approval of these targets.
