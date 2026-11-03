@@ -3,6 +3,12 @@
 Updated: 2026-11-03 (Pacific)
 Status: **Proposal only; not approved or implemented.** Pete authorized the Combine pass (`3e36373`) and requests the next entity. Cerberus is next, then Houses. Existing CHR contracts can already cause the reviewed Combine losses, but CHR's own gains/gates/pay remain unchanged. Framework: [progression](faction-reputation-progression.md); previous entity: [Combine](faction-reputation-combine.md).
 
+## Latest direction — earnings-based access across all entities
+
+Pete rejects current basic-freight earnings as too high for level 0: target median generally 10k cr, within 5k–20k across entities, with roughly 40k maximum even at Cerberus. More profitable ordinary shipments belong in higher access bands, based on expected credits rather than cargo/job type. Level-1 target medians reach 200k for wealthy entities; level 2+ is around 300k. See the [cross-entity median table](faction-reputation-income-targets.md) for the requested draft; proposed CHR row is **20k / 200k / 300k**, not yet approved individually.
+
+The old category table below is retained as an audit grouping and earlier proposal, **not the final economic gate policy**. Important jobs can pay at level-0 rates while requiring level 1: economic access **AND** authored trust. Advancement qualification remains independent of pay. Exact income boundaries, calibrated payouts and the low-paid onboarding supply still need agreement; no CHR runtime changes.
+
 ## Pay-review direction — expected earnings in credits at par
 
 Pete redirects the review from percentages of par fuel cost to **expected earnings at par in credits**. Use the existing quote's `expectedMargin`: total contract pay including fuel reimbursement, minus fuel consumed at par. This excludes handling/comfort penalties, maintenance, positioning travel and the value of elapsed time. Do not treat it as gross pay or a guaranteed realized profit.
@@ -89,4 +95,4 @@ Use the Combine baseline initially:
 
 ## Review focus
 
-The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. Review actual credit earnings and select desired earnings before approving the routine/premium split or fees; also settle the generic workforce-intake context before implementation. Houses follow this review.
+The main eligibility choice is whether entrusted corporate records/audits should also advance 1→2, allowing a non-custody route to Trusted Instrument, or whether CHR should demand direct custody/labor participation. Recommend the former: commercial trust and explicitly hostile labor work remain distinct. First review the cross-entity median table and earnings-based access boundaries, then calibrate fees/low-paid onboarding and important-work requirements. Also settle generic workforce-intake context before implementation. The earlier cargo-family grouping must not silently become the income gate. Houses follow this review.
