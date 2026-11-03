@@ -1,4 +1,5 @@
 import './svg-dom';
+import './approach-wind-bands.test';
 import '../src/content/estella';
 import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
 import { BODIES, SURFACE_POIS, bodyById, surfacePoiById } from '../src/world';

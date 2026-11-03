@@ -1,6 +1,6 @@
 # Regional surface weather
 
-Updated: 2026-11-02 (Pacific)
+Updated: 2026-11-03 (Pacific)
 Status: LIVE in normal careers. Pete authorizes all atmospheric planets/moons and surface POIs, mission-time variation, retry stability, and Port Stribog as the strongest weather challenge. Zhulong is the selected Dahai recommendation.
 
 ## Scope / review
@@ -57,6 +57,8 @@ Zhulong fits because its fixed home port supports fleets working the storm belts
 
 ## Presentation / budget
 
+- November 3 regression fix: the rollout suppressed old approach wind bands along with their obsolete force layers. `approach-wind-bands.ts` restores outline bands, arrows and **m/s** labels in actual approach/departure rendering, sampling `flightAir` at current mission time. These are altitude guides, not invented shear zones or restored acceleration layers; physics and predictions are unchanged. World-altitude anchors with bounded camera LOD (at most 26 rows / 96 arrows per row), atmosphere/terrain clipping, calm/vacuum suppression and HUD-clear labels. No texture/cache or simulation mutation.
+
 - Climate-dependent soft cloud coverage/base/depth and atmosphere tint; clouds in approach/departure and landing skies. Transparent sprite gutters prevent hard cloud ends. Upper atmosphere/physical terrain clips prevent sky effects outside the air column.
 - The existing 128-slot airborne tracer and 256-slot exhaust pools remain fixed. Strong wind increases visual emission cadence within the same smoke budget to fill stretched plumes. No draw-time aging or quality-dependent simulation.
 - Exact exclusion clips cover SVG solids and floating decks, supports and domes; no fake solid column beneath platforms. No changes to colliders or existing generic Dahai landing geometry.
@@ -65,10 +67,11 @@ Zhulong fits because its fixed home port supports fleets working the storm belts
 
 ## Evidence
 
-- `npm run test:surface-weather`: 4,357 checks: all atmospheric sites/worlds plus vacuum exclusion, aliases, time variation, analytic advection, epoch equivalence, atmosphere edge, floating altitude/shelter, force continuity/bounds, finite SAS across authority variants, deterministic full control replay, and one-step live/predicted approach agreement.
+- `npm run test:surface-weather`: 14 wind-band checks (live direction/velocity/time, pause replay, clipping setup, HUD clearance, bounded work and immutable camera), plus 4,357 weather checks: all atmospheric sites/worlds plus vacuum exclusion, aliases, time variation, analytic advection, epoch equivalence, atmosphere edge, floating altitude/shelter, force continuity/bounds, finite SAS across authority variants, deterministic full control replay, and one-step live/predicted approach agreement.
 - Day scan: strongest sampled wind increments Stribog ~3.783 m/s², Zhulong ~2.212, Morana ~1.861, Nimbus ~1.662. All other Dahai locations remain below 1.0. Stribog exceeds stock 2.45 m/s² SAS authority intentionally.
-- Native review: 476 checks across all 36 catalog atmospheric POIs / eight worlds and 66 airless POIs. Equipped actual Game landing/departure/descent, parked no-fuel wind, retries, visual/quality isolation, actual phase handoff clocks, floating-structure pixel exclusion with positive control, and stock Stribog trim pass.
+- Native review: 553 checks (November 3), including real approach/departure wind-band labels at all atmospheric sites and positive-control native terrain/atmosphere/calm/vacuum clipping. Original coverage across all 36 catalog atmospheric POIs / eight worlds and 66 airless POIs. Equipped actual Game landing/departure/descent, parked no-fuel wind, retries, visual/quality isolation, actual phase handoff clocks, floating-structure pixel exclusion with positive control, and stock Stribog trim pass.
 - Separate real Game constructor/default-enable and actual `reloadPhase` replay pass in an isolated browser, with no career storage changes. Native review keyboard/pause/reload isolation passes; screenshots inspected.
 - Retained baseline native 634 + pilot 30 and Hartwell 250 pass; air/tracer unit 9,242 + 153,955; surface/collision/grading 5,715 / 652 / 12,049; empty 2,913 + 35; biome 667,798; typechecks/build pass.
 - Desktop 1080p paused-scene draw samples: Stribog/Olympos ~0.63–0.68 ms mean, approach ~0.44–0.45 ms. Later RAF pacing ~65–72 FPS also occurs without rendering; earlier paired runs ~120 FPS. Not a full active-flight, full-career or mobile performance guarantee; no mobile testing.
-- Temp evidence: `st-surface-weather-cdp-20261102.mjs`, `st-surface-weather-native-20261102.json`, matching screenshots and run log. No push/deploy or live-save edits.
+- November 3 wind-band evidence: `st-wind-bands-cdp-20261103.mjs`, `st-wind-bands-native-20261103.log`, `st-surface-weather-native-20261103-wind-bands.json`, matching approach/departure screenshots. Full native checks, actual constructor/retry, keyboard/pause/reload/storage isolation and build pass; screenshots inspected.
+- Original Temp evidence: `st-surface-weather-cdp-20261102.mjs`, `st-surface-weather-native-20261102.json`, matching screenshots and run log. No push/deploy or live-save edits.

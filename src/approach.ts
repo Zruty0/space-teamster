@@ -5,6 +5,7 @@ import { APPROACH_PHASES, ORBITAL_PHASES, type ApproachPhaseDef } from './campai
 import { config } from './config';
 import { landingAerodynamics, type LandingAir } from './landing-air';
 import { flightSurfaceStyle } from './flight-surface-style';
+import { drawRegionalWindBands } from './approach-wind-bands';
 import { advanceTemperature } from './thermal';
 import { COL_DANGER, COL_HUD, COL_HUD_DIM, COL_SUCCESS, COL_WARNING, drawHudInfoPanel, drawHudLabel } from './hud-layout';
 import { InputState } from './input';
@@ -1114,6 +1115,7 @@ export function renderApproach(
   // --- Wind layers ---
   if(!level.flightAir)drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
   else {
+    drawRegionalWindBands(ctx,cam,level.flightAir,x=>getApproachTerrainHeight(x,level),level.body.atmosphere?.height??0,W,H,time);
     const wind=level.flightAir.sample(s.x,s.y,time).vx;
     ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
     ctx.fillText(`${level.flightAir.label} · WIND ${wind<0?'←':'→'} ${Math.abs(wind).toFixed(1)} m/s`,W-20,H-56);ctx.restore();

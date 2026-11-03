@@ -1,4 +1,5 @@
 import { Game } from '../src/game';
+import { drawRegionalWindBands } from '../src/approach-wind-bands';
 import { defaultCareerProfile } from '../src/career-state';
 import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
 import { createDefaultRigState } from '../src/maintenance/rig-state';
@@ -65,12 +66,19 @@ async function checks(){
    reset(poi.id,'landing',12345);advance(1);assert(JSON.stringify(snapshot())===JSON.stringify(a),'actual Game retry reproduces controls/weather/effects');
    game.weatherVisuals=false;game.weatherLow=true;reset(poi.id,'landing',12345);advance(1);const b=snapshot();assert(JSON.stringify(a.ship)===JSON.stringify(b.ship)&&pool===JSON.stringify(b.particles),'visual flags never alter simulation');game.weatherVisuals=true;game.weatherLow=false;
    const phase=game.phase,air=game.landingAtmosphere(phase).air,landingForce=landingAerodynamics(12,-3,1000,phase.terrain.pad.y+85,0,config.dragCoeff,air);
-   reset(poi.id,'departure',12345);const flight=game.phase.level;
+   const labels:string[]=[],originalText=ctx.fillText.bind(ctx);
+   const captureText=(text:string,x:number,y:number,maxWidth?:number)=>{if(/^[←→] \d+\.\d m\/s$/.test(text))labels.push(text);if(maxWidth===undefined)originalText(text,x,y);else originalText(text,x,y,maxWidth);};
+   ctx.fillText=captureText;
+   try{reset(poi.id,'departure',12345);}finally{ctx.fillText=originalText;}
+   const flight=game.phase.level;
+   assert(labels.length>0,'actual regional departure renderer restores wind band velocity labels');
    assert(!!flight.flightAir&&flight.windLayers.length===0&&flight.turbulence.length===0,'approach replaces legacy weather, no double force/torque');
    const force=approachWindAcceleration(0,phase.terrain.pad.y+85,12,-3,flight,0);
    assert(Math.abs(force.ax-landingForce.windAX)<1e-12&&Math.abs(force.ay-landingForce.windAY)<1e-12,'shared near-site handoff air and wind force');
    advance(.25);const departure=snapshot();reset(poi.id,'departure',12345);advance(.25);assert(departure.ship.alive&&departure.ship.x!==0&&JSON.stringify(snapshot().ship)===JSON.stringify(departure.ship),'actual equipped departure advances and retry is stable');
-   reset(poi.id,'approach',12345);advance(.25);assert(game.phase.as.alive&&game.phase.state==='approaching'&&game.phase.as.x!==-1800&&Number.isFinite(game.phase.as.vx)&&!!game.phase.level.flightAir,'actual equipped descent advances with new air');
+   labels.length=0;ctx.fillText=captureText;try{reset(poi.id,'approach',12345);}finally{ctx.fillText=originalText;}
+   assert(labels.length>0,'actual regional approach renderer restores wind band velocity labels');
+   advance(.25);assert(game.phase.as.alive&&game.phase.state==='approaching'&&game.phase.as.x!==-1800&&Number.isFinite(game.phase.as.vx)&&!!game.phase.level.flightAir,'actual equipped descent advances with new air');
    reset(poi.id,'parked',12345);advance(1);const parked=snapshot();assert(parked.ship.dvUsed===0&&parked.ship.x===1000&&parked.effects.active===0&&parked.effects.tracers.active>0,'parked wind without fuel or smoke');
    reset(poi.id,'landing',12345+7200);assert(Math.abs(snapshot().wind.vx-a.wind.vx)>.001,'mission time changes conditions');
    if(poi.landingLayout?.kind==='cloud-city'){
@@ -92,6 +100,14 @@ async function checks(){
   for(const poi of SURFACE_POIS.filter(p=>!bodyById(p.bodyId).atmosphere)){
    const level=createLandingLevel(poi.id,995002);game.loadLanding(level,undefined,undefined,0);assert(!game.landingAtmosphere(game.phase),'all vacuum destinations excluded');
   }
+  // Native clipping controls: wind-band ink is airspace-only, with calm/vacuum suppression.
+  const bandsCanvas=document.createElement('canvas');bandsCanvas.width=bandsCanvas.height=256;
+  const bandsCtx=bandsCanvas.getContext('2d')!;
+  const bandPaint=(vx:number,density:number)=>{bandsCtx.clearRect(0,0,256,256);drawRegionalWindBands(bandsCtx,{x:0,y:0,zoom:1},{sample:()=>({vx,density})},()=>0,90,256,256,12345);};
+  bandPaint(12,1);assert(bandsCtx.getImageData(0,40,256,86).data.some(v=>v>0),'native wind band positive paint control');
+  assert(bandsCtx.getImageData(0,130,256,126).data.every(v=>v===0),'bands never paint below terrain');
+  assert(bandsCtx.getImageData(0,0,256,36).data.every(v=>v===0),'bands never paint above atmospheric ceiling');
+  for(const [v,d]of [[0,1],[12,0]]){bandPaint(v,d);assert(bandsCtx.getImageData(0,0,256,256).data.every(v=>v===0),'calm/vacuum has no wind band paint');}
   // Synthetic snapshots only; running transition callbacks invokes real loaders, never settlement.
   reset('estella-v-open-cast-mine','landing',23456);advance(.5);const source=game.phase;source.launchGuidance={targetAltitude:500,orbitDir:1,nextApproachLevelId:phases(source.level.poi.id).departure.id};
   const t=game.transitionLandingToApproach(source);assert(!!t,'actual departure handoff exists');t.run();assert(game.phase.worldTimeStart===23456+.5||Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'handoff keeps mission clock');
