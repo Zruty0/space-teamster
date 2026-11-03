@@ -10,10 +10,14 @@ Status: **Design only.** Runtime baseline `43772dc` has thirteen tracks, employe
 - Reaching level 2 should take roughly **10–20 important contracts**, with reasonably few unrelated missions between them. These are indicative ranges, not finalized per-faction values.
 - Introduce decay after level 1: after **K unrelated missions**, each additional unrelated mission removes some progress.
 - Passive decay cannot cross an integer boundary: **1.9 may decay to 1, never below 1**.
-- Rival/disqualifying contracts impose losses that **can cross integer boundaries**.
+- Rival/disqualifying contracts impose losses that **can cross integer boundaries**, but generally **cannot reduce reputation below 1.0**. Exceptions require explicit design; no exceptional event is selected yet.
+- Routine work for a faction **resets its decay grace**, even when it does not advance reputation. **Empty runs do not count toward decay.**
+- **2→3 advances only through special quests**, not ordinary mission work. Decay and rivalry still apply to this band.
+- Rival groups: the three Houses, and **one-way Combine opposition to Cerberus**. Cerberus is indifferent to Combine work. Routine rival deliveries should remain possible without direct rivalry penalties; only specifically consequential work should cause them.
+- Attaining level 3 may cap other faction reputations at 2 or 1. This is the intended direction, not a finalized cap matrix or implementation model.
 - Define, per faction and progression level: qualifying missions; gain per qualifying mission (typically `1/M`); disqualifying missions and losses; unrelated-mission grace and subsequent decay rate.
 
-## Recommended rule structure — not yet approved
+## Rule structure — directions and remaining recommendations
 
 Define rules for the **current progression band**: 0→1, 1→2, and 2→3 where that track permits 3. Interpret the 10–20 important contracts as advancement within 1→2, rather than a lifetime total. Level-2-capped tracks have no 2→3 advancement, but still need relationship-maintenance and rival-loss rules at their ceiling.
 
@@ -21,7 +25,7 @@ Define rules for the **current progression band**: 0→1, 1→2, and 2→3 where
 |---|---|---|---|
 | 0→1 | Ordinary qualifying faction work | 1–3 | None |
 | 1→2 | Important qualifying work available at level 1 | 10–20 | Grace K, then D per unrelated completion |
-| 2→3 | Faction-specific higher-trust work; not specified yet | Undecided | Separate K/D if desired |
+| 2→3 | Special quests only; ordinary contracts give no advancement | Authored quest rewards/milestones, not a routine-contract M | Still applies; K/D pending |
 
 Contract access and advancement qualification are separate: work required to earn level 2 must be available before level 2. Do not make the next tier require itself. Stable provider/template/mission-class identity should determine qualification, not rendered issuer or cargo-name guessing.
 
@@ -29,20 +33,21 @@ Suggested per-band configuration:
 - Qualifying mission predicate/class IDs and gain, normally `1/M` bar units.
 - Rival/disqualifying mission predicates and loss per class.
 - Unrelated-completion grace K and decay D per subsequent completion.
-- Relationship-maintenance qualification (see below); this is an extra decision, not implicitly identical to positive credit.
+- Relationship-maintenance qualification: routine same-faction work resets grace even if it gives no advancement. Explicit donor attribution for inherited employers is still needed.
+- Special-quest progression for 2→3, and a separate directed level-3 exclusivity/cap table.
 
 ## Event semantics proposed for review
 
 1. **Qualifying completion:** add its credit and reset the unrelated counter. Recommend capping that award at the next integer, so a final routine 0→1 job cannot spill credit into an advanced band for which it does not qualify. Clamp to track maximum.
-2. **Related but non-advancing completion:** recommend ordinary work for the same faction resets grace without adding progress once it no longer qualifies for advancement. This keeps maintenance of a relationship distinct from earning higher trust. Pete has not yet chosen whether only advancing work should refresh grace instead.
+2. **Related but non-advancing completion (approved):** ordinary work for the same faction resets grace without adding progress once it no longer qualifies for advancement. This also maintains fractional quest-earned progress above 2 without adding to it.
 3. **Unrelated completion:** increment the counter. For the first K completions, no passive loss; starting with K+1, subtract D, bounded by the current integer floor: `max(floor(repBeforeDecay), repBeforeDecay - D)`. No passive decay while current reputation is below 1.
-4. **Rival completion:** apply the explicit rival loss, bounded at zero but not at an integer. Recommend incrementing the non-qualifying counter without also charging passive decay on this same event (avoid implicit double punishment). It does not refresh grace. This ordering/counting choice remains proposed.
+4. **Rival completion:** apply the explicit rival loss, crossing integer boundaries but normally bounded at 1.0. For an existing reputation below 1, recommend leaving it unchanged under ordinary rival penalties rather than accidentally raising it to 1; equivalent default formula: `min(oldRep, max(1, oldRep - loss))`. Below-1 treatment and any exceptional lower floor still need explicit confirmation. Recommend incrementing the non-qualifying counter without also charging passive decay on this same event (avoid implicit double punishment). It does not refresh grace. This ordering/counting choice remains proposed.
 
 Evaluate qualification/loss against the pre-event band; each faction gets one classification for an event. A job may legitimately help one faction and hurt a rival. Conflicting positive/rival rules for the same faction need explicit resolution rather than accidental evaluator order.
 
-Recommend counting **completed contracts**, not flight legs, launch attempts, retries, menus or elapsed time. Waiting/maintenance does not consume grace under this mission-count model. Whether empty runs, failed jobs and abandoned contracts also count or cause explicit losses needs a deliberate decision. Do not add those penalties automatically.
+Recommend counting **completed contracts**, not flight legs, launch attempts, retries, menus or elapsed time. Waiting/maintenance does not consume grace under this mission-count model. **Empty runs are explicitly excluded** and neither consume grace nor incur decay. Failed/abandoned job counting and penalties remain undecided; do not add them automatically.
 
-A rival loss can put a pilot back into a lower band: if 2 falls to 1.9, subsequent passive decay would protect 1, not the historical high-water mark of 2. If a rival lowers 1 to 0.9, the proposed current-band model suspends passive decay there and allows level-0 recovery rules. Confirm this consequence before coding.
+A rival loss can put a pilot back into a lower band: if 2 falls to 1.9, subsequent passive decay would protect 1, not the historical high-water mark of 2. The earlier suggestion that ordinary rivalry could lower 1 to 0.9 is superseded by the default 1.0 rival floor. Exceptional betrayals/lower-floor outcomes are not authored or approved.
 
 ## Example — illustrative values, not balance decisions
 
@@ -51,7 +56,24 @@ For 1→2, suppose M=15, K=3 and D=0.02. At reputation 1.60:
 - The fourth leaves 1.58, the fifth 1.56.
 - A qualifying important job adds 1/15 and resets grace.
 - Long passive neglect can reduce fractional progress to 1, never below.
-- An explicit rival penalty of 0.15 at 1.10 would instead leave 0.95.
+- A normal rival penalty of 0.15 at 1.10 leaves **1.0**, not 0.95.
+
+## Nuanced, directed rivalry
+
+- Treat Alvares, Mendes and Nunes as the House rivalry group; penalty amounts and eligible work may differ by direction and context. Do not assume identical penalties for all pairs.
+- Explicitly consequential CHR work can cost Combine standing. Combine work does **not** automatically cost CHR standing: Cerberus is indifferent.
+- **Importance for advancement and political impact are distinct classifications.** A valuable/important delivery is not automatically hostile to another faction. Use explicit mission-class/story context, not price, issuer tag alone or destination ownership, to select rival penalties.
+- Routine work for a rival can still count as unrelated work for a different faction's decay counter, but receives no direct rival penalty merely for its issuer. Likewise, shared employer recognition must not broadcast rival penalties to every donor.
+
+## Level-3 commitments and recovery — decisions still open
+
+Pete intends some level-3 relationships to limit other factions to 2 or 1. Keep this as a **separate directed cap table**, not an automatic consequence of every rivalry edge. No specific target/cap pair has yet been approved. Existing intrinsic caps (BAM/Merren/Institutions at 2) and inherited recipient caps are separate from these future political limits.
+
+Recommendations:
+- Make a restrictive level-3 quest an explicit informed choice, with affected relationships and limits shown before commitment.
+- Decide whether a cap truncates stored reputation or only limits effective standing, and whether it persists after demotion or is removed by a deliberate allegiance change. Do not silently restore old rank-3 standing or create mutually oscillating caps.
+- Prefer an explicit quest commitment/renunciation rule over switching allegiance caps on/off whenever a small penalty crosses 3. This is a proposal, not a new approved persistent flag.
+- With the existing integer decay floor, **2.8 can decay to 2, while exactly 3 cannot passively decay below 3**. Rival work can still demote 3. If earned level 3 falls to 2.9, ordinary contracts cannot restore it under quest-only advancement; provide an authored reinstatement/repeatable quest route or explicitly design how completed quest achievements support recovery. No recovery mechanism chosen yet.
 
 ## Inheritance and gain attribution
 
