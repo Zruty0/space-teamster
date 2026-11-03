@@ -302,7 +302,7 @@ export class Game {
     const cache=this.pilotAirCache??=new WeakMap(),old=cache.get(p.terrain);
     if(old&&old.wind===pilot.wind&&old.view.epoch===p.worldTimeStart&&old.view.pilot===pilot)return old.view;
     const ground=(x:number)=>landingReferenceHeight(p.level,p.terrain,x);
-    const air=this.atmosphericPilot?createLandingAir(p.level.body,p.level.poi.id,p.worldTimeStart,ground,pilot.wind):this.regionalAtmosphere!.weather.air(p.worldTimeStart,ground);
+    const air=this.atmosphericPilot?createLandingAir(p.level.body,p.level.poi.id,p.worldTimeStart,ground,pilot.wind):this.regionalAtmosphere!.weather.air(p.worldTimeStart,ground,{siteX:p.terrain.pad.centerX,siteY:p.terrain.pad.y});
     const view={pilot,air,physicsAir:pilot.wind?air:undefined,epoch:p.worldTimeStart};cache.set(p.terrain,{wind:pilot.wind,view});return view;
   }
   private lastFrameTime = 0;
@@ -515,7 +515,7 @@ export class Game {
         const dx=x-level.gateX,local=landingReferenceHeight(landing,terrain,dx+terrain.pad.centerX);
         const u=Math.max(0,Math.min(1,(Math.abs(dx)-1000)/1000)),blend=u*u*(3-2*u);
         return local+(getApproachTerrainHeight(x,level)-local)*blend;
-      });
+      },{xOffset:terrain.pad.centerX-level.gateX,siteX:terrain.pad.centerX,siteY:terrain.pad.y});
       // Replace, never stack, the old acceleration layers / random angular weather.
       level.windLayers=[];level.turbulence=[];
     }else delete level.flightAir;
@@ -2085,7 +2085,7 @@ export class Game {
           ? (p.as.highThrust ? 'high' : 'standard')
           : 'none';
         const approachControlDt = PHYSICS_DT / Math.max(1, p.as.timeWarp);
-        const activeTurbulence = approachInTurbulence(p.as.y, p.level, this.time);
+        const activeTurbulence = approachInTurbulence(p.as.y, p.level, this.time, p.as);
         accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
           wallDt: approachControlDt,
           userWarp: p.as.timeWarp,

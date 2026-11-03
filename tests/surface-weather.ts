@@ -7,10 +7,10 @@ import { config } from '../src/config';
 import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
 import { BODIES, SURFACE_POIS, bodyById, surfacePoiById } from '../src/world';
 import { createLandingLevel } from '../src/levels';
-import { generateTerrain } from '../src/terrain';
-import { APPROACH_LEVELS, approachWindAcceleration } from '../src/approach';
+import { generateTerrain, getTerrainHeight } from '../src/terrain';
+import { APPROACH_LEVELS, approachWindAcceleration, approachTurbulenceTorque, approachInTurbulence } from '../src/approach';
 import { createPlayableEstellaMission } from '../src/estella-playable';
-import { landingAerodynamics } from '../src/landing-air';
+import { landingAerodynamics, landingSasForce } from '../src/landing-air';
 import { createRegionalWeather } from '../src/surface-weather';
 import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
 import { readInput } from '../src/input';
@@ -67,7 +67,7 @@ async function checks(){
    game.weatherVisuals=false;game.weatherLow=true;reset(poi.id,'landing',12345);advance(1);const b=snapshot();assert(JSON.stringify(a.ship)===JSON.stringify(b.ship)&&pool===JSON.stringify(b.particles),'visual flags never alter simulation');game.weatherVisuals=true;game.weatherLow=false;
    const phase=game.phase,air=game.landingAtmosphere(phase).air,landingForce=landingAerodynamics(12,-3,1000,phase.terrain.pad.y+85,0,config.dragCoeff,air);
    const labels:string[]=[],originalText=ctx.fillText.bind(ctx);
-   const captureText=(text:string,x:number,y:number,maxWidth?:number)=>{if(/^[←→] \d+\.\d m\/s$/.test(text))labels.push(text);if(maxWidth===undefined)originalText(text,x,y);else originalText(text,x,y,maxWidth);};
+   const captureText=(text:string,x:number,y:number,maxWidth?:number)=>{if(/^[←→] \d+\.\d · [↑↓] \d+\.\d m\/s$/.test(text))labels.push(text);if(maxWidth===undefined)originalText(text,x,y);else originalText(text,x,y,maxWidth);};
    ctx.fillText=captureText;
    try{reset(poi.id,'departure',12345);}finally{ctx.fillText=originalText;}
    const flight=game.phase.level;
@@ -112,22 +112,33 @@ async function checks(){
   reset('estella-v-open-cast-mine','landing',23456);advance(.5);const source=game.phase;source.launchGuidance={targetAltitude:500,orbitDir:1,nextApproachLevelId:phases(source.level.poi.id).departure.id};
   const t=game.transitionLandingToApproach(source);assert(!!t,'actual departure handoff exists');t.run();assert(game.phase.worldTimeStart===23456+.5||Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'handoff keeps mission clock');
   reset('estella-v-open-cast-mine','approach',23456);advance(.5);game.phase.as.x=0;game.phase.as.y=1500;const arrival=game.transitionApproachToLanding(game.phase);arrival.run();assert(!!game.landingAtmosphere(game.phase)&&Math.abs(game.phase.worldTimeStart-(23456+.5))<1e-8,'actual arrival starts regional landing air at continuation time');
-  // A held one-way key is no longer a useful pilot: Stribog now has reversals.
-  // Exercise actual Game handlers with 4 Hz reactive ordinary thrust, never Shift.
+  // Exercise actual Game handlers in a strong, terrain-clear lower-field cell.
+  // The synthetic pilot commands normal lateral keys and finite-rate throttle keys.
   const stribogHandling:any[]=[];
   const stribogFlight=(epoch:number,manual:boolean)=>{
-   reset('estella-vi-spaceport','landing',epoch);let maxDrift=0,dir=0,effort=0;
+   reset('estella-vi-spaceport','landing',epoch);
+   const terrain=game.phase.terrain,air=game.landingAtmosphere(game.phase).air,y=terrain.pad.y+140;
+   let startX=1000,best=-1;
+   for(let x=200;x<=1800;x+=10){if(Math.max(getTerrainHeight(terrain,x-15),getTerrainHeight(terrain,x+15))>y-20)continue;
+    const f=landingAerodynamics(0,0,x,y,0,config.dragCoeff,air),m=Math.hypot(f.windAX,f.windAY);if(m>best){best=m;startX=x;}}
+   game.loadLanding(game.phase.level,{x:startX,y,vx:0,vy:0},undefined,epoch);
+   Object.assign(game.phase.ship,{sas:true,gearDeployed:true,throttle:game.phase.level.gravity/config.mainEngineAccel});
+   let maxDrift=0,dir=0,effort=0,verticalDir=0,holdTicks=0;
    for(let tick=0;tick<3600;tick++){
     const p=game.phase,s=p.ship,air=game.landingAtmosphere(p).air;
     if(tick%30===0){
-     const f=landingAerodynamics(s.vx,s.vy,s.x,s.y,game.time,config.dragCoeff,air),sas=config.mainEngineAccel*.1;
-     const correction=-(f.windAX-Math.sign(f.windAX)*Math.min(Math.abs(f.windAX),sas))-s.vx*1.5;
+     const f=landingAerodynamics(s.vx,s.vy,s.x,s.y,game.time,config.dragCoeff,air),sas=landingSasForce(s.vx,s.vy,config.mainEngineAccel*.1,f);
+     const correction=-f.ax-sas.ax-s.vx*1.5-(s.x-startX)*.15;
      dir=manual&&Math.abs(correction)>.15?Math.sign(correction):0;
+     const target=Math.max(0,Math.min(1,(config.gravity-f.ay-sas.ay-s.vy*1.5-(s.y-y)*.15)/config.mainEngineAccel));
+     const error=target-s.throttle;verticalDir=manual?Math.sign(error):0;
+     holdTicks=manual?Math.min(30,Math.round(Math.abs(error)/(config.throttleRate*.25)*120)):0;
     }
-    step({...NEUTRAL_FLIGHT_INPUT,moveLeft:dir<0,moveRight:dir>0,shiftHeld:false});
-    if(dir)effort++;maxDrift=Math.max(maxDrift,Math.abs(game.phase.ship.x-1000));
+    step({...NEUTRAL_FLIGHT_INPUT,moveLeft:dir<0,moveRight:dir>0,throttleUp:holdTicks>0&&verticalDir>0,throttleDown:holdTicks>0&&verticalDir<0,shiftHeld:false});
+    if(dir||holdTicks>0)effort++;holdTicks--;
+    maxDrift=Math.max(maxDrift,Math.hypot(game.phase.ship.x-startX,game.phase.ship.y-y));
    }
-   return{snapshot:snapshot(),maxDrift,effort};
+   return{snapshot:snapshot(),maxDrift,effort,best,startX};
   };
   for(const epoch of [0,12345,43200]){
    const untrimmed=stribogFlight(epoch,false),trimmed=stribogFlight(epoch,true),retry=stribogFlight(epoch,true);
@@ -136,6 +147,19 @@ async function checks(){
    assert(JSON.stringify(trimmed)===JSON.stringify(retry),'actual gusts and reactive input replay identically');
    stribogHandling.push({epoch,untrimmed:untrimmed.maxDrift,trimmed:trimmed.maxDrift});
   }
+  // The warning must correspond to an actual rare spatial buffet, not all wind.
+  reset('estella-vi-spaceport','approach',0);const al=game.phase.level;
+  let core={x:0,y:3500,vx:140,vy:0},peak=0;
+  for(let x=-6000;x<=6000;x+=80)for(let y=1800;y<=8000;y+=80){const m={x,y,vx:140,vy:0},v=Math.abs(approachTurbulenceTorque(m,al,0));if(v>peak){peak=v;core=m;}}
+  assert(peak>.8,'pronounced approach buffet exists');
+  game.loadApproach(al,{...core,angle:1.4},0);
+  const labels:string[]=[],text=ctx.fillText.bind(ctx),initial=JSON.stringify(game.phase.as);
+  ctx.fillText=(t:string,x:number,y:number,max?:number)=>{labels.push(t);if(max===undefined)text(t,x,y);else text(t,x,y,max);};
+  try{draw();}finally{ctx.fillText=text;}
+  assert(labels.includes('⚠ TURBULENCE')&&approachInTurbulence(core.y,game.phase.level,0,core),'actual HUD warns only for applied local buffet');
+  assert(JSON.stringify(game.phase.as)===initial,'warning/render does not alter flight');
+  advance(4);const buffeted=snapshot();assert(buffeted.ship.alive&&Math.abs(buffeted.ship.angle-1.4)>.08,'actual Game applies visible rotational buffet');
+  game.reloadPhase(game.phase);advance(4);assert(JSON.stringify(snapshot().ship)===JSON.stringify(buffeted.ship),'actual approach retry reproduces spatial field and buffet');
   assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog/geography unchanged');assert(JSON.stringify({...localStorage})===storage,'no career/save writes');
   return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling};
  }finally{game.weatherVisuals=saved.visual;game.weatherLow=saved.low;reset(saved.site,saved.view,saved.epoch);checking=false;}

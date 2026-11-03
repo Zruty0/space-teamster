@@ -586,9 +586,24 @@ function getTurbulenceTorque(
   return torque;
 }
 
-/** Check if currently in an active turbulence zone. */
-export function approachInTurbulence(y: number, level: ApproachLevel, time: number = 0): boolean {
-  if(level.flightAir){const a=level.flightAir.sample(0,y,time),b=level.flightAir.sample(0,y,time+.25);return a.density>0&&Math.abs(a.vx)>20&&Math.abs(b.vx-a.vx)>.25;}
+/** Applied rotational disturbance; ordinary changing wind alone is not turbulence. */
+export function approachTurbulenceTorque(
+ motion:Pick<ApproachState,'x'|'y'|'vx'|'vy'>,level:ApproachLevel,time:number,
+):number {
+ if(!level.body.atmosphere)return 0;
+ const air=level.flightAir;
+ if(!air)return getTurbulenceTorque(motion.x,motion.y,time,level);
+ const torque=air.approachBuffet?.(motion.x,motion.y,time)??0;
+ if(!Number.isFinite(torque)||torque===0)return 0;
+ const sample=air.sample(motion.x,motion.y,time);
+ if(!Number.isFinite(sample.vx)||!Number.isFinite(sample.density)||sample.density<=0)return 0;
+ const relativeSpeed=Math.hypot(motion.vx-sample.vx,motion.vy-(sample.vy??0));
+ return torque*Math.min(1,relativeSpeed/45);
+}
+
+/** The regional warning/exposure follows actual, noticeable buffeting at the rig. */
+export function approachInTurbulence(y: number, level: ApproachLevel, time: number = 0, motion?:Pick<ApproachState,'x'|'vx'|'vy'>): boolean {
+  if(level.flightAir)return Math.abs(approachTurbulenceTorque({x:motion?.x??0,y,vx:motion?.vx??0,vy:motion?.vy??0},level,time))>.08;
   for (const z of level.turbulence) {
     if (weatherActivity(z, time) > 0 && y >= z.altitudeMin && y <= z.altitudeMax) return true;
   }
@@ -767,7 +782,7 @@ export function updateApproach(
     s.maintenanceAeroAcceleration = Math.hypot(aeroAx+(level.flightAir?wind.ax:0),aeroAy+(level.flightAir?wind.ay:0));
     let ax = aeroAx + wind.ax;
     let ay = -level.gravity + aeroAy + wind.ay;
-    if(!level.flightAir)angAccel += getTurbulenceTorque(s.x, s.y, time, level);
+    angAccel += approachTurbulenceTorque(s,level,time);
 
     if (s.throttle > 0.01 && canBurn) {
       const t = s.throttle * effThrust;
@@ -836,7 +851,7 @@ export function predictTrajectory(
   let overheatIdx = -1;
   let wingFoldIdx = -1;
   let temp = s.temperature;
-  const angle = s.angle;
+  let angle = s.angle, angularVel = s.angularVel;
   const wing = s.wingsDeployed ? s.wingAngle : 0;
   let dead = false;
   let prevTooHot = temp >= level.wingsMaxTemp;
@@ -903,6 +918,16 @@ export function predictTrajectory(
     if (temp >= 1.0) dead = true;
     temp = clamp(temp, 0, 1.5);
 
+    if(level.flightAir&&includeWind){
+      // Coast with the same deterministic angular forcing as live flight.
+      // Subdivide coarse requested steps to keep angular damping stable.
+      const angularSteps=Math.min(64,Math.max(1,Math.ceil(step/.4))),angularDt=step/angularSteps;
+      for(let j=0;j<angularSteps;j++){
+        const torque=approachTurbulenceTorque({x,y,vx,vy},level,predTime+t+j*angularDt);
+        angularVel+=(torque-config.angularDrag*angularVel)*angularDt;
+        angle=wrapAngle(angle+angularVel*angularDt);
+      }
+    }
     prevX = x; prevY = y;
     vx += ax * step;
     vy += ay * step;
@@ -1116,9 +1141,9 @@ export function renderApproach(
   if(!level.flightAir)drawWindLayers(ctx, cam, level, W, H, time, !authored||(scenery as {outlineWind?:boolean}|undefined)?.outlineWind===true);
   else {
     drawRegionalWindBands(ctx,cam,level.flightAir,x=>getApproachTerrainHeight(x,level),level.body.atmosphere?.height??0,W,H,time);
-    const wind=level.flightAir.sample(s.x,s.y,time).vx;
+    const wind=level.flightAir.sample(s.x,s.y,time),vertical=wind.vy??0;
     ctx.save();ctx.fillStyle='#92a6a8';ctx.font='12px monospace';ctx.textAlign='right';
-    ctx.fillText(`${level.flightAir.label} · WIND ${wind<0?'←':'→'} ${Math.abs(wind).toFixed(1)} m/s`,W-20,H-56);ctx.restore();
+    ctx.fillText(`${level.flightAir.label} · WIND ${wind.vx<0?'←':'→'} ${Math.abs(wind.vx).toFixed(1)} · ${vertical<0?'↓':'↑'} ${Math.abs(vertical).toFixed(1)} m/s`,W-20,H-56);ctx.restore();
   }
 
   // --- Trajectory preview ---
@@ -1933,14 +1958,12 @@ function drawApproachHUD(
     warnY += 22;
   }
 
-  if (approachInTurbulence(s.y, level, time)) {
-    if (Math.sin(now * 0.008) > -0.2) {
-      ctx.font = 'bold 16px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = COL_WARNING;
-      ctx.fillText('⚠ TURBULENCE', W / 2, warnY);
-      warnY += 22;
-    }
+  if (approachInTurbulence(s.y, level, time, s)) {
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COL_WARNING;
+    ctx.fillText('⚠ TURBULENCE', W / 2, warnY);
+    warnY += 22;
   }
 
   if (!suppressStateOverlays && state === 'approachSuccess') {

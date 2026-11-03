@@ -36,7 +36,7 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
   tracers.step(air,terrain,dt,time);
   for(const p of pool){if(!p.active)continue;p.age+=dt;if(p.age>=p.life){p.active=false;continue;}
    const a=air.sample(p.x,p.y,time),mix=1-Math.exp(-dt*1.4);
-   if(a.density>0){p.vx+=(a.vx-p.vx)*mix;p.vy*=1-mix;}
+   if(a.density>0){p.vx+=(a.vx-p.vx)*mix;p.vy+=((a.vy??0)-p.vy)*mix;}
    p.x+=p.vx*dt;p.y+=p.vy*dt;
    if(p.y<=getTerrainHeight(terrain,p.x))p.active=false;
   }
@@ -72,9 +72,11 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
    // Fixed screen sampling only clips, never seeds clouds.
    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
    for(let px=W;px>=0;px-=8){const x=cam.x+(px-W/2)/cam.zoom;ctx.lineTo(px,H/2-(height(x)-cam.y)*cam.zoom);}ctx.closePath();ctx.clip();
-   const seed=weatherSeed(weather?.id??id),drift=weather?.advection(time)??regionalAdvection(id,time),span=W/cam.zoom;
+   const seed=weatherSeed(weather?.id??id),backgroundDrift=regionalAdvection(id,time),span=W/cam.zoom;
    const flowDir=weather?1:dir,cover=weather?.cover(time)??.72;
    for(let layer=0;layer<3;layer++){
+    const base=weather?weather.altitude+weather.climate.cloudBase:1800,depthY=weather?.climate.cloudDepth??2200;
+    const drift=weather?weather.cloudAdvection(base-weather.altitude+layer*depthY,time):backgroundDrift;
     const spacing=2400,depth=1-layer*.16,canonicalCam=(cam.x-gateX)*flowDir;
     const lo=Math.floor((canonicalCam-span/depth/2-drift)/spacing)-1,hi=Math.ceil((canonicalCam+span/depth/2-drift)/spacing)+1;
     const stride=Math.max(1,Math.ceil((hi-lo)/(low?6:12)));
@@ -82,7 +84,6 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
      const r=weatherRandom(seed+layer*71,cell),shape=weatherRandom(seed+layer*71+19,cell);
      if(r<1-(weather?.climate.cloudCover??.72))continue;
      const world=gateX+flowDir*(cell*spacing+drift+r*spacing);
-     const base=weather?weather.altitude+weather.climate.cloudBase:1800,depthY=weather?.climate.cloudDepth??2200;
      const altitude=Math.min(body.atmosphere.height*.9,base+layer*depthY+(shape-.5)*depthY*.6);
      const x=W/2+(world-cam.x)*cam.zoom*depth,y=H/2-(altitude-cam.y)*cam.zoom;
      const w=(1400+shape*2400)*cam.zoom*depth,h=(450+r*650)*cam.zoom;
@@ -113,12 +114,12 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
    const start=Math.floor(left/80)-1,end=Math.ceil(right/80),stride=Math.max(1,Math.ceil((end-start)/(low?10:24)));
    ctx.strokeStyle='rgba(161,158,143,.18)';ctx.lineWidth=1;
    for(let i=Math.ceil(start/stride)*stride;i<=end;i+=stride){
-    const y=terrain.pad.y+12+weatherRandom(seed,i)*150,w=air.sample(i*80+40,y,time).vx;
-    if(Math.abs(w)<.01)continue;
+    const y=terrain.pad.y+12+weatherRandom(seed,i)*150,flow=air.sample(i*80+40,y,time),w=flow.vx,v=flow.vy??0;
+    if(Math.hypot(w,v)<.01)continue;
     const regional=weather?.wind(absoluteTime)??regionalWind(id,absoluteTime);
     const phase=drift*(Math.abs(regional)>.01?w/regional:1)/80+weatherRandom(seed+1,i),u=((phase%1)+1)%1,x=i*80+u*80;
     ctx.globalAlpha=Math.sin(Math.PI*u);
-    ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+w*.35),sy(y+1),sx(x+w*.8),sy(y));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+w*.35),sy(y+v*.35+1),sx(x+w*.8),sy(y+v*.8));ctx.stroke();
    }
    ctx.globalAlpha=1;
    tracers.draw(ctx,cam,W,H,low,air,time);

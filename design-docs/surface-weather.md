@@ -13,20 +13,22 @@ Status: LIVE in normal careers. Pete authorizes all atmospheric planets/moons an
 
 ## Regional model
 
+**Current model:** [spatial-wind-field.md](spatial-wind-field.md). Pete's November 3 follow-up supersedes predominantly temporal gusts: strong spatial shear/up-/downdrafts in approach, modest but varied lower currents, and sparse physical buffeting pockets. The table below contains field controls, not predicted local velocities.
+
 `src/surface-weather.ts` owns authored world defaults, selected site overrides and stateless evaluation. Permanent canonical POI identity seeds the `surface-weather-v1` namespace. Phase IDs, cameras, frame rate, wall-clock time and retry count never seed weather.
 
-- Two slow synoptic components (hours) plus two smooth gust components (seconds), with permanent prevailing direction/phase. Conditions can weaken, strengthen or briefly reverse. Site exposure, gust cadence, mean/gust speeds, cloud base/depth/coverage and wind-force budget differ.
+- Two slow synoptic components evolve a permanent 2D field. Smaller, more violent spatial cells distinguish challenging locations. Lower circulation blends into strong upper shear between 150 and 1,350 m above the resolved receiving-site datum. Rapid global temporal gust sines are removed.
 - Absolute time is `phase.worldTimeStart + elapsed`. Phase retry restores that epoch; identical inputs reproduce weather/flight/particles. Whole-mission retries retain their existing start-time mechanism. Flying/waiting longer encounters later weather, not an attempt-dependent reroll.
-- Regional advection is the analytic integral of the same wind; clouds and directional wisps do not use an independent weather clock.
+- Bulk clouds use analytic layer-shear advection; flecks and exhaust integrate actual local horizontal/vertical air. All use mission time. Cloud sheets approximate large-scale flow, not individual small vortex trajectories.
 - Terrain shelter uses physical landing height, blending to approach terrain away from the target. Floating decks receive full exposed flow, not fictitious mountain shelter. Their density uses absolute planetary altitude, not height above deck.
 - Density and wind taper continuously to zero at the atmosphere boundary. No atmospheric flow above it or on airless bodies.
 - Orselle/Financial District/First Dome Quarter use the same canonical weather seed, including clouds and tracers.
 
 ## Character / challenge
 
-World defaults are varied per POI (mean/gust scales ±15%, independent synoptic phases/periods). Representative tuning:
+World defaults are varied per POI (baseline/variation scales ±15%, independent synoptic phases/periods). Representative authored controls:
 
-| Place / family | Character | Nominal unsheltered mean / gust amplitude, m/s | Wind-increment bound, m/s² |
+| Place / family | Character | Baseline / spatial variation controls, m/s | Lower-field increment bound, m/s² |
 |---|---|---:|---:|
 | Gaia default | Temperate air | 8 / 4 | 0.65 |
 | Valenne / Mirabel / Cousteau | Sheltered farms / coastal crosswinds / polar fronts | 6 / 3; 12 / 6; 15 / 9 | 0.5 / 0.8 / 1.0 |
@@ -43,29 +45,33 @@ World defaults are varied per POI (mean/gust scales ±15%, independent synoptic 
 | Marisma | Slower dense methane squalls | 16 / 9 | 1.2 |
 | Mercy | Gentle cold nitrogen air | 6 / 3 | 0.25 |
 
-These are profile parameters, not constant wind speeds. Slow components also modulate the nominal mean. November 3 Stribog tuning supersedes the original 62 / 32 m/s, 3.8 m/s² profile: Pete found it too steady and wants ordinary non-Shift lateral control to cope, prioritizing gustiness. Prevailing baseline is now 10 m/s, combined gust amplitude 55 m/s, gust rate 0.9 rad/s (~7 / 19 s components), and wind-increment ceiling 3.7 m/s². Unsheltered absolute wind is bounded by 72 m/s. Peaks remain challenging but repeatedly pass through lulls and reversals instead of staying saturated. Other climates and phase/identity seeding are unchanged.
+These are field parameters, not constant wind speeds or forecasts. Stribog's earlier 62 / 32 m/s profile was first retuned to temporal 10 / 55 m/s gusts (`5bc0937`); that temporal implementation is now superseded by spatial circulation. Upper speeds/force budgets are intentionally much stronger than landing values. Current equations, coordinate anchoring and measured envelopes are in the spatial-field note.
 
-Zhulong fits because its fixed home port supports fleets working the storm belts. It remains fixed; no moving city or permanent eyewall is invented. Fuyuan's established calm belt remains gentler, while Bingjie has moderate polar exposure. Stribog retains the greatest wind-force budget; its challenge is short gusts rather than the greatest sustained wind speed. Other places can still be harder for non-weather reasons.
+Zhulong fits because its fixed home port supports fleets working the storm belts. It remains fixed; no moving city or permanent eyewall is invented. Fuyuan's established calm belt remains gentler, while Bingjie has moderate polar exposure. Stribog retains the greatest wind-force budget; its challenge is sharp currents/shear and disturbed pockets rather than a uniform sustained push. Other places can still be harder for non-weather reasons.
 
 ## Flight / continuity
 
-- Production landing retains density-scaled ground-relative base drag and adds a separately bounded relative-air wind increment. This hybrid is not pure air-relative drag: high sustained winds can saturate the increment and flatten felt gust variation. The Stribog retune moves its velocity profile through the responsive range; it does not rewrite the shared aerodynamic model.
+- Production landing retains density-scaled ground-relative base drag and adds a separately bounded relative-air wind increment. This hybrid is not pure air-relative drag: high sustained winds can saturate the increment and flatten felt gust variation. Both relative velocity components now drive this increment; the spatial field does not replace the underlying hybrid force law.
 - Approach and departure use the **same wind-induced drag increment** at matching position/velocity/absolute time. Old approach acceleration layers and random weather torque are replaced, never added on top. Old approach fixtures without regional air remain legacy comparisons.
-- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This is shared air and matched-state wind-force continuity, **not** a rewrite making the entire phase handoff physically seamless. Predictions use the same weather-force path. Existing approach turbulence warnings/exposure now follow strong changing regional winds; maintenance receives total production aerodynamic acceleration.
-- SAS still targets zero ground velocity, reserves finite RCS for wind before damping, consumes delta-v and maintenance effort, and does not add authority or cancel gravity. Most stock-rig profiles are within its hold authority; strong Stribog weather can saturate it. HUD explicitly warns `RCS LIMIT — USE MANUAL THRUST`. Actual stock ordinary lateral trim is tested at Stribog; no position lock or stronger thrusters. Gear-down non-Shift lateral + SAS totals 3.675 m/s² with default acceleration. The 3.7 ceiling is only 0.025 above that; scanned near-hover gusts peak around 3.54. This is a stock near-hover target, not a promise for every loadout/high-speed approach.
+- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This is shared air and matched-state wind-force continuity, **not** a rewrite making the entire phase handoff physically seamless. Predictions use the same weather-force path. Approach turbulence warnings/exposure now follow actual local vortex-induced torque, not merely changing wind. Coasting prediction includes the same rotational disturbance and resulting aero changes. Maintenance receives total production aerodynamic acceleration.
+- SAS still targets zero ground velocity, reserves finite RCS for wind before damping, consumes delta-v and maintenance effort, and does not add authority or cancel gravity. Most stock-rig profiles are within its hold authority; strong Stribog weather can saturate it. HUD explicitly warns `RCS LIMIT — USE MANUAL THRUST`. Actual stock ordinary lateral trim is tested at Stribog; no position lock or stronger thrusters. Gear-down non-Shift lateral + SAS totals 3.675 m/s² with default acceleration. The 3.7 ceiling is only 0.025 above that; the sampled lower spatial field peaks around 3.02. This is a stock near-hover target, not a promise for every loadout/high-speed approach.
 - Weather does not waive equipment/restriction gates, alter prices/access or add saved fields. Legacy dev-panel sine-wind settings do not stack with regional air.
 
 ## Presentation / budget
 
-- November 3 regression fix: the rollout suppressed old approach wind bands along with their obsolete force layers. `approach-wind-bands.ts` restores outline bands, arrows and **m/s** labels in actual approach/departure rendering, sampling `flightAir` at current mission time. These are altitude guides, not invented shear zones or restored acceleration layers; physics and predictions are unchanged. World-altitude anchors with bounded camera LOD (at most 26 rows / 96 arrows per row), atmosphere/terrain clipping, calm/vacuum suppression and HUD-clear labels. No texture/cache or simulation mutation.
+- November 3 regression fix: the rollout suppressed old approach wind bands along with their obsolete force layers. `approach-wind-bands.ts` restores outline bands, arrows and **m/s** labels in actual approach/departure rendering, sampling `flightAir` at current mission time. These are local vector guides, not restored acceleration layers. Arrows and labels now show both components; colors/directions can differ along a row. World-altitude anchors with bounded camera LOD (at most 26 rows / 96 arrows per row), atmosphere/terrain clipping, calm/vacuum suppression and HUD-clear labels. No texture/cache or simulation mutation.
 
 - Climate-dependent soft cloud coverage/base/depth and atmosphere tint; clouds in approach/departure and landing skies. Transparent sprite gutters prevent hard cloud ends. Upper atmosphere/physical terrain clips prevent sky effects outside the air column.
 - The existing 128-slot airborne tracer and 256-slot exhaust pools remain fixed. Strong wind increases visual emission cadence within the same smoke budget to fill stretched plumes. No draw-time aging or quality-dependent simulation.
 - Exact exclusion clips cover SVG solids and floating decks, supports and domes; no fake solid column beneath platforms. No changes to colliders or existing generic Dahai landing geometry.
 - One active regional presentation per Game, two small raster sprites (28,672 pixels total), weak terrain-air cache. No accumulating per-POI texture cache. `weatherVisuals` / `weatherLow` change paint only; production physical weather is on by default.
-- No new rain, lightning, vertical gust forces, ground dust, building wakes, smokestacks or geography. Future stack emitters retain the shared plume API.
+- Vertical air currents are now implemented. No new rain, lightning, ground dust, building wakes, smokestacks or geography. Future stack emitters retain the shared plume API.
 
-## Evidence
+## Current evidence
+
+- Spatial/vector/buffet unit 19,210; weather 4,393; wind-band 14. Legacy landing air 9,242 and updated vector tracer/smoke 154,217 pass. Native 566 covers actual all-site flight, field frame alignment, lower two-axis control, physical buffet/HUD, approach retry, constructor/reload/storage isolation. Build passes. See the spatial-field note and November 3 `st-vector-wind-*` Temp evidence for current measurements.
+
+## Historical rollout / temporal-gust evidence (superseded where noted)
 
 - `npm run test:surface-weather`: 14 wind-band checks (live direction/velocity/time, pause replay, clipping setup, HUD clearance, bounded work and immutable camera), plus 4,357 weather checks: all atmospheric sites/worlds plus vacuum exclusion, aliases, time variation, analytic advection, epoch equivalence, atmosphere edge, floating altitude/shelter, force continuity/bounds, finite SAS across authority variants, deterministic full control replay, and one-step live/predicted approach agreement.
 - Stribog gust tests: 325,367 checks across 54 mission epochs (day scan plus week/month/year offsets) × five heights (5–2,000 m), sampled every 0.1 s over one-minute windows. Observed peak 3.542 m/s², longest stretch without a <0.5 m/s² lull 4.6 s, minimum signed force swing 5.746 m/s², maximum window mean absolute force 1.557 m/s². Manual assistance beyond SAS needed in ~24% of samples, not continuously. Deterministic 4 Hz synthetic pilot input uses ordinary lateral thrust, never Shift; unit 30 s worst drift ~2.85 m versus ~14.31 m SAS-only.

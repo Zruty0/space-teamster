@@ -1,61 +1,60 @@
+// Spatial-field replacement for the former temporal-gust acceptance tests.
 import { bodyById, surfacePoiById } from '../src/world';
-import { createLandingLevel } from '../src/levels';
-import { generateTerrain, landingReferenceHeight } from '../src/terrain';
 import { createRegionalWeather } from '../src/surface-weather';
 import { landingAerodynamics } from '../src/landing-air';
-import { config } from '../src/config';
-import { createShip, updateShip } from '../src/ship';
+import { createPlayableEstellaMission } from '../src/estella-playable';
+import { APPROACH_LEVELS, approachTurbulenceTorque, approachInTurbulence, createApproachState, updateApproach, predictTrajectory } from '../src/approach';
 import { NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
-let checks=0;function assert(ok:unknown,msg:string){checks++;if(!ok)throw Error(msg);}
-const poi=surfacePoiById('estella-vi-spaceport'),body=bodyById(poi.bodyId),weather=createRegionalWeather(body,poi);
-const level=createLandingLevel(poi.id,991199),terrain=generateTerrain(level),ground=(x:number)=>landingReferenceHeight(level,terrain,x),air=weather.air(0,ground);
-const saved={...config},normal=saved.mainEngineAccel*.05,sas=saved.mainEngineAccel*.1;
-const epochs=[...Array.from({length:49},(_,i)=>i*1800),12345,43210,7*86400+123,31*86400+987,365*86400+456];
-let peak=0,maxLullGap=0,minSwing=Infinity,maxMean=0,manualDemand=0,samples=0;
-try{
- for(const altitude of [5,20,85,500,2000])for(const epoch of epochs){
-  let min=Infinity,max=-Infinity,quiet=0,run=0,longest=0,sum=0;
-  for(let tick=0;tick<600;tick++){
-   const t=epoch+tick*.1,f=landingAerodynamics(0,0,1000,terrain.pad.y+altitude,t,saved.dragCoeff,air).windAX,a=Math.abs(f);
-   peak=Math.max(peak,a);min=Math.min(min,f);max=Math.max(max,f);sum+=a;samples++;if(a>sas)manualDemand++;
-   if(a<.5){quiet++;run=0;}else{run+=.1;longest=Math.max(longest,run);}
-   assert(a<=normal+sas+.025+1e-9,'near-hover wind fits stock ordinary lateral + SAS, allowing only tiny excess');
-   assert(Math.abs(weather.wind(t))<=72+1e-9,'bounded gust velocity, no former 100+ m/s sustained flow');
-  }
-  assert(quiet>=60,'each landing-minute has at least six seconds of clear force lulls');
-  assert(min<-.3&&max>.3,'each landing-minute includes meaningful direction changes');
-  assert(max-min>3,'force swings remain perceptible after aerodynamic saturation');
-  assert(longest<8,'no prolonged unbroken shove');
-  assert(sum/600<1.7,'mean force stays far below former saturation');
-  maxLullGap=Math.max(maxLullGap,longest);minSwing=Math.min(minSwing,max-min);maxMean=Math.max(maxMean,sum/600);
- }
- assert(peak>sas,'Stribog gusts still demand manual trim beyond SAS');
- assert(manualDemand/samples>.1&&manualDemand/samples<.35,'manual assistance needed for bursts, not most of the landing');
- // Replay a reactive, ordinary-thrust pilot: cancel only wind beyond SAS, then
- // damp existing drift. No Shift, no extra actuator or hidden physics authority.
- Object.assign(config,saved,{gravity:level.gravity,startX:1000,startY:terrain.pad.y+85,startVX:0,startVY:0});
- const simulate=(epoch:number,manual:boolean)=>{
-  const s=createShip();Object.assign(s,{sas:true,gearDeployed:true,throttle:level.gravity/config.mainEngineAccel});
-  let maxDrift=0,effort=0,dir=0;
-  for(let tick=0;tick<3600;tick++){
-   const time=epoch+tick/120,f=landingAerodynamics(s.vx,s.vy,s.x,s.y,time,config.dragCoeff,air);
-   const residual=f.windAX-Math.sign(f.windAX)*Math.min(Math.abs(f.windAX),sas);
-   const correction=-residual-s.vx*1.5;
-   if(tick%30===0)dir=manual&&Math.abs(correction)>.15?Math.sign(correction):0; // 4 Hz pilot input, not perfect per-tick trim.
-   if(dir)effort++;
-   updateShip(s,{...NEUTRAL_FLIGHT_INPUT,moveLeft:dir<0,moveRight:dir>0,shiftHeld:false},1/120,time,air);
-   maxDrift=Math.max(maxDrift,Math.abs(s.x-1000));
-  }
-  return{ship:s,maxDrift,effort};
- };
- let worstControlled=0,worstUntrimmed=0;
- for(const epoch of [0,12345,43200,86400,31536456]){
-  const a=simulate(epoch,true),b=simulate(epoch,true),untrimmed=simulate(epoch,false);
-  assert(JSON.stringify(a)===JSON.stringify(b),'gust/controller replay deterministic');
-  assert(a.maxDrift<6&&a.effort>0&&a.ship.dvUsed>0,`ordinary manual trim controls gusts with paid finite thrust: ${JSON.stringify({epoch,drift:a.maxDrift,effort:a.effort,dv:a.ship.dvUsed,untrimmed:untrimmed.maxDrift})}`);
-  assert(a.maxDrift<untrimmed.maxDrift,'reactive ordinary input improves on SAS-only flight');
-  worstControlled=Math.max(worstControlled,a.maxDrift);worstUntrimmed=Math.max(worstUntrimmed,untrimmed.maxDrift);
- }
- console.log(JSON.stringify({stribogGusts:{peak,maxLullGap,minSwing,maxMean,manualDemandFraction:manualDemand/samples,worstControlled,worstUntrimmed}},null,2));
- console.log(`Stribog gust handling: ${checks} checks passed.`);
-}finally{Object.assign(config,saved);}
+import { config } from '../src/config';
+let checks=0;const assert=(ok:unknown,msg:string)=>{checks++;if(!ok)throw Error(msg);};
+const poi=surfacePoiById('estella-vi-spaceport'),body=bodyById(poi.bodyId),weather=createRegionalWeather(body,poi),air=weather.air(0,()=>30);
+const origin={xOffset:1000,siteX:1000,siteY:30},approachAir=weather.air(0,()=>30,origin);
+let left=0,right=0,up=0,down=0,lowPeak=0,upperPeak=0,forcePeak=0,maxJump=0;
+for(let x=0;x<=2000;x+=20)for(let h=5;h<=140;h+=15){
+ const a=air.sample(x,30+h,12345),b=air.sample(x+.01,30+h,12345);
+ left+=a.vx< -5?1:0;right+=a.vx>5?1:0;up+=(a.vy??0)>3?1:0;down+=(a.vy??0)<-3?1:0;
+ lowPeak=Math.max(lowPeak,Math.hypot(a.vx,a.vy??0));maxJump=Math.max(maxJump,Math.hypot(a.vx-b.vx,(a.vy??0)-(b.vy??0)));
+ const force=landingAerodynamics(0,0,x,30+h,12345,config.dragCoeff,air);forcePeak=Math.max(forcePeak,Math.hypot(force.windAX,force.windAY));
+ assert(a.windLimit===3.7,'landing keeps modest force ceiling');
+ assert(JSON.stringify(a)===JSON.stringify(approachAir.sample(x-1000,30+h,12345)),'approach/landing coordinates share the same physical field');
+ assert(JSON.stringify(a)===JSON.stringify(weather.air(12000,()=>30).sample(x,30+h,345)),'epoch changes do not reroll field');
+}
+assert(left>50&&right>50&&up>50&&down>50,'at a fixed time, surface locations have opposing winds and up/down drafts');
+assert(lowPeak<60&&forcePeak<3.675&&forcePeak>2.45,'stock normal lateral + SAS can cover the lower-field force envelope; peaks remain challenging');
+assert(maxJump<.1,'surface field spatially continuous');
+let maxUpperForce=0,upperUp=0,upperDown=0;
+for(let h=1600;h<12000;h+=40){const a=approachAir.sample(0,30+h,12345);upperPeak=Math.max(upperPeak,Math.hypot(a.vx,a.vy??0));upperUp+=(a.vy??0)>10?1:0;upperDown+=(a.vy??0)<-10?1:0;
+ const f=landingAerodynamics(120,-30,0,30+h,12345,config.dragCoeff,approachAir);maxUpperForce=Math.max(maxUpperForce,Math.hypot(f.windAX,f.windAY));}
+assert(upperPeak>100&&maxUpperForce>8&&upperUp>10&&upperDown>10,'approach has strong vector winds, not landing-limited forces');
+const cloudSpeeds=Array.from({length:15},(_,i)=>(weather.cloudAdvection(1600+i*350,12345.01)-weather.cloudAdvection(1600+i*350,12344.99))/.02);
+assert(cloudSpeeds.some(v=>v>30)&&cloudSpeeds.some(v=>v< -30),'bulk cloud layers have opposing shear advection');
+const before=air.sample(870,110,12345),later=air.sample(870,110,12350),elsewhere=air.sample(925,110,12345);
+assert(Math.hypot(before.vx-elsewhere.vx,(before.vy??0)-(elsewhere.vy??0))>20*Math.hypot(before.vx-later.vx,(before.vy??0)-(later.vy??0)),'moving between cells dominates short-term temporal drift');
+for(const h of [149.99,150,150.01,1349.99,1350,1350.01]){const a=air.sample(1000,h+30,0),b=air.sample(1000,h+30+.001,0);assert(Math.hypot(a.vx-b.vx,(a.vy??0)-(b.vy??0))<.01,'continuous low/high field blend');}
+const atRest=landingAerodynamics(0,0,0,100,0,.001,{sample:()=>({vx:0,vy:10,density:.18,windLimit:3})});assert(atRest.windAY>0&&atRest.windAX===0,'vertical wind creates real vertical aerodynamic force');
+const following=landingAerodynamics(0,10,0,100,0,.001,{sample:()=>({vx:0,vy:10,density:.18,windLimit:1e9})});assert(Math.abs(following.ay)<1e-10,'relative vertical airflow used, not an independent fake lift force');
+createPlayableEstellaMission('estella-iii-main-customs',poi.id,undefined,0);
+const template=APPROACH_LEVELS.find(l=>l.poi.id===poi.id&&!l.departure)!;
+const level={...template,flightAir:approachAir,windLayers:[],turbulence:[],gateX:1e9,gateRadius:0,departure:undefined};
+let peakTorque=0,core={x:0,y:3500,vx:140,vy:0},warned=0,total=0;
+for(let x=-8000;x<=8000;x+=80)for(let y=1800;y<=8000;y+=80){
+ const motion={x,y,vx:140,vy:0},torque=approachTurbulenceTorque(motion,level,0),warning=approachInTurbulence(y,level,0,motion);total++;if(warning)warned++;
+ assert(warning===(Math.abs(torque)>.08),'warning follows actual local rotational force');
+ if(Math.abs(torque)>peakTorque){peakTorque=Math.abs(torque);core=motion;}
+}
+assert(warned/total<.07&&warned>10&&peakTorque>.8&&peakTorque<2,'rare spatial pockets, tangible but controllable torque');
+assert(!approachInTurbulence(core.y,{...level,flightAir:{sample:approachAir.sample}},0,core),'ordinary shear/current alone does not trigger fake turbulence warning');
+assert(!approachInTurbulence(core.y,{...level,flightAir:{sample:(_x,_y,t)=>({vx:100+50*Math.sin(t*8),vy:0,density:1})}},0,core),'rapid temporal wind changes do not produce a fake buffet warning');
+assert(approachAir.approachBuffet!(core.x,core.y,12345)===weather.air(12000,()=>30,origin).approachBuffet!(core.x,core.y,345),'spatial buffet epoch continuity');
+assert(approachAir.approachBuffet!(0,body.atmosphere!.height,0)===0&&approachAir.approachBuffet!(0,20,0)===0,'no buffet outside airspace');
+const start=createApproachState(level,{...core,angle:1.4}),live={...start},retry={...start},calm={...start},quietLevel={...level,flightAir:{sample:approachAir.sample}},dt=1/120;
+const predicted=predictTrajectory(start,level,0,4,dt,true,false);let deflection=0;
+for(let i=0;i<predicted.points.length;i++){
+ updateApproach(live,{...NEUTRAL_FLIGHT_INPUT},level,dt,i*dt);updateApproach(retry,{...NEUTRAL_FLIGHT_INPUT},level,dt,i*dt);updateApproach(calm,{...NEUTRAL_FLIGHT_INPUT},quietLevel,dt,i*dt);
+ deflection=Math.max(deflection,Math.abs(live.angle-calm.angle));
+ assert(Math.hypot(live.x-predicted.points[i].x,live.y-predicted.points[i].y)<1e-6,'live/predicted trajectory share vector forces and buffet-induced rotation');
+}
+assert(live.alive&&deflection>.08&&deflection<.8,'actual bounded attitude kick, not just a warning');
+assert(JSON.stringify(live)===JSON.stringify(retry),'input/mission retry is identical');
+console.log(JSON.stringify({vectorField:{lowPeak,upperPeak,forcePeak,maxUpperForce,maxJump,warningCoverage:warned/total,peakTorque,deflectionDegrees:deflection*180/Math.PI}},null,2));
+console.log(`Spatial wind field / approach buffeting: ${checks} checks passed.`);

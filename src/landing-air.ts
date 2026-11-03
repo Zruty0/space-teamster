@@ -1,7 +1,11 @@
 // Air velocities are m/s. Never interpret approach acceleration layers as velocity.
 import type { BodyDef } from './world';
-export interface AirSample { vx:number; density:number; windLimit?:number; }
-export interface LandingAir { label?:string; sample(x:number,y:number,time:number):AirSample; }
+export interface AirSample { vx:number; vy?:number; density:number; windLimit?:number; }
+export interface LandingAir {
+ label?:string; sample(x:number,y:number,time:number):AirSample;
+ /** Optional regional rotational buffet for approach/departure, rad/s². Landing controls are unchanged. */
+ approachBuffet?(x:number,y:number,time:number):number;
+}
 export function weatherSeed(id:string){let h=2166136261;for(const c of id)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;}
 export function weatherRandom(seed:number,index:number){let h=seed^Math.imul(index,374761393);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296;}
 /** One permanent regional wind orientation, slow absolute-clock gusts; no RNG state. */
@@ -22,20 +26,21 @@ export function createLandingAir(body:BodyDef,poiId:string,epoch:number,ground:(
   return{vx:wind?regionalWind(poiId,epoch+time)*shelter:0,density};
  }};
 }
-export interface AeroForce {ax:number;ay:number;windX:number;windAX:number;windAY:number;}
+export interface AeroForce {ax:number;ay:number;windX:number;windY:number;windAX:number;windAY:number;}
 export function landingAerodynamics(vx:number,vy:number,x:number,y:number,time:number,drag:number,air:LandingAir):AeroForce{
  const sample=air.sample(x,y,time);
  // Pilot tuned to Hartwell's thin air. Cap only the wind increment, not baseline drag.
  const coefficient=drag*Math.min(3,Math.max(0,sample.density/.18));
- const speed=Math.hypot(vx,vy),relativeX=vx-sample.vx,relativeSpeed=Math.hypot(relativeX,vy);
+ const windY=sample.vy??0;
+ const speed=Math.hypot(vx,vy),relativeX=vx-sample.vx,relativeY=vy-windY,relativeSpeed=Math.hypot(relativeX,relativeY);
  const baseX=-vx*speed*coefficient,baseY=-vy*speed*coefficient;
- const deltaX=-relativeX*relativeSpeed*coefficient-baseX,deltaY=-vy*relativeSpeed*coefficient-baseY;
+ const deltaX=-relativeX*relativeSpeed*coefficient-baseX,deltaY=-relativeY*relativeSpeed*coefficient-baseY;
  const norm=Math.hypot(deltaX,deltaY);
  // Legacy pilot retains its tuning. Production climates have distinct bounded
  // authority demands; smooth saturation preserves gust variation in strong storms.
  const limit=Math.max(0,sample.windLimit??.35);
  const scale=sample.windLimit===undefined?(norm>.35?.35/norm:1):(limit>0?limit/Math.hypot(limit,norm):0);
- return{ax:baseX+deltaX*scale,ay:baseY+deltaY*scale,windX:sample.vx,windAX:deltaX*scale,windAY:deltaY*scale};
+ return{ax:baseX+deltaX*scale,ay:baseY+deltaY*scale,windX:sample.vx,windY,windAX:deltaX*scale,windAY:deltaY*scale};
 }
 /** Ground-relative zero-velocity target, with disturbance feed-forward. Not position lock. */
 export function landingSasForce(vx:number,vy:number,authority:number,aero:AeroForce){

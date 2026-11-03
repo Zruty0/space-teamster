@@ -45,4 +45,15 @@ const valid=JSON.stringify(effects.snapshot());effects.emitSmoke({x:NaN,y:1,vx:0
 effects.reset();assert(effects.snapshot().length===0&&effects.tracerSnapshot().length===0,'both pools reset together');
 effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:5,life:8},air(0,0),0);
 assert(effects.snapshot()[0].life<=.35,'vacuum source cannot leave lingering atmospheric smoke');
+// Real 2D flow: vertical-only wind must advect and paint, not be treated as calm.
+for(const vy of [-8,8]){
+ const vertical:LandingAir={sample:()=>({vx:0,vy,density:.18})};fx.reset();fx.step(air(0),terrain,dt,0);const start=fx.snapshot();fx.step(vertical,terrain,dt,dt);
+ for(const p of fx.snapshot()){const old=start.find(q=>q.id===p.id&&q.generation===p.generation);if(old)assert(p.x===old.x&&Math.abs(p.y-old.y-vy*dt)<1e-9,'tracers follow up/down flow');}
+ const calls:any[]=[],ctx=new Proxy({} as any,{get:(_o,k)=>(...args:any[])=>calls.push([k,...args]),set:()=>true}),snapshot=JSON.stringify(fx.snapshot());
+ fx.draw(ctx,{x:1000,y:terrain.pad.y+100,zoom:1},1200,720,false,vertical,dt);
+ assert(calls.some(c=>c[0]==='stroke'),'vertical-only wind has visible tracers');assert(JSON.stringify(fx.snapshot())===snapshot,'vector drawing is read-only');
+ effects.reset();effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:0,life:6},vertical,0);
+ for(let i=0;i<120;i++)effects.step(ship,vertical,terrain,dt,i*dt);
+ const plume=effects.snapshot()[0];assert(!!plume&&Math.sign(plume.vy)===Math.sign(vy)&&Math.sign(plume.y-terrain.pad.y-100)===Math.sign(vy),'smoke follows updrafts and downdrafts');
+}
 console.log(`Wind tracers / reusable smoke sources passed: ${n} assertions.`);

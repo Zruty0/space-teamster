@@ -24,9 +24,10 @@ try{
   const canonical=createRegionalWeather(body,surfacePoiById(canonicalEstellaLocationId(poi.id)));
   assert(weather.wind(12345)===canonical.wind(12345)&&weather.advection(12345)===canonical.advection(12345),'district aliases share physical city weather');
   const y=terrain.pad.y+80,copy=createRegionalWeather(body,{...poi}),otherEpoch=weather.air(epoch+300,ground);
+  assert(JSON.stringify(air.sample(1000,y,0))===JSON.stringify(canonical.air(epoch,ground).sample(1000,y,0)),'canonical districts share the complete vector field');
   for(const t of [0,20,300,9000,21600,86400,400000]){
    assert(weather.wind(t)===copy.wind(t),'permanent identity determinism');
-   assert(Math.abs((weather.advection(t+.01)-weather.advection(t-.01))/.02-weather.wind(t))<.001,'analytic cloud drift follows regional wind');
+   assert(Math.abs((weather.advection(t+.01)-weather.advection(t-.01))/.02-weather.wind(t))<.001,'analytic background cloud drift follows synoptic wind');
    assert(JSON.stringify(air.sample(1000,y,t+300))===JSON.stringify(otherEpoch.sample(1000,y,t)),'phase/retry epochs share the same absolute air');
   }
   assert(Math.abs(weather.wind(epoch)-weather.wind(epoch+7200))>.001,'mission time changes weather');
@@ -44,11 +45,11 @@ try{
   assert(Math.abs(state.x-prediction.points[0].x)<1e-10&&Math.abs(state.y-prediction.points[0].y)<1e-10,'live/predicted approach weather agrees');
   if(poi.landingLayout?.kind==='cloud-city'){
    const sample=air.sample(1000,poi.altitude+10,0);
-   assert(Math.abs(sample.vx-weather.wind(epoch))<1e-9,'floating decks do not invent ground shelter');
+   assert(JSON.stringify(sample)===JSON.stringify(weather.air(epoch,()=>-1234,{siteY:terrain.pad.y}).sample(1000,poi.altitude+10,0)),'floating decks do not invent ground shelter');
    assert(Math.abs(sample.density-body.atmosphere.surfaceDensity*Math.exp(-(poi.altitude+10)/body.atmosphere.scaleHeight))<1e-9,'floating density uses absolute altitude');
   }
   let peak=0,peakTime=0;
-  for(let t=0;t<86400;t+=120){const a=landingAerodynamics(0,0,1000,y,t,config.dragCoeff,air),f=Math.hypot(a.windAX,a.windAY);if(f>peak){peak=f;peakTime=t;}}
+  for(let t=0;t<86400;t+=7200)for(let x=500;x<=1500;x+=25){const a=landingAerodynamics(0,0,x,y,t,config.dragCoeff,air),f=Math.hypot(a.windAX,a.windAY);if(f>peak){peak=f;peakTime=t;}}
   Object.assign(config,saved,{gravity:level.gravity,startX:1000,startY:y,startVX:0,startVY:0});
   const sim=()=>{const s=createShip();Object.assign(s,{gearDeployed:true,sas:true,throttle:level.gravity/config.mainEngineAccel});for(let i=0;i<1200;i++)updateShip(s,{...NEUTRAL_FLIGHT_INPUT},1/120,peakTime+i/120,air);return s;};
   const first=sim(),retry=sim();assert(JSON.stringify(first)===JSON.stringify(retry),'deterministic full control replay');
