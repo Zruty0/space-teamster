@@ -116,6 +116,8 @@ assert(state.contracts[0]===old&&game.activeCareerContract===old&&JSON.stringify
 let launchIds:string[]=[];
 game.launchPlayableEstellaMission=(source:string,destination:string)=>{launchIds=[source,destination];};
 game.phase={kind:'interactiveScene',scene:{...state,id:'contractPosting',contractIndex:0}};
+// This test exercises presentation/legacy quote identity, not bypassing the new eligibility gate.
+for(const id of Object.keys(game.career.reputations))game.career.reputations[id]=2;
 game.activateInteractiveSceneOption(game.phase.scene,'acceptContract');
 assert(launchIds[0]===old.sourceId&&launchIds[1]===old.destinationId&&game.activeMissionQuote===old.quote&&game.activeCareerContract===old,'actual acceptance launches original detailed berth IDs and retains quoted economics');
 game.missionDvUsed=0;game.worldTime=100;game.activeManifestCondition={};game.loadStationTerminal=()=>{};

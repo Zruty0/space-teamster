@@ -92,7 +92,7 @@ for (const track of REPUTATION_TRACKS) if (![CHR, STEEL].includes(track.id)) { a
 for (const contract of [routine, records, custody, combine]) {
   const before = JSON.stringify(all), p = previewContractReputation(all, contract);
   for (const track of REPUTATION_TRACKS) if (![CHR, STEEL].includes(track.id)) {
-    assert(p.reputations[track.id] === .75 && p.reputationUnrelatedContracts[track.id] === 4, 'no donor awards or unauthored decay');
+    assert(p.reputations[track.id] === .75 && p.reputationUnrelatedContracts[track.id] === (track.id === 'smuggler-notoriety' ? 4 : 5), 'no donor awards or below-1 decay; authored tracks consume unrelated slots');
   }
   equal(JSON.stringify(all), before, 'pure preview cannot mutate career');
 }

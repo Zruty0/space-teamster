@@ -23,9 +23,9 @@ const GUILD_ID = 'teamsters-guild';
 const GUILD_NAME = 'The Teamsters\' Guild';
 const GUILD_TAG = 'GUILD';
 
-// Routine Guild work pays a normal fixed premium plus partial fuel reimbursement. Near-star
-// precursor runs are the "extreme rates, extreme mortality" work: high fixed pay, little or no
-// reimbursement.
+// Legacy authoring fees are retained for historical quote reconstruction. New paid offers,
+// including skim work, use the approved commercial net-income curve in makeFactionContract.
+// Actual-fuel reimbursement remains partial (routine/staging) or zero (near-star precursor runs).
 const GUILD_BASE_GENEROSITY = 0.85;
 const GUILD_BASE_COMPENSATION_RATIO = 0.4;
 const SKIM_GENEROSITY = 1.7;

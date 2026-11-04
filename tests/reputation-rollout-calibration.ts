@@ -1,13 +1,27 @@
 // Offline fixed-reference fitting. Never imported by production.
 import { fitCoverage, sampleAllBoards } from './audit-contract-gate-coverage';
 import { remainingReviewPolicy } from './audit-remaining-reputation';
-import { fitIncomeCurve, type IncomeSample } from './audit-contract-income';
+import { fitIncomeCurve, incomeStats, type IncomeSample } from './audit-contract-income';
 import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts';
 import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
 import { canonicalEstellaLocationId } from '../src/content/estella/location-aliases';
 import { generateFactionContractCandidates } from '../src/content/estella/faction-contracts';
 import { localTerminalScopeIds } from '../src/local-directory';
+import { calibrateNewContractQuote, contractIncomeMinimum } from '../src/contract-income';
+import { contractWorkPolicy } from '../src/contract-work-policy';
+import { emptyTravelAccess } from '../src/content/estella/empty-travel-access';
 export { sampleAllBoards };
+export function summarizeLive(rows: IncomeSample[]) {
+  return [...new Set(rows.map(r => r.contract.factionId!))].sort().map(provider => {
+    const pool = rows.filter(r => r.contract.factionId === provider).map(r => ({ ...r, contract: { ...r.contract,
+      quote: calibrateNewContractQuote(r.contract, r.contract.quote) } }));
+    const ordinary = pool.filter(r => contractWorkPolicy(r.contract)?.importantNet === undefined && !r.contract.nunesInquiry);
+    const bands = [0, 1, 2].map(level => { const at = ordinary.filter(r => contractIncomeMinimum(r.contract) === level);
+      return { level, percent: Math.round(at.length / ordinary.length * 1000) / 10, ...incomeStats(at.map(r => r.contract.quote.expectedMargin)),
+        publicFreight: at.filter(r => r.contract.category === 'freight' && emptyTravelAccess(r.boardSource) === 'public').length }; });
+    return { provider, appearances: pool.length, commercial: ordinary.length, bands };
+  });
+}
 export function focusedBoards(firstDay: number, days: number) {
   const rows: IncomeSample[] = [];
   const selected = (p?: string) => p === 'estella-government' || p === 'sahra-civilian-bookings';

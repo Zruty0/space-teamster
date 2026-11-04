@@ -1,7 +1,9 @@
 # All-contract reputation / income coverage audit
 
 Updated: 2026-11-04 (Pacific)
-Status: **Audit and gap-closing policy, not live enforcement.** Pete approves the [remaining-stage pack](faction-reputation-remaining.md) and directs auditing all contracts, specifically requiring expensive Gaia/Dahai-origin civilian work to use GOV reputation and similar income limits. This supersedes the previous design exclusion of those civilian pools. Only Combine/CHR runtime gates currently exist; a complete review is not a complete rollout.
+Status: **Pete approved all recommendations and requested implementation; all 34 paid providers now have runtime gates and calibrated new quotes.** Guild skim work uses commercial targets; all five civilian pools read Institutions. See [rollout validation](reputation-rollout.md). The audit below records the earlier gap, not current runtime omissions.
+
+Status at audit (historical): **Audit and gap-closing policy, not live enforcement.** Pete approves the [remaining-stage pack](faction-reputation-remaining.md) and directs auditing all contracts, specifically requiring expensive Gaia/Dahai-origin civilian work to use GOV reputation and similar income limits. This supersedes the previous design exclusion of those civilian pools. Only Combine/CHR runtime gates currently exist; a complete review is not a complete rollout.
 
 ## Finding: the civilian loophole is real
 

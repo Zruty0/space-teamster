@@ -1,4 +1,5 @@
-// Review-only classifier/supply guards, not a live Kisaragi progression implementation.
+// Retained review oracle and live Kisaragi regression guards.
+import { incomeEconomicMinimum } from '../src/contract-income';
 import { KIS, KISE, KISARAGI_IMPORTANT_REVIEW_IDS, proposedKisaragiClass, projectKisaragiReviewEvent, sampleKisaragiBoards, fitProposedKiseCurve, auditKisaragiProposal } from './audit-kisaragi-reputation';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from '../src/content/estella/faction-contracts/kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from '../src/content/estella/faction-contracts/kisaragi-estella-contracts';
@@ -96,12 +97,13 @@ assert(employerReputationLevel(career.reputations, KISE) === 1 && employerReputa
 const otherCorporate = { ...normalizeReputations(undefined), 'voss-heinkel-metricwerke': 3 };
 assert(employerReputationLevel(otherCorporate, KISE) === 0 && employerReputationLevel(otherCorporate, KIS) === 0, 'other corporate recognition cannot bypass this own-track relationship');
 for (const row of rows) {
-  assert(contractReputationLockReasons(career, row.contract).length === 0, 'review has not activated Kisaragi gates');
+  assert(!!contractReputationLockReasons(career, row.contract).length === (incomeEconomicMinimum(row.contract.factionId, row.contract.quote.expectedMargin)! > 1 || row.contract.factionId === KIS), 'live own/shared gates honor quote and parent floor');
   const next = previewContractReputation(career, row.contract);
-  assert(next.reputations.kisaragi === 1.5 && next.reputationUnrelatedContracts.kisaragi === 5, 'review has not activated gains/decay/refresh');
+  const expected = projectKisaragiReviewEvent(1.5, 5, row.contract);
+  assert(next.reputations.kisaragi === expected.score && next.reputationUnrelatedContracts.kisaragi === expected.unrelated, 'live Kisaragi arithmetic matches approved review');
 }
 for (const id of ['estella-vi-heavy-cargo-station', 'estella-via-component-supply-station', 'estella-via-drydock-station',
   'estella-xie-rare-alloy-extraction', 'estella-xie-outer-spec-drydock']) {
   assert(canTravelEmpty(career, id), 'existing public pickup/receiving interface retained');
 }
-console.log(`Kisaragi review: ${checks} checks, ${candidates} raw candidates, ${importantIds.size} important identities, ${rows.length} actual postings; production progression/gates unchanged.`);
+console.log(`Kisaragi review: ${checks} checks, ${candidates} raw candidates, ${importantIds.size} important identities, ${rows.length} actual postings; production progression/gates match approved review.`);

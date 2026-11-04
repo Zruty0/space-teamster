@@ -1,37 +1,52 @@
 import type { CareerContract } from './career-contracts';
 import type { CareerProfile } from './career-state';
-import { normalizeReputations, normalizeReputationUnrelatedContracts, reputationStanding, type ReputationId } from './reputation';
-import { combineContractClass, cerberusContractClass, type ContractIdentity } from './contract-work';
+import { normalizeReputations, normalizeReputationUnrelatedContracts, reputationStanding, REPUTATION_TRACKS, type ReputationId } from './reputation';
+import { type ContractIdentity } from './contract-work';
+import { contractWorkPolicy, noncommercialContract, isHouseId, HOUSE_IDS, houseRivalLoss, CIVILIAN_RECOGNITION_PROVIDERS } from './contract-work-policy';
+import { employerReputationLevel } from './employer-reputation';
 import { contractIncomeMinimum } from './contract-income';
 export { combineContractClass, cerberusContractClass, type CombineWorkClass, type CerberusWorkClass } from './contract-work';
 
-const COMBINE = 'steel-combine';
-const CERBERUS = 'cerberus-human-resources';
+const COMBINE = 'steel-combine', CERBERUS = 'cerberus-human-resources';
 // Political impact is independent of advancement importance; records/audits are not disapproval.
 const COERCIVE_CHR = new Set(['custody-transfer-to-olympos', 'local-custody-processing',
   'surface-labor-allocation', 'local-surface-labor-processing']);
 
+/** Explicit attribution, including legacy accepted work. Never infer credit from recognition/hosts. */
+export function contractEarningTrack(contract: ContractIdentity): ReputationId | undefined {
+  const p = contract.factionId;
+  if (p === 'bruckner-field-services') return 'voss-heinkel-metricwerke';
+  if (p === 'kisaragi-harmony-yards' || p === 'kisaragi-yards-estella') return 'kisaragi';
+  if (p === 'estella-government' || p === 'estella-defence-force' || p === 'estella-institute-of-planetology') return 'estella-institutions';
+  return REPUTATION_TRACKS.find(t => t.id === p && t.id !== 'smuggler-notoriety' && t.id !== 'estella-institutions' && t.id !== 'kisaragi')?.id;
+}
+
 type QuotedIdentity = ContractIdentity & Partial<Pick<CareerContract, 'quote'>>;
 export function contractReputationLockReasons(career: Pick<CareerProfile, 'reputations'>, contract: QuotedIdentity): string[] {
-  if (contract.category === 'empty' || contract.travelMode === 'old-nell') return [];
-  if (contract.factionId === CERBERUS) {
-    const work = cerberusContractClass(contract);
-    const trust = work === 'entrusted-commercial' ? 2 : work === 'important' ? 1 : 0;
-    // Unquoted candidate classification is useful to audits; actual postings always have a quote.
-    const minimum = contract.quote ? contractIncomeMinimum({ ...contract, quote: contract.quote }) : trust;
-    if (minimum === undefined) return ['Contract earnings could not be verified.'];
-    if (reputationStanding(career.reputations, CERBERUS).level >= minimum) return [];
-    return [`Requires Cerberus Human Resources reputation level ${minimum} (${minimum === 1 ? 'Verified Asset' : 'Trusted Instrument'}).`];
-  }
-  if (contract.factionId !== COMBINE) return [];
-  if (reputationStanding(career.reputations, CERBERUS).level === 3) {
+  if (noncommercialContract(contract)) return [];
+  const policy = contractWorkPolicy(contract);
+  if (!policy) return ['Contract reputation requirements could not be verified.'];
+  if (contract.factionId === COMBINE && reputationStanding(career.reputations, CERBERUS).level === 3) {
     return ['Steel Combine refuses contracts because of your level-3 affiliation with Cerberus Human Resources.'];
   }
-  const work = combineContractClass(contract);
-  const minimum = work === 'export' ? 2 : work === 'important' || work === 'elevated-routine' ? 1 : 0;
-  if (reputationStanding(career.reputations, COMBINE).level >= minimum) return [];
-  const title = minimum === 1 ? 'Registered Sympathizer' : 'Honorary Citizen';
-  return [`Requires Steel Combine reputation level ${minimum} (${title}).`];
+  if (isHouseId(contract.factionId)) {
+    const rival = HOUSE_IDS.find(id => id !== contract.factionId && reputationStanding(career.reputations, id).level === 3);
+    if (rival) return [`${reputationStanding(undefined, contract.factionId).name} refuses contracts because of your level-3 affiliation with ${reputationStanding(undefined, rival).name}.`];
+  }
+  // Unquoted identities support policy inspection; actual offers always carry immutable quotes.
+  const minimum = contract.quote ? contractIncomeMinimum({ ...contract, quote: contract.quote }) : policy.trust;
+  if (minimum === undefined) return ['Contract earnings could not be verified.'];
+  const level = employerReputationLevel(career.reputations, contract.factionId ?? '');
+  if (level === undefined) return ['Contract reputation requirements could not be verified.'];
+  if (level >= minimum) return [];
+  const track = contractEarningTrack(contract)
+    ?? (CIVILIAN_RECOGNITION_PROVIDERS.some(p => p === contract.factionId) ? 'estella-institutions' : undefined);
+  if (track) {
+    const standing = reputationStanding({ ...normalizeReputations(undefined), [track]: minimum }, track);
+    return [`Requires ${standing.name} reputation level ${minimum} (${standing.title}).`];
+  }
+  const label = contract.factionId === 'oathmark-accord-authority' || contract.factionId === 'wells-noble-houses' ? 'House' : 'commercial';
+  return [`Requires ${label} recognition level ${minimum}.`];
 }
 
 export type ContractReputationEffect = {
@@ -41,39 +56,50 @@ export type ContractReputationEffect = {
   after: number;
 };
 
-/** Preserve the exact authored 1/30 grid without rounding arbitrary saved/dev standings. */
-function shiftByTicks(value: number, ticks: number): number {
-  const grid = Math.round(value * 30);
-  return grid / 30 === value ? (grid + ticks) / 30 : value + ticks / 30;
+/** Preserve authored rational grids without rounding arbitrary saved/dev standings. */
+function shift(value: number, amount: number, gridSize: number): number {
+  const grid = Math.round(value * gridSize);
+  return grid / gridSize === value ? (grid + Math.round(amount * gridSize)) / gridSize : value + amount;
+}
+export function reputationProgressionPolicy(track: ReputationId) {
+  return isHouseId(track) ? { introduction: 1 / 4, grace: 7, decay: 1 / 40, grid: 120 }
+    : track === 'kisaragi' ? { introduction: 1 / 4, grace: 10, decay: 1 / 50, grid: 100 }
+    : { introduction: track === 'covenant-remnants' ? 1 : 1 / 2, grace: 5, decay: 1 / 30, grid: track === 'covenant-remnants' ? 60 : 30 };
 }
 
-/** Pure shared preview/settlement. Only Combine and Cerberus have authored progression. */
+/** Pure shared preview/settlement, published only after the existing atomic career save. */
 export function previewContractReputation(career: Pick<CareerProfile, 'reputations' | 'reputationUnrelatedContracts'>, contract: ContractIdentity) {
   const reputations = normalizeReputations(career.reputations);
   const reputationUnrelatedContracts = normalizeReputationUnrelatedContracts(career.reputationUnrelatedContracts);
   const effects: ContractReputationEffect[] = [];
   if (contract.category === 'empty' || contract.travelMode === 'old-nell') return { reputations, reputationUnrelatedContracts, effects };
-  for (const faction of [COMBINE, CERBERUS] as const) {
-    const before = reputations[faction];
+  const owner = contractEarningTrack(contract), work = contractWorkPolicy(contract), favorLoss = houseRivalLoss(contract);
+  for (const { id: faction } of REPUTATION_TRACKS) {
+    if (faction === 'smuggler-notoriety') continue; // No invented contact/quest progression.
+    const before = reputations[faction], policy = reputationProgressionPolicy(faction);
     let after = before;
-    if (contract.factionId === faction) {
+    if (owner === faction) {
       reputationUnrelatedContracts[faction] = 0;
-      const important = faction === COMBINE ? combineContractClass(contract) === 'important' : cerberusContractClass(contract) === 'important';
-      if (before < 1) after = Math.min(1, shiftByTicks(before, 15));
-      else if (before < 2 && important) after = Math.min(2, shiftByTicks(before, 2));
+      if (before < 1) after = Math.min(1, shift(before, policy.introduction, policy.grid));
+      else if (before < 2 && work?.advancedGain) after = Math.min(2, shift(before, work.advancedGain[0] / work.advancedGain[1], policy.grid));
       if (after > before) effects.push({ faction, kind: 'advance', before, after });
       else if (before > 1 && before !== Math.floor(before)) effects.push({ faction, kind: 'maintain', before, after });
     } else {
-      const count = before < 1 ? 0 : Math.min(Number.MAX_SAFE_INTEGER, (reputationUnrelatedContracts[faction] ?? 0) + 1);
+      // Preserve existing Combine/CHR below-1 counters. Other authored policies count every unrelated completion.
+      const count = (faction === COMBINE || faction === CERBERUS) && before < 1 ? 0
+        : Math.min(Number.MAX_SAFE_INTEGER, (reputationUnrelatedContracts[faction] ?? 0) + 1);
       reputationUnrelatedContracts[faction] = count;
-      const lossTicks = faction !== COMBINE || contract.factionId !== CERBERUS ? 0
-        : COERCIVE_CHR.has(contract.templateId ?? '') ? 6 : contract.templateId === 'local-workforce-manifests' ? 3 : 0;
-      if (lossTicks) {
-        // No promotion to the rival floor or double passive charge; CHR has no reciprocal hostility.
-        after = Math.min(before, Math.max(1, shiftByTicks(before, -lossTicks)));
+      const loss = faction === COMBINE && contract.factionId === CERBERUS
+        ? COERCIVE_CHR.has(contract.templateId ?? '') ? .2 : contract.templateId === 'local-workforce-manifests' ? .1 : 0
+        : isHouseId(faction) ? favorLoss : 0;
+      if (isHouseId(faction) && isHouseId(owner) && before < 1) {
+        after = Math.min(1, shift(before, 1 / 8, 120));
+        if (after > before) effects.push({ faction, kind: 'advance', before, after });
+      } else if (loss) {
+        after = Math.min(before, Math.max(1, shift(before, -loss, policy.grid)));
         if (after < before) effects.push({ faction, kind: 'rival-loss', before, after });
-      } else if (count > 5 && before >= 1) {
-        after = Math.max(Math.floor(before), shiftByTicks(before, -1));
+      } else if (count > policy.grace && before >= 1) {
+        after = Math.max(Math.floor(before), shift(before, -policy.decay, policy.grid));
         if (after < before) effects.push({ faction, kind: 'decay', before, after });
       }
     }
@@ -90,7 +116,6 @@ export function contractReputationNotice(effect: ContractReputationEffect): stri
   if (effect.kind === 'maintain') return `This is routine work for ${faction}. Completing it will maintain your reputation with them.`;
   return undefined;
 }
-
 export function contractReputationNotices(career: Pick<CareerProfile, 'reputations' | 'reputationUnrelatedContracts'>, contract: ContractIdentity) {
   return previewContractReputation(career, contract).effects.flatMap(effect => {
     const text = contractReputationNotice(effect);

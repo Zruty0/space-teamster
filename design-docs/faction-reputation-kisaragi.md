@@ -1,7 +1,9 @@
 # Kisaragi / KIS-E — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Reviewed; November 4 pacing comment resolved in design, not implemented.** Pete approved [VHM/Bruckner](faction-reputation-vhm.md) in `fbd06e9` and directed proceeding. Kisaragi's prices, stored track and KIS-E recognition already exist; this proposed earning path, important-price separation and contract locks do not. Runtime rollout remains separate from this review.
+Status: **Approved KIS/KIS-E 4/20 progression, 10/50 decay, important prices and gates are implemented.** See [rollout validation](reputation-rollout.md). Comments below remain verbatim.
+
+Prior review status (historical): **Reviewed; November 4 pacing comment resolved in design, not implemented.** Pete approved [VHM/Bruckner](faction-reputation-vhm.md) in `fbd06e9` and directed proceeding. Kisaragi's prices, stored track and KIS-E recognition already exist; this proposed earning path, important-price separation and contract locks do not. Runtime rollout remains separate from this review.
 
 ## Existing authority and distinctions
 

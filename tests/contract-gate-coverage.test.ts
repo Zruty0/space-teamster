@@ -1,4 +1,4 @@
-// Coverage audit only: approval and proposed gates are not production implementation.
+// Original coverage policy plus live acceptance/recognition regression guards.
 import { contractGateCoverage, coveredIncomeMinimum, coveredProjectedNet, fitCoverage, sampleAllBoards,
   sampleContactOffers, CIVILIAN_RECOGNITION_PROVIDERS, ADDITIONAL_PRICING_PROVIDERS } from './audit-contract-gate-coverage';
 import { ESTELLA_FACTION_CONTRACT_PROVIDERS } from '../src/content/estella/faction-contracts';
@@ -67,9 +67,9 @@ for (const { contract: c } of rows) {
   if (ADDITIONAL_PRICING_PROVIDERS.includes(c.factionId!)) {
     const pay = { ...c.quote.pay, generosity: 0, flatReward: net + c.quote.parFuelCost - contractFuelCompensation(c.quote.pay, c.quote.parFuelCost, c.quote.parFuelCost) };
     assert(pay.flatReward >= 0 && contractGrossPay(pay, c.quote.parFuelCost, c.quote.parFuelCost) - c.quote.parFuelCost === net, 'new pool target net retains original reimbursement/cap');
-    assert(contractReputationLockReasons(defaultCareerProfile(), c).length === 0, 'audit does not pretend new production gates are live');
+    assert(!!contractReputationLockReasons(defaultCareerProfile(), c).length === (coveredIncomeMinimum(policy, c.quote.expectedMargin) > 0), 'live new-pool gates use offered quote, not refitted audit projection');
     const profile = defaultCareerProfile(); profile.reputations!['estella-institutions'] = 1.5; profile.reputationUnrelatedContracts!['estella-institutions'] = 5;
-    assert(previewContractReputation(profile, c).reputations['estella-institutions'] === 1.5, 'recognition proposal does not silently grant civilian/Guild GOV credit');
+    assert(previewContractReputation(profile, c).reputations['estella-institutions'] === 44 / 30, 'civilian/Guild recognition neither awards nor refreshes Institutions; unrelated decay applies');
   }
 }
 assert(JSON.stringify(rows) === before, 'new/accepted quotes and identities never mutated by audit');

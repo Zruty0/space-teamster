@@ -1,4 +1,5 @@
-// Review classifiers/projection only; runtime VHM/BFS progression is intentionally still off.
+// Retained review oracle compared with approved live VHM/BFS behavior.
+import { incomeEconomicMinimum } from '../src/contract-income';
 import { BFS, VHM, proposedVhmClass, sampleVhmBoards, fitProposedBfsCurve, auditVhmProposal } from './audit-vhm-reputation';
 import { BRUCKNER_FIELD_SERVICES_PROVIDER } from '../src/content/estella/faction-contracts/bruckner-contracts';
 import { VOSS_HEINKEL_METRICWERKE_PROVIDER } from '../src/content/estella/faction-contracts/vhm-contracts';
@@ -46,10 +47,10 @@ const career = defaultCareerProfile();
 career.reputations = { ...normalizeReputations(undefined), [VHM]: 1.5 };
 career.reputationUnrelatedContracts = { [VHM]: 5 };
 for (const row of rows) {
-  assert(!contractReputationLockReasons(career, row.contract).length, 'review does not activate actual gates');
+  assert(!!contractReputationLockReasons(career, row.contract).length === (incomeEconomicMinimum(row.contract.factionId, row.contract.quote.expectedMargin)! > 1 || row.contract.factionId === VHM), 'live gate honors quoted income and direct-parent floor');
   const next = previewContractReputation(career, row.contract);
-  assert(next.reputations[VHM] === 1.5 && next.reputationUnrelatedContracts[VHM] === 5, 'review does not activate awards or grace reset');
+  assert(next.reputations[VHM] === (proposedVhmClass(row.contract) === 'important' ? 47 / 30 : 1.5) && next.reputationUnrelatedContracts[VHM] === 0, 'approved important gains and shared own refresh live');
 }
 assert(canTravelEmpty(career, 'estella-viii-harder-approach-station'), 'depot has public operational arrival, not a new reputation perk');
 assert(!canTravelEmpty(career, 'deepest-dock-poi'), 'Farwatch remains contract-only despite network work');
-console.log(`VHM/BFS review: ${checks} checks, ${candidates} raw candidates, ${importantIds.size} important identities, ${rows.length} live postings; no production progression/gates changed.`);
+console.log(`VHM/BFS review: ${checks} checks, ${candidates} raw candidates, ${importantIds.size} important identities, ${rows.length} live postings; production gains/gates match approved review.`);

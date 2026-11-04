@@ -1,4 +1,6 @@
-// Batched review guards, not a production rollout or a flown-campaign test.
+// Retained review oracle and live rollout checks, not a flown-campaign test.
+import { incomeEconomicMinimum } from '../src/contract-income';
+import { proposedCovenantClass } from './audit-covenant-reputation';
 import { DAEDALUS, BAM, MERREN, GOV, EDF, EIP, NEW_EARNING_PROVIDERS, RECIPIENT_PROVIDERS, REMAINING_PROVIDERS,
   remainingReviewPolicy, projectRemainingReviewEvent, sampleBatchBoards, fitBatchProposal, projectBatchQuote,
   auditBatchProposal, covenantGentleEntryNet, sampleCovenantBoards } from './audit-remaining-reputation';
@@ -18,8 +20,9 @@ function assert(value: unknown, text: string): asserts value { checks++; if (!va
 const prior = ['house-alvares', 'house-mendes', 'house-nunes', 'steel-combine', 'cerberus-human-resources',
   'voss-heinkel-metricwerke', 'bruckner-field-services', 'kisaragi-harmony-yards', 'kisaragi-yards-estella', 'covenant-remnants'];
 assert(new Set([...prior, ...REMAINING_PROVIDERS]).size === 28, 'batch closes all mapped public-employer reviews');
-assert(Object.keys(EMPLOYER_REPUTATION_PROVIDER_KEYS).every(id => [...prior, ...REMAINING_PROVIDERS].includes(id)), 'no mapped provider forgotten');
-assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && UNASSIGNED_REPUTATION_PROVIDERS.length === 6, 'Guild and five mixed pools still unassigned');
+assert(Object.keys(EMPLOYER_REPUTATION_PROVIDER_KEYS).every(id => [...prior, ...REMAINING_PROVIDERS, 'teamsters-guild',
+  'gaia-civilian-bookings', 'dahai-civilian-bookings', 'camps-civilian-bookings', 'sahra-civilian-bookings', 'weymark-independent-operators'].includes(id)), 'batch and later civilian/Guild extension cover all providers');
+assert(ESTELLA_FACTION_CONTRACT_PROVIDERS.length === 34 && UNASSIGNED_REPUTATION_PROVIDERS.length === 0, 'Guild and five mixed pools now explicitly recognized');
 assert(!ESTELLA_FACTION_CONTRACT_PROVIDERS.some(p => p.id === 'smuggler-notoriety'), 'no fictional central smuggling provider');
 const sources = [...new Set(estellaSelectableNavTargets().flatMap(t => localTerminalScopeIds(canonicalEstellaLocationId(t.id))))];
 const counts = new Map<string, { ordinary: number; important: number; freight: number; entrusted: number }>();
@@ -123,10 +126,14 @@ for (let i = 1; i <= 1000; i++) { const net = covenantGentleEntryNet(i * fit.cov
 const career = defaultCareerProfile();
 for (const track of [DAEDALUS, BAM, MERREN, 'estella-institutions'] as const) { career.reputations![track] = 1.5; career.reputationUnrelatedContracts![track] = 5; }
 for (const { contract } of rows) {
-  assert(contractReputationLockReasons(career, contract).length === 0, 'batch has not enabled new production locks');
+  const level = employerReputationLevel(career.reputations, contract.factionId!)!;
+  assert(!!contractReputationLockReasons(career, contract).length === (Math.max(remainingReviewPolicy(contract)?.trust ?? (proposedCovenantClass(contract) === 'provision' ? 0 : 1), incomeEconomicMinimum(contract.factionId, contract.quote.expectedMargin)!) > level), 'live gates meet quoted economic/trust policy');
   const next = previewContractReputation(career, contract);
-  for (const track of [DAEDALUS, BAM, MERREN, 'estella-institutions'] as const) assert(next.reputations[track] === 1.5 && next.reputationUnrelatedContracts[track] === 5, 'batch has not enabled production earning/decay');
+  for (const track of [DAEDALUS, BAM, MERREN, 'estella-institutions'] as const) {
+    const expected = projectRemainingReviewEvent(track, 1.5, 5, contract);
+    assert(next.reputations[track] === expected.score && next.reputationUnrelatedContracts[track] === expected.unrelated, 'live shared/own/recipient arithmetic matches review');
+  }
 }
 assert(emptyTravelAccess('deepest-dock-poi') === 'contract-only', 'Farwatch never gets empty access from standing');
 assert(emptyTravelAccess('estella-xif-sealed-research-outpost') === 'restricted', 'Icarus trust floor not a public-access grant');
-console.log(`Remaining review: ${checks} checks, ${candidates} raw candidates, ${rows.length} actual postings; eighteen remaining providers covered, production unchanged.`);
+console.log(`Remaining review: ${checks} checks, ${candidates} raw candidates, ${rows.length} actual postings; eighteen remaining providers covered, approved production policy matches review.`);

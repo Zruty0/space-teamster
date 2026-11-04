@@ -132,7 +132,7 @@ for (const track of REPUTATION_TRACKS) if (track.id !== STEEL && track.id !== CH
 for (const job of [basic, important, rival, unrelated]) {
   const before = JSON.stringify(career), next = complete(career, job);
   for (const track of REPUTATION_TRACKS) if (track.id !== STEEL && track.id !== CHR) {
-    assert(next.reputations![track.id] === 0.75 && next.reputationUnrelatedContracts![track.id] === 4, 'no inherited or reciprocal donor credit/decay');
+    assert(next.reputations![track.id] === 0.75 && next.reputationUnrelatedContracts![track.id] === (track.id === 'smuggler-notoriety' ? 4 : 5), 'no donor credit or below-1 decay; newly authored tracks consume unrelated slots');
   }
   equal(JSON.stringify(career), before, 'pure preview cannot mutate profile');
 }

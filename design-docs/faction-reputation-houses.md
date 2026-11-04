@@ -1,7 +1,9 @@
 # Three Houses — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Review amended to Pete's November 4 comments; not implemented.** Shared introductory recognition, contracting-House-only refresh, gentler decay and favor-based rivalry below supersede the initial recommendations. The working rivalry amount adopts Pete's suggested 1/20. Other class/pay recommendations remain as previously reviewed. Continuing to [VHM/Bruckner](faction-reputation-vhm.md); Combine/CHR runtime remains live, while House gains/decay/locks and repricing remain pending.
+Status: **Approved House gains, rivalry, decay, quoted-income/trust gates, refusals and new-offer prices are implemented.** See [rollout validation](reputation-rollout.md). Comments below remain verbatim.
+
+Prior review status (historical): **Review amended to Pete's November 4 comments; not implemented.** Shared introductory recognition, contracting-House-only refresh, gentler decay and favor-based rivalry below supersede the initial recommendations. The working rivalry amount adopts Pete's suggested 1/20. Other class/pay recommendations remain as previously reviewed. Continuing to [VHM/Bruckner](faction-reputation-vhm.md); Combine/CHR runtime remains live, while House gains/decay/locks and repricing remain pending.
 
 Authority: [approved income targets](faction-reputation-income-targets.md), [caps/mix](faction-reputation-income-calibration.md), [progression framework](faction-reputation-progression.md). Existing programmes: [economy](economy.md#faction-house-mendes), `alvares-contracts.ts`, `mendes-contracts.ts`, `nunes-contracts.ts`, `nunes-inquiries.ts` under `src/content/estella/faction-contracts/`. Prior entity: [Cerberus](faction-reputation-cerberus.md).
 

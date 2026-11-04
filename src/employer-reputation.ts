@@ -1,7 +1,7 @@
 import { inheritedReputationLevel, INHERITED_REPUTATION_RULES, isReputationId, reputationStanding, type InheritedReputationEmployer, type ReputationId, type ReputationLevel, type ReputationState } from './reputation';
 
 /** Stable employer/provider identity, never guessed from company names or endpoints.
- * These are recognition rules only; no awards or board/access gates are activated.
+ * Recognition is read-only; explicit earning and access policies live in contract-work-policy/reputation.
  */
 const OWN_TRACK_TAGS = {
   ALVARES: 'house-alvares', MENDES: 'house-mendes', NUNES: 'house-nunes',
@@ -24,13 +24,13 @@ export const EMPLOYER_REPUTATION_PROVIDER_KEYS = {
   'glitterfield-miners': 'COMMERCIAL', 'pike-mining-companies': 'COMMERCIAL',
   'cinderhook-refining-houses': 'COMMERCIAL', 'roadstead-export-brokers': 'COMMERCIAL',
   'hartwell-machinery-brokers': 'COMMERCIAL', 'hartwell-labor-exchange': 'COMMERCIAL',
+  'teamsters-guild': 'COMMERCIAL',
+  'gaia-civilian-bookings': 'GOV', 'dahai-civilian-bookings': 'GOV',
+  'camps-civilian-bookings': 'GOV', 'sahra-civilian-bookings': 'GOV', 'weymark-independent-operators': 'GOV',
 } as const satisfies Record<string, keyof typeof OWN_TRACK_TAGS | InheritedReputationEmployer>;
 
-/** No assumed affiliation for the excluded Guild or mixed civilian booking pools. */
-export const UNASSIGNED_REPUTATION_PROVIDERS = [
-  'teamsters-guild', 'gaia-civilian-bookings', 'dahai-civilian-bookings',
-  'camps-civilian-bookings', 'sahra-civilian-bookings', 'weymark-independent-operators',
-] as const;
+/** All current public providers have explicit recognition; this does not imply ownership. */
+export const UNASSIGNED_REPUTATION_PROVIDERS: readonly string[] = [];
 
 /** Full completed level for an independent track, employer tag, or stable provider ID.
  * Undefined means no assigned rule, not level zero. Names/locations are not aliases.

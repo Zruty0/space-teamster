@@ -181,7 +181,8 @@ export function remainingWorkPolicy(c: Identity): RemainingWorkPolicy | undefine
       || (family === 'balor-trade' && ['shade-export', 'shade-cassette-return', 'shade-frame-return'].includes(lane))
       || (family === 'dahai' && ['hatchery-cultures', 'fleet-cultures', 'marine-ingredient-purchase', 'fleet-culture-rack-return'].includes(lane))) return ordinary(MERREN);
   }
-  if (INSTITUTION_LANES[p]?.[family]?.includes(lane)) return INSTITUTION_IMPORTANT[p].includes(`${family}:${lane}`)
+  const lanes = Object.prototype.hasOwnProperty.call(INSTITUTION_LANES, p) ? INSTITUTION_LANES[p] : undefined;
+  if (lanes && Object.prototype.hasOwnProperty.call(lanes, family) && lanes[family].includes(lane)) return INSTITUTION_IMPORTANT[p].includes(`${family}:${lane}`)
     ? important('estella-institutions', 5000) : ordinary('estella-institutions');
   return undefined;
 }

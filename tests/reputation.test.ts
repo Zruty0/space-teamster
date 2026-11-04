@@ -130,9 +130,15 @@ COMMERCIAL|pike-mining-companies|COMMERCIAL
 COMMERCIAL|cinderhook-refining-houses|COMMERCIAL
 COMMERCIAL|roadstead-export-brokers|COMMERCIAL
 COMMERCIAL|hartwell-machinery-brokers|COMMERCIAL
-COMMERCIAL|hartwell-labor-exchange|COMMERCIAL`.split('\n').map(s => s.split('|'));
-const unassigned = ['teamsters-guild', 'gaia-civilian-bookings', 'dahai-civilian-bookings', 'camps-civilian-bookings', 'sahra-civilian-bookings', 'weymark-independent-operators'];
-equal(UNASSIGNED_REPUTATION_PROVIDERS, unassigned, 'no invented Guild/civilian affiliations');
+COMMERCIAL|hartwell-labor-exchange|COMMERCIAL
+COMMERCIAL|teamsters-guild|COMMERCIAL
+GOV|gaia-civilian-bookings|GOV
+GOV|dahai-civilian-bookings|GOV
+GOV|camps-civilian-bookings|GOV
+GOV|sahra-civilian-bookings|GOV
+GOV|weymark-independent-operators|GOV`.split('\n').map(s => s.split('|'));
+const unassigned: string[] = [];
+equal(UNASSIGNED_REPUTATION_PROVIDERS, unassigned, 'all public pools explicitly recognized, without new ownership or meters');
 equal(EMPLOYER_REPUTATION_PROVIDER_KEYS, Object.fromEntries(employerRows.map(([tag, id]) => [id, tag])), 'all explicit aliases match independently verified provider IDs');
 equal(ESTELLA_FACTION_CONTRACT_PROVIDERS.map(p => p.id).sort(), [...employerRows.map(([, id]) => id), ...unassigned].sort(), 'every registered provider mapped or explicitly unassigned');
 for (const [tag, provider, policy] of employerRows) {
@@ -291,7 +297,7 @@ for (const size of [[1024, 768], [1280, 800], [1920, 1080]]) {
   }
 }
 
-// Standing never changes quotes/travel/equipment. Only authored Combine/CHR locks/notices change.
+// Standing never changes quotes/travel/equipment. Only authored locks/notices change.
 game.career = { ...loaded, money: 1000000, reputations: { ...zero } };
 const low = structuredClone(game.career), high = { ...structuredClone(low), reputations: Object.fromEntries(REPUTATION_TRACKS.map(t => [t.id, reputationMaxLevel(t.id)])) };
 const offers = [...generateCareerContracts(low.locationId, 0), ...generatePassengerContracts(low.locationId, 0)];
@@ -302,7 +308,7 @@ for (const contract of offers) {
     const scene = game.buildInteractiveScene(state);
     const notices = new Set(contractReputationNotices(profile, contract).map(n => n.text));
     const locks = contractReputationLockReasons(profile, contract);
-    const authored = contract.factionId === 'steel-combine' || contract.factionId === 'cerberus-human-resources';
+    const authored = employerReputationLevel(profile.reputations, contract.factionId ?? '') !== undefined;
     if (locks.length) assert(scene.options[0].disabled && locks.every(reason => JSON.stringify(scene).includes(reason)), 'authored restriction shown and enforced');
     return { ...scene,
       bodyRows: scene.bodyRows.filter((row: any) => !notices.has(row.text)
@@ -310,7 +316,7 @@ for (const contract of offers) {
       options: authored ? scene.options.slice(1) : scene.options,
     };
   };
-  equal(comparableScene(high), comparableScene(low), 'only authored Combine/CHR locks and predicted reputation notices differ');
+  equal(comparableScene(high), comparableScene(low), 'only authored locks and predicted reputation notices differ');
 }
 equal([...emptyRunDestinationIds(low)], [...emptyRunDestinationIds(high)], 'no contact/discovery/private travel grants');
 for (const shop of MAINTENANCE_SHOPS.filter(s => s.equipmentIds?.length)) equal(equipmentQuote(low.rig, shop, 'atmospheric-package'), equipmentQuote(high.rig, shop, 'atmospheric-package'), 'no equipment price/availability effects');

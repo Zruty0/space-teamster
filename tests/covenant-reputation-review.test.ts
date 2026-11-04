@@ -1,4 +1,4 @@
-// Read-only review guards: these tests do not implement Covenant gains, gates or prices.
+// Independent review oracle and approved runtime-policy regression guards.
 import { COVENANT, PILGRIM_GATE, COVENANT_DUES_REVIEW_IDS, COVENANT_PASSAGE_REVIEW_IDS,
   proposedCovenantClass, projectCovenantReviewEvent, sampleCovenantBoards, fitProposedCovenantCurve, auditCovenantProposal } from './audit-covenant-reputation';
 import { COVENANT_REMNANTS_PROVIDER } from '../src/content/estella/faction-contracts/covenant-contracts';
@@ -87,9 +87,10 @@ const career = defaultCareerProfile();
 career.reputations = { ...normalizeReputations(undefined), 'covenant-remnants': 1.5 };
 career.reputationUnrelatedContracts = { 'covenant-remnants': 5 };
 for (const { contract } of rows) {
-  assert(contractReputationLockReasons(career, contract).length === 0, 'new Covenant locks remain inactive');
+  assert(!!contractReputationLockReasons(career, contract).length === (incomeEconomicMinimum(COVENANT, contract.quote.expectedMargin)! > 1), 'live Covenant gate uses offered quote and important floor');
   const next = previewContractReputation(career, contract);
-  assert(next.reputations['covenant-remnants'] === 1.5 && next.reputationUnrelatedContracts['covenant-remnants'] === 5, 'review has not activated Covenant gains/decay');
+  const expected = projectCovenantReviewEvent(1.5, 5, contract);
+  assert(next.reputations['covenant-remnants'] === expected.score && next.reputationUnrelatedContracts['covenant-remnants'] === expected.unrelated, 'live Covenant arithmetic matches independent review');
   assert(next.reputations['house-nunes'] === 0, 'compact service does not grant Nunes employment credit');
 }
 assert(employerReputationLevel({ ...normalizeReputations(undefined), 'house-nunes': 3 }, COVENANT) === 0, 'Nunes protection is not inherited Covenant recognition');
@@ -101,6 +102,6 @@ assert(emptyTravelAccess('estella-xiid-mirror-clinic') === 'unlisted', 'medical 
 assert(emptyTravelAccess('arkfall-apocrypha-cache-poi') === 'unlisted', 'no hidden smuggling access inferred');
 const exits = generateCareerContracts(PILGRIM_GATE, 0).filter(c => c.factionId !== COVENANT);
 assert(exits.length > 0, 'other-employer exits observed, not an affordability or qualification guarantee');
-console.log(`Covenant review: ${checks} checks, ${candidates} raw candidates, ${rows.length} actual postings, thirteen important identities; production unchanged.`);
+console.log(`Covenant review: ${checks} checks, ${candidates} raw candidates, ${rows.length} actual postings, thirteen important identities; approved production policy matches review.`);
 console.log('Gate day-0 other-employer freight:', exits.map(c => ({ faction: c.factionId, destination: c.destinationId,
   qualification: c.requiredCertification ?? 'none', quotedEconomicMinimum: incomeEconomicMinimum(c.factionId, c.quote.expectedMargin) })));

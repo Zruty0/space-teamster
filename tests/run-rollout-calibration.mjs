@@ -13,7 +13,8 @@ try {
       b.onLoad({ filter: /.*/, namespace: 'svg-raw' }, async a => ({ contents: await readFile(a.path, 'utf8'), loader: 'text' }));
     } }] });
   const api = await import(pathToFileURL(outfile).href), load = async p => JSON.parse(await readFile(p, 'utf8'));
-  if (option('--sample')) {
+  if (option('--audit')) console.log(JSON.stringify(api.summarizeLive(await load(option('--audit'))), null, 2));
+  else if (option('--sample')) {
     const first = Number(option('--first-day') ?? 0), days = Number(option('--days') ?? 192);
     if (!Number.isSafeInteger(first) || first < 0 || !Number.isSafeInteger(days) || days < 1) throw Error('Invalid sample range');
     const rows = api.focusedBoards(first, days);

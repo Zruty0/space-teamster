@@ -81,11 +81,13 @@ const career = defaultCareerProfile();
 career.reputations = { ...normalizeReputations(undefined), 'house-alvares': 1.5, 'house-mendes': 1.5, 'house-nunes': 1.5 };
 career.reputationUnrelatedContracts = { 'house-alvares': 5, 'house-mendes': 5, 'house-nunes': 5 };
 for (const row of rows) {
-  assert(contractReputationLockReasons(career, row.contract).length === 0, 'review has NOT activated House locks');
+  assert(!!contractReputationLockReasons(career, row.contract).length === (row.contract.quote.expectedMargin > ({ 'house-alvares': 80000, 'house-mendes': 70000, 'house-nunes': 57500 }[row.contract.factionId as typeof HOUSE_IDS[number]])), 'House locks use actual quoted band above authored trust');
   const next = previewContractReputation(career, row.contract);
+  const expected = projectHouseReviewEvent({ 'house-alvares': 1.5, 'house-mendes': 1.5, 'house-nunes': 1.5 },
+    { 'house-alvares': 5, 'house-mendes': 5, 'house-nunes': 5 }, row.contract);
   for (const id of HOUSE_IDS) {
-    assert(next.reputations[id] === career.reputations[id], 'review has NOT activated House gains or rival losses');
-    assert(next.reputationUnrelatedContracts[id] === 5, 'review has NOT activated House grace/decay');
+    assert(next.reputations[id] === expected.scores[id], 'live House simultaneous gains/rivalry match review');
+    assert(next.reputationUnrelatedContracts[id] === expected.unrelated[id], 'live own-only refresh and unrelated counters match review');
   }
 }
 for (const id of ['estella-xa-deep-ice-mine', 'estella-xb-smelting-processing', 'estella-xd-geothermal-extraction',
@@ -143,4 +145,4 @@ for (const c of [escheat, muster, inquiry]) {
 const immutableScores = Object.freeze(allAt(1.5)), immutableCounters = Object.freeze(allAt(7));
 projectHouseReviewEvent(immutableScores, immutableCounters, escheat);
 assert(immutableScores['house-nunes'] === 1.5 && immutableCounters['house-nunes'] === 7, 'projection never mutates input scores/counters');
-console.log(`House review: ${checks} checks, ${candidates} real candidates, all 12 Inquiries, first sampled outer muster day ${firstOuterDay}; production House policy remains inactive.`);
+console.log(`House review: ${checks} checks, ${candidates} real candidates, all 12 Inquiries, first sampled outer muster day ${firstOuterDay}; independent House review oracle retained for rollout comparisons.`);

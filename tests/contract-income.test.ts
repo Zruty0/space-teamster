@@ -1,5 +1,5 @@
 import { CONTRACT_INCOME_TARGETS, incomeTargetId, incomeBoundaries, incomeEconomicMinimum, incomeCalibrationKind,
-  contractIncomeMinimum, calibratedNetCredits, cerberusEntryNetCredits, cerberusPremiumNetCredits, calibrateNewContractQuote, type IncomeTargetId } from '../src/contract-income';
+  contractIncomeMinimum, ordinaryContractNetCredits, calibratedNetCredits, cerberusEntryNetCredits, cerberusPremiumNetCredits, calibrateNewContractQuote, type IncomeTargetId } from '../src/contract-income';
 import { CONTRACT_INCOME_CURVES } from '../src/contract-income-curves';
 import { EMPLOYER_REPUTATION_PROVIDER_KEYS, UNASSIGNED_REPUTATION_PROVIDERS } from '../src/employer-reputation';
 import { generateCareerContracts, generatePassengerContracts, type CareerContract } from '../src/career-contracts';
@@ -41,9 +41,7 @@ for (const [provider, key] of Object.entries(EMPLOYER_REPUTATION_PROVIDER_KEYS))
     ...Array.from({ length: 240 }, (_, i) => (i + 1) * 10000), 25_000_000])].sort((a, b) => a - b);
   let previous = -1;
   for (const fuel of fuels) {
-    const net = id === 'CHR' && curve.length === 8
-      ? fuel > curve[5] ? cerberusPremiumNetCredits(fuel) : fuel <= curve[2] ? cerberusEntryNetCredits(fuel) : calibratedNetCredits(id, fuel, curve)
-      : calibratedNetCredits(id, fuel, curve);
+    const net = ordinaryContractNetCredits({ factionId: provider }, fuel);
     assert(Number.isInteger(net) && net >= previous, 'finite, monotonic integer credits across knots and tails'); previous = net;
     const identity = key === 'STEEL' ? { factionId: provider, templateId: 'export-svarog:hull-plate-stock' } : { factionId: provider };
     const raw = fakeQuote(fuel), frozen = JSON.stringify(raw), quote = calibrateNewContractQuote(identity, raw);
@@ -65,7 +63,8 @@ for (const provider of [...UNASSIGNED_REPUTATION_PROVIDERS, 'unknown', '__proto_
 for (const fields of [{ category: 'certification' as const }, { category: 'empty' as const }, { travelMode: 'old-nell' as const }, { nunesInquiry: { instanceId: 'inquiry', contribution: 1 } }]) {
   const raw = fakeQuote(123456), contract = { ...ordinary, ...fields };
   assert(!incomeCalibrationKind(contract) && calibrateNewContractQuote(contract, raw) === raw, 'noncommercial/special work untouched');
-  assert(contractIncomeMinimum({ ...contract, quote: raw }) === undefined, 'no new special-work gate');
+  assert(fields.nunesInquiry ? contractIncomeMinimum({ ...contract, quote: raw }) === incomeEconomicMinimum(contract.factionId, raw.expectedMargin)
+    : contractIncomeMinimum({ ...contract, quote: raw }) === undefined, 'pricing exception cannot exempt paid work from its income gate');
 }
 for (const invalid of [NaN, Infinity, -1]) {
   let threw = false; try { calibratedNetCredits('CHR', invalid, CONTRACT_INCOME_CURVES[ordinary.factionId]); } catch { threw = true; }
@@ -146,6 +145,6 @@ for (const contract of [legacy, exporting, ...sampleOffers.filter(c => c.faction
   game.finishCareerDelivery(); assert(Number(logs) === 1, 'no double reward');
 }
 const zero = defaultCareerProfile();
-assert(contractReputationLockReasons(zero, { ...ordinary, factionId: 'balor-advanced-materials' }).length === 0, 'unreviewed faction gates remain deferred');
+assert(contractReputationLockReasons(zero, { ...ordinary, factionId: 'balor-advanced-materials' }).length === 1, 'unknown BAM template cannot silently bypass policy');
 assert(previewContractReputation(zero, ordinary).reputations['cerberus-human-resources'] === .5, 'authorized CHR progression is separate from pricing');
 console.log(`Contract income: ${checks} checks; approved medians/caps, monotonic fixed curves, tie handling, fuel terms, trust minima, new/legacy quote settlement and atomic retry.`);

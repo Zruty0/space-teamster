@@ -1,6 +1,8 @@
 # Income calibration — first runtime pass
 
 Updated: 2026-11-04 (Pacific)
+Current implementation: **Full approved reputation/income rollout is live for all 34 public providers.** See [current fit, tests and remaining balance sensitivity](reputation-rollout.md). The following first-pass/audit entries are retained history; their six-pool exclusions and deferred gates no longer describe runtime.
+
 Initial implementation: **`c8037f5` — new-posting prices live.** Subsequent **CHR progression/gates/refit `7992ffb`** is live; only the remaining factions stay deferred. [Current Cerberus ledger](faction-reputation-cerberus.md). Pete authorized proceeding after approving the [medians](faction-reputation-income-targets.md), [caps and 20/60/20 mix](faction-reputation-income-calibration.md). No push/deploy or live-save edits.
 
 ## Coverage follow-up — November 4, audit only

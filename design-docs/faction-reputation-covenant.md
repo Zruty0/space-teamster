@@ -1,7 +1,9 @@
 # Covenant Remnants — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Design approved November 4; runtime pending.** Pete approves this review and requests all remaining review stages together, replacing the entity-by-entity pauses. The approval does not change income targets or waive the calibration/return-path prerequisites. Next after resolving Pete's [Kisaragi pacing comment](faction-reputation-kisaragi.md) in `cd1ff64` (4/20, K=10/D=1/50). Covenant already has a stored reputation track and calibrated ordinary quotes; this earning path, important-price separation and contract locks are not live. The initial candidate's holdout deviation is preserved below; the [batch follow-up](faction-reputation-remaining.md#covenant-calibration-follow-up--improved-candidate-not-live) adds a broader-reference, gently varying entry-price candidate with a new untouched test window. Funded return-path validation and runtime rollout remain pending.
+Status: **Approved Covenant 1/15 progression, 5/30 decay, important prices, broader-reference commercial curve and gates are implemented.** See [rollout validation](reputation-rollout.md).
+
+Prior review status (historical): **Design approved November 4; runtime pending.** Pete approves this review and requests all remaining review stages together, replacing the entity-by-entity pauses. The approval does not change income targets or waive the calibration/return-path prerequisites. Next after resolving Pete's [Kisaragi pacing comment](faction-reputation-kisaragi.md) in `cd1ff64` (4/20, K=10/D=1/50). Covenant already has a stored reputation track and calibrated ordinary quotes; this earning path, important-price separation and contract locks are not live. The initial candidate's holdout deviation is preserved below; the [batch follow-up](faction-reputation-remaining.md#covenant-calibration-follow-up--improved-candidate-not-live) adds a broader-reference, gently varying entry-price candidate with a new untouched test window. Funded return-path validation and runtime rollout remain pending.
 
 ## Existing authority
 

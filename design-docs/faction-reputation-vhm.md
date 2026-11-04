@@ -1,7 +1,9 @@
 # Voss-Heinkel / Bruckner — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Approved November 4; runtime implementation pending.** Pete approved the reviewed VHM/Bruckner design and directed proceeding to the next entity. Approval covers explicit BFS earning/refresh into VHM, 2/15 progression, K=5/D=1/30, the nineteen important identities at 10k/trust 1 and the isolated commercial refit. Existing income prices and BFS→VHM recognition are live; these new gains/decay, important prices and direct-contract locks are not. Next: [Kisaragi/KIS-E review](faction-reputation-kisaragi.md). No ownership changes.
+Status: **Approved VHM/BFS earning, refresh, decay, important prices and gates are implemented.** See [rollout validation](reputation-rollout.md). Independent ownership is unchanged.
+
+Prior review status (historical): **Approved November 4; runtime implementation pending.** Pete approved the reviewed VHM/Bruckner design and directed proceeding to the next entity. Approval covers explicit BFS earning/refresh into VHM, 2/15 progression, K=5/D=1/30, the nineteen important identities at 10k/trust 1 and the isolated commercial refit. Existing income prices and BFS→VHM recognition are live; these new gains/decay, important prices and direct-contract locks are not. Next: [Kisaragi/KIS-E review](faction-reputation-kisaragi.md). No ownership changes.
 
 ## Existing authority and boundaries
 
