@@ -1,5 +1,8 @@
 import type { IncomeCurve } from './contract-income';
 
+/** Reference median workload of all CHR premium offers, including the authored trust-2 pool. */
+export const CERBERUS_PREMIUM_CURVE: readonly [number, number] = [914612, 915040];
+
 /** Fixed day-0–15 public-board workload reference; regenerate with tests/run-income-audit.mjs --fit.
  * Ordinary: median-low/high, cut, median-low/high, cut, median-low/high. Single band: median-low/high.
  * Median plateaus preserve the median of discrete/even samples; equal workloads never get random fees.
@@ -8,7 +11,7 @@ import type { IncomeCurve } from './contract-income';
 export const CONTRACT_INCOME_CURVES: Readonly<Record<string, IncomeCurve>> = {
   'balor-advanced-materials': [310310, 310310, 367851.5, 557776, 561412, 775769.5, 898535, 898535],
   'bruckner-field-services': [40326, 40326, 58928, 192848, 192848, 371308.5, 502520, 502520],
-  'cerberus-human-resources': [255102, 255102, 259564.5, 536400, 536400, 771854, 889072, 889072],
+  'cerberus-human-resources': [253002, 253002, 258172, 478200, 478350, 895195.5, 1028497, 1030234],
   'cinderhook-refining-houses': [402264, 402264, 406260, 474192, 474192, 521616, 562950, 562950],
   'covenant-remnants': [234000, 236751, 251692, 308907, 308907, 485050, 571266, 595404],
   'daedalus-systems': [116369, 116369, 209702, 307017, 307291, 449665, 624393, 624470],

@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Cerberus reputation preview</title>
+<style>body{background:#080d13;color:#d5e4ef;font:14px monospace;margin:18px}select{font:inherit;margin:10px}canvas{display:block;border:1px solid #34465a}</style>
+<div id="status">Running disposable-profile Cerberus checks…</div>
+<label>View <select id="view"></select></label>
+<canvas id="scene" width="1280" height="900"></canvas>
+<script type="module">
+import { checks as unitChecks, chrProfile, chrOffers, entry, advancement, hostile, premium } from './cerberus-reputation.test.ts';
+import { Game } from '../src/game.ts';
+import { contractReputationNotices } from '../src/contract-reputation.ts';
+import { contractIncomeMinimum } from '../src/contract-income.ts';
+import { cerberusContractClass } from '../src/contract-work.ts';
+import { drawInteractiveScene, interactiveSceneBodyScrollLimit } from '../src/interactive-scene.ts';
+try {
+  let checks = 0;
+  const assert = (v, m) => { checks++; if (!v) throw Error(m); };
+  const middle = chrOffers.find(c => cerberusContractClass(c) === 'routine' && contractIncomeMinimum(c) === 1);
+  const views = {
+    Entry: [chrProfile(), entry, false],
+    'Important locked': [chrProfile(), advancement, true],
+    Records: [chrProfile(1, 2), advancement, false],
+    'Gain and disapproval': [chrProfile(1, 2), hostile, false],
+    Maintenance: [chrProfile(1.5), middle, false],
+    'Premium locked': [chrProfile(1), premium, true],
+    Premium: [chrProfile(2), premium, false],
+  };
+  const canvas = document.querySelector('canvas'), ctx = canvas.getContext('2d');
+  const game = Object.create(Game.prototype); game.canvas = canvas;
+  let launches = 0; game.launchPlayableEstellaMission = () => { launches++; };
+  const state = c => ({ id: 'contractPosting', selectedIndex: 0, contracts: [c], contractIndex: 0 });
+  for (const [name, [career, contract, locked]] of Object.entries(views)) {
+    assert(contract, `${name}: actual generated posting`); game.career = career;
+    const scene = game.buildInteractiveScene(state(contract));
+    assert(Boolean(scene.options[0].disabled) === locked, `${name}: live gate`);
+    const expected = locked ? [] : contractReputationNotices(career, contract);
+    for (const n of expected) assert(scene.bodyRows.some(r => r.text === n.text), `${name}: exact shared notice`);
+    const drawn = [], fillText = ctx.fillText.bind(ctx); ctx.fillText = (s, ...args) => { drawn.push(s); fillText(s, ...args); };
+    const limit = interactiveSceneBodyScrollLimit(ctx, canvas, scene);
+    for (let scroll = 0; scroll <= limit + 180; scroll += 180) drawInteractiveScene(ctx, canvas, scene, 0, scroll);
+    ctx.fillText = fillText;
+    const visible = drawn.join('').replace(/\s/g, '');
+    for (const n of expected) assert(visible.includes(n.text.replace(/\s/g, '')), `${name}: full notices reachable`);
+    if (name === 'Gain and disapproval') assert(expected.length === 2, 'both CHR gain and Combine loss shown');
+    if (name === 'Records') assert(!expected.some(n => n.text.includes('disapproves')), 'records importance is not coercion');
+    const before = JSON.stringify(career), launched = launches;
+    game.activateInteractiveSceneOption(state(contract), 'acceptContract');
+    assert(launches === launched + Number(!locked), `${name}: actual handler enforces current standing`);
+    assert(JSON.stringify(career) === before, `${name}: no credit at acceptance`);
+  }
+  const select = document.querySelector('#view'); for (const name of Object.keys(views)) select.add(new Option(name, name));
+  function render() { const [career, contract] = views[select.value]; game.career = career; drawInteractiveScene(ctx, canvas, game.buildInteractiveScene(state(contract)), 0, 0); }
+  select.onchange = render; render();
+  document.querySelector('#status').textContent = `PASS: ${checks} native checks + ${unitChecks} shared checks; synthetic storage only.`;
+  document.title = 'PASS Cerberus reputation';
+} catch (error) { document.querySelector('#status').textContent = `FAIL: ${error.stack}`; document.title = 'FAIL Cerberus reputation'; throw error; }
+</script>

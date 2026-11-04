@@ -19,11 +19,12 @@ try {
   let rival;
   for (let day = 0; day < 16 && !rival; day++) rival = generateCareerContracts('estella-ii-olympos', day * 86400).find(c => c.factionId === 'cerberus-human-resources' && c.templateId === 'local-workforce-manifests');
   const refused = profile(2); refused.reputations['cerberus-human-resources'] = 3;
+  const rivalCareer = profile(2.3); rivalCareer.reputations['cerberus-human-resources'] = 1;
   const views = {
     Advancing: [profile(), choose('basic-routine'), false],
     Routine: [profile(1.5), choose('elevated-routine'), false],
     Important: [profile(1.5), choose('important'), false],
-    Rival: [profile(2.3), rival, false],
+    Rival: [rivalCareer, rival, false],
     'Export locked': [profile(1.9), choose('export'), true],
     'Export unlocked': [profile(2), choose('export'), false],
     Refused: [refused, choose('basic-routine'), true],
@@ -38,7 +39,7 @@ try {
     const state = { id: 'contractPosting', selectedIndex: 0, contracts: [contract], contractIndex: 0 };
     states.set(name, state);
     const scene = game.buildInteractiveScene(state);
-    assert(Boolean(scene.options[0].disabled) === locked, `${name}: correct native acceptance gate`);
+    assert(Boolean(scene.options[0].disabled) === locked, `${name}: correct native acceptance gate (${scene.options[0].detail}; net ${contract.quote.expectedMargin}; CHR ${career.reputations['cerberus-human-resources']})`);
     const notices = locked ? [] : contractReputationNotices(career, contract);
     for (const n of notices) assert(scene.bodyRows.some(r => r.text === n.text), `${name}: actual computer message`);
     const before = JSON.stringify(career), count = launched;

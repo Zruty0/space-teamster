@@ -21,23 +21,33 @@ try {
   });
   const api = await import(pathToFileURL(outfile).href);
   const input = option('--input');
-  let rows = input ? JSON.parse(await readFile(input, 'utf8')) : api.sampleIncomeBoards(Number(option('--first-day') ?? 0), Number(option('--days') ?? 32));
+  const chrOnly = args.includes('--cerberus-only');
+  const sample = chrOnly ? api.sampleCerberusIncomeBoards : api.sampleIncomeBoards;
+  let rows = input ? JSON.parse(await readFile(input, 'utf8')) : sample(Number(option('--first-day') ?? 0), Number(option('--days') ?? 32));
+  if (chrOnly) rows = rows.filter(r => r.contract.factionId === 'cerberus-human-resources');
   if (args.includes('--project-new-quotes')) rows = rows.map(r => ({ ...r, contract: { ...r.contract,
     quote: api.calibrateNewContractQuote(r.contract, r.contract.quote) } }));
   if (option('--save-census')) await writeFile(option('--save-census'), JSON.stringify(rows), { flag: 'wx' });
   const reference = rows.filter(r => r.day < 16), validation = rows.filter(r => r.day >= 16);
-  if (args.includes('--fit')) console.log(JSON.stringify(api.fitIncomeCurves(reference), null, 2));
+  if (args.includes('--fit-cerberus')) {
+    const ordinary = api.fitIncomeCurves(reference)['cerberus-human-resources'];
+    console.log(JSON.stringify({ ordinary, premium: api.fitCerberusPremiumCurve(reference, ordinary) }, null, 2));
+  } else if (args.includes('--fit')) console.log(JSON.stringify(api.fitIncomeCurves(reference), null, 2));
   else {
     const referenceAudit = api.incomeAudit(reference), validationAudit = api.incomeAudit(validation);
     if (reference.length) {
-      assert.deepEqual(api.fitIncomeCurves(reference), api.CONTRACT_INCOME_CURVES, 'fixed curves reproduce reference census');
+      const expectedCurves = chrOnly ? { 'cerberus-human-resources': api.CONTRACT_INCOME_CURVES['cerberus-human-resources'] } : api.CONTRACT_INCOME_CURVES;
+      assert.deepEqual(api.fitIncomeCurves(reference), expectedCurves, 'fixed curves reproduce reference census');
+      assert.deepEqual(api.fitCerberusPremiumCurve(reference, api.CONTRACT_INCOME_CURVES['cerberus-human-resources']),
+        api.CERBERUS_PREMIUM_CURVE, 'CHR premium curve includes entrusted commercial pool');
       for (const provider of referenceAudit.providers) for (const band of provider.bands) if (band.count) {
         assert.equal(band.median, provider.targets[band.level], `${provider.provider}: exact reference median at tier ${band.level}`);
       }
     }
     let preserved;
     if (option('--baseline')) {
-      const before = JSON.parse(await readFile(option('--baseline'), 'utf8'));
+      let before = JSON.parse(await readFile(option('--baseline'), 'utf8'));
+      if (chrOnly) before = before.filter(r => r.contract.factionId === 'cerberus-human-resources');
       assert.equal(rows.length, before.length, 'same board membership/count');
       let unchangedQuotes = 0, changedQuotes = 0;
       for (let i = 0; i < rows.length; i++) {
@@ -55,7 +65,7 @@ try {
       preserved = { postingIdentities: rows.length, fuelTerms: rows.length, unchangedQuotes, changedQuotes };
     }
     console.log(JSON.stringify({ method: 'Public freight/passenger boards; equal weight per occurrence; fixed day-0–15 workload knots.',
-      source: input ? 'Explicit cached census' : 'Live generated boards', projectedNewQuotes: args.includes('--project-new-quotes'),
+      source: input ? 'Explicit cached census' : 'Live generated boards', scope: chrOnly ? 'Cerberus only' : 'All providers', projectedNewQuotes: args.includes('--project-new-quotes'),
       days: [...new Set(rows.map(r => r.day))].sort((a, b) => a - b),
       preserved, reference: referenceAudit, validation: validationAudit }, null, 2));
   }

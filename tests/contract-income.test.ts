@@ -1,5 +1,5 @@
 import { CONTRACT_INCOME_TARGETS, incomeTargetId, incomeBoundaries, incomeEconomicMinimum, incomeCalibrationKind,
-  contractIncomeMinimum, calibratedNetCredits, calibrateNewContractQuote, type IncomeTargetId } from '../src/contract-income';
+  contractIncomeMinimum, calibratedNetCredits, cerberusEntryNetCredits, cerberusPremiumNetCredits, calibrateNewContractQuote, type IncomeTargetId } from '../src/contract-income';
 import { CONTRACT_INCOME_CURVES } from '../src/contract-income-curves';
 import { EMPLOYER_REPUTATION_PROVIDER_KEYS, UNASSIGNED_REPUTATION_PROVIDERS } from '../src/employer-reputation';
 import { generateCareerContracts, generatePassengerContracts, type CareerContract } from '../src/career-contracts';
@@ -41,7 +41,9 @@ for (const [provider, key] of Object.entries(EMPLOYER_REPUTATION_PROVIDER_KEYS))
     ...Array.from({ length: 240 }, (_, i) => (i + 1) * 10000), 25_000_000])].sort((a, b) => a - b);
   let previous = -1;
   for (const fuel of fuels) {
-    const net = calibratedNetCredits(id, fuel, curve);
+    const net = id === 'CHR' && curve.length === 8
+      ? fuel > curve[5] ? cerberusPremiumNetCredits(fuel) : fuel <= curve[2] ? cerberusEntryNetCredits(fuel) : calibratedNetCredits(id, fuel, curve)
+      : calibratedNetCredits(id, fuel, curve);
     assert(Number.isInteger(net) && net >= previous, 'finite, monotonic integer credits across knots and tails'); previous = net;
     const identity = key === 'STEEL' ? { factionId: provider, templateId: 'export-svarog:hull-plate-stock' } : { factionId: provider };
     const raw = fakeQuote(fuel), frozen = JSON.stringify(raw), quote = calibrateNewContractQuote(identity, raw);
@@ -127,7 +129,7 @@ for (const contract of [legacy, exporting, ...sampleOffers.filter(c => c.faction
   const game: any = Object.create(Game.prototype);
   game.canvas = { width: 1360, height: 940 }; game.career = defaultCareerProfile();
   game.career.rig = createDefaultRigState(true); game.career.certifications = [...TEAMSTER_CERTIFICATION_IDS];
-  game.career.reputations['steel-combine'] = 2; game.career.money = 12345;
+  game.career.reputations['steel-combine'] = 2; game.career.reputations['cerberus-human-resources'] = 2; game.career.money = 12345;
   game.loadStationTerminal = () => {}; game.launchPlayableEstellaMission = () => {};
   let logs = 0; game.logSuccessfulGeneratedRun = () => { logs++; };
   const accepted = JSON.stringify(contract), state = { id: 'contractPosting', selectedIndex: 0, contracts: [contract], contractIndex: 0 };
@@ -144,6 +146,6 @@ for (const contract of [legacy, exporting, ...sampleOffers.filter(c => c.faction
   game.finishCareerDelivery(); assert(Number(logs) === 1, 'no double reward');
 }
 const zero = defaultCareerProfile();
-assert(contractReputationLockReasons(zero, ordinary).length === 0, 'non-Combine gates remain deferred, not circularly inaccessible');
-assert(previewContractReputation(zero, ordinary).reputations['cerberus-human-resources'] === 0, 'pricing does not invent CHR gains');
+assert(contractReputationLockReasons(zero, { ...ordinary, factionId: 'balor-advanced-materials' }).length === 0, 'unreviewed faction gates remain deferred');
+assert(previewContractReputation(zero, ordinary).reputations['cerberus-human-resources'] === .5, 'authorized CHR progression is separate from pricing');
 console.log(`Contract income: ${checks} checks; approved medians/caps, monotonic fixed curves, tie handling, fuel terms, trust minima, new/legacy quote settlement and atomic retry.`);

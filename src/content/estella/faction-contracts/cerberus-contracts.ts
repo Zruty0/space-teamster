@@ -16,9 +16,9 @@ const CERBERUS_ID = 'cerberus-human-resources';
 const CERBERUS_NAME = 'Cerberus Human Resources';
 const CERBERUS_TAG = 'CHR';
 
-// Rich but exploitative: ordinary corporate freight pays okay; morally/physically ugly freight
-// still overpays to get flown. People movement belongs on the passenger board and uses
-// reimbursement instead of freight margins.
+// Authored baseline dials retained for historical quotes. New-posting credit calibration
+// replaces fixed pay: important custody/records work is low-paying advancement, while
+// commercial offers use the 20k/200k/300k bands. These reimbursement ratios remain live.
 const CERBERUS_BASE_GENEROSITY = 0.85;
 const CERBERUS_BASE_COMPENSATION_RATIO = 0.4;
 const CERBERUS_UNSAVORY_GENEROSITY = 1.25;

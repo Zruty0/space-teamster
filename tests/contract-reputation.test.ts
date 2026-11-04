@@ -120,17 +120,18 @@ for (const exempt of [{ ...basic, category: 'empty' as const }, { ...unrelated, 
 }
 career.reputations![CHR] = 3;
 for (const job of [basic, elevated, important, exporting]) assert(contractReputationLockReasons(career, job)[0]?.includes('refuses'), 'CHR 3 overrides sufficient Combine level for every class');
-assert(contractReputationLockReasons(profile(3), rival).length === 0, 'no reciprocal CHR refusal or unreviewed CHR gates');
+const trustedChr = profile(3); trustedChr.reputations![CHR] = 1;
+assert(contractReputationLockReasons(trustedChr, rival).length === 0, 'Combine 3 causes no reciprocal CHR refusal; authored trust still applies');
 assert(score(complete(career, basic)) === 2.8, 'previously accepted Combine work can still settle after affiliation change');
 
-// All twelve other tracks/counters are untouched by automatic Combine mechanics.
+// All eleven unauthored tracks/counters are untouched by Combine/CHR mechanics.
 career = profile(1.5);
-for (const track of REPUTATION_TRACKS) if (track.id !== STEEL) {
+for (const track of REPUTATION_TRACKS) if (track.id !== STEEL && track.id !== CHR) {
   career.reputations![track.id] = 0.75; career.reputationUnrelatedContracts![track.id] = 4;
 }
 for (const job of [basic, important, rival, unrelated]) {
   const before = JSON.stringify(career), next = complete(career, job);
-  for (const track of REPUTATION_TRACKS) if (track.id !== STEEL) {
+  for (const track of REPUTATION_TRACKS) if (track.id !== STEEL && track.id !== CHR) {
     assert(next.reputations![track.id] === 0.75 && next.reputationUnrelatedContracts![track.id] === 4, 'no inherited or reciprocal donor credit/decay');
   }
   equal(JSON.stringify(career), before, 'pure preview cannot mutate profile');
@@ -144,7 +145,7 @@ equal(normalizeReputationUnrelatedContracts({ [STEEL]: 5, fake: 8 }), { [STEEL]:
 assert(contractReputationNotices(profile(0), basic)[0]?.text === 'Completing this contract will improve your reputation with Steel Combine.', 'advancement copy');
 assert(contractReputationNotices(profile(1.5), elevated)[0]?.text === 'This is routine work for Steel Combine. Completing it will maintain your reputation with them.', 'maintenance copy');
 assert(contractReputationNotices(profile(1.5), rival)[0]?.text === 'Steel Combine disapproves of this contract. Completing it will reduce your reputation with them.', 'rivalry copy');
-for (const value of [0, 0.5, 1]) assert(contractReputationNotices(profile(value), rival).length === 0, 'no false reduction below rival floor');
+for (const value of [0, 0.5, 1]) assert(!contractReputationNotices(profile(value), rival).some(n => n.text.includes('reduce your reputation')), 'no false reduction below rival floor; CHR may gain');
 for (const value of [1, 2, 3]) assert(contractReputationNotices(profile(value), basic).length === 0, 'no false maintenance at protected integer');
 assert(contractReputationNotices(profile(1.5), important).length === 1 && contractReputationNotices(profile(1.5), important)[0].tone === 'success', 'gain replaces redundant maintenance');
 for (const track of REPUTATION_TRACKS) {
@@ -152,7 +153,7 @@ for (const track of REPUTATION_TRACKS) {
   assert(text === `Completing this contract will improve your reputation with ${track.name}.`, 'same template for every faction');
 }
 const decaying = profile(1.5); decaying.reputationUnrelatedContracts = { [STEEL]: 5 };
-assert(previewContractReputation(decaying, unrelated).effects[0].kind === 'decay' && contractReputationNotices(decaying, unrelated).length === 0, 'passive decay is not disapproval');
+assert(previewContractReputation(decaying, unrelated).effects[0].kind === 'decay' && !contractReputationNotices(decaying, unrelated).some(n => n.text.includes('disapproves')), 'passive decay is not disapproval; own CHR advancement remains visible');
 
 // Synthetic persistence: no live-save reads/writes, no eager migration or historical inference.
 const storage = new Map<string, string>(); const key = 'space-teamster.career.v1';
@@ -202,6 +203,7 @@ assert(scene.options[0].disabled && scene.options[0].detail.includes('refuses'),
 game.activateInteractiveSceneOption(state, 'acceptContract'); assert(Number(launches) === 1, 'action checks current refusal, not cached board eligibility');
 for (const [value, identity, needle] of [[0, basic, 'improve'], [1.5, elevated, 'maintain'], [1.5, rival, 'disapproves']] as const) {
   game.career = profile(value);
+  if (identity.factionId === CHR) game.career.reputations[CHR] = 1;
   const actual = game.buildInteractiveScene({ ...state, contracts: [postingWith(identity)] });
   assert(actual.bodyRows.some((r: any) => r.kind === 'text' && r.text.includes(needle)), 'real posting integrates computer notice');
 }

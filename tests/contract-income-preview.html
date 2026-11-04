@@ -9,7 +9,7 @@
 import { checks as unitChecks, sampleOffers } from './contract-income.test.ts';
 import { Game } from '../src/game.ts';
 import { generateCareerContracts, generatePassengerContracts } from '../src/career-contracts.ts';
-import { contractIncomeMinimum } from '../src/contract-income.ts';
+import { contractIncomeMinimum, incomeCalibrationKind } from '../src/contract-income.ts';
 import { combineContractClass } from '../src/contract-reputation.ts';
 import { defaultCareerProfile, TEAMSTER_CERTIFICATION_IDS } from '../src/career-state.ts';
 import { createDefaultRigState } from '../src/maintenance/rig-state.ts';
@@ -18,7 +18,7 @@ import { contractFixedPay, contractGrossPay, formatCredits } from '../src/missio
 try {
   let checks = 0;
   const assert = (v, m) => { checks++; if (!v) throw Error(m); };
-  const chr = level => sampleOffers.find(c => c.factionId === 'cerberus-human-resources' && contractIncomeMinimum(c) === level);
+  const chr = level => sampleOffers.find(c => c.factionId === 'cerberus-human-resources' && incomeCalibrationKind(c) === 'ordinary' && contractIncomeMinimum(c) === level);
   const views = { 'CHR entry': chr(0), 'CHR middle': chr(1), 'CHR premium': chr(2),
     'Combine exports': sampleOffers.find(c => combineContractClass(c) === 'export'),
     'Combine unpaid': sampleOffers.find(c => combineContractClass(c) === 'basic-routine') };
@@ -26,12 +26,13 @@ try {
   const game = Object.create(Game.prototype); game.canvas = canvas;
   game.career = defaultCareerProfile(); game.career.certifications = [...TEAMSTER_CERTIFICATION_IDS];
   game.career.rig = createDefaultRigState(true); game.career.reputations['steel-combine'] = 2;
+  game.career.reputations['cerberus-human-resources'] = 2;
   const state = c => ({ id: 'contractPosting', selectedIndex: 0, contracts: [c], contractIndex: 0 });
   let launched = 0; game.launchPlayableEstellaMission = () => { launched++; };
   for (const [name, contract] of Object.entries(views)) {
     assert(contract, `${name}: actual posting exists`);
     const scene = game.buildInteractiveScene(state(contract));
-    assert(!scene.options[0].disabled, `${name}: current authored eligibility; no premature non-Combine gate`);
+    assert(!scene.options[0].disabled, `${name}: current authored eligibility at earned level 2`);
     const quote = contract.quote;
     assert(contractGrossPay(quote.pay, quote.parFuelCost, quote.parFuelCost) - quote.parFuelCost === quote.expectedMargin, `${name}: par payout agrees`);
     const text = [], fillText = ctx.fillText.bind(ctx); ctx.fillText = (s, ...args) => { text.push(s); fillText(s, ...args); };
@@ -59,7 +60,7 @@ try {
   for (const name of Object.keys(views)) select.add(new Option(name, name));
   function render() { drawInteractiveScene(ctx, canvas, game.buildInteractiveScene(state(views[select.value])), 0, 0); }
   select.onchange = render; render();
-  document.querySelector('#status').textContent = `PASS: ${checks} native checks + ${unitChecks} shared checks. Pricing live; non-Combine gates deferred.`;
+  document.querySelector('#status').textContent = `PASS: ${checks} native checks + ${unitChecks} shared checks. Pricing and Combine/CHR gates live; other factions deferred.`;
   document.title = 'PASS contract income';
 } catch (error) { document.querySelector('#status').textContent = `FAIL: ${error.stack}`; document.title = 'FAIL contract income'; throw error; }
 </script>

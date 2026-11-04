@@ -1,8 +1,8 @@
 import type { CareerContract } from './career-contracts';
-import { combineContractClass } from './contract-reputation';
+import { combineContractClass, cerberusContractClass } from './contract-work';
 import { EMPLOYER_REPUTATION_PROVIDER_KEYS } from './employer-reputation';
 import { contractFuelCompensation, contractGrossPay, type MissionCostQuote } from './mission-cost';
-import { CONTRACT_INCOME_CURVES } from './contract-income-curves';
+import { CONTRACT_INCOME_CURVES, CERBERUS_PREMIUM_CURVE } from './contract-income-curves';
 
 /** Approved net credits at par, not gross pay or per-job guarantees. Null means no such band. */
 export const CONTRACT_INCOME_TARGETS = {
@@ -43,19 +43,20 @@ export function incomeEconomicMinimum(provider: string | undefined, netAtPar: nu
   return netAtPar <= boundaries[0] ? 0 : netAtPar <= boundaries[1] ? 1 : 2;
 }
 
-/** Only ordinary new postings and authored Combine exports participate in pricing calibration.
- * No assumed smuggling provider, Guild, mixed civilian, Inquiry or future important-work policy.
+/** Important CHR assignments are a separate low-paying pool, never part of the 20/60/20 mix.
+ * No assumed smuggling provider, Guild, mixed civilian, Inquiry or other important-work policy.
  */
-export function incomeCalibrationKind(contract: IncomeIdentity): 'ordinary' | 'single' | undefined {
+export function incomeCalibrationKind(contract: IncomeIdentity): 'ordinary' | 'single' | 'important' | undefined {
   if (contract.category === 'empty' || contract.category === 'certification' || contract.travelMode === 'old-nell' || contract.nunesInquiry) return undefined;
   const id = incomeTargetId(contract.factionId);
   if (!id) return undefined;
   if (id === 'STEEL') return combineContractClass(contract) === 'export' ? 'single' : undefined;
+  if (cerberusContractClass(contract) === 'important') return 'important';
   return id === 'VHM' || id === 'KIS' ? 'single' : 'ordinary';
 }
 
-/** Shared future gate/audit calculation. Does NOT activate unreviewed faction access/progression.
- * Current authored Combine gates continue to be enforced by contract-reputation.ts.
+/** Shared gate/audit calculation. Combine/CHR enforcement lives in contract-reputation.ts;
+ * the other factions' access/progression remain deferred.
  */
 export function contractIncomeMinimum(contract: IncomeIdentity & Pick<CareerContract, 'quote'>, authoredTrustMinimum: IncomeLevel = 0): IncomeLevel | undefined {
   if (contract.category === 'empty' || contract.category === 'certification' || contract.travelMode === 'old-nell' || contract.nunesInquiry) return undefined;
@@ -63,8 +64,9 @@ export function contractIncomeMinimum(contract: IncomeIdentity & Pick<CareerCont
   if (economic === undefined) return undefined;
   const id = incomeTargetId(contract.factionId);
   const work = combineContractClass(contract);
-  const trust = id === 'VHM' || id === 'KIS' || work === 'export' ? 2
-    : work === 'important' || work === 'elevated-routine' ? 1 : 0;
+  const chr = cerberusContractClass(contract);
+  const trust = id === 'VHM' || id === 'KIS' || work === 'export' || chr === 'entrusted-commercial' ? 2
+    : work === 'important' || work === 'elevated-routine' || chr === 'important' ? 1 : 0;
   return Math.max(economic, trust, authoredTrustMinimum) as IncomeLevel;
 }
 
@@ -97,19 +99,48 @@ export function calibratedNetCredits(id: IncomeTargetId, fuel: number, curve: In
     : fuel > hi2 ? m2 + (m2 - b1) * Math.log2(fuel / hi2) : m2));
 }
 
+/** Entry jobs need not fill the entire 0–40k eligibility band. Gentle variation around 20k
+ * avoids near-identical workforce loads swinging the starter median toward the 40k ceiling.
+ */
+export function cerberusEntryNetCredits(fuel: number): number {
+  if (!Number.isFinite(fuel) || fuel < 0) throw new Error('Invalid income workload.');
+  const curve = CONTRACT_INCOME_CURVES['cerberus-human-resources'];
+  const [lo, hi] = curve, median = CONTRACT_INCOME_TARGETS.CHR[0];
+  return Math.round(fuel < lo ? median * Math.sqrt(fuel / lo)
+    : fuel > hi ? median * (1 + .5 * Math.log2(fuel / hi)) : median);
+}
+
+/** Shared premium pool: entrusted corporate work plus the highest-workload ordinary freight.
+ * Its median is fitted over both, so a trust floor cannot distort the 20/60/20 access audit.
+ */
+export function cerberusPremiumNetCredits(fuel: number): number {
+  if (!Number.isFinite(fuel) || fuel < 0) throw new Error('Invalid income workload.');
+  const [lo, hi] = CERBERUS_PREMIUM_CURVE, median = CONTRACT_INCOME_TARGETS.CHR[2];
+  const floor = incomeBoundaries('CHR')![1] + 1;
+  return Math.round(fuel < lo ? floor + (median - floor) * Math.sqrt(fuel / lo)
+    : fuel > hi ? median + (median - floor) * Math.log2(fuel / hi) : median);
+}
+
 /** New-offer construction only. Never run on load, acceptance, retries or settlement.
  * The credited fixed amount includes unreimbursed par fuel; old ordinary fee components are
  * replaced, NOT added again. Original reimbursement ratio/cap and every route/cargo field survive.
  */
 export function calibrateNewContractQuote(contract: IncomeIdentity, quote: MissionCostQuote): MissionCostQuote {
-  if (!incomeCalibrationKind(contract)) return quote;
+  const kind = incomeCalibrationKind(contract);
+  if (!kind) return quote;
+  if (!Number.isFinite(quote.parFuelCost) || quote.parFuelCost < 0) throw new Error('Invalid income workload.');
   const id = incomeTargetId(contract.factionId)!;
   const curve: IncomeCurve | undefined = CONTRACT_INCOME_CURVES[contract.factionId!];
   if (!curve) throw new Error(`Missing income calibration: ${contract.factionId}`);
-  const net = calibratedNetCredits(id, quote.parFuelCost, curve);
+  const chrPremium = id === 'CHR' && (cerberusContractClass(contract) === 'entrusted-commercial'
+    || (curve.length === 8 && quote.parFuelCost > curve[5]));
+  const net = kind === 'important' ? CONTRACT_INCOME_TARGETS.CHR[0]
+    : chrPremium ? cerberusPremiumNetCredits(quote.parFuelCost)
+      : id === 'CHR' && curve.length === 8 && quote.parFuelCost <= curve[2] ? cerberusEntryNetCredits(quote.parFuelCost)
+        : calibratedNetCredits(id, quote.parFuelCost, curve);
   const reimbursement = contractFuelCompensation(quote.pay, quote.parFuelCost, quote.parFuelCost);
   const fixed = net + quote.parFuelCost - reimbursement;
-  if (fixed < 0) throw new Error('Income calibration requires review of excess fuel reimbursement.');
+  if (!Number.isFinite(fixed) || fixed < 0) throw new Error('Income calibration requires review of fuel reimbursement.');
   const pay = { ...quote.pay, generosity: 0, flatReward: fixed };
   const grossPay = contractGrossPay(pay, quote.parFuelCost, quote.parFuelCost);
   return { ...quote, pay, generosity: 0, grossPay, expectedMargin: grossPay - quote.parFuelCost };
