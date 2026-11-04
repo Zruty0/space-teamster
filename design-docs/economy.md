@@ -585,7 +585,7 @@ Reputation hooks later: KIS-E should be the entry path for Kisaragi shipyard log
 - ID: `voss-heinkel-metricwerke`
 - Tag: `VHM`
 - Public name: Voss-Heinkel Metricwerke
-- Local service/dealer arm: Bruckner Field Services
+- Independent local service/dealer partner: Bruckner Field Services
 - Primary Estella corporate home: `estella-iii-finance-city`
 - Primary hardware custody point: `estella-viii-harder-approach-station`
 
@@ -624,15 +624,17 @@ Current VHM cargo palette:
 
 Reputation hooks later: VHM work should be locked behind proven BFS/VHEP-style trust, high reliability, and probably certification. VHM reputation should unlock parent-company hardware, warranty evidence, executive travel, and Highliner/Big Iron-adjacent work.
 
+**November 4 review:** [VHM/Bruckner progression proposal](faction-reputation-vhm.md) gives BFS the explicit earning path to the already planned direct minimum 2. It separates selected important work from commercial calibration while retaining independent ownership and existing fuel/accepted-quote terms. This is not runtime progression or a new reliability/certification meter.
+
 ## Faction: Bruckner Field Services
 
 - ID: `bruckner-field-services`
 - Tag: `BFS`
 - Local partner/dealer: Bruckner Field Services
-- Parent/supplier: Voss-Heinkel Metricwerke
-- Parent tag, later high-tier: `VHM`
+- Principal manufacturer/supplier: Voss-Heinkel Metricwerke
+- Manufacturer tag, later high-tier: `VHM`
 
-VHM is the metric-drive side of the hulls/engines duo. It is centralized around interstellar imports rather than distributed local manufacturing. Bruckner Field Services is ostensibly independent, but it is an authorized service, parts, and maintenance bureau and exclusive Estella dealer for the full civilian VHM line. BFS sells, stores, certifies, refurbishes, dispatches technicians, and preserves warranty chain-of-custody; it does not manufacture VHM core systems.
+VHM is the metric-drive side of the hulls/engines duo. It is centralized around interstellar imports rather than distributed local manufacturing. Bruckner Field Services is independent: the authorized service, parts, and maintenance bureau and exclusive Estella dealer for the full civilian VHM line. Shared VHM standing does not make it a subsidiary. BFS sells, stores, certifies, refurbishes, dispatches technicians, and preserves warranty chain-of-custody; it does not manufacture VHM core systems.
 
 BFS's central Estella logistics foothold is on Weymark, not Caravanserai. Caravanserai Highliner Bay remains the import touchdown and customs interface, but Bruckner Weymark Depot is the private distribution, certification, and service hub.
 

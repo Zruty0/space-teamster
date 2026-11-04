@@ -56,7 +56,7 @@ CHR's economic flow moves people and hydrogen down, metals and profit up, and pa
 
 ## Bruckner Field Services
 
-Bruckner Field Services presents itself as an independent Estella company, but its business identity is inseparable from Voss-Heinkel Metricwerke. Bruckner is the authorized VHM service, parts, and maintenance bureau for Estella and the exclusive dealer for the full civilian VHM line. Its independence is useful: customers can talk to Bruckner about service and parts, while VHM preserves distance around patents, warranty authority, and parent-company liability.
+Bruckner Field Services is an independent Estella company whose business centers on its authorization from Voss-Heinkel Metricwerke. Bruckner is the authorized VHM service, parts, and maintenance bureau for Estella and the exclusive dealer for the full civilian VHM line. Its independence is useful: customers can talk to Bruckner about service and parts, while VHM preserves distance around patents, warranty authority, and manufacturer liability.
 
 Bruckner does not manufacture VHM core systems. It sells, stores, certifies, refurbishes, dispatches technicians, preserves warranty chain-of-custody, and moves service packages through a controlled regional lattice. Its central foothold is Bruckner Weymark Depot, close to Caravanserai Highliner Bay but private enough for sealed inventory and certification discipline. From there BFS reaches one sub-hub in the Hearth, one in the Camps, one at each Wells gas giant, and one in the Reach.
 
