@@ -69,4 +69,4 @@ for (const track of tracks) {
   results.push({ track, jobs, emptyLegs, days: Math.ceil(career.worldTime / 86400), income, reposition, requiredOperatingCapital,
     first: path[0], last: path[path.length - 1] });
 }
-console.log(JSON.stringify({ status: 'ROUTE WITNESSES ONLY: fully qualified/equipped, par fuel, no wear/penalties; capital must be earned elsewhere; no flown campaign claim', checks, results }, null, 2));
+console.log(JSON.stringify({ status: 'ROUTE WITNESSES ONLY: fully qualified/equipped, par fuel, no wear/penalties; capital is the reserve to avoid negative balances, not an acceptance requirement; no flown campaign claim', checks, results }, null, 2));
