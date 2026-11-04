@@ -1,7 +1,7 @@
 # Reputation income — approved boundaries and calibration direction
 
 Updated: 2026-11-03 (Pacific)
-Status: **Approved November 3; first new-posting pricing pass implemented in `c8037f5`.** See [runtime scope, fit and remaining drift](faction-reputation-income-implementation.md). Non-Combine gates/progression are not activated yet. Pete approves the cap proposal and calibration, replacing the suggested 40/40/20 offer mix with **20/60/20**, so most offers unlock at tier 1. The [22-row median table](faction-reputation-income-targets.md) was approved in `d3ca63a`. Initial fitting/tail behavior is implemented; broader balance and other factions' reputation gains/political outcomes remain unresolved. Wind work remains separate.
+Status: **Approved November 3; first new-posting pricing pass implemented in `c8037f5`.** See [runtime scope, fit and remaining drift](faction-reputation-income-implementation.md). Combine and Cerberus gates/progression are active (CHR `7992ffb`); the remaining factions are still deferred. Pete approves the cap proposal and calibration, replacing the suggested 40/40/20 offer mix with **20/60/20**, so most offers unlock at tier 1. The [22-row median table](faction-reputation-income-targets.md) was approved in `d3ca63a`. Initial fitting/tail behavior is implemented; broader balance and other factions' reputation gains/political outcomes remain unresolved. Wind work remains separate.
 
 ## 1. Approved economic boundaries
 
@@ -65,10 +65,10 @@ This recommends preserving fuel reimbursement behavior while replacing the old p
 
 ## 4. Important assignments stay a separate low-paying pool
 
-Use the employer's approved **level-0 median** as the initial earnings anchor for important work; a trust minimum of 1 still applies. Combine's anchor remains zero. Any variation must remain compatible with the intended low-pay economic band. The exact spread and qualifying templates remain per-entity decisions, not selected by this approval.
+Use the employer's approved **level-0 median** as the initial earnings anchor for important work; a trust minimum of 1 still applies. Combine's anchor remains zero. Any variation must remain compatible with the intended low-pay economic band. The exact spread and qualifying templates remain per-entity decisions, not selected by this approval. The subsequent CHR implementation selects nine important families at 20k net, requires level 1, and excludes them from its commercial mix.
 
 Example: a CHR important job at 15k has economic minimum 0 and trust minimum 1, so requires level 1 and can advance 1→2. A routine CHR job at 134k has economic minimum 1 but does not award advanced reputation merely because it pays more.
 
 ## Rollout boundaries
 
-The median targets, midpoint boundaries and calibration direction with a 20/60/20 reference mix are approved. `c8037f5` implements the first fixed workload curves, smooth median shoulders and logarithmic premium tails for new quotes. Existing quotes/history and fuel terms survive. Other factions' earning/loss policies, important classes and live gates still need entity review; enabling their locks now would strand pilots without an earned progression path. Combine `3e36373` progression remains live, with exports newly calibrated around 30k. Remaining audit limitations are recorded in the implementation ledger.
+The median targets, midpoint boundaries and calibration direction with a 20/60/20 reference mix are approved. `c8037f5` implements the first fixed workload curves, smooth median shoulders and logarithmic premium tails for new quotes. Existing quotes/history and fuel terms survive. Cerberus `7992ffb` subsequently implements earned progression, nine low-paying important families and live economic/trust gates, refitting only CHR. Other factions' earning/loss policies, important classes and live gates still need entity review; enabling their locks now would strand pilots without an earned progression path. Combine `3e36373` progression remains live, with exports newly calibrated around 30k. Remaining audit limitations are recorded in the implementation ledger.

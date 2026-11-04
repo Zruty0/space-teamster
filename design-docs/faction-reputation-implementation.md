@@ -1,7 +1,7 @@
 # Reputation ranks — storage, career view and developer editor
 
 Updated: 2026-11-03 (Pacific)
-Status: implemented. The original ranks/display/editor authorization excluded gameplay effects; **Pete subsequently authorized Combine progression/gates and standardized acceptance notices on November 3**. See [Combine ledger](faction-reputation-combine.md) for current runtime behavior and validation. Other factions' progression remains deferred. Original pre-edit baseline: `c9b7467`; first November 2 extension baseline: `d9b00b6`; institutional/mapping extension baseline: `3dc48ed`. Names follow [the roster review](faction-reputation-roster.md), including Authorized Partner for Daedalus, Unaffiliated Worker for Combine 0 and Unproven Hand for Kisaragi 0.
+Status: implemented. The original ranks/display/editor authorization excluded gameplay effects; **Pete subsequently authorized Combine progression/gates and standardized acceptance notices on November 3**. See [Combine ledger](faction-reputation-combine.md) for current runtime behavior and validation. Cerberus progression/gates are subsequently live in `7992ffb`; see the [CHR ledger](faction-reputation-cerberus.md). Remaining factions are deferred. Original pre-edit baseline: `c9b7467`; first November 2 extension baseline: `d9b00b6`; institutional/mapping extension baseline: `3dc48ed`. Names follow [the roster review](faction-reputation-roster.md), including Authorized Partner for Daedalus, Unaffiliated Worker for Combine 0 and Unproven Hand for Kisaragi 0.
 
 ## Live model
 
@@ -47,9 +47,13 @@ Delivery now saves a copied profile before publishing all reward/wear/Inquiry ch
 
 Validation: `npm run test:reputation` runs 10,045 standing + 9,264 progression checks. Native preview 36; actual constructed Game in disposable Edge 41 (including 2+15 real completion paths, failed save/retry and counter reload). Menus 475,804 / 4,434 scenes; maintenance/presentation/regional history regressions and build pass. Review `/tests/contract-reputation-preview.html` and [Combine ledger](faction-reputation-combine.md).
 
+## Cerberus and income follow-ups
+
+`c8037f5` calibrates new quotes to approved credit medians/caps, preserving accepted quotes and actual-fuel terms. `7992ffb` adds CHR 2/15 progression, independent grace/decay, economic AND trust gates and simultaneous CHR gain/Combine-loss notices. Important records/audits allow non-custody advancement, pay 20k net and require 1; commercial income is separately refitted. Stable work classification lives in `contract-work.ts`, re-exported by the reputation API. Other eleven tracks/counters remain unaffected. See the [CHR ledger](faction-reputation-cerberus.md) for current validation; the figures above describe the initial Combine pass.
+
 ## Still inactive
 
-Other factions' automatic gains/decay/gates, special quests/reinstatement, persistent political caps, price changes, equipment rights, contact introductions, travel permissions, police heat and smuggling gameplay remain deferred. Existing qualifications/quotes/access rules remain apart from the authored Combine contract requirements. In particular the planned VHM/KIS direct-contract threshold at level 2 is **not enforced yet**, per this implementation request. Rank titles alone grant no employment, office, membership, citizenship rights or ownership.
+Outside Combine/CHR, automatic gains/decay/gates remain deferred, as do special quests/reinstatement, persistent political caps, equipment rights, contact introductions, travel permissions, police heat and smuggling gameplay. New-posting prices are calibrated; historical quotes and existing qualifications/access rules remain apart from authored Combine/CHR contract requirements. In particular the planned VHM/KIS direct-contract threshold at level 2 is **not enforced yet**, per this implementation request. Rank titles alone grant no employment, office, membership, citizenship rights or ownership.
 
 ## Institutional/mapping extension validation — November 2
 

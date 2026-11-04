@@ -1,9 +1,13 @@
 # Income calibration — first runtime pass
 
 Updated: 2026-11-03 (Pacific)
-Implementation: **`c8037f5` — new-posting prices live; non-Combine reputation gates/progression still deferred.** Pete authorized proceeding after approving the [medians](faction-reputation-income-targets.md), [caps and 20/60/20 mix](faction-reputation-income-calibration.md). No push/deploy or live-save edits.
+Initial implementation: **`c8037f5` — new-posting prices live.** Subsequent **CHR progression/gates/refit `7992ffb`** is live; only the remaining factions stay deferred. [Current Cerberus ledger](faction-reputation-cerberus.md). Pete authorized proceeding after approving the [medians](faction-reputation-income-targets.md), [caps and 20/60/20 mix](faction-reputation-income-calibration.md). No push/deploy or live-save edits.
 
-## Runtime scope
+## Follow-up — Cerberus `7992ffb`
+
+Nine important CHR families now pay 20k net and require level 1; they are excluded from the commercial mix. Three entrusted commercial classes require level 2 and share a premium curve with high-earning ordinary freight. Only CHR is refitted; other employer prices remain unchanged. Reference mix 20.7/59.6/19.7 with exact 20k/200k/300k medians; fresh days 48–63 mix 17.4/61.6/21.0, medians 19,994/200k/299,845.5. Important pool is separate (240 reference / 213 holdout, all 20k and minimum 1). Full implementation and tests are in the linked CHR ledger. The following statistics retain the **original first-pass** evidence, not the later refit's results.
+
+## Initial runtime scope
 
 - `src/contract-income.ts`: 22 approved target rows, midpoint economic boundaries, independent trust-minimum calculation, and route/load-to-net-credit pricing. Stable provider IDs only; no invented smuggling organization.
 - `src/contract-income-curves.ts`: independent fixed workload curves for 28 existing providers. Same targets/standing do not merge their economies. Ordinary commercial pools aim at 20/60/20; direct VHM/Kisaragi work is a single paid pool with the authored level-2 minimum in the shared calculation. Combine exports are a separate 30k pool.
@@ -13,7 +17,7 @@ Implementation: **`c8037f5` — new-posting prices live; non-Combine reputation 
 - Combine internal/import/own-pilgrimage work stays zero-fee with existing reimbursement. Only newly quoted exports replace the old 0.15 generosity with the 30k-centered credit curve. Their trust minimum 2, progression, grace, rivalry and refusal remain live and unchanged.
 - Guild, mixed civilian booking pools, empty runs, Old Nell and Nunes Inquiry-linked work stay outside calibration. Smuggling targets exist as approved design data only; no contact jobs or personal-trust system are invented.
 
-**Deliberate staging:** `contractIncomeMinimum` computes the approved economic AND trust requirement, but does not activate other factions' locks. Only Combine currently has an earned progression path. Locking the rest now would make most work permanently inaccessible without developer edits. Cerberus gains/important classes are next, then Houses and remaining entities. Non-Combine classes not yet authored as important are still in their current ordinary commercial pool; refit when those separate low-paying classes are selected. The audit's tiers are therefore economic/planned-access classifications, not a claim that all gates are live.
+**Staging:** the first pass left non-Combine gates off to avoid locking work without earned progression. Cerberus now has progression and live gates; Houses and the remaining entities still need their reviews. Their unauthored important classes remain in ordinary commercial pools pending selection/refit. Audit tiers outside Combine/CHR are planned-access classifications, not a claim that all gates are live.
 
 ## Fitting and variation
 

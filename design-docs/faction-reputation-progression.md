@@ -1,7 +1,7 @@
 # Reputation progression — design discussion
 
 Updated: 2026-11-03 (Pacific)
-Status: **Framework plus implemented Combine pass and new-posting income calibration (`c8037f5`).** See [income implementation](faction-reputation-income-implementation.md) for scope: pricing is live, non-Combine gates/progression are not. Model baseline `43772dc` has thirteen tracks, employer recognition, persistence and editing. Pete authorized Combine progression/gates and the shared acceptance messages on November 3; see [Combine implementation ledger](faction-reputation-combine.md). Other factions' gains/gates and per-faction parameters remain under review; Cerberus is next. See [roster](faction-reputation-roster.md) and [implemented model](faction-reputation-implementation.md).
+Status: **Combine and Cerberus progression/gates live (`3e36373`, `7992ffb`), with new-posting income calibration (`c8037f5`).** See [Cerberus ledger](faction-reputation-cerberus.md) and [income implementation](faction-reputation-income-implementation.md). Other factions' gates/progression remain deferred. Model baseline `43772dc` has thirteen tracks, employer recognition, persistence and editing. Pete authorized Combine progression/gates and the shared acceptance messages on November 3; see [Combine implementation ledger](faction-reputation-combine.md). Other factions' gains/gates and per-faction parameters remain under review; Houses are next. See [roster](faction-reputation-roster.md) and [implemented model](faction-reputation-implementation.md).
 
 ## Pete's direction
 
@@ -49,9 +49,9 @@ Pete requests standardized **ship-computer** notices on the contract acceptance 
 | Direct rivalry loss | {Faction} disapproves of this contract. Completing it will reduce your reputation with them. |
 | Maintenance | This is routine work for {Faction}. Completing it will maintain your reputation with them. |
 
-The maintenance notice is for non-advancing work when the pilot has decay-prone standing with that faction. The notices describe successful completion, not an immediate reputation change on acceptance. Pete subsequently authorized implementation: these notices are now live for authored Combine effects, including losses from the listed CHR contracts. Do not advertise effects for other factions until their settlement rules exist.
+The maintenance notice is for non-advancing work when the pilot has decay-prone standing with that faction. The notices describe successful completion, not an immediate reputation change on acceptance. Pete subsequently authorized implementation: these notices are now live for authored Combine and CHR effects, including simultaneous CHR gain and Combine loss. Do not advertise effects for other factions until their settlement rules exist.
 
-Implemented display rules (Combine effects only so far):
+Implemented display rules (Combine and CHR):
 - Preview the applicable authored effect using current standing/band and the same calculation as settlement, including floors/caps; do not infer an effect from pay or access level.
 - Show all applicable factions: a contract can improve one reputation while damaging another. Within a faction, an advancement notice replaces the redundant maintenance notice.
 - Show maintenance only where passive decay can threaten current progress (under the current rules, fractional progress above level 1, not an exactly protected integer or an unestablished score). A zero grace counter does not make otherwise vulnerable standing immune to future neglect.
@@ -60,7 +60,7 @@ Implemented display rules (Combine effects only so far):
 
 ## Event semantics
 
-These event semantics are implemented for Combine in the November 3 pass. Other factions still need their own rules; unselected exceptional outcomes remain excluded.
+These event semantics are implemented for Combine and Cerberus in the November 3 passes. Other factions still need their own rules; unselected exceptional outcomes remain excluded.
 
 1. **Qualifying completion:** add its credit and reset the unrelated counter. Recommend capping that award at the next integer, so a final routine 0→1 job cannot spill credit into an advanced band for which it does not qualify. Clamp to track maximum.
 2. **Related but non-advancing completion (approved):** ordinary work for the same faction resets grace without adding progress once it no longer qualifies for advancement. This also maintains fractional quest-earned progress above 2 without adding to it.
@@ -103,7 +103,7 @@ Interpreting refusal according to the existing distrust directions:
 | Cerberus | Steel Combine |
 | Steel Combine | No automatic Cerberus refusal, if CHR's stated indifference also governs contract availability |
 
-The Combine/CHR asymmetry needs explicit confirmation: CHR being indifferent means Combine 3 alone would not make CHR distrust the pilot. Under that interpretation, taking consequential CHR work could still reduce Combine standing. Do not silently turn one-way reputation hostility into mutual contract refusal or invent a player-side prohibition on serving CHR.
+Implemented Combine/CHR asymmetry (`3e36373`, `7992ffb`): Combine 3 alone never makes CHR refuse a contract or directly penalize the pilot. Consequential CHR work can still reduce Combine standing. Ordinary CHR income/trust requirements and unrelated-work passive decay remain separate from political hostility.
 
 Recommended presentation/handling, not yet approved implementation:
 - Show refused postings as locked with the responsible affiliation explained, rather than silently disappearing. Final board presentation is undecided.
@@ -130,7 +130,7 @@ A contract's access reputation does **not** automatically identify recipients of
 
 ## Per-faction parameter review
 
-Pete requests **Combine first, then Cerberus, then Houses**, one entity at a time. [Steel Combine's first proposal](faction-reputation-combine.md) is grounded in its existing internal/import/pilgrimage/export programmes. On November 3 Pete accepts the baseline as reasonable, adding level-1-gated routine shipments: Combine gets more work at unchanged routine compensation; other entities' elevated routine work should pay more. M=2 / M=15, K=5 / D=1/30 and CHR losses remain working parameters. Exact routine assignments and open quest/asymmetry questions still need review. Pete then authorized implementation and moving to the next entity. Combine rules and exact routine assignments are now live; Cerberus is next. Cerberus/House progression parameters remain unselected; their income medians/caps were subsequently approved and the first pricing pass is implemented. Combine runtime commit: `3e36373`. [Cerberus's first proposal](faction-reputation-cerberus.md) now covers elevated routine freight, custody/record-based advancement, premium corporate work and suggested fees; progression/important classes still await feedback, while the historical fee proposal is superseded by approved credit targets and the shared calibration.
+Pete requests **Combine first, then Cerberus, then Houses**, one entity at a time. [Steel Combine's first proposal](faction-reputation-combine.md) is grounded in its existing internal/import/pilgrimage/export programmes. On November 3 Pete accepts the baseline as reasonable, adding level-1-gated routine shipments: Combine gets more work at unchanged routine compensation; other entities' elevated routine work should pay more. M=2 / M=15, K=5 / D=1/30 and CHR losses remain working parameters. Exact routine assignments and open quest/asymmetry questions still need review. Pete then authorized implementation and moving to the next entity. Combine rules are live in `3e36373`. Following income approval/calibration and Pete's instruction to proceed, [Cerberus is implemented](faction-reputation-cerberus.md) in `7992ffb`: 2/15 jobs, 5-job grace then −1/30, non-custody records alternative, economic AND trust gates, important 20k net pay. The old fee proposal is superseded. House progression parameters remain unselected; Houses are next.
 
 ## Implementation considerations for the later authorized pass
 
@@ -138,4 +138,4 @@ Pete requests **Combine first, then Cerberus, then Houses**, one entity at a tim
 - Apply settlement and reputation changes atomically with save-before-publish; failed saves/retries must not duplicate gains, rival penalties or decay events.
 - Exact arithmetic must honor M completions per bar (for example ten 0.1 awards), without broadly rounding arbitrary near-threshold stored/developer progress into an early rank.
 - Recheck gate visibility, loss-driven revocation, and accepted-job handling explicitly; no retroactive cancellation or public/private travel change is implied.
-- Combine is implemented; next review Cerberus, then Houses. The remaining faction rules, special quests and persistent political commitments are not implemented by the Combine pass.
+- Combine and Cerberus are implemented; next review Houses. The remaining faction rules, special quests and persistent political commitments are not implemented by the Combine pass.

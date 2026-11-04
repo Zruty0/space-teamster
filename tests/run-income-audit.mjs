@@ -57,6 +57,10 @@ try {
         };
         assert.equal(JSON.stringify(stripPay(rows[i])), JSON.stringify(stripPay(before[i])), `posting ${i}: serialized identities, route, cargo, seed order, transfer, inquiry, copy`);
         const old = before[i].contract.quote, next = rows[i].contract.quote;
+        const allowedChanges = option('--expect-price-changes-only');
+        if (allowedChanges && !allowedChanges.split(',').includes(rows[i].contract.factionId)) {
+          assert.equal(JSON.stringify(next), JSON.stringify(old), `posting ${i}: unrelated employer quote unchanged`);
+        }
         assert.equal(JSON.stringify(next), JSON.stringify(api.calibrateNewContractQuote(before[i].contract, old)), `posting ${i}: only exact authorized calibration, excluded quotes unchanged`);
         assert.equal(old.pay.compensationRatio, next.pay.compensationRatio, 'fuel reimbursement retained');
         assert.equal(old.pay.maxCompAllowance, next.pay.maxCompAllowance, 'fuel cap retained');

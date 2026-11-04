@@ -19,7 +19,7 @@ The sections below retain the rationale and quest/asymmetry questions from the r
 
 ## Income follow-up — `c8037f5`
 
-New export quotes now use a route-specific credit curve centered on **30,000 cr net at par** (reference median 30k; fresh holdout 29,714). Old accepted export quotes remain exact; internal/import/pilgrimage fees and all fuel reimbursement terms are unchanged. All progression/gates/refusals above remain live. [Income implementation and validation](faction-reputation-income-implementation.md).
+New export quotes now use a route-specific credit curve centered on **30,000 cr net at par** (reference median 30k; fresh holdout 29,714). Old accepted export quotes remain exact; internal/import/pilgrimage fees and all fuel reimbursement terms are unchanged. All progression/gates/refusals above remain live. [Income implementation and validation](faction-reputation-income-implementation.md). Subsequent CHR implementation `7992ffb` adds its own independent gains/grace/decay and gates; consequential CHR completions can now both improve CHR and reduce Combine in the same atomic settlement. No reciprocal political loss/refusal is introduced. [CHR ledger](faction-reputation-cerberus.md).
 
 ## Existing source facts
 
