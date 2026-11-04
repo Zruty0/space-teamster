@@ -757,6 +757,8 @@ Pilgrim Gate is the sole public trade membrane. Procurement uses `0.25 + 0.80`; 
 
 Covenant production does not become a Covenant export lane. Four deterministic Hartwell shipping factors occasionally buy unpopular but excellent Toil goods directly at Pilgrim Gate and move them under their own company contracts at low likelihood to Cadiz, Hartwell/Kuznia, or the Reach. Smuggling through Pilgrim Gate belongs to the future smuggler provider, not this one. Public work excludes weapons, Second Crusade preparation, Seal freight, command authority, Arkfall recovery, and forced recruitment.
 
+**November 4 review:** [Covenant progression proposal](faction-reputation-covenant.md) selects one introductory import, then compact dues/service and documented passage at trust 1 / 5k net for advancement. The candidate essential-import refit has substantial holdout entry-median drift; approved 5k/25k/50k targets remain unchanged and broader calibration plus funded return-path validation are required before rollout. No production prices/gates, Seal privileges, internal lanes or Nunes/Hartwell attribution change.
+
 ## Faction: Daedalus Systems
 
 The `[DAEDALUS]` provider presents Coimbra as an ambitious human-run electronics and compute campus. Public contracts never mention autonomous general intelligence, machine governance, Icarus 3.0, alignment, personality simulation, or the project's deceptive progress layers. Institutional issuers are Daedalus Systems Procurement, Product Fulfillment, Field Validation, Research Personnel, and Research Administration; routine copy uses no named contacts.
