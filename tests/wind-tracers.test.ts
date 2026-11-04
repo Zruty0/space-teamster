@@ -1,11 +1,12 @@
 import './svg-dom';
+import './smoke-density.test';
 import '../src/content/estella';
 import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight } from '../src/terrain';
 import { pointHitsSite } from '../src/surface-site';
 import { createShip } from '../src/ship';
 import { createWindTracers, WIND_TRACER_CAP, windTracerTarget } from '../src/wind-tracers';
-import { createFlightAtmosphere } from '../src/flight-atmosphere';
+import { createFlightAtmosphere, PARTICLE_CAP } from '../src/flight-atmosphere';
 import type { LandingAir } from '../src/landing-air';
 let n=0;function assert(ok:unknown,message:string){n++;if(!ok)throw Error(message);}
 const level=createLandingLevel('estella-v-open-cast-mine',993313),terrain=generateTerrain(level),before=JSON.stringify(terrain),dt=1/120;
@@ -39,8 +40,8 @@ effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:6,life:6,size:1.2},air(10)
 const source=effects.snapshot()[0];
 for(let i=120;i<360;i++)effects.step(ship,air(10),terrain,dt,i*dt);
 const plume=effects.snapshot()[0];assert(plume.x>source.x+10&&plume.y>source.y&&plume.vx>8,'stationary upward smoke bends downwind through shared advection');
-for(let i=0;i<1000;i++)effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:5,life:100,size:100},air(10),3);
-assert(effects.diagnostics().active===256&&effects.snapshot().every(p=>p.life<=8&&p.radius<=3),'shared smoke source bounds and fixed pool prevent unbounded emitters');
+for(let i=0;i<PARTICLE_CAP*4;i++)effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:5,life:100,size:100},air(10),3);
+assert(effects.diagnostics().active===PARTICLE_CAP&&effects.snapshot().every(p=>p.life<=8&&p.radius<=3),'shared smoke source bounds and fixed pool prevent unbounded emitters');
 const valid=JSON.stringify(effects.snapshot());effects.emitSmoke({x:NaN,y:1,vx:0,vy:0},air(10),3);assert(JSON.stringify(effects.snapshot())===valid,'invalid emitter ignored');
 effects.reset();assert(effects.snapshot().length===0&&effects.tracerSnapshot().length===0,'both pools reset together');
 effects.emitSmoke({x:1000,y:terrain.pad.y+100,vx:0,vy:5,life:8},air(0,0),0);

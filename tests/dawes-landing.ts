@@ -3,7 +3,7 @@ import { checkFlightPresentation } from './flight-presentation-native';
 import { defaultCareerProfile } from '../src/career-state';
 import { config } from '../src/config';
 import { createMaintenanceTelemetry } from '../src/maintenance/telemetry';
-import { createFlightAtmosphere } from '../src/flight-atmosphere';
+import { createFlightAtmosphere, PARTICLE_CAP } from '../src/flight-atmosphere';
 import { createWindTracers } from '../src/wind-tracers';
 import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight, landingReferenceHeight } from '../src/terrain';
@@ -213,7 +213,7 @@ async function pilotChecks(){
   pilot.wind=pilot.visuals=true;pilot.low=false;reset('overview');const hold=advance(12);
   assert(hold.ship.sas&&Math.abs(hold.ship.vx)<1e-8&&Math.abs(hold.ship.vy)<1e-8&&Math.abs(hold.ship.x-1000)<1e-8,'SAS holds zero ground velocity against wind');
   assert(hold.ship.rcsTranslating&&hold.ship.dvUsed>12*level.gravity,'wind compensation consumes RCS delta-v');
-  assert(hold.effects.active>0&&hold.effects.active<=256,'exhaust emitted into bounded pool');
+  assert(hold.effects.active>0&&hold.effects.active<=PARTICLE_CAP,'exhaust emitted into bounded pool');
   const plume=pilot.effects.snapshot(),tracers=pilot.effects.tracerSnapshot();draw();draw();assert(JSON.stringify(pilot.effects.snapshot())===JSON.stringify(plume)&&JSON.stringify(pilot.effects.tracerSnapshot())===JSON.stringify(tracers),'drawing/paused redraw never advances particles');
   assert(hold.effects.tracers.active>0&&hold.effects.tracers.capacity===128,'bounded ambient wind particles accompany the plume');
   reset('overview');current.ship.throttle=0;advance(2);

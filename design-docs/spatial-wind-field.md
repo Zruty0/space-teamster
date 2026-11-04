@@ -27,7 +27,7 @@ Status: LIVE. Latest fly feedback supersedes the first vector-field tuning (`48e
 
 ## Direction particles / budget
 
-- Fixed tracer pool grows 128→512, separate from the unchanged 256 smoke slots. Local activation quota is linear in actual vector speed, `ceil(512 * clamp(speed / 40, 0, 1))`; zero in calm/vacuum, saturated at 40 m/s. Uniform-flow tests verify proportional actual counts. Local advection, clipping and lifecycle can reduce active/visible counts below the quota.
+- Fixed tracer pool grows 128→512, separate from smoke, now 1,536 fixed slots under [smoke-density.md](smoke-density.md). Smoke amount/lifetime scale with local density; direction-tracer counts still scale with wind. Local activation quota is linear in actual vector speed, `ceil(512 * clamp(speed / 40, 0, 1))`; zero in calm/vacuum, saturated at 40 m/s. Uniform-flow tests verify proportional actual counts. Local advection, clipping and lifecycle can reduce active/visible counts below the quota.
 - Dormant candidates retain deterministic positions/lifetimes instead of rerolling every tick to seek strong cells. Lifetimes shorten to 2–5 s so small eddies do not drain the visible population into stagnant pockets. Fade in/out, stronger tails up to 10 px and brighter heads convey direction; no terrain decoration.
 - Actual local vx/vy advects tracer and smoke motion; vertical landing flow remains visible. Draw/pause/quality cannot advance particles or change physics. Low quality thins paint only. Cloud sheets approximate large-scale shear rather than integrating every small eddy. No new textures/caches, geometry, stacks, saves or contracts.
 

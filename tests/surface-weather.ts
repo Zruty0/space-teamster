@@ -12,7 +12,7 @@ import { APPROACH_LEVELS, approachWindAcceleration, approachTurbulenceTorque, ap
 import { createPlayableEstellaMission } from '../src/estella-playable';
 import { landingAerodynamics, landingSasForce } from '../src/landing-air';
 import { createRegionalWeather } from '../src/surface-weather';
-import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
+import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT, PARTICLE_CAP } from '../src/flight-atmosphere';
 import { readInput } from '../src/input';
 import { WIND_TRACER_CAP } from '../src/wind-tracers';
 const canvas=document.getElementById('flight') as HTMLCanvasElement,ctx=canvas.getContext('2d')!;
@@ -53,6 +53,16 @@ function draw(){const p=game.phase;game.renderGameplayPhase(p,'Practice complete
 function step(input={...NEUTRAL_FLIGHT_INPUT}){if(game.phase.kind==='landing')game.handleLanding({...input},1/120);else game.handleApproach({...input},1/120);if(game.phase.state==='crashed'||game.phase.state==='approachFailed')paused=true;}
 function advance(seconds:number,input:Partial<typeof NEUTRAL_FLIGHT_INPUT>={}){if(!Number.isFinite(seconds)||seconds<0||seconds>20)throw Error('Invalid step');paused=true;for(let i=0;i<Math.round(seconds*120);i++)step({...NEUTRAL_FLIGHT_INPUT,...input,toggleSAS:i===0&&!!input.toggleSAS});draw();return snapshot();}
 function snapshot(){const p=game.phase,air=p.kind==='landing'?game.landingAtmosphere(p)?.air:p.level.flightAir,s=p.ship??p.as;return{site:p.level.poi.id,phase:p.kind,epoch:p.worldTimeStart,time:game.time,state:p.state,ship:{...s},wind:air?.sample(s.x,s.y,game.time),effects:game.regionalAtmosphere?.pilot.effects.diagnostics(),particles:game.regionalAtmosphere?.pilot.effects.tracerSnapshot()};}
+// Held presentation source at identical thrust: isolates density from differing
+// gravity/hover throttle. Uses actual Game air and renderer, never career flight IO.
+function smokeCalibration(id:string){
+ reset(id,'landing',12345);const p=game.phase,air=game.landingAtmosphere(p).air,fx=game.regionalAtmosphere.pilot.effects;
+ Object.assign(p.ship,{x:1000,y:p.terrain.pad.y+180,vx:0,vy:0,thrustFiring:true,thrustVisualLevel:1,renderGimbalAngle:0});
+ Object.assign(p.camera,{x:1000,y:p.terrain.pad.y+130,zoom:2.6});const before=JSON.stringify(p.ship);
+ fx.reset();for(let i=0;i<1200;i++)fx.step(p.ship,air,p.terrain,1/120,i/120);game.time=10;
+ const particles=fx.snapshot(),frozen=JSON.stringify(particles);draw();draw();
+ return{site:id,density:air.sample(p.ship.x,p.ship.y,10).density,count:particles.length,meanLife:particles.reduce((n:number,p:any)=>n+p.life,0)/Math.max(1,particles.length),unchanged:before===JSON.stringify(p.ship)&&frozen===JSON.stringify(fx.snapshot())};
+}
 async function checks(){
  checking=true;paused=true;let n=0;const assert=(ok:unknown,msg:string)=>{n++;if(!ok)throw Error(msg);};const results:any[]=[];
  const saved={site:site.value,view:view.value,epoch:Number(epoch.value),visual:game.weatherVisuals,low:game.weatherLow};
@@ -62,7 +72,7 @@ async function checks(){
    reset(poi.id,'landing',12345);await game.landingScenery.prepare(game.phase.level);
    assert(!!game.landingAtmosphere(game.phase)?.physicsAir,`${poi.id} automatically enabled`);
    advance(1);const a=snapshot(),pool=JSON.stringify(a.particles);draw();draw();assert(pool===JSON.stringify(snapshot().particles),'draw cannot advance particles');
-   assert(a.effects.tracers.active>0&&a.effects.tracers.active<=WIND_TRACER_CAP&&a.effects.active<=256,'bounded atmospheric effects');
+   assert(a.effects.tracers.active>0&&a.effects.tracers.active<=WIND_TRACER_CAP&&a.effects.active<=PARTICLE_CAP,'bounded atmospheric effects');
    results.push({site:poi.name,body:game.phase.level.body.name,wind:a.wind.vx,drift:a.ship.x-1000});
    reset(poi.id,'landing',12345);advance(1);assert(JSON.stringify(snapshot())===JSON.stringify(a),'actual Game retry reproduces controls/weather/effects');
    game.weatherVisuals=false;game.weatherLow=true;reset(poi.id,'landing',12345);advance(1);const b=snapshot();assert(JSON.stringify(a.ship)===JSON.stringify(b.ship)&&pool===JSON.stringify(b.particles),'visual flags never alter simulation');game.weatherVisuals=true;game.weatherLow=false;
@@ -168,8 +178,14 @@ async function checks(){
   assert(JSON.stringify(game.phase.as)===initial,'warning/render does not alter flight');
   advance(4);const buffeted=snapshot();assert(buffeted.ship.alive&&Math.abs(buffeted.ship.angle-1.4)>.08,'actual Game applies visible rotational buffet');
   game.reloadPhase(game.phase);advance(4);assert(JSON.stringify(snapshot().ship)===JSON.stringify(buffeted.ship),'actual approach retry reproduces spatial field and buffet');
+  const smokeDensity=[smokeCalibration('estella-iii-agricultural-region'),smokeCalibration('estella-vi-spaceport'),smokeCalibration('estella-ii-nimbus-crucible'),smokeCalibration('estella-ii-olympos')];
+  const [gaiaSmoke,stribogSmoke,nimbusSmoke,olymposSmoke]=smokeDensity;
+  assert(smokeDensity.every(p=>p.unchanged&&p.count>0&&p.count<=PARTICLE_CAP),'actual density smoke/render preserves held source and bounded simulation');
+  assert(nimbusSmoke.count/gaiaSmoke.count>4.5&&nimbusSmoke.count/gaiaSmoke.count<5.5&&nimbusSmoke.meanLife>gaiaSmoke.meanLife*2,'actual Nimbus smoke is about fivefold Gaia and lasts longer');
+  assert(stribogSmoke.count>gaiaSmoke.count*1.5&&stribogSmoke.count<nimbusSmoke.count,'actual Stribog smoke lies between Gaia and dense Acheron');
+  assert(Math.abs(olymposSmoke.count/gaiaSmoke.count-1)<.15,'actual Olympos altitude keeps its smoke near Gaia density');
   assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog/geography unchanged');assert(JSON.stringify({...localStorage})===storage,'no career/save writes');
-  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling};
+  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling,smokeDensity};
  }finally{game.weatherVisuals=saved.visual;game.weatherLow=saved.low;reset(saved.site,saved.view,saved.epoch);checking=false;}
 }
 async function performanceCheck(paint=true){
@@ -187,4 +203,4 @@ for(const [id,key]of [['visuals','weatherVisuals'],['low','weatherLow']])documen
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){paused=true;play.textContent='Fly';}});
 function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;if(!checking){const input=readInput();if(!paused&&!document.hidden){accumulator+=dt;let first=true;while(accumulator>=1/120){step({...input,toggleSAS:first&&input.toggleSAS,toggleGear:first&&input.toggleGear,toggleWings:first&&input.toggleWings});first=false;accumulator-=1/120;}}draw();}requestAnimationFrame(frame);}
 window.addEventListener('blur',()=>{paused=true;play.textContent='Fly';});document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;accumulator=0;play.textContent='Fly';}});
-reset();requestAnimationFrame(frame);(window as any).surfaceWeather={ready:true,reset,advance,snapshot,checks,performance:performanceCheck,game};
+reset();requestAnimationFrame(frame);(window as any).surfaceWeather={ready:true,reset,advance,snapshot,checks,smokeCalibration,performance:performanceCheck,game};

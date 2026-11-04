@@ -7,14 +7,22 @@ import type { BodyDef } from './world';
 import type { InputState } from './input';
 import { createWindTracers } from './wind-tracers';
 import type { RegionalWeather } from './surface-weather';
-export const PARTICLE_CAP=256;
+export const PARTICLE_CAP=1536;
+/** Local kg/m³, normalized to temperate sea-level air; visual factors only. */
+export function smokeDensityFactors(density:number){
+ // Gaia is the former Stribog reference plume. Split the density response
+ // between birth rate and persistence: dense Acheron air holds about 5× smoke.
+ const amount=Number.isFinite(density)?Math.min(5,Math.pow(Math.max(0,density)/1.2,1.1)):0;
+ const persistence=Math.sqrt(amount);
+ return{emission:.04+.96*persistence,lifetime:persistence};
+}
 export const NEUTRAL_FLIGHT_INPUT:InputState={pitch:0,throttleUp:false,throttleDown:false,stopAssist:false,killRotation:false,moveUp:false,moveDown:false,moveLeft:false,moveRight:false,rotateLeft:false,rotateRight:false,shiftHeld:false,setHoverThrottle:false,toggleGear:false,reset:false,toggleDevPanel:false,levelSelect:false,levelPick:0,menuUp:false,menuDown:false,menuLeft:false,menuRight:false,menuConfirm:false,pageUp:false,pageDown:false,continueAction:false,toggleWings:false,wingAngleUp:false,wingAngleDown:false,toggleSAS:false,warpUp:false,warpDown:false,toggleHighThrust:false};
 type Camera={x:number;y:number;zoom:number};
 type Puff={x:number;y:number;vx:number;vy:number;age:number;life:number;radius:number;active:boolean};
 export interface AtmosphericPilot {visuals:boolean;wind:boolean;low:boolean;effects:ReturnType<typeof createFlightAtmosphere>;input?:InputState;}
 export interface LandingAtmosphereView {pilot:AtmosphericPilot;air:LandingAir;physicsAir?:LandingAir;epoch:number;}
 /** World-space source, reusable by future authored smokestack anchors. No stacks registered here. */
-export interface SmokeSource {x:number;y:number;vx:number;vy:number;life?:number;size?:number;}
+export interface SmokeSource {x:number;y:number;vx:number;vy:number;/** Nominal lifetime at 1.2 kg/m³; density-scaled and capped at 8 s. */life?:number;size?:number;}
 export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
  const tracers=createWindTracers(weather?.id??regionId);
  const pool:Puff[]=Array.from({length:PARTICLE_CAP},()=>({x:0,y:0,vx:0,vy:0,age:0,life:1,radius:1,active:false}));
@@ -24,11 +32,15 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
  // All sources share this fixed pool, wind relaxation, clipping and expiry.
  function emitSmoke(source:SmokeSource,air:LandingAir,time:number){
   if(![source.x,source.y,source.vx,source.vy,time,source.life??1,source.size??1].every(Number.isFinite))return;
+  // A full pool drops new births instead of cutting dense-air lifetimes short.
+  let searched=0;while(pool[cursor].active&&searched<PARTICLE_CAP){cursor=(cursor+1)%PARTICLE_CAP;searched++;}
+  if(searched===PARTICLE_CAP)return;
   const p=pool[cursor];cursor=(cursor+1)%PARTICLE_CAP;
-  const r=weatherRandom(9137,serial++),atmo=air.sample(source.x,source.y,time).density>0;
+  const r=weatherRandom(9137,serial++),factors=smokeDensityFactors(air.sample(source.x,source.y,time).density);
+  const vacuumLife=.25+r*.1,referenceLife=Math.max(.35,Math.min(8,source.life??(2.2+r*.4)));
   Object.assign(p,{x:source.x,y:source.y,vx:source.vx+(r-.5)*2,vy:source.vy,age:0,
-   life:atmo?Math.max(.1,Math.min(8,source.life??(2.2+r*.4))):.25+r*.1,
-   radius:atmo?Math.max(.2,Math.min(3,source.size??1)):.4,active:true});
+   life:Math.min(8,Math.max(vacuumLife,referenceLife*factors.lifetime)),
+   radius:.4+(Math.max(.2,Math.min(3,source.size??1))-.4)*Math.min(1,factors.lifetime),active:true});
  }
  function step(ship:ShipState,air:LandingAir,terrain:TerrainData,dt:number,time:number){
   if(!(dt>0)||dt>.1||!Number.isFinite(time))return;
@@ -42,9 +54,10 @@ export function createFlightAtmosphere(regionId='',weather?:RegionalWeather){
   }
   if(!ship.thrustFiring){emission=0;return;}
   const power=Math.min(1,ship.thrustVisualLevel);
-  // Faster air stretches plumes: fill their gaps without increasing the pool.
-  const stretch=weather?Math.min(24,Math.abs(air.sample(ship.x,ship.y,time).vx)*.2):0;
-  emission+=dt*Math.min(48,12+30*power+stretch);
+  // Density controls smoke amount; wind still advects it, but must not obscure
+  // the Gaia / dense-Acheron calibration with a second emission multiplier.
+  const factors=smokeDensityFactors(air.sample(ship.x,ship.y,time).density);
+  emission+=dt*Math.min(112,Math.min(48,22+30*power)*factors.emission);
   while(emission>=1){emission--;for(const [lx,ly]of ENGINE_PODS){
    const [x,y]=localToWorld(lx,ly,ship.x,ship.y,ship.angle,ship.facingSign),dx=-Math.sin(ship.renderGimbalAngle),dy=-Math.cos(ship.renderGimbalAngle);
    emitSmoke({x:x+dx*1.35,y:y+dy*1.35,vx:ship.vx+dx*(8+16*power),vy:ship.vy+dy*(8+16*power)},air,time);

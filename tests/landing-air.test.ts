@@ -5,7 +5,7 @@ import { createLandingLevel } from '../src/levels';
 import { generateTerrain, getTerrainHeight } from '../src/terrain';
 import { createShip, updateShip } from '../src/ship';
 import { createLandingAir, landingAerodynamics, landingSasForce, regionalWind, regionalAdvection } from '../src/landing-air';
-import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT } from '../src/flight-atmosphere';
+import { createFlightAtmosphere, NEUTRAL_FLIGHT_INPUT, PARTICLE_CAP } from '../src/flight-atmosphere';
 import { predictLandingTrajectory } from '../src/renderer';
 let count=0;function assert(v:unknown,s:string){count++;if(!v)throw Error(s);}
 const saved={...config},level=createLandingLevel('estella-v-open-cast-mine',993311),terrain=generateTerrain(level),epoch=12345;
@@ -22,7 +22,7 @@ try{
  for(let i=0;i<2400;i++){
   const t=i/120;updateShip(steady,NEUTRAL_FLIGHT_INPUT,1/120,t,air);updateShip(drifting,NEUTRAL_FLIGHT_INPUT,1/120,t,air);fx.step(steady,air,terrain,1/120,t);
   assert(Math.abs(steady.vx)<1e-10&&Math.abs(steady.vy)<1e-10,'SAS rejects breeze/gusts without drift');
-  assert(fx.diagnostics().active<=256,'bounded particle pool at every tick');
+  assert(fx.diagnostics().active<=PARTICLE_CAP,'bounded particle pool at every tick');
  }
  assert(steady.x===1000&&Math.abs(drifting.x-1000)>1,'SAS zero ground velocity, not matching moving air');
  assert(steady.dvUsed>drifting.dvUsed,'wind hold pays RCS delta-v');
