@@ -1,6 +1,6 @@
 import type { CareerContract } from './career-contracts';
 
-export type ContractIdentity = Pick<CareerContract, 'factionId' | 'templateId' | 'category' | 'travelMode'>;
+export type ContractIdentity = Pick<CareerContract, 'factionId' | 'templateId' | 'category' | 'travelMode' | 'nunesInquiry'>;
 export type CombineWorkClass = 'basic-routine' | 'elevated-routine' | 'important' | 'export';
 export type CerberusWorkClass = 'routine' | 'important' | 'entrusted-commercial';
 
