@@ -757,7 +757,7 @@ Pilgrim Gate is the sole public trade membrane. Procurement uses `0.25 + 0.80`; 
 
 Covenant production does not become a Covenant export lane. Four deterministic Hartwell shipping factors occasionally buy unpopular but excellent Toil goods directly at Pilgrim Gate and move them under their own company contracts at low likelihood to Cadiz, Hartwell/Kuznia, or the Reach. Smuggling through Pilgrim Gate belongs to the future smuggler provider, not this one. Public work excludes weapons, Second Crusade preparation, Seal freight, command authority, Arkfall recovery, and forced recruitment.
 
-**November 4 review:** [Covenant progression proposal](faction-reputation-covenant.md) selects one introductory import, then compact dues/service and documented passage at trust 1 / 5k net for advancement. The candidate essential-import refit has substantial holdout entry-median drift; approved 5k/25k/50k targets remain unchanged and broader calibration plus funded return-path validation are required before rollout. No production prices/gates, Seal privileges, internal lanes or Nunes/Hartwell attribution change.
+**November 4 approval:** [Covenant progression design](faction-reputation-covenant.md) selects one introductory import, then compact dues/service and documented passage at trust 1 / 5k net for advancement. The initial candidate had substantial entry-median drift; the [batch follow-up](faction-reputation-remaining.md) broadens the fixed reference and validates a gentler entry-price curve on a new window (5,192 / 25,000 / 50,058 medians). Approved targets remain unchanged; funded return-path validation and runtime rollout remain pending. No production prices/gates, Seal privileges, new internal lanes or Nunes/Hartwell attribution change.
 
 ## Faction: Daedalus Systems
 
@@ -795,7 +795,9 @@ Pay: noble work uses `0.30 + 0.70` plus a flat honorarium. At par, net is the ho
 
 ## Known design questions
 
-- Reputation should probably be faction-specific, with some faction-pair consequences later.
+**November 4 combined review:** [Remaining reputation stages](faction-reputation-remaining.md) covers Daedalus validation/Icarus, BAM overhaul/specialists, Merren reference/stewardship/household/exchange work, shared institutional earning, inherited employers and reserved stories. It preserves all current routes, issuers and fuel terms. Read-only refits are not live; GOV entry pricing and broader small/tied-pool balance remain explicit issues.
+
+- Faction reputation/recognition is implemented; automatic earning/gates beyond Combine/CHR await the reviewed rollout. No additional rivalry consequences are implied by employer location or trading partners.
 - Contract templates need metadata for reputation gates, legality/suspicion, certification requirements, and narrative flags.
 - Passenger transport currently uses cargo-equivalent mass classes; later it needs distinct containers, handling requirements, and presentation.
 - Faction contract weighting may need local saturation controls once more providers exist.

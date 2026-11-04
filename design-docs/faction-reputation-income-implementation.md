@@ -17,7 +17,7 @@ Nine important CHR families now pay 20k net and require level 1; they are exclud
 - Combine internal/import/own-pilgrimage work stays zero-fee with existing reimbursement. Only newly quoted exports replace the old 0.15 generosity with the 30k-centered credit curve. Their trust minimum 2, progression, grace, rivalry and refusal remain live and unchanged.
 - Guild, mixed civilian booking pools, empty runs, Old Nell and Nunes Inquiry-linked work stay outside calibration. Smuggling targets exist as approved design data only; no contact jobs or personal-trust system are invented.
 
-**Staging:** the first pass left non-Combine gates off to avoid locking work without earned progression. Cerberus now has progression and live gates; Houses and the remaining entities still need their reviews. Their unauthored important classes remain in ordinary commercial pools pending selection/refit. Audit tiers outside Combine/CHR are planned-access classifications, not a claim that all gates are live.
+**Staging:** the first pass left non-Combine gates off to avoid locking work without earned progression. Cerberus now has progression and live gates; Houses and the remaining entities now have design reviews, with the final public-employer stages batched in [the remaining-stage pack](faction-reputation-remaining.md). Their selected important classes remain in ordinary production commercial pools until authorized rollout/refit; review projections do not change current prices. Audit tiers outside Combine/CHR are planned-access classifications, not a claim that all gates are live.
 
 ## Fitting and variation
 
