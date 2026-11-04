@@ -708,6 +708,8 @@ Routine terms use `0.15` generosity plus `0.85` actual-fuel compensation capped 
 
 ## Faction: House Mendes
 
+**November 3 update:** the authored fee/percentage paragraphs for all three Houses below describe generator inputs and historical quotes. [Income calibration](faction-reputation-income-implementation.md) now replaces fixed pay on new ordinary offers; accepted quotes and Inquiry terms remain intact. The [House progression review](faction-reputation-houses.md) proposes important classes, normalized Mendes 3:4:2 weights and an isolated income refit, but is not implemented.
+
 House Mendes operates the Wells muster-logistics network from Banner Forge. Lord Marshal Vasco Mendes directs its warrants from the House Mendes Marshalcy at Castle Mendes. Banner Forge stages both material and personnel: proofed armor, shock lances, robotic destriers, target automata, field fortifications, command equipment, guard inspectors, captains, surgeons, adjudicators, clerks, and logistics officers.
 
 Permanent Forge Intake postings provide reliable access to Banner Forge from Serrat Domain Shipyard and Cadiz Highport. They carry armor plate, instrument-grade alloy blanks, machine-tool stock, and carbon-fiber structure under routine `15,000 cr` Mendes terms. Wider industrial flows already supply the Forge: the Steel Combine exports Kuznia plate and structural stock from Hammer, while Roadstead brokers deliver Cinderhook pressure-alloy billets and instrument-grade Hartwell blanks. Glitterfield/Cupola Belt metal continues through Hammer before onward Steel Combine delivery rather than bypassing the established bulk membrane.
