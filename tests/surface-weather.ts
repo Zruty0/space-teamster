@@ -169,7 +169,7 @@ async function checks(){
   reset('estella-vi-spaceport','approach',0);const al=game.phase.level;
   let core={x:0,y:3500,vx:140,vy:0},peak=0;
   for(let x=-6000;x<=6000;x+=80)for(let y=1800;y<=8000;y+=80){const m={x,y,vx:140,vy:0},v=Math.abs(approachTurbulenceTorque(m,al,0));if(v>peak){peak=v;core=m;}}
-  assert(peak>.8,'pronounced approach buffet exists');
+  assert(peak>2&&peak<config.rcsAngularAccel,'strong approach buffet exists within stock counter-pitch authority');
   game.loadApproach(al,{...core,angle:1.4},0);
   const labels:string[]=[],text=ctx.fillText.bind(ctx),initial=JSON.stringify(game.phase.as);
   ctx.fillText=(t:string,x:number,y:number,max?:number)=>{labels.push(t);if(max===undefined)text(t,x,y);else text(t,x,y,max);};
@@ -178,6 +178,53 @@ async function checks(){
   assert(JSON.stringify(game.phase.as)===initial,'warning/render does not alter flight');
   advance(4);const buffeted=snapshot();assert(buffeted.ship.alive&&Math.abs(buffeted.ship.angle-1.4)>.08,'actual Game applies visible rotational buffet');
   game.reloadPhase(game.phase);advance(4);assert(JSON.stringify(snapshot().ship)===JSON.stringify(buffeted.ship),'actual approach retry reproduces spatial field and buffet');
+  // Actual regional pockets must cancel both accelerated rates, including in departure.
+  const turbulenceWarp:any[]=[];
+  for(const mode of ['approach','departure'])for(const warp of [2,5]){
+   const template=phases('estella-vi-spaceport')[mode as 'approach'|'departure'];
+   game.loadApproach(template,{...core,angle:1.4},0);
+   assert(approachInTurbulence(core.y,game.phase.level,0,core),'real regional pocket is active at warp test entry');
+   Object.assign(game.phase.as,{timeWarp:warp,timeWarpLevel:warp===2?1:2});
+   game.handleApproach({...NEUTRAL_FLIGHT_INPUT},.05);
+   assert(game.phase.as.timeWarp===1&&game.phase.as.timeWarpLevel===0&&Math.abs(game.time-.05)<1e-10,'turbulence immediately cancels accelerated approach/departure time');
+   game.handleApproach({...NEUTRAL_FLIGHT_INPUT,warpUp:true},.05);
+   assert(game.phase.as.timeWarp===1&&Math.abs(game.time-.1)<1e-10,'warp-up cannot override an active physical buffet');
+   turbulenceWarp.push({mode,warp,actual:game.phase.as.timeWarp,time:game.time});
+  }
+  // Enter a real regional pocket at 5× from clear air, rather than only spawning inside it.
+  let entryX:number|undefined;
+  for(let x=core.x-2000;x<core.x;x+=2){
+   const m={x,y:core.y,vx:140,vy:0};
+   if(!approachInTurbulence(m.y,al,0,{...m,x:x-2})&&approachInTurbulence(m.y,al,0,m)){entryX=x-10;break;}
+  }
+  assert(entryX!==undefined,'real regional pocket has a clear-air entry boundary');
+  game.loadApproach(al,{x:entryX!,y:core.y,vx:140,vy:0,angle:1.4},0);
+  assert(!approachInTurbulence(core.y,game.phase.level,0,game.phase.as),'spatial-entry test starts outside buffeting');
+  Object.assign(game.phase.as,{timeWarp:5,timeWarpLevel:2});game.handleApproach({...NEUTRAL_FLIGHT_INPUT},.05);
+  assert(game.phase.as.timeWarp===1&&game.time>.05&&game.time<.25,'crossing a physical pocket cancels warp within that frame');
+  turbulenceWarp.push({mode:'spatial-entry',warp:5,actual:game.phase.as.timeWarp,time:game.time});
+  // Precisely timed synthetic forcing isolates a mid-frame entry. No live saves.
+  const timedWarp=(frames:number[],buffet=true)=>{
+   game.loadApproach(al,{x:-8000,y:5000,vx:140,vy:0,angle:1.4},0);
+   game.phase.level.flightAir={sample:()=>({vx:-60,vy:0,density:1,windLimit:3.7}),approachBuffet:(_x:number,_y:number,t:number)=>buffet&&t>=.025&&t<.08?1:0};
+   Object.assign(game.phase.as,{timeWarp:5,timeWarpLevel:2});
+   for(const frame of frames)game.handleApproach({...NEUTRAL_FLIGHT_INPUT},frame);
+   return{ship:{...game.phase.as},time:game.time,worldTime:game.worldTime,remainder:game.accumulator};
+  };
+  const coarseWarp=timedWarp([.05]),fineWarp=timedWarp([.01,.01,.01,.01,.01]);
+  assert(coarseWarp.ship.timeWarp===1&&coarseWarp.time>.05&&coarseWarp.time<.08,'mid-frame entry discards acceleration, not remaining real time');
+  assert(Math.abs(coarseWarp.time-fineWarp.time)<1e-10&&Math.abs(coarseWarp.ship.x-fineWarp.ship.x)<1e-9,'warp cancellation is independent of render-frame subdivision');
+  assert(JSON.stringify(timedWarp([.05]))===JSON.stringify(coarseWarp),'same warp entry and frame sequence replay exactly');
+  game.handleApproach({...NEUTRAL_FLIGHT_INPUT},.1);
+  assert(game.phase.as.timeWarp===1&&game.time>.15&&game.time<.18,'leaving turbulence does not automatically restore warp');
+  const beforeResume=game.time;game.handleApproach({...NEUTRAL_FLIGHT_INPUT,warpUp:true},.05);
+  assert(game.phase.as.timeWarp===2&&Math.abs(game.time-beforeResume-.1)<1e-10,'pilot can restore warp in clear air');
+  const quietWarp=timedWarp([.05],false);
+  assert(quietWarp.ship.timeWarp===5&&Math.abs(quietWarp.time-.25)<1e-10,'strong ordinary wind without buffet does not cancel warp');
+  game.handleApproach({...NEUTRAL_FLIGHT_INPUT,warpDown:true},.05);
+  assert(game.phase.as.timeWarp===2&&Math.abs(game.time-.35)<1e-10,'manual warp-down keeps the correct wall/simulation clocks');
+  game.handleApproach({...NEUTRAL_FLIGHT_INPUT,pitch:1},.05);
+  assert(game.phase.as.timeWarp===1&&Math.abs(game.time-.4)<1e-10,'manual control still cancels warp without changing control time');
   const smokeDensity=[smokeCalibration('estella-iii-agricultural-region'),smokeCalibration('estella-vi-spaceport'),smokeCalibration('estella-ii-nimbus-crucible'),smokeCalibration('estella-ii-olympos')];
   const [gaiaSmoke,stribogSmoke,nimbusSmoke,olymposSmoke]=smokeDensity;
   assert(smokeDensity.every(p=>p.unchanged&&p.count>0&&p.count<=PARTICLE_CAP),'actual density smoke/render preserves held source and bounded simulation');
@@ -185,7 +232,7 @@ async function checks(){
   assert(stribogSmoke.count>gaiaSmoke.count*1.5&&stribogSmoke.count<nimbusSmoke.count,'actual Stribog smoke lies between Gaia and dense Acheron');
   assert(Math.abs(olymposSmoke.count/gaiaSmoke.count-1)<.15,'actual Olympos altitude keeps its smoke near Gaia density');
   assert(JSON.stringify([BODIES,SURFACE_POIS])===catalog,'catalog/geography unchanged');assert(JSON.stringify({...localStorage})===storage,'no career/save writes');
-  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling,smokeDensity};
+  return{passed:true,checks:n,sites:sites.length,worlds:new Set(sites.map(p=>p.bodyId)).size,results,stribogHandling,smokeDensity,turbulenceWarp};
  }finally{game.weatherVisuals=saved.visual;game.weatherLow=saved.low;reset(saved.site,saved.view,saved.epoch);checking=false;}
 }
 async function performanceCheck(paint=true){

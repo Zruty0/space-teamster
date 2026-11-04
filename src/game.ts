@@ -2064,10 +2064,20 @@ export class Game {
     input.warpUp = false;
     input.warpDown = false;
 
-    const effectiveFrameTime = frameTime * p.as.timeWarp;
-    this.accumulator += effectiveFrameTime;
+    const cancelTurbulenceWarp = () => {
+      if (p.state === 'approaching' && p.as.timeWarp > 1 && approachInTurbulence(p.as.y, p.level, this.time, p.as)) {
+        p.as.timeWarpLevel = 0;
+        p.as.timeWarp = 1;
+      }
+    };
+    cancelTurbulenceWarp(); // Also rejects warp-up while actually being buffeted.
+    // Approach banks wall seconds. Each fixed simulation step spends dt/warp,
+    // so entry into turbulence cannot leave a bank of accelerated time to drain.
+    // Phase loaders reset this accumulator; other flight modes keep their clocks.
+    this.accumulator += frameTime;
     let edgeConsumed = false;
-    while (this.accumulator >= PHYSICS_DT) {
+    while (this.accumulator >= PHYSICS_DT / p.as.timeWarp) {
+      const approachControlDt = PHYSICS_DT / p.as.timeWarp;
       if (p.state === 'approaching') {
         if (atmosphericExposureIsFatal(this.career.rig, !!p.level.body.atmosphere && p.as.y < p.level.body.atmosphere.height)) {
           p.as.alive = false;
@@ -2084,7 +2094,6 @@ export class Game {
         const approachThrust: IntegrityThrustLevel = approachFiring
           ? (p.as.highThrust ? 'high' : 'standard')
           : 'none';
-        const approachControlDt = PHYSICS_DT / Math.max(1, p.as.timeWarp);
         const activeTurbulence = approachInTurbulence(p.as.y, p.level, this.time, p.as);
         accumulateFlightTelemetry(this.activeMaintenanceTelemetry, {
           wallDt: approachControlDt,
@@ -2134,12 +2143,13 @@ export class Game {
           return;
         }
       }
-      this.accumulator -= PHYSICS_DT;
+      this.accumulator -= approachControlDt;
       this.time += PHYSICS_DT;
       this.worldTime += PHYSICS_DT;
+      cancelTurbulenceWarp(); // Detect crossing a pocket within a multi-step frame.
     }
 
-    updateApproachCamera(p.cam, p.as, p.level, effectiveFrameTime, this.canvas.width, this.canvas.height);
+    updateApproachCamera(p.cam, p.as, p.level, frameTime * p.as.timeWarp, this.canvas.width, this.canvas.height);
   }
 
   private activeRigRestrictionIds(): Set<RigRestrictionId> {

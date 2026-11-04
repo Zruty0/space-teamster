@@ -52,7 +52,7 @@ for(let x=-8000;x<=8000;x+=80)for(let y=1800;y<=8000;y+=80){
  assert(warning===(Math.abs(torque)>.08),'warning follows actual local rotational force');
  if(Math.abs(torque)>peakTorque){peakTorque=Math.abs(torque);core=motion;}
 }
-assert(warned/total<.07&&warned>10&&peakTorque>.8&&peakTorque<2,'rare spatial pockets, tangible but controllable torque');
+assert(warned/total<.07&&warned>10&&peakTorque>2&&peakTorque<2.2,'rare spatial pockets, tangible but controllable torque');
 assert(!approachInTurbulence(core.y,{...level,flightAir:{sample:approachAir.sample}},0,core),'ordinary shear/current alone does not trigger fake turbulence warning');
 assert(!approachInTurbulence(core.y,{...level,flightAir:{sample:(_x,_y,t)=>({vx:100+50*Math.sin(t*8),vy:0,density:1})}},0,core),'rapid temporal wind changes do not produce a fake buffet warning');
 assert(approachAir.approachBuffet!(core.x,core.y,12345)===weather.air(12000,()=>30,origin).approachBuffet!(core.x,core.y,345),'spatial buffet epoch continuity');
@@ -64,8 +64,17 @@ for(let i=0;i<predicted.points.length;i++){
  deflection=Math.max(deflection,Math.abs(live.angle-calm.angle));
  assert(Math.hypot(live.x-predicted.points[i].x,live.y-predicted.points[i].y)<1e-6,'live/predicted trajectory share vector forces and buffet-induced rotation');
 }
-assert(live.alive&&deflection>.08&&deflection<.8,'actual bounded attitude kick, not just a warning');
+assert(live.alive&&deflection>.8&&deflection<1.6,'actual bounded attitude kick, not just a warning');
 assert(JSON.stringify(live)===JSON.stringify(retry),'input/mission retry is identical');
+const piloted={...start};let pitch=0,controlledDeflection=0;
+for(let i=0;i<480;i++){
+ const error=Math.atan2(Math.sin(piloted.angle-start.angle),Math.cos(piloted.angle-start.angle));
+ if(i%24===0){const demand=-error*4-piloted.angularVel*1.5;pitch=Math.abs(demand)>.1?Math.sign(demand):0;}
+ updateApproach(piloted,{...NEUTRAL_FLIGHT_INPUT,pitch},level,dt,i*dt);
+ controlledDeflection=Math.max(controlledDeflection,Math.abs(Math.atan2(Math.sin(piloted.angle-start.angle),Math.cos(piloted.angle-start.angle))));
+}
+assert(piloted.alive&&controlledDeflection<.3&&controlledDeflection<deflection*.4,'finite 5 Hz ordinary pitch inputs can counter the stronger pocket');
+console.log({controlledDeflectionDegrees:controlledDeflection*180/Math.PI});
 // A render-sized prediction step must integrate the same smooth physical path,
 // not alias short wind/rotation changes into a visibly jumping forecast.
 const coarse=predictTrajectory(start,level,0,8,.4,true,false),fine=predictTrajectory(start,level,0,8,.1,true,false);

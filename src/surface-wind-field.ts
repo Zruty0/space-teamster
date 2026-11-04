@@ -36,7 +36,9 @@ export function createSurfaceWindField(seed:number,c:Readonly<SurfaceClimate>){
     upperY+=direction*upperSpeed*dx*shape;
     // Signed curl-like doublet: a tangible attitude kick only in the pocket.
     // Ship angle is clockwise from up, opposite the mathematical curl sign.
-    buffet=-direction*(.45+1.35*q)*(1-r2)**2*(1-4*r2)*blend*(approach?.5:1);
+    // Keep the broad wind field smooth, but make a pocket a sharp handling
+    // hazard: peak 2.16 rad/s² at Stribog, below stock 3 rad/s² pitch authority.
+    buffet=-direction*(.45+1.35*q)*(1-r2)**2*(1-4*r2)*blend*(approach?1.2:1);
    }
    vx+=(upperX-vx)*blend;vy+=(upperY-vy)*blend;
   }

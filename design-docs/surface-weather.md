@@ -1,6 +1,6 @@
 # Regional surface weather
 
-Updated: 2026-11-03 (Pacific)
+Updated: 2026-11-04 (Pacific)
 Status: LIVE in normal careers. Pete authorizes all atmospheric planets/moons and surface POIs, mission-time variation, retry stability, and Port Stribog as the strongest weather challenge. Zhulong is the selected Dahai recommendation.
 
 ## Scope / review
@@ -53,7 +53,7 @@ Zhulong fits because its fixed home port supports fleets working the storm belts
 
 - Production landing retains density-scaled ground-relative base drag and adds a separately bounded relative-air wind increment. This hybrid is not pure air-relative drag: high sustained winds can saturate the increment and flatten felt gust variation. Both relative velocity components now drive this increment; the spatial field does not replace the underlying hybrid force law.
 - Approach and departure use the same force helper but a deliberately broader horizontal-only field; landing keeps fine two-axis circulation. Matched phase coordinates no longer imply identical vectors. Old approach acceleration layers and random weather torque are replaced, never added on top. Old approach fixtures without regional air remain legacy comparisons.
-- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This remains **not** a rewrite making the entire phase handoff physically seamless; the modes now intentionally differ. Predictions use the same weather-force path. Approach turbulence warnings/exposure now follow actual local vortex-induced torque, not merely changing wind. Coasting prediction includes the same rotational disturbance and resulting aero changes. Maintenance receives total production aerodynamic acceleration.
+- Approach baseline aerodynamics/lift/heat and existing compressed gate-to-landing position/velocity mapping are retained. This remains **not** a rewrite making the entire phase handoff physically seamless; the modes now intentionally differ. Predictions use the same weather-force path. Approach turbulence warnings/exposure now follow actual local vortex-induced torque, not merely changing wind. Coasting prediction includes the same rotational disturbance and resulting aero changes. November 4: regional buffet torque is 2.4× stronger without sharpening horizontal winds; actual buffeting cancels 2×/5× warp to 1× and blocks warp-up until clear. Maintenance receives total production aerodynamic acceleration.
 - SAS still targets zero ground velocity, reserves finite RCS for wind before damping, consumes delta-v and maintenance effort, and does not add authority or cancel gravity. Most stock-rig profiles are within its hold authority; strong Stribog weather can saturate it. HUD explicitly warns `RCS LIMIT — USE MANUAL THRUST`. Actual stock ordinary lateral trim is tested at Stribog; no position lock or stronger thrusters. Gear-down non-Shift lateral + SAS totals 3.675 m/s² with default acceleration. Stribog's landing ceiling is now 4.2, with sampled lower peaks ~3.89–3.94. Strong patches can exceed ordinary hold authority; tested normal corrections reduce drift but no longer maintain stationary hover. This is not a promise for every loadout/high-speed approach.
 - Weather does not waive equipment/restriction gates, alter prices/access or add saved fields. Legacy dev-panel sine-wind settings do not stack with regional air.
 
@@ -69,7 +69,7 @@ Zhulong fits because its fixed home port supports fleets working the storm belts
 
 ## Current evidence
 
-- Field/buffet/prediction unit 19,493; weather 4,393; wind-band 14. Landing air 9,242 and tracer/smoke 92,863 pass. Native 1,433 verifies actual horizontal-only approach/departure, stronger landing weather, sustained particles, all-site phases, physical buffet/HUD, retry, constructor/reload/storage isolation. Smoke-density adds 10,829 unit checks and expands native coverage to 1,437; see its linked note for newer evidence. Build passes. See the spatial-field note and November 3 `st-horizontal-wind-*` Temp evidence for measurements. Original `st-vector-wind-*` results are historical.
+- Field/buffet/prediction unit 19,494; weather 4,393; wind-band 14. Landing air 9,242 and tracer/smoke 92,863 pass. Native 1,460 verifies actual horizontal-only approach/departure, stronger landing weather, sustained particles, all-site phases, physical buffet/HUD, retry, constructor/reload/storage isolation. Smoke-density adds 10,829 unit checks. November 4 warp tests cover actual descent/departure and spatial entry, mid-frame timing, frame subdivision, refusal/resumption and normal-control regression; see the spatial-field note for current evidence. Build passes. See the spatial-field note and November 3 `st-horizontal-wind-*` Temp evidence for measurements. Original `st-vector-wind-*` results are historical.
 
 ## Historical rollout / temporal-gust evidence (superseded where noted)
 
