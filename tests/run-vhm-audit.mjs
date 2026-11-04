@@ -27,7 +27,7 @@ try {
   if (!rows.length || !reference.length) throw Error('Empty VHM/BFS census');
   if (option('--save-census')) await writeFile(option('--save-census'), JSON.stringify(rows), { flag: 'wx' });
   const curve = api.fitProposedBfsCurve(reference);
-  console.log(JSON.stringify({ status: 'PROPOSAL ONLY: no VHM/BFS progression, access or price changes',
+  console.log(JSON.stringify({ status: 'APPROVED DESIGN PROJECTION: VHM/BFS progression, access and important-price rollout still pending',
     source: input ? 'Cached census at reconstructed current prices' : 'Live public boards',
     method: 'Equal weight per posting; BFS commercial curve fit on days 0–15 excluding proposed important work; important 10k/trust 1, direct VHM unchanged/trust 2.',
     firstDay, days, proposedBfsCurve: curve, result: api.auditVhmProposal(rows, curve) }, null, 2));

@@ -1,7 +1,7 @@
 # Voss-Heinkel / Bruckner — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Proposal and read-only audit; not implemented.** Next entity after resolving [House comments](faction-reputation-houses.md) in `9371bb2`. Existing income prices and BFS→VHM recognition are live; automatic VHM gains/decay and enforcement of its direct-contract minimum remain inactive. This review proposes explicit earning attribution, not ownership changes.
+Status: **Approved November 4; runtime implementation pending.** Pete approved the reviewed VHM/Bruckner design and directed proceeding to the next entity. Approval covers explicit BFS earning/refresh into VHM, 2/15 progression, K=5/D=1/30, the nineteen important identities at 10k/trust 1 and the isolated commercial refit. Existing income prices and BFS→VHM recognition are live; these new gains/decay, important prices and direct-contract locks are not. Next: [Kisaragi/KIS-E review](faction-reputation-kisaragi.md). No ownership changes.
 
 ## Existing authority and boundaries
 
@@ -13,7 +13,7 @@ Status: **Proposal and read-only audit; not implemented.** Next entity after res
 
 Sources: [income targets](faction-reputation-income-targets.md), [calibration](faction-reputation-income-calibration.md), [framework](faction-reputation-progression.md), [manufacturer](interstellar-giant-corporations.md#voss-heinkel-metricwerke), [independent dealer](system-level-corporations.md#bruckner-field-services); `src/content/estella/faction-contracts/{bruckner,vhm}-contracts.ts`.
 
-## Proposed progression
+## Approved progression
 
 | Band | Work that earns progress | Gain / effort |
 |---|---|---|
@@ -23,13 +23,13 @@ Sources: [income targets](faction-reputation-income-targets.md), [calibration](f
 
 Cap each award at the next integer; no introductory spill into the advanced band. Every successful BFS **or** direct VHM job refreshes the **one VHM grace counter**, even if routine or already at the ordinary cap. A legacy already-accepted direct VHM contract still counts as related work and can receive the ordinary below-1 introduction credit; it is not cancelled by a new minimum.
 
-Recommend **K=5** unrelated completed contracts, then **D=1/30**, protecting the current integer floor. No passive erosion below 1; empty/Old Nell travel, waiting, maintenance, failures, retries and abandonment award/count nothing in the initial pass. Pete's more forgiving K=7/D=1/40 amendment is House-specific, not a global change.
+Use **K=5** unrelated completed contracts, then **D=1/30**, protecting the current integer floor. No passive erosion below 1; empty/Old Nell travel, waiting, maintenance, failures, retries and abandonment award/count nothing in the initial pass. Pete's more forgiving K=7/D=1/40 amendment is House-specific, not a global change.
 
 **Credit attribution is the new explicit decision:** these two stable providers earn/maintain VHM only. Bruckner work demonstrates reliability within the manufacturer's authorized service chain; that does not make the employer a subsidiary. No second BFS meter, ownership merger, generic corporate donor awards, House-style cross-introduction or points for whichever track currently supplies a recognition maximum. Corporate-recipient recognition can read an earned VHM level, but completing their jobs does not thereby refresh VHM.
 
 No automatic rivalry loss or level-3 refusal against Kisaragi/other corporations is proposed. Commercial competition alone is not a selected political penalty. Existing Combine/CHR and amended House effects stay separate. Rank titles grant no free maintenance, warranty coverage, equipment upgrades, manufacturing licence, hidden contacts or unrestricted private arrivals.
 
-## Proposed important work — available at 1
+## Approved important work — available at 1
 
 New important BFS jobs pay **10,000 cr net at par** (its approved level-0 anchor) and require **trust 1**. Their low pay does not make them entry jobs. Keep this pool separate from ordinary commercial medians and mix.
 
@@ -41,11 +41,11 @@ New important BFS jobs pay **10,000 cr net at par** (its approved level-0 anchor
 | `failed-drive-service-returns`, `sealed-telemetry-return-lots` on those return lanes | Ordinary commercial recovery/collection, not automatically advanced trust work |
 | `crew-direct:bruckner-field-technician-team`, `crew-direct:drive-alignment-crew` | Ordinary crew connectivity, economic gate only |
 
-The five return lanes are `export-return-to-highliner`, `subhub-return-to-hub`, `leaf-return-to-subhub`, `leaf-return-to-hub`, `local-leaf-return-to-hub`. This yields **19 explicit important template identities**: 3 variants × 5 lanes + 4 crews. Match provider and persistent template parts, not displayed cargo strings or location ownership. The dividing line is a proposed authoring choice: warranty/incident custody and specialist deployment build deeper trust, while generic returned hardware/telemetry and routine crews remain commercial. A different selection would require refitting the remaining pool.
+The five return lanes are `export-return-to-highliner`, `subhub-return-to-hub`, `leaf-return-to-subhub`, `leaf-return-to-hub`, `local-leaf-return-to-hub`. This yields **19 explicit important template identities**: 3 variants × 5 lanes + 4 crews. Match provider and persistent template parts, not displayed cargo strings or location ownership. The dividing line is the approved authoring choice: warranty/incident custody and specialist deployment build deeper trust, while generic returned hardware/telemetry and routine crews remain commercial. A different selection would require refitting the remaining pool.
 
 All four direct VHM families—`direct-hardware`, `direct-return-to-weymark`, `people-outbound`, `people-return-home`—remain **trust 2**, ordinary for advancement, with current calibrated prices. Some of their own descriptions sound important, but they must not be the only way to earn the standing needed to accept them. Direct VHM is the unlocked commercial reward, not a circular 1→2 prerequisite.
 
-No additional BFS trust-2 class is proposed: expensive ordinary BFS work uses the 125k economic separator. A cheap direct VHM quote still requires 2; the reference direct range is roughly **91k–585k**, despite the pooled 300k median. This is the approved direct-work exception, not a guarantee that every factory posting pays more than every BFS posting.
+No additional BFS trust-2 class is selected: expensive ordinary BFS work uses the 125k economic separator. A cheap direct VHM quote still requires 2; the reference direct range is roughly **91k–585k**, despite the pooled 300k median. This is the approved direct-work exception, not a guarantee that every factory posting pays more than every BFS posting.
 
 ## Read-only projection and entry supply
 
@@ -75,4 +75,4 @@ This is supply/price evidence, not a completed campaign or equipment/funding pro
 - Typecheck and existing standing/Combine/CHR (10,046 / 9,260 / 2,009) and income (44,245) checks pass; amended House review checks 4,491. Reproduce with `node tests/run-vhm-audit.mjs`; cached reference via `--input FILE`, later samples via `--reference FILE --first-day 64 --days 16`. `--save-census FILE` refuses overwrites. Temp `vhm-review-20261104-{reference,check,fresh}.json` and `vhm-review-20261104-fresh-census.json` retain evidence.
 - No production/save/UI/fixture changes, no browser/mobile/live-save testing, no push/deploy. Neutral acceptance notices and atomic settlement will be reused during implementation, not advertised as already active here.
 
-**Review focus:** explicit BFS→VHM earning/refresh attribution, selected important work at 10k/trust 1, and the proposed 2/15, K=5/D=1/30 parameters. Direct minimum 2, independence, approved incomes and accepted-quote preservation are not reopened. **Kisaragi/KIS-E is next** after this review; no automatic copy of ownership or progression rules between the two networks.
+**Approval recorded:** explicit BFS→VHM earning/refresh, the nineteen important identities at 10k/trust 1, 2/15 progression and K=5/D=1/30 are accepted design, not live gameplay. Direct minimum 2, independence, approved incomes and accepted-quote preservation remain unchanged. **Kisaragi/KIS-E is next**; its classes and ownership are reviewed independently rather than copied automatically.
