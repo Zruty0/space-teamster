@@ -1,7 +1,11 @@
 # Income calibration — first runtime pass
 
-Updated: 2026-11-03 (Pacific)
+Updated: 2026-11-04 (Pacific)
 Initial implementation: **`c8037f5` — new-posting prices live.** Subsequent **CHR progression/gates/refit `7992ffb`** is live; only the remaining factions stay deferred. [Current Cerberus ledger](faction-reputation-cerberus.md). Pete authorized proceeding after approving the [medians](faction-reputation-income-targets.md), [caps and 20/60/20 mix](faction-reputation-income-calibration.md). No push/deploy or live-save edits.
+
+## Coverage follow-up — November 4, audit only
+
+Pete approves the remaining-stage design and directs GOV/Institutions gates and similar income limits for Gaia/Dahai civilian bookings. The [all-contract audit](contract-reputation-coverage.md) accounts for all 34 public providers plus direct/contact, certification and transit paths. It confirms that the six excluded paid pools are a live coverage gap, not an enduring permission to bypass reputation. Gaia/Dahai candidate medians are 5k/50k/100k with 27.5k/75k ceilings; additional civilian/Guild recommendations, Sahra entry-supply failure and the Guild's exceptional-pay decision are explicit. Production scope below remains historical/current runtime, not a claim these extensions have shipped.
 
 ## Follow-up — Cerberus `7992ffb`
 

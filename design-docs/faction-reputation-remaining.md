@@ -1,9 +1,9 @@
 # Remaining reputation stages — combined review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Requested batch review and read-only audits; not a runtime rollout.** Pete approved [Covenant](faction-reputation-covenant.md) (`ee2f04c`) and requested all next stages together, replacing the entity-by-entity pauses. This pack completes the policy review coverage of all **28 mapped public employers**. Guild/five mixed civilian pools stay unassigned; Notoriety and rank-3 stories have explicit content boundaries rather than invented jobs.
+Status: **Batch design approved November 4; runtime rollout pending.** Pete approved this pack and requested a complete contract-gate audit, explicitly including Gaia/Dahai civilian work under GOV/Institutions limits. See [all-contract coverage](contract-reputation-coverage.md). Pete approved [Covenant](faction-reputation-covenant.md) (`ee2f04c`) and requested all next stages together, replacing the entity-by-entity pauses. This pack completes the policy review coverage of all **28 mapped public employers**. Guild/five mixed civilian pools were unassigned at this review stage; the subsequent [all-contract audit](contract-reputation-coverage.md) closes that design gap, starting with Pete's explicit Gaia/Dahai GOV direction. Production remains unchanged. Notoriety and rank-3 stories have explicit content boundaries rather than invented jobs.
 
-The following are new recommendations under that batch request, not claims that each numerical choice has already been individually approved. Existing House/VHM/Kisaragi/Covenant decisions remain intact. In particular, Kisaragi stays **4/20, K=10/D=1/50**, Houses retain their shared introductions/rivalry, and Covenant stays **1/15, K=5/D=1/30**. Runtime still authors only Combine/CHR.
+The following batch choices are now approved. The new all-contract audit extends recognition/pricing coverage beyond this pack's previously unassigned civilian/Guild pools; it does not waive calibration or funded-path prerequisites. Existing House/VHM/Kisaragi/Covenant decisions remain intact. In particular, Kisaragi stays **4/20, K=10/D=1/50**, Houses retain their shared introductions/rivalry, and Covenant stays **1/15, K=5/D=1/30**. Runtime still authors only Combine/CHR.
 
 ## 1. Common rules for the remaining earning tracks
 
@@ -111,7 +111,7 @@ House/Company identities remain distinct; no aggregate company is invented. Acco
 
 Recipient work consumes an unrelated-completion slot on earning tracks; it cannot feed whichever donor currently supplies the maximum. At an exact earned integer this does not reduce standing. A carrier who wants higher recipient access must establish the relevant House/corporate standing elsewhere. This is not circular: the earlier reviews and the four tracks above provide independent entry/advancement paths. **Halloran/SSC have no public starter freight in sampled windows**, and Labor Exchange is passenger work: do not claim every recipient supplies a freight introduction or can bootstrap its own recognition.
 
-BFS→VHM and KIS-E→Kisaragi remain full-track explicit exceptions, not members of this capped fallback. A high Merren/BAM score must not bypass direct VHM/KIS own-track gates. Guild and five mixed civilian pools remain unassigned, with existing certification/services/contracts intact.
+BFS→VHM and KIS-E→Kisaragi remain full-track explicit exceptions, not members of this capped fallback. A high Merren/BAM score must not bypass direct VHM/KIS own-track gates. Guild and five mixed civilian pools remain unassigned in production. The later [coverage audit](contract-reputation-coverage.md) extends recognition/income policy to these paid pools while preserving bootstrap certification, services and transit exceptions.
 
 ## 7. Reserved stages — explicit boundaries, not fabricated content
 
