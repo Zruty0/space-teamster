@@ -1,5 +1,5 @@
 // Review-only classifier/supply guards, not a live Kisaragi progression implementation.
-import { KIS, KISE, KISARAGI_IMPORTANT_REVIEW_IDS, proposedKisaragiClass, sampleKisaragiBoards, fitProposedKiseCurve, auditKisaragiProposal } from './audit-kisaragi-reputation';
+import { KIS, KISE, KISARAGI_IMPORTANT_REVIEW_IDS, proposedKisaragiClass, projectKisaragiReviewEvent, sampleKisaragiBoards, fitProposedKiseCurve, auditKisaragiProposal } from './audit-kisaragi-reputation';
 import { KISARAGI_HARMONY_YARDS_PROVIDER } from '../src/content/estella/faction-contracts/kisaragi-contracts';
 import { KISARAGI_YARDS_ESTELLA_PROVIDER } from '../src/content/estella/faction-contracts/kisaragi-estella-contracts';
 import { estellaSelectableNavTargets } from '../src/content/estella/navigation';
@@ -50,6 +50,38 @@ for (const tier of ['silk', 'porcelain', 'celadon']) {
 }
 assert(!proposedKisaragiClass({ factionId: KISE, templateId: 'new-unauthored-programme' }), 'unknown future lane needs review');
 assert(!proposedKisaragiClass({ factionId: KISE, templateId: 'balor-trade:invented-purchase:port:cargo' }), 'only the authored regional purchase family is included');
+const important = { factionId: KISE, templateId: KISARAGI_IMPORTANT_REVIEW_IDS[0] };
+const ordinary = { factionId: KISE, templateId: 'supplier-to-facility:silk-class-stock' };
+const direct = { factionId: KIS, templateId: 'prestige-records:acceptance' };
+let state = { score: 0, unrelated: 0 };
+for (let i = 1; i <= 4; i++) {
+  state = projectKisaragiReviewEvent(state.score, state.unrelated, important);
+  assert(state.score === i / 4 && state.unrelated === 0, 'four introductory jobs; important work gets no extra advanced credit below 1');
+}
+for (let i = 1; i <= 20; i++) {
+  state = projectKisaragiReviewEvent(state.score, state.unrelated, important);
+  assert(state.score === 1 + i / 20, 'twenty important jobs reach exactly 2');
+}
+assert(projectKisaragiReviewEvent(2, 99, important).score === 2, 'ordinary work never grants 3');
+for (const c of [ordinary, direct]) {
+  const next = projectKisaragiReviewEvent(1.5, 99, c);
+  assert(next.score === 1.5 && next.unrelated === 0, 'both related providers maintain and refresh, not advance');
+}
+assert(projectKisaragiReviewEvent(.9, 4, direct).score === 1, 'legacy accepted parent job receives capped introduction');
+state = { score: 1.5, unrelated: 0 };
+for (let i = 1; i <= 10; i++) {
+  state = projectKisaragiReviewEvent(state.score, state.unrelated, {});
+  assert(state.score === 1.5 && state.unrelated === i, 'ten unrelated completions free');
+}
+state = projectKisaragiReviewEvent(state.score, state.unrelated, {});
+assert(state.score === 1.48 && state.unrelated === 11, 'eleventh completion starts 1/50 decay');
+assert(projectKisaragiReviewEvent(1.01, 11, {}).score === 1, 'integer floor protected');
+assert(projectKisaragiReviewEvent(.75, 11, {}).score === .75, 'no decay below 1');
+assert(projectKisaragiReviewEvent(2, 11, {}).score === 2, 'established level 2 protected');
+for (const c of [{ category: 'empty' }, { travelMode: 'old-nell' }]) {
+  assert(JSON.stringify(projectKisaragiReviewEvent(1.5, 10, c)) === JSON.stringify({ score: 1.5, unrelated: 10 }), 'empty/Old Nell excluded');
+}
+assert(projectKisaragiReviewEvent(1.234567, 0, important).score === 1.234567 + .05, 'off-grid saved fraction not rounded');
 const rows = sampleKisaragiBoards(0, 1), before = JSON.stringify(rows);
 const curve = fitProposedKiseCurve(rows), audit = auditKisaragiProposal(rows, curve);
 assert(JSON.stringify(rows) === before, 'projection never reprices actual contracts');

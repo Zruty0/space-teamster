@@ -1,7 +1,7 @@
 # Kisaragi / KIS-E — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Proposal and read-only audit; not implemented.** Pete approved [VHM/Bruckner](faction-reputation-vhm.md) in `fbd06e9` and directed proceeding. Kisaragi's prices, stored track and KIS-E recognition already exist; this proposed earning path, important-price separation and contract locks do not. Runtime rollout remains separate from this review.
+Status: **Reviewed; November 4 pacing comment resolved in design, not implemented.** Pete approved [VHM/Bruckner](faction-reputation-vhm.md) in `fbd06e9` and directed proceeding. Kisaragi's prices, stored track and KIS-E recognition already exist; this proposed earning path, important-price separation and contract locks do not. Runtime rollout remains separate from this review.
 
 ## Existing authority and distinctions
 
@@ -17,13 +17,16 @@ Sources: [income targets](faction-reputation-income-targets.md), [framework](fac
 
 | Band | Qualifying work | Proposed gain |
 |---|---|---|
-| 0→1 | Successful KIS-E work | +1/2, two jobs |
-| 1→2 | Seven KIS-E acceptance/rework identities below | +1/15, fifteen important jobs |
+| 0→1 | Successful KIS-E work | +1/4, four jobs |
+| 1→2 | Seven KIS-E acceptance/rework identities below | +1/20, twenty important jobs |
 | 2→3 | Future authored quests only | No ordinary-contract progress |
+(zzz: KIS is harder to gain trust of, but more forgiving. So, let's say 4 jobs to level 1, 20 jobs to level 2, and K=10, D=1/50 for the decay)
+
+**Resolution — November 4:** Adopted: introductory +1/4, important +1/20; ten unrelated completions are free, the eleventh starts −1/50 decay. Own KIS/KIS-E work refreshes the shared counter, integer floors remain protected. This replaces the initial 2/15 and 5/30 recommendation only for Kisaragi. No automatic production change or supply boost. Price/supply tables below remain valid; they do not simulate the revised twenty-job progression path.
 
 Cap an award at the next integer. Every successful **KIS-E or direct KIS** contract refreshes the one Kisaragi grace counter, even when routine or above the ordinary cap. Already accepted legacy parent work remains valid and counts as related work; below 1 it can receive the ordinary introductory credit, rather than being cancelled by a newly enforced trust minimum.
 
-Recommend **K=5** unrelated completions, then **D=1/30**, protecting the current integer floor. No passive erosion below 1. Empty/Old Nell travel, waiting, maintenance, retries, failed/abandoned jobs award/count nothing in the initial pass. These are proposed Kisaragi parameters, not automatic inheritance of the VHM approval or the Houses' separate K=7/D=1/40 rules.
+Use **K=10** unrelated completions, then **D=1/50**, protecting the current integer floor. No passive erosion below 1. Empty/Old Nell travel, waiting, maintenance, retries, failed/abandoned jobs award/count nothing in the initial pass. These are Pete's selected Kisaragi parameters, distinct from VHM's K=5/D=1/30 and the Houses' K=7/D=1/40.
 
 Credit/refresh goes explicitly to **`kisaragi`**, from these two provider IDs only. A KIS-E purchase at BAM Foundry earns Kisaragi standing, not BAM standing; SSC or Accord work at a shared shipyard does not earn Kisaragi standing. No points for whichever corporate track supplies a recognition maximum, no shared introductory corporate credit, and no House vassal-service credit because a title mentions a “House.” Existing recipient recognition can read an earned Kisaragi level but remains read-only.
 
@@ -73,7 +76,7 @@ The reference's 29 important appearances represent **26 unique posting IDs**, ac
 | Svarog Shipyard | 5 | 4 |
 | Serrat Domain Shipyard | 5 | 8 |
 
-Do not claim a daily important offer, a guaranteed fifteen-job loop or BFS-like advancement speed. A single pilot cannot collect all simultaneous postings; even unique IDs are not a flight plan. The recommendation retains the seven meaningful classes rather than relabeling every Porcelain lot or changing posting weights to hide the scarcity. Actual completion-path/calendar pacing needs validation before gates are enabled; if it proves too sparse, review supply or qualifying classes explicitly and refit, rather than silently increasing gain or priority.
+Do not claim a daily important offer, a guaranteed twenty-job loop or BFS-like advancement speed. A single pilot cannot collect all simultaneous postings; even unique IDs are not a flight plan. The recommendation retains the seven meaningful classes rather than relabeling every Porcelain lot or changing posting weights to hide the scarcity. Actual completion-path/calendar pacing needs validation before gates are enabled; if it proves too sparse, review supply or qualifying classes explicitly and refit, rather than silently increasing gain or priority.
 
 ### Entry and onward access
 
@@ -85,8 +88,8 @@ Do not claim a daily important offer, a guaranteed fifteen-job loop or BFS-like 
 
 ## Validation and next review
 
-- `node tests/run-equipment.mjs tests/kisaragi-reputation-review.test.ts`: **9,622 checks / 1,232 raw candidates / 40 actual day-0 postings**. All seven important identities and nine lane families observed; local freight-only/no finished Celadon, parent zero reimbursement, Balor issuer attribution, host/supplier independence, quality-versus-standing separation, quote immutability and runtime gains/gates remaining inactive.
+- `node tests/run-equipment.mjs tests/kisaragi-reputation-review.test.ts`: **9,667 checks / 1,232 raw candidates / 40 actual day-0 postings**. Includes review-only 4→1 / 20→2 arithmetic, eleventh-job decay, own-provider refresh, caps/floors, exclusions and preservation of arbitrary saved fractions; no production event handler imports this model. All seven important identities and nine lane families observed; local freight-only/no finished Celadon, parent zero reimbursement, Balor issuer attribution, host/supplier independence, quality-versus-standing separation, quote immutability and runtime gains/gates remaining inactive.
 - Typecheck, House/VHM review checks (4,491 / 17,235), existing standing/Combine/CHR checks (10,046 / 9,260 / 2,009) and income checks (44,245) pass. Reproduce with `node tests/run-kisaragi-audit.mjs`; `--input FILE` uses a cached census, `--reference FILE --first-day 80 --days 16` generates a later sample against the fixed reference. `--save-census FILE` refuses overwrites. Temp `kisaragi-review-20261104-{reference,check,fresh}.json`, the fresh census, and `reference-supply` / `fresh-supply` reports retain evidence.
 - No production/save/UI/historical fixture changes, browser/mobile/live-save tests, push or deploy. The approval of VHM/Bruckner remains a design approval, not an unreported runtime rollout.
 
-**Review focus:** the seven important KIS-E identities at 10k/trust 1; explicit shared Kisaragi earning/refresh; proposed 2/15, K=5/D=1/30; and the sparse important-work cadence. Approved income targets and direct-parent minimum 2 are not reopened. **Covenant Remnants next** after this review, with its restricted external lanes and Seal/quest boundaries reviewed separately.
+**Review focus:** the seven important KIS-E identities at 10k/trust 1; explicit shared Kisaragi earning/refresh; Pete's selected 4/20, K=10/D=1/50; and the sparse important-work cadence. Approved income targets and direct-parent minimum 2 are not reopened. **[Covenant Remnants review](faction-reputation-covenant.md) next**, with its restricted external lanes and Seal/quest boundaries reviewed separately.

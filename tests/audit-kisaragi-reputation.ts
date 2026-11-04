@@ -29,6 +29,22 @@ export function proposedKisaragiClass(c: Pick<CareerContract, 'factionId' | 'tem
     || (lane === 'balor-trade' && variant === 'tenant-fit-out-purchase')) return 'commercial';
   return undefined;
 }
+/** Review arithmetic only: successful completions, not acceptance, failure or retry callbacks. */
+export function projectKisaragiReviewEvent(score: number, unrelated: number,
+  c: Pick<CareerContract, 'factionId' | 'templateId'> & { category?: string; travelMode?: string }) {
+  if (c.category === 'empty' || c.travelMode === 'old-nell') return { score, unrelated };
+  // Exact hundredths for this policy; preserve arbitrary legacy fractions off that grid.
+  const shift = (ticks: number) => {
+    const grid = Math.round(score * 100);
+    return grid / 100 === score ? (grid + ticks) / 100 : score + ticks / 100;
+  };
+  if (c.factionId === KIS || c.factionId === KISE) {
+    return { score: score < 1 ? Math.min(1, shift(25))
+      : score < 2 && proposedKisaragiClass(c) === 'important' ? Math.min(2, shift(5)) : score, unrelated: 0 };
+  }
+  unrelated = Math.min(Number.MAX_SAFE_INTEGER, unrelated + 1);
+  return { score: score >= 1 && unrelated > 10 ? Math.max(Math.floor(score), shift(-2)) : score, unrelated };
+}
 export function sampleKisaragiBoards(firstDay = 0, days = 16): IncomeSample[] {
   const sources = [...new Set(estellaSelectableNavTargets().map(t => canonicalEstellaLocationId(t.id)))].sort();
   return sources.flatMap(boardSource => Array.from({ length: days }, (_, i) => firstDay + i).flatMap(day => {
