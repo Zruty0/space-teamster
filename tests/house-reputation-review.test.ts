@@ -1,5 +1,5 @@
 // Guards for the review/audit, not a claim that House gameplay is implemented.
-import { HOUSE_IDS, proposedHouseClass, sampleHouseBoards, fitProposedHouseCurves, auditHouseProposal } from './audit-house-reputation';
+import { HOUSE_IDS, proposedHouseClass, proposedHouseRivalLoss, projectHouseReviewEvent, sampleHouseBoards, fitProposedHouseCurves, auditHouseProposal } from './audit-house-reputation';
 import { HOUSE_ALVARES_PROVIDER } from '../src/content/estella/faction-contracts/alvares-contracts';
 import { HOUSE_MENDES_PROVIDER } from '../src/content/estella/faction-contracts/mendes-contracts';
 import { HOUSE_NUNES_PROVIDER } from '../src/content/estella/faction-contracts/nunes-contracts';
@@ -93,4 +93,54 @@ for (const id of ['estella-xa-deep-ice-mine', 'estella-xb-smelting-processing', 
   assert(canTravelEmpty(career, id), `entry source/relocation remains public: ${id}`);
 }
 assert(!canTravelEmpty(career, 'estella-xiid-blackglass-observatory'), 'Blackglass is not silently made an empty-arrival destination');
+// November 4 comments: explicit cross-House introduction, own-only refresh and favor losses.
+const zero = () => ({ 'house-alvares': 0, 'house-mendes': 0, 'house-nunes': 0 });
+const allAt = (value: number) => Object.fromEntries(HOUSE_IDS.map(id => [id, value])) as ReturnType<typeof zero>;
+const routine = { factionId: 'house-alvares', templateId: 'due:source:ice:0' };
+const escheat = { factionId: 'house-alvares', templateId: 'escheat:source->dest:tools:0' };
+const muster = { factionId: 'house-mendes', templateId: 'hydra-local:0:cadiz:outbound-freight:a->b:tools' };
+const inquiry = { factionId: 'house-nunes', templateId: 'inquiry:living-ice:1:collection:a->b:0', nunesInquiry: { instanceId: 'living-ice:1', contribution: 8 } };
+let projected = { scores: zero(), unrelated: allAt(5) };
+for (let i = 1; i <= 8; i++) {
+  projected = projectHouseReviewEvent(projected.scores, projected.unrelated, routine);
+  assert(projected.scores['house-alvares'] === Math.min(1, i / 4), 'four own introductions, no routine spill');
+  for (const id of ['house-mendes', 'house-nunes'] as const) {
+    assert(projected.scores[id] === Math.min(1, i / 8), 'eight cross-House introductions, capped at one');
+    assert(projected.unrelated[id] === 5 + i, 'cross credit never resets another House grace');
+  }
+  assert(projected.unrelated['house-alvares'] === 0, 'only contracting House refreshes grace');
+}
+for (const value of [0, .75, .9, 1, 1.025, 1.5, 2, 2.5, 3]) {
+  const next = projectHouseReviewEvent(allAt(value), allAt(7), escheat);
+  const expected = value < 1 ? Math.min(1, value + 1 / 8) : Math.max(1, value - 1 / 20);
+  assert(Math.abs(next.scores['house-mendes'] - expected) < 1e-14, 'recognition below one; rival loss above; no double passive loss');
+  assert(next.unrelated['house-mendes'] === 8, 'rival event consumes one unrelated slot');
+  assert(next.unrelated['house-alvares'] === 0, 'favor still refreshes its employer');
+}
+const mixed = projectHouseReviewEvent({ 'house-alvares': 1, 'house-mendes': .75, 'house-nunes': 2 }, allAt(7), escheat);
+assert(mixed.scores['house-alvares'] === 128 / 120 && mixed.scores['house-mendes'] === .875 && mixed.scores['house-nunes'] === 1.95, 'gain/introduction/disapproval on different Houses coexist');
+for (const value of [.75, 1, 1.5, 2, 2.5, 3]) {
+  let p = { scores: allAt(value), unrelated: zero() };
+  for (let i = 0; i < 7; i++) p = projectHouseReviewEvent(p.scores, p.unrelated, { factionId: 'other-employer' });
+  assert(p.scores['house-nunes'] === value, 'seven unrelated completions free');
+  p = projectHouseReviewEvent(p.scores, p.unrelated, { factionId: 'other-employer' });
+  assert(p.scores['house-nunes'] === (value < 1 ? value : Math.max(Math.floor(value), value - 1 / 40)), 'eighth starts gentle decay, integer floor');
+}
+for (const c of [escheat, muster, inquiry]) assert(proposedHouseRivalLoss(c) === 1 / 20, 'selected favor families displease both other Houses');
+for (const c of [routine, { factionId: 'house-alvares', templateId: 'grant:place:stores:0' },
+  { factionId: 'house-mendes', templateId: 'forge-intake:port:stock' },
+  { factionId: 'house-nunes', templateId: 'quiet-custody:port->clinic:0' },
+  { factionId: 'house-nunes', templateId: 'recovery:clinic->field:0' },
+  { ...inquiry, factionId: 'oathmark-accord' }]) assert(proposedHouseRivalLoss(c) === 0, 'no blanket or inherited-employer rivalry');
+for (const c of [{ ...escheat, category: 'empty' }, { ...escheat, travelMode: 'old-nell' }]) {
+  const p = projectHouseReviewEvent(allAt(1.5), allAt(7), c);
+  assert(JSON.stringify(p) === JSON.stringify({ scores: allAt(1.5), unrelated: allAt(7) }), 'personal travel neither awards nor consumes grace');
+}
+for (const c of [escheat, muster, inquiry]) {
+  const p = projectHouseReviewEvent(allAt(.99), zero(), c);
+  assert(p.scores[c.factionId as keyof typeof p.scores] === 1, 'last introductory job cannot also grant advanced progress');
+}
+const immutableScores = Object.freeze(allAt(1.5)), immutableCounters = Object.freeze(allAt(7));
+projectHouseReviewEvent(immutableScores, immutableCounters, escheat);
+assert(immutableScores['house-nunes'] === 1.5 && immutableCounters['house-nunes'] === 7, 'projection never mutates input scores/counters');
 console.log(`House review: ${checks} checks, ${candidates} real candidates, all 12 Inquiries, first sampled outer muster day ${firstOuterDay}; production House policy remains inactive.`);

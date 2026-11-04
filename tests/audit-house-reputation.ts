@@ -21,7 +21,7 @@ export interface HouseReviewClass {
   family: string;
   pool: 'commercial' | 'important' | 'inquiry';
   trust: 0 | 1;
-  // Advancement after level 1 only. All own successful contracts propose +1/2 below 1.
+  // Advancement after level 1 only. Nov 4: own +1/4 / other Houses +1/8 below 1.
   gain: readonly [number, number];
 }
 export function proposedHouseClass(c: HouseReviewIdentity): HouseReviewClass | undefined {
@@ -55,6 +55,43 @@ export function proposedHouseClass(c: HouseReviewIdentity): HouseReviewClass | u
     else return undefined;
   }
   return { house, family, pool, trust: pool === 'commercial' ? 0 : 1, gain: pool === 'commercial' ? [0, 1] : gain };
+}
+
+/** Review-only Nov 4 favor policy, independent of whether the job advances its employer. */
+export function proposedHouseRivalLoss(c: HouseReviewIdentity): number {
+  const policy = proposedHouseClass(c);
+  return policy && ((policy.house === 'house-alvares' && policy.family === 'escheat')
+    || (policy.house === 'house-mendes' && policy.pool === 'important')
+    || (policy.house === 'house-nunes' && policy.pool === 'inquiry')) ? 1 / 20 : 0;
+}
+
+/** Arithmetic model for review tests, NOT used by Game settlement or acceptance. */
+export function projectHouseReviewEvent(
+  before: Record<HouseId, number>, counters: Record<HouseId, number>,
+  c: HouseReviewIdentity & { category?: string; travelMode?: string },
+) {
+  const scores = { ...before }, unrelated = { ...counters };
+  if (c.category === 'empty' || c.travelMode === 'old-nell') return { scores, unrelated };
+  const policy = proposedHouseClass(c), loss = proposedHouseRivalLoss(c);
+  const shift = (value: number, ticks: number) => {
+    const grid = Math.round(value * 120);
+    return grid / 120 === value ? (grid + ticks) / 120 : value + ticks / 120;
+  };
+  for (const house of HOUSE_IDS) {
+    const value = before[house];
+    if (house === c.factionId) {
+      unrelated[house] = 0;
+      if (value < 1) scores[house] = Math.min(1, shift(value, 30));
+      else if (value < 2 && policy) scores[house] = Math.min(2, shift(value, 120 * policy.gain[0] / policy.gain[1]));
+    } else {
+      unrelated[house] = Math.min(Number.MAX_SAFE_INTEGER, unrelated[house] + 1);
+      if (value < 1) {
+        if (isHouseId(c.factionId)) scores[house] = Math.min(1, shift(value, 15));
+      } else if (loss) scores[house] = Math.max(1, shift(value, -6));
+      else if (unrelated[house] > 7) scores[house] = Math.max(Math.floor(value), shift(value, -3));
+    }
+  }
+  return { scores, unrelated };
 }
 
 /** Actual public boards, canonical terminals once; raw candidates only skip irrelevant sources. */
@@ -112,7 +149,7 @@ export function auditHouseProposal(rows: IncomeSample[], curves: Record<HouseId,
       families: [...new Set(pool.map(r => r.policy.family))].sort().map(family => {
         const matching = pool.filter(r => r.policy.family === family);
         const policy = matching[0].policy;
-        return { family, pool: policy.pool, gain: policy.gain,
+        return { family, pool: policy.pool, gain: policy.gain, rivalLossToEachOtherHouse: proposedHouseRivalLoss(matching[0].contract),
           current: incomeStats(matching.map(r => r.contract.quote.expectedMargin)), count: matching.length,
           proposedMinimums: [...new Set(matching.map(r => r.minimum))].sort(),
           sources: [...new Set(matching.map(r => r.boardSource))].sort() };
