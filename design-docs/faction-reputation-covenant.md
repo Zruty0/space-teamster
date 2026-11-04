@@ -1,7 +1,7 @@
 # Covenant Remnants — progression review
 
 Updated: 2026-11-04 (Pacific)
-Status: **Proposal and read-only audit; no runtime changes.** Next after resolving Pete's [Kisaragi pacing comment](faction-reputation-kisaragi.md) in `cd1ff64` (4/20, K=10/D=1/50). Covenant already has a stored reputation track and calibrated ordinary quotes; this earning path, important-price separation and contract locks are not live. The candidate commercial refit has an unresolved holdout deviation, detailed below.
+Status: **Design approved November 4; runtime pending.** Pete approves this review and requests all remaining review stages together, replacing the entity-by-entity pauses. The approval does not change income targets or waive the calibration/return-path prerequisites. Next after resolving Pete's [Kisaragi pacing comment](faction-reputation-kisaragi.md) in `cd1ff64` (4/20, K=10/D=1/50). Covenant already has a stored reputation track and calibrated ordinary quotes; this earning path, important-price separation and contract locks are not live. The candidate commercial refit has an unresolved holdout deviation, detailed below.
 
 ## Existing authority
 
@@ -85,4 +85,4 @@ Important supply is 32 freight-dues appearances and 16 physician-service appeara
 - Typecheck, Kisaragi/House/VHM reviews (9,667 / 4,491 / 17,235), standing/Combine/CHR (10,046 / 9,260 / 2,009) and income (44,245) pass. Reproduce with `node tests/run-equipment.mjs tests/covenant-reputation-review.test.ts` and `node tests/run-covenant-audit.mjs`. Runner supports `--input FILE`, `--reference FILE`, `--first-day N --days N`, `--save-census FILE` (refuses overwrite). Reference/check reuse retained censuses at reconstructed current prices; days 96–111 were freshly generated. Temp `covenant-review-20261104-{reference,check,fresh}.json`, fresh census and matching `*-final.json` reports retain evidence.
 - No production/save/UI/fixture changes, browser/mobile/live-save tests, push or deploy.
 
-**Review focus:** one-job external introduction, compact and documented passage work at trust 1/5k, fifteen important completions to 2, K=5/D=1/30, no inferred political/access/Seal effects. Holdout pricing and funded return-path validation remain explicit implementation prerequisites, not a request to change approved income targets. **Daedalus Systems next** after this review.
+**Approved design:** one-job external introduction, compact and documented passage work at trust 1/5k, fifteen important completions to 2, K=5/D=1/30, no inferred political/access/Seal effects. Holdout pricing and funded return-path validation remain explicit implementation prerequisites, not a request to change approved income targets. The remaining Daedalus/BAM/Merren/Institutions, inherited-employer and reserved-story stages are now batched in [the remaining-stage review](faction-reputation-remaining.md).
