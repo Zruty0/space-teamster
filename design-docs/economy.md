@@ -580,6 +580,8 @@ KIS proper cargo/passenger palette:
 
 Reputation hooks later: KIS-E should be the entry path for Kisaragi shipyard logistics and should never carry Celadon-class items. KIS proper should unlock after trust/reputation and should carry Celadon-class prestige work, shipwright delegations, client-facing acceptance work, and luxury/highliner hull contracts.
 
+**November 4 review:** [Kisaragi progression proposal](faction-reputation-kisaragi.md) selects seven local acceptance/rework identities as a proposed 1→2 path while preserving all parent work at trust 2. Silk/Porcelain/Celadon remain quality classes, not standing levels. Existing parent prices and zero reimbursement, local freight-only behavior, Balor purchases and host-shipyard independence are unchanged. The supply audit flags sparse important postings; no new gates, performance penalties or prices are live.
+
 ## Faction: Voss-Heinkel Metricwerke
 
 - ID: `voss-heinkel-metricwerke`
