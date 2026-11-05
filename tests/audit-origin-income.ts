@@ -3,7 +3,7 @@ import type { CareerContract } from '../src/career-contracts';
 import { physicalTerminalId } from '../src/physical-terminals';
 import { contractWorkPolicy } from '../src/contract-work-policy';
 import { incomeCalibrationKind, incomeTargetId, incomeBoundaries, incomeEconomicMinimum, ordinaryContractNetCredits,
-  calibrateNewContractQuote, CONTRACT_INCOME_TARGETS, type IncomeIdentity } from '../src/contract-income';
+  calibrateNewContractQuote, retainedProgrammeIncome, CONTRACT_INCOME_TARGETS, type IncomeIdentity } from '../src/contract-income';
 import { originIncomePosition, originIncomeCredits, type OriginIncomeCurve, type OriginFeeCurve } from '../src/origin-income-math';
 import { contractReputationLockReasons } from '../src/contract-reputation';
 import { defaultCareerProfile } from '../src/career-state';
@@ -53,8 +53,9 @@ export function fitOriginCurves(rows: IncomeSample[]): OriginFit {
     return [key,fitIncomeCurve(values,false,lower/values.length,.8)];
   }));
   const fees: Record<string, OriginFeeCurve> = {};
-  for(const provider of [...new Set(eligible.map(r=>r.contract.factionId!))].sort()) {
-    const positions=eligible.filter(r=>r.contract.factionId===provider).map(r=>originIncomePosition(originWorkload(r.contract,routeWorkloads),curves[originKey(r.contract)]));
+  const repriced=eligible.filter(r=>!retainedProgrammeIncome(r.contract));
+  for(const provider of [...new Set(repriced.map(r=>r.contract.factionId!))].sort()) {
+    const positions=repriced.filter(r=>r.contract.factionId===provider).map(r=>originIncomePosition(originWorkload(r.contract,routeWorkloads),curves[originKey(r.contract)]));
     fees[provider]=[...middlePair(positions.filter(p=>p.band===0).map(p=>p.workload)),
       ...middlePair(positions.filter(p=>p.band===1).map(p=>p.workload)),
       ...middlePair(positions.filter(p=>p.band===2).map(p=>p.workload))] as unknown as OriginFeeCurve;
@@ -67,7 +68,7 @@ export function networkNet(c: CareerContract) {
 }
 export function projectedOriginNet(c: CareerContract,fit:OriginFit) {
   const curve=originEligible(c)?fit.curves[originKey(c)]:undefined,fees=fit.fees[c.factionId!];
-  if(!curve||!fees||c.factionId==='covenant-remnants')return networkNet(c);
+  if(!curve||!fees||retainedProgrammeIncome(c))return networkNet(c);
   const target=incomeTargetId(c.factionId)!;
   const local=originIncomeCredits(originIncomePosition(originWorkload(c,fit.routeWorkloads),curve),
     CONTRACT_INCOME_TARGETS[target] as readonly number[],incomeBoundaries(target)!,fees);
@@ -76,7 +77,7 @@ export function projectedOriginNet(c: CareerContract,fit:OriginFit) {
 export function auditOriginIncome(rows:IncomeSample[],fit:OriginFit) {
   const zero=defaultCareerProfile();
   const data=rows.map(r=>{const c=r.contract,net=projectedOriginNet(c,fit),minimum=Math.max(contractWorkPolicy(c)?.trust??0,incomeEconomicMinimum(c.factionId,net)??0);
-    return {...r,physical:physicalTerminalId(r.boardSource),net,minimum,ordinary:originEligible(c)};});
+    return {...r,physical:physicalTerminalId(r.boardSource),net,minimum,ordinary:originEligible(c)&&!retainedProgrammeIncome(c)};});
   const origins=[...new Set(data.map(r=>r.physical))].sort().map(origin=>{
     const pool=data.filter(r=>r.physical===origin),days=[...new Set(pool.map(r=>r.day))];
     const sample=days.map(day=>{

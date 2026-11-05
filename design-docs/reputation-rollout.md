@@ -3,6 +3,10 @@
 Updated: 2026-11-04 (Pacific)
 Status: **Implemented locally in `8e2d9b0`**, following policy/approval commit `3ddf781`. Pete approves all recommendations following the [coverage audit](contract-reputation-coverage.md), including all five civilian pools reading Institutions and paid Guild operations (including skim work) using commercial recognition and 8k/75k/125k net medians. The multimillion-credit skim exception is removed from new quotes. No push/deploy.
 
+## November 4 origin-pricing correction
+
+**`0c6c7dc`** fixes the subsequent Fuyuan entry gap with [origin-aware ordinary income](contract-income-origins.md). Local freight has a larger entry buffer; employer pay medians, gates, attribution and settlement safeguards below remain. Provider-wide ordinary curves and the old route-smoke budget figures below are prior-stage evidence, not current ordinary pricing or campaign-balance results. Covenant's reviewed import curve remains unchanged.
+
 ## Runtime scope
 
 - All **34 public providers** have real acceptance gates, not merely disabled-looking board rows. Economic minimum uses the offered net-at-par quote, combined with authored trust. Unknown paid policies/nonfinite earnings fail closed. Equality stays in the lower band; standing uses completed levels, not rounded fractions.

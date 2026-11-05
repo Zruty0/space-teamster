@@ -4,7 +4,8 @@ import type { IncomeCurve } from './contract-income';
 export const CERBERUS_PREMIUM_CURVE: readonly [number, number] = [914612, 915040];
 export const DAEDALUS_PREMIUM_CURVE: readonly [number, number] = [424700, 424700];
 
-/** Fixed public-board workload references; rollout fits exclude important work.
+/** Provider-wide fallback and retained programme/entrusted references; fits exclude important work.
+ * Current ordinary local-market quotes use contract-income-origin-curves.ts instead.
  * Reproduce with tests/run-rollout-calibration.mjs; Covenant and GOV/Sahra use broader references.
  * Ordinary: median-low/high, cut, median-low/high, cut, median-low/high. Single band: median-low/high.
  * Median plateaus preserve the median of discrete/even samples; equal workloads never get random fees.

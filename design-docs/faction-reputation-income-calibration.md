@@ -1,7 +1,7 @@
 # Reputation income — approved boundaries and calibration direction
 
 Updated: 2026-11-04 (Pacific)
-Status: **Approved calibrated pricing and gates are implemented for all 34 public providers.** Important-work pools are separate; broader GOV/Sahra references and gentle entry shoulders resolve the rollout blockers. Seasonal mix variation is reported, not hidden with quotas. [Current fit/validation](reputation-rollout.md).
+Status: **Approved calibrated pricing and gates are implemented for all 34 public providers.** Latest ordinary calibration is [origin-aware](contract-income-origins.md), with selected local reference mixes 30/50/20 freight and 20/60/20 passenger to support the requested lower-band supply. Prior provider-wide mix statistics below are historical; medians/caps remain unchanged. Important-work pools are separate; broader GOV/Sahra references and gentle entry shoulders resolve the rollout blockers. Seasonal mix variation is reported, not hidden with quotas. [Current fit/validation](reputation-rollout.md).
 
 Prior implementation status (historical): **Approved November 3; first new-posting pricing pass implemented in `c8037f5`.** See [runtime scope, fit and remaining drift](faction-reputation-income-implementation.md). Combine and Cerberus gates/progression are active (CHR `7992ffb`); the remaining factions are still deferred. Pete approves the cap proposal and calibration, replacing the suggested 40/40/20 offer mix with **20/60/20**, so most offers unlock at tier 1. The [22-row median table](faction-reputation-income-targets.md) was approved in `d3ca63a`. Initial fitting/tail behavior is implemented; broader balance and other factions' reputation gains/political outcomes remain unresolved. Wind work remains separate.
 

@@ -146,6 +146,13 @@ export function ordinaryContractNetCredits(contract: IncomeIdentity, fuel: numbe
   return calibratedNetCredits(id, fuel, curve);
 }
 
+/** Reviewed programmes whose existing calibrated rates must survive local-market refitting. */
+export function retainedProgrammeIncome(contract: IncomeIdentity): boolean {
+  return contract.factionId === 'covenant-remnants' || (contract.factionId === 'teamsters-guild'
+    && (contract.templateId === 'skim-precursor-alpha' || contract.templateId === 'skim-precursor-beta'
+      || contract.templateId?.startsWith('balor-skim-') === true));
+}
+
 /** Origin-aware pricing for ordinary, trust-zero work. Local workload bands and employer fee
  * medians are separate: a high launch cost alone must not exclude all entry work at a port.
  * Directory aliases share a physical market; surface/orbital departures remain separate.
@@ -154,10 +161,10 @@ export function ordinaryContractNetCredits(contract: IncomeIdentity, fuel: numbe
  */
 export function originContractNetCredits(contract: IncomeIdentity, quote: MissionCostQuote): number {
   const network = ordinaryContractNetCredits(contract, quote.parFuelCost);
-  // Covenant imports retain their separately reviewed curve: pooling bulky provisions with
-  // unrelated shippers erased its public introduction offers and its compact premium pool.
+  // Preserve Covenant's public introduction/premium pool and calibrated near-star Guild
+  // risk premiums. A sparse single-programme departure is not automatically cheap work.
   if (incomeCalibrationKind(contract) !== 'ordinary' || contractWorkPolicy(contract)?.trust !== 0
-    || contract.factionId === 'covenant-remnants') return network;
+    || retainedProgrammeIncome(contract)) return network;
   const source = physicalTerminalId(quote.sourceId), destination = physicalTerminalId(quote.destinationId);
   const key = `${source}|${contract.category === 'passenger' ? 'passenger' : 'freight'}`;
   const curve = ORIGIN_INCOME_CURVES[key], fees = ORIGIN_EMPLOYER_FEES[contract.factionId!];

@@ -47,6 +47,9 @@ for(const {contract:c} of rows) {
     if(c.quote.expectedMargin<base)discounted++;
     if(c.quote.expectedMargin>base)increased++;
     if(c.factionId==='covenant-remnants')assert(c.quote.expectedMargin===base,'Covenant retains reviewed import pricing, public on-ramp and premium pool');
+    if(c.factionId==='teamsters-guild'&&(c.templateId?.startsWith('balor-skim-')||['skim-precursor-alpha','skim-precursor-beta'].includes(c.templateId!))) {
+      assert(c.quote.expectedMargin===base,'near-star Guild work retains its approved calibrated risk premium, not a sparse-market entry price');
+    }
     assert(originContractNetCredits(c,c.quote)===c.quote.expectedMargin,'local quote uses physical origin, category and provider');
     // Equivalent directory aliases use one market; display labels and issuer names do not price work.
     equal(calibrateNewContractQuote({...c,templateId:c.templateId},c.quote),c.quote,'same identity/route always same price');
