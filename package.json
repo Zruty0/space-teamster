@@ -11,6 +11,8 @@
     "test:reputation": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/reputation.test.ts && node tests/run-equipment.mjs tests/contract-reputation.test.ts && node tests/run-equipment.mjs tests/cerberus-reputation.test.ts",
     "test:income": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/contract-income.test.ts",
     "audit:income": "node tests/run-income-audit.mjs",
+    "test:income-origins": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/origin-income.test.ts",
+    "audit:income-origins": "node tests/run-origin-income-audit.mjs",
     "test:reputation-rollout": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/reputation-rollout.test.ts && node tests/run-equipment.mjs tests/contract-gate-coverage.test.ts",
     "test:reputation-routes": "tsc -p tsconfig.tests.json && node tests/run-equipment.mjs tests/reputation-route-smoke.test.ts",
     "audit:reputation-rollout": "node tests/run-rollout-calibration.mjs",

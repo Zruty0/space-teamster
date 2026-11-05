@@ -4,6 +4,9 @@ import { EMPLOYER_REPUTATION_PROVIDER_KEYS } from './employer-reputation';
 import { contractFuelCompensation, contractGrossPay, type MissionCostQuote } from './mission-cost';
 import { CONTRACT_INCOME_CURVES, CERBERUS_PREMIUM_CURVE, DAEDALUS_PREMIUM_CURVE } from './contract-income-curves';
 import { contractWorkPolicy } from './contract-work-policy';
+import { physicalTerminalId } from './physical-terminals';
+import { ORIGIN_INCOME_CURVES, ORIGIN_ROUTE_WORKLOADS, ORIGIN_EMPLOYER_FEES } from './contract-income-origin-curves';
+import { originIncomePosition, originIncomeCredits } from './origin-income-math';
 
 /** Approved net credits at par, not gross pay or per-job guarantees. Null means no such band. */
 export const CONTRACT_INCOME_TARGETS = {
@@ -124,6 +127,8 @@ export function gentleEntryNetCredits(id: IncomeTargetId, fuel: number, curve: I
   return Math.min(incomeBoundaries(id)![0], Math.round(fuel < curve[0] ? median * Math.sqrt(fuel / curve[0])
     : fuel > curve[1] ? median * (1 + upperSlope * Math.log2(fuel / curve[1])) : median));
 }
+/** Provider-wide baseline/fallback and preserved entrusted pricing. New ordinary offers use
+ * originContractNetCredits below; this function alone is not the current local-market quote. */
 export function ordinaryContractNetCredits(contract: IncomeIdentity, fuel: number): number {
   if (!Number.isFinite(fuel) || fuel < 0) throw new Error('Invalid income workload.');
   const provider = contract.factionId!, id = incomeTargetId(provider)!, curve = CONTRACT_INCOME_CURVES[provider];
@@ -141,6 +146,32 @@ export function ordinaryContractNetCredits(contract: IncomeIdentity, fuel: numbe
   return calibratedNetCredits(id, fuel, curve);
 }
 
+/** Origin-aware pricing for ordinary, trust-zero work. Local workload bands and employer fee
+ * medians are separate: a high launch cost alone must not exclude all entry work at a port.
+ * Directory aliases share a physical market; surface/orbital departures remain separate.
+ * Reference route workload (not today's transfer fuel) prevents seasonal starter starvation.
+ * Real par/actual fuel accounting is untouched; the fixed-pay component absorbs the difference.
+ */
+export function originContractNetCredits(contract: IncomeIdentity, quote: MissionCostQuote): number {
+  const network = ordinaryContractNetCredits(contract, quote.parFuelCost);
+  // Covenant imports retain their separately reviewed curve: pooling bulky provisions with
+  // unrelated shippers erased its public introduction offers and its compact premium pool.
+  if (incomeCalibrationKind(contract) !== 'ordinary' || contractWorkPolicy(contract)?.trust !== 0
+    || contract.factionId === 'covenant-remnants') return network;
+  const source = physicalTerminalId(quote.sourceId), destination = physicalTerminalId(quote.destinationId);
+  const key = `${source}|${contract.category === 'passenger' ? 'passenger' : 'freight'}`;
+  const curve = ORIGIN_INCOME_CURVES[key], fees = ORIGIN_EMPLOYER_FEES[contract.factionId!];
+  // New/unrepresented markets retain the prior fixed provider policy and are exposed by audits.
+  if (!curve || !fees) return network;
+  if (!Number.isFinite(quote.loadedMassTons) || quote.loadedMassTons <= 0) throw new Error('Invalid income load.');
+  const reference = ORIGIN_ROUTE_WORKLOADS[`${source}|${destination}`];
+  const workload = reference === undefined ? quote.parFuelCost : Math.round(reference * quote.loadedMassTons);
+  const target = incomeTargetId(contract.factionId)!;
+  const local = originIncomeCredits(originIncomePosition(workload, curve),
+    CONTRACT_INCOME_TARGETS[target] as readonly number[], incomeBoundaries(target)!, fees);
+  return local;
+}
+
 /** New-offer construction only. Never run on load, acceptance, retries or settlement.
  * The credited fixed amount includes unreimbursed par fuel; old ordinary fee components are
  * replaced, NOT added again. Original reimbursement ratio/cap and every route/cargo field survive.
@@ -150,7 +181,7 @@ export function calibrateNewContractQuote(contract: IncomeIdentity, quote: Missi
   if (!kind) return quote;
   if (!Number.isFinite(quote.parFuelCost) || quote.parFuelCost < 0) throw new Error('Invalid income workload.');
   const net = kind === 'important' ? contractWorkPolicy(contract)!.importantNet!
-    : ordinaryContractNetCredits(contract, quote.parFuelCost);
+    : originContractNetCredits(contract, quote);
   const reimbursement = contractFuelCompensation(quote.pay, quote.parFuelCost, quote.parFuelCost);
   const fixed = net + quote.parFuelCost - reimbursement;
   if (!Number.isFinite(fixed) || fixed < 0) throw new Error('Income calibration requires review of fuel reimbursement.');
