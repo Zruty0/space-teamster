@@ -11,31 +11,64 @@
     #dev-panel {
       display: none;
       position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 320px;
-      max-height: 90vh;
-      overflow-y: auto;
-      background: rgba(0, 20, 0, 0.9);
-      border: 1px solid #0a0;
-      color: #0f0;
+      inset: 10px 10px auto auto;
+      width: min(1180px, calc(100vw - 20px));
+      max-height: calc(100vh - 20px);
+      overflow: auto;
+      background: rgba(0, 12, 8, 0.96);
+      border: 1px solid #0a8;
+      box-shadow: 0 0 24px #000;
+      color: #bfffe8;
       font-family: 'Courier New', monospace;
       font-size: 11px;
       padding: 10px;
       z-index: 100;
     }
-    #dev-panel h3 { color: #0f0; margin: 8px 0 4px; font-size: 12px; }
-    #dev-panel label { display: flex; justify-content: space-between; align-items: center; margin: 2px 0; }
-    #dev-panel input[type="range"] { width: 120px; accent-color: #0f0; }
-    #dev-panel input[type="checkbox"] { accent-color: #0f0; }
-    #dev-panel .val { min-width: 50px; text-align: right; }
-    #dev-panel button {
-      background: #030; border: 1px solid #0a0; color: #0f0;
-      padding: 4px 12px; cursor: pointer; margin-top: 8px; font-family: inherit;
+    #dev-panel h2 { color: #0fc; margin: 0; font-size: 14px; }
+    #dev-panel h3 { color: #0fc; margin: 12px 0 4px; font-size: 12px; }
+    #dev-panel button, #dev-panel select, #dev-panel input {
+      background: #031c16; border: 1px solid #087; color: #bfffe8;
+      padding: 5px 10px; cursor: pointer; font-family: inherit;
     }
-    #dev-panel button:hover { background: #050; }
+    #dev-panel button:hover, #dev-panel button.active { background: #075; color: #fff; }
+    #dev-panel button:disabled { border-color: #345; color: #567; cursor: default; background: #031411; }
+    #dev-panel .dev-mechanic-controls { display: inline-flex; gap: 2px; white-space: nowrap; }
+    #dev-panel .dev-mechanic-controls button { min-width: 22px; padding: 2px 4px; font-size: 10px; line-height: 1.1; }
+    #dev-panel .dev-component-damage { display: flex; gap: 3px; margin-top: 4px; white-space: nowrap; }
+    #dev-panel .dev-component-damage button { padding: 2px 5px; font-size: 9px; line-height: 1.1; }
+    #dev-panel table { width: 100%; min-width: 1040px; border-collapse: collapse; table-layout: auto; }
+    #dev-panel table.dev-compact { min-width: 420px; }
+    #dev-panel .dev-table-scroll { overflow-x: auto; }
+    #dev-panel th, #dev-panel td { padding: 4px 6px; border: 1px solid #16483c; vertical-align: top; text-align: left; }
+    #dev-panel th { position: sticky; top: 0; background: #06271f; color: #5fffd2; }
+    #dev-panel td small { display: block; color: #78a99b; white-space: normal; margin-top: 2px; }
+    #dev-panel ul { margin: 3px 0 3px 18px; }
+    #dev-panel .dev-panel-header { display: flex; justify-content: space-between; align-items: center; color: #78a99b; }
+    #dev-panel .dev-tabs { display: flex; gap: 6px; margin: 8px 0; position: sticky; top: -10px; background: #000c08; padding: 8px 0; z-index: 3; }
+    #dev-panel .dev-system { overflow-x: auto; }
+    #dev-panel .dev-status { padding: 1px 5px; border: 1px solid currentColor; font-size: 10px; }
+    #dev-panel .dev-ok, #dev-panel .dev-ok.dev-status { color: #53ff9a; }
+    #dev-panel .dev-warning, #dev-panel .dev-hp-hit { color: #ffd45a; }
+    #dev-panel .dev-hp-hit { font-weight: bold; }
+    #dev-panel .dev-alert { color: #ff6262; }
+    #dev-panel .dev-absent { color: #789; }
+    #dev-panel .dev-summary { border: 1px solid #16483c; background: #031914; padding: 7px; line-height: 1.45; }
+    #dev-panel .dev-ledger-select { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    #dev-panel .dev-ledger-select select { min-width: min(700px, 80vw); }
+    #dev-panel .dev-rank { border-bottom: 1px solid #16483c; padding: 0 0 10px; }
+    #dev-panel .dev-rank-title { font-size: 13px; margin: 5px 0; }
+    #dev-panel .dev-rank form { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    #dev-panel .dev-rank input { width: 110px; cursor: text; }
+    #dev-panel .dev-rank-bars { display: flex; gap: 5px; margin: 7px 0; }
+    #dev-panel .dev-rank-bars span { display: block; width: 30px; height: 11px; background: #102c2c; outline: 1px solid #397579; }
+    #dev-panel .dev-rank-bars i { display: block; height: 100%; background: #4ddcff; }
+    #dev-panel .dev-rank-message { min-height: 24px; padding: 6px 0; color: #ffd45a; }
+    @media (max-width: 700px) {
+      #dev-panel { inset: 0; width: 100vw; max-height: 100vh; border-width: 0; }
+      #dev-panel .dev-tabs { top: -10px; }
+    }
   </style>
-  <script type="module" crossorigin src="./assets/index-GJM9wN-Z.js"></script>
+  <script type="module" crossorigin src="./assets/index-CtpXMGu0.js"></script>
 </head>
 <body>
   <canvas id="game"></canvas>
